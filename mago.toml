@@ -1,0 +1,18 @@
+php-version = "8.4"
+
+[source]
+paths = ["src", "tests"]
+includes = ["vendor"]
+
+[linter]
+integrations = ["phpunit"]
+
+[linter.rules.assertion-style]
+level = "error"
+
+[linter.rules.literal-named-argument]
+level = "error"
+
+[linter.rules.too-many-methods]
+level = "error"
+threshold = 11

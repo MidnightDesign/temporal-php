@@ -1,0 +1,11 @@
+# Excluded from `git archive` (e.g. GitHub release tarballs)
+/.github export-ignore
+/.claude export-ignore
+/tests export-ignore
+phpunit.xml export-ignore
+phpstan.neon export-ignore
+psalm.xml export-ignore
+mago.toml export-ignore
+infection.json5 export-ignore
+docker-compose.yml export-ignore
+Dockerfile export-ignore

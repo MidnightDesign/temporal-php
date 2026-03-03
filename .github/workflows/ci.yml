@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  ci:
+    name: PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php: ["8.4", "8.5"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: zip
+          coverage: pcov
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Check formatting (Mago)
+        run: ./vendor/bin/mago format --check
+
+      - name: Lint (Mago)
+        run: ./vendor/bin/mago lint
+
+      - name: Analyze (Mago)
+        run: ./vendor/bin/mago analyze
+
+      - name: Static analysis (PHPStan)
+        run: ./vendor/bin/phpstan analyse
+
+      - name: Static analysis (Psalm)
+        run: ./vendor/bin/psalm
+
+      - name: Tests (PHPUnit)
+        run: ./vendor/bin/phpunit tests/ --coverage-xml build/coverage/coverage-xml --log-junit build/coverage/junit.xml
+
+      - name: Mutation testing (Infection)
+        if: matrix.php == '8.4'
+        run: ./vendor/bin/infection --threads=max --coverage=build/coverage --skip-initial-tests
