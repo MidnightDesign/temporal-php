@@ -7,14 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance_1 = new \Temporal\Duration(1);
 $instance_2 = new \Temporal\Duration(2);
-$invalidStrings = [
-    ['',        'empty string'],
-    ['notacal', 'Unknown calendar'],
-];
+$invalidStrings = [['', 'empty string'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as [$cal, $description]) {
-    $arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
-    Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+$arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
+Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
 }

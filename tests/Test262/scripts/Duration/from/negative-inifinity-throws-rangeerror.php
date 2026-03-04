@@ -7,19 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-$fields = [
-    'years',
-    'months',
-    'weeks',
-    'days',
-    'hours',
-    'minutes',
-    'seconds',
-    'milliseconds',
-    'microseconds',
-    'nanoseconds',
-];
+$fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-    Assert::incomplete('untranslatable object property');
+Assert::incomplete('untranslatable object property');
 }

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration = \Temporal\Duration::from(['seconds' => 9_007_199_254_740_991, 'milliseconds' => 999]);
 $options = ['smallestUnit' => 'seconds', 'roundingMode' => 'ceil'];
 Assert::throws(\InvalidArgumentException::class, fn() => $duration->toString($options), '');

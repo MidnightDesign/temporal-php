@@ -7,15 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-$invalidStrings = [
-    ['2025-04-03T05:07.123[CET]', 'Fractional minutes'],
-    ['2025-04-03T12.5[CET]',      'Fractional hours'],
-];
+$invalidStrings = [['2025-04-03T05:07.123[CET]', 'Fractional minutes'], ['2025-04-03T12.5[CET]', 'Fractional hours']];
 foreach ($invalidStrings as [$arg, $description]) {
-    Assert::throws(
-        \InvalidArgumentException::class,
-        fn() => \Temporal\Instant::from($arg),
-        "{$description} not allowed in time string",
-    );
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::from($arg), "{$description} not allowed in time string");
 }

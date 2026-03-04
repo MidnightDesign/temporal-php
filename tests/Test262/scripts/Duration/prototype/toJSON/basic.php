@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d = new \Temporal\Duration();
 Assert::sameValue($d->toJSON(), 'PT0S', 'blank duration');
 $d = new \Temporal\Duration(1);

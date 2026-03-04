@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $blank1 = new \Temporal\Duration();
 $blank2 = new \Temporal\Duration();
 Assert::incomplete('untranslatable: destructuring assignment');

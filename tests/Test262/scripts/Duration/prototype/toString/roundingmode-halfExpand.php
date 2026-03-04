@@ -7,29 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 123, 987, 500);
 $result1 = $duration->toString(['smallestUnit' => 'microsecond', 'roundingMode' => 'halfExpand']);
 Assert::sameValue($result1, 'P1Y2M3W4DT5H6M7.123988S', 'roundingMode is halfExpand (with 6 digits from smallestUnit)');
 $result2 = $duration->toString(['fractionalSecondDigits' => 6, 'roundingMode' => 'halfExpand']);
-Assert::sameValue(
-    $result2,
-    'P1Y2M3W4DT5H6M7.123988S',
-    'roundingMode is halfExpand (with 6 digits from fractionalSecondDigits)',
-);
+Assert::sameValue($result2, 'P1Y2M3W4DT5H6M7.123988S', 'roundingMode is halfExpand (with 6 digits from fractionalSecondDigits)');
 $result3 = $duration->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfExpand']);
 Assert::sameValue($result3, 'P1Y2M3W4DT5H6M7.124S', 'roundingMode is halfExpand (with 3 digits from smallestUnit)');
 $result4 = $duration->toString(['fractionalSecondDigits' => 3, 'roundingMode' => 'halfExpand']);
-Assert::sameValue(
-    $result4,
-    'P1Y2M3W4DT5H6M7.124S',
-    'roundingMode is halfExpand (with 3 digits from fractionalSecondDigits)',
-);
+Assert::sameValue($result4, 'P1Y2M3W4DT5H6M7.124S', 'roundingMode is halfExpand (with 3 digits from fractionalSecondDigits)');
 $result5 = $duration->toString(['smallestUnit' => 'second', 'roundingMode' => 'halfExpand']);
 Assert::sameValue($result5, 'P1Y2M3W4DT5H6M7S', 'roundingMode is halfExpand (with 0 digits from smallestUnit)');
 $result6 = $duration->toString(['fractionalSecondDigits' => 0, 'roundingMode' => 'halfExpand']);
-Assert::sameValue(
-    $result6,
-    'P1Y2M3W4DT5H6M7S',
-    'roundingMode is halfExpand (with 0 digits from fractionalSecondDigits)',
-);
+Assert::sameValue($result6, 'P1Y2M3W4DT5H6M7S', 'roundingMode is halfExpand (with 0 digits from fractionalSecondDigits)');

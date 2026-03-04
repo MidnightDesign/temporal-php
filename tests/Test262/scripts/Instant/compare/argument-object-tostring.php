@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $epoch = new \Temporal\Instant(0);
 $arg = [];
 Assert::incomplete('JS object-to-string coercion not replicable in PHP');

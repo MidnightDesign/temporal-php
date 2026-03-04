@@ -7,52 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Instant(-999_999_999_999_999_990);
 $roundedDown = '1938-04-24T22:13:20.000Z';
 $roundedUp = '1938-04-24T22:13:20.001Z';
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfCeil']),
-    $roundedDown,
-    'Rounding with halfCeil rounds to the closest millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfFloor']),
-    $roundedDown,
-    'Rounding with halfFloor rounds to the closest millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfExpand']),
-    $roundedDown,
-    'Rounding with halfExpand rounds to the closest millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfTrunc']),
-    $roundedDown,
-    'Rounding with halfTrunc rounds to the closest millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfEven']),
-    $roundedDown,
-    'Rounding with halfEven rounds to the closest millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'ceil']),
-    $roundedUp,
-    'Rounding with ceil rounds to the next millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'floor']),
-    $roundedDown,
-    'Rounding with floor rounds to the closest millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'expand']),
-    $roundedUp,
-    'Rounding with expand rounds to the next millisecond',
-);
-Assert::sameValue(
-    $instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'trunc']),
-    $roundedDown,
-    'Rounding with trunc rounds to the closest millisecond',
-);
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfCeil']), $roundedDown, 'Rounding with halfCeil rounds to the closest millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfFloor']), $roundedDown, 'Rounding with halfFloor rounds to the closest millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfExpand']), $roundedDown, 'Rounding with halfExpand rounds to the closest millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfTrunc']), $roundedDown, 'Rounding with halfTrunc rounds to the closest millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfEven']), $roundedDown, 'Rounding with halfEven rounds to the closest millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'ceil']), $roundedUp, 'Rounding with ceil rounds to the next millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'floor']), $roundedDown, 'Rounding with floor rounds to the closest millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'expand']), $roundedUp, 'Rounding with expand rounds to the next millisecond');
+Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'trunc']), $roundedDown, 'Rounding with trunc rounds to the closest millisecond');

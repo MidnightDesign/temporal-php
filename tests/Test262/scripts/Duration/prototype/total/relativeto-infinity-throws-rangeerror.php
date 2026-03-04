@@ -8,31 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $instance = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
-$base = [
-    'year' => 2000,
-    'month' => 5,
-    'day' => 2,
-    'hour' => 15,
-    'minute' => 30,
-    'second' => 45,
-    'millisecond' => 987,
-    'microsecond' => 654,
-    'nanosecond' => 321,
-];
+$base = ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 15, 'minute' => 30, 'second' => 45, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
 foreach ([INF, -INF] as $inf) {
-    foreach ([
-        'year',
-        'month',
-        'day',
-        'hour',
-        'minute',
-        'second',
-        'millisecond',
-        'microsecond',
-        'nanosecond',
-    ] as $prop) {
-        Assert::incomplete('untranslatable object property');
-    }
+foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
+Assert::incomplete('untranslatable object property');
+}
 }

@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $expectedHours = new \Temporal\Duration(0, 0, 0, 0, -24, -34, -4, -404, -442, -800);
 Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');

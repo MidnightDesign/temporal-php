@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $duration = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');

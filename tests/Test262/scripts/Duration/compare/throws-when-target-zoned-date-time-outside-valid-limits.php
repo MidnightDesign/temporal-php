@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $blank = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');

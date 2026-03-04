@@ -7,14 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $wholeSeconds = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7);
 $subSeconds = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650);
-$tests = [
-    [$wholeSeconds, 'P1Y2M3W4DT5H6M7S'],
-    [$subSeconds,   'P1Y2M3W4DT5H6M7.98765S'],
-];
+$tests = [[$wholeSeconds, 'P1Y2M3W4DT5H6M7S'], [$subSeconds, 'P1Y2M3W4DT5H6M7.98765S']];
 foreach ($tests as [$duration, $expected]) {
-    Assert::sameValue($duration->toString(), $expected, 'default is to emit seconds and drop trailing zeroes');
-    Assert::sameValue($duration->toString(['fractionalSecondDigits' => 'auto']), $expected, 'auto is the default');
+Assert::sameValue($duration->toString(), $expected, 'default is to emit seconds and drop trailing zeroes');
+Assert::sameValue($duration->toString(['fractionalSecondDigits' => 'auto']), $expected, 'auto is the default');
 }

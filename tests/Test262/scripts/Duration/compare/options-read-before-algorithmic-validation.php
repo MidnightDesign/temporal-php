@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $expected = ['get options.relativeTo'];
 $actual = [];
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

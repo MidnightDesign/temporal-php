@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2000-01-01T00:00+05:30[UTC]';
 Assert::incomplete('Duration::round() is not yet implemented');

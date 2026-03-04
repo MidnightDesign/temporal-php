@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $almostWeek = new \Temporal\Duration(0, 0, 0, 6, 20, 0, 0, 0, 0, 0);
 Assert::incomplete('Duration::round() is not yet implemented');

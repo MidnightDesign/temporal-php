@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Duration(1);
 Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');

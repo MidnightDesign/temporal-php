@@ -8,9 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $instance = new \Temporal\Duration(0, 0, 0, 4, 5, 6, 7, 987, 654, 321);
 $validUnits = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($validUnits as $smallestUnit) {
-    Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('Duration::round() is not yet implemented');
 }

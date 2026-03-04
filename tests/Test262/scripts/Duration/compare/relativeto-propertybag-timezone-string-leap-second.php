@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
 Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');

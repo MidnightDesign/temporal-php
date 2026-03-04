@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $roundingMode = 'expand';
 $duration = new \Temporal\Duration(0, 0, 0, 0, 1, 59, 59, 900);
 Assert::incomplete('untranslatable object property');

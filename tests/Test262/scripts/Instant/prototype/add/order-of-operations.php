@@ -8,31 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $instance = new \Temporal\Instant(10);
-$expected = [
-    'get fields.days',
-    'get fields.hours',
-    'get fields.hours.valueOf',
-    'call fields.hours.valueOf',
-    'get fields.microseconds',
-    'get fields.microseconds.valueOf',
-    'call fields.microseconds.valueOf',
-    'get fields.milliseconds',
-    'get fields.milliseconds.valueOf',
-    'call fields.milliseconds.valueOf',
-    'get fields.minutes',
-    'get fields.minutes.valueOf',
-    'call fields.minutes.valueOf',
-    'get fields.months',
-    'get fields.nanoseconds',
-    'get fields.nanoseconds.valueOf',
-    'call fields.nanoseconds.valueOf',
-    'get fields.seconds',
-    'get fields.seconds.valueOf',
-    'call fields.seconds.valueOf',
-    'get fields.weeks',
-    'get fields.years',
-];
+$expected = ['get fields.days', 'get fields.hours', 'get fields.hours.valueOf', 'call fields.hours.valueOf', 'get fields.microseconds', 'get fields.microseconds.valueOf', 'call fields.microseconds.valueOf', 'get fields.milliseconds', 'get fields.milliseconds.valueOf', 'call fields.milliseconds.valueOf', 'get fields.minutes', 'get fields.minutes.valueOf', 'call fields.minutes.valueOf', 'get fields.months', 'get fields.nanoseconds', 'get fields.nanoseconds.valueOf', 'call fields.nanoseconds.valueOf', 'get fields.seconds', 'get fields.seconds.valueOf', 'call fields.seconds.valueOf', 'get fields.weeks', 'get fields.years'];
 $actual = [];
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

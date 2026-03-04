@@ -7,13 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-$tests = [
-    ['1970-01-01T00:00Z', 'uppercase T'],
-    ['1970-01-01t00:00Z', 'lowercase T'],
-    ['1970-01-01 00:00Z', 'space between date and time'],
-];
+$tests = [['1970-01-01T00:00Z', 'uppercase T'], ['1970-01-01t00:00Z', 'lowercase T'], ['1970-01-01 00:00Z', 'space between date and time']];
 foreach ($tests as [$arg, $description]) {
-    $result = \Temporal\Instant::from($arg);
-    Assert::sameValue($result->epochNanoseconds, 0, "variant time separators ({$description})");
+$result = \Temporal\Instant::from($arg);
+Assert::sameValue($result->epochNanoseconds, 0, "variant time separators ({$description})");
 }

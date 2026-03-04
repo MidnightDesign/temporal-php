@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $d1 = \Temporal\Duration::from(['milliseconds' => 1000, 'month' => 1]);
 TemporalHelpers::assertDuration($d1, 0, 0, 0, 0, 0, 0, 0, 1000, 0, 0);
 $d2 = \Temporal\Duration::from($d1);

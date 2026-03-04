@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $inst1 = new \Temporal\Instant(1_234_567_890_123_456_789);
 $inst2 = new \Temporal\Instant(1_234_567_890_123_456_000);
 $inst3 = new \Temporal\Instant(1_234_567_890_123_456_000);

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $oneYear = new \Temporal\Duration(1);
 $oneMonth = new \Temporal\Duration(0, 1);
 $oneWeek = new \Temporal\Duration(0, 0, 1);

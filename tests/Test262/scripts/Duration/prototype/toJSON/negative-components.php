@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d = new \Temporal\Duration(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1);
 $expected = '-P1Y1M1W1DT1H1M1.001001001S';
 Assert::sameValue($d->toJSON(), $expected, 'toJSON with negative components');

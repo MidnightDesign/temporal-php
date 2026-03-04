@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $inst = \Temporal\Instant::from('1969-12-25T12:23:45.678901234Z');
 Assert::incomplete('Instant::subtract() is not yet implemented');

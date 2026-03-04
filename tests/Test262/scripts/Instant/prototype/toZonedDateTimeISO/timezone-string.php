@@ -7,8 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Instant(0);
 foreach (['UTC', '+01:30'] as $timeZone) {
-    Assert::incomplete('Duration::toZonedDateTimeISO() is not yet implemented');
+Assert::incomplete('Duration::toZonedDateTimeISO() is not yet implemented');
 }

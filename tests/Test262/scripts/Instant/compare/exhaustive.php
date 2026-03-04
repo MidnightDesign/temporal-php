@@ -7,18 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-Assert::sameValue(
-    \Temporal\Instant::compare(
-        new \Temporal\Instant(1_000_000_000_000_000_000),
-        new \Temporal\Instant(500_000_000_000_000_000),
-    ),
-    1,
-    '>',
-);
+Assert::sameValue(\Temporal\Instant::compare(new \Temporal\Instant(1_000_000_000_000_000_000), new \Temporal\Instant(500_000_000_000_000_000)), 1, '>');
 Assert::sameValue(\Temporal\Instant::compare(new \Temporal\Instant(-1000), new \Temporal\Instant(1000)), -1, '<');
-Assert::sameValue(
-    \Temporal\Instant::compare(new \Temporal\Instant(123_456_789), new \Temporal\Instant(123_456_789)),
-    0,
-    '=',
-);
+Assert::sameValue(\Temporal\Instant::compare(new \Temporal\Instant(123_456_789), new \Temporal\Instant(123_456_789)), 0, '=');

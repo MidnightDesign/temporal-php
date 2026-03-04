@@ -7,140 +7,35 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(4_294_967_296), 'years > max');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(-4_294_967_296), 'years < min');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 4_294_967_296), 'months > max');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, -4_294_967_296), 'months < min');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 4_294_967_296), 'weeks > max');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, -4_294_967_296), 'weeks < min');
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 104_249_991_375),
-    'days > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 104_249_991_374, 24),
-    'hours balance into days > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, -104_249_991_375),
-    'days < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, -104_249_991_374, -24),
-    'hours balance into days < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 2_501_999_792_984),
-    'hours > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 2_501_999_792_983, 60),
-    'minutes balance into hours > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, -2_501_999_792_984),
-    'hours < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, -2_501_999_792_983, -60),
-    'minutes balance into hours < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 150_119_987_579_017),
-    'minutes > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 150_119_987_579_016, 60),
-    'seconds balance into minutes > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, -150_119_987_579_017),
-    'minutes < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, -150_119_987_579_016, -60),
-    'seconds balance into minutes < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_992),
-    'seconds > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 1000),
-    'ms balance into seconds > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 999, 1000),
-    'µs balance into seconds > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 999, 999, 1000),
-    'ns balance into seconds > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_992),
-    'seconds < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -1000),
-    'ms balance into seconds < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -999, -1000),
-    'µs balance into seconds < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -999, -999, -1000),
-    'ns balance into seconds < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 8_998_192_055_486_252, 9_007_199_254_740_991, 0, 0),
-    'max ms balance into s > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -8_998_192_055_486_252, -9_007_199_254_740_991, 0, 0),
-    'min ms balance into s < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_190_247_541_738, 0, 9_007_199_254_740_991, 0),
-    'max µs balance into s > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_190_247_541_738, 0, -9_007_199_254_740_991, 0),
-    'min µs balance into s < min',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_245_733_793, 0, 0, 9_007_199_254_740_991),
-    'max ns balance into s > max',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_245_733_793, 0, 0, -9_007_199_254_740_991),
-    'min ns balance into s < min',
-);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 104_249_991_375), 'days > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 104_249_991_374, 24), 'hours balance into days > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, -104_249_991_375), 'days < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, -104_249_991_374, -24), 'hours balance into days < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 2_501_999_792_984), 'hours > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 2_501_999_792_983, 60), 'minutes balance into hours > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, -2_501_999_792_984), 'hours < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, -2_501_999_792_983, -60), 'minutes balance into hours < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 150_119_987_579_017), 'minutes > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 150_119_987_579_016, 60), 'seconds balance into minutes > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, -150_119_987_579_017), 'minutes < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, -150_119_987_579_016, -60), 'seconds balance into minutes < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_992), 'seconds > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 1000), 'ms balance into seconds > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 999, 1000), 'µs balance into seconds > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 999, 999, 1000), 'ns balance into seconds > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_992), 'seconds < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -1000), 'ms balance into seconds < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -999, -1000), 'µs balance into seconds < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -999, -999, -1000), 'ns balance into seconds < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 8_998_192_055_486_252, 9_007_199_254_740_991, 0, 0), 'max ms balance into s > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -8_998_192_055_486_252, -9_007_199_254_740_991, 0, 0), 'min ms balance into s < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_190_247_541_738, 0, 9_007_199_254_740_991, 0), 'max µs balance into s > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_190_247_541_738, 0, -9_007_199_254_740_991, 0), 'min µs balance into s < min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_245_733_793, 0, 0, 9_007_199_254_740_991), 'max ns balance into s > max');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_245_733_793, 0, 0, -9_007_199_254_740_991), 'min ns balance into s < min');

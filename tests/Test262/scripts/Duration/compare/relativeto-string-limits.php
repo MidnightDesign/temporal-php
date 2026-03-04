@@ -7,19 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Duration(0, 0, 0, 0, 0, 5);
 $blankInstance = new \Temporal\Duration();
-$validStrings = [
-    '-271821-04-20T00:00Z[UTC]',
-    '+275760-09-13T00:00Z[UTC]',
-    '+275760-09-13T01:00+01:00[+01:00]',
-    '+275760-09-13T23:59+23:59[+23:59]',
-    '-271821-04-19',
-    '-271821-04-19T01:00',
-    '+275760-09-13',
-    '+275760-09-13T23:00',
-];
+$validStrings = ['-271821-04-20T00:00Z[UTC]', '+275760-09-13T00:00Z[UTC]', '+275760-09-13T01:00+01:00[+01:00]', '+275760-09-13T23:59+23:59[+23:59]', '-271821-04-19', '-271821-04-19T01:00', '+275760-09-13', '+275760-09-13T23:00'];
 foreach ($validStrings as $relativeTo) {
-    Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
 }

@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $seconds = 8_692_288_669_465_520;
 $milliseconds = 513;
 $d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, $seconds, $milliseconds);

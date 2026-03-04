@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $fields = ['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 Assert::incomplete('cannot represent value of \'latest\' in PHP (BigInt overflow)');

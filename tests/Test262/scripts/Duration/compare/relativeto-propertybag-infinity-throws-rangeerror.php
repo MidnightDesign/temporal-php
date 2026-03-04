@@ -8,32 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $duration1 = new \Temporal\Duration(0, 0, 0, 1);
 $duration2 = new \Temporal\Duration(0, 0, 0, 0, 24);
-$base = [
-    'year' => 2000,
-    'month' => 5,
-    'day' => 2,
-    'hour' => 15,
-    'minute' => 30,
-    'second' => 45,
-    'millisecond' => 987,
-    'microsecond' => 654,
-    'nanosecond' => 321,
-];
+$base = ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 15, 'minute' => 30, 'second' => 45, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
 foreach ([INF, -INF] as $inf) {
-    foreach ([
-        'year',
-        'month',
-        'day',
-        'hour',
-        'minute',
-        'second',
-        'millisecond',
-        'microsecond',
-        'nanosecond',
-    ] as $prop) {
-        Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
-    }
+foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
+Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+}
 }

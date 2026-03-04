@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $duration1 = \Temporal\Duration::from(['nanoseconds' => 9_007_199_254_740_991]);
 $duration2 = \Temporal\Duration::from(['nanoseconds' => 2, 'days' => 1]);
 Assert::incomplete('untranslatable: BigInt()');

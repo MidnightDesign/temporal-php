@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instant = new \Temporal\Instant(1_000_000_000_123_987_500);
 $explicit1 = $instant->toString(['smallestUnit' => 'microsecond']);
 Assert::sameValue($explicit1, '2001-09-09T01:46:40.123987Z', 'default roundingMode is trunc');

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $expectedPos = new \Temporal\Duration(0, 0, 0, 0, 1, 1, 52, 500);
 $expectedNeg = new \Temporal\Duration(0, 0, 0, 0, -1, -1, -52, -500);
 Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');

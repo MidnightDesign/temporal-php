@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $afterEpoch = new \Temporal\Instant(217_175_010_123_456_789);
 Assert::sameValue($afterEpoch->epochNanoseconds, 217_175_010_123_456_789, 'epochNanoseconds post epoch');
 Assert::incomplete('untranslatable: typeof');

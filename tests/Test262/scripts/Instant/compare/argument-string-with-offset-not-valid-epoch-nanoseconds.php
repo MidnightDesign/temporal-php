@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $one = '+275760-09-13T00:00:00.000-12';
 Assert::incomplete('untranslatable object property');

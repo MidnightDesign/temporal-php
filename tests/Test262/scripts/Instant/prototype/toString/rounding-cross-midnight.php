@@ -7,8 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instant = new \Temporal\Instant(946_684_799_999_999_999);
 foreach (['ceil', 'halfExpand'] as $roundingMode) {
-    Assert::incomplete('untranslatable object property');
+Assert::incomplete('untranslatable object property');
 }

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $one = \Temporal\Duration::from(['nanoseconds' => -9.007_199_254_740_991e+24]);
 $two = \Temporal\Duration::from(['microseconds' => 1_000_000]);
 Assert::throws(\InvalidArgumentException::class, fn() => $one->subtract($two), '');

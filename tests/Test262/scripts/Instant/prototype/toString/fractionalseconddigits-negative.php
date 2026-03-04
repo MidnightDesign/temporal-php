@@ -7,10 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instant = new \Temporal\Instant(-1_000_000_000_000_001_000);
-Assert::sameValue(
-    $instant->toString(),
-    '1938-04-24T22:13:19.999999Z',
-    'epoch milliseconds should be rounded down to compute seconds',
-);
+Assert::sameValue($instant->toString(), '1938-04-24T22:13:19.999999Z', 'epoch milliseconds should be rounded down to compute seconds');

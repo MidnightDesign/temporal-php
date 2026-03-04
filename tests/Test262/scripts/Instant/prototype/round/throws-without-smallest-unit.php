@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $inst = new \Temporal\Instant(0);
 Assert::incomplete('Duration::round() is not yet implemented');

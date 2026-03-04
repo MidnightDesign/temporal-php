@@ -7,23 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Duration(0, 0, 0, 1, 2, 3, 4, 987, 654, 321);
-foreach ([
-    ['year' => 1],
-    ['month' => 2],
-    ['week' => 3],
-    ['day' => 4],
-    ['hour' => 5],
-    ['minute' => 6],
-    ['second' => 7],
-    ['millisecond' => 8],
-    ['microsecond' => 9],
-    ['nanosecond' => 10],
-] as $badObject) {
-    Assert::throws(
-        \TypeError::class,
-        fn() => $instance->subtract($badObject),
-        'Throw TypeError if temporalDurationLike is not valid',
-    );
+foreach ([['year' => 1], ['month' => 2], ['week' => 3], ['day' => 4], ['hour' => 5], ['minute' => 6], ['second' => 7], ['millisecond' => 8], ['microsecond' => 9], ['nanosecond' => 10]] as $badObject) {
+Assert::throws(\TypeError::class, fn() => $instance->subtract($badObject), 'Throw TypeError if temporalDurationLike is not valid');
 }

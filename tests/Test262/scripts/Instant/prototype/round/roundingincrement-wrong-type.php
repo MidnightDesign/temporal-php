@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $instant = new \Temporal\Instant(1_000_000_000_987_654_321);
 Assert::incomplete('TemporalHelpers.checkRoundingIncrementOptionWrongType() is not yet implemented');

@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instant = new \Temporal\Instant(1_000_000_000_987_650_000);
 Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => NAN]), '');

@@ -7,18 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $maxMs = 9_007_199_254_740_990_976;
 $maxUs = 9.007_199_254_740_991e+21;
 $maxNs = 9.007_199_254_740_991e+24;
-$durations = [
-    \Temporal\Duration::from(['seconds' => 9_007_199_254_740_991]),
-    \Temporal\Duration::from(['milliseconds' => $maxMs]),
-    \Temporal\Duration::from(['microseconds' => $maxUs]),
-    \Temporal\Duration::from(['nanoseconds' => $maxNs]),
-    \Temporal\Duration::from(['seconds' => -9_007_199_254_740_991]),
-    \Temporal\Duration::from(['milliseconds' => -$maxMs]),
-    \Temporal\Duration::from(['microseconds' => -$maxUs]),
-    \Temporal\Duration::from(['nanoseconds' => -$maxNs]),
-];
+$durations = [\Temporal\Duration::from(['seconds' => 9_007_199_254_740_991]), \Temporal\Duration::from(['milliseconds' => $maxMs]), \Temporal\Duration::from(['microseconds' => $maxUs]), \Temporal\Duration::from(['nanoseconds' => $maxNs]), \Temporal\Duration::from(['seconds' => -9_007_199_254_740_991]), \Temporal\Duration::from(['milliseconds' => -$maxMs]), \Temporal\Duration::from(['microseconds' => -$maxUs]), \Temporal\Duration::from(['nanoseconds' => -$maxNs])];
 Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');

@@ -7,37 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds(0)->toJSON(), '1970-01-01T00:00:00Z', '');
 $days_in_ms = 24 * 60 * 60 * 1000;
-Assert::sameValue(
-    \Temporal\Instant::fromEpochMilliseconds((365 * $days_in_ms) - 1)->toJSON(),
-    '1970-12-31T23:59:59.999Z',
-    '',
-);
+Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds(365 * $days_in_ms - 1)->toJSON(), '1970-12-31T23:59:59.999Z', '');
 Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds(365 * $days_in_ms)->toJSON(), '1971-01-01T00:00:00Z', '');
-Assert::sameValue(
-    \Temporal\Instant::fromEpochMilliseconds((2 * 365 * $days_in_ms) - 1)->toJSON(),
-    '1971-12-31T23:59:59.999Z',
-    '',
-);
-Assert::sameValue(
-    \Temporal\Instant::fromEpochMilliseconds(2 * 365 * $days_in_ms)->toJSON(),
-    '1972-01-01T00:00:00Z',
-    '',
-);
-Assert::sameValue(
-    \Temporal\Instant::fromEpochMilliseconds(((2 * 365) + 58) * $days_in_ms)->toJSON(),
-    '1972-02-28T00:00:00Z',
-    '',
-);
-Assert::sameValue(
-    \Temporal\Instant::fromEpochMilliseconds(((2 * 365) + 59) * $days_in_ms)->toJSON(),
-    '1972-02-29T00:00:00Z',
-    '',
-);
-Assert::sameValue(
-    \Temporal\Instant::fromEpochMilliseconds(((15 * 365) + 4) * $days_in_ms)->toJSON(),
-    '1985-01-01T00:00:00Z',
-    '',
-);
+Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds(2 * 365 * $days_in_ms - 1)->toJSON(), '1971-12-31T23:59:59.999Z', '');
+Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds(2 * 365 * $days_in_ms)->toJSON(), '1972-01-01T00:00:00Z', '');
+Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds((2 * 365 + 58) * $days_in_ms)->toJSON(), '1972-02-28T00:00:00Z', '');
+Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds((2 * 365 + 59) * $days_in_ms)->toJSON(), '1972-02-29T00:00:00Z', '');
+Assert::sameValue(\Temporal\Instant::fromEpochMilliseconds((15 * 365 + 4) * $days_in_ms)->toJSON(), '1985-01-01T00:00:00Z', '');

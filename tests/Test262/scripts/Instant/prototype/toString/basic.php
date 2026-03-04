@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $afterEpoch = new \Temporal\Instant(217_175_010_123_456_789);
 Assert::sameValue($afterEpoch->toString(), '1976-11-18T14:23:30.123456789Z', 'basic toString() after epoch');
 $beforeEpoch = new \Temporal\Instant(-217_175_010_876_543_211);

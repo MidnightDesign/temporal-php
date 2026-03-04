@@ -7,10 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $earlier = \Temporal\Instant::from('1976-11-18T15:23:30.123456789Z');
 $later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
-    Assert::incomplete('untranslatable object property');
+Assert::incomplete('untranslatable object property');
 }

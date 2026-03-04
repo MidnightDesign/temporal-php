@@ -7,13 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Duration(1, 0, 0, 0, 24);
-$invalidStrings = [
-    ['',        'empty string'],
-    ['notacal', 'Unknown calendar'],
-];
+$invalidStrings = [['', 'empty string'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as [$cal, $description]) {
-    $arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
-    Assert::incomplete('Duration::round() is not yet implemented');
+$arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
+Assert::incomplete('Duration::round() is not yet implemented');
 }

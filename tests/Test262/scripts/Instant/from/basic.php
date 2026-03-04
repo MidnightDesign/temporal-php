@@ -7,34 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $baseValue = 217_178_580_000_000_000;
 $instant = \Temporal\Instant::from('1976-11-18T15:23Z');
 Assert::sameValue($instant->epochNanoseconds, $baseValue, 'ISO string with UTC designator and minutes precision');
 $instant = \Temporal\Instant::from('1976-11-18T15:23:30Z');
-Assert::sameValue(
-    $instant->epochNanoseconds,
-    $baseValue + 30_000_000_000,
-    'ISO string with UTC designator and seconds precision',
-);
+Assert::sameValue($instant->epochNanoseconds, $baseValue + 30_000_000_000, 'ISO string with UTC designator and seconds precision');
 $instant = \Temporal\Instant::from('1976-11-18T15:23:30.123Z');
-Assert::sameValue(
-    $instant->epochNanoseconds,
-    $baseValue + 30_123_000_000,
-    'ISO string with UTC designator and milliseconds precision',
-);
+Assert::sameValue($instant->epochNanoseconds, $baseValue + 30_123_000_000, 'ISO string with UTC designator and milliseconds precision');
 $instant = \Temporal\Instant::from('1976-11-18T15:23:30.123456Z');
-Assert::sameValue(
-    $instant->epochNanoseconds,
-    $baseValue + 30_123_456_000,
-    'ISO string with UTC designator and microseconds precision',
-);
+Assert::sameValue($instant->epochNanoseconds, $baseValue + 30_123_456_000, 'ISO string with UTC designator and microseconds precision');
 $instant = \Temporal\Instant::from('1976-11-18T15:23:30.123456789Z');
-Assert::sameValue(
-    $instant->epochNanoseconds,
-    $baseValue + 30_123_456_789,
-    'ISO string with UTC designator and nanoseconds precision',
-);
+Assert::sameValue($instant->epochNanoseconds, $baseValue + 30_123_456_789, 'ISO string with UTC designator and nanoseconds precision');
 $instant = \Temporal\Instant::from('1976-11-18T15:23-01:00');
 Assert::sameValue($instant->epochNanoseconds, $baseValue + 3_600_000_000_000, 'ISO string with negative UTC offset');
 $instant = \Temporal\Instant::from('1976-11-18T15:23+01:00');

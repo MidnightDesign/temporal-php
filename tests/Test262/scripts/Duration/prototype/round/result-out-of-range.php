@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration = \Temporal\Duration::from(['seconds' => 9_007_199_254_740_991, 'nanoseconds' => 999_999_999]);
 Assert::incomplete('Duration::round() is not yet implemented');

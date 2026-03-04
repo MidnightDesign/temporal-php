@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $thePast = new \Temporal\Instant(1_234_567_890_123_456_789);
 $theFuture = new \Temporal\Instant(2_345_678_901_234_567_890);
 Assert::incomplete('Duration::since() is not yet implemented');

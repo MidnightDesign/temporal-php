@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $duration1 = new \Temporal\Duration(1);
 $duration2 = new \Temporal\Duration(0, 12);
 $duration3 = new \Temporal\Duration(0, 0, 5);

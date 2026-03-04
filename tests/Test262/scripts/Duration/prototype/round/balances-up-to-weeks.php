@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $oneMonthOneDay = new \Temporal\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $oneYearOneMonthOneDay = new \Temporal\Duration(1, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $severalWeeksInDays = new \Temporal\Duration(0, 0, 0, 29, 0, 0, 0, 0, 0, 0);

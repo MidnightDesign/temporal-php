@@ -7,20 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Instant(1_000_000_000_000_000_000);
-$fields = [
-    'years',
-    'months',
-    'weeks',
-    'days',
-    'hours',
-    'minutes',
-    'seconds',
-    'milliseconds',
-    'microseconds',
-    'nanoseconds',
-];
+$fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-    Assert::incomplete('Instant::add() is not yet implemented');
+Assert::incomplete('Instant::add() is not yet implemented');
 }

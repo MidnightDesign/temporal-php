@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $earlier = \Temporal\Instant::from('1969-07-24T16:50:35.123456789Z');
 $later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';

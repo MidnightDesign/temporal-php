@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Instant(1_000_000_000_000_000_000);
 Assert::incomplete('Instant::subtract() is not yet implemented');

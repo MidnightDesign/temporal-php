@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $earlier = new \Temporal\Instant(957_270_896_987_654_321);
 $later = new \Temporal\Instant(959_949_296_987_654_322);
 Assert::incomplete('Duration::until() is not yet implemented');

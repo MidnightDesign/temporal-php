@@ -7,16 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-$tests = [
-    ['1970-01-01T00:00Z[foo=bar]',                                     'alone'],
-    ['1970-01-01T00:00Z[UTC][foo=bar]',                                'with time zone'],
-    ['1970-01-01T00:00Z[u-ca=iso8601][foo=bar]',                       'with calendar'],
-    ['1970-01-01T00:00Z[UTC][foo=bar][u-ca=iso8601]',                  'with time zone and calendar'],
-    ['1970-01-01T00:00Z[foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation'],
-];
+$tests = [['1970-01-01T00:00Z[foo=bar]', 'alone'], ['1970-01-01T00:00Z[UTC][foo=bar]', 'with time zone'], ['1970-01-01T00:00Z[u-ca=iso8601][foo=bar]', 'with calendar'], ['1970-01-01T00:00Z[UTC][foo=bar][u-ca=iso8601]', 'with time zone and calendar'], ['1970-01-01T00:00Z[foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
 $instance = new \Temporal\Instant(0);
 foreach ($tests as [$arg, $description]) {
-    $result = $instance->equals($arg);
-    Assert::sameValue($result, true, "unknown annotation ({$description})");
+$result = $instance->equals($arg);
+Assert::sameValue($result, true, "unknown annotation ({$description})");
 }

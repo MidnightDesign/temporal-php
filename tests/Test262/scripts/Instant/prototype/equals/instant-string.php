@@ -7,20 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Instant(0);
 $str = '1970-01-01T00:00';
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $instance->equals($str),
-    'bare date-time string is not an instant',
-);
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($str), 'bare date-time string is not an instant');
 $str = '1970-01-01T00:00[UTC]';
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $instance->equals($str),
-    'date-time + IANA annotation is not an instant',
-);
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($str), 'date-time + IANA annotation is not an instant');
 $str = '1970-01-01T00:00Z';
 $result1 = $instance->equals($str);
 Assert::sameValue($result1, true, 'date-time + Z preserves exact time');
@@ -41,8 +32,4 @@ $result5 = $instance->equals($str);
 Assert::sameValue($result5, false, 'date-time + offset + Calendar ignores the Calendar');
 $str = '1970-01-01T00:00+01:00[Etc/Ignored][u-ca=hebrew]';
 $result7 = $instance->equals($str);
-Assert::sameValue(
-    $result7,
-    false,
-    'date-time + offset + IANA annotation + Calendar ignores the Calendar and IANA annotation',
-);
+Assert::sameValue($result7, false, 'date-time + offset + IANA annotation + Calendar ignores the Calendar and IANA annotation');

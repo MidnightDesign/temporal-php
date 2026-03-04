@@ -7,10 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d1 = new \Temporal\Duration(0, 1, 0, 280);
 $d2 = new \Temporal\Duration(0, 1, 0, 281);
 $badOffsets = ['00:00', '+0', '-000:00', 1000, null, true, 1000, '+00:0000'];
 foreach ($badOffsets as $offset) {
-    Assert::incomplete('untranslatable object property');
+Assert::incomplete('untranslatable object property');
 }

@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $blank1 = new \Temporal\Duration();
 $blank2 = new \Temporal\Duration();
 $result = $blank1->subtract($blank2);

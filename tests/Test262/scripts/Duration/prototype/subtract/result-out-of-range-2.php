@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration1 = \Temporal\Duration::from(['days' => 104_249_991_374]);
 $duration2 = \Temporal\Duration::from(['days' => -104_249_991_374]);
 Assert::throws(\InvalidArgumentException::class, fn() => $duration1->subtract($duration2), '');

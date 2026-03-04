@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $days200 = new \Temporal\Duration(0, 0, 0, 200);
 $days200oneNanosecond = new \Temporal\Duration(0, 0, 0, 200, 0, 0, 0, 0, 0, 1);
 Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $seconds = 8_692_288_669_465_520;
 $milliseconds = 513;
 $d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, $seconds, $milliseconds);

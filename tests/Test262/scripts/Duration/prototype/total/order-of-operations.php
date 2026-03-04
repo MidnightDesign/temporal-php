@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $expected = ['get options.relativeTo', 'get options.unit', 'get options.unit.toString', 'call options.unit.toString'];
 $actual = [];
 Assert::incomplete('untranslatable statement: FunctionDeclaration');

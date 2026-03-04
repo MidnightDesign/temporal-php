@@ -8,15 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $limit = 8_640_000_000_000_000;
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(-$limit - 1), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds($limit + 1), '');
-TemporalHelpers::assertInstantsEqual(
-    \Temporal\Instant::fromEpochMilliseconds(-$limit),
-    \Temporal\Instant::from('-271821-04-20T00:00:00Z'),
-);
-TemporalHelpers::assertInstantsEqual(
-    \Temporal\Instant::fromEpochMilliseconds($limit),
-    \Temporal\Instant::from('+275760-09-13T00:00:00Z'),
-);
+TemporalHelpers::assertInstantsEqual(\Temporal\Instant::fromEpochMilliseconds(-$limit), \Temporal\Instant::from('-271821-04-20T00:00:00Z'));
+TemporalHelpers::assertInstantsEqual(\Temporal\Instant::fromEpochMilliseconds($limit), \Temporal\Instant::from('+275760-09-13T00:00:00Z'));

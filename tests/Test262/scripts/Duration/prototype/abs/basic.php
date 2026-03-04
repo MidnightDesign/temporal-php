@@ -8,37 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $d1 = new \Temporal\Duration();
 TemporalHelpers::assertDuration($d1->abs(), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'blank');
 $d2 = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 TemporalHelpers::assertDuration($d2->abs(), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'positive');
-$d3 = new \Temporal\Duration(
-    100_000,
-    200_000,
-    300_000,
-    400_000,
-    500_000,
-    600_000,
-    700_000,
-    800_000,
-    900_000,
-    1_000_000,
-);
-TemporalHelpers::assertDuration(
-    $d3->abs(),
-    100_000,
-    200_000,
-    300_000,
-    400_000,
-    500_000,
-    600_000,
-    700_000,
-    800_000,
-    900_000,
-    1_000_000,
-    'large positive',
-);
+$d3 = new \Temporal\Duration(100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 900_000, 1_000_000);
+TemporalHelpers::assertDuration($d3->abs(), 100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 900_000, 1_000_000, 'large positive');
 $d4 = new \Temporal\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
 TemporalHelpers::assertDuration($d4->abs(), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'negative');
 $d5 = new \Temporal\Duration(1, 0, 3, 0, 5, 0, 7, 0, 9, 0);

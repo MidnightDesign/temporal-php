@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $almostWeek = new \Temporal\Duration(0, 0, 0, 6, 20, 0, 0, 0, 0, 0);
 $almostWeekNegative = new \Temporal\Duration(0, 0, 0, -6, -20, 0, 0, 0, 0, 0);
 Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');

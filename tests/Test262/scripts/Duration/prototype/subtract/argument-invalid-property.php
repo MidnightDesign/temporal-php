@@ -7,12 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Duration(0, 0, 0, 1, 2, 3, 4, 987, 654, 321);
 Assert::throws(\TypeError::class, fn() => $instance->subtract([]), 'Throws TypeError if no property is present');
-Assert::throws(
-    \TypeError::class,
-    fn() => $instance->subtract(['nonsense' => true]),
-    'Throws TypeError if no recognized property is present',
-);
+Assert::throws(\TypeError::class, fn() => $instance->subtract(['nonsense' => true]), 'Throws TypeError if no recognized property is present');
 Assert::throws(\TypeError::class, fn() => $instance->subtract(['sign' => 1]), 'Sign property is not recognized');

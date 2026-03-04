@@ -7,8 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $invalid = ['PT0.1H0M', 'PT0.1H0.0M', 'PT0.1H0S', 'PT0.1H0.0S', 'PT0.1M0S', 'PT0.1M0.0S'];
 foreach ($invalid as $string) {
-    Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from($string), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from($string), '');
 }

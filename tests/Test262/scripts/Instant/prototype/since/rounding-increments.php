@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $earlier = \Temporal\Instant::from('1976-11-18T15:23:30.123456789Z');
 $later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';

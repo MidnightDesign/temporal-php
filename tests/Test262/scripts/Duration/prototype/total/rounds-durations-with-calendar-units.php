@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 Assert::throws(\InvalidArgumentException::class, fn() => $d->total(['unit' => 'years']), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $d->total(['unit' => 'months']), '');

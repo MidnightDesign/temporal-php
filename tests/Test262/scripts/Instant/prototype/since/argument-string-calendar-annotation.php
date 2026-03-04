@@ -8,17 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
-$tests = [
-    ['1970-01-01T00:00Z[u-ca=iso8601]',               'without time zone'],
-    ['1970-01-01T00:00Z[UTC][u-ca=gregory]',          'with time zone'],
-    ['1970-01-01T00:00Z[!u-ca=hebrew]',               'with ! and no time zone'],
-    ['1970-01-01T00:00Z[UTC][!u-ca=chinese]',         'with ! and time zone'],
-    ['1970-01-01T00:00Z[u-ca=discord]',               'annotation is ignored'],
-    ['1970-01-01T00:00Z[!u-ca=discord]',              'annotation with ! is ignored'],
-    ['1970-01-01T00:00Z[u-ca=iso8601][u-ca=discord]', 'two annotations are ignored'],
-];
+$tests = [['1970-01-01T00:00Z[u-ca=iso8601]', 'without time zone'], ['1970-01-01T00:00Z[UTC][u-ca=gregory]', 'with time zone'], ['1970-01-01T00:00Z[!u-ca=hebrew]', 'with ! and no time zone'], ['1970-01-01T00:00Z[UTC][!u-ca=chinese]', 'with ! and time zone'], ['1970-01-01T00:00Z[u-ca=discord]', 'annotation is ignored'], ['1970-01-01T00:00Z[!u-ca=discord]', 'annotation with ! is ignored'], ['1970-01-01T00:00Z[u-ca=iso8601][u-ca=discord]', 'two annotations are ignored']];
 $instance = new \Temporal\Instant(0);
 foreach ($tests as [$arg, $description]) {
-    Assert::incomplete('Duration::since() is not yet implemented');
+Assert::incomplete('Duration::since() is not yet implemented');
 }

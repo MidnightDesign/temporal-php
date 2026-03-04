@@ -7,12 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Instant(0);
 $arg = [];
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $instance->equals($arg),
-    '[object Object] is not a valid ISO string',
-);
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), '[object Object] is not a valid ISO string');
 Assert::incomplete('untranslatable expression: FunctionExpression');

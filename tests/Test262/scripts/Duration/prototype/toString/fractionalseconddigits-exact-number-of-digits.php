@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $threeYears = new \Temporal\Duration(3);
 Assert::sameValue($threeYears->toString(['fractionalSecondDigits' => 0]), 'P3YT0S', '');
 Assert::sameValue($threeYears->toString(['smallestUnit' => 'seconds']), 'P3YT0S', '');

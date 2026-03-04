@@ -7,31 +7,18 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instant = new \Temporal\Instant(1_000_000_000_123_987_500);
 $result1 = $instant->toString(['smallestUnit' => 'microsecond', 'roundingMode' => 'trunc']);
 Assert::sameValue($result1, '2001-09-09T01:46:40.123987Z', 'roundingMode is trunc (with 6 digits from smallestUnit)');
 $result2 = $instant->toString(['fractionalSecondDigits' => 6, 'roundingMode' => 'trunc']);
-Assert::sameValue(
-    $result2,
-    '2001-09-09T01:46:40.123987Z',
-    'roundingMode is trunc (with 6 digits from fractionalSecondDigits)',
-);
+Assert::sameValue($result2, '2001-09-09T01:46:40.123987Z', 'roundingMode is trunc (with 6 digits from fractionalSecondDigits)');
 $result3 = $instant->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'trunc']);
 Assert::sameValue($result3, '2001-09-09T01:46:40.123Z', 'roundingMode is trunc (with 3 digits from smallestUnit)');
 $result4 = $instant->toString(['fractionalSecondDigits' => 3, 'roundingMode' => 'trunc']);
-Assert::sameValue(
-    $result4,
-    '2001-09-09T01:46:40.123Z',
-    'roundingMode is trunc (with 3 digits from fractionalSecondDigits)',
-);
+Assert::sameValue($result4, '2001-09-09T01:46:40.123Z', 'roundingMode is trunc (with 3 digits from fractionalSecondDigits)');
 $result5 = $instant->toString(['smallestUnit' => 'second', 'roundingMode' => 'trunc']);
 Assert::sameValue($result5, '2001-09-09T01:46:40Z', 'roundingMode is trunc (with 0 digits from smallestUnit)');
 $result6 = $instant->toString(['fractionalSecondDigits' => 0, 'roundingMode' => 'trunc']);
-Assert::sameValue(
-    $result6,
-    '2001-09-09T01:46:40Z',
-    'roundingMode is trunc (with 0 digits from fractionalSecondDigits)',
-);
+Assert::sameValue($result6, '2001-09-09T01:46:40Z', 'roundingMode is trunc (with 0 digits from fractionalSecondDigits)');
 $result7 = $instant->toString(['smallestUnit' => 'minute', 'roundingMode' => 'trunc']);
 Assert::sameValue($result7, '2001-09-09T01:46Z', 'roundingMode is trunc (round to minute)');

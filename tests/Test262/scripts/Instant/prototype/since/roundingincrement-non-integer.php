@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $earlier = new \Temporal\Instant(1_000_000_000_000_000_000);
 $later = new \Temporal\Instant(1_000_000_000_000_000_005);
 Assert::incomplete('Duration::since() is not yet implemented');

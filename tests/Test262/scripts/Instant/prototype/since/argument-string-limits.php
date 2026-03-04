@@ -7,16 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Instant(0);
-$validStrings = [
-    '-271821-04-20T00:00Z',
-    '-271821-04-19T23:00-01:00',
-    '-271821-04-19T00:00:00.000000001-23:59:59.999999999',
-    '+275760-09-13T00:00Z',
-    '+275760-09-13T01:00+01:00',
-    '+275760-09-13T23:59:59.999999999+23:59:59.999999999',
-];
+$validStrings = ['-271821-04-20T00:00Z', '-271821-04-19T23:00-01:00', '-271821-04-19T00:00:00.000000001-23:59:59.999999999', '+275760-09-13T00:00Z', '+275760-09-13T01:00+01:00', '+275760-09-13T23:59:59.999999999+23:59:59.999999999'];
 foreach ($validStrings as $arg) {
-    Assert::incomplete('Duration::since() is not yet implemented');
+Assert::incomplete('Duration::since() is not yet implemented');
 }

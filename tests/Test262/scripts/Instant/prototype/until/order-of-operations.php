@@ -8,23 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
-$expected = [
-    'get other.toString',
-    'call other.toString',
-    'get options.largestUnit',
-    'get options.largestUnit.toString',
-    'call options.largestUnit.toString',
-    'get options.roundingIncrement',
-    'get options.roundingIncrement.valueOf',
-    'call options.roundingIncrement.valueOf',
-    'get options.roundingMode',
-    'get options.roundingMode.toString',
-    'call options.roundingMode.toString',
-    'get options.smallestUnit',
-    'get options.smallestUnit.toString',
-    'call options.smallestUnit.toString',
-];
+$expected = ['get other.toString', 'call other.toString', 'get options.largestUnit', 'get options.largestUnit.toString', 'call options.largestUnit.toString', 'get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString'];
 $actual = [];
 $instance = new \Temporal\Instant(1_000_000_000_000_000_000);
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

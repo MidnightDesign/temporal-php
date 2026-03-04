@@ -7,5 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-Assert::incomplete('Temporal namespace object access is not translatable');
+Assert::incomplete('\\Temporal\\Instant::add used as a value');

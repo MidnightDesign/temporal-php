@@ -8,19 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
-$expected = [
-    'get options.fractionalSecondDigits',
-    'get options.fractionalSecondDigits.toString',
-    'call options.fractionalSecondDigits.toString',
-    'get options.roundingMode',
-    'get options.roundingMode.toString',
-    'call options.roundingMode.toString',
-    'get options.smallestUnit',
-    'get options.smallestUnit.toString',
-    'call options.smallestUnit.toString',
-    'get options.timeZone',
-];
+$expected = ['get options.fractionalSecondDigits', 'get options.fractionalSecondDigits.toString', 'call options.fractionalSecondDigits.toString', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString', 'get options.timeZone'];
 $actual = [];
 $instance = new \Temporal\Instant(0);
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

@@ -8,43 +8,13 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $earlier = new \Temporal\Instant(217_178_610_123_456_789);
 $later = new \Temporal\Instant(1_572_345_998_271_986_289);
-$expected = [
-    ['hours', [0, 0, 0, 0, 376_435], [0, 0, 0, 0, -376_435]],
-    ['minutes', [0, 0, 0, 0, 376_435, 23], [0, 0, 0, 0, -376_435, -23]],
-    ['seconds', [0, 0, 0, 0, 376_435, 23, 8], [0, 0, 0, 0, -376_435, -23, -8]],
-    ['milliseconds', [0, 0, 0, 0, 376_435, 23, 8, 149], [0, 0, 0, 0, -376_435, -23, -8, -149]],
-    ['microseconds', [0, 0, 0, 0, 376_435, 23, 8, 148, 530], [0, 0, 0, 0, -376_435, -23, -8, -148, -530]],
-    ['nanoseconds', [0, 0, 0, 0, 376_435, 23, 8, 148, 529, 500], [0, 0, 0, 0, -376_435, -23, -8, -148, -529, -500]],
-];
+$expected = [['hours', [0, 0, 0, 0, 376_435], [0, 0, 0, 0, -376_435]], ['minutes', [0, 0, 0, 0, 376_435, 23], [0, 0, 0, 0, -376_435, -23]], ['seconds', [0, 0, 0, 0, 376_435, 23, 8], [0, 0, 0, 0, -376_435, -23, -8]], ['milliseconds', [0, 0, 0, 0, 376_435, 23, 8, 149], [0, 0, 0, 0, -376_435, -23, -8, -149]], ['microseconds', [0, 0, 0, 0, 376_435, 23, 8, 148, 530], [0, 0, 0, 0, -376_435, -23, -8, -148, -530]], ['nanoseconds', [0, 0, 0, 0, 376_435, 23, 8, 148, 529, 500], [0, 0, 0, 0, -376_435, -23, -8, -148, -529, -500]]];
 $roundingMode = 'halfExpand';
 $largestUnit = 'hours';
 foreach ($expected as [$smallestUnit, $expectedPositive, $expectedNegative]) {
-    [
-        $py,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-    ] = $expectedPositive;
-    [
-        $ny,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-        $__unknown__,
-    ] = $expectedNegative;
-    Assert::incomplete('Duration::until() is not yet implemented');
+[$py, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = $expectedPositive;
+[$ny, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = $expectedNegative;
+Assert::incomplete('Duration::until() is not yet implemented');
 }

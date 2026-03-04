@@ -7,21 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d1 = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 $d2 = new \Temporal\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
-$fields = [
-    'years',
-    'months',
-    'weeks',
-    'days',
-    'hours',
-    'minutes',
-    'seconds',
-    'milliseconds',
-    'microseconds',
-    'nanoseconds',
-];
+$fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-    Assert::incomplete('untranslatable object property');
+Assert::incomplete('untranslatable object property');
 }

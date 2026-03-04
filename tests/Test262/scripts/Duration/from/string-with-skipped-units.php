@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $d1 = \Temporal\Duration::from('P3Y4W');
 TemporalHelpers::assertDuration($d1, 3, 0, 4, 0, 0, 0, 0, 0, 0, 0, 'years-weeks string');
 $d2 = \Temporal\Duration::from('P3Y4D');

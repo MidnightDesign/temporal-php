@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $oneYear = new \Temporal\Duration(1);
 $oneMonth = new \Temporal\Duration(0, 1);
 $oneWeek = new \Temporal\Duration(0, 0, 1);
@@ -15,38 +14,14 @@ $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 $options = ['unit' => 'days'];
 Assert::sameValue($oneDay->total($options), 1, 'days do not require relativeTo');
 Assert::sameValue($oneDay->total('days'), 1, 'days do not require relativeTo (string shorthand)');
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $oneWeek->total($options),
-    'total days of weeks requires relativeTo',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $oneWeek->total('days'),
-    'total days of weeks requires relativeTo (string shorthand)',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $oneMonth->total($options),
-    'total days of months requires relativeTo',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $oneMonth->total('days'),
-    'total days of months requires relativeTo (string shorthand)',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $oneYear->total($options),
-    'total days of years requires relativeTo',
-);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $oneYear->total('days'),
-    'total days of years requires relativeTo (string shorthand)',
-);
+Assert::throws(\InvalidArgumentException::class, fn() => $oneWeek->total($options), 'total days of weeks requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneWeek->total('days'), 'total days of weeks requires relativeTo (string shorthand)');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneMonth->total($options), 'total days of months requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneMonth->total('days'), 'total days of months requires relativeTo (string shorthand)');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->total($options), 'total days of years requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->total('days'), 'total days of years requires relativeTo (string shorthand)');
 foreach (['months', 'weeks'] as $unit) {
-    foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
-        Assert::incomplete('untranslatable object property');
-    }
+foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
+Assert::incomplete('untranslatable object property');
+}
 }

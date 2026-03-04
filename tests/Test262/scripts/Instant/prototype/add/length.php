@@ -7,5 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-Assert::incomplete('needs TemporalHelpers (includes: propertyHelper.js)');
+Assert::incomplete('\\Temporal\\Instant::add() is not yet implemented');

@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $duration = new \Temporal\Duration(0, 0, 0, 0, 1, 1, 1, 1, 1, 1);
 $result1 = $duration->subtract(new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 2));
 TemporalHelpers::assertDuration($result1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 999, 'nanoseconds balance');

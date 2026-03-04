@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $days = new \Temporal\Duration(0, 0, 0, 45, 0, 0, 0, 0, 0, 0);
 $yearAndHalf = new \Temporal\Duration(0, 0, 0, 547, 12, 0, 0, 0, 0, 0);
 Assert::incomplete('Duration::round() is not yet implemented');

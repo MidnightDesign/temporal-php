@@ -8,23 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
-$d = \Temporal\Duration::from([
-    'days' => 1,
-    'hours' => 2,
-    'minutes' => 3,
-    'seconds' => 4,
-    'milliseconds' => 5,
-    'microseconds' => 6,
-    'nanoseconds' => 7,
-]);
-$tests = [
-    'day' => [0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-    'hour' => [0, 0, 0, 1, 2, 0, 0, 0, 0, 0],
-    'minute' => [0, 0, 0, 1, 2, 3, 0, 0, 0, 0],
-    'second' => [0, 0, 0, 1, 2, 3, 4, 0, 0, 0],
-    'millisecond' => [0, 0, 0, 1, 2, 3, 4, 5, 0, 0],
-    'microsecond' => [0, 0, 0, 1, 2, 3, 4, 5, 6, 0],
-    'nanosecond' => [0, 0, 0, 1, 2, 3, 4, 5, 6, 7],
-];
+$d = \Temporal\Duration::from(['days' => 1, 'hours' => 2, 'minutes' => 3, 'seconds' => 4, 'milliseconds' => 5, 'microseconds' => 6, 'nanoseconds' => 7]);
+$tests = ['day' => [0, 0, 0, 1, 0, 0, 0, 0, 0, 0], 'hour' => [0, 0, 0, 1, 2, 0, 0, 0, 0, 0], 'minute' => [0, 0, 0, 1, 2, 3, 0, 0, 0, 0], 'second' => [0, 0, 0, 1, 2, 3, 4, 0, 0, 0], 'millisecond' => [0, 0, 0, 1, 2, 3, 4, 5, 0, 0], 'microsecond' => [0, 0, 0, 1, 2, 3, 4, 5, 6, 0], 'nanosecond' => [0, 0, 0, 1, 2, 3, 4, 5, 6, 7]];
 Assert::incomplete('untranslatable: Object.entries');

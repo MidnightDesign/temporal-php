@@ -7,19 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-$tests = [
-    ['years' => 0.5],
-    ['months' => 0.5],
-    ['weeks' => 0.5],
-    ['days' => 0.5],
-    ['hours' => 0.5, 'minutes' => 20],
-    ['hours' => 0.5, 'seconds' => 15],
-    ['minutes' => 10.7, 'nanoseconds' => 400],
-    ['hours' => 1, 'minutes' => -30],
-];
+$tests = [['years' => 0.5], ['months' => 0.5], ['weeks' => 0.5], ['days' => 0.5], ['hours' => 0.5, 'minutes' => 20], ['hours' => 0.5, 'seconds' => 15], ['minutes' => 10.7, 'nanoseconds' => 400], ['hours' => 1, 'minutes' => -30]];
 foreach ($tests as $input) {
-    Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from($input), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from($input), '');
 }
 Assert::throws(\TypeError::class, fn() => \Temporal\Duration::from([]), '');
 Assert::throws(\TypeError::class, fn() => \Temporal\Duration::from(['month' => 12]), '');

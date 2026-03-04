@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $other = new \Temporal\Instant(1_483_228_799_000_000_000);
 $arg = '2016-12-31T23:59:60Z';
 $result1 = \Temporal\Instant::compare($arg, $other);

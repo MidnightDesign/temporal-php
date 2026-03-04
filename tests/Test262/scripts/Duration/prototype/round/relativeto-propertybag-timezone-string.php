@@ -7,8 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance = new \Temporal\Duration(1);
 foreach (['UTC', '+01:00'] as $timeZone) {
-    Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('Duration::round() is not yet implemented');
 }

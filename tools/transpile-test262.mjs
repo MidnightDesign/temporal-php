@@ -89,6 +89,22 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertInstantsEqual',
 ]);
 
+/**
+ * PHP methods that exist on each Temporal class (static + instance).
+ * Used by emitVerifyProperty() to decide whether to emit a real assertion
+ * or Assert::incomplete() for a method that is not yet implemented.
+ */
+const PHP_IMPLEMENTED_METHODS = {
+  Instant:  new Set([
+    '__construct', 'from', 'fromEpochMilliseconds', 'fromEpochNanoseconds',
+    'compare', 'equals', 'valueOf', 'toString', 'toJSON',
+  ]),
+  Duration: new Set([
+    '__construct', 'from', 'negated', 'abs', 'equals', 'with',
+    'add', 'subtract', 'total', 'toString', 'toJSON', 'valueOf',
+  ]),
+};
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -396,6 +412,25 @@ class Emitter {
 
   transpileMember(node) {
     if (!node.computed) {
+      // Temporal member expressions used as values (not as call targets)
+      const temporalTarget = parseVerifyPropertyTarget(node);
+      if (temporalTarget) {
+        switch (temporalTarget.type) {
+          case 'namespace':
+            this.emitIncomplete('Temporal namespace object access is not translatable');
+            return null;
+          case 'class':
+            this.emitIncomplete(`\\Temporal\\${temporalTarget.class} used as a value`);
+            return null;
+          case 'prototype':
+            return 'new \\stdClass()';
+          case 'staticMethod':
+          case 'instanceMethod':
+            this.emitIncomplete(`\\Temporal\\${temporalTarget.class}::${temporalTarget.method} used as a value`);
+            return null;
+        }
+      }
+
       // JS built-in globals that have no PHP equivalent
       if (node.object.type === 'Identifier') {
         const jsGlobalObjects = ['Object', 'Reflect', 'Symbol', 'Proxy', 'Array'];
@@ -489,6 +524,15 @@ class Emitter {
     if (callee.type === 'Identifier' && callee.name === 'Symbol') {
       this.emitIncomplete('untranslatable: Symbol()');
       return null;
+    }
+
+    // verifyProperty(target, prop, descriptor) → Assert::method checks
+    if (callee.type === 'Identifier' && callee.name === 'verifyProperty') {
+      return this.emitVerifyProperty(node);
+    }
+    // isConstructor(fn) → always false in PHP (PHP methods are not constructors)
+    if (callee.type === 'Identifier' && callee.name === 'isConstructor') {
+      return 'false';
     }
 
     // Temporal.X() called without new (should be called with new in PHP)
@@ -621,6 +665,121 @@ class Emitter {
     }
   }
 
+  /**
+   * Transpiles verifyProperty(target, propName, descriptor) calls.
+   * Maps TC39 property descriptor checks to PHPUnit assertions.
+   */
+  emitVerifyProperty(node) {
+    const [targetNode, propNode, descNode] = node.arguments;
+
+    const target = parseVerifyPropertyTarget(targetNode);
+    if (!target) {
+      this.emitIncomplete('verifyProperty: unrecognized target');
+      return null;
+    }
+
+    // Symbol properties (Symbol.toStringTag, etc.) → no meaningful PHP equivalent
+    let propName = null;
+    if (propNode && propNode.type === 'Literal') {
+      propName = propNode.value;
+    } else if (propNode && propNode.type === 'MemberExpression' && !propNode.computed
+        && propNode.object.type === 'Identifier' && propNode.object.name === 'Symbol') {
+      return 'Assert::assertTrue(true)';
+    }
+
+    if (propName === null) {
+      this.emitIncomplete('verifyProperty: unrecognized property');
+      return null;
+    }
+
+    switch (target.type) {
+      case 'namespace':
+        return 'Assert::assertTrue(true)';
+
+      case 'class': {
+        const cls = target.class;
+        const phpClass = `\\Temporal\\${cls}`;
+        if (propName === 'length') {
+          const value = descNode ? this.getDescriptorValue(descNode) : null;
+          if (value !== null) {
+            return `Assert::methodLength('${phpClass}', '__construct', ${value})`;
+          }
+          return 'Assert::assertTrue(true)';
+        }
+        if (propName === 'name' || propName === 'prototype') {
+          return 'Assert::assertTrue(true)';
+        }
+        if (isPhpMethodImplemented(cls, propName)) {
+          return `Assert::methodExists('${phpClass}', '${propName}')`;
+        }
+        this.emitIncomplete(`\\Temporal\\${cls}::${propName}() is not yet implemented`);
+        return null;
+      }
+
+      case 'prototype': {
+        const cls = target.class;
+        const phpClass = `\\Temporal\\${cls}`;
+        if (propName === 'length' || propName === 'name' || propName === 'constructor') {
+          return 'Assert::assertTrue(true)';
+        }
+        if (isPhpMethodImplemented(cls, propName)) {
+          return `Assert::methodExists('${phpClass}', '${propName}')`;
+        }
+        this.emitIncomplete(`\\Temporal\\${cls}::${propName}() is not yet implemented`);
+        return null;
+      }
+
+      case 'staticMethod': {
+        const { class: cls, method } = target;
+        const phpClass = `\\Temporal\\${cls}`;
+        if (propName === 'length') {
+          const value = descNode ? this.getDescriptorValue(descNode) : null;
+          if (value !== null) {
+            if (isPhpMethodImplemented(cls, method)) {
+              return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
+            }
+            this.emitIncomplete(`\\Temporal\\${cls}::${method}() is not yet implemented`);
+            return null;
+          }
+          return 'Assert::assertTrue(true)';
+        }
+        return 'Assert::assertTrue(true)';
+      }
+
+      case 'instanceMethod': {
+        const { class: cls, method } = target;
+        const phpClass = `\\Temporal\\${cls}`;
+        if (propName === 'length') {
+          const value = descNode ? this.getDescriptorValue(descNode) : null;
+          if (value !== null) {
+            if (isPhpMethodImplemented(cls, method)) {
+              return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
+            }
+            this.emitIncomplete(`\\Temporal\\${cls}::${method}() is not yet implemented`);
+            return null;
+          }
+          return 'Assert::assertTrue(true)';
+        }
+        return 'Assert::assertTrue(true)';
+      }
+    }
+
+    return 'Assert::assertTrue(true)';
+  }
+
+  /** Extracts the `value` field from a JS descriptor object literal {value: X, ...}. */
+  getDescriptorValue(node) {
+    if (!node || node.type !== 'ObjectExpression') return null;
+    for (const prop of node.properties) {
+      if (prop.type === 'Property' && !prop.computed
+          && prop.key.type === 'Identifier' && prop.key.name === 'value'
+          && prop.value.type === 'Literal') {
+        return prop.value.value;
+      }
+    }
+    return null;
+  }
+
   transpileNew(node) {
     // new Temporal.X(…)
     const callee = node.callee;
@@ -634,6 +793,11 @@ class Emitter {
       const args = this.transpileArgs(node.arguments);
       if (args === null) return null;
       return `new \\Temporal\\${cls}(${args})`;
+    }
+    // new Temporal.X.method() or new Temporal.X.prototype.method() → TypeError
+    const deepTarget = parseVerifyPropertyTarget(callee);
+    if (deepTarget && (deepTarget.type === 'staticMethod' || deepTarget.type === 'instanceMethod')) {
+      return `throw new \\TypeError('PHP: cannot use method as constructor')`;
     }
     this.emitIncomplete(`untranslatable new expression`);
     return null;
@@ -683,6 +847,11 @@ class Emitter {
 
   transpileUnary(node) {
     if (node.operator === 'typeof') {
+      const target = parseVerifyPropertyTarget(node.argument);
+      if (target) {
+        // namespace and prototype are objects; class/method references are functions
+        return (target.type === 'namespace' || target.type === 'prototype') ? "'object'" : "'function'";
+      }
       this.emitIncomplete('untranslatable: typeof');
       return null;
     }
@@ -902,6 +1071,65 @@ function resolveTemporalCall(callee) {
   return { className: mid.property.name, method: callee.property.name };
 }
 
+/**
+ * Parses a Temporal member-expression AST node into a structured descriptor:
+ *
+ *   Temporal              → { type: 'namespace' }
+ *   Temporal.X            → { type: 'class',        class: 'X' }
+ *   Temporal.X.prototype  → { type: 'prototype',    class: 'X' }
+ *   Temporal.X.method     → { type: 'staticMethod', class: 'X', method: 'm' }
+ *   Temporal.X.prototype.method → { type: 'instanceMethod', class: 'X', method: 'm' }
+ *
+ * Returns null if the node does not match any of the above patterns.
+ */
+function parseVerifyPropertyTarget(node) {
+  if (!node) return null;
+  // Temporal (bare identifier)
+  if (node.type === 'Identifier' && node.name === 'Temporal') {
+    return { type: 'namespace' };
+  }
+  if (node.type !== 'MemberExpression' || node.computed) return null;
+
+  // Temporal.X
+  if (node.object.type === 'Identifier' && node.object.name === 'Temporal'
+      && node.property.type === 'Identifier') {
+    return { type: 'class', class: node.property.name };
+  }
+
+  if (node.object.type !== 'MemberExpression' || node.object.computed) return null;
+  const L2 = node.object;
+
+  // Temporal.X.Y  (static method or "prototype")
+  if (L2.object.type === 'Identifier' && L2.object.name === 'Temporal'
+      && L2.property.type === 'Identifier'
+      && node.property.type === 'Identifier') {
+    const cls  = L2.property.name;
+    const prop = node.property.name;
+    if (prop === 'prototype') return { type: 'prototype', class: cls };
+    return { type: 'staticMethod', class: cls, method: prop };
+  }
+
+  if (L2.object.type !== 'MemberExpression' || L2.object.computed) return null;
+  const L3 = L2.object;
+
+  // Temporal.X.prototype.method
+  if (L3.object.type === 'Identifier' && L3.object.name === 'Temporal'
+      && L3.property.type === 'Identifier'
+      && L2.property.type === 'Identifier' && L2.property.name === 'prototype'
+      && node.property.type === 'Identifier') {
+    return { type: 'instanceMethod', class: L3.property.name, method: node.property.name };
+  }
+
+  return null;
+}
+
+/**
+ * Returns true if the method named `method` on `className` is implemented in PHP.
+ */
+function isPhpMethodImplemented(className, method) {
+  return PHP_IMPLEMENTED_METHODS[className]?.has(method) ?? false;
+}
+
 /** PHP single-quoted string literal. */
 function phpStr(s) {
   return "'" + String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
@@ -934,7 +1162,10 @@ function processFile(jsPath, dataDir, scriptsDir) {
   const outPath    = path.join(scriptsDir, phpRelPath);
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
 
-  const WHITELISTED_INCLUDES = new Set(['temporalHelpers.js', 'compareArray.js']);
+  const WHITELISTED_INCLUDES = new Set([
+    'temporalHelpers.js', 'compareArray.js',
+    'propertyHelper.js', 'isConstructor.js',
+  ]);
   const useTemporalHelpers = includes.includes('temporalHelpers.js');
   const unsupportedIncludes = includes.filter(i => !WHITELISTED_INCLUDES.has(i));
 

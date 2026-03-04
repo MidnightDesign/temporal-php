@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d1 = \Temporal\Duration::from('P3DT1H');
 $d2 = \Temporal\Duration::from('P3DT1H');
 Assert::throws(\TypeError::class, fn() => $d1->valueOf(), 'valueOf');

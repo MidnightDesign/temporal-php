@@ -7,9 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $fields = ['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 $instance = \Temporal\Instant::fromEpochMilliseconds(10_000);
 foreach ($fields as $field) {
-    Assert::incomplete('Instant::add() is not yet implemented');
+Assert::incomplete('Instant::add() is not yet implemented');
 }

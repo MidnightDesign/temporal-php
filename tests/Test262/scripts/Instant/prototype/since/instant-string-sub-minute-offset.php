@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $instance = new \Temporal\Instant(0);
 $str = '1970-01-01T00:19:32.37+00:19:32.37';
 Assert::incomplete('Duration::since() is not yet implemented');

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $blank = new \Temporal\Duration();
 Assert::sameValue($blank->toString(['fractionalSecondDigits' => 'auto']), 'PT0S', '');
 Assert::sameValue($blank->toString(['fractionalSecondDigits' => 0]), 'PT0S', '');

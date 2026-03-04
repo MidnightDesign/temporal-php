@@ -7,20 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration = new \Temporal\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
 $dayMilliseconds = 24 * 3600 * 1000;
 $fullDays = 5;
-$fullMilliseconds = ($fullDays * $dayMilliseconds) + (5 * 3_600_000) + (5 * 60_000) + 5000 + 5;
+$fullMilliseconds = $fullDays * $dayMilliseconds + (5 * 3_600_000) + (5 * 60_000) + 5000 + 5;
 $partialDayMilliseconds = $fullMilliseconds - ($fullDays * $dayMilliseconds) + 0.005_005;
 $fractionalDay = $partialDayMilliseconds / $dayMilliseconds;
-$totalResults = [
-    'days' => $fullDays + $fractionalDay,
-    'hours' => ($fullDays * 24) + ($partialDayMilliseconds / 3_600_000),
-    'minutes' => ($fullDays * 24 * 60) + ($partialDayMilliseconds / 60_000),
-    'seconds' => ($fullDays * 24 * 60 * 60) + ($partialDayMilliseconds / 1000),
-    'milliseconds' => $fullMilliseconds + 0.005_005,
-    'microseconds' => ($fullMilliseconds * 1000) + 5.005,
-    'nanoseconds' => ($fullMilliseconds * 1_000_000) + 5005,
-];
+$totalResults = ['days' => $fullDays + $fractionalDay, 'hours' => $fullDays * 24 + ($partialDayMilliseconds / 3_600_000), 'minutes' => $fullDays * 24 * 60 + ($partialDayMilliseconds / 60_000), 'seconds' => $fullDays * 24 * 60 * 60 + ($partialDayMilliseconds / 1000), 'milliseconds' => $fullMilliseconds + 0.005_005, 'microseconds' => $fullMilliseconds * 1000 + 5.005, 'nanoseconds' => $fullMilliseconds * 1_000_000 + 5005];
 Assert::incomplete('untranslatable: Object.entries');

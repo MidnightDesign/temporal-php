@@ -8,151 +8,20 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $durationlike1 = ['years' => 9, 'hours' => 5];
 $durationlike2 = ['months' => 8, 'minutes' => 4];
 $durationlike3 = ['weeks' => 7, 'seconds' => 3];
 $durationlike4 = ['days' => 6, 'milliseconds' => 2];
 $durationlike5 = ['microseconds' => 987, 'nanoseconds' => 123];
 $d1 = new \Temporal\Duration();
-TemporalHelpers::assertDuration(
-    $d1->with($durationlike1),
-    9,
-    0,
-    0,
-    0,
-    5,
-    0,
-    0,
-    0,
-    0,
-    0,
-    'replace all zeroes with years and hours',
-);
-TemporalHelpers::assertDuration(
-    $d1->with($durationlike2),
-    0,
-    8,
-    0,
-    0,
-    0,
-    4,
-    0,
-    0,
-    0,
-    0,
-    'replace all zeroes wtih months and minutes',
-);
-TemporalHelpers::assertDuration(
-    $d1->with($durationlike3),
-    0,
-    0,
-    7,
-    0,
-    0,
-    0,
-    3,
-    0,
-    0,
-    0,
-    'replace all zeroes with weeks and seconds',
-);
-TemporalHelpers::assertDuration(
-    $d1->with($durationlike4),
-    0,
-    0,
-    0,
-    6,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    'replace all zeroes with days and milliseconds',
-);
-TemporalHelpers::assertDuration(
-    $d1->with($durationlike5),
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    987,
-    123,
-    'replace all zeroes with microseconds and nanoseconds',
-);
+TemporalHelpers::assertDuration($d1->with($durationlike1), 9, 0, 0, 0, 5, 0, 0, 0, 0, 0, 'replace all zeroes with years and hours');
+TemporalHelpers::assertDuration($d1->with($durationlike2), 0, 8, 0, 0, 0, 4, 0, 0, 0, 0, 'replace all zeroes wtih months and minutes');
+TemporalHelpers::assertDuration($d1->with($durationlike3), 0, 0, 7, 0, 0, 0, 3, 0, 0, 0, 'replace all zeroes with weeks and seconds');
+TemporalHelpers::assertDuration($d1->with($durationlike4), 0, 0, 0, 6, 0, 0, 0, 2, 0, 0, 'replace all zeroes with days and milliseconds');
+TemporalHelpers::assertDuration($d1->with($durationlike5), 0, 0, 0, 0, 0, 0, 0, 0, 987, 123, 'replace all zeroes with microseconds and nanoseconds');
 $d2 = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-TemporalHelpers::assertDuration(
-    $d2->with($durationlike1),
-    9,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    10,
-    'replace all positive with years and hours',
-);
-TemporalHelpers::assertDuration(
-    $d2->with($durationlike2),
-    1,
-    8,
-    3,
-    4,
-    5,
-    4,
-    7,
-    8,
-    9,
-    10,
-    'replace all positive with months and minutes',
-);
-TemporalHelpers::assertDuration(
-    $d2->with($durationlike3),
-    1,
-    2,
-    7,
-    4,
-    5,
-    6,
-    3,
-    8,
-    9,
-    10,
-    'replace all positive with weeks and seconds',
-);
-TemporalHelpers::assertDuration(
-    $d2->with($durationlike4),
-    1,
-    2,
-    3,
-    6,
-    5,
-    6,
-    7,
-    2,
-    9,
-    10,
-    'replace all positive with days and milliseconds',
-);
-TemporalHelpers::assertDuration(
-    $d2->with($durationlike5),
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    987,
-    123,
-    'replace all positive with microseconds and nanoseconds',
-);
+TemporalHelpers::assertDuration($d2->with($durationlike1), 9, 2, 3, 4, 5, 6, 7, 8, 9, 10, 'replace all positive with years and hours');
+TemporalHelpers::assertDuration($d2->with($durationlike2), 1, 8, 3, 4, 5, 4, 7, 8, 9, 10, 'replace all positive with months and minutes');
+TemporalHelpers::assertDuration($d2->with($durationlike3), 1, 2, 7, 4, 5, 6, 3, 8, 9, 10, 'replace all positive with weeks and seconds');
+TemporalHelpers::assertDuration($d2->with($durationlike4), 1, 2, 3, 6, 5, 6, 7, 2, 9, 10, 'replace all positive with days and milliseconds');
+TemporalHelpers::assertDuration($d2->with($durationlike5), 1, 2, 3, 4, 5, 6, 7, 8, 987, 123, 'replace all positive with microseconds and nanoseconds');

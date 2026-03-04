@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-Assert::incomplete('needs TemporalHelpers (includes: isConstructor.js)');
+Assert::throws(\TypeError::class, function () { throw new \TypeError('PHP: cannot use method as constructor'); }, 'Calling as constructor');
+Assert::sameValue(false, false, 'isConstructor(Temporal.Instant.prototype.equals)');

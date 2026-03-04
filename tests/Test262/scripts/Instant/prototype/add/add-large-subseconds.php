@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $i1 = new \Temporal\Instant(1_582_966_647_747_612_578);
 Assert::incomplete('Instant::add() is not yet implemented');

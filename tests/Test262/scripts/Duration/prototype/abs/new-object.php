@@ -7,23 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d1 = new \Temporal\Duration();
 Assert::notSameValue($d1->abs(), $d1, '');
 $d2 = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 Assert::notSameValue($d2->abs(), $d2, '');
-$d3 = new \Temporal\Duration(
-    100_000,
-    200_000,
-    300_000,
-    400_000,
-    500_000,
-    600_000,
-    700_000,
-    800_000,
-    900_000,
-    1_000_000,
-);
+$d3 = new \Temporal\Duration(100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 900_000, 1_000_000);
 Assert::notSameValue($d3->abs(), $d3, '');
 $d4 = new \Temporal\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
 Assert::notSameValue($d4->abs(), $d4, '');

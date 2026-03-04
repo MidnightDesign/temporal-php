@@ -7,13 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instance_1 = new \Temporal\Duration(1);
 $instance_2 = new \Temporal\Duration(2);
-$invalidStrings = [
-    ['',                         'empty string'],
-    ['1997-12-04[u-ca=notacal]', 'Unknown calendar'],
-];
+$invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar']];
 foreach ($invalidStrings as [$arg, $description]) {
-    Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
 }

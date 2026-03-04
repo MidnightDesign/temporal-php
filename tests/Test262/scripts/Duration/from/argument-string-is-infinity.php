@@ -7,8 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-$inf = str_repeat('9', (int) 1000);
+$inf = str_repeat('9', (int) (1000));
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from("P{$inf}Y"), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from("P{$inf}M"), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from("P{$inf}W"), '');

@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $i1 = new \Temporal\Instant(1);
 $i2 = new \Temporal\Instant(1);
 Assert::incomplete('Duration::until() is not yet implemented');

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $td1pos = new \Temporal\Duration(0, 0, 0, 0, 5, 5, 5, 5, 5, 5);
 $td2pos = new \Temporal\Duration(0, 0, 0, 0, 5, 4, 5, 5, 5, 5);
 $td1neg = new \Temporal\Duration(0, 0, 0, 0, -5, -5, -5, -5, -5, -5);

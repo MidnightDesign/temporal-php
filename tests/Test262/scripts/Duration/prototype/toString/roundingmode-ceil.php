@@ -7,16 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 123, 987, 500);
 $result1 = $duration->toString(['smallestUnit' => 'microsecond', 'roundingMode' => 'ceil']);
 Assert::sameValue($result1, 'P1Y2M3W4DT5H6M7.123988S', 'roundingMode is ceil (with 6 digits from smallestUnit)');
 $result2 = $duration->toString(['fractionalSecondDigits' => 6, 'roundingMode' => 'ceil']);
-Assert::sameValue(
-    $result2,
-    'P1Y2M3W4DT5H6M7.123988S',
-    'roundingMode is ceil (with 6 digits from fractionalSecondDigits)',
-);
+Assert::sameValue($result2, 'P1Y2M3W4DT5H6M7.123988S', 'roundingMode is ceil (with 6 digits from fractionalSecondDigits)');
 $result3 = $duration->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'ceil']);
 Assert::sameValue($result3, 'P1Y2M3W4DT5H6M7.124S', 'roundingMode is ceil (with 3 digits from smallestUnit)');
 $result4 = $duration->toString(['fractionalSecondDigits' => 3, 'roundingMode' => 'ceil']);

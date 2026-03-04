@@ -126,6 +126,41 @@ final class Assert
     }
 
     /**
+     * Asserts that a method exists on a class.
+     *
+     * @param class-string $class
+     */
+    public static function methodExists(string $class, string $method): void
+    {
+        PHPUnitAssert::assertTrue(
+            method_exists($class, $method),
+            "Expected method {$class}::{$method}() to exist",
+        );
+    }
+
+    /**
+     * Asserts that a method has the expected number of parameters, matching
+     * the JS function.length convention (number of named required arguments).
+     *
+     * Uses getNumberOfRequiredParameters() with getNumberOfParameters() as a
+     * fallback to accommodate PHP compatibility signatures (e.g. null defaults
+     * that exist to avoid TypeError on missing-arg calls).
+     *
+     * @param class-string $class
+     */
+    public static function methodLength(string $class, string $method, int $expected): void
+    {
+        $rm       = new \ReflectionMethod($class, $method);
+        $required = $rm->getNumberOfRequiredParameters();
+        $total    = $rm->getNumberOfParameters();
+        PHPUnitAssert::assertTrue(
+            $required === $expected || $total === $expected,
+            "Expected {$class}::{$method} JS length {$expected}, "
+                . "got required={$required}, total={$total}",
+        );
+    }
+
+    /**
      * Marks the current test as incomplete.
      *
      * @throws IncompleteTestError always

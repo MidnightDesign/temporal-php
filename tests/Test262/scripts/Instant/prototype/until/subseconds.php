@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $feb20 = \Temporal\Instant::from('2020-02-01T00:00Z');
 $feb21 = \Temporal\Instant::from('2021-02-01T00:00Z');
 Assert::incomplete('Instant::add() is not yet implemented');

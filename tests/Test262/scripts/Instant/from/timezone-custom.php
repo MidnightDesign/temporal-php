@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $instant = \Temporal\Instant::from('1975-02-02T14:25:36.123456789+01:00[Invalid/TimeZone]');
 Assert::sameValue($instant->epochMilliseconds, 160_579_536_123, '');

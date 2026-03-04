@@ -7,10 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration = new \Temporal\Duration(0, 0, 0, 1, 0, 0, 2 ** 53 - 1 - (24 * 60 * 60), 0, 0, 999_999_999);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $duration->toString(['roundingMode' => 'ceil', 'fractionalSecondDigits' => 7]),
-    '',
-);
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->toString(['roundingMode' => 'ceil', 'fractionalSecondDigits' => 7]), '');

@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 $hours48 = new \Temporal\Duration(0, 0, 0, 0, 48);
 Assert::sameValue($oneDay->total('hours'), 24, 'with no relativeTo, days are 24 hours');

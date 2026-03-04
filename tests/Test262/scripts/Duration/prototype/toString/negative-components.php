@@ -7,12 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
-Assert::sameValue(
-    new \Temporal\Duration(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1)->toString(),
-    '-P1Y1M1W1DT1H1M1.001001001S',
-    '',
-);
+Assert::sameValue(new \Temporal\Duration(-1, -1, -1, -1, -1, -1, -1, -1, -1, -1)->toString(), '-P1Y1M1W1DT1H1M1.001001001S', '');
 Assert::sameValue(\Temporal\Duration::from(['milliseconds' => -250])->toString(), '-PT0.25S', '');
 Assert::sameValue(\Temporal\Duration::from(['milliseconds' => -3500])->toString(), '-PT3.5S', '');
 Assert::sameValue(\Temporal\Duration::from(['microseconds' => -250])->toString(), '-PT0.00025S', '');

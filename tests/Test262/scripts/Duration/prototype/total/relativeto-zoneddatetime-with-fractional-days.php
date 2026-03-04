@@ -7,6 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration = \Temporal\Duration::from(['weeks' => 1, 'days' => 0, 'hours' => 1]);
 Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');

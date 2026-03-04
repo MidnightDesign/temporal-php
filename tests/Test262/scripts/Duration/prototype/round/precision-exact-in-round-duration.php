@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $duration = \Temporal\Duration::from(['hours' => 100_000, 'nanoseconds' => 5]);
 Assert::incomplete('Duration::round() is not yet implemented');

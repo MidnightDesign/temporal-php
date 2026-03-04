@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 Assert::sameValue(\Temporal\Duration::from(['milliseconds' => 3500])->toString(), 'PT3.5S', '');
 Assert::sameValue(\Temporal\Duration::from(['microseconds' => 3500])->toString(), 'PT0.0035S', '');
 Assert::sameValue(\Temporal\Duration::from(['nanoseconds' => 3500])->toString(), 'PT0.0000035S', '');

@@ -7,13 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $invalidStrings = ['-000000-03-30T00:45Z', '-000000-03-30T01:45+01:00', '-000000-03-30T01:45:00+00:00[UTC]'];
 $instance = new \Temporal\Instant(0);
 foreach ($invalidStrings as $arg) {
-    Assert::throws(
-        \InvalidArgumentException::class,
-        fn() => $instance->equals($arg),
-        'reject minus zero as extended year',
-    );
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), 'reject minus zero as extended year');
 }

@@ -7,10 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 2, 31, 0);
-Assert::throws(
-    \InvalidArgumentException::class,
-    fn() => $d->total(['unit' => 'months', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44:30]']),
-    '',
-);
+Assert::throws(\InvalidArgumentException::class, fn() => $d->total(['unit' => 'months', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44:30]']), '');

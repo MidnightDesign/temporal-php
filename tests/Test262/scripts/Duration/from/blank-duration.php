@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $blank = new \Temporal\Duration();
 $result = \Temporal\Duration::from($blank);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'result is also blank');

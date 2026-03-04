@@ -7,8 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 2, 31, 0);
 foreach ([20_200_101, 20_200_101, null, true] as $relativeTo) {
-    Assert::incomplete('untranslatable object property');
+Assert::incomplete('untranslatable object property');
 }

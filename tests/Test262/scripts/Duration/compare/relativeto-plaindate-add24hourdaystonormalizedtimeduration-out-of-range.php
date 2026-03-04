@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $duration1 = \Temporal\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
 $duration2 = \Temporal\Duration::from(['years' => 2]);
 Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');

@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
 $oneMonth = \Temporal\Duration::from(['months' => 1]);
 Assert::incomplete('Duration::round() is not yet implemented');

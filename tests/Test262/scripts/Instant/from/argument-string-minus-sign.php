@@ -7,12 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '−009999-11-18T15:23:30.12'];
 foreach ($invalidStrings as $arg) {
-    Assert::throws(
-        \InvalidArgumentException::class,
-        fn() => \Temporal\Instant::from($arg),
-        "variant minus sign: {$arg}",
-    );
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::from($arg), "variant minus sign: {$arg}");
 }

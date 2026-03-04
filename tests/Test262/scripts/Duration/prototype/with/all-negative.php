@@ -8,87 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-
-$argAllNegative = [
-    'years' => -9,
-    'months' => -8,
-    'weeks' => -7,
-    'days' => -6,
-    'hours' => -5,
-    'minutes' => -4,
-    'seconds' => -3,
-    'milliseconds' => -2,
-    'microseconds' => -1,
-    'nanoseconds' => -10,
-];
+$argAllNegative = ['years' => -9, 'months' => -8, 'weeks' => -7, 'days' => -6, 'hours' => -5, 'minutes' => -4, 'seconds' => -3, 'milliseconds' => -2, 'microseconds' => -1, 'nanoseconds' => -10];
 $d1 = new \Temporal\Duration();
-TemporalHelpers::assertDuration(
-    $d1->with($argAllNegative),
-    -9,
-    -8,
-    -7,
-    -6,
-    -5,
-    -4,
-    -3,
-    -2,
-    -1,
-    -10,
-    'replace all zeroes with all negative',
-);
+TemporalHelpers::assertDuration($d1->with($argAllNegative), -9, -8, -7, -6, -5, -4, -3, -2, -1, -10, 'replace all zeroes with all negative');
 $d2 = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-TemporalHelpers::assertDuration(
-    $d2->with($argAllNegative),
-    -9,
-    -8,
-    -7,
-    -6,
-    -5,
-    -4,
-    -3,
-    -2,
-    -1,
-    -10,
-    'replace all positive with all negative',
-);
-$d3 = new \Temporal\Duration(
-    100_000,
-    200_000,
-    300_000,
-    400_000,
-    500_000,
-    600_000,
-    700_000,
-    800_000,
-    900_000,
-    1_000_000,
-);
-TemporalHelpers::assertDuration(
-    $d3->with($argAllNegative),
-    -9,
-    -8,
-    -7,
-    -6,
-    -5,
-    -4,
-    -3,
-    -2,
-    -1,
-    -10,
-    'replace all positive large numbers with all negative',
-);
+TemporalHelpers::assertDuration($d2->with($argAllNegative), -9, -8, -7, -6, -5, -4, -3, -2, -1, -10, 'replace all positive with all negative');
+$d3 = new \Temporal\Duration(100_000, 200_000, 300_000, 400_000, 500_000, 600_000, 700_000, 800_000, 900_000, 1_000_000);
+TemporalHelpers::assertDuration($d3->with($argAllNegative), -9, -8, -7, -6, -5, -4, -3, -2, -1, -10, 'replace all positive large numbers with all negative');
 $d4 = new \Temporal\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
-TemporalHelpers::assertDuration(
-    $d4->with($argAllNegative),
-    -9,
-    -8,
-    -7,
-    -6,
-    -5,
-    -4,
-    -3,
-    -2,
-    -1,
-    -10,
-    'replace all negative with all negative',
-);
+TemporalHelpers::assertDuration($d4->with($argAllNegative), -9, -8, -7, -6, -5, -4, -3, -2, -1, -10, 'replace all negative with all negative');
