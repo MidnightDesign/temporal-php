@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal\Tests;
 
+use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use Temporal\Instant;
 
@@ -50,5 +51,44 @@ final class InstantConstructionTest extends TestCase
         $instant = Instant::fromEpochMilliseconds(-500);
 
         static::assertSame(-500_000_000, $instant->epochNanoseconds);
+    }
+
+    public function testFromEpochMillisecondsAcceptsIntegerFloat(): void
+    {
+        // A float that is an exact integer is accepted.
+        $instant = Instant::fromEpochMilliseconds(1_000.0);
+
+        static::assertSame(1_000_000_000, $instant->epochNanoseconds);
+    }
+
+    public function testFromEpochMillisecondsRejectsNonFinite(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::fromEpochMilliseconds(INF);
+    }
+
+    public function testFromEpochMillisecondsRejectsFractionalFloat(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::fromEpochMilliseconds(1.5);
+    }
+
+    public function testFromEpochMillisecondsRejectsPositiveOutOfRange(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::fromEpochMilliseconds(8_640_000_000_000_001);
+    }
+
+    public function testFromEpochMillisecondsRejectsNegativeOutOfRange(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::fromEpochMilliseconds(-8_640_000_000_000_001);
+    }
+
+    public function testFromEpochMillisecondsAcceptsMaxValidValue(): void
+    {
+        $instant = Instant::fromEpochMilliseconds(8_640_000_000_000_000);
+
+        static::assertSame(PHP_INT_MAX, $instant->epochNanoseconds);
     }
 }

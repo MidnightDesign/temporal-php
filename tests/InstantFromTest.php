@@ -75,4 +75,57 @@ final class InstantFromTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         Instant::from('not-a-date');
     }
+
+    public function testFromRejectsNegativeZeroYear(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::from('-000000-01-01T00:00:00Z');
+    }
+
+    public function testFromAcceptsCalendarAnnotation(): void
+    {
+        $withCal = Instant::from('2020-01-01T00:00:00Z[u-ca=iso8601]');
+        $without = Instant::from('2020-01-01T00:00:00Z');
+
+        static::assertTrue($withCal->equals($without));
+    }
+
+    public function testFromAcceptsMultipleAnnotations(): void
+    {
+        $inst = Instant::from('2020-01-01T00:00:00Z[UTC][u-ca=iso8601]');
+
+        static::assertSame(0, Instant::compare($inst, '2020-01-01T00:00:00Z'));
+    }
+
+    public function testFromRejectsCriticalUnknownAnnotation(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::from('2020-01-01T00:00:00Z[!foo=bar]');
+    }
+
+    public function testFromRejectsMultipleTimeZoneAnnotations(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::from('2020-01-01T00:00:00Z[UTC][Europe/London]');
+    }
+
+    public function testFromRejectsSubMinuteOffsetInAnnotation(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::from('2021-08-19T17:30-07:00:01[-07:00:01]');
+    }
+
+    public function testFromRejectsUppercaseAnnotationKey(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Instant::from('2020-01-01T00:00:00Z[U-CA=iso8601]');
+    }
+
+    public function testFromIgnoresNonCriticalUnknownAnnotation(): void
+    {
+        $inst = Instant::from('2020-01-01T00:00:00Z[foo=bar]');
+        $expected = Instant::from('2020-01-01T00:00:00Z');
+
+        static::assertTrue($inst->equals($expected));
+    }
 }

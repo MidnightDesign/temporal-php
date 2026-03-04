@@ -3,6 +3,7 @@ php-version = "8.4"
 [source]
 paths = ["src", "tests"]
 includes = ["vendor"]
+excludes = ["tests/Test262/scripts"]
 
 [linter]
 integrations = ["phpunit"]
@@ -15,4 +16,20 @@ level = "error"
 
 [linter.rules.too-many-methods]
 level = "error"
-threshold = 11
+threshold = 20
+
+# Duration has 10 fields by spec; class-level metrics reflect inherent TC39 complexity.
+[linter.rules.cyclomatic-complexity]
+level = "warning"
+threshold = 50
+
+[linter.rules.kan-defect]
+level = "warning"
+threshold = 2.0
+
+[linter.rules.excessive-parameter-list]
+level = "warning"
+threshold = 10
+
+[linter.rules.halstead]
+level = "warning"

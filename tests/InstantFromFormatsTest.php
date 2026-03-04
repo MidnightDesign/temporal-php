@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Tests;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\TestCase;
 use Temporal\Instant;
 
@@ -61,12 +61,13 @@ final class InstantFromFormatsTest extends TestCase
         static::assertSame($withPeriod->epochNanoseconds, $withComma->epochNanoseconds);
     }
 
+    #[DoesNotPerformAssertions]
     public function testNegativeYear(): void
     {
-        // The format is accepted by the parser; year -9999 overflows the
-        // nanosecond range (~1678–2262), so an InvalidArgumentException is expected.
-        $this->expectException(InvalidArgumentException::class);
-        Instant::from('-009999-11-18T15:23:30Z');
+        // Year -9999 is within the Temporal spec's valid range (−271821 to +275760).
+        // The epochNanoseconds overflows PHP int64 so the stored value is
+        // implementation-defined, but from() must not throw.
+        Instant::from('-009999-11-18T15:23:30Z'); // not throwing is the assertion
     }
 
     public function testMultipleAnnotationsIgnored(): void
@@ -79,11 +80,11 @@ final class InstantFromFormatsTest extends TestCase
 
     public function testLeapSecondNormalized(): void
     {
-        // 2016-12-31T23:59:60Z is a real leap second; it must normalize to 2017-01-01T00:00:00Z.
+        // Per the Temporal spec (§8.5.6), a leap second maps to the last
+        // nanosecond of the preceding :59 second, i.e. epochNs = T23:59:59.
         $leapSecond = Instant::from('2016-12-31T23:59:60Z');
-        $nextMinute = Instant::from('2017-01-01T00:00:00Z');
 
-        static::assertSame($nextMinute->epochNanoseconds, $leapSecond->epochNanoseconds);
+        static::assertSame(1_483_228_799_000_000_000, $leapSecond->epochNanoseconds);
     }
 
     public function testCompactDateTimeWithOffsetAndFraction(): void

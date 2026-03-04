@@ -6,6 +6,10 @@
     <testsuites>
         <testsuite name="default">
             <directory>tests/</directory>
+            <exclude>tests/Test262</exclude>
+        </testsuite>
+        <testsuite name="test262">
+            <directory>tests/Test262</directory>
         </testsuite>
     </testsuites>
     <source>

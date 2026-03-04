@@ -29,9 +29,12 @@
     },
     "scripts": {
         "test": "phpunit tests/",
-        "test-coverage": "phpunit tests/ --coverage-xml build/coverage/coverage-xml --log-junit build/coverage/junit.xml",
+        "test-coverage": "phpunit --testsuite=default --coverage-xml build/coverage/coverage-xml --log-junit build/coverage/junit.xml",
+        "test262:transpile": ["node tools/transpile-test262.mjs tests/Test262/data", "mago format tests/Test262/scripts"],
+        "test262:build": "@test262:transpile",
+        "test262:run": "phpunit --testsuite test262",
         "infection": "infection --threads=max",
-        "phpstan": "phpstan analyse",
+        "phpstan": "phpstan analyse --memory-limit=512M",
         "psalm": "psalm",
         "mago": [
             "mago lint",

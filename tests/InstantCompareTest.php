@@ -48,4 +48,16 @@ final class InstantCompareTest extends TestCase
 
         static::assertSame(1, Instant::compare($later, $earlier));
     }
+
+    public function testCompareAcceptsStrings(): void
+    {
+        static::assertSame(-1, Instant::compare('1970-01-01T00:00:00Z', '1970-01-01T00:00:01Z'));
+    }
+
+    public function testCompareMixedStringAndInstant(): void
+    {
+        $instant = new Instant(0);
+
+        static::assertSame(0, Instant::compare($instant, '1970-01-01T00:00:00Z'));
+    }
 }
