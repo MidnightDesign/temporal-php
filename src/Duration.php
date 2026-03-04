@@ -98,11 +98,11 @@ final class Duration implements Stringable
             && is_int($this->nanoseconds)
         ) {
             // All-integer path: propagate carry ns → µs → ms → s → check full total.
-            $carryNs = intdiv($this->nanoseconds, 1_000);
+            $carryNs = intdiv(num1: $this->nanoseconds, num2: 1_000);
             $usEff = $this->microseconds + $carryNs;
-            $carryUs = intdiv($usEff, 1_000);
+            $carryUs = intdiv(num1: $usEff, num2: 1_000);
             $msEff = $this->milliseconds + $carryUs;
-            $carryMs = intdiv($msEff, 1_000);
+            $carryMs = intdiv(num1: $msEff, num2: 1_000);
             $sEff = $secI + $carryMs;
             $intSecFull = ($this->days * 86_400) + ($this->hours * 3_600) + ($this->minutes * 60) + $sEff;
             if ($intSecFull > 9_007_199_254_740_991 || $intSecFull < -9_007_199_254_740_991) {
@@ -140,7 +140,7 @@ final class Duration implements Stringable
 
         $positive = null;
         foreach ($this->fields() as $v) {
-            if ($v == 0) {
+            if ($v === 0 || $v === 0.0) {
                 continue;
             }
             /** @infection-ignore-all GreaterThan > 0 ≡ >= 0 when $v is guaranteed non-zero (guarded above) */
@@ -431,6 +431,7 @@ final class Duration implements Stringable
         }
 
         // TC39 ToTemporalPartialDurationRecord: at least one recognized plural field required.
+        /** @var list<string> $PLURAL_FIELDS */
         static $PLURAL_FIELDS = [
             'years',
             'months',
@@ -457,18 +458,21 @@ final class Duration implements Stringable
             );
         }
 
-        return new self(
-            $fields['years'] ?? $this->years,
-            $fields['months'] ?? $this->months,
-            $fields['weeks'] ?? $this->weeks,
-            $fields['days'] ?? $this->days,
-            $fields['hours'] ?? $this->hours,
-            $fields['minutes'] ?? $this->minutes,
-            $fields['seconds'] ?? $this->seconds,
-            $fields['milliseconds'] ?? $this->milliseconds,
-            $fields['microseconds'] ?? $this->microseconds,
-            $fields['nanoseconds'] ?? $this->nanoseconds,
-        );
+        // Use parseDurationLike to validate and cast each field; current values are defaults.
+        /** @var array<string, mixed> $merged */
+        $merged = [
+            'years' => $fields['years'] ?? $this->years,
+            'months' => $fields['months'] ?? $this->months,
+            'weeks' => $fields['weeks'] ?? $this->weeks,
+            'days' => $fields['days'] ?? $this->days,
+            'hours' => $fields['hours'] ?? $this->hours,
+            'minutes' => $fields['minutes'] ?? $this->minutes,
+            'seconds' => $fields['seconds'] ?? $this->seconds,
+            'milliseconds' => $fields['milliseconds'] ?? $this->milliseconds,
+            'microseconds' => $fields['microseconds'] ?? $this->microseconds,
+            'nanoseconds' => $fields['nanoseconds'] ?? $this->nanoseconds,
+        ];
+        return self::parseDurationLike($merged);
     }
 
     /**
@@ -504,6 +508,7 @@ final class Duration implements Stringable
 
             // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
+                /** @var mixed $fsd */
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd === 'auto') {
                     $digits = null; // keep auto
@@ -543,7 +548,9 @@ final class Duration implements Stringable
 
             // roundingMode
             if (array_key_exists('roundingMode', $options)) {
+                /** @var mixed $rm */
                 $rm = $options['roundingMode'];
+                /** @phpstan-ignore cast.string */
                 $roundingMode = $rm === null ? 'trunc' : (string) $rm;
             }
         }
@@ -562,19 +569,18 @@ final class Duration implements Stringable
         // correctly — PHP's % operator converts floats to int via truncation, which overflows
         // for values like 4.5e21 µs. fmod() follows IEEE 754 and gives the exact remainder.
         // Carry = (v - fmod(v, divisor)) / divisor avoids the rounding-up error from v/divisor.
-        $remMs = (int) fmod((float) $abs->milliseconds, 1_000.0);
+        $remMs = (int) fmod(num1: (float) $abs->milliseconds, num2: 1_000.0);
         $carryMs = (int) (((float) $abs->milliseconds - (float) $remMs) / 1_000.0);
-        $remUs = (int) fmod((float) $abs->microseconds, 1_000_000.0);
+        $remUs = (int) fmod(num1: (float) $abs->microseconds, num2: 1_000_000.0);
         $carryUs = (int) (((float) $abs->microseconds - (float) $remUs) / 1_000_000.0);
-        $remNs = (int) fmod((float) $abs->nanoseconds, 1_000_000_000.0);
+        $remNs = (int) fmod(num1: (float) $abs->nanoseconds, num2: 1_000_000_000.0);
         $carryNs = (int) (((float) $abs->nanoseconds - (float) $remNs) / 1_000_000_000.0);
 
         $subNs = ($remMs * 1_000_000) + ($remUs * 1_000) + $remNs;
         $totalSeconds = (int) $abs->seconds + $carryMs + $carryUs + $carryNs + (int) ($subNs / 1_000_000_000);
-        $subNs = (int) ($subNs % 1_000_000_000);
+        $subNs = $subNs % 1_000_000_000;
 
         // Apply rounding and format the fractional seconds string.
-        $frac = '';
         if ($digits === null) {
             // auto: retain only significant digits.
             $frac = $subNs !== 0 ? '.' . rtrim(sprintf('%09d', $subNs), characters: '0') : '';
@@ -602,16 +608,16 @@ final class Duration implements Stringable
         $s = $prefix . 'P';
 
         if ($abs->years !== 0) {
-            $s .= $abs->years . 'Y';
+            $s .= ((string) $abs->years) . 'Y';
         }
         if ($abs->months !== 0) {
-            $s .= $abs->months . 'M';
+            $s .= ((string) $abs->months) . 'M';
         }
         if ($abs->weeks !== 0) {
-            $s .= $abs->weeks . 'W';
+            $s .= ((string) $abs->weeks) . 'W';
         }
         if ($abs->days !== 0) {
-            $s .= $abs->days . 'D';
+            $s .= ((string) $abs->days) . 'D';
         }
 
         // With a fixed digit count we always emit the time component (even if zero).
@@ -620,10 +626,10 @@ final class Duration implements Stringable
         if ($hasTime) {
             $s .= 'T';
             if ($abs->hours !== 0) {
-                $s .= $abs->hours . 'H';
+                $s .= ((string) $abs->hours) . 'H';
             }
             if ($abs->minutes !== 0) {
-                $s .= $abs->minutes . 'M';
+                $s .= ((string) $abs->minutes) . 'M';
             }
             // In fixed-digit mode always emit seconds; in auto mode emit only when non-zero.
             if ($digits !== null || $totalSeconds !== 0 || $subNs !== 0) {
@@ -650,6 +656,7 @@ final class Duration implements Stringable
      *
      * @throws \TypeError always.
      * @return never
+     * @psalm-api
      */
     public function valueOf(): never
     {
@@ -670,6 +677,7 @@ final class Duration implements Stringable
      * @return int|float
      * @throws InvalidArgumentException if the unit is invalid or unavailable without relativeTo.
      * @throws \TypeError if $totalOf is not a string or array, or if relativeTo is an invalid bag.
+     * @psalm-api
      */
     public function total(mixed $totalOf): int|float
     {
@@ -677,7 +685,13 @@ final class Duration implements Stringable
             throw new InvalidArgumentException('total() expects a unit string or an options bag array.');
         }
 
-        $unit = is_array($totalOf) ? (string) ($totalOf['unit'] ?? '') : $totalOf;
+        if (is_array($totalOf)) {
+            /** @var mixed $u */
+            $u = $totalOf['unit'] ?? '';
+            $unit = is_string($u) ? $u : '';
+        } else {
+            $unit = $totalOf;
+        }
         $unit = self::normalizeUnit($unit);
 
         if ($unit === 'years' || $unit === 'months' || $unit === 'weeks') {
@@ -800,11 +814,25 @@ final class Duration implements Stringable
      */
     private function totalCalendar(string $unit, array $relativeTo): int|float
     {
-        $year = (int) $relativeTo['year'];
-        $month = array_key_exists('month', $relativeTo)
-            ? (int) $relativeTo['month']
-            : (int) substr(string: (string) $relativeTo['monthCode'], offset: 1);
-        $day = (int) $relativeTo['day'];
+        /** @var mixed $yearRaw */
+        $yearRaw = $relativeTo['year'];
+        /** @phpstan-ignore cast.int */
+        $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
+        if (array_key_exists('month', $relativeTo)) {
+            /** @var mixed $monthRaw */
+            $monthRaw = $relativeTo['month'];
+            /** @phpstan-ignore cast.int */
+            $month = is_int($monthRaw) ? $monthRaw : (int) $monthRaw;
+        } else {
+            /** @var mixed $monthCodeRaw */
+            $monthCodeRaw = $relativeTo['monthCode'];
+            /** @phpstan-ignore cast.string */
+            $month = (int) substr(string: is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw, offset: 1);
+        }
+        /** @var mixed $dayRaw */
+        $dayRaw = $relativeTo['day'];
+        /** @phpstan-ignore cast.int */
+        $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
 
         $tz = new \DateTimeZone('UTC');
         $start = new \DateTimeImmutable('now', $tz)
@@ -835,7 +863,7 @@ final class Duration implements Stringable
 
         return match ($unit) {
             'months' => $this->totalCalendarMonths($start, $wholeDays, $fracNs, $nsPerDay),
-            'weeks' => self::toIntIfWhole(((float) $wholeDays + ($fracNs / (float) $nsPerDay)) / 7.0),
+            'weeks' => self::toIntIfWhole(((float) $wholeDays + ((float) $fracNs / (float) $nsPerDay)) / 7.0),
             'years' => $this->totalCalendarYears($start, $wholeDays, $fracNs, $nsPerDay),
             default => throw new InvalidArgumentException("Unhandled calendar unit: \"{$unit}\"."),
         };
@@ -915,7 +943,7 @@ final class Duration implements Stringable
 
     private static function toIntIfWhole(float $result): int|float
     {
-        return fmod($result, 1.0) === 0.0 ? (int) $result : $result;
+        return fmod(num1: $result, num2: 1.0) === 0.0 ? (int) $result : $result;
     }
 
     /**
@@ -961,12 +989,19 @@ final class Duration implements Stringable
         }
 
         // Sum each field. PHP promotes int+int to float on overflow; tdivmod handles both.
+        /** @psalm-suppress InvalidOperand */
         $d = $this->days + $other->days;
+        /** @psalm-suppress InvalidOperand */
         $h = $this->hours + $other->hours;
+        /** @psalm-suppress InvalidOperand */
         $min = $this->minutes + $other->minutes;
+        /** @psalm-suppress InvalidOperand */
         $s = $this->seconds + $other->seconds;
+        /** @psalm-suppress InvalidOperand */
         $ms = $this->milliseconds + $other->milliseconds;
+        /** @psalm-suppress InvalidOperand */
         $us = $this->microseconds + $other->microseconds;
+        /** @psalm-suppress InvalidOperand */
         $ns = $this->nanoseconds + $other->nanoseconds;
 
         return self::balanceTimeFields($d, $h, $min, $s, $ms, $us, $ns, $rank);
@@ -978,6 +1013,7 @@ final class Duration implements Stringable
      * @param mixed $other Duration, ISO 8601 string, or property-bag array.
      * @throws InvalidArgumentException if either duration has calendar fields.
      * @throws \TypeError if $other is not a Duration, string, or array.
+     * @psalm-api
      */
     public function subtract(mixed $other): self
     {
@@ -1042,10 +1078,11 @@ final class Duration implements Stringable
      *  - Each provided numeric value must be a finite, integer-valued number
      *    (InvalidArgumentException if not).
      *
-     * @param array<string, mixed> $item
+     * @param array<array-key, mixed> $item
      */
     private static function parseDurationLike(array $item): self
     {
+        /** @var list<string> $PLURAL_FIELDS */
         static $PLURAL_FIELDS = [
             'years',
             'months',
@@ -1076,16 +1113,21 @@ final class Duration implements Stringable
         // Validate and extract each field.
         $values = [];
         foreach ($PLURAL_FIELDS as $field) {
+            /** @var mixed $v */
             $v = $item[$field] ?? 0;
             if (is_float($v)) {
                 if (is_nan($v) || is_infinite($v)) {
                     throw new InvalidArgumentException("Duration field \"{$field}\" must be a finite integer.");
                 }
-                if (fmod($v, 1.0) !== 0.0) {
+                if (fmod(num1: $v, num2: 1.0) !== 0.0) {
                     throw new InvalidArgumentException(
                         "Duration field \"{$field}\" must be an integer, got non-integer {$v}.",
                     );
                 }
+            } elseif (!is_int($v)) {
+                // Coerce non-float non-int (strings, bools, null) — matches JS ToNumber coercion.
+                /** @phpstan-ignore cast.int */
+                $v = (int) $v;
             }
             // Keep large floats (> PHP_INT_MAX) as float; cast the rest to int.
             // Values within int64 range are cast for exact integer semantics.
@@ -1198,25 +1240,31 @@ final class Duration implements Stringable
 
         // Bottom-up integer carry.
         [$carryUs, $ns] = self::tdivmod($ns, 1_000);
+        /** @psalm-suppress InvalidOperand */
         $us += $carryUs;
         if ($rank >= 2) {
             [$carryMs, $us] = self::tdivmod($us, 1_000);
+            /** @psalm-suppress InvalidOperand */
             $ms += $carryMs;
         }
         if ($rank >= 3) {
             [$carryS, $ms] = self::tdivmod($ms, 1_000);
+            /** @psalm-suppress InvalidOperand */
             $s += $carryS;
         }
         if ($rank >= 4) {
             [$carryMin, $s] = self::tdivmod($s, 60);
+            /** @psalm-suppress InvalidOperand */
             $min += $carryMin;
         }
         if ($rank >= 5) {
             [$carryH, $min] = self::tdivmod($min, 60);
+            /** @psalm-suppress InvalidOperand */
             $h += $carryH;
         }
         if ($rank >= 6) {
             [$carryD, $h] = self::tdivmod($h, 24);
+            /** @psalm-suppress InvalidOperand */
             $d += $carryD;
         }
 

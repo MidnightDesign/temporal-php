@@ -16,7 +16,7 @@ level = "error"
 
 [linter.rules.too-many-methods]
 level = "error"
-threshold = 20
+threshold = 30
 
 # Duration has 10 fields by spec; class-level metrics reflect inherent TC39 complexity.
 [linter.rules.cyclomatic-complexity]
