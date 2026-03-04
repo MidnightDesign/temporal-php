@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $invalidStrings = [['2025-04-03T05:07.123[CET]', 'Fractional minutes'], ['2025-04-03T12.5[CET]', 'Fractional hours']];
 foreach ($invalidStrings as [$arg, $description]) {
-Assert::incomplete('Duration::since() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->since($arg), "{$description} not allowed in time string");
 }

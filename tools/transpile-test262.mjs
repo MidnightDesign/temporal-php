@@ -68,7 +68,7 @@ const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant']);
  * Calls to these are emitted as Assert::incomplete() rather than crashing.
  */
 const NOT_YET_IMPLEMENTED_METHODS = new Set([
-  'round', 'toLocaleString', 'since', 'until', 'toZonedDateTimeISO',
+  'toLocaleString', 'toZonedDateTimeISO',
 ]);
 
 /**
@@ -76,7 +76,14 @@ const NOT_YET_IMPLEMENTED_METHODS = new Set([
  * implemented on other classes (e.g. Duration). Only emit incomplete when the
  * receiver is a known Instant variable.
  */
-const INSTANT_UNIMPLEMENTED_METHODS = new Set(['add', 'subtract']);
+const INSTANT_UNIMPLEMENTED_METHODS = new Set([]);
+
+/**
+ * Instance methods implemented on Temporal.Instant but NOT yet on other
+ * Temporal classes (e.g. Duration). Only pass through when the receiver is
+ * a known Instant variable; otherwise emit incomplete.
+ */
+const INSTANT_ONLY_METHODS = new Set(['round']);
 
 /**
  * TemporalHelpers methods that have been implemented in PHP.
@@ -98,6 +105,7 @@ const PHP_IMPLEMENTED_METHODS = {
   Instant:  new Set([
     '__construct', 'from', 'fromEpochMilliseconds', 'fromEpochNanoseconds',
     'compare', 'equals', 'valueOf', 'toString', 'toJSON',
+    'add', 'subtract', 'round', 'since', 'until',
   ]),
   Duration: new Set([
     '__construct', 'from', 'negated', 'abs', 'equals', 'with',
@@ -251,7 +259,13 @@ class Emitter {
         this.emitIncomplete(`cannot represent value of '${decl.id.name ?? '?'}' in PHP (BigInt overflow)`);
         return;
       }
-      this.emit(`${lhs} = ${rhs};`);
+      // When destructuring an ArrayPattern, pad the RHS to avoid "Undefined array key" warnings.
+      if (decl.id.type === 'ArrayPattern') {
+        const n = decl.id.elements.length;
+        this.emit(`${lhs} = array_pad(${rhs}, ${n}, null);`);
+      } else {
+        this.emit(`${lhs} = ${rhs};`);
+      }
     }
   }
 
@@ -566,7 +580,7 @@ class Emitter {
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.property.type === 'Identifier'
         && NOT_YET_IMPLEMENTED_METHODS.has(callee.property.name)) {
-      this.emitIncomplete(`Duration::${callee.property.name}() is not yet implemented`);
+      this.emitIncomplete(`Instant::${callee.property.name}() is not yet implemented`);
       return null;
     }
 
@@ -577,6 +591,15 @@ class Emitter {
         && callee.object.type === 'Identifier'
         && this.instantVars.has(callee.object.name)) {
       this.emitIncomplete(`Instant::${callee.property.name}() is not yet implemented`);
+      return null;
+    }
+
+    // Methods implemented only on Instant: pass through for known Instant vars, incomplete otherwise.
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.type === 'Identifier'
+        && INSTANT_ONLY_METHODS.has(callee.property.name)
+        && !(callee.object.type === 'Identifier' && this.instantVars.has(callee.object.name))) {
+      this.emitIncomplete(`${callee.property.name}() is not yet implemented on this class`);
       return null;
     }
 

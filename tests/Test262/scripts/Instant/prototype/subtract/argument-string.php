@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = \Temporal\Instant::fromEpochMilliseconds(10_000);
-Assert::incomplete('Instant::subtract() is not yet implemented');
+$result = $instance->subtract('PT3H');
+Assert::sameValue($result->epochNanoseconds, -10_790_000_000_000, 'epochNanoseconds result');

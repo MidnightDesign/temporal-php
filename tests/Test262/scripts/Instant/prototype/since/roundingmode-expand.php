@@ -14,7 +14,7 @@ $expected = [['hours', [0, 0, 0, 0, 376_436], [0, 0, 0, 0, -376_436]], ['minutes
 $roundingMode = 'expand';
 $largestUnit = 'hours';
 foreach ($expected as [$smallestUnit, $expectedPositive, $expectedNegative]) {
-[$py, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = $expectedPositive;
-[$ny, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = $expectedNegative;
-Assert::incomplete('Duration::since() is not yet implemented');
+[$py, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = array_pad($expectedPositive, 10, null);
+[$ny, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = array_pad($expectedNegative, 10, null);
+Assert::incomplete('untranslatable object property');
 }

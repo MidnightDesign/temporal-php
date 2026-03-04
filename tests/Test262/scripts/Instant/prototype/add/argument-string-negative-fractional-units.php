@@ -8,4 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(1_000_000_000_000_000_000);
-Assert::incomplete('Instant::add() is not yet implemented');
+$resultHours = $instance->add('-PT24.567890123H');
+Assert::sameValue($resultHours->epochNanoseconds, 999_911_555_595_557_200, 'negative fractional hours');
+$resultMinutes = $instance->add('-PT1440.567890123M');
+Assert::sameValue($resultMinutes->epochNanoseconds, 999_913_565_926_592_620, 'negative fractional minutes');

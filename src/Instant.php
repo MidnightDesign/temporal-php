@@ -481,6 +481,182 @@ final class Instant implements Stringable
         return $this->toString();
     }
 
+    /**
+     * Returns a new Instant advanced by the given duration.
+     *
+     * Calendar fields (years, months, weeks, days) are forbidden — Instant has
+     * no calendar context. Passing a Duration with any of those fields non-zero
+     * throws RangeError.
+     *
+     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @psalm-api used by test262 scripts
+     * @throws InvalidArgumentException if the duration contains calendar fields or the result is out of range.
+     */
+    public function add(mixed $duration): self
+    {
+        $d = Duration::from($duration);
+        if ($d->years !== 0 || $d->months !== 0 || $d->weeks !== 0 || $d->days !== 0) {
+            throw new InvalidArgumentException(
+                'Temporal\\Instant::add() does not support calendar fields (years, months, weeks, days).',
+            );
+        }
+        return self::addNsOffset(
+            $this->epochNanoseconds,
+            $d->hours,
+            $d->minutes,
+            $d->seconds,
+            $d->milliseconds,
+            $d->microseconds,
+            $d->nanoseconds,
+        );
+    }
+
+    /**
+     * Returns a new Instant moved back by the given duration.
+     *
+     * Calendar fields (years, months, weeks, days) are forbidden.
+     *
+     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @psalm-api used by test262 scripts
+     * @throws InvalidArgumentException if the duration contains calendar fields or the result is out of range.
+     */
+    public function subtract(mixed $duration): self
+    {
+        $d = Duration::from($duration);
+        if ($d->years !== 0 || $d->months !== 0 || $d->weeks !== 0 || $d->days !== 0) {
+            throw new InvalidArgumentException(
+                'Temporal\\Instant::subtract() does not support calendar fields (years, months, weeks, days).',
+            );
+        }
+        return self::addNsOffset(
+            $this->epochNanoseconds,
+            -$d->hours,
+            -$d->minutes,
+            -$d->seconds,
+            -$d->milliseconds,
+            -$d->microseconds,
+            -$d->nanoseconds,
+        );
+    }
+
+    /**
+     * Returns a new Instant rounded to the given unit and increment.
+     *
+     * The $roundTo argument may be a string (treated as smallestUnit) or an
+     * options array with keys: smallestUnit (required), roundingMode (default
+     * 'halfExpand'), roundingIncrement (default 1).
+     *
+     * @param mixed $roundTo string smallestUnit or options array.
+     * @psalm-api used by test262 scripts
+     * @throws \TypeError if $roundTo is not a string or array.
+     * @throws InvalidArgumentException if smallestUnit is missing/invalid or roundingIncrement is invalid.
+     */
+    public function round(mixed $roundTo): self
+    {
+        if (is_string($roundTo)) {
+            $roundTo = ['smallestUnit' => $roundTo];
+        }
+        if (!is_array($roundTo)) {
+            throw new \TypeError('Temporal\\Instant::round() options must be a string or array.');
+        }
+
+        /** @psalm-suppress MixedAssignment */
+        $suRaw = $roundTo['smallestUnit'] ?? null;
+        if ($suRaw === null) {
+            throw new InvalidArgumentException('Temporal\\Instant::round() requires smallestUnit.');
+        }
+        if (!is_string($suRaw)) {
+            throw new \TypeError('smallestUnit must be a string.');
+        }
+        // Maps unit name → [ns-per-unit, max-increment-divisor (next unit size)]
+        $unitMap = [
+            'nanosecond'  => [1,                  86_400_000_000_000],
+            'nanoseconds' => [1,                  86_400_000_000_000],
+            'microsecond' => [1_000,              86_400_000_000],
+            'microseconds'=> [1_000,              86_400_000_000],
+            'millisecond' => [1_000_000,          86_400_000],
+            'milliseconds'=> [1_000_000,          86_400_000],
+            'second'      => [1_000_000_000,      86_400],
+            'seconds'     => [1_000_000_000,      86_400],
+            'minute'      => [60_000_000_000,     1_440],
+            'minutes'     => [60_000_000_000,     1_440],
+            'hour'        => [3_600_000_000_000,  24],
+            'hours'       => [3_600_000_000_000,  24],
+        ];
+        if (!array_key_exists($suRaw, $unitMap)) {
+            throw new InvalidArgumentException("Invalid smallestUnit \"{$suRaw}\" for Temporal\\Instant::round().");
+        }
+        [$nsPerUnit, $maxDivisor] = $unitMap[$suRaw];
+
+        $roundingMode = 'halfExpand';
+        if (array_key_exists('roundingMode', $roundTo) && $roundTo['roundingMode'] !== null) {
+            /** @psalm-suppress MixedArgument */
+            $roundingMode = (string) $roundTo['roundingMode'];
+        }
+
+        $increment = 1;
+        if (array_key_exists('roundingIncrement', $roundTo) && $roundTo['roundingIncrement'] !== null) {
+            /** @psalm-suppress MixedArgument */
+            $increment = (int) $roundTo['roundingIncrement'];
+        }
+        if ($increment < 1) {
+            throw new InvalidArgumentException("roundingIncrement must be a positive integer.");
+        }
+        if ($maxDivisor % $increment !== 0) {
+            throw new InvalidArgumentException(
+                "roundingIncrement {$increment} does not evenly divide {$maxDivisor} for unit \"{$suRaw}\".",
+            );
+        }
+
+        $nsIncrement = $nsPerUnit * $increment;
+        $rounded = self::roundAsIfPositive($this->epochNanoseconds, $nsIncrement, $roundingMode);
+        return new self($rounded);
+    }
+
+    /**
+     * Returns the elapsed time from $other to $this as a Duration.
+     *
+     * The result is positive when $this is after $other.
+     *
+     * @param mixed $other   The starting instant (Instant or ISO string).
+     * @param mixed $options Options array (largestUnit, smallestUnit, roundingMode, roundingIncrement).
+     * @psalm-api used by test262 scripts
+     */
+    public function since(mixed $other, mixed $options = null): Duration
+    {
+        if ($other instanceof self) {
+            $otherInst = $other;
+        } elseif (is_string($other)) {
+            $otherInst = self::from($other);
+        } else {
+            throw new InvalidArgumentException('since() argument must be a Temporal\\Instant or an ISO string.');
+        }
+        $diffNs = $this->epochNanoseconds - $otherInst->epochNanoseconds;
+        return self::diffInstant($diffNs, $options);
+    }
+
+    /**
+     * Returns the elapsed time from $this to $other as a Duration.
+     *
+     * The result is positive when $other is after $this.
+     *
+     * @param mixed $other   The ending instant (Instant or ISO string).
+     * @param mixed $options Options array (largestUnit, smallestUnit, roundingMode, roundingIncrement).
+     * @psalm-api used by test262 scripts
+     */
+    public function until(mixed $other, mixed $options = null): Duration
+    {
+        if ($other instanceof self) {
+            $otherInst = $other;
+        } elseif (is_string($other)) {
+            $otherInst = self::from($other);
+        } else {
+            throw new InvalidArgumentException('until() argument must be a Temporal\\Instant or an ISO string.');
+        }
+        $diffNs = $otherInst->epochNanoseconds - $this->epochNanoseconds;
+        return self::diffInstant($diffNs, $options);
+    }
+
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
@@ -723,5 +899,273 @@ final class Instant implements Stringable
         $q = intdiv($a, $b);
         $r = $a - ($q * $b);
         return $r < 0 ? $q - 1 : $q;
+    }
+
+    /**
+     * Computes a new Instant by adding a time-field offset to an epoch-nanoseconds value.
+     *
+     * Uses a float approximation for the spec-range check (±8.64e21 ns), then falls
+     * back to a sentinel (PHP_INT_MIN/MAX) when the result fits in the spec but not
+     * in a PHP int64.  The exact integer computation is performed only when the result
+     * is guaranteed to fit.
+     *
+     * @throws InvalidArgumentException if the resulting instant is outside the Temporal spec range.
+     */
+    private static function addNsOffset(
+        int $epochNs,
+        int|float $hours,
+        int|float $minutes,
+        int|float $seconds,
+        int|float $milliseconds,
+        int|float $microseconds,
+        int|float $nanoseconds,
+    ): self {
+        // Float approximation — sufficient for spec-range check.
+        $floatDelta =
+            (float) $hours       * 3_600_000_000_000.0
+            + (float) $minutes   *    60_000_000_000.0
+            + (float) $seconds   *     1_000_000_000.0
+            + (float) $milliseconds *      1_000_000.0
+            + (float) $microseconds *          1_000.0
+            + (float) $nanoseconds;
+        $floatResult = (float) $epochNs + $floatDelta;
+
+        // Spec range: |epochNs| ≤ 8_640_000_000_000 × 10⁹.
+        $specMaxNs = 8_640_000_000_000.0 * 1_000_000_000.0;
+        if ($floatResult > $specMaxNs || $floatResult < -$specMaxNs) {
+            throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+        }
+
+        // Use sentinel when outside PHP int64 range but within spec range.
+        if ($floatResult > (float) PHP_INT_MAX || $floatResult < (float) PHP_INT_MIN) {
+            return new self($floatResult < 0.0 ? PHP_INT_MIN : PHP_INT_MAX);
+        }
+
+        // Exact integer computation.
+        $h  = (int) $hours;
+        $m  = (int) $minutes;
+        $s  = (int) $seconds;
+        $ms = (int) $milliseconds;
+        $us = (int) $microseconds;
+        $ns = (int) $nanoseconds;
+
+        $result =
+            $epochNs
+            + $ns
+            + ($us * 1_000)
+            + ($ms * 1_000_000)
+            + ($s  * self::NS_PER_SECOND)
+            + ($m  * 60  * self::NS_PER_SECOND)
+            + ($h  * 3_600 * self::NS_PER_SECOND);
+
+        // PHP promotes int to float on overflow; use float-result sentinel in that case.
+        if (is_float($result)) { // @phpstan-ignore function.impossibleType
+            return new self($floatResult < 0.0 ? PHP_INT_MIN : PHP_INT_MAX);
+        }
+
+        return new self($result);
+    }
+
+    /**
+     * Core implementation for since() and until().
+     *
+     * Rounds and balances a nanosecond difference into a Duration according to
+     * the given options.
+     *
+     * Unit ordering (smallest to largest):
+     *   nanosecond < microsecond < millisecond < second < minute < hour
+     *
+     * @param int|float $diffNs  Signed nanosecond difference (this − other for since, other − this for until).
+     *                           May be float when the subtraction of two int64 sentinels overflows.
+     * @param mixed     $options Options array, object (treated as empty bag), or null.
+     * @throws InvalidArgumentException for invalid unit/mode strings.
+     * @throws InvalidArgumentException for invalid roundingIncrement.
+     * @throws \TypeError for wrong-typed option values.
+     */
+    private static function diffInstant(int|float $diffNs, mixed $options): Duration
+    {
+        // If diffNs is a float (int64 overflow), clamp it to the spec range for balancing.
+        if (is_float($diffNs)) {
+            $specMaxNs = 8_640_000_000_000.0 * 1_000_000_000.0;
+            if ($diffNs > $specMaxNs) {
+                $diffNs = (int) $specMaxNs;
+            } elseif ($diffNs < -$specMaxNs) {
+                $diffNs = (int) -$specMaxNs;
+            } else {
+                // Values at ≥2^63 in float notation can wrap when cast to int.
+                if ($diffNs >= 9_223_372_036_854_775_808.0) {
+                    $diffNs = PHP_INT_MAX;
+                } elseif ($diffNs <= -9_223_372_036_854_775_808.0) {
+                    $diffNs = PHP_INT_MIN + 1;
+                } else {
+                    $diffNs = (int) $diffNs;
+                }
+            }
+        }
+        // Unit name → index (0 = smallest).
+        $unitOrder = [
+            'nanosecond'   => 0,
+            'nanoseconds'  => 0,
+            'microsecond'  => 1,
+            'microseconds' => 1,
+            'millisecond'  => 2,
+            'milliseconds' => 2,
+            'second'       => 3,
+            'seconds'      => 3,
+            'minute'       => 4,
+            'minutes'      => 4,
+            'hour'         => 5,
+            'hours'        => 5,
+        ];
+
+        // ns-per-unit for each canonical index.
+        $nsPerUnitByIndex = [
+            0 => 1,
+            1 => 1_000,
+            2 => 1_000_000,
+            3 => 1_000_000_000,
+            4 => 60_000_000_000,
+            5 => 3_600_000_000_000,
+        ];
+
+        // Maximum increment that divides evenly into the next larger unit.
+        $maxIncrementByIndex = [
+            0 => 1_000,  // ns → µs
+            1 => 1_000,  // µs → ms
+            2 => 1_000,  // ms → s
+            3 => 60,     // s  → min
+            4 => 60,     // min → h
+            5 => 1,      // h  (no next unit; increment must be 1)
+        ];
+
+        // ---- Parse options ----
+        // TC39: any object (including closures) is a valid options bag treated as empty.
+        if (is_object($options)) {
+            $options = [];
+        } elseif ($options === null) {
+            $options = [];
+        } elseif (!is_array($options)) {
+            throw new \TypeError('options must be null, an array, or an object.');
+        }
+
+        // Track whether largestUnit was explicitly provided.
+        $luProvided = array_key_exists('largestUnit', $options) && $options['largestUnit'] !== null;
+        /** @psalm-suppress MixedAssignment */
+        $luVal = $luProvided ? $options['largestUnit'] : null;
+        /** @psalm-suppress MixedAssignment */
+        $suVal = array_key_exists('smallestUnit', $options) ? $options['smallestUnit'] : null;
+
+        if ($luVal !== null && !is_string($luVal)) {
+            throw new \TypeError("largestUnit must be a string.");
+        }
+        if ($suVal !== null && !is_string($suVal)) {
+            throw new \TypeError("smallestUnit must be a string.");
+        }
+
+        $suRaw = is_string($suVal) ? $suVal : 'nanosecond';
+
+        if (!array_key_exists($suRaw, $unitOrder)) {
+            throw new InvalidArgumentException("Invalid smallestUnit \"{$suRaw}\".");
+        }
+
+        $suIdx = $unitOrder[$suRaw];
+
+        if ($luProvided) {
+            $luRaw = (string) $luVal;
+            if (!array_key_exists($luRaw, $unitOrder)) {
+                throw new InvalidArgumentException("Invalid largestUnit \"{$luRaw}\".");
+            }
+            $luIdx = $unitOrder[$luRaw];
+        } else {
+            // Default: LargerOfTwoTemporalUnits('second', smallestUnit) → max(3, suIdx).
+            $luIdx = max(3, $suIdx);
+            $luRaw = $luIdx === $suIdx ? $suRaw : 'second';
+        }
+
+        // smallestUnit must not be larger than largestUnit.
+        if ($suIdx > $luIdx) {
+            throw new InvalidArgumentException(
+                "smallestUnit \"{$suRaw}\" must not be larger than largestUnit \"{$luRaw}\".",
+            );
+        }
+
+        $roundingMode = 'trunc';
+        if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
+            /** @psalm-suppress MixedArgument */
+            $roundingMode = (string) $options['roundingMode'];
+        }
+
+        $increment = 1;
+        if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
+            /** @psalm-suppress MixedArgument */
+            $increment = (int) $options['roundingIncrement'];
+        }
+        if ($increment < 1) {
+            throw new InvalidArgumentException("roundingIncrement must be a positive integer.");
+        }
+        $maxInc = $maxIncrementByIndex[$suIdx];
+        if ($increment > 1 && $maxInc % $increment !== 0) {
+            throw new InvalidArgumentException(
+                "roundingIncrement {$increment} does not evenly divide {$maxInc} for unit \"{$suRaw}\".",
+            );
+        }
+
+        // ---- Round ----
+        // Round on the absolute magnitude so 'trunc'/'expand'/etc. operate on the
+        // size of the diff, not the signed epoch distance. Sign is restored after.
+        $nsInc    = $nsPerUnitByIndex[$suIdx] * $increment;
+        $diffSign = $diffNs <=> 0;
+        $absDiff  = $diffNs === PHP_INT_MIN ? PHP_INT_MAX : abs($diffNs);
+        $roundedAbs = $nsInc === 1
+            ? $absDiff
+            : self::roundAsIfPositive($absDiff, $nsInc, $roundingMode);
+        $roundedNs = $diffSign * $roundedAbs;
+
+        // ---- Balance ----
+        // Work with absolute value, restore sign at the end.
+        // abs(PHP_INT_MIN) overflows to float; clamp to PHP_INT_MAX for sentinel support.
+        $sign    = $roundedNs <=> 0;
+        $absNs   = $roundedNs === PHP_INT_MIN ? PHP_INT_MAX : abs($roundedNs);
+
+        $ns  = $absNs;
+        $us  = 0;
+        $ms  = 0;
+        $s   = 0;
+        $min = 0;
+        $h   = 0;
+
+        if ($luIdx >= 1) { // at least microseconds
+            $us  = intdiv(num1: $ns, num2: 1_000);
+            $ns  = $ns - ($us * 1_000);
+        }
+        if ($luIdx >= 2) { // at least milliseconds
+            $ms  = intdiv(num1: $us, num2: 1_000);
+            $us  = $us - ($ms * 1_000);
+        }
+        if ($luIdx >= 3) { // at least seconds
+            $s   = intdiv(num1: $ms, num2: 1_000);
+            $ms  = $ms - ($s * 1_000);
+        }
+        if ($luIdx >= 4) { // at least minutes
+            $min = intdiv(num1: $s, num2: 60);
+            $s   = $s - ($min * 60);
+        }
+        if ($luIdx >= 5) { // hours
+            $h   = intdiv(num1: $min, num2: 60);
+            $min = $min - ($h * 60);
+        }
+
+        return new Duration(
+            0,
+            0,
+            0,
+            0,
+            $sign * $h,
+            $sign * $min,
+            $sign * $s,
+            $sign * $ms,
+            $sign * $us,
+            $sign * $ns,
+        );
     }
 }

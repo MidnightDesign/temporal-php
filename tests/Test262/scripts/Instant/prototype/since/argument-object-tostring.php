@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Instant(0);
 $arg = [];
-Assert::incomplete('Duration::since() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->since($arg), '[object Object] is not a valid ISO string');
+Assert::incomplete('untranslatable expression: FunctionExpression');

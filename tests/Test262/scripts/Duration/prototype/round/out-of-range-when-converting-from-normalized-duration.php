@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $ms = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 488, 0, 0);
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('round() is not yet implemented on this class');

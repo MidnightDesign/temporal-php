@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = \Temporal\Instant::fromEpochMilliseconds(10_000);
-Assert::incomplete('Instant::add() is not yet implemented');
+$result = $instance->add('PT3H');
+Assert::sameValue($result->epochNanoseconds, 10_810_000_000_000, 'epochNanoseconds result');

@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Instant(1_000_000_000_987_654_321);
 $later = new \Temporal\Instant(1_000_090_061_988_655_322);
-Assert::incomplete('Duration::since() is not yet implemented');
+$explicit = $later->since($earlier, []);
+TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 0, 0, 90_061, 1, 1, 1, 'default roundingIncrement is 1');
+$implicit = $later->since($earlier, []);
+TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 0, 0, 90_061, 1, 1, 1, 'default roundingIncrement is 1');

@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Instant(1_483_228_799_000_000_000);
 $arg = '2016-12-31T23:59:60Z';
-Assert::incomplete('Duration::until() is not yet implemented');
+$result = $instance->until($arg);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'leap second is a valid ISO string for Instant');

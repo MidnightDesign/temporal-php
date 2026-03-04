@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
-Assert::incomplete('Duration::toZonedDateTimeISO() is not yet implemented');
+Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');

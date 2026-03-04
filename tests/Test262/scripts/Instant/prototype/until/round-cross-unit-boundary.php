@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Instant(0);
 $later = new \Temporal\Instant(7_199_000_000_000);
-Assert::incomplete('Duration::until() is not yet implemented');
+$duration = $earlier->until($later, ['largestUnit' => 'hours', 'smallestUnit' => 'minutes', 'roundingMode' => 'expand']);
+TemporalHelpers::assertDuration($duration, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, '1:59 balances to 2 hours');

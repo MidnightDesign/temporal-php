@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(1_000_000_000_000_000_000);
-Assert::incomplete('Instant::subtract() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract(['hours' => 1, 'minutes' => -30]), "mixed positive and negative values always throw");

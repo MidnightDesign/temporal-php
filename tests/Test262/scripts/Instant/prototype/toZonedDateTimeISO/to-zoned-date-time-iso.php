@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inst = new \Temporal\Instant(1_000_000_000_000_000_000);
-Assert::incomplete('Duration::toZonedDateTimeISO() is not yet implemented');
+Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');

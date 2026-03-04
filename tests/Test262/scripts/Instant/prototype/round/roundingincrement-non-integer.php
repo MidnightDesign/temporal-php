@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Instant(1_000_000_000_000_000_005);
-Assert::incomplete('Duration::round() is not yet implemented');
+$result = $instant->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 2.5, 'roundingMode' => 'expand']);
+Assert::sameValue($result->epochNanoseconds, 1_000_000_000_000_000_006, 'roundingIncrement 2.5 truncates to 2');

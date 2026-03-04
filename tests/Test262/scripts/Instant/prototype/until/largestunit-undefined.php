@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Instant(1_000_000_000_000_000_000);
 $later = new \Temporal\Instant(1_000_090_061_987_654_321);
-Assert::incomplete('Duration::until() is not yet implemented');
+$explicit = $earlier->until($later, []);
+TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');
+$implicit = $earlier->until($later, []);
+TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');

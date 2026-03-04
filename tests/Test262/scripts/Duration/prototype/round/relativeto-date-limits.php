@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Duration(0);
 $relativeTo = '-271821-04-19';
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('round() is not yet implemented on this class');

@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $epoch = new \Temporal\Instant(0);
-Assert::incomplete('Instant::add() is not yet implemented');
+Assert::sameValue($epoch->add('PT1.03125H')->epochNanoseconds, 3_712_500_000_000, 'positive fractional units rounded with correct rounding mode');
+Assert::sameValue($epoch->add('-PT1.03125H')->epochNanoseconds, -3_712_500_000_000, 'negative fractional units rounded with correct rounding mode');

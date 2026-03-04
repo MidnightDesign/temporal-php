@@ -36,16 +36,16 @@ final class TemporalHelpers
         string $description = '',
     ): void {
         $prefix = $description !== '' ? "{$description}: " : '';
-        PHPUnitAssert::assertSame($years, $duration->years, "{$prefix}years");
-        PHPUnitAssert::assertSame($months, $duration->months, "{$prefix}months");
-        PHPUnitAssert::assertSame($weeks, $duration->weeks, "{$prefix}weeks");
-        PHPUnitAssert::assertSame($days, $duration->days, "{$prefix}days");
-        PHPUnitAssert::assertSame($hours, $duration->hours, "{$prefix}hours");
-        PHPUnitAssert::assertSame($minutes, $duration->minutes, "{$prefix}minutes");
-        PHPUnitAssert::assertSame($seconds, $duration->seconds, "{$prefix}seconds");
-        PHPUnitAssert::assertSame($milliseconds, $duration->milliseconds, "{$prefix}milliseconds");
-        PHPUnitAssert::assertSame($microseconds, $duration->microseconds, "{$prefix}microseconds");
-        PHPUnitAssert::assertSame($nanoseconds, $duration->nanoseconds, "{$prefix}nanoseconds");
+        Assert::sameValue($duration->years, $years, "{$prefix}years");
+        Assert::sameValue($duration->months, $months, "{$prefix}months");
+        Assert::sameValue($duration->weeks, $weeks, "{$prefix}weeks");
+        Assert::sameValue($duration->days, $days, "{$prefix}days");
+        Assert::sameValue($duration->hours, $hours, "{$prefix}hours");
+        Assert::sameValue($duration->minutes, $minutes, "{$prefix}minutes");
+        Assert::sameValue($duration->seconds, $seconds, "{$prefix}seconds");
+        Assert::sameValue($duration->milliseconds, $milliseconds, "{$prefix}milliseconds");
+        Assert::sameValue($duration->microseconds, $microseconds, "{$prefix}microseconds");
+        Assert::sameValue($duration->nanoseconds, $nanoseconds, "{$prefix}nanoseconds");
     }
 
     /**

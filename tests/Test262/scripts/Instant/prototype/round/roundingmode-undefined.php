@@ -8,4 +8,15 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Instant(1_000_000_000_123_987_500);
-Assert::incomplete('Duration::round() is not yet implemented');
+$explicit1 = $instant->round(['smallestUnit' => 'microsecond']);
+Assert::sameValue($explicit1->epochNanoseconds, 1_000_000_000_123_988_000, 'default roundingMode is halfExpand');
+$implicit1 = $instant->round(['smallestUnit' => 'microsecond']);
+Assert::sameValue($implicit1->epochNanoseconds, 1_000_000_000_123_988_000, 'default roundingMode is halfExpand');
+$explicit2 = $instant->round(['smallestUnit' => 'millisecond']);
+Assert::sameValue($explicit2->epochNanoseconds, 1_000_000_000_124_000_000, 'default roundingMode is halfExpand');
+$implicit2 = $instant->round(['smallestUnit' => 'millisecond']);
+Assert::sameValue($implicit2->epochNanoseconds, 1_000_000_000_124_000_000, 'default roundingMode is halfExpand');
+$explicit3 = $instant->round(['smallestUnit' => 'second']);
+Assert::sameValue($explicit3->epochNanoseconds, 1_000_000_000_000_000_000, 'default roundingMode is halfExpand');
+$implicit3 = $instant->round(['smallestUnit' => 'second']);
+Assert::sameValue($implicit3->epochNanoseconds, 1_000_000_000_000_000_000, 'default roundingMode is halfExpand');

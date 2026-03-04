@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inst = new \Temporal\Instant(0);
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(['smallestUnit' => 'hour', 'roundingIncrement' => 7]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(['smallestUnit' => 'minute', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(['smallestUnit' => 'second', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(['smallestUnit' => 'millisecond', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(['smallestUnit' => 'microsecond', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 29]), '');

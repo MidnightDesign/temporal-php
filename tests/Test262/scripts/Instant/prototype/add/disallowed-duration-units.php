@@ -8,4 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inst = new \Temporal\Instant(500_000);
-Assert::incomplete('Instant::add() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(1)), 'should throw RangeError when the duration has non-zero years (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(0, 2)), 'should throw RangeError when the duration has non-zero months (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(0, 0, 3)), 'should throw RangeError when the duration has non-zero weeks (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(0, 0, 0, 4)), 'should throw RangeError when the duration has non-zero days (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(-1)), 'should throw RangeError when the duration has non-zero years (negative)');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(0, -2)), 'should throw RangeError when the duration has non-zero months (negative)');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(0, 0, -3)), 'should throw RangeError when the duration has non-zero weeks (negative)');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->add(new \Temporal\Duration(0, 0, 0, -4)), 'should throw RangeError when the duration has non-zero days (negative)');

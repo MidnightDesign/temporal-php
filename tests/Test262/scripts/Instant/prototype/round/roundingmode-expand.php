@@ -11,5 +11,5 @@ $instance = new \Temporal\Instant(217_175_010_123_987_500);
 $expected = [['hour', 217_177_200_000_000_000], ['minute', 217_175_040_000_000_000], ['second', 217_175_011_000_000_000], ['millisecond', 217_175_010_124_000_000], ['microsecond', 217_175_010_123_988_000], ['nanosecond', 217_175_010_123_987_500]];
 $roundingMode = 'expand';
 foreach ($expected as [$smallestUnit, $expected]) {
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('untranslatable object property');
 }

@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $seconds = 8_692_288_669_465_520;
 $milliseconds = 513;
 $d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, $seconds, $milliseconds);
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('round() is not yet implemented on this class');

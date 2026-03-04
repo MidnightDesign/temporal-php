@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Instant(1);
 $blank = new \Temporal\Duration();
-Assert::incomplete('Instant::subtract() is not yet implemented');
+$result = $instant->subtract($blank);
+Assert::sameValue($result->epochNanoseconds, 1, 'result is unchanged');

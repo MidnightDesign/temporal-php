@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $i1 = new \Temporal\Instant(1);
 $i2 = new \Temporal\Instant(1);
-Assert::incomplete('Duration::until() is not yet implemented');
+$result = $i1->until($i2);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'blank result');

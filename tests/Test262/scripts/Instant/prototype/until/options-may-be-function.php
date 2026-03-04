@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $feb20 = \Temporal\Instant::from('2020-02-01T00:00Z');
 $feb21 = \Temporal\Instant::from('2021-02-01T00:00Z');
-Assert::incomplete('Duration::until() is not yet implemented');
+TemporalHelpers::assertDuration($feb20->until($feb21, function () {  }), 0, 0, 0, 0, 0, 0, 31_622_400, 0, 0, 0);

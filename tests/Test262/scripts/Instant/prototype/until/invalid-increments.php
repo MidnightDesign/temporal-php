@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $earlier = \Temporal\Instant::from('1969-07-24T16:50:35.123456789Z');
 $later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';
-Assert::incomplete('Duration::until() is not yet implemented');
+Assert::incomplete('untranslatable object property');

@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['-000000-10-31T17:45Z', '-000000-10-31T17:45+00:00[UTC]'];
 $instance = new \Temporal\Instant(0);
 foreach ($invalidStrings as $timeZone) {
-Assert::incomplete('Duration::toZonedDateTimeISO() is not yet implemented');
+Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');
 }

@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $oneProperty = ['hours' => 1];
 $allProperties = ['years' => 0, 'months' => 0, 'weeks' => 0, 'days' => 0, 'hours' => 1, 'minutes' => 0, 'seconds' => 0, 'milliseconds' => 0, 'microseconds' => 0, 'nanoseconds' => 0];
-Assert::incomplete('Instant::add() is not yet implemented');
+$resultWithout = $instance->add($oneProperty);
+$resultWith = $instance->add($allProperties);
+Assert::assertTrue($resultWithout->equals($resultWith), 'results should be the same with and without optional properties');

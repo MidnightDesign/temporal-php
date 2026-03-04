@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Instant(1_000_000_000_000_000_000);
 $later = new \Temporal\Instant(1_000_000_000_000_000_005);
-Assert::incomplete('Duration::until() is not yet implemented');
+$result = $earlier->until($later, ['roundingIncrement' => 2.5, 'roundingMode' => 'trunc']);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 'roundingIncrement 2.5 truncates to 2');

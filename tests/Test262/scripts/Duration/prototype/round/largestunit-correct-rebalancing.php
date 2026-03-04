@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $day_duration = 100;
 $tests = [['days', ['days' => $day_duration]], ['hours', ['hours' => $day_duration * 24]], ['minutes', ['minutes' => $day_duration * 24 * 60]], ['seconds', ['seconds' => $day_duration * 24 * 60 * 60]], ['milliseconds', ['milliseconds' => $day_duration * 24 * 60 * 60 * 1000]], ['microseconds', ['microseconds' => $day_duration * 24 * 60 * 60 * 1000 * 1000]], ['nanoseconds', ['nanoseconds' => $day_duration * 24 * 60 * 60 * 1000 * 1000 * 1000]]];
 foreach ($tests as [$unit, $duration_desc]) {
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('round() is not yet implemented on this class');
 }

@@ -13,4 +13,4 @@ $oneMonth = new \Temporal\Duration(0, 1);
 $oneWeek = new \Temporal\Duration(0, 0, 1);
 $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 $options = ['largestUnit' => 'days'];
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('round() is not yet implemented on this class');

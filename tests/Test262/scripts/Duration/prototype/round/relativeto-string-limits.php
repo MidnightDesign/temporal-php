@@ -11,5 +11,5 @@ $instance = new \Temporal\Duration(0, 0, 0, 0, 0, 5);
 $blankInstance = new \Temporal\Duration();
 $validStrings = ['-271821-04-20T00:00Z[UTC]', '+275760-09-13', '+275760-09-13T23:00'];
 foreach ($validStrings as $relativeTo) {
-Assert::incomplete('Duration::round() is not yet implemented');
+Assert::incomplete('round() is not yet implemented on this class');
 }

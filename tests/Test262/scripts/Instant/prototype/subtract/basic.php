@@ -8,4 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inst = new \Temporal\Instant(50_000);
-Assert::incomplete('Instant::subtract() is not yet implemented');
+$result = $inst->subtract(new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 3, 2, 1));
+Assert::sameValue(-2_952_001, $result->epochNanoseconds, 'subtract positive sub-seconds');
+$result = $inst->subtract(new \Temporal\Duration(0, 0, 0, 0, 0, 0, 4, 3, 2, 1));
+Assert::incomplete('untranslatable: BigInt()');
