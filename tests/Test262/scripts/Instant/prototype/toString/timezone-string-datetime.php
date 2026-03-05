@@ -15,4 +15,16 @@ Assert::throws(\InvalidArgumentException::class, fn() => $instance->toString(['t
 }
 $timeZone = '2021-08-19T17:30Z';
 $result1 = $instance->toString(['timeZone' => $timeZone]);
-Assert::incomplete('untranslatable: String.prototype.substr()');
+Assert::sameValue(substr(string: $result1, offset: -6), '+00:00', 'date-time + Z is UTC time zone');
+$timeZone = '2021-08-19T17:30-07:00';
+$result2 = $instance->toString(['timeZone' => $timeZone]);
+Assert::sameValue(substr(string: $result2, offset: -6), '-07:00', 'date-time + offset is the offset time zone');
+$timeZone = '2021-08-19T17:30[UTC]';
+$result3 = $instance->toString(['timeZone' => $timeZone]);
+Assert::sameValue(substr(string: $result3, offset: -6), '+00:00', 'date-time + IANA annotation is the offset time zone');
+$timeZone = '2021-08-19T17:30Z[UTC]';
+$result4 = $instance->toString(['timeZone' => $timeZone]);
+Assert::sameValue(substr(string: $result4, offset: -6), '+00:00', 'date-time + Z + IANA annotation is the offset time zone');
+$timeZone = '2021-08-19T17:30-07:00[UTC]';
+$result5 = $instance->toString(['timeZone' => $timeZone]);
+Assert::sameValue(substr(string: $result5, offset: -6), '+00:00', 'date-time + offset + IANA annotation is the offset time zone');

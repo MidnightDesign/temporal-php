@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
 foreach ($primitiveTests as [$timeZone, $description]) {
-Assert::incomplete('untranslatable expression: ConditionalExpression');
+Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => $instance->toString(['timeZone' => $timeZone]), "{$description} does not convert to a valid ISO string");
 }
+Assert::incomplete('untranslatable: Symbol()');

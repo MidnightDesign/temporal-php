@@ -426,10 +426,22 @@ final class Instant implements Stringable
                 $roundMode = (string) $options['roundingMode'];
             }
 
-            // timeZone: validate the string (formatting in non-UTC timezone not yet implemented).
-            if (array_key_exists('timeZone', $options) && $options['timeZone'] !== null) {
-                self::validateTimeZoneString((string) $options['timeZone']);
+            // timeZone: must be a string; non-string (including null) → TypeError.
+            if (array_key_exists('timeZone', $options)) {
+                /** @var mixed $tzVal */
+                $tzVal = $options['timeZone'];
+                if (!is_string($tzVal)) {
+                    throw new \TypeError('timeZone must be a string.');
+                }
+                self::validateTimeZoneString($tzVal);
             }
+        }
+
+        // Resolve timezone offset (null = UTC / 'Z' suffix).
+        $tzOffsetMinutes = null;
+        if ($options !== null && array_key_exists('timeZone', $options)) {
+            $tzStr = (string) $options['timeZone'];
+            $tzOffsetMinutes = self::resolveTimeZoneOffsetMinutes($tzStr);
         }
 
         // Determine the rounding increment in nanoseconds.
@@ -446,14 +458,27 @@ final class Instant implements Stringable
             ? $this->epochNanoseconds
             : self::roundAsIfPositive($this->epochNanoseconds, $increment, $roundMode);
 
-        // Extract whole seconds and sub-second nanoseconds.
+        // Extract whole UTC seconds and sub-second nanoseconds.
         $secs = self::floorDiv($ns, self::NS_PER_SECOND);
         $subNs = $ns - ($secs * self::NS_PER_SECOND); // always 0–999_999_999
 
-        $dt = new DateTimeImmutable('@' . $secs)->setTimezone(new DateTimeZone('UTC'));
+        // Apply timezone offset to get local datetime.
+        $localSecs = $tzOffsetMinutes !== null ? ($secs + $tzOffsetMinutes * 60) : $secs;
+        $dt = new DateTimeImmutable('@' . $localSecs)->setTimezone(new DateTimeZone('UTC'));
+
+        // Build the UTC-offset suffix: 'Z' or ±HH:MM.
+        if ($tzOffsetMinutes === null) {
+            $tzSuffix = 'Z';
+        } else {
+            $absMin = abs($tzOffsetMinutes);
+            $tzH = intdiv(num1: $absMin, num2: 60);
+            $tzM = $absMin % 60;
+            $tzSign = $tzOffsetMinutes < 0 ? '-' : '+';
+            $tzSuffix = sprintf('%s%02d:%02d', $tzSign, $tzH, $tzM);
+        }
 
         if ($isMinute) {
-            return $dt->format('Y-m-d\TH:i\Z');
+            return $dt->format('Y-m-d\TH:i') . $tzSuffix;
         }
 
         $base = $dt->format('Y-m-d\TH:i:s');
@@ -461,18 +486,18 @@ final class Instant implements Stringable
         if ($digits === -2) {
             // 'auto': strip trailing zeros.
             if ($subNs === 0) {
-                return $base . 'Z';
+                return $base . $tzSuffix;
             }
             $fraction = rtrim(sprintf('%09d', $subNs), characters: '0');
-            return "{$base}.{$fraction}Z";
+            return "{$base}.{$fraction}{$tzSuffix}";
         }
 
         if ($digits === 0) {
-            return $base . 'Z';
+            return $base . $tzSuffix;
         }
 
         $fraction = substr(sprintf('%09d', $subNs), offset: 0, length: $digits);
-        return "{$base}.{$fraction}Z";
+        return "{$base}.{$fraction}{$tzSuffix}";
     }
 
     /**
@@ -489,6 +514,10 @@ final class Instant implements Stringable
      */
     private static function validateTimeZoneString(string $tz): void
     {
+        // Reject empty string.
+        if ($tz === '') {
+            throw new InvalidArgumentException("Invalid timeZone \"\": empty string is not a valid timezone identifier.");
+        }
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
             throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");
@@ -531,6 +560,50 @@ final class Instant implements Stringable
                 );
             }
         }
+    }
+
+    /**
+     * Extracts the UTC offset in minutes from a validated timezone string.
+     *
+     * Priority: bracket annotation > inline offset/Z.
+     * Returns 0 for 'UTC' or 'Z', the offset minutes for ±HH:MM strings,
+     * and the bracket annotation offset for datetime strings with [±HH:MM] or [UTC].
+     */
+    private static function resolveTimeZoneOffsetMinutes(string $tz): int
+    {
+        // 'UTC' (case-insensitive)
+        if (strtoupper($tz) === 'UTC') {
+            return 0;
+        }
+        // Pure UTC-offset strings: ±HH:MM or ±HHMM
+        if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tz, $m) === 1) {
+            $sign = $m[1] === '+' ? 1 : -1;
+            return $sign * ((int) $m[2] * 60 + (int) $m[3]);
+        }
+        if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $tz, $m) === 1) {
+            $sign = $m[1] === '+' ? 1 : -1;
+            return $sign * ((int) $m[2] * 60 + (int) $m[3]);
+        }
+        // Datetime strings: bracket annotation takes precedence.
+        if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
+            $bracket = $bm[1];
+            if (strtoupper($bracket) === 'UTC') {
+                return 0;
+            }
+            if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $bracket, $om) === 1) {
+                $sign = $om[1] === '+' ? 1 : -1;
+                return $sign * ((int) $om[2] * 60 + (int) $om[3]);
+            }
+        }
+        // Datetime strings without bracket: use inline offset or Z.
+        if (preg_match('/[Tt].*?(Z|([+\-])(\d{2}):(\d{2}))/i', $tz, $om) === 1) {
+            if ($om[1] === 'Z' || $om[1] === 'z') {
+                return 0;
+            }
+            $sign = $om[2] === '+' ? 1 : -1;
+            return $sign * ((int) $om[3] * 60 + (int) $om[4]);
+        }
+        return 0;
     }
 
     #[\Override]

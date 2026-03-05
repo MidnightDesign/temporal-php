@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
 $result = $instance->toString(['timeZone' => $timeZone]);
-Assert::incomplete('untranslatable: String.prototype.substr()');
+Assert::sameValue(substr(string: $result, offset: -6), '+01:46', 'Time zone string determined from bracket name');

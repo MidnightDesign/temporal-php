@@ -2134,11 +2134,15 @@ final class Duration implements Stringable
         if (!is_array($options)) {
             return false;
         }
-        if (!array_key_exists('relativeTo', $options) || $options['relativeTo'] === null) {
+        if (!array_key_exists('relativeTo', $options)) {
             return false;
         }
         /** @var mixed $rt */
         $rt = $options['relativeTo'];
+        // null is not a valid relativeTo value (it represents JS null, not undefined).
+        if ($rt === null) {
+            throw new \TypeError('relativeTo must be a string or property bag array.');
+        }
         if (is_string($rt)) {
             // Reuse the instance-method parser via a temporary instance.
             $dummy = new self(0);
@@ -2186,8 +2190,34 @@ final class Duration implements Stringable
                 );
             }
         }
-        if (array_key_exists('timeZone', $rt) && $rt['timeZone'] !== null) {
-            self::validateTimeZoneString((string) $rt['timeZone']);
+        // timeZone: if present must be a string; null or non-string → TypeError.
+        if (array_key_exists('timeZone', $rt)) {
+            /** @var mixed $tzVal */
+            $tzVal = $rt['timeZone'];
+            if (!is_string($tzVal)) {
+                throw new \TypeError('relativeTo timeZone must be a string.');
+            }
+            self::validateTimeZoneString($tzVal);
+        }
+        // offset: if present must be a string in ±HH:MM[[:SS[.nnnnnnnnn]]] format
+        // where optional seconds and sub-seconds must be zero.
+        if (array_key_exists('offset', $rt)) {
+            /** @var mixed $offVal */
+            $offVal = $rt['offset'];
+            if (!is_string($offVal)) {
+                throw new \TypeError('relativeTo offset must be a string.');
+            }
+            // Allow ±HH:MM or ±HH:MM:00[.000...] (seconds and sub-seconds zero).
+            if (preg_match('/^([+\-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?$/', $offVal, $offM) !== 1) {
+                throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\".");
+            }
+            // Reject non-zero seconds or sub-seconds.
+            if (isset($offM[4]) && (int) $offM[4] !== 0) {
+                throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\": non-zero seconds.");
+            }
+            if (isset($offM[5]) && ltrim($offM[5], characters: '0') !== '') {
+                throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\": non-zero sub-seconds.");
+            }
         }
     }
 
@@ -2631,6 +2661,10 @@ final class Duration implements Stringable
      */
     private static function validateTimeZoneString(string $tz): void
     {
+        // Reject empty string.
+        if ($tz === '') {
+            throw new InvalidArgumentException("Invalid timeZone \"\": empty string is not a valid timezone identifier.");
+        }
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
             throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");

@@ -178,6 +178,27 @@ function arrowInstantCtorWithNumberArg(fnNode) {
 }
 
 /** Operator precedence table (higher = binds tighter). */
+/**
+ * Translate `typeof $arg === 'jsType'` to a PHP boolean expression.
+ * Returns null if the jsType has no meaningful PHP equivalent.
+ */
+function typeofToPhp(phpArg, jsType) {
+  switch (jsType) {
+    case 'string':    return `is_string(${phpArg})`;
+    case 'number':    return `(is_int(${phpArg}) || is_float(${phpArg}))`;
+    case 'boolean':   return `is_bool(${phpArg})`;
+    case 'object':    return `is_object(${phpArg})`;
+    // PHP null represents JS null (not JS undefined); PHP variables are never
+    // "undefined" in the JS sense, so typeof $x === 'undefined' is always false.
+    case 'undefined': return `false`;
+    case 'function':  return `is_callable(${phpArg})`;
+    // 'symbol' and 'bigint' don't exist in PHP — always false
+    case 'symbol':    return 'false';
+    case 'bigint':    return 'false';
+    default:          return null;
+  }
+}
+
 const OP_PREC = {
   '**': 15, '*': 14, '/': 14, '%': 14,
   '+': 13, '-': 13,
@@ -347,6 +368,8 @@ class Emitter {
       case 'BinaryExpression':  return this.transpileBinary(node);
       case 'AssignmentExpression': return this.transpileAssignment(node);
       case 'ObjectExpression':   return this.transpileObject(node);
+      case 'LogicalExpression':  return this.transpileLogical(node);
+      case 'ConditionalExpression': return this.transpileConditional(node);
       default:
         this.emitIncomplete(`untranslatable expression: ${node.type}`);
         return null;
@@ -640,11 +663,27 @@ class Emitter {
       return null;
     }
 
-    // str.substr() / str.includes() → string methods that require PHP function syntax
+    // str.substr(start[, len]) → substr(string: $str, offset: $start[, length: $len])
     if (callee.type === 'MemberExpression' && !callee.computed
-        && (callee.property.name === 'substr' || callee.property.name === 'includes')) {
-      this.emitIncomplete(`untranslatable: String.prototype.${callee.property.name}()`);
-      return null;
+        && callee.property.name === 'substr') {
+      const str   = this.transpileExpr(callee.object);
+      const start = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : '0';
+      if (str === null || start === null) return null;
+      if (node.arguments[1]) {
+        const len = this.transpileExpr(node.arguments[1]);
+        if (len === null) return null;
+        return `substr(string: ${str}, offset: ${start}, length: ${len})`;
+      }
+      return `substr(string: ${str}, offset: ${start})`;
+    }
+
+    // str.includes(needle[, position]) → str_contains($str, $needle) (position ignored)
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'includes') {
+      const str    = this.transpileExpr(callee.object);
+      const needle = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : "''";
+      if (str === null || needle === null) return null;
+      return `str_contains(${str}, ${needle})`;
     }
 
     // Temporal.X.y(arg)
@@ -904,6 +943,17 @@ class Emitter {
   }
 
   transpileBinary(node) {
+    // Handle `typeof x === 'type'` → PHP is_type($x) function
+    if (node.left.type === 'UnaryExpression' && node.left.operator === 'typeof'
+        && (node.operator === '===' || node.operator === '==' || node.operator === '!==' || node.operator === '!=')
+        && node.right.type === 'Literal' && typeof node.right.value === 'string') {
+      const arg = this.transpileExpr(node.left.argument);
+      if (arg !== null) {
+        const negate = node.operator === '!==' || node.operator === '!=';
+        const phpCheck = typeofToPhp(arg, node.right.value);
+        if (phpCheck !== null) return negate ? `!(${phpCheck})` : phpCheck;
+      }
+    }
     let left  = this.transpileExpr(node.left);
     let right = this.transpileExpr(node.right);
     if (left === null || right === null) return null;
@@ -933,6 +983,45 @@ class Emitter {
     const right = this.transpileExpr(node.right);
     if (right === null) return null;
     return `${left} ${node.operator} ${right}`;
+  }
+
+  transpileLogical(node) {
+    const left  = this.transpileExpr(node.left);
+    const right = this.transpileExpr(node.right);
+    if (left === null || right === null) return null;
+    // JS logical operators (||, &&, ??) map directly to PHP
+    const op = node.operator === '??' ? '??' : node.operator;
+    // Wrap operands that have lower precedence (e.g. ternary inside logical)
+    const wrapIf = (php, n) =>
+      n.type === 'ConditionalExpression' ? `(${php})` : php;
+    return `${wrapIf(left, node.left)} ${op} ${wrapIf(right, node.right)}`;
+  }
+
+  transpileConditional(node) {
+    const test       = this.transpileExpr(node.test);
+    const consequent = this.transpileExpr(node.consequent);
+    const alternate  = this.transpileExpr(node.alternate);
+    if (test === null || consequent === null || alternate === null) return null;
+    return `(${test} ? ${consequent} : ${alternate})`;
+  }
+
+  /**
+   * Transpiles a node as a PHP class-reference expression (with ::class).
+   * For simple identifiers (RangeError, TypeError) → \Foo::class.
+   * For ConditionalExpression → (cond ? \Foo::class : \Bar::class).
+   * Fallback: treats any other transpiled PHP starting with \ as a class ref.
+   */
+  transpileAsClassRef(node) {
+    if (node.type === 'ConditionalExpression') {
+      const test       = this.transpileExpr(node.test);
+      const consequent = this.transpileAsClassRef(node.consequent);
+      const alternate  = this.transpileAsClassRef(node.alternate);
+      if (test === null || consequent === null || alternate === null) return null;
+      return `(${test} ? ${consequent} : ${alternate})`;
+    }
+    const php = this.transpileExpr(node);
+    if (php === null) return null;
+    return php.startsWith('\\') ? `${php}::class` : php;
   }
 
   transpileObject(node) {
@@ -994,10 +1083,8 @@ class Emitter {
 
   emitAssertThrows(node) {
     const [errorNode, fnNode, msgNode] = node.arguments;
-    const errorPhp = this.transpileExpr(errorNode);
-    if (errorPhp === null) return null;
-    // Append ::class if it resolved to a class name (starts with \)
-    const classExpr = errorPhp.startsWith('\\') ? `${errorPhp}::class` : errorPhp;
+    const classExpr = this.transpileAsClassRef(errorNode);
+    if (classExpr === null) return null;
 
     // TypeError tests relying on JS BigInt-vs-Number type distinction can't be replicated in PHP.
     if (classExpr.includes('TypeError') && fnNode) {
