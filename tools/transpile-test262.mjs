@@ -51,6 +51,7 @@ const ERROR_MAP = {
 /** Temporal class methods that have been implemented. */
 const IMPLEMENTED = new Set([
   'Duration::from',
+  'Duration::compare',
   'Instant::from',
   'Instant::fromEpochMilliseconds',
   'Instant::fromEpochNanoseconds',
@@ -83,7 +84,7 @@ const INSTANT_UNIMPLEMENTED_METHODS = new Set([]);
  * Temporal classes (e.g. Duration). Only pass through when the receiver is
  * a known Instant variable; otherwise emit incomplete.
  */
-const INSTANT_ONLY_METHODS = new Set(['round']);
+const INSTANT_ONLY_METHODS = new Set([]);
 
 /**
  * TemporalHelpers methods that have been implemented in PHP.
@@ -110,6 +111,7 @@ const PHP_IMPLEMENTED_METHODS = {
   Duration: new Set([
     '__construct', 'from', 'negated', 'abs', 'equals', 'with',
     'add', 'subtract', 'total', 'toString', 'toJSON', 'valueOf',
+    'compare', 'round',
   ]),
 };
 

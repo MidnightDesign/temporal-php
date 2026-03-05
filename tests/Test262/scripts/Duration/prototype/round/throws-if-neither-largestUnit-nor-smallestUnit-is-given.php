@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $hoursOnly = new \Temporal\Duration(0, 0, 0, 0, 1);
 foreach ([[], function () {  }, ['roundingMode' => 'ceil']] as $roundTo) {
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round($roundTo), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $hoursOnly->round($roundTo), '');
 }

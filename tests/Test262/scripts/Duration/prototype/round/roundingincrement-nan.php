@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(0, 0, 0, 4, 12, 34, 56, 987, 654, 321);
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->round(['smallestUnit' => 'second', 'roundingIncrement' => NAN]), '');

@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $hours25 = new \Temporal\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
-Assert::incomplete('round() is not yet implemented on this class');
+TemporalHelpers::assertDuration($hours25->round(['largestUnit' => 'days', 'relativeTo' => '2019-11-02']), 0, 0, 0, 1, 1, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($hours25->round(['largestUnit' => 'days', 'relativeTo' => ['year' => 2019, 'month' => 11, 'day' => 2]]), 0, 0, 0, 1, 1, 0, 0, 0, 0, 0);

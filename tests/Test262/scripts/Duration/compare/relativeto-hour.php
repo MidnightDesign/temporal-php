@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 $hours24 = new \Temporal\Duration(0, 0, 0, 0, 24);
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::sameValue(\Temporal\Duration::compare($oneDay, $hours24), 0, 'relativeTo not required for days');
+Assert::incomplete('\\Temporal\\PlainDate::from() is not yet implemented');

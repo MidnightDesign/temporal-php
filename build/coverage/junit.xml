@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="/app/phpunit.xml" tests="132" assertions="189" errors="0" failures="0" skipped="0" time="0.024664">
+    <testsuite name="default" tests="132" assertions="189" errors="0" failures="0" skipped="0" time="0.024664">
+      <testsuite name="Temporal\Tests\DurationConstructionTest" file="/app/tests/DurationConstructionTest.php" tests="6" assertions="29" errors="0" failures="0" skipped="0" time="0.003337">
+        <testcase name="testDefaultConstructorAllZero" file="/app/tests/DurationConstructionTest.php" line="13" class="Temporal\Tests\DurationConstructionTest" classname="Temporal.Tests.DurationConstructionTest" assertions="10" time="0.002302"/>
+        <testcase name="testAllPositive" file="/app/tests/DurationConstructionTest.php" line="29" class="Temporal\Tests\DurationConstructionTest" classname="Temporal.Tests.DurationConstructionTest" assertions="10" time="0.000221"/>
+        <testcase name="testAllNegative" file="/app/tests/DurationConstructionTest.php" line="45" class="Temporal\Tests\DurationConstructionTest" classname="Temporal.Tests.DurationConstructionTest" assertions="3" time="0.000173"/>
+        <testcase name="testSingleField" file="/app/tests/DurationConstructionTest.php" line="54" class="Temporal\Tests\DurationConstructionTest" classname="Temporal.Tests.DurationConstructionTest" assertions="2" time="0.000158"/>
+        <testcase name="testZeroAndPositiveAreValid" file="/app/tests/DurationConstructionTest.php" line="62" class="Temporal\Tests\DurationConstructionTest" classname="Temporal.Tests.DurationConstructionTest" assertions="3" time="0.000166"/>
+        <testcase name="testMixedSignsThrow" file="/app/tests/DurationConstructionTest.php" line="71" class="Temporal\Tests\DurationConstructionTest" classname="Temporal.Tests.DurationConstructionTest" assertions="1" time="0.000317"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\DurationEqualsTest" file="/app/tests/DurationEqualsTest.php" tests="4" assertions="4" errors="0" failures="0" skipped="0" time="0.000792">
+        <testcase name="testNotEqualsYears" file="/app/tests/DurationEqualsTest.php" line="12" class="Temporal\Tests\DurationEqualsTest" classname="Temporal.Tests.DurationEqualsTest" assertions="1" time="0.000248"/>
+        <testcase name="testNotEqualsMonths" file="/app/tests/DurationEqualsTest.php" line="17" class="Temporal\Tests\DurationEqualsTest" classname="Temporal.Tests.DurationEqualsTest" assertions="1" time="0.000228"/>
+        <testcase name="testNotEqualsWeeks" file="/app/tests/DurationEqualsTest.php" line="22" class="Temporal\Tests\DurationEqualsTest" classname="Temporal.Tests.DurationEqualsTest" assertions="1" time="0.000164"/>
+        <testcase name="testNotEqualsDays" file="/app/tests/DurationEqualsTest.php" line="27" class="Temporal\Tests\DurationEqualsTest" classname="Temporal.Tests.DurationEqualsTest" assertions="1" time="0.000152"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\DurationFromFieldsTest" file="/app/tests/DurationFromFieldsTest.php" tests="10" assertions="22" errors="0" failures="0" skipped="0" time="0.001917">
+        <testcase name="testMonthsOnly" file="/app/tests/DurationFromFieldsTest.php" line="13" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="2" time="0.000225"/>
+        <testcase name="testWeeksOnly" file="/app/tests/DurationFromFieldsTest.php" line="21" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="2" time="0.000174"/>
+        <testcase name="testDaysOnly" file="/app/tests/DurationFromFieldsTest.php" line="29" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="2" time="0.000160"/>
+        <testcase name="testHoursOnly" file="/app/tests/DurationFromFieldsTest.php" line="37" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="2" time="0.000153"/>
+        <testcase name="testMinutesOnly" file="/app/tests/DurationFromFieldsTest.php" line="45" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="2" time="0.000151"/>
+        <testcase name="testSecondsOnly" file="/app/tests/DurationFromFieldsTest.php" line="53" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="2" time="0.000151"/>
+        <testcase name="testFractionSevenDigits" file="/app/tests/DurationFromFieldsTest.php" line="61" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="4" time="0.000200"/>
+        <testcase name="testFractionOneNano" file="/app/tests/DurationFromFieldsTest.php" line="72" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="3" time="0.000242"/>
+        <testcase name="testFractionTruncatedAt9Digits" file="/app/tests/DurationFromFieldsTest.php" line="82" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="1" time="0.000186"/>
+        <testcase name="testInvalidFormatExactMessage" file="/app/tests/DurationFromFieldsTest.php" line="91" class="Temporal\Tests\DurationFromFieldsTest" classname="Temporal.Tests.DurationFromFieldsTest" assertions="2" time="0.000275"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\DurationFromTest" file="/app/tests/DurationFromTest.php" tests="10" assertions="29" errors="0" failures="0" skipped="0" time="0.001774">
+        <testcase name="testSimple" file="/app/tests/DurationFromTest.php" line="13" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="2" time="0.000192"/>
+        <testcase name="testFull" file="/app/tests/DurationFromTest.php" line="21" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="7" time="0.000167"/>
+        <testcase name="testNegative" file="/app/tests/DurationFromTest.php" line="34" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="3" time="0.000154"/>
+        <testcase name="testTimeOnly" file="/app/tests/DurationFromTest.php" line="43" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="3" time="0.000154"/>
+        <testcase name="testFractionalSeconds" file="/app/tests/DurationFromTest.php" line="52" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="4" time="0.000157"/>
+        <testcase name="testCommaFraction" file="/app/tests/DurationFromTest.php" line="62" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="2" time="0.000200"/>
+        <testcase name="testHighPrecisionFraction" file="/app/tests/DurationFromTest.php" line="70" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="4" time="0.000180"/>
+        <testcase name="testZeroComponent" file="/app/tests/DurationFromTest.php" line="80" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="2" time="0.000226"/>
+        <testcase name="testInvalidNoComponents" file="/app/tests/DurationFromTest.php" line="88" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="1" time="0.000178"/>
+        <testcase name="testInvalidFormat" file="/app/tests/DurationFromTest.php" line="95" class="Temporal\Tests\DurationFromTest" classname="Temporal.Tests.DurationFromTest" assertions="1" time="0.000166"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\DurationMutationTest" file="/app/tests/DurationMutationTest.php" tests="9" assertions="14" errors="0" failures="0" skipped="0" time="0.001490">
+        <testcase name="testNegated" file="/app/tests/DurationMutationTest.php" line="12" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="2" time="0.000168"/>
+        <testcase name="testNegatedBlank" file="/app/tests/DurationMutationTest.php" line="22" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="1" time="0.000157"/>
+        <testcase name="testAbsFromNegative" file="/app/tests/DurationMutationTest.php" line="29" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="2" time="0.000152"/>
+        <testcase name="testAbsFromPositive" file="/app/tests/DurationMutationTest.php" line="39" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="1" time="0.000146"/>
+        <testcase name="testAbsBlank" file="/app/tests/DurationMutationTest.php" line="46" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="1" time="0.000190"/>
+        <testcase name="testWithSingleField" file="/app/tests/DurationMutationTest.php" line="53" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="2" time="0.000204"/>
+        <testcase name="testWithMultipleFields" file="/app/tests/DurationMutationTest.php" line="63" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="3" time="0.000171"/>
+        <testcase name="testEquals" file="/app/tests/DurationMutationTest.php" line="74" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="1" time="0.000154"/>
+        <testcase name="testNotEquals" file="/app/tests/DurationMutationTest.php" line="82" class="Temporal\Tests\DurationMutationTest" classname="Temporal.Tests.DurationMutationTest" assertions="1" time="0.000149"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\DurationSignTest" file="/app/tests/DurationSignTest.php" tests="5" assertions="5" errors="0" failures="0" skipped="0" time="0.000790">
+        <testcase name="testSignPositive" file="/app/tests/DurationSignTest.php" line="12" class="Temporal\Tests\DurationSignTest" classname="Temporal.Tests.DurationSignTest" assertions="1" time="0.000172"/>
+        <testcase name="testSignNegative" file="/app/tests/DurationSignTest.php" line="19" class="Temporal\Tests\DurationSignTest" classname="Temporal.Tests.DurationSignTest" assertions="1" time="0.000162"/>
+        <testcase name="testSignZero" file="/app/tests/DurationSignTest.php" line="26" class="Temporal\Tests\DurationSignTest" classname="Temporal.Tests.DurationSignTest" assertions="1" time="0.000155"/>
+        <testcase name="testBlankTrue" file="/app/tests/DurationSignTest.php" line="33" class="Temporal\Tests\DurationSignTest" classname="Temporal.Tests.DurationSignTest" assertions="1" time="0.000151"/>
+        <testcase name="testBlankFalse" file="/app/tests/DurationSignTest.php" line="40" class="Temporal\Tests\DurationSignTest" classname="Temporal.Tests.DurationSignTest" assertions="1" time="0.000150"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\DurationStringTest" file="/app/tests/DurationStringTest.php" tests="17" assertions="18" errors="0" failures="0" skipped="0" time="0.002882">
+        <testcase name="testBlank" file="/app/tests/DurationStringTest.php" line="13" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000163"/>
+        <testcase name="testSimple" file="/app/tests/DurationStringTest.php" line="18" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000154"/>
+        <testcase name="testFull" file="/app/tests/DurationStringTest.php" line="23" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000150"/>
+        <testcase name="testNegative" file="/app/tests/DurationStringTest.php" line="30" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000150"/>
+        <testcase name="testFractional" file="/app/tests/DurationStringTest.php" line="37" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000150"/>
+        <testcase name="testSubSecondOnly" file="/app/tests/DurationStringTest.php" line="44" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000156"/>
+        <testcase name="testHighPrecision" file="/app/tests/DurationStringTest.php" line="51" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000151"/>
+        <testcase name="testToStringMinutesOnly" file="/app/tests/DurationStringTest.php" line="58" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000172"/>
+        <testcase name="testLargeSubsecondCarry" file="/app/tests/DurationStringTest.php" line="64" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="2" time="0.000170"/>
+        <testcase name="testToJSON" file="/app/tests/DurationStringTest.php" line="72" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000166"/>
+        <testsuite name="Temporal\Tests\DurationStringTest::testRoundTrip" tests="7" assertions="7" errors="0" failures="0" skipped="0" time="0.001298">
+          <testcase name="testRoundTrip with data set #0" file="/app/tests/DurationStringTest.php" line="94" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000223"/>
+          <testcase name="testRoundTrip with data set #1" file="/app/tests/DurationStringTest.php" line="94" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000189"/>
+          <testcase name="testRoundTrip with data set #2" file="/app/tests/DurationStringTest.php" line="94" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000178"/>
+          <testcase name="testRoundTrip with data set #3" file="/app/tests/DurationStringTest.php" line="94" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000165"/>
+          <testcase name="testRoundTrip with data set #4" file="/app/tests/DurationStringTest.php" line="94" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000182"/>
+          <testcase name="testRoundTrip with data set #5" file="/app/tests/DurationStringTest.php" line="94" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000175"/>
+          <testcase name="testRoundTrip with data set #6" file="/app/tests/DurationStringTest.php" line="94" class="Temporal\Tests\DurationStringTest" classname="Temporal.Tests.DurationStringTest" assertions="1" time="0.000187"/>
+        </testsuite>
+      </testsuite>
+      <testsuite name="Temporal\Tests\DurationWithTest" file="/app/tests/DurationWithTest.php" tests="8" assertions="8" errors="0" failures="0" skipped="0" time="0.001243">
+        <testcase name="testWithMonths" file="/app/tests/DurationWithTest.php" line="12" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000168"/>
+        <testcase name="testWithWeeks" file="/app/tests/DurationWithTest.php" line="19" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000156"/>
+        <testcase name="testWithHours" file="/app/tests/DurationWithTest.php" line="26" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000147"/>
+        <testcase name="testWithMinutes" file="/app/tests/DurationWithTest.php" line="33" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000145"/>
+        <testcase name="testWithSeconds" file="/app/tests/DurationWithTest.php" line="40" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000154"/>
+        <testcase name="testWithMilliseconds" file="/app/tests/DurationWithTest.php" line="47" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000159"/>
+        <testcase name="testWithMicroseconds" file="/app/tests/DurationWithTest.php" line="54" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000149"/>
+        <testcase name="testWithNanoseconds" file="/app/tests/DurationWithTest.php" line="61" class="Temporal\Tests\DurationWithTest" classname="Temporal.Tests.DurationWithTest" assertions="1" time="0.000166"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\InstantCompareTest" file="/app/tests/InstantCompareTest.php" tests="5" assertions="5" errors="0" failures="0" skipped="0" time="0.001224">
+        <testcase name="testEqualsTrue" file="/app/tests/InstantCompareTest.php" line="12" class="Temporal\Tests\InstantCompareTest" classname="Temporal.Tests.InstantCompareTest" assertions="1" time="0.000682"/>
+        <testcase name="testEqualsFalse" file="/app/tests/InstantCompareTest.php" line="20" class="Temporal\Tests\InstantCompareTest" classname="Temporal.Tests.InstantCompareTest" assertions="1" time="0.000160"/>
+        <testcase name="testCompareLessThan" file="/app/tests/InstantCompareTest.php" line="28" class="Temporal\Tests\InstantCompareTest" classname="Temporal.Tests.InstantCompareTest" assertions="1" time="0.000131"/>
+        <testcase name="testCompareEqual" file="/app/tests/InstantCompareTest.php" line="36" class="Temporal\Tests\InstantCompareTest" classname="Temporal.Tests.InstantCompareTest" assertions="1" time="0.000128"/>
+        <testcase name="testCompareGreaterThan" file="/app/tests/InstantCompareTest.php" line="44" class="Temporal\Tests\InstantCompareTest" classname="Temporal.Tests.InstantCompareTest" assertions="1" time="0.000124"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\InstantConstructionTest" file="/app/tests/InstantConstructionTest.php" tests="6" assertions="6" errors="0" failures="0" skipped="0" time="0.000776">
+        <testcase name="testConstructorExposesEpochNanoseconds" file="/app/tests/InstantConstructionTest.php" line="12" class="Temporal\Tests\InstantConstructionTest" classname="Temporal.Tests.InstantConstructionTest" assertions="1" time="0.000148"/>
+        <testcase name="testConstructorZero" file="/app/tests/InstantConstructionTest.php" line="19" class="Temporal\Tests\InstantConstructionTest" classname="Temporal.Tests.InstantConstructionTest" assertions="1" time="0.000134"/>
+        <testcase name="testConstructorNegative" file="/app/tests/InstantConstructionTest.php" line="26" class="Temporal\Tests\InstantConstructionTest" classname="Temporal.Tests.InstantConstructionTest" assertions="1" time="0.000124"/>
+        <testcase name="testFromEpochNanoseconds" file="/app/tests/InstantConstructionTest.php" line="33" class="Temporal\Tests\InstantConstructionTest" classname="Temporal.Tests.InstantConstructionTest" assertions="1" time="0.000123"/>
+        <testcase name="testFromEpochMilliseconds" file="/app/tests/InstantConstructionTest.php" line="40" class="Temporal\Tests\InstantConstructionTest" classname="Temporal.Tests.InstantConstructionTest" assertions="1" time="0.000122"/>
+        <testcase name="testFromEpochMillisecondsNegative" file="/app/tests/InstantConstructionTest.php" line="48" class="Temporal\Tests\InstantConstructionTest" classname="Temporal.Tests.InstantConstructionTest" assertions="1" time="0.000126"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\InstantEpochMillisecondsTest" file="/app/tests/InstantEpochMillisecondsTest.php" tests="7" assertions="7" errors="0" failures="0" skipped="0" time="0.001018">
+        <testcase name="testEpochMilliseconds" file="/app/tests/InstantEpochMillisecondsTest.php" line="12" class="Temporal\Tests\InstantEpochMillisecondsTest" classname="Temporal.Tests.InstantEpochMillisecondsTest" assertions="1" time="0.000132"/>
+        <testcase name="testEpochMillisecondsExact" file="/app/tests/InstantEpochMillisecondsTest.php" line="20" class="Temporal\Tests\InstantEpochMillisecondsTest" classname="Temporal.Tests.InstantEpochMillisecondsTest" assertions="1" time="0.000159"/>
+        <testcase name="testEpochMillisecondsNegative" file="/app/tests/InstantEpochMillisecondsTest.php" line="28" class="Temporal\Tests\InstantEpochMillisecondsTest" classname="Temporal.Tests.InstantEpochMillisecondsTest" assertions="1" time="0.000148"/>
+        <testcase name="testEpochMillisecondsNegativeExact" file="/app/tests/InstantEpochMillisecondsTest.php" line="36" class="Temporal\Tests\InstantEpochMillisecondsTest" classname="Temporal.Tests.InstantEpochMillisecondsTest" assertions="1" time="0.000147"/>
+        <testcase name="testEpochMillisecondsNegativeHalf" file="/app/tests/InstantEpochMillisecondsTest.php" line="43" class="Temporal\Tests\InstantEpochMillisecondsTest" classname="Temporal.Tests.InstantEpochMillisecondsTest" assertions="1" time="0.000141"/>
+        <testcase name="testEpochMillisecondsPositiveTimestampScale" file="/app/tests/InstantEpochMillisecondsTest.php" line="51" class="Temporal\Tests\InstantEpochMillisecondsTest" classname="Temporal.Tests.InstantEpochMillisecondsTest" assertions="1" time="0.000148"/>
+        <testcase name="testEpochMillisecondsNegativeTimestampScale" file="/app/tests/InstantEpochMillisecondsTest.php" line="59" class="Temporal\Tests\InstantEpochMillisecondsTest" classname="Temporal.Tests.InstantEpochMillisecondsTest" assertions="1" time="0.000142"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\InstantFromFormatsTest" file="/app/tests/InstantFromFormatsTest.php" tests="15" assertions="14" errors="0" failures="0" skipped="0" time="0.002623">
+        <testsuite name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats" tests="8" assertions="8" errors="0" failures="0" skipped="0" time="0.001469">
+          <testcase name="testEquivalentFormats with data set &quot;compact date&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000284"/>
+          <testcase name="testEquivalentFormats with data set &quot;compact time&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000180"/>
+          <testcase name="testEquivalentFormats with data set &quot;compact date and time&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000167"/>
+          <testcase name="testEquivalentFormats with data set &quot;short offset +HHMM&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000179"/>
+          <testcase name="testEquivalentFormats with data set &quot;short offset +HH&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000167"/>
+          <testcase name="testEquivalentFormats with data set &quot;short offset with shift&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000166"/>
+          <testcase name="testEquivalentFormats with data set &quot;space separator&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000162"/>
+          <testcase name="testEquivalentFormats with data set &quot;extended positive year&quot;" file="/app/tests/InstantFromFormatsTest.php" line="39" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000163"/>
+        </testsuite>
+        <testcase name="testSecondsOptional" file="/app/tests/InstantFromFormatsTest.php" line="46" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000168"/>
+        <testcase name="testCommaAsDecimalSeparator" file="/app/tests/InstantFromFormatsTest.php" line="55" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000166"/>
+        <testcase name="testNegativeYear" file="/app/tests/InstantFromFormatsTest.php" line="65" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="0" time="0.000151"/>
+        <testcase name="testMultipleAnnotationsIgnored" file="/app/tests/InstantFromFormatsTest.php" line="73" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000160"/>
+        <testcase name="testLeapSecondNormalized" file="/app/tests/InstantFromFormatsTest.php" line="81" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000145"/>
+        <testcase name="testCompactDateTimeWithOffsetAndFraction" file="/app/tests/InstantFromFormatsTest.php" line="90" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000180"/>
+        <testcase name="testCompactDateWithJanuaryMonth" file="/app/tests/InstantFromFormatsTest.php" line="99" class="Temporal\Tests\InstantFromFormatsTest" classname="Temporal.Tests.InstantFromFormatsTest" assertions="1" time="0.000182"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\InstantFromTest" file="/app/tests/InstantFromTest.php" tests="9" assertions="9" errors="0" failures="0" skipped="0" time="0.001634">
+        <testcase name="testFromUnixEpoch" file="/app/tests/InstantFromTest.php" line="13" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000220"/>
+        <testcase name="testFromWithPositiveOffset" file="/app/tests/InstantFromTest.php" line="20" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000242"/>
+        <testcase name="testFromWithNanoseconds" file="/app/tests/InstantFromTest.php" line="29" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000221"/>
+        <testcase name="testFromWithSubSecondPrecision" file="/app/tests/InstantFromTest.php" line="36" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000164"/>
+        <testcase name="testFromShortFraction" file="/app/tests/InstantFromTest.php" line="43" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000145"/>
+        <testcase name="testFromIgnoresIanaAnnotation" file="/app/tests/InstantFromTest.php" line="51" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000147"/>
+        <testcase name="testFractionTruncatedBeyondNanoseconds" file="/app/tests/InstantFromTest.php" line="59" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000144"/>
+        <testcase name="testFromThrowsWithoutOffset" file="/app/tests/InstantFromTest.php" line="67" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000200"/>
+        <testcase name="testFromThrowsOnInvalidString" file="/app/tests/InstantFromTest.php" line="73" class="Temporal\Tests\InstantFromTest" classname="Temporal.Tests.InstantFromTest" assertions="1" time="0.000152"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\InstantOverflowTest" file="/app/tests/InstantOverflowTest.php" tests="6" assertions="4" errors="0" failures="0" skipped="0" time="0.000912">
+        <testcase name="testUpperBoundaryWithinRange" file="/app/tests/InstantOverflowTest.php" line="31" class="Temporal\Tests\InstantOverflowTest" classname="Temporal.Tests.InstantOverflowTest" assertions="1" time="0.000174"/>
+        <testcase name="testLowerBoundaryWithinRange" file="/app/tests/InstantOverflowTest.php" line="39" class="Temporal\Tests\InstantOverflowTest" classname="Temporal.Tests.InstantOverflowTest" assertions="1" time="0.000151"/>
+        <testcase name="testSpecUpperBoundaryAccepted" file="/app/tests/InstantOverflowTest.php" line="50" class="Temporal\Tests\InstantOverflowTest" classname="Temporal.Tests.InstantOverflowTest" assertions="0" time="0.000158"/>
+        <testcase name="testSpecLowerBoundaryAccepted" file="/app/tests/InstantOverflowTest.php" line="60" class="Temporal\Tests\InstantOverflowTest" classname="Temporal.Tests.InstantOverflowTest" assertions="0" time="0.000144"/>
+        <testcase name="testUpperBoundaryOutOfRange" file="/app/tests/InstantOverflowTest.php" line="70" class="Temporal\Tests\InstantOverflowTest" classname="Temporal.Tests.InstantOverflowTest" assertions="1" time="0.000147"/>
+        <testcase name="testLowerBoundaryOutOfRange" file="/app/tests/InstantOverflowTest.php" line="77" class="Temporal\Tests\InstantOverflowTest" classname="Temporal.Tests.InstantOverflowTest" assertions="1" time="0.000138"/>
+      </testsuite>
+      <testsuite name="Temporal\Tests\InstantStringTest" file="/app/tests/InstantStringTest.php" tests="15" assertions="15" errors="0" failures="0" skipped="0" time="0.002253">
+        <testcase name="testToStringUnixEpoch" file="/app/tests/InstantStringTest.php" line="13" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000145"/>
+        <testcase name="testToStringWithNanoseconds" file="/app/tests/InstantStringTest.php" line="18" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000142"/>
+        <testcase name="testToStringStripsTrailingFractionZeros" file="/app/tests/InstantStringTest.php" line="23" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000150"/>
+        <testcase name="testToStringMillisecondPrecision" file="/app/tests/InstantStringTest.php" line="28" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000134"/>
+        <testcase name="testToStringBeforeEpoch" file="/app/tests/InstantStringTest.php" line="33" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000131"/>
+        <testcase name="testToStringBeforeEpochWholeSecond" file="/app/tests/InstantStringTest.php" line="39" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000131"/>
+        <testcase name="testMagicToString" file="/app/tests/InstantStringTest.php" line="44" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000127"/>
+        <testcase name="testToJson" file="/app/tests/InstantStringTest.php" line="49" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000127"/>
+        <testsuite name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip" tests="7" assertions="7" errors="0" failures="0" skipped="0" time="0.001165">
+          <testcase name="testFromToStringRoundTrip with data set &quot;epoch&quot;" file="/app/tests/InstantStringTest.php" line="55" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000170"/>
+          <testcase name="testFromToStringRoundTrip with data set &quot;whole second&quot;" file="/app/tests/InstantStringTest.php" line="55" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000172"/>
+          <testcase name="testFromToStringRoundTrip with data set &quot;milliseconds&quot;" file="/app/tests/InstantStringTest.php" line="55" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000160"/>
+          <testcase name="testFromToStringRoundTrip with data set &quot;microseconds&quot;" file="/app/tests/InstantStringTest.php" line="55" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000158"/>
+          <testcase name="testFromToStringRoundTrip with data set &quot;nanoseconds&quot;" file="/app/tests/InstantStringTest.php" line="55" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000182"/>
+          <testcase name="testFromToStringRoundTrip with data set &quot;sub-second strip&quot;" file="/app/tests/InstantStringTest.php" line="55" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000164"/>
+          <testcase name="testFromToStringRoundTrip with data set &quot;before epoch&quot;" file="/app/tests/InstantStringTest.php" line="55" class="Temporal\Tests\InstantStringTest" classname="Temporal.Tests.InstantStringTest" assertions="1" time="0.000158"/>
+        </testsuite>
+      </testsuite>
+    </testsuite>
+  </testsuite>
+</testsuites>

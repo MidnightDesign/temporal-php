@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(1, 0, 0, 0, 24);
 $numbers = [1, 20_191_101, -20_191_101, 1_234_567_890];
 foreach ($numbers as $relativeTo) {
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::incomplete('untranslatable object property');
 }

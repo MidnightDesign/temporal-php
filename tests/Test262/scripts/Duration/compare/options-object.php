@@ -7,4 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::sameValue(\Temporal\Duration::compare(['hours' => 1], ['minutes' => 60], []), 0, 'options may be an empty plain object');
+Assert::sameValue(\Temporal\Duration::compare(['hours' => 1], ['minutes' => 60], function () {  }), 0, 'options may be an empty function object');

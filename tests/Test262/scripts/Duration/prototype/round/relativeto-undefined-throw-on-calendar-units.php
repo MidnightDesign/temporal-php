@@ -13,4 +13,12 @@ $oneMonth = new \Temporal\Duration(0, 1);
 $oneWeek = new \Temporal\Duration(0, 0, 1);
 $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 $options = ['largestUnit' => 'days'];
-Assert::incomplete('round() is not yet implemented on this class');
+TemporalHelpers::assertDuration($oneDay->round($options), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'days do not require relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneWeek->round($options), 'balancing weeks to days requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneMonth->round($options), 'balancing months to days requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->round($options), 'balancing years to days requires relativeTo');
+foreach (['months', 'weeks'] as $largestUnit) {
+foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
+Assert::incomplete('untranslatable object property');
+}
+}

@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(0, 0, 0, 0, 1, 2, 3, 123, 456, 789);
-Assert::incomplete('round() is not yet implemented on this class');
+$explicit1 = $duration->round(['largestUnit' => 'day']);
+TemporalHelpers::assertDuration($explicit1, 0, 0, 0, 0, 1, 2, 3, 123, 456, 789, 'default smallestUnit is nanosecond');
+$implicit1 = $duration->round(['largestUnit' => 'day']);
+TemporalHelpers::assertDuration($implicit1, 0, 0, 0, 0, 1, 2, 3, 123, 456, 789, 'default smallestUnit is nanosecond');

@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $pos = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 999, 999_999, 999_999_999);
-Assert::incomplete('round() is not yet implemented on this class');
+TemporalHelpers::assertDuration($pos->round(['largestUnit' => 'seconds']), 0, 0, 0, 0, 0, 0, 2, 998, 998, 999);
+$neg = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, -999, -999_999, -999_999_999);
+TemporalHelpers::assertDuration($neg->round(['largestUnit' => 'seconds']), 0, 0, 0, 0, 0, 0, -2, -998, -998, -999);

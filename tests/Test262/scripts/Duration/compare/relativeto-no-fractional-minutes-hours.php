@@ -11,5 +11,5 @@ $instance1 = new \Temporal\Duration(1, 0, 0, 0, 24);
 $instance2 = new \Temporal\Duration(1, 0, 0, 0, 24);
 $invalidStrings = [['2025-04-03T05:07.123', 'Fractional minutes'], ['2025-04-03T12.5', 'Fractional hours']];
 foreach ($invalidStrings as [$arg, $description]) {
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($instance1, $instance2, ['relativeTo' => $arg]), "{$description} not allowed in time string");
 }

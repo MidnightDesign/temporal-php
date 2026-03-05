@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof Duration.prototype.round` is `function`');
-Assert::incomplete('\\Temporal\\Duration::round() is not yet implemented');
+Assert::methodExists('\Temporal\Duration', 'round');

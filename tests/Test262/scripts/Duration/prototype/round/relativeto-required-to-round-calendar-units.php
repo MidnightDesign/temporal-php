@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d2 = new \Temporal\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::throws(\InvalidArgumentException::class, fn() => $d2->round('years'), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d2->round('months'), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d2->round('weeks'), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d2->round(['smallestUnit' => 'years']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d2->round(['smallestUnit' => 'months']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d2->round(['smallestUnit' => 'weeks']), '');

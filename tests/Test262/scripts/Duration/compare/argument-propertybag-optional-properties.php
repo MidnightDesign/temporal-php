@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $oneProperty = ['hours' => 1];
 $allProperties = ['years' => 0, 'months' => 0, 'weeks' => 0, 'days' => 0, 'hours' => 1, 'minutes' => 0, 'seconds' => 0, 'milliseconds' => 0, 'microseconds' => 0, 'nanoseconds' => 0];
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::incomplete('JS object-to-string coercion not replicable in PHP');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(1);
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::incomplete('untranslatable object property');

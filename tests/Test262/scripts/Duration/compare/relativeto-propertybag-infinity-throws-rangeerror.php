@@ -13,6 +13,6 @@ $duration2 = new \Temporal\Duration(0, 0, 0, 0, 24);
 $base = ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 15, 'minute' => 30, 'second' => 45, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::incomplete('untranslatable object property');
 }
 }

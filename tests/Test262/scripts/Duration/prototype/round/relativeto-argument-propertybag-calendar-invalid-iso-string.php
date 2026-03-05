@@ -11,5 +11,5 @@ $instance = new \Temporal\Duration(1, 0, 0, 0, 24);
 $invalidStrings = [['', 'empty string'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as [$cal, $description]) {
 $arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['largestUnit' => 'months', 'relativeTo' => $arg]), "{$description} is not a valid calendar ID");
 }

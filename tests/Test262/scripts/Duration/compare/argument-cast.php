@@ -7,4 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::sameValue(\Temporal\Duration::compare('PT12H', new \Temporal\Duration()), 1, 'first argument string');
+Assert::sameValue(\Temporal\Duration::compare(['hours' => 12], new \Temporal\Duration()), 1, 'first argument object');
+Assert::throws(\TypeError::class, fn() => \Temporal\Duration::compare(['hour' => 12], new \Temporal\Duration()), 'first argument missing property');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(), 'PT12H'), -1, 'second argument string');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(), ['hours' => 12]), -1, 'second argument object');
+Assert::throws(\TypeError::class, fn() => \Temporal\Duration::compare(new \Temporal\Duration(), ['hour' => 12]), 'second argument missing property');
+Assert::sameValue(\Temporal\Duration::compare(['hours' => 12, 'minute' => 5], ['hours' => 12, 'day' => 5]), 0, 'ignores incorrect properties');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $oneYear = new \Temporal\Duration(1);
 $days365 = new \Temporal\Duration(0, 0, 0, 365);
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::incomplete('\\Temporal\\PlainDate::from() is not yet implemented');

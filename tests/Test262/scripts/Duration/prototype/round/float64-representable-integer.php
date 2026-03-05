@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 18_014_398_509_481, 981, 0);
-Assert::incomplete('round() is not yet implemented on this class');
+$result = $d->round(['largestUnit' => 'microseconds']);
+Assert::sameValue($result->microseconds, 18_014_398_509_481_980, 'microseconds result should have FP precision loss');
+Assert::sameValue($result->toString(), 'PT18014398509.48198S', 'toString() should not use more precise internal representation than the spec prescribes');
+TemporalHelpers::assertDuration($result->round(['largestUnit' => 'seconds', 'smallestUnit' => 'microseconds', 'roundingMode' => 'halfTrunc', 'roundingIncrement' => 8]), 0, 0, 0, 0, 0, 0, 18_014_398_509, 481, 976, 0, 'subsequent round() should not use more precise internal representation than the spec prescribes');

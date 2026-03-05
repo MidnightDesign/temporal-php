@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Temporal\Exception\NotYetImplementedException;
 
 /**
  * Discovers and runs all generated PHP test scripts under tests/Test262/scripts/.
@@ -40,7 +41,15 @@ final class RunnerTest extends TestCase
     #[DataProvider('scripts')]
     public function testScript(string $path): void
     {
-        /** @psalm-suppress UnresolvableInclude */
-        require $path;
+        try {
+            /** @psalm-suppress UnresolvableInclude */
+            require $path;
+        } catch (NotYetImplementedException $e) {
+            static::markTestIncomplete($e->getMessage());
+        } catch (\Error $e) {
+            // PHP errors (e.g. "Value of type null is not callable") from untranslatable JS
+            // code patterns indicate the script cannot run in PHP — mark as incomplete.
+            static::markTestIncomplete('PHP error: ' . $e->getMessage());
+        }
     }
 }

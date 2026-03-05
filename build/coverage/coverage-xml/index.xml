@@ -1,0 +1,170 @@
+<?xml version="1.0"?>
+<phpunit xmlns="https://schema.phpunit.de/coverage/1.0">
+  <build time="Tue Mar 3 13:07:54 UTC 2026" phpunit="11.5.55" coverage="11.0.12">
+    <runtime name="PHP" version="8.4.18" url="https://www.php.net/"/>
+    <driver name="pcov" version="1.0.12"/>
+  </build>
+  <project source="/app/src">
+    <tests>
+      <test name="Temporal\Tests\DurationConstructionTest::testDefaultConstructorAllZero" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationConstructionTest::testAllPositive" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationConstructionTest::testAllNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationConstructionTest::testSingleField" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationConstructionTest::testZeroAndPositiveAreValid" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationConstructionTest::testMixedSignsThrow" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationEqualsTest::testNotEqualsYears" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationEqualsTest::testNotEqualsMonths" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationEqualsTest::testNotEqualsWeeks" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationEqualsTest::testNotEqualsDays" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testMonthsOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testWeeksOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testDaysOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testHoursOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testMinutesOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testSecondsOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testFractionSevenDigits" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testFractionOneNano" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testFractionTruncatedAt9Digits" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromFieldsTest::testInvalidFormatExactMessage" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testSimple" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testFull" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testTimeOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testFractionalSeconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testCommaFraction" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testHighPrecisionFraction" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testZeroComponent" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testInvalidNoComponents" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationFromTest::testInvalidFormat" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testNegated" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testNegatedBlank" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testAbsFromNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testAbsFromPositive" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testAbsBlank" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testWithSingleField" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testWithMultipleFields" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testEquals" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationMutationTest::testNotEquals" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationSignTest::testSignPositive" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationSignTest::testSignNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationSignTest::testSignZero" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationSignTest::testBlankTrue" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationSignTest::testBlankFalse" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testBlank" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testSimple" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testFull" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testFractional" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testSubSecondOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testHighPrecision" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testToStringMinutesOnly" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testLargeSubsecondCarry" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testToJSON" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testRoundTrip#0" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testRoundTrip#1" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testRoundTrip#2" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testRoundTrip#3" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testRoundTrip#4" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testRoundTrip#5" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationStringTest::testRoundTrip#6" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithMonths" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithWeeks" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithHours" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithMinutes" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithSeconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithMilliseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithMicroseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\DurationWithTest::testWithNanoseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantCompareTest::testEqualsTrue" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantCompareTest::testEqualsFalse" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantCompareTest::testCompareLessThan" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantCompareTest::testCompareEqual" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantCompareTest::testCompareGreaterThan" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantConstructionTest::testConstructorExposesEpochNanoseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantConstructionTest::testConstructorZero" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantConstructionTest::testConstructorNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantConstructionTest::testFromEpochNanoseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantConstructionTest::testFromEpochMilliseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantConstructionTest::testFromEpochMillisecondsNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantEpochMillisecondsTest::testEpochMilliseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantEpochMillisecondsTest::testEpochMillisecondsExact" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantEpochMillisecondsTest::testEpochMillisecondsNegative" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantEpochMillisecondsTest::testEpochMillisecondsNegativeExact" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantEpochMillisecondsTest::testEpochMillisecondsNegativeHalf" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantEpochMillisecondsTest::testEpochMillisecondsPositiveTimestampScale" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantEpochMillisecondsTest::testEpochMillisecondsNegativeTimestampScale" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#compact date" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#compact time" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#compact date and time" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#short offset +HHMM" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#short offset +HH" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#short offset with shift" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#space separator" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testEquivalentFormats#extended positive year" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testSecondsOptional" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testCommaAsDecimalSeparator" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testNegativeYear" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testMultipleAnnotationsIgnored" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testLeapSecondNormalized" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testCompactDateTimeWithOffsetAndFraction" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromFormatsTest::testCompactDateWithJanuaryMonth" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromUnixEpoch" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromWithPositiveOffset" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromWithNanoseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromWithSubSecondPrecision" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromShortFraction" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromIgnoresIanaAnnotation" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFractionTruncatedBeyondNanoseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromThrowsWithoutOffset" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantFromTest::testFromThrowsOnInvalidString" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantOverflowTest::testUpperBoundaryWithinRange" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantOverflowTest::testLowerBoundaryWithinRange" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantOverflowTest::testSpecUpperBoundaryAccepted" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantOverflowTest::testSpecLowerBoundaryAccepted" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantOverflowTest::testUpperBoundaryOutOfRange" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantOverflowTest::testLowerBoundaryOutOfRange" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testToStringUnixEpoch" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testToStringWithNanoseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testToStringStripsTrailingFractionZeros" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testToStringMillisecondPrecision" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testToStringBeforeEpoch" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testToStringBeforeEpochWholeSecond" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testMagicToString" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testToJson" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip#epoch" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip#whole second" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip#milliseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip#microseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip#nanoseconds" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip#sub-second strip" size="unknown" status="success"/>
+      <test name="Temporal\Tests\InstantStringTest::testFromToStringRoundTrip#before epoch" size="unknown" status="success"/>
+    </tests>
+    <directory name="/">
+      <totals>
+        <lines total="761" comments="245" code="516" executable="280" executed="257" percent="91.79"/>
+        <methods count="24" tested="19" percent="79.17"/>
+        <functions count="0" tested="0" percent="0"/>
+        <classes count="2" tested="0" percent="0.00"/>
+        <traits count="0" tested="0" percent="0"/>
+      </totals>
+      <file name="Duration.php" href="Duration.php.xml">
+        <totals>
+          <lines total="350" comments="87" code="263" executable="151" executed="150" percent="99.34"/>
+          <methods count="10" tested="9" percent="90.00"/>
+          <functions count="0" tested="0" percent="0"/>
+          <classes count="1" tested="0" percent="0.00"/>
+          <traits count="0" tested="0" percent="0"/>
+        </totals>
+      </file>
+      <file name="Instant.php" href="Instant.php.xml">
+        <totals>
+          <lines total="411" comments="158" code="253" executable="129" executed="107" percent="82.95"/>
+          <methods count="14" tested="10" percent="71.43"/>
+          <functions count="0" tested="0" percent="0"/>
+          <classes count="1" tested="0" percent="0.00"/>
+          <traits count="0" tested="0" percent="0"/>
+        </totals>
+      </file>
+    </directory>
+  </project>
+</phpunit>

@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 $hours24 = new \Temporal\Duration(0, 0, 0, 0, 24);
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::throws(\TypeError::class, fn() => \Temporal\Duration::compare($oneDay, $hours24, ['relativeTo' => ['month' => 11, 'day' => 3]]), 'missing year');
+Assert::throws(\TypeError::class, fn() => \Temporal\Duration::compare($oneDay, $hours24, ['relativeTo' => ['year' => 2019, 'month' => 11]]), 'missing day');
+Assert::throws(\TypeError::class, fn() => \Temporal\Duration::compare($oneDay, $hours24, ['relativeTo' => ['year' => 2019, 'day' => 3]]), 'missing month');

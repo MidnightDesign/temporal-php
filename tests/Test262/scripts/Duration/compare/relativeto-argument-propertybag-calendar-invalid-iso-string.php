@@ -12,5 +12,5 @@ $instance_2 = new \Temporal\Duration(2);
 $invalidStrings = [['', 'empty string'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as [$cal, $description]) {
 $arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($instance_1, $instance_2, ['relativeTo' => $arg]), "{$description} is not a valid calendar ID");
 }

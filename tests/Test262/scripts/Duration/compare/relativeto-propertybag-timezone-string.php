@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['UTC', '+01:00'] as $timeZone) {
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::incomplete('untranslatable object property');
 }

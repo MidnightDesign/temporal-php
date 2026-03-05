@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $duration1 = new \Temporal\Duration(1);
 $duration2 = new \Temporal\Duration(0, 1);
 $relativeTo = ['year' => 2021, 'month' => 10, 'day' => 28, 'timeZone' => 'UTC'];
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::incomplete('untranslatable object property');

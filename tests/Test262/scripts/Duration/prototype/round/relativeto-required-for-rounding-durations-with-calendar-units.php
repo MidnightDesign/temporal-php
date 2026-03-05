@@ -8,4 +8,13 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'years']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'months']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'weeks']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'days']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'hours']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'minutes']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'seconds']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'milliseconds']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'microseconds']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => 'nanoseconds']), '');

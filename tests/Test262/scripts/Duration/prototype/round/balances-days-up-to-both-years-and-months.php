@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $twoYears = new \Temporal\Duration(0, 11, 0, 396, 0, 0, 0, 0, 0, 0);
-Assert::incomplete('round() is not yet implemented on this class');
+Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');

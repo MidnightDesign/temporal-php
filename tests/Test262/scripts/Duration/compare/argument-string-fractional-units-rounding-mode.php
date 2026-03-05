@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $expectedPos = new \Temporal\Duration(0, 0, 0, 0, 1, 1, 52, 500);
 $expectedNeg = new \Temporal\Duration(0, 0, 0, 0, -1, -1, -52, -500);
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::sameValue(\Temporal\Duration::compare('PT1.03125H', $expectedPos), 0, 'positive fractional units rounded with correct rounding mode (first argument)');
+Assert::sameValue(\Temporal\Duration::compare('-PT1.03125H', $expectedNeg), 0, 'negative fractional units rounded with correct rounding mode (first argument)');
+Assert::sameValue(\Temporal\Duration::compare($expectedPos, 'PT1.03125H'), 0, 'positive fractional units rounded with correct rounding mode (second argument)');
+Assert::sameValue(\Temporal\Duration::compare($expectedNeg, '-PT1.03125H'), 0, 'negative fractional units rounded with correct rounding mode (second argument)');

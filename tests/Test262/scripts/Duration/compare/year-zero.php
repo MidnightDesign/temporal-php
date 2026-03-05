@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $duration1 = new \Temporal\Duration(1);
 $duration2 = new \Temporal\Duration(2);
 $bad = '-000000-11-01';
-Assert::incomplete('\\Temporal\\Duration::compare() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => $bad]), 'Cannot use negative zero as extended year');
