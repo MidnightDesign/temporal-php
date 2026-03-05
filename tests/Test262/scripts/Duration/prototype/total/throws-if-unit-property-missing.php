@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-foreach ([[], function () {  }, ['roundingMode' => 'ceil']] as $roundTo) {
+foreach ([new \stdClass(), function () {  }, ['roundingMode' => 'ceil']] as $roundTo) {
 Assert::throws(\InvalidArgumentException::class, fn() => $d->total($roundTo), '');
 }

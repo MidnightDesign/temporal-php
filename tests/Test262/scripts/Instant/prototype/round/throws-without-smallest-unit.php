@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inst = new \Temporal\Instant(0);
-Assert::throws(\InvalidArgumentException::class, fn() => $inst->round([]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(new \stdClass()), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $inst->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']), '');

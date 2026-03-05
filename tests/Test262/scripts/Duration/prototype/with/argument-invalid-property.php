@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(0, 0, 0, 1, 2, 3, 4, 987, 654, 321);
-Assert::throws(\TypeError::class, fn() => $instance->with([]), 'Throws TypeError if no property is present');
+Assert::throws(\TypeError::class, fn() => $instance->with(new \stdClass()), 'Throws TypeError if no property is present');
 Assert::throws(\TypeError::class, fn() => $instance->with([]), 'Throws TypeError if no property is present (with array)');
 Assert::throws(\TypeError::class, fn() => $instance->with(function () {  }), 'Throws TypeError if no property is present (with function)');
 Assert::throws(\TypeError::class, fn() => $instance->with(['nonsense' => true]), 'Throws TypeError if no recognized property is present');

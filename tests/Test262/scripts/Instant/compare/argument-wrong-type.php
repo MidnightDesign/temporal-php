@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $other = new \Temporal\Instant(0);
-Assert::incomplete('\\Temporal\\Instant used as a value');
+$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint'], [new \stdClass(), 'plain object'], [\Temporal\Instant::class, 'Temporal.Instant, object']];
+foreach ($primitiveTests as [$arg, $description]) {
+Assert::throws((is_string($arg) || is_object($arg) && $arg !== null || is_callable($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Instant::compare($arg, $other), "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($arg) || is_object($arg) && $arg !== null || is_callable($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Instant::compare($other, $arg), "{$description} does not convert to a valid ISO string (second argument)");
+}
+Assert::incomplete('untranslatable: Symbol()');

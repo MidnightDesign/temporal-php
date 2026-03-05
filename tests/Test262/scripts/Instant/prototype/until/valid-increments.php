@@ -12,5 +12,17 @@ $later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
 $options = ['largestUnit' => $largestUnit, 'smallestUnit' => 'hours', 'roundingIncrement' => $roundingIncrement];
-Assert::incomplete('\\Temporal\\Duration used as a value');
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+}
+foreach (['minutes', 'seconds'] as $smallestUnit) {
+foreach ([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as $roundingIncrement) {
+$options = ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+}
+}
+foreach (['milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
+foreach ([1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500] as $roundingIncrement) {
+$options = ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+}
 }

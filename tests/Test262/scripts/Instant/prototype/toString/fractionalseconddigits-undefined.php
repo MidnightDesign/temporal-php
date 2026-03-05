@@ -11,7 +11,7 @@ $tests = [[new \Temporal\Instant(192_258_181_000_000_000), '1976-02-04T05:03:01Z
 foreach ($tests as [$instant, $expected]) {
 $explicit = $instant->toString([]);
 Assert::sameValue($explicit, $expected, 'default fractionalSecondDigits is auto (property present but undefined)');
-$implicit = $instant->toString([]);
+$implicit = $instant->toString(new \stdClass());
 Assert::sameValue($implicit, $expected, 'default fractionalSecondDigits is auto (property not present)');
 $lambda = $instant->toString(function () {  });
 Assert::sameValue($lambda, $expected, 'default fractionalSecondDigits is auto (property not present, function object)');

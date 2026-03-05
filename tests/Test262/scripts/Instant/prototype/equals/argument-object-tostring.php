@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
-$arg = [];
+$arg = new \stdClass();
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), '[object Object] is not a valid ISO string');
 Assert::incomplete('untranslatable expression: FunctionExpression');

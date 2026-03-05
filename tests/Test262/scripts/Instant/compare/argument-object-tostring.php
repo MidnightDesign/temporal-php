@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $epoch = new \Temporal\Instant(0);
-$arg = [];
+$arg = new \stdClass();
 Assert::incomplete('JS object-to-string coercion not replicable in PHP');

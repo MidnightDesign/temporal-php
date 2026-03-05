@@ -299,11 +299,32 @@ final class Instant implements Stringable
      *
      * @return int -1, 0, or 1.
      */
-    public static function compare(self|string $one, self|string $two): int
+    public static function compare(mixed $one, mixed $two): int
     {
-        $a = $one instanceof self ? $one : self::from($one);
-        $b = $two instanceof self ? $two : self::from($two);
+        $a = $one instanceof self ? $one : self::coerceToInstant($one);
+        $b = $two instanceof self ? $two : self::coerceToInstant($two);
         return $a->epochNanoseconds <=> $b->epochNanoseconds;
+    }
+
+    /**
+     * Coerces a non-Instant value to an Instant by parsing it as an ISO string.
+     * Throws TypeError for primitive non-strings (null, bool, int, float).
+     * Throws InvalidArgumentException for objects/arrays (can't replicate JS toString coercion).
+     *
+     * @throws \TypeError for primitive non-string values.
+     * @throws InvalidArgumentException for objects/arrays or invalid strings.
+     */
+    private static function coerceToInstant(mixed $arg): self
+    {
+        if (is_string($arg)) {
+            return self::from($arg);
+        }
+        if (is_array($arg) || is_object($arg)) {
+            throw new InvalidArgumentException(
+                'Temporal\\Instant argument must be a Temporal\\Instant or an ISO string.',
+            );
+        }
+        throw new \TypeError('Temporal\\Instant argument must be a Temporal\\Instant or a string.');
     }
 
     // -------------------------------------------------------------------------
@@ -320,15 +341,7 @@ final class Instant implements Stringable
      */
     public function equals(mixed $other): bool
     {
-        if ($other instanceof self) {
-            return $this->epochNanoseconds === $other->epochNanoseconds;
-        }
-        if (!is_string($other)) {
-            throw new InvalidArgumentException(
-                'Temporal\\Instant::equals() argument must be a Temporal\\Instant or a string.',
-            );
-        }
-        return $this->epochNanoseconds === self::from($other)->epochNanoseconds;
+        return $this->epochNanoseconds === ($other instanceof self ? $other : self::coerceToInstant($other))->epochNanoseconds;
     }
 
     /**
@@ -691,6 +704,9 @@ final class Instant implements Stringable
     {
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
+        } elseif (is_object($roundTo)) {
+            // TC39: any object is a valid options bag treated as empty if no properties.
+            $roundTo = [];
         }
         if (!is_array($roundTo)) {
             throw new \TypeError('Temporal\\Instant::round() options must be a string or array.');
@@ -760,13 +776,7 @@ final class Instant implements Stringable
      */
     public function since(mixed $other, mixed $options = null): Duration
     {
-        if ($other instanceof self) {
-            $otherInst = $other;
-        } elseif (is_string($other)) {
-            $otherInst = self::from($other);
-        } else {
-            throw new InvalidArgumentException('since() argument must be a Temporal\\Instant or an ISO string.');
-        }
+        $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
         $diffNs = $this->epochNanoseconds - $otherInst->epochNanoseconds;
         return self::diffInstant($diffNs, $options);
     }
@@ -782,13 +792,7 @@ final class Instant implements Stringable
      */
     public function until(mixed $other, mixed $options = null): Duration
     {
-        if ($other instanceof self) {
-            $otherInst = $other;
-        } elseif (is_string($other)) {
-            $otherInst = self::from($other);
-        } else {
-            throw new InvalidArgumentException('until() argument must be a Temporal\\Instant or an ISO string.');
-        }
+        $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
         $diffNs = $otherInst->epochNanoseconds - $this->epochNanoseconds;
         return self::diffInstant($diffNs, $options);
     }

@@ -473,8 +473,9 @@ class Emitter {
             this.emitIncomplete('Temporal namespace object access is not translatable');
             return null;
           case 'class':
-            this.emitIncomplete(`\\Temporal\\${temporalTarget.class} used as a value`);
-            return null;
+            // Return the PHP class constant string (e.g. \Temporal\Instant::class).
+            // For `instanceof Temporal.X`, transpileBinary strips ::class before emitting.
+            return `\\Temporal\\${temporalTarget.class}::class`;
           case 'prototype':
             return 'new \\stdClass()';
           case 'staticMethod':
@@ -970,6 +971,16 @@ class Emitter {
         if (phpCheck !== null) return negate ? `!(${phpCheck})` : phpCheck;
       }
     }
+    // `expr instanceof Temporal.X` → `$expr instanceof \Temporal\X`
+    // (transpileTemporalClassRef returns \Temporal\X::class; strip ::class for instanceof)
+    if (node.operator === 'instanceof') {
+      const classRef = this.transpileTemporalClassRef(node.right);
+      if (classRef !== null) {
+        const leftPhp = this.transpileExpr(node.left);
+        if (leftPhp === null) return null;
+        return `${leftPhp} instanceof ${classRef.replace(/::class$/, '')}`;
+      }
+    }
     let left  = this.transpileExpr(node.left);
     let right = this.transpileExpr(node.right);
     if (left === null || right === null) return null;
@@ -1062,6 +1073,9 @@ class Emitter {
     // PHP represents as the key being absent from the array.
     // Shorthand properties `{ key }` are equivalent to `{ key: key }` and are
     // translated as `['key' => $key]`.
+    // Empty object literal {} → new \stdClass() to preserve JS object semantics.
+    // Non-empty {} → PHP associative array ['key' => value].
+    if (node.properties.length === 0) return 'new \\stdClass()';
     const parts = [];
     for (const prop of node.properties) {
       if (prop.type !== 'Property' || prop.computed || prop.method) {
