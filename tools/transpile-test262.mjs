@@ -97,6 +97,9 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertInstantsEqual',
   'checkPluralUnitsAccepted',
   'checkStringOptionWrongType',
+  'checkSubclassingIgnored',
+  'checkSubclassingIgnoredStatic',
+  'checkRoundingIncrementOptionWrongType',
 ]);
 
 /**
@@ -544,6 +547,19 @@ class Emitter {
       if (!IMPLEMENTED_HELPERS.has(method)) {
         this.emitIncomplete(`TemporalHelpers.${method}() is not yet implemented`);
         return null;
+      }
+      // checkSubclassingIgnored / checkSubclassingIgnoredStatic:
+      // first arg is Temporal.X (class reference) → translate to \Temporal\X::class
+      if (method === 'checkSubclassingIgnored' || method === 'checkSubclassingIgnoredStatic') {
+        const [classArg, ...rest] = node.arguments;
+        const classRef = this.transpileTemporalClassRef(classArg);
+        if (classRef === null) {
+          this.emitIncomplete(`${method}: cannot translate first argument as a Temporal class reference`);
+          return null;
+        }
+        const restArgs = this.transpileArgs(rest);
+        if (restArgs === null) return null;
+        return `TemporalHelpers::${method}(${classRef}, ${restArgs})`;
       }
       const args = this.transpileArgs(node.arguments);
       if (args === null) return null;
@@ -1011,6 +1027,21 @@ class Emitter {
    * For ConditionalExpression → (cond ? \Foo::class : \Bar::class).
    * Fallback: treats any other transpiled PHP starting with \ as a class ref.
    */
+  /**
+   * Translates a Temporal.X MemberExpression to \Temporal\X::class.
+   * Used for passing Temporal class references to TemporalHelpers methods
+   * (checkSubclassingIgnored, checkSubclassingIgnoredStatic).
+   * Returns null if the node is not a recognized Temporal.X expression.
+   */
+  transpileTemporalClassRef(node) {
+    if (node.type === 'MemberExpression' && !node.computed
+        && node.object.type === 'Identifier' && node.object.name === 'Temporal'
+        && node.property.type === 'Identifier') {
+      return `\\Temporal\\${node.property.name}::class`;
+    }
+    return null;
+  }
+
   transpileAsClassRef(node) {
     if (node.type === 'ConditionalExpression') {
       const test       = this.transpileExpr(node.test);

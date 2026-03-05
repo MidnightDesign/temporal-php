@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkSubclassingIgnored() is not yet implemented');
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Duration::class, [0, 0, 0, 4, 5, 6, 7, 987, 654, 321], 'add', [['nanoseconds' => 1]], fn($result) => TemporalHelpers::assertDuration($result, 0, 0, 0, 4, 5, 6, 7, 987, 654, 322));

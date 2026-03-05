@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkSubclassingIgnoredStatic() is not yet implemented');
+TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Instant::class, 'from', ['1976-11-18T14:23:30.123456789Z'], fn($result) => Assert::sameValue($result->epochNanoseconds, 217_175_010_123_456_789, 'epochNanoseconds result'));

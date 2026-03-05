@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(0, 0, 0, 4, 12, 34, 56, 987, 654, 321);
-Assert::incomplete('TemporalHelpers.checkRoundingIncrementOptionWrongType() is not yet implemented');
+TemporalHelpers::checkRoundingIncrementOptionWrongType(fn($roundingIncrement) => $duration->round(['smallestUnit' => 'second', 'roundingIncrement' => $roundingIncrement]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 4, 12, 34, 57, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 4, 12, 34, 56, 0, 0, 0, $descr));

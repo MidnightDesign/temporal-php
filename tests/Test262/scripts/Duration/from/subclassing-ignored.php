@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkSubclassingIgnoredStatic() is not yet implemented');
+TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Duration::class, 'from', ['P1Y2M3W4DT5H6M7.987654321S'], fn($result) => TemporalHelpers::assertDuration($result, 1, 2, 3, 4, 5, 6, 7, 987, 654, 321));

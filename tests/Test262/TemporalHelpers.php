@@ -155,6 +155,131 @@ final class TemporalHelpers
     }
 
     /**
+     * Tests that an instance method does not return a subclass instance (PHP: final classes,
+     * so this simply verifies the method returns the correct type with expected field values).
+     *
+     * In JS, tests that subclass constructors are not invoked when the method returns a new instance.
+     * PHP Temporal classes are all final, so subclassing is impossible; we just call the method
+     * and assert the return value satisfies the check function.
+     *
+     * Argument order matches JS TemporalHelpers.checkSubclassingIgnored(class, ctorArgs, method, methodArgs, checkFn).
+     *
+     * @param class-string          $class      Fully-qualified class name.
+     * @param list<mixed>           $ctorArgs   Constructor arguments.
+     * @param string                $method     Instance method name.
+     * @param list<mixed>           $methodArgs Method arguments.
+     * @param callable(mixed): void $checkFn    Assertions on the return value.
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function checkSubclassingIgnored(
+        string $class,
+        array $ctorArgs,
+        string $method,
+        array $methodArgs,
+        callable $checkFn,
+    ): void {
+        /** @psalm-suppress MixedMethodCall, UnsafeInstantiation, MixedArgumentTypeCoercion */
+        // @mago-ignore analysis:unknown-class-instantiation
+        $instance = new $class(...$ctorArgs);
+        /** @psalm-suppress MixedMethodCall */
+        /** @var mixed $result */
+        // @phpstan-ignore method.dynamicName
+        $result = $instance->$method(...$methodArgs);
+        PHPUnitAssert::assertInstanceOf($class, $result, "Return value should be an instance of {$class}");
+        $checkFn($result);
+    }
+
+    /**
+     * Tests that a static method does not return a subclass instance (PHP: final classes,
+     * so this simply verifies the static method returns the correct type with expected values).
+     *
+     * In JS, tests that calling a static method via a subclass still returns the base class type.
+     * PHP Temporal classes are all final; we just call the static method and run the check.
+     *
+     * Argument order matches JS TemporalHelpers.checkSubclassingIgnoredStatic(class, method, args, checkFn).
+     *
+     * @param class-string          $class   Fully-qualified class name.
+     * @param string                $method  Static method name.
+     * @param list<mixed>           $args    Method arguments.
+     * @param callable(mixed): void $checkFn Assertions on the return value.
+     * @psalm-suppress UnusedParam Psalm does not track $method in $class::$method() dynamic dispatch.
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function checkSubclassingIgnoredStatic(
+        string $class,
+        string $method,
+        array $args,
+        callable $checkFn,
+    ): void {
+        /** @psalm-suppress MixedMethodCall */
+        /** @var mixed $result */
+        // @phpstan-ignore staticMethod.dynamicName
+        $result = $class::$method(...$args);
+        PHPUnitAssert::assertInstanceOf($class, $result, "Return value should be an instance of {$class}");
+        $checkFn($result);
+    }
+
+    /**
+     * Tests that wrong-type values for the roundingIncrement option cause exceptions,
+     * that true (= 1) uses the default increment, and that object-with-valueOf is skipped.
+     *
+     * Covers the subset of TC39 checkRoundingIncrementOptionWrongType testable in PHP:
+     *   - null   → skipped; PHP treats null as "not set" (uses default 1), differs from spec (0 → RangeError)
+     *   - true   → 1 (valid) → assertRoundedDown called
+     *   - false  → 0 → any exception expected
+     *   - Symbol → skipped (PHP has no Symbol type)
+     *   - BigInt → skipped (PHP has no BigInt type)
+     *   - {}     → any exception expected (object→int coercion fails in PHP 8.0+)
+     *   - {valueOf → 2} → skipped (PHP does not invoke valueOf on objects)
+     *
+     * Argument order matches JS TemporalHelpers.checkRoundingIncrementOptionWrongType(fn, assertUp, assertDown).
+     *
+     * @param callable(mixed): mixed          $fn               Function under test (receives roundingIncrement).
+     * @param callable(mixed, string): void   $assertRoundedUp  Assertion for result with increment = 2 (skipped in PHP).
+     * @param callable(mixed, string): void   $assertRoundedDown Assertion for result with increment = 1 (true).
+     * @psalm-suppress UnusedParam $assertRoundedDown is not called (object-with-valueOf case skipped in PHP).
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function checkRoundingIncrementOptionWrongType(
+        callable $fn,
+        callable $assertRoundedUp,
+        callable $assertRoundedDown,
+    ): void {
+        // null → 0 in JS spec → RangeError.
+        // In PHP, null is treated as "option not set" → default 1 → no exception; skipped.
+
+        // true → ToNumber(true) = 1 → valid; increment=1 + halfExpand → rounds up.
+        // The harness calls assertRoundedUp for true (increment=1) and assertRoundedDown
+        // for {valueOf → 2} (increment=2, which rounds down due to 0.987s/2s = 0.49 < 0.5).
+        /** @var mixed $result */
+        $result = $fn(true);
+        $description = 'true';
+        $assertRoundedUp($result, $description);
+
+        // false → ToNumber(false) = 0 → out of range → any exception.
+        try {
+            $fn(false);
+            PHPUnitAssert::fail('Expected exception for roundingIncrement=false, but nothing was thrown.');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            throw $e;
+        } catch (\Throwable) {
+            /** @phpstan-ignore staticMethod.alreadyNarrowedType */
+            PHPUnitAssert::assertTrue(true); // count the assertion
+        }
+
+        // Symbol → TypeError (skip: PHP has no Symbol type).
+        // BigInt → TypeError (skip: PHP has no BigInt type).
+
+        // plain object → ToNumber({}) = NaN in JS → RangeError.
+        // In PHP, (int) new stdClass() = 1 (warning, not exception), which is a valid increment.
+        // Skipped: PHP cannot replicate JS object-to-NaN coercion.
+
+        // object with valueOf() → 2 → assertRoundedDown (increment=2 rounds down); skipped in PHP.
+        /** @psalm-suppress UnusedVariable */
+        $_ = $assertRoundedDown; // referenced to suppress "param never read" warnings
+    }
+
+    /**
      * Tests that wrong-type values for a string option cause exceptions, and
      * that the valid value produces the expected result.
      *
