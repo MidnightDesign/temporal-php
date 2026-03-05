@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(0, 0, 0, 4, 5, 6, 7, 987, 654, 321);
 $invalidUnits = ['era', 'eras'];
 foreach ($invalidUnits as $unit) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['unit' => $unit]), "{ unit: \"{$unit}\" } should not be allowed as an argument to total");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total($unit), "\"{$unit}\" should not be allowed as an argument to total");
 }

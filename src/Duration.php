@@ -580,6 +580,11 @@ final class Duration implements Stringable
         $totalSeconds = (int) $abs->seconds + $carryMs + $carryUs + $carryNs + (int) ($subNs / 1_000_000_000);
         $subNs = $subNs % 1_000_000_000;
 
+        // Initialize local copies of time units that may be updated by carry after rounding.
+        $absMinutes = (int) $abs->minutes;
+        $absHours   = (int) $abs->hours;
+        $absDays    = (int) $abs->days;
+
         // Apply rounding and format the fractional seconds string.
         if ($digits === null) {
             // auto: retain only significant digits.
@@ -602,6 +607,21 @@ final class Duration implements Stringable
                 );
             }
 
+            // Carry seconds → minutes → hours → days, but only into originally-non-zero larger units.
+            // E.g. {h:1, min:59, sec:59, ms:900} rounds to PT2H0S; {sec:59, ms:900} stays PT60S.
+            if ($carrySecond !== 0 && ($absMinutes !== 0 || $absHours !== 0)) {
+                $absMinutes += intdiv(num1: $totalSeconds, num2: 60);
+                $totalSeconds = $totalSeconds % 60;
+                if ($absMinutes >= 60 && $absHours !== 0) {
+                    $absHours += intdiv(num1: $absMinutes, num2: 60);
+                    $absMinutes = $absMinutes % 60;
+                    if ($absHours >= 24 && $absDays !== 0) {
+                        $absDays += intdiv(num1: $absHours, num2: 24);
+                        $absHours = $absHours % 24;
+                    }
+                }
+            }
+
             $frac = $digits === 0 ? '' : '.' . sprintf('%0' . $digits . 'd', $roundedFrac);
         }
 
@@ -616,20 +636,20 @@ final class Duration implements Stringable
         if ($abs->weeks !== 0) {
             $s .= ((string) $abs->weeks) . 'W';
         }
-        if ($abs->days !== 0) {
-            $s .= ((string) $abs->days) . 'D';
+        if ($absDays !== 0) {
+            $s .= ((string) $absDays) . 'D';
         }
 
         // With a fixed digit count we always emit the time component (even if zero).
-        $hasTime = $digits !== null || $abs->hours !== 0 || $abs->minutes !== 0 || $totalSeconds !== 0 || $subNs !== 0;
+        $hasTime = $digits !== null || $absHours !== 0 || $absMinutes !== 0 || $totalSeconds !== 0 || $subNs !== 0;
 
         if ($hasTime) {
             $s .= 'T';
-            if ($abs->hours !== 0) {
-                $s .= ((string) $abs->hours) . 'H';
+            if ($absHours !== 0) {
+                $s .= ((string) $absHours) . 'H';
             }
-            if ($abs->minutes !== 0) {
-                $s .= ((string) $abs->minutes) . 'M';
+            if ($absMinutes !== 0) {
+                $s .= ((string) $absMinutes) . 'M';
             }
             // In fixed-digit mode always emit seconds; in auto mode emit only when non-zero.
             if ($digits !== null || $totalSeconds !== 0 || $subNs !== 0) {
@@ -698,12 +718,14 @@ final class Duration implements Stringable
             if (!is_array($totalOf) || !array_key_exists('relativeTo', $totalOf)) {
                 throw new InvalidArgumentException("total() with unit \"{$unit}\" requires a relativeTo option.");
             }
+            /** @var mixed $rt */
             $rt = $totalOf['relativeTo'];
-            // String relativeTo: parse as ISO PlainDate string.
+            // String relativeTo: parse and validate.
             if (is_string($rt)) {
                 $rt = $this->parseRelativeToString($rt);
-            }
-            if (!is_array($rt)) {
+            } elseif (is_array($rt)) {
+                self::validateRelativeToPropertyBag($rt);
+            } else {
                 throw new \TypeError('relativeTo must be a string or property bag.');
             }
             // Both 'month' and 'monthCode' are valid month specifiers per TC39.
@@ -713,22 +735,82 @@ final class Duration implements Stringable
             if (!$hasYear || !$hasMonth || !$hasDay) {
                 throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
             }
-            // Validate calendar: only ISO 8601 is supported.
-            if (array_key_exists('calendar', $rt)) {
-                $cal = strtolower((string) $rt['calendar']);
-                if ($cal !== 'iso8601') {
-                    throw new InvalidArgumentException(
-                        "Unsupported calendar \"{$rt['calendar']}\"; only iso8601 is supported.",
-                    );
-                }
-            }
             return $this->totalCalendar($unit, $rt);
         }
 
         if ($this->years !== 0 || $this->months !== 0 || $this->weeks !== 0) {
-            throw new InvalidArgumentException(
-                'total() on a duration with years, months, or weeks requires a relativeTo option.',
-            );
+            // Calendar fields need a relativeTo anchor to convert to the target unit.
+            if (!is_array($totalOf) || !array_key_exists('relativeTo', $totalOf)) {
+                throw new InvalidArgumentException(
+                    'total() on a duration with years, months, or weeks requires a relativeTo option.',
+                );
+            }
+            /** @var mixed $rt */
+            $rt = $totalOf['relativeTo'];
+            if (is_string($rt)) {
+                $rt = $this->parseRelativeToString($rt);
+            } elseif (is_array($rt)) {
+                self::validateRelativeToPropertyBag($rt);
+            } else {
+                throw new \TypeError('relativeTo must be a string or property bag.');
+            }
+            $hasYear  = array_key_exists('year', $rt);
+            $hasMonth = array_key_exists('month', $rt) || array_key_exists('monthCode', $rt);
+            $hasDay   = array_key_exists('day', $rt);
+            if (!$hasYear || !$hasMonth || !$hasDay) {
+                throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
+            }
+            return $this->totalCalendarDays($rt);
+        }
+
+        // Validate relativeTo if provided (even for pure-time unit computations).
+        if (is_array($totalOf) && array_key_exists('relativeTo', $totalOf)) {
+            /** @var mixed $rtRaw */
+            $rtRaw = $totalOf['relativeTo'];
+            if (is_string($rtRaw)) {
+                $parsedRt = $this->parseRelativeToString($rtRaw);
+                $rtIsZDT = $parsedRt['_isZDT'] === true;
+                // For total('days') with ZDT: local time must be exactly midnight.
+                if ($unit === 'days' && $rtIsZDT && $parsedRt['_localTimeSec'] !== 0) {
+                    throw new InvalidArgumentException(
+                        "relativeTo ZonedDateTime for total('days') must be at local midnight.",
+                    );
+                }
+                // For non-blank duration: check epoch overflow.
+                if (!$this->blank) {
+                    $rtTotalSec =
+                        ((float) $this->days * 86_400.0)
+                        + ((float) $this->hours * 3_600.0)
+                        + ((float) $this->minutes * 60.0)
+                        + (float) $this->seconds
+                        + ((
+                            ((float) $this->milliseconds * 1_000_000.0)
+                            + ((float) $this->microseconds * 1_000.0)
+                            + (float) $this->nanoseconds
+                        ) / 1_000_000_000.0);
+                    if ($rtIsZDT) {
+                        if (
+                            (float) $parsedRt['_utcSec'] + $rtTotalSec > 8_640_000_000_000.0
+                            || (float) $parsedRt['_utcSec'] + $rtTotalSec < -8_640_000_000_000.0
+                        ) {
+                            throw new InvalidArgumentException(
+                                "relativeTo ZonedDateTime is outside the representable range after applying duration.",
+                            );
+                        }
+                    } else {
+                        // PlainDate: epoch days must be within ±100 000 000.
+                        if (abs((int) $parsedRt['_epochDays']) > 100_000_000) {
+                            throw new InvalidArgumentException(
+                                "relativeTo PlainDate is outside the representable range after applying duration.",
+                            );
+                        }
+                    }
+                }
+            } elseif (is_array($rtRaw)) {
+                self::validateRelativeToPropertyBag($rtRaw);
+            } elseif ($rtRaw !== null) {
+                throw new \TypeError('relativeTo must be a string or property bag array.');
+            }
         }
 
         // Compute in seconds. Combine sub-second fields into nanoseconds first, then divide
@@ -763,10 +845,17 @@ final class Duration implements Stringable
 
     /**
      * Parses a relativeTo ISO date string into a property bag.
-     * Rejects invalid formats, fractional minutes/hours, unknown calendars, and
-     * sub-minute bracket offsets (TC39 §10.6.7 ToTemporalDate).
+     * Validates format, calendar, bracket offsets, and ZonedDateTime/PlainDate range limits.
      *
-     * @return array<string,int> Bag with 'year', 'month', 'day' keys.
+     * ZonedDateTime strings (have both an inline Z/offset AND a timezone bracket):
+     *   - Local date must be ≥ -271821-04-20 (epoch-days ≥ −100 000 000).
+     *   - UTC instant must be at midnight (offsetSec must exactly cancel localTimeSec mod 86400).
+     *   - UTC instant must be within ±8 640 000 000 000 seconds.
+     *
+     * PlainDate strings (no inline offset or no timezone bracket):
+     *   - Date must be within [−271821-04-19, +275760-09-13] (epoch-days in [−100 000 001, +100 000 000]).
+     *
+     * @return array<string,int|bool> Bag with 'year', 'month', 'day', '_epochDays', '_isZDT', '_utcSec', '_localTimeSec'.
      * @throws InvalidArgumentException for invalid or unsupported strings.
      */
     private function parseRelativeToString(string $s): array
@@ -786,7 +875,23 @@ final class Duration implements Stringable
                 );
             }
         }
-        // Validate bracket annotation: sub-minute offsets like [-00:44:30] and offset mismatches are invalid.
+        // Reject minus-zero extended year (-000000).
+        if (preg_match('/^-0{6}(?:[^0-9]|$)/', $s) === 1) {
+            throw new InvalidArgumentException('Cannot use negative zero as extended year.');
+        }
+
+        // Detect inline Z/offset and timezone bracket annotation.
+        $hasInlineOffset = preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]|Z)/i', $s) === 1;
+        $hasTzBracket    = preg_match('/\[(?!u-ca=)[^\]]+\]/', $s) === 1;
+
+        // A string with an inline offset but no timezone bracket is not a valid ZonedDateTime.
+        if ($hasInlineOffset && !$hasTzBracket) {
+            throw new InvalidArgumentException(
+                "relativeTo string \"{$s}\" has a UTC offset but no timezone bracket annotation.",
+            );
+        }
+
+        // Validate the timezone bracket annotation.
         if (preg_match('/\[([^\]]+)\]/', $s, $bracketMatch) === 1 && !str_starts_with($bracketMatch[1], 'u-ca=')) {
             $bracket = $bracketMatch[1];
             // Sub-minute bracket offset (has seconds component): invalid.
@@ -795,13 +900,11 @@ final class Duration implements Stringable
                     'relativeTo string must not have sub-minute offset in bracket annotation.',
                 );
             }
-            // Bracket is a UTC offset (±HH:MM or ±HHMM): check it matches the inline offset.
+            // Bracket is a numeric UTC offset (±HH:MM or ±HHMM): must match the inline offset.
             if (preg_match('/^([+\-])(\d{2}):?(\d{2})$/', $bracket, $bOff) === 1) {
-                // Normalize bracket offset to total minutes.
                 $bMin = (int) $bOff[2] * 60 + (int) $bOff[3];
                 $bMin = $bOff[1] === '-' ? -$bMin : $bMin;
-                // Extract inline UTC offset from the string (±HH:MM or Z after the time part).
-                if (preg_match('/T\d{2}:\d{2}(?::\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
+                if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] === 'Z' || $iOff[1] === 'z') {
                         $iMin = 0;
                     } else {
@@ -816,8 +919,7 @@ final class Duration implements Stringable
                     }
                 }
             } elseif (strtoupper($bracket) === 'UTC') {
-                // Bracket says UTC (offset 0); check inline offset.
-                if (preg_match('/T\d{2}:\d{2}(?::\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
+                if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
                         $iMin = (int) $iOffParts[2] * 60 + (int) $iOffParts[3];
@@ -830,10 +932,7 @@ final class Duration implements Stringable
                 }
             }
         }
-        // Reject minus-zero extended year (-000000).
-        if (preg_match('/^-0{6}(?:[^0-9]|$)/', $s) === 1) {
-            throw new InvalidArgumentException('Cannot use negative zero as extended year.');
-        }
+
         // Extract date part: ±YYYY-MM-DD or YYYYMMDD.
         if (
             preg_match('/^([+\-]?\d{4,6})-(\d{2})-(\d{2})/', $s, $dateMatch) !== 1
@@ -841,7 +940,86 @@ final class Duration implements Stringable
         ) {
             throw new InvalidArgumentException("Invalid relativeTo date string \"{$s}\".");
         }
-        return ['year' => (int) $dateMatch[1], 'month' => (int) $dateMatch[2], 'day' => (int) $dateMatch[3]];
+        $year  = (int) $dateMatch[1];
+        $month = (int) $dateMatch[2];
+        $day   = (int) $dateMatch[3];
+
+        // Compute the proleptic Gregorian epoch-day count.
+        $epochDays = self::isoDateToEpochDays($year, $month, $day);
+
+        // Defaults for the extended return metadata (set inside ZDT branch only).
+        $localTimeSec = 0;
+        $hasFracSec   = false;
+        $utcSec       = 0;
+
+        /** @psalm-suppress RedundantCondition */
+        // @phpstan-ignore booleanAnd.rightAlwaysTrue
+        if ($hasInlineOffset && $hasTzBracket) {
+            // ZonedDateTime string: validate local date range.
+
+            // Local date must be at or after -271821-04-20 (epochDays ≥ -100 000 000).
+            if ($epochDays < -100_000_000) {
+                throw new InvalidArgumentException(
+                    "relativeTo ZonedDateTime \"{$s}\" local date is before the minimum (-271821-04-20).",
+                );
+            }
+
+            // Extract local time (hours, minutes, seconds) and detect sub-second fraction.
+            if (preg_match('/T(\d{2}):?(\d{2})(?::?(\d{2})(\.\d+)?)?/i', $s, $tm) === 1) {
+                $localTimeSec = (int) $tm[1] * 3_600 + (int) $tm[2] * 60 + (isset($tm[3]) ? (int) $tm[3] : 0);
+                // @phpstan-ignore notIdentical.alwaysTrue
+                $hasFracSec   = isset($tm[4]) && $tm[4] !== '';
+            }
+
+            // Extract the inline UTC offset in seconds.
+            $offsetSec = 0;
+            if (preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
+                if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
+                    preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $offParts);
+                    $offsetSec = (int) $offParts[2] * 3_600 + (int) $offParts[3] * 60;
+                    if ($offParts[1] === '-') {
+                        $offsetSec = -$offsetSec;
+                    }
+                }
+            }
+
+            // Sub-second fractional components are not allowed.
+            if ($hasFracSec) {
+                throw new InvalidArgumentException(
+                    "relativeTo ZonedDateTime \"{$s}\" has a sub-second component.",
+                );
+            }
+
+            // Compute UTC instant.
+            $utcSec = $epochDays * 86_400 + $localTimeSec - $offsetSec;
+
+            // UTC instant must be within ±8 640 000 000 000 seconds.
+            if ($utcSec > 8_640_000_000_000 || $utcSec < -8_640_000_000_000) {
+                throw new InvalidArgumentException(
+                    "relativeTo ZonedDateTime \"{$s}\" UTC instant is outside the representable range.",
+                );
+            }
+        } else {
+            // PlainDate string: valid range is [-271821-04-19, +275760-09-13]
+            // (epoch-days in [-100 000 001, +100 000 000]).
+            if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
+                throw new InvalidArgumentException(
+                    "relativeTo PlainDate \"{$s}\" is outside the representable range.",
+                );
+            }
+        }
+
+        /** @psalm-suppress RedundantCondition */
+        $isZDT = $hasInlineOffset && $hasTzBracket;
+        return [
+            'year'           => $year,
+            'month'          => $month,
+            'day'            => $day,
+            '_epochDays'     => $epochDays,
+            '_isZDT'         => $isZDT,
+            '_utcSec'        => $utcSec,
+            '_localTimeSec'  => $localTimeSec,
+        ];
     }
 
     /**
@@ -905,6 +1083,62 @@ final class Duration implements Stringable
             'years' => $this->totalCalendarYears($start, $wholeDays, $fracNs, $nsPerDay),
             default => throw new InvalidArgumentException("Unhandled calendar unit: \"{$unit}\"."),
         };
+    }
+
+    /**
+     * Computes total fractional days for a duration with calendar fields (years/months/weeks)
+     * relative to a start date. The result is: days from relativeTo to (relativeTo + calendar fields)
+     * plus time fields converted to fractional days.
+     *
+     * @param array<array-key,mixed> $relativeTo Validated plain-date property bag.
+     */
+    private function totalCalendarDays(array $relativeTo): int|float
+    {
+        /** @var mixed $yearRaw */
+        $yearRaw = $relativeTo['year'];
+        /** @phpstan-ignore cast.int */
+        $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
+        if (array_key_exists('month', $relativeTo)) {
+            /** @var mixed $monthRaw */
+            $monthRaw = $relativeTo['month'];
+            /** @phpstan-ignore cast.int */
+            $month = is_int($monthRaw) ? $monthRaw : (int) $monthRaw;
+        } else {
+            /** @var mixed $monthCodeRaw */
+            $monthCodeRaw = $relativeTo['monthCode'];
+            /** @phpstan-ignore cast.string */
+            $month = (int) substr(string: is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw, offset: 1);
+        }
+        /** @var mixed $dayRaw */
+        $dayRaw = $relativeTo['day'];
+        /** @phpstan-ignore cast.int */
+        $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
+
+        $tz    = new \DateTimeZone('UTC');
+        $start = (new \DateTimeImmutable('now', $tz))->setDate($year, $month, $day)->setTime(0, 0, 0);
+
+        // Advance start by calendar fields to find the end date.
+        $ay = abs((int) $this->years);
+        $am = abs((int) $this->months);
+        $aw = abs((int) $this->weeks);
+        $di = new \DateInterval("P{$ay}Y{$am}M{$aw}W");
+        $end = $this->sign >= 0 ? $start->add($di) : $start->sub($di);
+
+        // Count calendar days between start and end.
+        $calendarDays = (int) $start->diff($end)->format('%r%a');
+
+        // Add remaining time fields as fractional days.
+        $nsPerDay = 86_400_000_000_000;
+        $timeNs   =
+            ((int) $this->days * $nsPerDay)
+            + ((int) $this->hours * 3_600_000_000_000)
+            + ((int) $this->minutes * 60_000_000_000)
+            + ((int) $this->seconds * 1_000_000_000)
+            + ((int) $this->milliseconds * 1_000_000)
+            + ((int) $this->microseconds * 1_000)
+            + (int) $this->nanoseconds;
+
+        return self::toIntIfWhole((float) $calendarDays + ((float) $timeNs / (float) $nsPerDay));
     }
 
     /**
@@ -1638,6 +1872,46 @@ final class Duration implements Stringable
             );
         }
 
+        // For pure-time rounds: validate relativeTo and check overflow for non-blank durations.
+        // ($needsRelativeTo is always false here due to the throw above; suppress the tautology.)
+        /** @psalm-suppress RedundantCondition */
+        // @phpstan-ignore booleanNot.alwaysTrue
+        if (!$needsRelativeTo && $relativeToProvided && !$this->blank) {
+            /** @var mixed $rtRaw */
+            $rtRaw = $roundTo['relativeTo'] ?? null;
+            if (is_string($rtRaw)) {
+                $parsedRt = $this->parseRelativeToString($rtRaw);
+                $rtIsZDT = $parsedRt['_isZDT'] === true;
+                $rtTotalSec =
+                    ((float) $this->days * 86_400.0)
+                    + ((float) $this->hours * 3_600.0)
+                    + ((float) $this->minutes * 60.0)
+                    + (float) $this->seconds
+                    + ((
+                        ((float) $this->milliseconds * 1_000_000.0)
+                        + ((float) $this->microseconds * 1_000.0)
+                        + (float) $this->nanoseconds
+                    ) / 1_000_000_000.0);
+                if ($rtIsZDT) {
+                    if (
+                        (float) $parsedRt['_utcSec'] + $rtTotalSec > 8_640_000_000_000.0
+                        || (float) $parsedRt['_utcSec'] + $rtTotalSec < -8_640_000_000_000.0
+                    ) {
+                        throw new InvalidArgumentException(
+                            "relativeTo ZonedDateTime is outside the representable range after applying duration.",
+                        );
+                    }
+                } else {
+                    // PlainDate: epoch days must be within ±100 000 000.
+                    if (abs((int) $parsedRt['_epochDays']) > 100_000_000) {
+                        throw new InvalidArgumentException(
+                            "relativeTo PlainDate is outside the representable range after applying duration.",
+                        );
+                    }
+                }
+            }
+        }
+
         // Default smallestUnit is 'nanoseconds'.
         $suIdx = $suNorm !== null ? $UNIT_IDX[$suNorm] : 0;
 
@@ -1911,6 +2185,9 @@ final class Duration implements Stringable
                     "Unsupported calendar \"{$rt['calendar']}\"; only iso8601 is supported.",
                 );
             }
+        }
+        if (array_key_exists('timeZone', $rt) && $rt['timeZone'] !== null) {
+            self::validateTimeZoneString((string) $rt['timeZone']);
         }
     }
 
@@ -2338,6 +2615,99 @@ final class Duration implements Stringable
             $toIntSafe($us),
             $toIntSafe($ns),
         ];
+    }
+
+    /**
+     * Validates a timezone identifier string (used for the timeZone option and property-bag field).
+     *
+     * Rules (from TC39 Temporal spec):
+     *   - Minus-zero extended year (-000000) → reject.
+     *   - Bracket annotation with a seconds offset (e.g. [+23:59:60]) → reject.
+     *   - Pure UTC-offset strings (start with ±HH, no T): must be ±HH:MM or ±HHMM (no seconds).
+     *   - Datetime strings (contain T): must have Z, an inline offset, or a bracket annotation;
+     *     inline offsets must not include a seconds component (e.g. -07:00:01 is invalid).
+     *
+     * @throws InvalidArgumentException for invalid timezone strings.
+     */
+    private static function validateTimeZoneString(string $tz): void
+    {
+        // Reject minus-zero extended year.
+        if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
+            throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");
+        }
+        // Reject bracket annotation with a seconds component (e.g. [+23:59:60]).
+        if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
+            if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bm[1]) === 1) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": sub-minute seconds in bracket annotation.",
+                );
+            }
+        }
+        // Pure UTC-offset strings (no T date/time part): must be ±HH:MM or ±HHMM.
+        if (
+            preg_match('/^[+\-]\d{2}/', $tz) === 1
+            && !str_contains($tz, 'T')
+            && !str_contains($tz, 't')
+        ) {
+            if (
+                preg_match('/^[+\-]\d{2}:\d{2}(?:$|[^:\d])/', $tz) !== 1
+                && preg_match('/^[+\-]\d{4}$/', $tz) !== 1
+            ) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": offset contains seconds or is in an invalid format.",
+                );
+            }
+            return;
+        }
+        // Datetime strings: must have Z, an inline offset, or a bracket annotation.
+        if (preg_match('/\d{4,}-\d{2}-\d{2}[Tt]|\d{8}[Tt]/', $tz) === 1) {
+            if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?(?:\.\d+)?(?:Z|[+\-]|\[)/i', $tz) !== 1) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": bare datetime without Z, offset, or bracket.",
+                );
+            }
+            // Inline offset must not include a seconds component (e.g. -07:00:01).
+            if (preg_match('/[+\-]\d{2}:\d{2}:\d{2}(?!\])/i', $tz) === 1) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": inline offset contains a seconds component.",
+                );
+            }
+        }
+    }
+
+    /**
+     * Floor division for a positive integer divisor.
+     *
+     * Unlike PHP's intdiv() (which truncates towards zero), this returns the mathematical
+     * floor: the largest integer ≤ a/b. Required for the Julian Day Number formula to
+     * work correctly with negative years.
+     */
+    private static function floorDivInt(int $a, int $b): int
+    {
+        $q = intdiv(num1: $a, num2: $b);
+        return ($a < 0 && $a % $b !== 0) ? $q - 1 : $q;
+    }
+
+    /**
+     * Converts a proleptic Gregorian calendar date to an epoch-day count
+     * (days since 1970-01-01 = day 0), using the Julian Day Number formula.
+     *
+     * Works correctly for dates outside the PHP DateTimeImmutable range, including
+     * extended years up to ±999999.
+     */
+    private static function isoDateToEpochDays(int $y, int $m, int $d): int
+    {
+        $a   = self::floorDivInt(14 - $m, 12);
+        $yp  = $y + 4800 - $a;
+        $mp  = $m + 12 * $a - 3;
+        $jdn = $d
+            + self::floorDivInt(153 * $mp + 2, 5)
+            + 365 * $yp
+            + self::floorDivInt($yp, 4)
+            - self::floorDivInt($yp, 100)
+            + self::floorDivInt($yp, 400)
+            - 32045;
+        return $jdn - 2_440_588;
     }
 
     /**

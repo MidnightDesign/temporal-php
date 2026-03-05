@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instant = new \Temporal\Instant(1_000_000_000_123_456_789);
 $validUnits = ['minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
-Assert::incomplete('TemporalHelpers.checkPluralUnitsAccepted() is not yet implemented');
+TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $instant->toString(['smallestUnit' => $smallestUnit]), $validUnits);

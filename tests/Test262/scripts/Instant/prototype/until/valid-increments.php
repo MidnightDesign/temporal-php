@@ -11,5 +11,6 @@ $earlier = \Temporal\Instant::from('1969-07-24T16:50:35.123456789Z');
 $later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
-Assert::incomplete('untranslatable object property');
+$options = ['largestUnit' => $largestUnit, 'smallestUnit' => 'hours', 'roundingIncrement' => $roundingIncrement];
+Assert::incomplete('\\Temporal\\Duration used as a value');
 }

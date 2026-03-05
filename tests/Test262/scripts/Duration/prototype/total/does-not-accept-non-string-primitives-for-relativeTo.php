@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 2, 31, 0);
 foreach ([20_200_101, 20_200_101, null, true] as $relativeTo) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\TypeError::class, fn() => $d->total(['unit' => 'months', 'relativeTo' => $relativeTo]), '');
 }

@@ -11,5 +11,6 @@ $d1 = new \Temporal\Duration(0, 1, 0, 280);
 $d2 = new \Temporal\Duration(0, 1, 0, 281);
 $badOffsets = ['00:00', '+0', '-000:00', 1000, null, true, 1000, '+00:0000'];
 foreach ($badOffsets as $offset) {
-Assert::incomplete('untranslatable object property');
+$relativeTo = ['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => 'UTC'];
+Assert::incomplete('untranslatable expression: ConditionalExpression');
 }

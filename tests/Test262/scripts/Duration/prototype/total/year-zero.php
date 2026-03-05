@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(1, 0, 0, 0, 24);
 $relativeTo = '-000000-11-04T00:00';
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, function () use ($instance, $relativeTo) { $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]); }, 'reject minus zero as extended year');

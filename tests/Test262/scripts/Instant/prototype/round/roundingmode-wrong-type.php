@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instant = new \Temporal\Instant(1_000_000_000_123_987_500);
-Assert::incomplete('TemporalHelpers.checkStringOptionWrongType() is not yet implemented');
+TemporalHelpers::checkStringOptionWrongType('roundingMode', 'halfExpand', fn($roundingMode) => $instant->round(['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_123_988_000, $descr));

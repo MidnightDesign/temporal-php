@@ -11,5 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Instant(1_000_000_000_987_654_321);
 $validUnits = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($validUnits as $smallestUnit) {
-Assert::incomplete('untranslatable object property');
+$full = $instance->round(['smallestUnit' => $smallestUnit]);
+$shorthand = $instance->round($smallestUnit);
+TemporalHelpers::assertInstantsEqual($shorthand, $full, "\"{$smallestUnit}\" as first argument to round is equivalent to options bag");
 }

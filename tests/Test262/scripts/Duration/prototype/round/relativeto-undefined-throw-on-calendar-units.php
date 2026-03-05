@@ -19,6 +19,6 @@ Assert::throws(\InvalidArgumentException::class, fn() => $oneMonth->round($optio
 Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->round($options), 'balancing years to days requires relativeTo');
 foreach (['months', 'weeks'] as $largestUnit) {
 foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->round(['largestUnit' => $largestUnit]), "balancing {$duration} to {$largestUnit} requires relativeTo");
 }
 }

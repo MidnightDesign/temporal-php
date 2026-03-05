@@ -9,5 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 foreach (['era', 'nonsense'] as $unit) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->total(['unit' => $unit]), '');
+}
+foreach (['era', 'nonsense'] as $unit) {
+Assert::throws(\InvalidArgumentException::class, fn() => $d->total($unit), '');
 }

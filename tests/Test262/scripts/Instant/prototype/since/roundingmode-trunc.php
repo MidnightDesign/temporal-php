@@ -14,7 +14,8 @@ $expected = [['hours', [0, 0, 0, 0, 376_435], [0, 0, 0, 0, -376_435]], ['minutes
 $roundingMode = 'trunc';
 $largestUnit = 'hours';
 foreach ($expected as [$smallestUnit, $expectedPositive, $expectedNegative]) {
-[$py, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = array_pad($expectedPositive, 10, null);
-[$ny, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__, $__unknown__] = array_pad($expectedNegative, 10, null);
-Assert::incomplete('untranslatable object property');
+[$py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns] = array_pad($expectedPositive, 10, 0);
+[$ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns] = array_pad($expectedNegative, 10, 0);
+TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode}, positive case)");
+TemporalHelpers::assertDuration($earlier->since($later, ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns, "rounds to {$smallestUnit} (rounding mode = {$roundingMode}, negative case)");
 }

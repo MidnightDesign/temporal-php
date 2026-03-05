@@ -22,6 +22,7 @@ Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->total($option
 Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->total('days'), 'total days of years requires relativeTo (string shorthand)');
 foreach (['months', 'weeks'] as $unit) {
 foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->total(['unit' => $unit]), "{$duration} total {$unit} requires relativeTo");
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->total($unit), "{$duration} total {$unit} requires relativeTo (string shorthand)");
 }
 }

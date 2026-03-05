@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(0, 0, 0, 31);
 foreach ([['bad string', 'bad string'], ['15:30:45.123456', 'time string'], ['iso8601', 'calendar name string'], ['UTC', 'timezone'], ['P1YT1H', 'duration'], ['2019-11-01T00:00Z', 'date-time + Z without an IANA annotation'], ['2025-01-01T00:00:00+00:0000', 'date-time with wrong offset format']] as [$relativeTo, $description]) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->total(['unit' => 'months', 'relativeTo' => $relativeTo]), $description);
 }

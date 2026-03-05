@@ -425,6 +425,11 @@ final class Instant implements Stringable
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
                 $roundMode = (string) $options['roundingMode'];
             }
+
+            // timeZone: validate the string (formatting in non-UTC timezone not yet implemented).
+            if (array_key_exists('timeZone', $options) && $options['timeZone'] !== null) {
+                self::validateTimeZoneString((string) $options['timeZone']);
+            }
         }
 
         // Determine the rounding increment in nanoseconds.
@@ -468,6 +473,64 @@ final class Instant implements Stringable
 
         $fraction = substr(sprintf('%09d', $subNs), offset: 0, length: $digits);
         return "{$base}.{$fraction}Z";
+    }
+
+    /**
+     * Validates a timezone identifier string for the toString() timeZone option.
+     *
+     * Rules (from TC39 Temporal spec):
+     *   - Minus-zero extended year (-000000) → reject.
+     *   - Bracket annotation offset with seconds (e.g. [+23:59:60]) → reject.
+     *   - Pure UTC-offset strings (start with ±HH): must be ±HH:MM or ±HHMM (no seconds).
+     *   - Datetime strings (contain T): must have Z, an offset, or a bracket annotation;
+     *     an inline offset must not include a seconds component.
+     *
+     * @throws InvalidArgumentException for invalid timezone strings.
+     */
+    private static function validateTimeZoneString(string $tz): void
+    {
+        // Reject minus-zero extended year.
+        if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
+            throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");
+        }
+        // Reject bracket annotation with a seconds component (e.g. [+23:59:60]).
+        if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
+            if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bm[1]) === 1) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": sub-minute seconds in bracket annotation.",
+                );
+            }
+        }
+        // Pure UTC-offset strings (no T date/time part): must be ±HH:MM or ±HHMM.
+        if (
+            preg_match('/^[+\-]\d{2}/', $tz) === 1
+            && !str_contains($tz, 'T')
+            && !str_contains($tz, 't')
+        ) {
+            if (
+                preg_match('/^[+\-]\d{2}:\d{2}(?:$|[^:\d])/', $tz) !== 1
+                && preg_match('/^[+\-]\d{4}$/', $tz) !== 1
+            ) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": offset contains seconds or is in an invalid format.",
+                );
+            }
+            return;
+        }
+        // Datetime strings: must have Z, an offset, or a bracket annotation.
+        if (preg_match('/\d{4,}-\d{2}-\d{2}[Tt]|\d{8}[Tt]/', $tz) === 1) {
+            if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?(?:\.\d+)?(?:Z|[+\-]|\[)/i', $tz) !== 1) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": bare datetime without Z, offset, or bracket.",
+                );
+            }
+            // Inline offset must not include a seconds component (e.g. -07:00:01).
+            if (preg_match('/[+\-]\d{2}:\d{2}:\d{2}(?!\])/i', $tz) === 1) {
+                throw new InvalidArgumentException(
+                    "Invalid timeZone \"{$tz}\": inline offset contains a seconds component.",
+                );
+            }
+        }
     }
 
     #[\Override]
@@ -1028,14 +1091,14 @@ final class Instant implements Stringable
             5 => 3_600_000_000_000,
         ];
 
-        // Maximum increment that divides evenly into the next larger unit.
+        // Maximum roundingIncrement per unit (TC39 MaximumTemporalDurationRoundingIncrement).
         $maxIncrementByIndex = [
-            0 => 1_000,  // ns → µs
-            1 => 1_000,  // µs → ms
-            2 => 1_000,  // ms → s
-            3 => 60,     // s  → min
-            4 => 60,     // min → h
-            5 => 1,      // h  (no next unit; increment must be 1)
+            0 => 1_000,  // ns → µs: max 999
+            1 => 1_000,  // µs → ms: max 999
+            2 => 1_000,  // ms → s:  max 999
+            3 => 60,     // s  → min: max 59
+            4 => 60,     // min → h: max 59
+            5 => 24,     // h: max 24 (must evenly divide 24 and be < 24)
         ];
 
         // ---- Parse options ----
@@ -1104,21 +1167,34 @@ final class Instant implements Stringable
             throw new InvalidArgumentException("roundingIncrement must be a positive integer.");
         }
         $maxInc = $maxIncrementByIndex[$suIdx];
-        if ($increment > 1 && $maxInc % $increment !== 0) {
+        // increment must evenly divide maxInc AND be strictly less than maxInc.
+        if ($increment >= $maxInc || ($increment > 1 && $maxInc % $increment !== 0)) {
             throw new InvalidArgumentException(
-                "roundingIncrement {$increment} does not evenly divide {$maxInc} for unit \"{$suRaw}\".",
+                "roundingIncrement {$increment} is invalid for unit \"{$suRaw}\" (max is {$maxInc}, must divide evenly and be < {$maxInc}).",
             );
         }
 
         // ---- Round ----
-        // Round on the absolute magnitude so 'trunc'/'expand'/etc. operate on the
-        // size of the diff, not the signed epoch distance. Sign is restored after.
+        // Round on the absolute magnitude. For directional modes (floor, ceil,
+        // halfFloor, halfCeil), negate the mode when the diff is negative so that
+        // e.g. floor(-376435.5h) = -376436h (toward -∞) rather than -376435h.
+        // This matches TC39 DifferenceInstant step 15 (NegateTemporalRoundingMode).
         $nsInc    = $nsPerUnitByIndex[$suIdx] * $increment;
         $diffSign = $diffNs <=> 0;
         $absDiff  = $diffNs === PHP_INT_MIN ? PHP_INT_MAX : abs($diffNs);
+        $effectiveMode = $roundingMode;
+        if ($diffSign < 0) {
+            $effectiveMode = match ($roundingMode) {
+                'floor'     => 'ceil',
+                'ceil'      => 'floor',
+                'halfFloor' => 'halfCeil',
+                'halfCeil'  => 'halfFloor',
+                default     => $roundingMode,
+            };
+        }
         $roundedAbs = $nsInc === 1
             ? $absDiff
-            : self::roundAsIfPositive($absDiff, $nsInc, $roundingMode);
+            : self::roundAsIfPositive($absDiff, $nsInc, $effectiveMode);
         $roundedNs = $diffSign * $roundedAbs;
 
         // ---- Balance ----

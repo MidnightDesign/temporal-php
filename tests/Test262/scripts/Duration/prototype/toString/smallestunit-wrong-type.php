@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
-Assert::incomplete('TemporalHelpers.checkStringOptionWrongType() is not yet implemented');
+TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'microsecond', fn($smallestUnit) => $duration->toString(['smallestUnit' => $smallestUnit]), fn($result, $descr) => Assert::sameValue($result, 'PT12H34M56.123987S', $descr));

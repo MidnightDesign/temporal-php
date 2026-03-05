@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Duration(1, 0, 0, 0, 24);
 $relativeTo = ['year' => 2000, 'month' => 1, 'day' => 1];
-Assert::incomplete('untranslatable object property');
+$result = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+TemporalHelpers::assertDuration($result, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'missing time units default to 0');

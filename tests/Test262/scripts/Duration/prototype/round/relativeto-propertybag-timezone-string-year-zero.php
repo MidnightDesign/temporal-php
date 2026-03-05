@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['-000000-10-31T17:45Z', '-000000-10-31T17:45+00:00[UTC]'];
 $instance = new \Temporal\Duration(1);
 foreach ($invalidStrings as $timeZone) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['largestUnit' => 'months', 'relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]), 'reject minus zero as extended year');
 }

@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $inst = new \Temporal\Instant(1_000_000_000_123_456_789);
 foreach (['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $smallestUnit) {
-Assert::incomplete('untranslatable object property');
+TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => $smallestUnit]), $inst->round(['smallestUnit' => "{$smallestUnit}s"]));
 }

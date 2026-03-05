@@ -11,5 +11,16 @@ $instance = new \Temporal\Duration(0, 0, 0, 0, 0, 5);
 $blankInstance = new \Temporal\Duration();
 $validStrings = ['-271821-04-20T00:00Z[UTC]', '+275760-09-13', '+275760-09-13T23:00'];
 foreach ($validStrings as $relativeTo) {
-Assert::incomplete('untranslatable object property');
+$instance->round(['smallestUnit' => 'minutes', 'relativeTo' => $relativeTo]);
+$blankInstance->round(['smallestUnit' => 'minutes', 'relativeTo' => $relativeTo]);
+}
+$validStringsThatFailAfterEarlyReturn = ['+275760-09-13T00:00Z[UTC]', '+275760-09-13T01:00+01:00[+01:00]', '+275760-09-13T23:59+23:59[+23:59]', '-271821-04-19', '-271821-04-19T01:00'];
+foreach ($validStringsThatFailAfterEarlyReturn as $relativeTo) {
+$blankInstance->round(['smallestUnit' => 'minutes', 'relativeTo' => $relativeTo]);
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['smallestUnit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter after conversion to DateTime");
+}
+$invalidStrings = ['-271821-04-19T23:00-01:00[-01:00]', '-271821-04-19T00:01-23:59[-23:59]', '-271821-04-19T23:59:59.999999999Z[UTC]', '-271821-04-19T23:00-00:59[-00:59]', '-271821-04-19T00:00:00-23:59[-23:59]', '+275760-09-13T00:00:00.000000001Z[UTC]', '+275760-09-13T01:00+00:59[+00:59]', '+275760-09-14T00:00+23:59[+23:59]', '-271821-04-18', '-271821-04-18T23:00', '+275760-09-14', '+275760-09-14T01:00'];
+foreach ($invalidStrings as $relativeTo) {
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['smallestUnit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
+Assert::throws(\InvalidArgumentException::class, fn() => $blankInstance->round(['smallestUnit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
 }

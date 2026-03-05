@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(0, 0, 0, 0, 12, 34, 56, 123, 456, 789);
-Assert::incomplete('TemporalHelpers.checkStringOptionWrongType() is not yet implemented');
+TemporalHelpers::checkStringOptionWrongType('largestUnit', 'minute', fn($largestUnit) => $duration->round(['largestUnit' => $largestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 754, 56, 123, 456, 789, $descr));

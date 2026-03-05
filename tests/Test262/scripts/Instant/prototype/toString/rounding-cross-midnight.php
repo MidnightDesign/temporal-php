@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Instant(946_684_799_999_999_999);
 foreach (['ceil', 'halfExpand'] as $roundingMode) {
-Assert::incomplete('untranslatable object property');
+Assert::sameValue($instant->toString(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode]), '2000-01-01T00:00:00.00000000Z', '');
 }

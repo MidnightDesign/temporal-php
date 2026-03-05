@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(0, 0, 0, 1);
-Assert::incomplete('TemporalHelpers.checkStringOptionWrongType() is not yet implemented');
+TemporalHelpers::checkStringOptionWrongType('unit', 'hour', fn($unit) => $duration->total(['unit' => $unit]), fn($result, $descr) => Assert::sameValue($result, 24, $descr));

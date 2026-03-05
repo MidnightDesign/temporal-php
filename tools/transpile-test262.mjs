@@ -95,6 +95,8 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertDurationsEqual',
   'assertDateDuration',
   'assertInstantsEqual',
+  'checkPluralUnitsAccepted',
+  'checkStringOptionWrongType',
 ]);
 
 /**
@@ -262,9 +264,13 @@ class Emitter {
         return;
       }
       // When destructuring an ArrayPattern, pad the RHS to avoid "Undefined array key" warnings.
+      // If any element has a default value (AssignmentPattern), pad with 0 (the most common
+      // default in test262 array destructuring). Otherwise pad with null.
       if (decl.id.type === 'ArrayPattern') {
         const n = decl.id.elements.length;
-        this.emit(`${lhs} = array_pad(${rhs}, ${n}, null);`);
+        const hasDefaults = decl.id.elements.some(e => e?.type === 'AssignmentPattern');
+        const padVal = hasDefaults ? '0' : 'null';
+        this.emit(`${lhs} = array_pad(${rhs}, ${n}, ${padVal});`);
       } else {
         this.emit(`${lhs} = ${rhs};`);
       }
@@ -312,6 +318,11 @@ class Emitter {
     if (node.type === 'ArrayPattern') {
       const parts = node.elements.map(e => e ? this.transpilePattern(e) : 'null');
       return '[' + parts.join(', ') + ']';
+    }
+    // AssignmentPattern: `x = default` in destructuring → use just the left side.
+    // The default is handled by array_pad() in transpileVarDecl.
+    if (node.type === 'AssignmentPattern') {
+      return this.transpilePattern(node.left);
     }
     return '$__unknown__';
   }
@@ -929,11 +940,19 @@ class Emitter {
     // Properties whose value is the identifier `undefined` are OMITTED: JS
     // `{ key: undefined }` means the key is present but treated as default, which
     // PHP represents as the key being absent from the array.
+    // Shorthand properties `{ key }` are equivalent to `{ key: key }` and are
+    // translated as `['key' => $key]`.
     const parts = [];
     for (const prop of node.properties) {
-      if (prop.type !== 'Property' || prop.computed || prop.method || prop.shorthand) {
+      if (prop.type !== 'Property' || prop.computed || prop.method) {
         this.emitIncomplete('untranslatable object property');
         return null;
+      }
+      if (prop.shorthand) {
+        // { key } → ['key' => $key]
+        const key = phpStr(prop.key.name);
+        parts.push(`${key} => $${prop.key.name}`);
+        continue;
       }
       // Skip keys with undefined value (JS undefined ≡ key absent in PHP options bags).
       if (prop.value.type === 'Identifier' && prop.value.name === 'undefined') continue;

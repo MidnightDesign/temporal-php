@@ -10,5 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 789, 999, 999);
 $tests = [['second', 'P1Y2M3W4DT5H6M7S'], ['millisecond', 'P1Y2M3W4DT5H6M7.789S'], ['microsecond', 'P1Y2M3W4DT5H6M7.789999S'], ['nanosecond', 'P1Y2M3W4DT5H6M7.789999999S']];
 foreach ($tests as [$smallestUnit, $expected]) {
-Assert::incomplete('untranslatable object property');
+$string = $duration->toString(['smallestUnit' => $smallestUnit, 'fractionalSecondDigits' => 5]);
+Assert::sameValue($string, $expected, "smallestUnit: \"{$smallestUnit}\" overrides fractionalSecondDigits");
 }
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->toString(['smallestUnit' => 'hour', 'fractionalSecondDigits' => 5]), 'hour is an invalid smallestUnit but still overrides fractionalSecondDigits');

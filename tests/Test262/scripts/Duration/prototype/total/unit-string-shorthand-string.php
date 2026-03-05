@@ -10,5 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(0, 0, 0, 4, 5, 6, 7, 987, 654, 321);
 $validUnits = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($validUnits as $unit) {
-Assert::incomplete('untranslatable object property');
+$full = $instance->total(['unit' => $unit]);
+$shorthand = $instance->total($unit);
+Assert::sameValue($shorthand, $full, "\"{$unit}\" as first argument to total is equivalent to options bag");
 }
