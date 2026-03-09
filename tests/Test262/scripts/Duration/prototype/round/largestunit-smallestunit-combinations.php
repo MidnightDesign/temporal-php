@@ -10,4 +10,9 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
 $exactResults = ['days' => ['days' => [5], 'hours' => [5, 5], 'minutes' => [5, 5, 5], 'seconds' => [5, 5, 5, 5], 'milliseconds' => [5, 5, 5, 5, 5], 'microseconds' => [5, 5, 5, 5, 5, 5], 'nanoseconds' => [5, 5, 5, 5, 5, 5, 5]], 'hours' => ['hours' => [0, 125], 'minutes' => [0, 125, 5], 'seconds' => [0, 125, 5, 5], 'milliseconds' => [0, 125, 5, 5, 5], 'microseconds' => [0, 125, 5, 5, 5, 5], 'nanoseconds' => [0, 125, 5, 5, 5, 5, 5]], 'minutes' => ['minutes' => [0, 0, 7505], 'seconds' => [0, 0, 7505, 5], 'milliseconds' => [0, 0, 7505, 5, 5], 'microseconds' => [0, 0, 7505, 5, 5, 5], 'nanoseconds' => [0, 0, 7505, 5, 5, 5, 5]], 'seconds' => ['seconds' => [0, 0, 0, 450_305], 'milliseconds' => [0, 0, 0, 450_305, 5], 'microseconds' => [0, 0, 0, 450_305, 5, 5], 'nanoseconds' => [0, 0, 0, 450_305, 5, 5, 5]], 'milliseconds' => ['milliseconds' => [0, 0, 0, 0, 450_305_005], 'microseconds' => [0, 0, 0, 0, 450_305_005, 5], 'nanoseconds' => [0, 0, 0, 0, 450_305_005, 5, 5]], 'microseconds' => ['microseconds' => [0, 0, 0, 0, 0, 450_305_005_005], 'nanoseconds' => [0, 0, 0, 0, 0, 450_305_005_005, 5]], 'nanoseconds' => ['nanoseconds' => [0, 0, 0, 0, 0, 0, 450_305_005_005_005]]];
-Assert::incomplete('untranslatable: Object.entries');
+foreach ($exactResults as $largestUnit => $entry) {
+foreach ($entry as $smallestUnit => $expected) {
+[$d, $h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 7, 0);
+TemporalHelpers::assertDuration($duration->round(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit]), 0, 0, 0, $d, $h, $min, $s, $ms, $µs, $ns, "Combination of largestUnit {$largestUnit} and smallestUnit {$smallestUnit}");
+}
+}

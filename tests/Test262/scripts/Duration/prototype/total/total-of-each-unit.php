@@ -14,4 +14,6 @@ $fullMilliseconds = $fullDays * $dayMilliseconds + (5 * 3_600_000) + (5 * 60_000
 $partialDayMilliseconds = $fullMilliseconds - ($fullDays * $dayMilliseconds) + 0.005_005;
 $fractionalDay = $partialDayMilliseconds / $dayMilliseconds;
 $totalResults = ['days' => $fullDays + $fractionalDay, 'hours' => $fullDays * 24 + ($partialDayMilliseconds / 3_600_000), 'minutes' => $fullDays * 24 * 60 + ($partialDayMilliseconds / 60_000), 'seconds' => $fullDays * 24 * 60 * 60 + ($partialDayMilliseconds / 1000), 'milliseconds' => $fullMilliseconds + 0.005_005, 'microseconds' => $fullMilliseconds * 1000 + 5.005, 'nanoseconds' => $fullMilliseconds * 1_000_000 + 5005];
-Assert::incomplete('untranslatable: Object.entries');
+foreach ($totalResults as $unit => $expected) {
+Assert::sameValue($duration->total($unit), $expected, "Duration.total results for {$unit}");
+}

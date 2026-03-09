@@ -483,9 +483,27 @@ class Emitter {
   }
 
   transpileForOf(node) {
+    const pat = this.transpilePattern(node.left.declarations?.[0]?.id ?? node.left);
+    // Special case: for (const [k, v] of Object.entries(obj)) → foreach ($obj as $k => $v)
+    if (node.right.type === 'CallExpression'
+        && isMember(node.right.callee, 'Object', 'entries')
+        && node.right.arguments.length >= 1) {
+      const patNode = node.left.declarations?.[0]?.id ?? node.left;
+      if (patNode.type === 'ArrayPattern' && patNode.elements.length >= 2) {
+        const obj = this.transpileExpr(node.right.arguments[0]);
+        if (obj === null) return;
+        const key = this.transpilePattern(patNode.elements[0]);
+        const val = this.transpilePattern(patNode.elements[1]);
+        const before = this.lines.length;
+        this.emit(`foreach (${obj} as ${key} => ${val}) {`);
+        const opened = this.lines.length > before;
+        this.transpileStatement(node.body);
+        if (opened) this.lines.push('}');
+        return;
+      }
+    }
     const iter = this.transpileExpr(node.right);
     if (iter === null) return;
-    const pat  = this.transpilePattern(node.left.declarations?.[0]?.id ?? node.left);
     const before = this.lines.length;
     this.emit(`foreach (${iter} as ${pat}) {`);
     const opened = this.lines.length > before;
@@ -1386,13 +1404,37 @@ class Emitter {
 
   transpileForEach(node) {
     // arr.forEach(item => { … })  →  foreach ($arr as $item) { … }
-    const arr = this.transpileExpr(node.callee.object);
-    if (arr === null) return null;
-    const cb  = node.arguments[0];
+    const arrNode = node.callee.object;
+    const cb = node.arguments[0];
     if (!cb || (cb.type !== 'ArrowFunctionExpression' && cb.type !== 'FunctionExpression')) {
       this.emitIncomplete('untranslatable forEach callback');
       return null;
     }
+
+    // Special case: Object.entries(obj).forEach(([k, v]) => {...})
+    // → foreach ($obj as $k => $v) { ... }
+    if (arrNode.type === 'CallExpression'
+        && isMember(arrNode.callee, 'Object', 'entries')
+        && arrNode.arguments.length >= 1) {
+      const obj = this.transpileExpr(arrNode.arguments[0]);
+      if (obj === null) return null;
+      const param = cb.params[0];
+      if (param?.type === 'ArrayPattern' && param.elements.length >= 2) {
+        const key = this.transpilePattern(param.elements[0]);
+        const val = this.transpilePattern(param.elements[1]);
+        const before = this.lines.length;
+        this.emit(`foreach (${obj} as ${key} => ${val}) {`);
+        const opened = this.lines.length > before;
+        this.transpileStatement(cb.body.type === 'BlockStatement' ? cb.body : { type: 'BlockStatement', body: [{ type: 'ExpressionStatement', expression: cb.body }] });
+        if (opened) this.lines.push('}');
+        return null;
+      }
+      this.emitIncomplete('untranslatable: Object.entries');
+      return null;
+    }
+
+    const arr = this.transpileExpr(arrNode);
+    if (arr === null) return null;
     const param = cb.params[0] ? this.transpilePattern(cb.params[0]) : '$_';
     const before = this.lines.length;
     this.emit(`foreach (${arr} as ${param}) {`);
