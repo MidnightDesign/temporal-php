@@ -9,5 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::from([$field => -INF]), '');
 }
+$calls = 0;
+Assert::incomplete('untranslatable object property');

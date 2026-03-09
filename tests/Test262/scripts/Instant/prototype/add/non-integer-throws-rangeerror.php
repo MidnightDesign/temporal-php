@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(1_000_000_000_000_000_000);
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::incomplete('untranslatable object property');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->add([$field => 1.5]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->add([$field => -1.5]), '');
 }

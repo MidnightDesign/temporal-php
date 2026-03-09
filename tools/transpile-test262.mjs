@@ -1225,9 +1225,19 @@ class Emitter {
     if (node.properties.length === 0) return 'new \\stdClass()';
     const parts = [];
     for (const prop of node.properties) {
-      if (prop.type !== 'Property' || prop.computed || prop.method) {
+      if (prop.type !== 'Property' || prop.method || prop.kind !== 'init') {
         this.emitIncomplete('untranslatable object property');
         return null;
+      }
+      // Computed property key: { [expr]: value } → [$expr => $value]
+      if (prop.computed) {
+        if (prop.value.type === 'Identifier' && prop.value.name === 'undefined') continue;
+        const key = this.transpileExpr(prop.key);
+        if (key === null) return null;
+        const val = this.transpileExpr(prop.value);
+        if (val === null) return null;
+        parts.push(`${key} => ${val}`);
+        continue;
       }
       if (prop.shorthand) {
         // { key } → ['key' => $key]
