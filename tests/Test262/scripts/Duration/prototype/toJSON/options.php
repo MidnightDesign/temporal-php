@@ -8,4 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $called = 0;
-Assert::incomplete('untranslatable new expression');
+$options = null;
+$d = new \Temporal\Duration(1, 2);
+Assert::sameValue($d->toJSON($options), 'P1Y2M', '');
+Assert::sameValue($called, 0, '');

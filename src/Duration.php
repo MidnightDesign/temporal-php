@@ -58,6 +58,18 @@ final class Duration implements Stringable
         public readonly int|float $microseconds = 0,
         public readonly int|float $nanoseconds = 0,
     ) {
+        // TC39: each Duration field must be an integer value (not fractional).
+        // Reject any float with a non-zero fractional part.
+        foreach ([$this->years, $this->months, $this->weeks, $this->days,
+                  $this->hours, $this->minutes, $this->seconds,
+                  $this->milliseconds, $this->microseconds, $this->nanoseconds] as $field) {
+            if (is_float($field) && !is_infinite($field) && fmod(num1: $field, num2: 1.0) !== 0.0) {
+                throw new InvalidArgumentException(
+                    'Duration fields must be integer-valued; fractional values are not allowed.',
+                );
+            }
+        }
+
         // TC39 §7.5.10 IsValidDuration — calendar fields capped at 2^32.
         /** @infection-ignore-all GreaterThanOrEqual |x| >= 2^32 vs > 2^32-1 are identical for integers */
         if (
@@ -666,7 +678,8 @@ final class Duration implements Stringable
         return $this->toString();
     }
 
-    public function toJSON(): string
+    /** @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec */
+    public function toJSON(mixed $options = null): string
     {
         return $this->toString();
     }

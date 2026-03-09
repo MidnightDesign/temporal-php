@@ -625,7 +625,8 @@ final class Instant implements Stringable
         return $this->toString();
     }
 
-    public function toJSON(): string
+    /** @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec */
+    public function toJSON(mixed $options = null): string
     {
         return $this->toString();
     }

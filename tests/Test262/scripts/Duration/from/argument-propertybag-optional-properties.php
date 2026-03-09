@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $oneProperty = ['hours' => 1];
 $allProperties = ['years' => 0, 'months' => 0, 'weeks' => 0, 'days' => 0, 'hours' => 1, 'minutes' => 0, 'seconds' => 0, 'milliseconds' => 0, 'microseconds' => 0, 'nanoseconds' => 0];
-Assert::incomplete('JS object-to-string coercion not replicable in PHP');
+$resultWithout = \Temporal\Duration::from($oneProperty);
+$resultWith = \Temporal\Duration::from($allProperties);
+TemporalHelpers::assertDurationsEqual($resultWithout, $resultWith, 'results should be the same with and without optional properties');

@@ -7,4 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('untranslatable: Array.prototype.map()');
+$descriptions = array_map(fn($time) => "Duration constructor throws RangeError with fractional value in the {$time} position", ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds']);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1.1), $descriptions[0]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 1.1), $descriptions[1]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 1.1), $descriptions[2]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 1.1), $descriptions[3]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 1.1), $descriptions[4]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 1.1), $descriptions[5]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 1.1), $descriptions[6]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 1.1), $descriptions[7]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 1.1), $descriptions[8]);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 1.1), $descriptions[9]);
