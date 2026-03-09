@@ -221,6 +221,9 @@ class Emitter {
     // Member access on these uses ['key'] instead of ->key.
     this.objectVars = new Set();
     this.instantVars = new Set();  // variables known to hold Temporal.Instant instances
+    // Variables that are aliases for a Temporal class (from `const { Instant } = Temporal;`).
+    // Maps JS variable name → Temporal class name (e.g. 'Instant' → 'Instant').
+    this.temporalClassAliases = new Map();
   }
 
   emit(line) {
@@ -261,6 +264,9 @@ class Emitter {
         break;
       case 'EmptyStatement':
         break;
+      case 'FunctionDeclaration':
+        this.transpileFunctionDecl(node);
+        break;
       default:
         this.emitIncomplete(`untranslatable statement: ${node.type}`);
     }
@@ -270,6 +276,29 @@ class Emitter {
     for (const decl of node.declarations) {
       if (decl.init === null) continue;
       if (decl.id.type === 'ObjectPattern') {
+        // const { X } = Temporal; → track alias, emit nothing
+        if (decl.init?.type === 'Identifier' && decl.init.name === 'Temporal') {
+          for (const prop of decl.id.properties) {
+            if (prop.type === 'Property' && !prop.computed
+                && prop.key?.type === 'Identifier' && prop.value?.type === 'Identifier') {
+              this.temporalClassAliases.set(prop.value.name, prop.key.name);
+            }
+          }
+          continue; // no PHP emitted for this declaration
+        }
+        // const { method } = Temporal.X; → $method = [\Temporal\X::class, 'method'];
+        if (decl.init?.type === 'MemberExpression' && !decl.init.computed
+            && decl.init.object?.type === 'Identifier' && decl.init.object.name === 'Temporal'
+            && decl.init.property?.type === 'Identifier') {
+          const className = decl.init.property.name;
+          for (const prop of decl.id.properties) {
+            if (prop.type === 'Property' && !prop.computed && prop.key?.type === 'Identifier') {
+              const methodName = prop.value?.name ?? prop.key.name;
+              this.emit(`$${methodName} = [\\Temporal\\${className}::class, '${methodName}'];`);
+            }
+          }
+          continue; // handled
+        }
         this.emitIncomplete('untranslatable: destructuring assignment');
         return;
       }
@@ -299,6 +328,65 @@ class Emitter {
         this.emit(`${lhs} = ${rhs};`);
       }
     }
+  }
+
+  /**
+   * Transpiles a FunctionDeclaration as a PHP closure stored in a variable.
+   *
+   * PHP functions don't inherit outer scope; we emit a closure with a `use`
+   * clause listing the outer variables the body references.
+   */
+  transpileFunctionDecl(node) {
+    const name = node.id?.name;
+    if (!name) {
+      this.emitIncomplete('untranslatable: anonymous FunctionDeclaration');
+      return;
+    }
+    const params = node.params.map(p => this.transpilePattern(p)).join(', ');
+    const inner = [];
+    const savedLines = this.lines;
+    const savedIncomplete = this.incomplete;
+    this.lines = inner;
+    this.transpileStatement(node.body);
+    const becameIncomplete = this.incomplete && !savedIncomplete;
+    this.lines = savedLines;
+    if (becameIncomplete) {
+      const incLine = inner.find(l => l.startsWith('Assert::incomplete('));
+      const reason = incLine
+        ? (incLine.match(/Assert::incomplete\('(.*)'\)/) ?? [])[1] ?? 'untranslatable code in function body'
+        : 'untranslatable code in function body';
+      this.incomplete = false;
+      this.emitIncomplete(reason);
+      return;
+    }
+    if (savedIncomplete) return; // already incomplete; nothing to emit
+    // Track variables defined within the body to exclude from the use clause.
+    // This prevents spurious capture of foreach loop variables and local assignments.
+    const localVars = new Set(node.params.map(p => p.type === 'Identifier' ? p.name : null).filter(Boolean));
+    for (const line of inner) {
+      // Regular assignment: $var = ...
+      for (const m of line.matchAll(/\$([a-zA-Z_]\w*)\s*=/g)) localVars.add(m[1]);
+      // foreach loop variables: everything after " as " contains the loop vars
+      if (line.startsWith('foreach (')) {
+        const asIdx = line.indexOf(' as ');
+        if (asIdx !== -1) {
+          const afterAs = line.slice(asIdx + 4);
+          for (const m of afterAs.matchAll(/\$([a-zA-Z_]\w*)/g)) localVars.add(m[1]);
+        }
+      }
+    }
+    // Collect outer variables used in the body that are not locally defined.
+    const usedVars = new Set();
+    for (const line of inner) {
+      for (const m of line.matchAll(/\$([a-zA-Z_]\w*)/g)) {
+        const v = m[1];
+        if (v !== '__' && v !== 'this' && !localVars.has(v)) usedVars.add(v);
+      }
+    }
+    const useClause = usedVars.size > 0 ? `use (${[...usedVars].map(v => `$${v}`).join(', ')}) ` : '';
+    this.emit(`$${name} = function (${params}) ${useClause}{`);
+    for (const line of inner) this.emit(line);
+    this.emit('};');
   }
 
   /** Returns true if the node produces a Temporal.Instant instance. */
@@ -602,6 +690,23 @@ class Emitter {
       return 'false';
     }
 
+    // Temporal class alias static method calls: Instant.from() after const { Instant } = Temporal;
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.object.type === 'Identifier'
+        && this.temporalClassAliases.has(callee.object.name)
+        && callee.property.type === 'Identifier') {
+      const className = this.temporalClassAliases.get(callee.object.name);
+      const method = callee.property.name;
+      const key = `${className}::${method}`;
+      if (!IMPLEMENTED.has(key)) {
+        this.emitIncomplete(`\\Temporal\\${className}::${method}() is not yet implemented`);
+        return null;
+      }
+      const args = this.transpileArgs(node.arguments);
+      if (args === null) return null;
+      return `\\Temporal\\${className}::${method}(${args})`;
+    }
+
     // Temporal.X() called without new (should be called with new in PHP)
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.object.type === 'Identifier' && callee.object.name === 'Temporal'
@@ -875,6 +980,17 @@ class Emitter {
   transpileNew(node) {
     // new Temporal.X(…)
     const callee = node.callee;
+    // new X(…) where X is a Temporal class alias (from const { X } = Temporal;)
+    if (callee.type === 'Identifier' && this.temporalClassAliases.has(callee.name)) {
+      const cls = this.temporalClassAliases.get(callee.name);
+      if (!IMPLEMENTED_CTORS.has(cls)) {
+        this.emitIncomplete(`\\Temporal\\${cls} is not yet implemented`);
+        return null;
+      }
+      const args = this.transpileArgs(node.arguments);
+      if (args === null) return null;
+      return `new \\Temporal\\${cls}(${args})`;
+    }
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.object.type === 'Identifier' && callee.object.name === 'Temporal') {
       const cls = callee.property.name;
@@ -1198,10 +1314,34 @@ class Emitter {
 
   transpileArgs(argNodes) {
     const parts = [];
+    let hadSpread = false;
     for (const a of argNodes) {
-      const php = this.transpileExpr(a);
-      if (php === null) return null;
-      parts.push(php);
+      if (a.type === 'SpreadElement') {
+        hadSpread = true;
+        const arg = this.transpileExpr(a.argument);
+        if (arg === null) return null;
+        parts.push(`...${arg}`);
+      } else if (hadSpread) {
+        // PHP does not allow positional arguments after spread unpacking.
+        // If the trailing arg is `undefined` (JS default), drop it — omitting it
+        // achieves the same effect (the callee uses its default value).
+        if (a.type === 'Identifier' && a.name === 'undefined') continue;
+        // For other values: merge into a single spread of a combined array.
+        // Rewrite all previous spread+positional args as [...spreadArr, extra, ...].
+        const php = this.transpileExpr(a);
+        if (php === null) return null;
+        // Rebuild: replace the last `...$arr` with `...[...$arr, $extra]`
+        const last = parts[parts.length - 1];
+        if (last && last.startsWith('...')) {
+          parts[parts.length - 1] = `...[${last.slice(3)}, ${php}]`;
+        } else {
+          parts.push(php);
+        }
+      } else {
+        const php = this.transpileExpr(a);
+        if (php === null) return null;
+        parts.push(php);
+      }
     }
     return parts.join(', ');
   }

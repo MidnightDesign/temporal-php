@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Instant(0);
-Assert::incomplete('untranslatable statement: FunctionDeclaration');
+$test = function ($timeZoneIdentifier, $expected, $description) use ($instant) {
+Assert::sameValue($instant->toString(['timeZone' => $timeZoneIdentifier]), $expected, $description);
+};
+$test('UTC', '1970-01-01T00:00:00+00:00', 'offset of UTC is +00:00');
+$test('+01:00', '1970-01-01T01:00:00+01:00', 'positive offset');
+$test('-05:00', '1969-12-31T19:00:00-05:00', 'negative offset');

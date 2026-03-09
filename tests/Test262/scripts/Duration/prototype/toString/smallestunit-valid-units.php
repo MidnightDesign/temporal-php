@@ -8,4 +8,14 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
-Assert::incomplete('untranslatable statement: FunctionDeclaration');
+$test = function ($instance, $expectations, $description) {
+foreach ($expectations as [$smallestUnit, $expectedResult]) {
+Assert::sameValue($instance->toString(['smallestUnit' => $smallestUnit]), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
+}
+};
+$test($duration, [['seconds', 'P1Y2M3W4DT5H6M7S'], ['milliseconds', 'P1Y2M3W4DT5H6M7.987S'], ['microseconds', 'P1Y2M3W4DT5H6M7.987654S'], ['nanoseconds', 'P1Y2M3W4DT5H6M7.987654321S']], 'subseconds toString');
+$test(new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7), [['seconds', 'P1Y2M3W4DT5H6M7S'], ['milliseconds', 'P1Y2M3W4DT5H6M7.000S'], ['microseconds', 'P1Y2M3W4DT5H6M7.000000S'], ['nanoseconds', 'P1Y2M3W4DT5H6M7.000000000S']], 'whole seconds toString');
+$notValid = ['era', 'year', 'month', 'week', 'day', 'hour', 'minute'];
+foreach ($notValid as $smallestUnit) {
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->toString(['smallestUnit' => $smallestUnit]), "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
+}

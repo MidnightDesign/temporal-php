@@ -7,4 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('untranslatable: destructuring assignment');
+$isoString = '2020-01-01T23:58:57.012034Z';
+$instant = \Temporal\Instant::from($isoString);
+$instantIsoStrMicros = $instant->toString(['smallestUnit' => 'microseconds']);
+Assert::sameValue($instantIsoStrMicros, $isoString, '');

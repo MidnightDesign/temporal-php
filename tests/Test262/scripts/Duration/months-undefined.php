@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $args = [1];
-Assert::incomplete('untranslatable expression: SpreadElement');
+$explicit = new \Temporal\Duration(...$args);
+TemporalHelpers::assertDuration($explicit, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'explicit');
+$implicit = new \Temporal\Duration(...$args);
+TemporalHelpers::assertDuration($implicit, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'implicit');

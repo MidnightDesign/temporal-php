@@ -7,4 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('untranslatable: destructuring assignment');
+$durationString = 'PT0.084000159S';
+$duration = \Temporal\Duration::from($durationString);
+$precisionString = $duration->toString(['smallestUnit' => 'milliseconds']);
+Assert::sameValue($durationString, $duration->toString(), '');
+Assert::sameValue($precisionString, 'PT0.084S', '');

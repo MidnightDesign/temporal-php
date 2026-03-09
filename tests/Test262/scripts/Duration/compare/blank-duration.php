@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $blank1 = new \Temporal\Duration();
 $blank2 = new \Temporal\Duration();
-Assert::incomplete('untranslatable: destructuring assignment');
+$compare = [\Temporal\Duration::class, 'compare'];
+Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
