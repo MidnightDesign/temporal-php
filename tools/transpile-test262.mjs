@@ -279,6 +279,9 @@ class Emitter {
       case 'IfStatement':
         this.transpileIf(node);
         break;
+      case 'ForStatement':
+        this.transpileFor(node);
+        break;
       default:
         this.emitIncomplete(`untranslatable statement: ${node.type}`);
     }
@@ -406,6 +409,42 @@ class Emitter {
     this.emit('};');
   }
 
+  transpileFor(node) {
+    // for (init; test; update) { body }
+    let init = '';
+    if (node.init) {
+      if (node.init.type === 'VariableDeclaration') {
+        const parts = [];
+        for (const decl of node.init.declarations) {
+          if (decl.init !== null) {
+            const lhs = this.transpilePattern(decl.id);
+            const rhs = this.transpileExpr(decl.init);
+            if (rhs === null) return;
+            parts.push(`${lhs} = ${rhs}`);
+          }
+        }
+        init = parts.join(', ');
+      } else {
+        const php = this.transpileExpr(node.init);
+        if (php === null) return;
+        init = php;
+      }
+    }
+    const test = node.test ? this.transpileExpr(node.test) : '';
+    if (node.test && test === null) return;
+    let update = '';
+    if (node.update) {
+      const php = this.transpileExpr(node.update);
+      if (php === null) return;
+      update = php;
+    }
+    const before = this.lines.length;
+    this.emit(`for (${init}; ${test}; ${update}) {`);
+    const opened = this.lines.length > before;
+    this.transpileStatement(node.body);
+    if (opened) this.lines.push('}');
+  }
+
   transpileIf(node) {
     const test = this.transpileExpr(node.test);
     if (test === null) return;
@@ -492,6 +531,7 @@ class Emitter {
       case 'ObjectExpression':   return this.transpileObject(node);
       case 'LogicalExpression':  return this.transpileLogical(node);
       case 'ConditionalExpression': return this.transpileConditional(node);
+      case 'UpdateExpression':  return this.transpileUpdate(node);
       default:
         this.emitIncomplete(`untranslatable expression: ${node.type}`);
         return null;
@@ -631,6 +671,8 @@ class Emitter {
       }
       const obj  = this.transpileExpr(node.object);
       if (obj === null) return null;
+      // .length on arrays → count($arr)
+      if (node.property.name === 'length') return `count(${obj})`;
       // Variables assigned from object literals ({...}) become PHP arrays.
       // Use ['key'] array access instead of ->key property access.
       if (node.object.type === 'Identifier' && this.objectVars.has(node.object.name)) {
@@ -1082,6 +1124,13 @@ class Emitter {
     const body = this.transpileExpr(node.body);
     if (body === null) return null;
     return `fn(${params}) => ${body}`;
+  }
+
+  transpileUpdate(node) {
+    // x++, x--, ++x, --x
+    const arg = this.transpileExpr(node.argument);
+    if (arg === null) return null;
+    return node.prefix ? `${node.operator}${arg}` : `${arg}${node.operator}`;
   }
 
   transpileUnary(node) {

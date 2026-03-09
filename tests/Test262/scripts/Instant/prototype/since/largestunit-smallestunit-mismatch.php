@@ -10,4 +10,10 @@ use Temporal\Tests\Test262\Assert;
 $earlier = new \Temporal\Instant(1_000_000_000_000_000_000);
 $later = new \Temporal\Instant(1_000_090_061_987_654_321);
 $units = ['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
-Assert::incomplete('untranslatable statement: ForStatement');
+for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
+for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
+$largestUnit = $units[$largestIdx];
+$smallestUnit = $units[$smallestIdx];
+Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit]), '');
+}
+}
