@@ -267,6 +267,18 @@ class Emitter {
       case 'FunctionDeclaration':
         this.transpileFunctionDecl(node);
         break;
+      case 'ReturnStatement': {
+        if (node.argument) {
+          const retPhp = this.transpileExpr(node.argument);
+          if (retPhp !== null) this.emit(`return ${retPhp};`);
+        } else {
+          this.emit('return;');
+        }
+        break;
+      }
+      case 'IfStatement':
+        this.transpileIf(node);
+        break;
       default:
         this.emitIncomplete(`untranslatable statement: ${node.type}`);
     }
@@ -343,6 +355,11 @@ class Emitter {
       return;
     }
     const params = node.params.map(p => this.transpilePattern(p)).join(', ');
+    // If the function body uses BigInt arithmetic, the computation may overflow PHP int64.
+    if (hasBigIntLiteral(node.body)) {
+      this.emitIncomplete('untranslatable: BigInt arithmetic in function body');
+      return;
+    }
     const inner = [];
     const savedLines = this.lines;
     const savedIncomplete = this.incomplete;
@@ -387,6 +404,20 @@ class Emitter {
     this.emit(`$${name} = function (${params}) ${useClause}{`);
     for (const line of inner) this.emit(line);
     this.emit('};');
+  }
+
+  transpileIf(node) {
+    const test = this.transpileExpr(node.test);
+    if (test === null) return;
+    const before = this.lines.length;
+    this.emit(`if (${test}) {`);
+    const opened = this.lines.length > before;
+    this.transpileStatement(node.consequent);
+    if (node.alternate) {
+      if (opened) this.lines.push('} else {');
+      this.transpileStatement(node.alternate);
+    }
+    if (opened) this.lines.push('}');
   }
 
   /** Returns true if the node produces a Temporal.Instant instance. */
@@ -1354,6 +1385,23 @@ class Emitter {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Returns true if the AST subtree contains any BigInt literal (n suffix).
+ * Used to detect function bodies that involve BigInt arithmetic which may
+ * overflow PHP int64 at runtime even if individual literals fit in int64.
+ */
+function hasBigIntLiteral(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'Literal' && node.bigint !== undefined) return true;
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    const child = node[key];
+    if (Array.isArray(child)) { if (child.some(hasBigIntLiteral)) return true; }
+    else if (hasBigIntLiteral(child)) return true;
+  }
+  return false;
+}
 
 /**
  * Returns true if the node (or any node reachable through + binary chains)

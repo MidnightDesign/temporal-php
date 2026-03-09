@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.largestUnit', 'get options.largestUnit.toString', 'call options.largestUnit.toString', 'get options.relativeTo', 'get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString'];
 $actual = [];
-Assert::incomplete('untranslatable statement: ReturnStatement');
+Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
