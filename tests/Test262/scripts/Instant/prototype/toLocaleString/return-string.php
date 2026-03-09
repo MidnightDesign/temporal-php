@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Instant(957_270_896_987_650_000);
-Assert::incomplete('untranslatable: typeof');
+Assert::incomplete('Instant::toLocaleString() is not yet implemented');

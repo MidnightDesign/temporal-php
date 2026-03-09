@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $afterEpoch = new \Temporal\Instant(217_175_010_123_456_789);
 Assert::sameValue($afterEpoch->epochNanoseconds, 217_175_010_123_456_789, 'epochNanoseconds post epoch');
-Assert::incomplete('untranslatable: typeof');
+$beforeEpoch = new \Temporal\Instant(-217_175_010_876_543_211);
+Assert::sameValue($beforeEpoch->epochNanoseconds, -217_175_010_876_543_211, 'epochNanoseconds pre epoch');

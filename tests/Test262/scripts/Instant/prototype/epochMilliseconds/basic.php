@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $afterEpoch = new \Temporal\Instant(217_175_010_123_456_789);
 Assert::sameValue($afterEpoch->epochMilliseconds, 217_175_010_123, 'epochMilliseconds post epoch');
-Assert::incomplete('untranslatable: typeof');
+Assert::sameValue((is_int($afterEpoch->epochMilliseconds) || is_float($afterEpoch->epochMilliseconds)), true, 'epochMilliseconds value is a number');
+$beforeEpoch = new \Temporal\Instant(-217_175_010_876_543_211);
+Assert::sameValue($beforeEpoch->epochMilliseconds, -217_175_010_877, 'epochMilliseconds pre epoch');
+Assert::sameValue((is_int($beforeEpoch->epochMilliseconds) || is_float($beforeEpoch->epochMilliseconds)), true, 'epochMilliseconds value is a number');

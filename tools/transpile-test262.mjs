@@ -1376,6 +1376,32 @@ class Emitter {
       }
     }
 
+    // Special case: assert.sameValue(typeof x, "jsType", msg) where x is NOT a
+    // Temporal class reference (those are already handled by transpileUnary).
+    if (actual?.type === 'UnaryExpression' && actual.operator === 'typeof'
+        && !parseVerifyPropertyTarget(actual.argument)) {
+      const jsType = (expected?.type === 'Literal' && typeof expected.value === 'string')
+        ? expected.value : null;
+      if (jsType !== null) {
+        if (jsType === 'bigint' || jsType === 'symbol') {
+          // Skip: PHP uses int for what JS calls bigint; symbol does not exist in PHP.
+          // Return null without marking incomplete so the test continues.
+          return null;
+        }
+        // For other JS types, translate to a PHP boolean check.
+        const argPhp = this.transpileExpr(actual.argument);
+        if (argPhp !== null) {
+          const phpCheck = typeofToPhp(argPhp, jsType);
+          if (phpCheck !== null) {
+            const msgPhp = msg ? this.transpileExpr(msg) : "''";
+            if (msgPhp !== null) return `Assert::sameValue(${phpCheck}, true, ${msgPhp})`;
+          }
+        }
+        // Unknown type or untranslatable expr — skip silently (no incomplete).
+        return null;
+      }
+    }
+
     const actualPhp   = this.transpileExpr(actual);
     const expectedPhp = this.transpileExpr(expected);
     const msgPhp      = msg ? this.transpileExpr(msg) : "''";
