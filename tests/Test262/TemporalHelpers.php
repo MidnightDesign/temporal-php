@@ -75,6 +75,28 @@ final class TemporalHelpers
     }
 
     /**
+     * Asserts that a PlainDate has the given year, month, monthCode, and day.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainDate(pd, year, month, monthCode, day, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainDate(
+        \Temporal\PlainDate $date,
+        int $year,
+        int $month,
+        string $monthCode,
+        int $day,
+        string $description = '',
+    ): void {
+        $prefix = $description !== '' ? "{$description}: " : '';
+        PHPUnitAssert::assertSame($year, $date->year, "{$prefix}year");
+        PHPUnitAssert::assertSame($month, $date->month, "{$prefix}month");
+        PHPUnitAssert::assertSame($monthCode, $date->monthCode, "{$prefix}monthCode");
+        PHPUnitAssert::assertSame($day, $date->day, "{$prefix}day");
+    }
+
+    /**
      * Asserts that two Instants represent the same point in time.
      *
      * Argument order matches JS TemporalHelpers.assertInstantsEqual(a, b, msg).

@@ -97,6 +97,7 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertDurationsEqual',
   'assertDateDuration',
   'assertInstantsEqual',
+  'assertPlainDate',
   'checkPluralUnitsAccepted',
   'checkStringOptionWrongType',
   'checkSubclassingIgnored',
