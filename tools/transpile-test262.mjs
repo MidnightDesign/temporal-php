@@ -123,7 +123,7 @@ const PHP_IMPLEMENTED_METHODS = {
   ]),
   PlainDate: new Set([
     '__construct', 'from', 'compare',
-    'with', 'add', 'subtract',
+    'with', 'add', 'subtract', 'since', 'until',
     'equals', 'toString', 'toJSON', 'valueOf',
   ]),
 };

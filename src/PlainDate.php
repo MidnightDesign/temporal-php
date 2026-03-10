@@ -343,6 +343,34 @@ final class PlainDate implements Stringable
     }
 
     /**
+     * Returns the Duration from $other to this date (this − other).
+     *
+     * Default largestUnit is 'day'. Supports 'week', 'month', 'year'.
+     *
+     * @param mixed $other   PlainDate or ISO 8601 date string.
+     * @param mixed $options ['largestUnit' => 'day'|'week'|'month'|'year']
+     * @psalm-api
+     */
+    public function since(mixed $other, mixed $options = null): Duration
+    {
+        $o = $other instanceof self ? $other : self::from($other);
+        return self::diffDate($this, $o, $options);
+    }
+
+    /**
+     * Returns the Duration from this date to $other (other − this).
+     *
+     * @param mixed $other   PlainDate or ISO 8601 date string.
+     * @param mixed $options ['largestUnit' => 'day'|'week'|'month'|'year']
+     * @psalm-api
+     */
+    public function until(mixed $other, mixed $options = null): Duration
+    {
+        $o = $other instanceof self ? $other : self::from($other);
+        return self::diffDate($o, $this, $options);
+    }
+
+    /**
      * Returns true if this PlainDate is the same date as $other.
      *
      * @param mixed $other A PlainDate or ISO 8601 date string.
@@ -503,6 +531,118 @@ final class PlainDate implements Stringable
     /**
      * Returns the number of days in the given ISO calendar month.
      */
+    /**
+     * Core implementation for since() and until().
+     *
+     * Computes the Duration from $earlier to $later. The `largestUnit` option
+     * controls the largest unit used in the result:
+     *  - 'day'/'days'/'auto' → plain day count (default)
+     *  - 'week'/'weeks'       → weeks + remaining days
+     *  - 'month'/'months'     → months + remaining days
+     *  - 'year'/'years'       → years + months + remaining days
+     *
+     * @param mixed $options ['largestUnit' => 'day'|'week'|'month'|'year'|...]
+     */
+    private static function diffDate(self $later, self $earlier, mixed $options): Duration
+    {
+        $largestUnit = 'day';
+        if ($options !== null && is_array($options) && array_key_exists('largestUnit', $options)) {
+            /** @var mixed $lu */
+            $lu = $options['largestUnit'];
+            if (is_string($lu)) {
+                $largestUnit = $lu;
+            }
+        }
+
+        $laterJdn   = self::toJulianDay($later->year, $later->month, $later->day);
+        $earlierJdn = self::toJulianDay($earlier->year, $earlier->month, $earlier->day);
+        $totalDays  = $laterJdn - $earlierJdn;
+
+        switch ($largestUnit) {
+            case 'week':
+            case 'weeks':
+                $weeks = intdiv(num1: $totalDays, num2: 7);
+                $days  = $totalDays - $weeks * 7;
+                return new Duration(weeks: $weeks, days: $days);
+
+            case 'month':
+            case 'months':
+                [$years, $months, $days] = self::calendarDiff(
+                    $earlier->year, $earlier->month, $earlier->day,
+                    $later->year, $later->month, $later->day,
+                );
+                return new Duration(months: $years * 12 + $months, days: $days);
+
+            case 'year':
+            case 'years':
+                [$years, $months, $days] = self::calendarDiff(
+                    $earlier->year, $earlier->month, $earlier->day,
+                    $later->year, $later->month, $later->day,
+                );
+                return new Duration(years: $years, months: $months, days: $days);
+
+            default: // 'day', 'days', 'auto', singular aliases
+                return new Duration(days: $totalDays);
+        }
+    }
+
+    /**
+     * Returns [years, months, remainingDays] between two dates.
+     *
+     * @return array{0: int, 1: int, 2: int}
+     */
+    private static function calendarDiff(
+        int $y1,
+        int $m1,
+        int $d1,
+        int $y2,
+        int $m2,
+        int $d2,
+    ): array {
+        $sign = ($y2 > $y1 || ($y2 === $y1 && ($m2 > $m1 || ($m2 === $m1 && $d2 >= $d1)))) ? 1 : -1;
+
+        // Work in the positive direction; negate result if sign is negative.
+        if ($sign < 0) {
+            [$y1, $m1, $d1, $y2, $m2, $d2] = [$y2, $m2, $d2, $y1, $m1, $d1];
+        }
+
+        $years  = $y2 - $y1;
+        $months = $m2 - $m1;
+
+        if ($months < 0) {
+            $years--;
+            $months += 12;
+        }
+
+        // If day has not been reached yet within the final month, borrow one month.
+        $maxDay = self::calcDaysInMonth($y1 + $years, $m1 + $months > 12
+            ? $m1 + $months - 12 : $m1 + $months);
+        $adjustedD1 = min($d1, $maxDay);
+
+        if ($d2 < $adjustedD1) {
+            if ($months > 0) {
+                $months--;
+            } else {
+                $years--;
+                $months = 11;
+            }
+        }
+
+        // Compute the anchor date (earlier + years/months) and count remaining days.
+        $anchorMonth = $m1 + $months;
+        $anchorYear  = $y1 + $years;
+        if ($anchorMonth > 12) {
+            $anchorYear++;
+            $anchorMonth -= 12;
+        }
+        $anchorDay = min($d1, self::calcDaysInMonth($anchorYear, $anchorMonth));
+
+        $days = self::toJulianDay($y2, $m2, $d2)
+            - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
+
+        return [$sign * $years, $sign * $months, $sign * $days];
+    }
+
     /**
      * Shared implementation for add() and subtract().
      *
