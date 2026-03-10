@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeToDate = new \Temporal\PlainDate(1970, 1, 1);
+Assert::incomplete('\\Temporal\\PlainDateTime is not yet implemented');

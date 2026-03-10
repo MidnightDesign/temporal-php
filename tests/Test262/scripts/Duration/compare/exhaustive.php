@@ -7,4 +7,26 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$plainDate = new \Temporal\PlainDate(2000, 1, 1);
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(6), new \Temporal\Duration(5), ['relativeTo' => $plainDate]), 1, 'years >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(3), new \Temporal\Duration(4), ['relativeTo' => $plainDate]), -1, 'years <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 6), new \Temporal\Duration(2, 5), ['relativeTo' => $plainDate]), 1, 'months >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 3), new \Temporal\Duration(4, 4), ['relativeTo' => $plainDate]), -1, 'months <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 6), new \Temporal\Duration(2, 1, 5), ['relativeTo' => $plainDate]), 1, 'weeks >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 3), new \Temporal\Duration(4, 7, 4), ['relativeTo' => $plainDate]), -1, 'weeks <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 3, 6), new \Temporal\Duration(2, 1, 3, 5), ['relativeTo' => $plainDate]), 1, 'days >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 3), new \Temporal\Duration(4, 7, 2, 4), ['relativeTo' => $plainDate]), -1, 'days <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 3, 12, 6), new \Temporal\Duration(2, 1, 3, 12, 5), ['relativeTo' => $plainDate]), 1, 'hours >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 40, 3), new \Temporal\Duration(4, 7, 2, 40, 4), ['relativeTo' => $plainDate]), -1, 'hours <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 3, 12, 6, 6), new \Temporal\Duration(2, 1, 3, 12, 6, 5), ['relativeTo' => $plainDate]), 1, 'minutes >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 40, 12, 3), new \Temporal\Duration(4, 7, 2, 40, 12, 4), ['relativeTo' => $plainDate]), -1, 'minutes <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 3, 12, 6, 30, 6), new \Temporal\Duration(2, 1, 3, 12, 6, 30, 5), ['relativeTo' => $plainDate]), 1, 'seconds >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 40, 12, 15, 3), new \Temporal\Duration(4, 7, 2, 40, 12, 15, 4), ['relativeTo' => $plainDate]), -1, 'seconds <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 3, 12, 6, 30, 15, 6), new \Temporal\Duration(2, 1, 3, 12, 6, 30, 15, 5), ['relativeTo' => $plainDate]), 1, 'milliseconds >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 3), new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 4), ['relativeTo' => $plainDate]), -1, 'milliseconds <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 3, 12, 6, 30, 15, 222, 6), new \Temporal\Duration(2, 1, 3, 12, 6, 30, 15, 222, 5), ['relativeTo' => $plainDate]), 1, 'microseconds >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 333, 3), new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 333, 4), ['relativeTo' => $plainDate]), -1, 'microseconds <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(2, 1, 3, 12, 6, 30, 15, 222, 444, 6), new \Temporal\Duration(2, 1, 3, 12, 6, 30, 15, 222, 444, 5), ['relativeTo' => $plainDate]), 1, 'nanoseconds >, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 333, 777, 3), new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 333, 777, 4), ['relativeTo' => $plainDate]), -1, 'nanoseconds <, relativeTo PlainDate');
+Assert::sameValue(\Temporal\Duration::compare(new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 333, 777, 111), new \Temporal\Duration(4, 7, 2, 40, 12, 15, 45, 333, 777, 111), ['relativeTo' => $plainDate]), 0, 'equal, relativeTo PlainDate');
+Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');

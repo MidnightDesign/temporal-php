@@ -7,4 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(2000, 1, 1);
+$instance = new \Temporal\Duration(0, 0, 0, 500_000_000);
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['relativeTo' => $relativeTo, 'unit' => 'years']), 'days out of range, positive, unit years');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['relativeTo' => $relativeTo, 'unit' => 'months']), 'days out of range, positive, unit months');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['relativeTo' => $relativeTo, 'unit' => 'weeks']), 'days out of range, positive, unit weeks');
+$negInstance = new \Temporal\Duration(0, 0, 0, -500_000_000);
+Assert::throws(\InvalidArgumentException::class, fn() => $negInstance->total(['relativeTo' => $relativeTo, 'unit' => 'years']), 'days out of range, negative, unit years');
+Assert::throws(\InvalidArgumentException::class, fn() => $negInstance->total(['relativeTo' => $relativeTo, 'unit' => 'months']), 'days out of range, negative, unit months');
+Assert::throws(\InvalidArgumentException::class, fn() => $negInstance->total(['relativeTo' => $relativeTo, 'unit' => 'weeks']), 'days out of range, negative, unit weeks');
+$instance = new \Temporal\Duration(0, 0, 1, (int) (2 ** 53 / 86_400));
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['relativeTo' => $relativeTo, 'unit' => 'days']), 'weeks + days out of range, positive');
+$negInstance = new \Temporal\Duration(0, 0, -1, -(int) (2 ** 53 / 86_400));
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['relativeTo' => $relativeTo, 'unit' => 'days']), 'weeks + days out of range, negative');

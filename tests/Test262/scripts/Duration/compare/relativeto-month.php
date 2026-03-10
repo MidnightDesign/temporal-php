@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $oneMonth = new \Temporal\Duration(0, 1);
 $days30 = new \Temporal\Duration(0, 0, 0, 30);
-Assert::incomplete('\\Temporal\\PlainDate::from() is not yet implemented');
+Assert::sameValue(\Temporal\Duration::compare($oneMonth, $days30, ['relativeTo' => \Temporal\PlainDate::from('2018-04-01')]), 0, '');
+Assert::sameValue(\Temporal\Duration::compare($oneMonth, $days30, ['relativeTo' => \Temporal\PlainDate::from('2018-03-01')]), 1, '');
+Assert::sameValue(\Temporal\Duration::compare($oneMonth, $days30, ['relativeTo' => \Temporal\PlainDate::from('2018-02-01')]), -1, '');

@@ -8,12 +8,14 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $maxCases = [['P4294967295Y104249991374DT7H36M31.999999999S', 'string with max years'], [['years' => 4_294_967_295, 'days' => 104_249_991_374, 'nanoseconds' => 27_391_999_999_999], 'property bag with max years'], ['P4294967295M104249991374DT7H36M31.999999999S', 'string with max months'], [['months' => 4_294_967_295, 'days' => 104_249_991_374, 'nanoseconds' => 27_391_999_999_999], 'property bag with max months'], ['P4294967295W104249991374DT7H36M31.999999999S', 'string with max weeks'], [['weeks' => 4_294_967_295, 'days' => 104_249_991_374, 'nanoseconds' => 27_391_999_999_999], 'property bag with max weeks'], ['P104249991374DT7H36M31.999999999S', 'string with max days'], [['days' => 104_249_991_374, 'nanoseconds' => 27_391_999_999_999], 'property bag with max days'], ['PT2501999792983H36M31.999999999S', 'string with max hours'], [['hours' => 2_501_999_792_983, 'nanoseconds' => 2_191_999_999_999], 'property bag with max hours'], ['PT150119987579016M31.999999999S', 'string with max minutes'], [['minutes' => 150_119_987_579_016, 'nanoseconds' => 31_999_999_999], 'property bag with max minutes'], ['PT9007199254740991.999999999S', 'string with max seconds'], [['seconds' => 9_007_199_254_740_991, 'nanoseconds' => 999_999_999], 'property bag with max seconds']];
-foreach ($maxCases as [$arg, $descr]) {
+foreach ($maxCases as $___item) {
+[$arg, $descr] = array_pad($___item, 2, null);
 $result = \Temporal\Duration::from($arg);
 Assert::sameValue($result->with(['years' => 0, 'months' => 0, 'weeks' => 0])->total('seconds'), 9_007_199_254_740_992, "operation succeeds with {$descr}");
 }
 $minCases = [['-P4294967295Y104249991374DT7H36M31.999999999S', 'string with min years'], [['years' => -4_294_967_295, 'days' => -104_249_991_374, 'nanoseconds' => -27_391_999_999_999], 'property bag with min years'], ['-P4294967295M104249991374DT7H36M31.999999999S', 'string with min months'], [['months' => -4_294_967_295, 'days' => -104_249_991_374, 'nanoseconds' => -27_391_999_999_999], 'property bag with min months'], ['-P4294967295W104249991374DT7H36M31.999999999S', 'string with min weeks'], [['weeks' => -4_294_967_295, 'days' => -104_249_991_374, 'nanoseconds' => -27_391_999_999_999], 'property bag with min weeks'], ['-P104249991374DT7H36M31.999999999S', 'string with min days'], [['days' => -104_249_991_374, 'nanoseconds' => -27_391_999_999_999], 'property bag with min days'], ['-PT2501999792983H36M31.999999999S', 'string with min hours'], [['hours' => -2_501_999_792_983, 'nanoseconds' => -2_191_999_999_999], 'property bag with min hours'], ['-PT150119987579016M31.999999999S', 'string with min minutes'], [['minutes' => -150_119_987_579_016, 'nanoseconds' => -31_999_999_999], 'property bag with min minutes'], ['-PT9007199254740991.999999999S', 'string with min seconds'], [['seconds' => -9_007_199_254_740_991, 'nanoseconds' => -999_999_999], 'property bag with min seconds']];
-foreach ($minCases as [$arg, $descr]) {
+foreach ($minCases as $___item) {
+[$arg, $descr] = array_pad($___item, 2, null);
 $result = \Temporal\Duration::from($arg);
 Assert::sameValue($result->with(['years' => 0, 'months' => 0, 'weeks' => 0])->total('seconds'), -9_007_199_254_740_992, "operation succeeds with {$descr}");
 }

@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00Z[Asia/Kolkata]', 'named, with Z'], ['1970-01-01T00:00Z[!Europe/Vienna]', 'named, with Z and !'], ['1970-01-01T00:00Z[+00:00]', 'numeric, with Z'], ['1970-01-01T00:00Z[!-02:30]', 'numeric, with Z and !'], ['1970-01-01T00:00+00:00[UTC]', 'named, with offset'], ['1970-01-01T00:00+00:00[!Africa/Abidjan]', 'named, with offset and !'], ['1970-01-01T00:00+00:00[-08:00]', 'numeric, with offset'], ['1970-01-01T00:00+00:00[!+01:00]', 'numeric, with offset and !']];
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $___item) {
+[$arg, $description] = array_pad($___item, 2, null);
 $result = \Temporal\Instant::compare($arg, $arg);
 Assert::sameValue($result, 0, "time zone annotation ({$description})");
 }

@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $duration1 = \Temporal\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
 $duration2 = \Temporal\Duration::from(['years' => 2]);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(2000, 1, 1);
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration2, $duration1, ['relativeTo' => $relativeTo]), '');

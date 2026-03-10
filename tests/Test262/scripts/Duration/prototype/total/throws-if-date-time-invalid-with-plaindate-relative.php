@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(275_760, 9, 13);
+$totalOf = ['unit' => 'years', 'relativeTo' => $relativeTo];
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->total($totalOf), '');

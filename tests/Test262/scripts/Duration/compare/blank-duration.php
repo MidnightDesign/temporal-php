@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $blank1 = new \Temporal\Duration();
 $blank2 = new \Temporal\Duration();
 $compare = [\Temporal\Duration::class, 'compare'];
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$plainRelativeTo = new \Temporal\PlainDate(2025, 8, 22);
+Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');

@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(2000, 1, 1);
+$validUnits = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
+TemporalHelpers::checkPluralUnitsAccepted(fn($unit) => $duration->total(['unit' => $unit, 'relativeTo' => $relativeTo]), $validUnits);
+Assert::assertTrue(true); // no assertions: test only verifies no exception is thrown

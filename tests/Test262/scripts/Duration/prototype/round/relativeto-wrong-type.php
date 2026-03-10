@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
 $instance = new \Temporal\Duration(1, 0, 0, 0, 24);
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number'], [1, 'bigint']];
-foreach ($primitiveTests as [$relativeTo, $description]) {
+foreach ($primitiveTests as $___item) {
+[$relativeTo, $description] = array_pad($___item, 2, null);
 Assert::throws((is_string($relativeTo) || false ? \InvalidArgumentException::class : \TypeError::class), fn() => $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]), "{$description} does not convert to a valid ISO string (first argument)");
 }
 Assert::incomplete('untranslatable: Symbol()');

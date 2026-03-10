@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $monthAlmostWeek = new \Temporal\Duration(0, 1, 0, 6, 20, 0, 0, 0, 0, 0);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+TemporalHelpers::assertDuration($monthAlmostWeek->round(['smallestUnit' => 'days', 'relativeTo' => new \Temporal\PlainDate(2020, 1, 1)]), 0, 1, 0, 7, 0, 0, 0, 0, 0, 0);

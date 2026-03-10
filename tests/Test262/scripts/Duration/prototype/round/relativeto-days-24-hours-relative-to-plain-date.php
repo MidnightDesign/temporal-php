@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $hours25 = new \Temporal\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(2017, 1, 1);
+TemporalHelpers::assertDuration($hours25->round(['largestUnit' => 'days', 'relativeTo' => $relativeTo]), 0, 0, 0, 1, 1, 0, 0, 0, 0, 0);

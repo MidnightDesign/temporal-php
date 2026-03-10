@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Duration(0, 11);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(2023, 5, 31);
+$result = $instance->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'months', 'roundingMode' => 'ceil']);
+TemporalHelpers::assertDuration($result, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0);

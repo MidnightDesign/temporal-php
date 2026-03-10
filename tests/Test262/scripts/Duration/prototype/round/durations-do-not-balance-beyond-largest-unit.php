@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $fortyDays = new \Temporal\Duration(0, 0, 0, 40, 0, 0, 0, 0, 0, 0);
 $one85Minutes = new \Temporal\Duration(0, 0, 0, 0, 185, 0, 0, 0, 0, 0);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(2020, 1, 1);
+TemporalHelpers::assertDuration($fortyDays->round(['smallestUnit' => 'seconds', 'relativeTo' => $relativeTo]), 0, 0, 0, 40, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($one85Minutes->round(['smallestUnit' => 'seconds']), 0, 0, 0, 0, 185, 0, 0, 0, 0, 0);

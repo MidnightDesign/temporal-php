@@ -8,14 +8,16 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $maxCases = [['P104249991374DT7H36M31.999999999S', 'string with max days'], [['days' => 104_249_991_374, 'nanoseconds' => 27_391_999_999_999], 'property bag with max days'], ['PT2501999792983H36M31.999999999S', 'string with max hours'], [['hours' => 2_501_999_792_983, 'nanoseconds' => 2_191_999_999_999], 'property bag with max hours'], ['PT150119987579016M31.999999999S', 'string with max minutes'], [['minutes' => 150_119_987_579_016, 'nanoseconds' => 31_999_999_999], 'property bag with max minutes'], ['PT9007199254740991.999999999S', 'string with max seconds'], [['seconds' => 9_007_199_254_740_991, 'nanoseconds' => 999_999_999], 'property bag with max seconds']];
-foreach ($maxCases as [$arg, $descr]) {
+foreach ($maxCases as $___item) {
+[$arg, $descr] = array_pad($___item, 2, null);
 $result1 = \Temporal\Duration::compare($arg, new \Temporal\Duration());
 Assert::sameValue($result1, 1, "operation succeeds with {$descr} (first argument)");
 $result2 = \Temporal\Duration::compare(new \Temporal\Duration(), $arg);
 Assert::sameValue($result2, -1, "operation succeeds with {$descr} (second argument)");
 }
 $minCases = [['-P104249991374DT7H36M31.999999999S', 'string with min days'], [['days' => -104_249_991_374, 'nanoseconds' => -27_391_999_999_999], 'property bag with min days'], ['-PT2501999792983H36M31.999999999S', 'string with min hours'], [['hours' => -2_501_999_792_983, 'nanoseconds' => -2_191_999_999_999], 'property bag with min hours'], ['-PT150119987579016M31.999999999S', 'string with min minutes'], [['minutes' => -150_119_987_579_016, 'nanoseconds' => -31_999_999_999], 'property bag with min minutes'], ['-PT9007199254740991.999999999S', 'string with min seconds'], [['seconds' => -9_007_199_254_740_991, 'nanoseconds' => -999_999_999], 'property bag with min seconds']];
-foreach ($minCases as [$arg, $descr]) {
+foreach ($minCases as $___item) {
+[$arg, $descr] = array_pad($___item, 2, null);
 $result1 = \Temporal\Duration::compare($arg, new \Temporal\Duration());
 Assert::sameValue($result1, -1, "operation succeeds with {$descr} (first argument)");
 $result2 = \Temporal\Duration::compare(new \Temporal\Duration(), $arg);

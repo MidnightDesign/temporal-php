@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration1 = \Temporal\Duration::from(['nanoseconds' => 9_007_199_254_740_991]);
 $duration2 = \Temporal\Duration::from(['nanoseconds' => -2, 'days' => -1]);
-Assert::incomplete('untranslatable: BigInt()');
+$nanos = 9_007_199_254_740_991 + 2;
+Assert::incomplete('untranslatable: Number()');

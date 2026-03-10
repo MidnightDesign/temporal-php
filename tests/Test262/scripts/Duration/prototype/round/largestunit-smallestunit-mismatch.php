@@ -8,4 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-Assert::incomplete('\\Temporal\\PlainDate::from() is not yet implemented');
+$relativeTo = \Temporal\PlainDate::from('2020-01-01');
+$units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
+for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
+for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
+$largestUnit = $units[$largestIdx];
+$smallestUnit = $units[$smallestIdx];
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'relativeTo' => $relativeTo]), "{$smallestUnit} > {$largestUnit}");
+}
+}

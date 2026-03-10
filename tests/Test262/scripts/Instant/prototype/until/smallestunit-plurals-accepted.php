@@ -12,3 +12,4 @@ $earlier = new \Temporal\Instant(1_000_000_000_987_654_321);
 $later = new \Temporal\Instant(1_086_403_661_988_655_322);
 $validUnits = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $earlier->until($later, ['smallestUnit' => $smallestUnit]), $validUnits);
+Assert::assertTrue(true); // no assertions: test only verifies no exception is thrown

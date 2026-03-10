@@ -8,4 +8,16 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-Assert::incomplete('\\Temporal\\PlainDate::from() is not yet implemented');
+$relativeTo = \Temporal\PlainDate::from('2020-01-01');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'hours', 'roundingIncrement' => 11]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'minutes', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'seconds', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'milliseconds', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'microseconds', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'nanoseconds', 'roundingIncrement' => 29]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'hours', 'roundingIncrement' => 24]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'minutes', 'roundingIncrement' => 60]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'seconds', 'roundingIncrement' => 60]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'milliseconds', 'roundingIncrement' => 1000]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'microseconds', 'roundingIncrement' => 1000]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1000]), '');

@@ -8,4 +8,20 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$relativeTo = new \Temporal\PlainDate(2020, 1, 1);
+foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
+$options = ['smallestUnit' => 'hours', 'roundingIncrement' => $roundingIncrement, 'relativeTo' => $relativeTo];
+Assert::assertTrue($d->round($options) instanceof \Temporal\Duration, '');
+}
+foreach (['minutes', 'seconds'] as $smallestUnit) {
+foreach ([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as $roundingIncrement) {
+$roundTo = ['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement, 'relativeTo' => $relativeTo];
+Assert::assertTrue($d->round($roundTo) instanceof \Temporal\Duration, '');
+}
+}
+foreach (['milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
+foreach ([1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500] as $roundingIncrement) {
+$roundTo = ['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement, 'relativeTo' => $relativeTo];
+Assert::assertTrue($d->round($roundTo) instanceof \Temporal\Duration, '');
+}
+}

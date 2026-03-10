@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $epoch = new \Temporal\Instant(0);
 $invalidStrings = [['1970-01-01T00:00Z[U-CA=iso8601]', 'invalid capitalized key'], ['1970-01-01T00:00Z[u-CA=iso8601]', 'invalid partially-capitalized key'], ['1970-01-01T00:00Z[FOO=bar]', 'invalid capitalized unrecognized key']];
-foreach ($invalidStrings as [$arg, $descr]) {
+foreach ($invalidStrings as $___item) {
+[$arg, $descr] = array_pad($___item, 2, null);
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($arg, $epoch), "annotation keys must be lowercase: {$arg} - {$descr} (first argument)");
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($epoch, $arg), "annotation keys must be lowercase: {$arg} - {$descr} (second argument)");
 }

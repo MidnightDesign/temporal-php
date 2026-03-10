@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(1);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$options = ['smallestUnit' => 'years', 'relativeTo' => new \Temporal\PlainDate(2000, 1, 1)];
+Assert::incomplete('untranslatable object property');

@@ -11,4 +11,7 @@ $oneDay = new \Temporal\Duration(0, 0, 0, 1);
 $hours48 = new \Temporal\Duration(0, 0, 0, 0, 48);
 Assert::sameValue($oneDay->total('hours'), 24, 'with no relativeTo, days are 24 hours');
 Assert::sameValue($hours48->total(['unit' => 'days']), 2, 'with no relativeTo, 48 hours = 2 days');
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$plainRelativeTo = new \Temporal\PlainDate(2017, 1, 1);
+Assert::sameValue($oneDay->total(['unit' => 'hours', 'relativeTo' => $plainRelativeTo]), 24, 'with PlainDate relativeTo, days are 24 hours');
+Assert::sameValue($hours48->total(['unit' => 'days', 'relativeTo' => $plainRelativeTo]), 2, 'with PlainDate relativeTo, 48 hours = 2 days');
+Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');

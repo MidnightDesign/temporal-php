@@ -11,3 +11,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instant = new \Temporal\Instant(1_000_000_000_123_456_789);
 $validUnits = ['minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $instant->toString(['smallestUnit' => $smallestUnit]), $validUnits);
+Assert::assertTrue(true); // no assertions: test only verifies no exception is thrown

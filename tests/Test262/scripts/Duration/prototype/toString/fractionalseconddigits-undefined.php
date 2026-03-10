@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 $wholeSeconds = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7);
 $subSeconds = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650);
 $tests = [[$wholeSeconds, 'P1Y2M3W4DT5H6M7S'], [$subSeconds, 'P1Y2M3W4DT5H6M7.98765S']];
-foreach ($tests as [$duration, $expected]) {
+foreach ($tests as $___item) {
+[$duration, $expected] = array_pad($___item, 2, null);
 $explicit = $duration->toString([]);
 Assert::sameValue($explicit, $expected, 'default fractionalSecondDigits is auto (property present but undefined)');
 $implicit = $duration->toString(new \stdClass());

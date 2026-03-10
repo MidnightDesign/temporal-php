@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $twoYears = new \Temporal\Duration(0, 11, 0, 396, 0, 0, 0, 0, 0, 0);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+Assert::sameValue($twoYears->total(['unit' => 'years', 'relativeTo' => new \Temporal\PlainDate(2017, 1, 1)]), 2, '');
+$twoYearsNegative = new \Temporal\Duration(0, -11, 0, -396, 0, 0, 0, 0, 0, 0);
+Assert::sameValue($twoYearsNegative->total(['unit' => 'years', 'relativeTo' => new \Temporal\PlainDate(2017, 1, 1)]), -2, '');

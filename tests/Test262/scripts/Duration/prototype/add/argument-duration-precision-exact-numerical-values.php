@@ -9,11 +9,13 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration();
 $balanceFailCases = [[['milliseconds' => 4_503_599_627_370_497_024, 'microseconds' => 4.503_599_627_370_495e+21], 'case where floating point inaccuracy brings total below limit, positive'], [['milliseconds' => -4_503_599_627_370_497_024, 'microseconds' => -4.503_599_627_370_495e+21], 'case where floating point inaccuracy brings total below limit, negative']];
-foreach ($balanceFailCases as [$arg, $descr]) {
+foreach ($balanceFailCases as $___item) {
+[$arg, $descr] = array_pad($___item, 2, null);
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->add($arg), $descr . ': ℝ(𝔽(x)) operation after balancing brings total over limit');
 }
 $balanceSuccessCases = [[['seconds' => 2, 'milliseconds' => 4_503_599_627_370_496_512, 'microseconds' => 4.5_035_996_273_704_934e+21], 'PT9007199254740991.89056S', 'case where floating point inaccuracy brings total below limit, positive'], [['seconds' => -2, 'milliseconds' => -4_503_599_627_370_496_512, 'microseconds' => -4.5_035_996_273_704_934e+21], '-PT9007199254740991.89056S', 'case where floating point inaccuracy brings total below limit, negative']];
-foreach ($balanceSuccessCases as [$arg, $string, $descr]) {
+foreach ($balanceSuccessCases as $___item) {
+[$arg, $string, $descr] = array_pad($___item, 3, null);
 $result = $instance->add($arg);
 Assert::sameValue($result->toString(), $string, $descr);
 }

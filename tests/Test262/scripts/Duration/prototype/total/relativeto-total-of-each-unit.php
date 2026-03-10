@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-Assert::incomplete('\\Temporal\\PlainDate is not yet implemented');
+$plainRelativeTo = new \Temporal\PlainDate(2000, 1, 1);
+Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');
