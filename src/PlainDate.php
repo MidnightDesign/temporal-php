@@ -176,13 +176,32 @@ final class PlainDate implements Stringable
      * Creates a PlainDate from another PlainDate, an ISO 8601 string, or a
      * property-bag array with 'year', 'month'/'monthCode', and 'day' fields.
      *
-     * @param mixed $item PlainDate, ISO 8601 date string, or property-bag array.
-     * @throws InvalidArgumentException if the string is invalid.
+     * @param mixed $item     PlainDate, ISO 8601 date string, or property-bag array.
+     * @param mixed $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @throws InvalidArgumentException if the string is invalid or overflow option is invalid.
      * @throws \TypeError if the type cannot be interpreted as a PlainDate.
      * @psalm-api
      */
-    public static function from(mixed $item): self
+    public static function from(mixed $item, mixed $options = null): self
     {
+        // Validate and extract overflow option (must be done before processing item).
+        $overflow = 'constrain';
+        if ($options !== null) {
+            if (is_array($options) && array_key_exists('overflow', $options)) {
+                /** @var mixed $ov */
+                $ov = $options['overflow'];
+                if (!is_string($ov)) {
+                    throw new \TypeError('overflow option must be a string.');
+                }
+                if ($ov !== 'constrain' && $ov !== 'reject') {
+                    throw new InvalidArgumentException(
+                        "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
+                    );
+                }
+                $overflow = $ov;
+            }
+        }
+
         if ($item instanceof self) {
             return new self($item->year, $item->month, $item->day);
         }
@@ -190,7 +209,7 @@ final class PlainDate implements Stringable
             return self::fromString($item);
         }
         if (is_array($item)) {
-            return self::fromPropertyBag($item);
+            return self::fromPropertyBag($item, $overflow);
         }
         throw new \TypeError(
             'PlainDate::from() expects a PlainDate, ISO 8601 string, or property-bag array; got '
@@ -239,9 +258,33 @@ final class PlainDate implements Stringable
             && $this->day === $o->day;
     }
 
-    public function toString(): string
+    /**
+     * @param mixed $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
+     * @throws InvalidArgumentException for invalid calendarName values.
+     * @psalm-api
+     */
+    public function toString(mixed $options = null): string
     {
-        return sprintf('%04d-%02d-%02d', $this->year, $this->month, $this->day);
+        $base = sprintf('%04d-%02d-%02d', $this->year, $this->month, $this->day);
+
+        $calendarName = 'auto';
+        if ($options !== null && is_array($options) && array_key_exists('calendarName', $options)) {
+            /** @var mixed $cn */
+            $cn = $options['calendarName'];
+            if (!is_string($cn)) {
+                throw new \TypeError('calendarName option must be a string.');
+            }
+            $calendarName = $cn;
+        }
+
+        return match ($calendarName) {
+            'auto', 'never' => $base,
+            'always'        => $base . '[u-ca=iso8601]',
+            'critical'      => $base . '[!u-ca=iso8601]',
+            default         => throw new InvalidArgumentException(
+                "Invalid calendarName value: \"{$calendarName}\".",
+            ),
+        };
     }
 
     /** @psalm-api */
@@ -311,10 +354,11 @@ final class PlainDate implements Stringable
      * Creates a PlainDate from a property-bag array.
      *
      * @param array<array-key,mixed> $bag
+     * @param string $overflow 'constrain' (clamp) or 'reject' (throw on out-of-range).
      * @throws \TypeError if required fields are missing.
      * @throws InvalidArgumentException if the date is invalid.
      */
-    private static function fromPropertyBag(array $bag): self
+    private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
         if (!array_key_exists('year', $bag)) {
             throw new \TypeError('PlainDate property bag must have a year field.');
@@ -348,6 +392,12 @@ final class PlainDate implements Stringable
         $dayRaw = $bag['day'];
         /** @phpstan-ignore cast.int */
         $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
+
+        if ($overflow === 'constrain') {
+            $month = max(1, min(12, $month));
+            $maxDay = self::calcDaysInMonth($year, $month);
+            $day = max(1, min($maxDay, $day));
+        }
 
         return new self($year, $month, $day);
     }
