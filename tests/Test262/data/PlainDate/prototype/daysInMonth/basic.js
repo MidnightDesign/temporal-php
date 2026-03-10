@@ -43,3 +43,4 @@ const tests = [
 for (const [plainDate, expected] of tests) {
   assert.sameValue(plainDate.daysInMonth, expected, `${expected} days in the month of ${plainDate}`);
 }
+

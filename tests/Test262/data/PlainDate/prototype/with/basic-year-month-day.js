@@ -1,41 +1,42 @@
-// Copyright (C) 2021 Igalia, S.L. All rights reserved.
+// Copyright 2025 Igalia S.L. All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
 /*---
 esid: sec-temporal.plaindate.prototype.with
-description: Basic functionality of with() to override year, month, or day
-includes: [temporalHelpers.js]
+description: Basic tests for with
 features: [Temporal]
+includes: [temporalHelpers.js]
 ---*/
 
-const original = new Temporal.PlainDate(1976, 11, 18);
+const cases = {
+  year2000: Temporal.PlainDate.from({ year: 2000, monthCode: "M01", day: 1 }),
+  year1976: Temporal.PlainDate.from({ year: 1976, monthCode: "M11", day: 18 }),
+  year1: Temporal.PlainDate.from({ year: 1, monthCode: "M01", day: 1 }),
+};
 
-TemporalHelpers.assertPlainDate(
-  original.with({ year: 2019 }),
-  2019, 11, "M11", 18,
-  "override year"
-);
+for (const [name, inCal] of Object.entries(cases)) {
 
-TemporalHelpers.assertPlainDate(
-  original.with({ month: 5 }),
-  1976, 5, "M05", 18,
-  "override month"
-);
+  var afterWithDay = inCal.with({ day: 1 });
+  TemporalHelpers.assertPlainDate(afterWithDay,
+    inCal.year, inCal.month, inCal.monthCode, 1,  `${name} after setting day to 1`);
 
-TemporalHelpers.assertPlainDate(
-  original.with({ day: 5 }),
-  1976, 11, "M11", 5,
-  "override day"
-);
+  var afterWithMonth = afterWithDay.with({ month: 1 });
+  TemporalHelpers.assertPlainDate(afterWithMonth,
+    inCal.year, 1, "M01", 1,  `${name} after setting month to 1`);
 
-TemporalHelpers.assertPlainDate(
-  original.with({ year: 2019, month: 5, day: 5 }),
-  2019, 5, "M05", 5,
-  "override all fields"
-);
+  var afterWithYear = afterWithMonth.with({ year: 2220 });
+  TemporalHelpers.assertPlainDate(afterWithYear,
+    2220, 1, "M01", 1,  `${name} after setting year to 2220`);
 
-TemporalHelpers.assertPlainDate(
-  original.with({ monthCode: "M09" }),
-  1976, 9, "M09", 18,
-  "override via monthCode"
-);
+  afterWithYear = inCal.with({ year: 2019 });
+  TemporalHelpers.assertPlainDate(afterWithYear,
+    2019, inCal.month, inCal.monthCode, inCal.day,  `${name} after setting year to 2019`);
+
+  afterWithMonth = afterWithYear.with({ month: 5 });
+  TemporalHelpers.assertPlainDate(afterWithMonth,
+    2019, 5, "M05", inCal.day,  `${name} after setting month to 5`);
+
+  afterWithDay = afterWithMonth.with({ day: 17 });
+  TemporalHelpers.assertPlainDate(afterWithDay,
+    2019, 5, "M05", 17,  `${name} after setting day to 17`);
+}

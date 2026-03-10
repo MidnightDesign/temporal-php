@@ -31,3 +31,4 @@ for (let i = 1; i <= 2; ++i) {
   const plainDate = new Temporal.PlainDate(1977, 1, i);
   assert.sameValue(plainDate.weekOfYear, 53, `${plainDate} should be in week 53`);
 }
+

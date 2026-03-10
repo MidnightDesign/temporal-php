@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\PlainDate(2000, 5, 2);
-Assert::throws(\TypeError::class, fn() => $instance->equals(null), 'undefined');
-Assert::throws(\TypeError::class, fn() => $instance->equals(null), 'null');
-Assert::throws(\TypeError::class, fn() => $instance->equals(true), 'boolean');
-Assert::throws(\TypeError::class, fn() => $instance->equals(1), 'number');
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals(''), 'empty string');
+$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
+foreach ($primitiveTests as [$arg, $description]) {
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => $instance->equals($arg), "{$description} does not convert to a valid ISO string");
+}
+Assert::incomplete('untranslatable: Symbol()');

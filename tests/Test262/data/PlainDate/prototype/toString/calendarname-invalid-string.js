@@ -1,18 +1,26 @@
-// Copyright (C) 2022 Igalia, S.L. All rights reserved.
+// Copyright (C) 2021 Igalia, S.L. All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
 /*---
-esid: sec-temporal.plaindate.prototype.tostring
-description: RangeError thrown when calendarName option has an invalid string value
-features: [Temporal, arrow-function]
+esid: sec-temporal.plaindate.protoype.tostring
+description: RangeError thrown when calendarName option not one of the allowed string values
+info: |
+    sec-getoption step 10:
+      10. If _values_ is not *undefined* and _values_ does not contain an element equal to _value_, throw a *RangeError* exception.
+    sec-temporal-toshowcalendaroption step 1:
+      1. Return ? GetOption(_normalizedOptions_, *"calendarName"*, « *"string"* », « *"auto"*, *"always"*, *"never"*, *"critical"* », *"auto"*).
+    sec-temporal.plaindate.protoype.tostring step 4:
+      4. Let _showCalendar_ be ? ToShowCalendarOption(_options_).
+features: [Temporal]
 ---*/
 
-const d = new Temporal.PlainDate(2000, 5, 2);
-const invalidValues = ["NEVER", "always\0", "foo", "auto\0", "ALWAYS", "never!"];
+const date = new Temporal.PlainDate(2000, 5, 2);
+const invalidValues = ["ALWAYS", "sometimes", "other string", "auto\0"];
+
 for (const calendarName of invalidValues) {
   assert.throws(
     RangeError,
-    () => d.toString({ calendarName }),
-    `calendarName: "${calendarName}" should throw RangeError`
+    () => date.toString({ calendarName }),
+    `${calendarName} is an invalid value for calendarName option`
   );
 }

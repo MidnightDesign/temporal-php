@@ -142,28 +142,47 @@ final class PlainDate implements Stringable
     // Constructor
     // -------------------------------------------------------------------------
 
+    /** @psalm-api */
+    public readonly int $year;
+    /** @psalm-api */
+    public readonly int $month;
+    /** @psalm-api */
+    public readonly int $day;
+
     /**
-     * @throws InvalidArgumentException if year/month/day form an invalid ISO date.
+     * @throws InvalidArgumentException if year/month/day form an invalid ISO date or are infinite.
      */
-    public function __construct(
-        public readonly int $year,
-        public readonly int $month,
-        public readonly int $day,
-    ) {
-        if ($month < 1 || $month > 12) {
+    public function __construct(int|float $year, int|float $month, int|float $day)
+    {
+        if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $day)) {
             throw new InvalidArgumentException(
-                "Invalid PlainDate: month {$month} is out of range 1–12.",
+                'Invalid PlainDate: year, month, and day must be finite numbers.',
             );
         }
-        if ($day < 1) {
+        $this->year  = (int) $year;
+        $this->month = (int) $month;
+        $this->day   = (int) $day;
+        if ($this->month < 1 || $this->month > 12) {
             throw new InvalidArgumentException(
-                "Invalid PlainDate: day {$day} must be at least 1.",
+                "Invalid PlainDate: month {$this->month} is out of range 1–12.",
             );
         }
-        $daysInMonth = self::calcDaysInMonth($year, $month);
-        if ($day > $daysInMonth) {
+        if ($this->day < 1) {
             throw new InvalidArgumentException(
-                "Invalid PlainDate: day {$day} exceeds {$daysInMonth} for {$year}-{$month}.",
+                "Invalid PlainDate: day {$this->day} must be at least 1.",
+            );
+        }
+        $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
+        if ($this->day > $daysInMonth) {
+            throw new InvalidArgumentException(
+                "Invalid PlainDate: day {$this->day} exceeds {$daysInMonth} for {$this->year}-{$this->month}.",
+            );
+        }
+        // TC39 range: ±100_000_000 epoch days (Apr 19 −271821 … Sep 13 +275760).
+        $epochDays = self::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
+        if ($epochDays < -100_000_000 || $epochDays > 100_000_000) {
+            throw new InvalidArgumentException(
+                "Invalid PlainDate: {$this->year}-{$this->month}-{$this->day} is outside the representable range.",
             );
         }
     }
@@ -286,25 +305,53 @@ final class PlainDate implements Stringable
             ? (int) $fields['year']
             : $this->year;
         $month = $this->month;
-        if (array_key_exists('month', $fields)) {
-            /** @var mixed $m */
-            $m     = $fields['month'];
-            /** @phpstan-ignore cast.int */
-            $month = (int) $m;
-        } elseif (array_key_exists('monthCode', $fields)) {
+        $hasMonth     = array_key_exists('month', $fields);
+        $hasMonthCode = array_key_exists('monthCode', $fields);
+        if ($hasMonthCode) {
             /** @var mixed $mc */
-            $mc    = $fields['monthCode'];
+            $mc = $fields['monthCode'];
             /** @phpstan-ignore cast.string */
-            $month = (int) substr(string: (string) $mc, offset: 1);
+            $mcStr = (string) $mc;
+            // monthCode must be M01–M12 in the ISO calendar.
+            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
+                throw new InvalidArgumentException(
+                    "Invalid monthCode for ISO calendar: \"{$mcStr}\".",
+                );
+            }
+            $month = (int) substr(string: $mcStr, offset: 1);
+        }
+        if ($hasMonth) {
+            /** @var mixed $m */
+            $m = $fields['month'];
+            /** @phpstan-ignore cast.int */
+            $newMonth = (int) $m;
+            if ($hasMonthCode && $newMonth !== $month) {
+                throw new InvalidArgumentException(
+                    'Conflicting month and monthCode fields.',
+                );
+            }
+            $month = $newMonth;
         }
         $day = array_key_exists('day', $fields)
             ? (int) $fields['day']
             : $this->day;
 
+        // month < 1 and day < 1 are always invalid (cannot constrain below minimum).
+        if ($month < 1) {
+            throw new InvalidArgumentException(
+                "Invalid month {$month}: must be at least 1.",
+            );
+        }
+        if ($day < 1) {
+            throw new InvalidArgumentException(
+                "Invalid day {$day}: must be at least 1.",
+            );
+        }
+
         if ($overflow === 'constrain') {
-            $month = max(1, min(12, $month));
+            $month  = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
-            $day = max(1, min($maxDay, $day));
+            $day    = min($maxDay, $day);
         }
 
         return new self($year, $month, $day);
@@ -391,7 +438,15 @@ final class PlainDate implements Stringable
      */
     public function toString(mixed $options = null): string
     {
-        $base = sprintf('%04d-%02d-%02d', $this->year, $this->month, $this->day);
+        // TC39: years 0–9999 → 4 digits; years outside → ±YYYYYY (6 digits with sign prefix).
+        if ($this->year < 0) {
+            $yearStr = sprintf('-%06d', abs($this->year));
+        } elseif ($this->year > 9999) {
+            $yearStr = sprintf('+%06d', $this->year);
+        } else {
+            $yearStr = sprintf('%04d', $this->year);
+        }
+        $base = sprintf('%s-%02d-%02d', $yearStr, $this->month, $this->day);
 
         $calendarName = 'auto';
         if ($options !== null && is_array($options) && array_key_exists('calendarName', $options)) {

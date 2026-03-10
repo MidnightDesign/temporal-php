@@ -3,18 +3,42 @@
 
 /*---
 esid: sec-temporal.plaindate.compare
-description: TypeError thrown when either argument cannot be converted to PlainDate
-features: [Temporal, arrow-function]
+description: >
+  Appropriate error thrown when argument cannot be converted to a valid string
+  or property bag for PlainDate
+features: [BigInt, Symbol, Temporal]
 ---*/
 
-const d = new Temporal.PlainDate(2000, 5, 2);
+const primitiveTests = [
+  [undefined, "undefined"],
+  [null, "null"],
+  [true, "boolean"],
+  ["", "empty string"],
+  [1, "number that doesn't convert to a valid ISO string"],
+  [1n, "bigint"],
+];
 
-assert.throws(TypeError, () => Temporal.PlainDate.compare(undefined, d), "undefined, first arg");
-assert.throws(TypeError, () => Temporal.PlainDate.compare(null, d), "null, first arg");
-assert.throws(TypeError, () => Temporal.PlainDate.compare(true, d), "boolean, first arg");
-assert.throws(RangeError, () => Temporal.PlainDate.compare("", d), "empty string, first arg");
+for (const [arg, description] of primitiveTests) {
+  assert.throws(
+    typeof arg === 'string' ? RangeError : TypeError,
+    () => Temporal.PlainDate.compare(arg, new Temporal.PlainDate(1976, 11, 18)),
+    `${description} does not convert to a valid ISO string (first argument)`
+  );
+  assert.throws(
+    typeof arg === 'string' ? RangeError : TypeError,
+    () => Temporal.PlainDate.compare(new Temporal.PlainDate(1976, 11, 18), arg),
+    `${description} does not convert to a valid ISO string (second argument)`
+  );
+}
 
-assert.throws(TypeError, () => Temporal.PlainDate.compare(d, undefined), "undefined, second arg");
-assert.throws(TypeError, () => Temporal.PlainDate.compare(d, null), "null, second arg");
-assert.throws(TypeError, () => Temporal.PlainDate.compare(d, true), "boolean, second arg");
-assert.throws(RangeError, () => Temporal.PlainDate.compare(d, ""), "empty string, second arg");
+const typeErrorTests = [
+  [Symbol(), "symbol"],
+  [{}, "plain object"],
+  [Temporal.PlainDate, "Temporal.PlainDate, object"],
+  [Temporal.PlainDate.prototype, "Temporal.PlainDate.prototype, object"],
+];
+
+for (const [arg, description] of typeErrorTests) {
+  assert.throws(TypeError, () => Temporal.PlainDate.compare(arg, new Temporal.PlainDate(1976, 11, 18)), `${description} is not a valid property bag and does not convert to a string (first argument)`);
+  assert.throws(TypeError, () => Temporal.PlainDate.compare(new Temporal.PlainDate(1976, 11, 18), arg), `${description} is not a valid property bag and does not convert to a string (second argument)`);
+}

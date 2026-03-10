@@ -3,12 +3,10 @@
 
 /*---
 esid: sec-temporal.plaindate.prototype.tostring
-description: calendarName: "always" appends the calendar annotation
+description: If calendarName is "always", the calendar ID should be included.
 features: [Temporal]
 ---*/
 
-const d = new Temporal.PlainDate(2000, 5, 2);
-assert.sameValue(d.toString({ calendarName: "always" }), "2000-05-02[u-ca=iso8601]");
-
-const d2 = new Temporal.PlainDate(1976, 11, 18);
-assert.sameValue(d2.toString({ calendarName: "always" }), "1976-11-18[u-ca=iso8601]");
+const date = new Temporal.PlainDate(2000, 5, 2);
+const result = date.toString({ calendarName: "always" });
+assert.sameValue(result, "2000-05-02[u-ca=iso8601]", `built-in ISO calendar for calendarName = always`);

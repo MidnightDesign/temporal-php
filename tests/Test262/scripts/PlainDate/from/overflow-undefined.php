@@ -8,5 +8,19 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 50], []), 2021, 1, 'M01', 31, 'overflow: undefined defaults to constrain');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 2021, 'month' => 2, 'day' => 29], new \stdClass()), 2021, 2, 'M02', 28, 'empty options defaults to constrain');
+$validValues = [new \Temporal\PlainDate(2000, 5, 2), '2000-05-02'];
+foreach ($validValues as $value) {
+$explicit = \Temporal\PlainDate::from($value, []);
+TemporalHelpers::assertPlainDate($explicit, 2000, 5, 'M05', 2, 'overflow is ignored');
+$implicit = \Temporal\PlainDate::from($value, new \stdClass());
+TemporalHelpers::assertPlainDate($implicit, 2000, 5, 'M05', 2, 'overflow is ignored');
+$lambda = \Temporal\PlainDate::from($value, function () {  });
+TemporalHelpers::assertPlainDate($lambda, 2000, 5, 'M05', 2, 'overflow is ignored');
+}
+$propertyBag = ['year' => 2000, 'month' => 13, 'day' => 34];
+$explicit = \Temporal\PlainDate::from($propertyBag, []);
+TemporalHelpers::assertPlainDate($explicit, 2000, 12, 'M12', 31, 'default overflow is constrain');
+$implicit = \Temporal\PlainDate::from($propertyBag, new \stdClass());
+TemporalHelpers::assertPlainDate($implicit, 2000, 12, 'M12', 31, 'default overflow is constrain');
+$lambda = \Temporal\PlainDate::from($propertyBag, function () {  });
+TemporalHelpers::assertPlainDate($lambda, 2000, 12, 'M12', 31, 'default overflow is constrain');

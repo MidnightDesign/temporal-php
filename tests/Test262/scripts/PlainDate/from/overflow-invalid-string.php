@@ -7,11 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = \Temporal\PlainDate::from('2019-10-29');
-$bag = ['year' => 2019, 'month' => 10, 'day' => 29];
-$invalidValues = ['CONSTRAIN', 'balance', 'other string'];
-foreach ($invalidValues as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from($d, ['overflow' => $overflow]), "overflow: \"{$overflow}\" (PlainDate input)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from($bag, ['overflow' => $overflow]), "overflow: \"{$overflow}\" (property bag input)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from('2019-10-29', ['overflow' => $overflow]), "overflow: \"{$overflow}\" (string input)");
-}
+Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');

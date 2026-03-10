@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $plainDate = \Temporal\PlainDate::from('1963-02-13');
+$plainDate2 = \Temporal\PlainDate::from('1963-02-13');
 Assert::throws(\TypeError::class, fn() => $plainDate->valueOf(), 'valueOf');
+Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');

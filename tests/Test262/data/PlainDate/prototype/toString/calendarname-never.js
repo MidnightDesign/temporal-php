@@ -3,12 +3,10 @@
 
 /*---
 esid: sec-temporal.plaindate.prototype.tostring
-description: calendarName: "never" suppresses the calendar annotation
+description: If calendarName is "never", the calendar ID should be omitted.
 features: [Temporal]
 ---*/
 
-const d = new Temporal.PlainDate(2000, 5, 2);
-assert.sameValue(d.toString({ calendarName: "never" }), "2000-05-02");
-
-const d2 = new Temporal.PlainDate(1976, 11, 18);
-assert.sameValue(d2.toString({ calendarName: "never" }), "1976-11-18");
+const date = new Temporal.PlainDate(2000, 5, 2);
+const result = date.toString({ calendarName: "never" });
+assert.sameValue(result, "2000-05-02", `built-in ISO calendar for calendarName = never`);

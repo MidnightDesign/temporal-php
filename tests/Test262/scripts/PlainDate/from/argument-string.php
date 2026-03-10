@@ -8,12 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('1976-11-18'), 1976, 11, 'M11', 18, 'basic ISO string');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('2019-06-30'), 2019, 6, 'M06', 30, 'another ISO string');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('+000050-06-30'), 50, 6, 'M06', 30, 'extended year positive');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('+010583-06-30'), 10_583, 6, 'M06', 30, 'large positive extended year');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('-010583-06-30'), -10_583, 6, 'M06', 30, 'negative extended year');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('-000333-06-30'), -333, 6, 'M06', 30, 'small negative extended year');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('19761118'), 1976, 11, 'M11', 18, 'compact format');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('1976-11-18T152330.1+00:00'), 1976, 11, 'M11', 18, 'with time and offset');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('19761118T15:23:30.1+00:00'), 1976, 11, 'M11', 18, 'compact with time');
+$tests = [['1976-11-18', 1976, 11, 'M11', 18], ['2019-06-30', 2019, 6, 'M06', 30], ['+000050-06-30', 50, 6, 'M06', 30], ['+010583-06-30', 10_583, 6, 'M06', 30], ['-010583-06-30', -10_583, 6, 'M06', 30], ['-000333-06-30', -333, 6, 'M06', 30], ['19761118', 1976, 11, 'M11', 18], ['+0019761118', 1976, 11, 'M11', 18], ['1976-11-18T152330.1+00:00', 1976, 11, 'M11', 18], ['19761118T15:23:30.1+00:00', 1976, 11, 'M11', 18], ['1976-11-18T15:23:30.1+0000', 1976, 11, 'M11', 18], ['1976-11-18T152330.1+0000', 1976, 11, 'M11', 18], ['19761118T15:23:30.1+0000', 1976, 11, 'M11', 18], ['19761118T152330.1+00:00', 1976, 11, 'M11', 18], ['19761118T152330.1+0000', 1976, 11, 'M11', 18], ['+001976-11-18T152330.1+00:00', 1976, 11, 'M11', 18], ['+0019761118T15:23:30.1+00:00', 1976, 11, 'M11', 18], ['+001976-11-18T15:23:30.1+0000', 1976, 11, 'M11', 18], ['+001976-11-18T152330.1+0000', 1976, 11, 'M11', 18], ['+0019761118T15:23:30.1+0000', 1976, 11, 'M11', 18], ['+0019761118T152330.1+00:00', 1976, 11, 'M11', 18], ['+0019761118T152330.1+0000', 1976, 11, 'M11', 18]];
+foreach ($tests as [$input, $__unknown__]) {
+$result = \Temporal\PlainDate::from($input);
+TemporalHelpers::assertPlainDate($result, ...[$expected, "from({$input})"]);
+}

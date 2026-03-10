@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$original = new \Temporal\PlainDate(1976, 11, 18);
-TemporalHelpers::assertPlainDate($original->with(['year' => 2019, 'hour' => 12, 'minute' => 30, 'second' => 45]), 2019, 11, 'M11', 18, 'hour/minute/second are ignored');
-TemporalHelpers::assertPlainDate($original->with(['day' => 5, 'millisecond' => 500, 'microsecond' => 250, 'nanosecond' => 100]), 1976, 11, 'M11', 5, 'millisecond/microsecond/nanosecond are ignored');
+$d1 = new \Temporal\PlainDate(1911, 10, 10);
+TemporalHelpers::assertPlainDate($d1->with(['year' => 2021, 'hour' => 30]), 2021, 10, 'M10', 10);
+TemporalHelpers::assertPlainDate($d1->with(['month' => 11, 'minute' => 71]), 1911, 11, 'M11', 10);
+TemporalHelpers::assertPlainDate($d1->with(['monthCode' => 'M05', 'second' => 90]), 1911, 5, 'M05', 10);
+TemporalHelpers::assertPlainDate($d1->with(['day' => 30, 'era' => 'BC']), 1911, 10, 'M10', 30);

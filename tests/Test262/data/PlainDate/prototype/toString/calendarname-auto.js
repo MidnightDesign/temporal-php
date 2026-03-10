@@ -3,10 +3,10 @@
 
 /*---
 esid: sec-temporal.plaindate.prototype.tostring
-description: calendarName: "auto" omits the calendar annotation for iso8601
+description: If calendarName is "auto", "iso8601" should be omitted.
 features: [Temporal]
 ---*/
 
-const d = new Temporal.PlainDate(2000, 5, 2);
-assert.sameValue(d.toString({ calendarName: "auto" }), "2000-05-02");
-assert.sameValue(d.toString({}), "2000-05-02");
+const date = new Temporal.PlainDate(2000, 5, 2);
+const result = date.toString({ calendarName: "auto" });
+assert.sameValue(result, "2000-05-02", `built-in ISO calendar for calendarName = auto`);

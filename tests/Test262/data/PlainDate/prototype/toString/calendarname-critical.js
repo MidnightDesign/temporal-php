@@ -3,12 +3,12 @@
 
 /*---
 esid: sec-temporal.plaindate.prototype.tostring
-description: calendarName: "critical" appends the critical calendar annotation
+description: >
+  If calendarName is "calendar", the calendar ID should be included and prefixed
+  with "!".
 features: [Temporal]
 ---*/
 
-const d = new Temporal.PlainDate(2000, 5, 2);
-assert.sameValue(d.toString({ calendarName: "critical" }), "2000-05-02[!u-ca=iso8601]");
-
-const d2 = new Temporal.PlainDate(1976, 11, 18);
-assert.sameValue(d2.toString({ calendarName: "critical" }), "1976-11-18[!u-ca=iso8601]");
+const date = new Temporal.PlainDate(2000, 5, 2);
+const result = date.toString({ calendarName: "critical" });
+assert.sameValue(result, "2000-05-02[!u-ca=iso8601]", `built-in ISO calendar for calendarName = critical`);

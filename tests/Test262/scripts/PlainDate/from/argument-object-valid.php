@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 2019, 'month' => 10, 'monthCode' => 'M10', 'day' => 1]), 2019, 10, 'M10', 1, 'month and monthCode both present');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 1976, 'month' => 11, 'day' => 18]), 1976, 11, 'M11', 18, 'month only');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 1976, 'monthCode' => 'M11', 'day' => 18]), 1976, 11, 'M11', 18, 'monthCode only');
+$valid = [[['year' => 2019, 'month' => 10, 'monthCode' => 'M10', 'day' => 1, 'hour' => 14, 'minute' => 20, 'second' => 36], 2019, 10, 'M10', 1], [['year' => 1976, 'month' => 11, 'day' => 18], 1976, 11, 'M11', 18], [['year' => 1976, 'monthCode' => 'M11', 'day' => 18], 1976, 11, 'M11', 18], [['year' => 1976, 'month' => 11, 'day' => 18, 'days' => 15], 1976, 11, 'M11', 18]];
+foreach ($valid as [$dateTimeFields, $__unknown__]) {
+$plainDate = \Temporal\PlainDate::from($dateTimeFields);
+TemporalHelpers::assertPlainDate($plainDate, ...[$expected, "from({$JSON->stringify($dateTimeFields)}"]);
+}

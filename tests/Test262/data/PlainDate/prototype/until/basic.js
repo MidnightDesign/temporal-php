@@ -1,25 +1,42 @@
-// Copyright (C) 2021 Igalia, S.L. All rights reserved.
+// Copyright (C) 2025 Igalia, S.L. All rights reserved.
 // This code is governed by the BSD license found in the LICENSE file.
 
 /*---
 esid: sec-temporal.plaindate.prototype.until
-description: Basic until() operations returning days
+description: >
+  Check various basic calculations not involving leap years or constraining
+includes: [temporalHelpers.js]
 features: [Temporal]
 ---*/
 
-// Same date → zero duration
-const d = new Temporal.PlainDate(2000, 1, 1);
-assert.sameValue(d.until(d).days, 0, "until same date is 0 days");
+const date = Temporal.PlainDate.from({year: 1969, monthCode: "M07", day: 24 });
+const date2 = Temporal.PlainDate.from({year: 1969, monthCode: "M10", day: 5 });
+TemporalHelpers.assertDuration(date2.until(date, { largestUnit: "days" }), 0, 0, 0, /* days = */ -73, 0, 0, 0, 0, 0, 0, "same year");
 
-// Simple day difference
-const d1 = new Temporal.PlainDate(2024, 1, 1);
-const d2 = new Temporal.PlainDate(2024, 1, 15);
-assert.sameValue(d1.until(d2).days, 14, "14 day difference");
+const earlier = date;
+const later = Temporal.PlainDate.from({year: 1996, monthCode: "M03", day: 3 });
+var duration = later.until(earlier, { largestUnit: "days" });
+TemporalHelpers.assertDuration(duration, 0, 0, 0, /* days = */ -9719, 0, 0, 0, 0, 0, 0, "different year");
 
-// Cross month boundary
-const d3 = new Temporal.PlainDate(2024, 1, 25);
-const d4 = new Temporal.PlainDate(2024, 2, 5);
-assert.sameValue(d3.until(d4).days, 11, "11 days across January/February");
+// Years
 
-// Negative (later.until(earlier) should be negative)
-assert.sameValue(d2.until(d1).days, -14, "negative when going backwards");
+const date19971201 = Temporal.PlainDate.from({year: 1997, monthCode: "M12", day: 1 });
+const date20010618 = Temporal.PlainDate.from({year: 2001, monthCode: "M06", day: 18 });
+duration = date19971201.until(date20010618, { largestUnit: "years" });
+TemporalHelpers.assertDuration(duration, 3, 6, 0, 17, 0, 0, 0, 0, 0, 0, "3 years, 6 months, 17 days");
+
+// Months
+const date20001201 = Temporal.PlainDate.from({year: 2000, monthCode: "M12", day: 1 });
+const date20010601 = Temporal.PlainDate.from({year: 2001, monthCode: "M06", day: 1 });
+duration = date20001201.until(date20010601, { largestUnit: "months" });
+TemporalHelpers.assertDuration(duration, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, "6 months");
+
+// Weeks
+const date20000101 = Temporal.PlainDate.from({year: 2000, monthCode: "M01", day: 1 });
+const date20001007 = Temporal.PlainDate.from({year: 2000, monthCode: "M10", day: 7 });
+duration = date20000101.until(date20001007, { largestUnit: "weeks" });
+TemporalHelpers.assertDuration(duration, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, "40 weeks");
+
+// Days
+duration = date20000101.until(date20001007, { largestUnit: "days" });
+TemporalHelpers.assertDuration(duration, 0, 0, 0, 280, 0, 0, 0, 0, 0, 0, "40 weeks");

@@ -8,8 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(), 'no argument');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(null), 'undefined');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(null), 'null');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(true), 'boolean');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(1), 'number');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from(''), 'empty string');
+$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
+foreach ($primitiveTests as [$arg, $description]) {
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainDate::from($arg), "{$description} does not convert to a valid ISO string");
+foreach ([null, ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainDate::from($arg, $options), "{$description} does not convert to a valid ISO string with options {$options}");
+}
+}
+Assert::incomplete('untranslatable: Symbol()');

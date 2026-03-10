@@ -7,7 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = new \Temporal\PlainDate(2000, 5, 2);
-Assert::sameValue($d->toString(['calendarName' => 'always']), '2000-05-02[u-ca=iso8601]', '');
-$d2 = new \Temporal\PlainDate(1976, 11, 18);
-Assert::sameValue($d2->toString(['calendarName' => 'always']), '1976-11-18[u-ca=iso8601]', '');
+$date = new \Temporal\PlainDate(2000, 5, 2);
+$result = $date->toString(['calendarName' => 'always']);
+Assert::sameValue($result, '2000-05-02[u-ca=iso8601]', "built-in ISO calendar for calendarName = always");

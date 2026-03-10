@@ -7,12 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = new \Temporal\PlainDate(2000, 5, 2);
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::compare(null, $d), 'undefined, first arg');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::compare(null, $d), 'null, first arg');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::compare(true, $d), 'boolean, first arg');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::compare('', $d), 'empty string, first arg');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::compare($d, null), 'undefined, second arg');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::compare($d, null), 'null, second arg');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::compare($d, true), 'boolean, second arg');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::compare($d, ''), 'empty string, second arg');
+$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
+foreach ($primitiveTests as [$arg, $description]) {
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainDate::compare($arg, new \Temporal\PlainDate(1976, 11, 18)), "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainDate::compare(new \Temporal\PlainDate(1976, 11, 18), $arg), "{$description} does not convert to a valid ISO string (second argument)");
+}
+Assert::incomplete('untranslatable: Symbol()');

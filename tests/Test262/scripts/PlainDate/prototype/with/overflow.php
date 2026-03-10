@@ -8,7 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$original = new \Temporal\PlainDate(1976, 11, 18);
-TemporalHelpers::assertPlainDate($original->with(['day' => 31], ['overflow' => 'constrain']), 1976, 11, 'M11', 30, 'day 31 in November constrained to 30');
-TemporalHelpers::assertPlainDate($original->with(['month' => 2, 'day' => 30], ['overflow' => 'constrain']), 1976, 2, 'M02', 29, 'day 30 in February 1976 (leap year) constrained to 29');
-Assert::throws(\InvalidArgumentException::class, fn() => $original->with(['day' => 31], ['overflow' => 'reject']), 'day 31 in November should throw with overflow: reject');
+$date = new \Temporal\PlainDate(1976, 11, 18);
+Assert::throws(\InvalidArgumentException::class, fn() => $date->with(['year' => -300_000]), 'too-low year rejects even with overflow constrain');
+Assert::throws(\InvalidArgumentException::class, fn() => $date->with(['year' => 300_000]), 'too-high year rejects even with overflow constrain');
+Assert::throws(\InvalidArgumentException::class, fn() => $date->with(['month' => 0]), 'non-positive month rejects even with overflow constrain');
+TemporalHelpers::assertPlainDate($date->with(['month' => 13]), 1976, 12, 'M12', 18, 'too-high month is constrained to highest value');
+Assert::incomplete('untranslatable expression: FunctionExpression');

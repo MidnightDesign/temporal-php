@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\PlainDate(1976, 11, 18)->monthsInYear, 12, '');
+$plainDate = new \Temporal\PlainDate(1976, 11, 18);
+Assert::sameValue($plainDate->monthsInYear, 12, '');
 Assert::sameValue(new \Temporal\PlainDate(1234, 7, 15)->monthsInYear, 12, '');
 Assert::sameValue(\Temporal\PlainDate::from('2019-03-18')->monthsInYear, 12, '');
-Assert::sameValue(\Temporal\PlainDate::from('2020-06-30')->monthsInYear, 12, '');
+Assert::sameValue(\Temporal\PlainDate::from('1234-03-18')->monthsInYear, 12, '');

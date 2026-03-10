@@ -2,7 +2,7 @@
 // This code is governed by the BSD license found in the LICENSE file.
 
 /*---
-esid: sec-get-temporal.plaindate.prototype.monthcode
+esid: sec-temporal.plaindate.prototype.monthcode
 description: monthCode property for PlainDate
 features: [Temporal]
 ---*/
