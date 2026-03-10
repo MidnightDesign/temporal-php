@@ -11,4 +11,3 @@ $instance = new \Temporal\Duration(1);
 foreach (['UTC', '+01:00'] as $timeZone) {
 $instance->round(['largestUnit' => 'months', 'relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
 }
-Assert::assertTrue(true); // no assertions: test only verifies no exception is thrown

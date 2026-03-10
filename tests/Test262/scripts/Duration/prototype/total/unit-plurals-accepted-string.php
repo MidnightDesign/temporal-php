@@ -11,4 +11,3 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Duration(0, 0, 0, 4, 5, 6, 7, 987, 654, 321);
 $validUnits = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($unit) => $duration->total($unit), $validUnits);
-Assert::assertTrue(true); // no assertions: test only verifies no exception is thrown

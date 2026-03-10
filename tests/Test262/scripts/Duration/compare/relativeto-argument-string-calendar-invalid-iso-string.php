@@ -10,7 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance_1 = new \Temporal\Duration(1);
 $instance_2 = new \Temporal\Duration(2);
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar']];
-foreach ($invalidStrings as $___item) {
-[$arg, $description] = array_pad($___item, 2, null);
+foreach ($invalidStrings as [$arg, $description]) {
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($instance_1, $instance_2, ['relativeTo' => $arg]), "{$description} is not a valid calendar ID");
 }

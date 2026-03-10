@@ -9,7 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
-foreach ($primitiveTests as $___item) {
-[$timeZone, $description] = array_pad($___item, 2, null);
+foreach ($primitiveTests as [$timeZone, $description]) {
 Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');
 }

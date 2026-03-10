@@ -17,6 +17,131 @@ use Stringable;
  */
 final class PlainDate implements Stringable
 {
+    // -------------------------------------------------------------------------
+    // Virtual (get-only) properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * Always "iso8601" — the only supported calendar.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public string $calendarId { get => 'iso8601'; }
+
+    /**
+     * Always undefined (null) for the ISO 8601 calendar.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public ?string $era { get => null; }
+
+    /**
+     * Always undefined (null) for the ISO 8601 calendar.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public ?int $eraYear { get => null; }
+
+    /**
+     * Month code in "M01"–"M12" format.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public string $monthCode { get => sprintf('M%02d', $this->month); }
+
+    /**
+     * ISO 8601 day of week: 1 = Monday, 7 = Sunday.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $dayOfWeek { get => self::isoWeekday($this->year, $this->month, $this->day); }
+
+    /**
+     * Ordinal day of the year: 1–366.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $dayOfYear { get => self::calcDayOfYear($this->year, $this->month, $this->day); }
+
+    /**
+     * ISO 8601 week number: 1–53.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $weekOfYear { get => self::isoWeekInfo($this->year, $this->month, $this->day)['week']; }
+
+    /**
+     * ISO 8601 week-year (may differ from calendar year near year boundaries).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $yearOfWeek { get => self::isoWeekInfo($this->year, $this->month, $this->day)['year']; }
+
+    /**
+     * Number of days in this date's month.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $daysInMonth { get => self::calcDaysInMonth($this->year, $this->month); }
+
+    /**
+     * Always 7 (ISO 8601 calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $daysInWeek { get => 7; }
+
+    /**
+     * 365 or 366, depending on whether this date's year is a leap year.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $daysInYear { get => self::isLeapYear($this->year) ? 366 : 365; }
+
+    /**
+     * Always 12 (ISO 8601 calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public int $monthsInYear { get => 12; }
+
+    /**
+     * True if this date's year is a leap year.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
+     * @psalm-api
+     */
+    public bool $inLeapYear { get => self::isLeapYear($this->year); }
+
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
+
     /**
      * @throws InvalidArgumentException if year/month/day form an invalid ISO date.
      */
@@ -35,7 +160,7 @@ final class PlainDate implements Stringable
                 "Invalid PlainDate: day {$day} must be at least 1.",
             );
         }
-        $daysInMonth = self::daysInMonth($year, $month);
+        $daysInMonth = self::calcDaysInMonth($year, $month);
         if ($day > $daysInMonth) {
             throw new InvalidArgumentException(
                 "Invalid PlainDate: day {$day} exceeds {$daysInMonth} for {$year}-{$month}.",
@@ -44,7 +169,7 @@ final class PlainDate implements Stringable
     }
 
     // -------------------------------------------------------------------------
-    // Static factory methods
+    // Static factory / comparison methods
     // -------------------------------------------------------------------------
 
     /**
@@ -73,13 +198,68 @@ final class PlainDate implements Stringable
         );
     }
 
+    /**
+     * Compares two PlainDates chronologically.
+     *
+     * Returns -1, 0, or +1 (or a value with the same sign).
+     *
+     * @param self|string $one
+     * @param self|string $two
+     * @psalm-api
+     */
+    public static function compare(mixed $one, mixed $two): int
+    {
+        $a = $one instanceof self ? $one : self::from($one);
+        $b = $two instanceof self ? $two : self::from($two);
+
+        if ($a->year !== $b->year) {
+            return $a->year <=> $b->year;
+        }
+        if ($a->month !== $b->month) {
+            return $a->month <=> $b->month;
+        }
+        return $a->day <=> $b->day;
+    }
+
     // -------------------------------------------------------------------------
     // Instance methods
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns true if this PlainDate is the same date as $other.
+     *
+     * @param mixed $other A PlainDate or ISO 8601 date string.
+     * @psalm-api
+     */
+    public function equals(mixed $other): bool
+    {
+        $o = $other instanceof self ? $other : self::from($other);
+        return $this->year === $o->year
+            && $this->month === $o->month
+            && $this->day === $o->day;
+    }
+
     public function toString(): string
     {
         return sprintf('%04d-%02d-%02d', $this->year, $this->month, $this->day);
+    }
+
+    /** @psalm-api */
+    public function toJSON(): string
+    {
+        return $this->toString();
+    }
+
+    /**
+     * Always throws TypeError — PlainDate must not be used in arithmetic context.
+     *
+     * @throws \TypeError always.
+     * @psalm-return never
+     * @psalm-api
+     */
+    public function valueOf(): never
+    {
+        throw new \TypeError('PlainDate objects are not orderable');
     }
 
     #[\Override]
@@ -175,7 +355,7 @@ final class PlainDate implements Stringable
     /**
      * Returns the number of days in the given ISO calendar month.
      */
-    private static function daysInMonth(int $year, int $month): int
+    private static function calcDaysInMonth(int $year, int $month): int
     {
         return match ($month) {
             1, 3, 5, 7, 8, 10, 12 => 31,
@@ -188,5 +368,73 @@ final class PlainDate implements Stringable
     private static function isLeapYear(int $year): bool
     {
         return ($year % 4 === 0 && $year % 100 !== 0) || ($year % 400 === 0);
+    }
+
+    /**
+     * ISO 8601 day of week using Sakamoto's algorithm.
+     *
+     * Returns 1 = Monday … 7 = Sunday.
+     */
+    private static function isoWeekday(int $year, int $month, int $day): int
+    {
+        /** @var array<int, int> $t */
+        static $t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+        if ($month < 3) {
+            $year--;
+        }
+        $dow = ($year
+            + intdiv(num1: $year, num2: 4)
+            - intdiv(num1: $year, num2: 100)
+            + intdiv(num1: $year, num2: 400)
+            + $t[$month - 1]
+            + $day) % 7;
+        return $dow === 0 ? 7 : $dow;
+    }
+
+    /**
+     * Ordinal day of the year (1 = January 1).
+     */
+    private static function calcDayOfYear(int $year, int $month, int $day): int
+    {
+        /** @var array<int, int> $cumDays */
+        static $cumDays = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+        $result = $cumDays[$month - 1] + $day;
+        if ($month > 2 && self::isLeapYear($year)) {
+            $result++;
+        }
+        return $result;
+    }
+
+    /**
+     * Returns the ISO 8601 week number and week-year for the given date.
+     *
+     * @return array{week: int, year: int}
+     * @psalm-suppress UnusedMethod — called from weekOfYear and yearOfWeek property hooks
+     */
+    private static function isoWeekInfo(int $year, int $month, int $day): array
+    {
+        $dow     = self::isoWeekday($year, $month, $day);
+        $ordinal = self::calcDayOfYear($year, $month, $day);
+
+        // Move to the Thursday of this ISO week; its ordinal determines the week number.
+        $thursdayOrdinal = $ordinal + (4 - $dow);
+
+        if ($thursdayOrdinal < 1) {
+            // Thursday fell in the previous year → last week of that year.
+            $prevYear    = $year - 1;
+            $dec31Dow    = self::isoWeekday($prevYear, 12, 31);
+            $dec31Ord    = self::isLeapYear($prevYear) ? 366 : 365;
+            $prevWeek    = intdiv(num1: $dec31Ord + (4 - $dec31Dow) - 1, num2: 7) + 1;
+            return ['week' => $prevWeek, 'year' => $prevYear];
+        }
+
+        $yearDays = self::isLeapYear($year) ? 366 : 365;
+        if ($thursdayOrdinal > $yearDays) {
+            // Thursday fell in the next year → week 1 of next year.
+            return ['week' => 1, 'year' => $year + 1];
+        }
+
+        $week = intdiv(num1: $thursdayOrdinal - 1, num2: 7) + 1;
+        return ['week' => $week, 'year' => $year];
     }
 }

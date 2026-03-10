@@ -18,6 +18,11 @@ level = "error"
 level = "error"
 threshold = 60
 
+# PlainDate has 13+ virtual properties per TC39 spec (calendarId, era, eraYear, monthCode, etc.)
+[linter.rules.too-many-properties]
+level = "error"
+threshold = 20
+
 # Duration has 10 fields + compare/round/total and many private calendar-arithmetic helpers by spec;
 # class-level metrics reflect inherent TC39 complexity.
 [linter.rules.cyclomatic-complexity]

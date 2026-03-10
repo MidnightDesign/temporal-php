@@ -9,8 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Instant(1_000_000_000_123_456_789);
 $test = function ($instance, $expectations, $description) {
-foreach ($expectations as $___item) {
-[$smallestUnit, $expectedResult] = array_pad($___item, 2, null);
+foreach ($expectations as [$smallestUnit, $expectedResult]) {
 Assert::sameValue($instance->toString(['smallestUnit' => $smallestUnit]), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
 }
 };

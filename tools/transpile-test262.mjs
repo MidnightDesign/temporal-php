@@ -59,10 +59,12 @@ const IMPLEMENTED = new Set([
   'Instant::equals',
   'Instant::toString',
   'Instant::toJSON',
+  'PlainDate::from',
+  'PlainDate::compare',
 ]);
 
 /** Temporal classes whose constructors are implemented. */
-const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant']);
+const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate']);
 
 /**
  * Instance methods on Temporal classes that are NOT yet implemented.
@@ -117,6 +119,10 @@ const PHP_IMPLEMENTED_METHODS = {
     '__construct', 'from', 'negated', 'abs', 'equals', 'with',
     'add', 'subtract', 'total', 'toString', 'toJSON', 'valueOf',
     'compare', 'round',
+  ]),
+  PlainDate: new Set([
+    '__construct', 'from', 'compare',
+    'equals', 'toString', 'toJSON', 'valueOf',
   ]),
 };
 
@@ -938,9 +944,11 @@ class Emitter {
       }
       // JS auto-coerces objects to strings; PHP does not. If an objectVars variable
       // is passed to a string-accepting method, the test relies on JS-specific behaviour.
-      // Duration.from/compare accept property bags (objects), so no coercion needed there.
+      // Duration.from/compare and PlainDate.from/compare accept property bags (objects),
+      // so no coercion needed there.
+      const propertyBagClasses = new Set(['Duration', 'PlainDate']);
       const stringArgMethods = new Set(['from', 'compare']);
-      if (className !== 'Duration' && stringArgMethods.has(method) && node.arguments.some(
+      if (!propertyBagClasses.has(className) && stringArgMethods.has(method) && node.arguments.some(
           a => a.type === 'Identifier' && this.objectVars.has(a.name)
       )) {
         this.emitIncomplete('JS object-to-string coercion not replicable in PHP');

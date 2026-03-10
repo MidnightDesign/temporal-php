@@ -9,16 +9,12 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $maxCases = [['PT2400000000H', 'string with max hours'], [['hours' => 2_400_000_000], 'property bag with max hours'], ['PT144000000000M', 'string with max minutes'], [['minutes' => 144_000_000_000], 'property bag with max minutes'], ['PT8640000000000S', 'string with max seconds'], [['seconds' => 8_640_000_000_000], 'property bag with max seconds']];
-foreach ($maxCases as $___item) {
-[$arg, $descr] = array_pad($___item, 2, null);
+foreach ($maxCases as [$arg, $descr]) {
 $result = $instance->subtract($arg);
-// SKIP (int64 overflow): negative BigInt check skipped
-Assert::assertTrue(true);
 }
 $minCases = [['-PT2400000000H', 'string with min hours'], [['hours' => -2_400_000_000], 'property bag with min hours'], ['-PT144000000000M', 'string with min minutes'], [['minutes' => -144_000_000_000], 'property bag with min minutes'], ['-PT8640000000000S', 'string with min seconds'], [['seconds' => -8_640_000_000_000], 'property bag with min seconds']];
-foreach ($minCases as $___item) {
-[$arg, $descr] = array_pad($___item, 2, null);
+foreach ($minCases as [$arg, $descr]) {
 $result = $instance->subtract($arg);
 // SKIP (int64 overflow): Assert::sameValue($result->epochNanoseconds, 8640000000000000000000, ...);
-Assert::assertTrue(true);
+/* skipped */;
 }

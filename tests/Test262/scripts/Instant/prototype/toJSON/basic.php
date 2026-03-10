@@ -9,8 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $tests = [[new \Temporal\Instant(192_258_181_000_000_000), '1976-02-04T05:03:01Z'], [new \Temporal\Instant(0), '1970-01-01T00:00:00Z'], [new \Temporal\Instant(30_000_000_000), '1970-01-01T00:00:30Z'], [new \Temporal\Instant(30_123_400_000), '1970-01-01T00:00:30.1234Z']];
 $options = null;
-foreach ($tests as $___item) {
-[$instant, $expected] = array_pad($___item, 2, null);
+foreach ($tests as [$instant, $expected]) {
 Assert::sameValue($instant->toJSON(), $expected, 'toJSON without argument');
 Assert::sameValue($instant->toJSON($options), $expected, 'toJSON with argument');
 }

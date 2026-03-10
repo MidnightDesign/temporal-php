@@ -12,4 +12,3 @@ $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 $relativeTo = new \Temporal\PlainDate(2000, 1, 1);
 $validUnits = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $duration->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $relativeTo]), $validUnits);
-Assert::assertTrue(true); // no assertions: test only verifies no exception is thrown
