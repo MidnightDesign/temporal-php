@@ -311,6 +311,38 @@ final class PlainDate implements Stringable
     }
 
     /**
+     * Returns a new PlainDate with the given duration added.
+     *
+     * Years and months are added calendrically (month overflow is carried into
+     * year; day is clamped or rejected per `overflow` option). Weeks and days
+     * are added using Julian Day Numbers so they work correctly across month and
+     * year boundaries. Time units are accepted but silently ignored (PlainDate
+     * has no time component).
+     *
+     * @param Duration|array<array-key,mixed>|string $duration
+     * @param mixed                                  $options  ['overflow' => 'constrain'|'reject']
+     * @psalm-api
+     */
+    public function add(mixed $duration, mixed $options = null): self
+    {
+        $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
+        return $this->addDuration(1, $dur, $options);
+    }
+
+    /**
+     * Returns a new PlainDate with the given duration subtracted.
+     *
+     * @param Duration|array<array-key,mixed>|string $duration
+     * @param mixed                                  $options  ['overflow' => 'constrain'|'reject']
+     * @psalm-api
+     */
+    public function subtract(mixed $duration, mixed $options = null): self
+    {
+        $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
+        return $this->addDuration(-1, $dur, $options);
+    }
+
+    /**
      * Returns true if this PlainDate is the same date as $other.
      *
      * @param mixed $other A PlainDate or ISO 8601 date string.
@@ -471,6 +503,104 @@ final class PlainDate implements Stringable
     /**
      * Returns the number of days in the given ISO calendar month.
      */
+    /**
+     * Shared implementation for add() and subtract().
+     *
+     * @param mixed $options ['overflow' => 'constrain'|'reject']
+     */
+    private function addDuration(int $sign, Duration $dur, mixed $options): self
+    {
+        $overflow = 'constrain';
+        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+            /** @var mixed $ov */
+            $ov = $options['overflow'];
+            if (!is_string($ov)) {
+                throw new \TypeError('overflow option must be a string.');
+            }
+            if ($ov !== 'constrain' && $ov !== 'reject') {
+                throw new InvalidArgumentException(
+                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
+                );
+            }
+            $overflow = $ov;
+        }
+
+        $years  = $sign * (int) $dur->years;
+        $months = $sign * (int) $dur->months;
+        $days   = $sign * ((int) $dur->weeks * 7 + (int) $dur->days);
+
+        // Add years/months calendrically.
+        $newYear  = $this->year + $years;
+        $newMonth = $this->month + $months;
+
+        // Normalize month into 1–12, carrying into year.
+        if ($newMonth > 12) {
+            $newYear  += intdiv(num1: $newMonth - 1, num2: 12);
+            $newMonth  = (($newMonth - 1) % 12) + 1;
+        } elseif ($newMonth < 1) {
+            $newYear  += intdiv(num1: $newMonth - 12, num2: 12);
+            $newMonth  = (($newMonth - 1) % 12 + 12) % 12 + 1;
+        }
+
+        // Clamp or reject day within new month.
+        $newDay  = $this->day;
+        $maxDay  = self::calcDaysInMonth($newYear, $newMonth);
+        if ($newDay > $maxDay) {
+            if ($overflow === 'constrain') {
+                $newDay = $maxDay;
+            } else {
+                throw new InvalidArgumentException(
+                    "Day {$newDay} is out of range for {$newYear}-{$newMonth}.",
+                );
+            }
+        }
+
+        // Add days via Julian Day Number to handle month/year boundaries.
+        if ($days !== 0) {
+            $jdn = self::toJulianDay($newYear, $newMonth, $newDay) + $days;
+            [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn);
+        }
+
+        return new self($newYear, $newMonth, $newDay);
+    }
+
+    /**
+     * Converts a proleptic Gregorian calendar date to a Julian Day Number.
+     * Algorithm: Richards (2013).
+     */
+    private static function toJulianDay(int $year, int $month, int $day): int
+    {
+        $a = intdiv(num1: 14 - $month, num2: 12);
+        $y = $year + 4800 - $a;
+        $m = $month + 12 * $a - 3;
+        return $day
+            + intdiv(num1: 153 * $m + 2, num2: 5)
+            + 365 * $y
+            + intdiv(num1: $y, num2: 4)
+            - intdiv(num1: $y, num2: 100)
+            + intdiv(num1: $y, num2: 400)
+            - 32_045;
+    }
+
+    /**
+     * Converts a Julian Day Number to a proleptic Gregorian calendar date.
+     *
+     * @return array{0: int, 1: int, 2: int} [year, month, day]
+     */
+    private static function fromJulianDay(int $jdn): array
+    {
+        $a = $jdn + 32_044;
+        $b = intdiv(num1: 4 * $a + 3, num2: 146_097);
+        $c = $a - intdiv(num1: 146_097 * $b, num2: 4);
+        $d = intdiv(num1: 4 * $c + 3, num2: 1_461);
+        $e = $c - intdiv(num1: 1_461 * $d, num2: 4);
+        $m = intdiv(num1: 5 * $e + 2, num2: 153);
+        $day   = $e - intdiv(num1: 153 * $m + 2, num2: 5) + 1;
+        $month = $m + 3 - 12 * intdiv(num1: $m, num2: 10);
+        $year  = 100 * $b + $d - 4800 + intdiv(num1: $m, num2: 10);
+        return [$year, $month, $day];
+    }
+
     private static function calcDaysInMonth(int $year, int $month): int
     {
         return match ($month) {
