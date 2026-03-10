@@ -245,6 +245,72 @@ final class PlainDate implements Stringable
     // -------------------------------------------------------------------------
 
     /**
+     * Returns a new PlainDate with the specified fields overridden.
+     *
+     * Only 'year', 'month', 'monthCode', and 'day' fields are recognized.
+     * Time fields are silently ignored. The 'calendar' and 'timeZone' keys
+     * must not be present.
+     *
+     * @param array<array-key,mixed> $fields   Property bag with fields to override.
+     * @param mixed                  $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
+     * @throws InvalidArgumentException if the resulting date is invalid (overflow: reject).
+     * @psalm-api
+     */
+    public function with(array $fields, mixed $options = null): self
+    {
+        if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
+            throw new \TypeError(
+                'PlainDate::with() fields must not contain a calendar or timeZone property.',
+            );
+        }
+
+        // Validate and extract overflow option.
+        $overflow = 'constrain';
+        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+            /** @var mixed $ov */
+            $ov = $options['overflow'];
+            if (!is_string($ov)) {
+                throw new \TypeError('overflow option must be a string.');
+            }
+            if ($ov !== 'constrain' && $ov !== 'reject') {
+                throw new InvalidArgumentException(
+                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
+                );
+            }
+            $overflow = $ov;
+        }
+
+        // Merge: start from current fields and override with provided ones.
+        $year  = array_key_exists('year', $fields)
+            ? (int) $fields['year']
+            : $this->year;
+        $month = $this->month;
+        if (array_key_exists('month', $fields)) {
+            /** @var mixed $m */
+            $m     = $fields['month'];
+            /** @phpstan-ignore cast.int */
+            $month = (int) $m;
+        } elseif (array_key_exists('monthCode', $fields)) {
+            /** @var mixed $mc */
+            $mc    = $fields['monthCode'];
+            /** @phpstan-ignore cast.string */
+            $month = (int) substr(string: (string) $mc, offset: 1);
+        }
+        $day = array_key_exists('day', $fields)
+            ? (int) $fields['day']
+            : $this->day;
+
+        if ($overflow === 'constrain') {
+            $month = max(1, min(12, $month));
+            $maxDay = self::calcDaysInMonth($year, $month);
+            $day = max(1, min($maxDay, $day));
+        }
+
+        return new self($year, $month, $day);
+    }
+
+    /**
      * Returns true if this PlainDate is the same date as $other.
      *
      * @param mixed $other A PlainDate or ISO 8601 date string.
