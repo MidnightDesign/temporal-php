@@ -487,4 +487,22 @@ final class TemporalHelpers
         $unitDescription = 'string';
         $assertFunc($result, $unitDescription);
     }
+
+    /**
+     * Asserts that two ZonedDateTimes are equal (same epoch, timezone, and calendar).
+     *
+     * Argument order matches JS TemporalHelpers.assertZonedDateTimesEqual(actual, expected, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertZonedDateTimesEqual(
+        \Temporal\ZonedDateTime $actual,
+        \Temporal\ZonedDateTime $expected,
+        string $description = '',
+    ): void {
+        $prefix = $description !== '' ? "{$description}: " : '';
+        PHPUnitAssert::assertTrue($actual->equals($expected), "{$prefix}equals method");
+        PHPUnitAssert::assertSame($expected->timeZoneId, $actual->timeZoneId, "{$prefix}time zone same value:");
+        PHPUnitAssert::assertSame($expected->calendarId, $actual->calendarId, "{$prefix}calendar same value:");
+    }
 }

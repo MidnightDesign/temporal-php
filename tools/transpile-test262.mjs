@@ -116,6 +116,7 @@ const IMPLEMENTED_HELPERS = new Set([
   'checkSubclassingIgnored',
   'checkSubclassingIgnoredStatic',
   'checkRoundingIncrementOptionWrongType',
+  'assertZonedDateTimesEqual',
 ]);
 
 /**
@@ -152,6 +153,12 @@ const PHP_IMPLEMENTED_METHODS = {
   ]),
   Now: new Set([
     'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO',
+  ]),
+  ZonedDateTime: new Set([
+    '__construct', 'from', 'compare',
+    'equals', 'toString', 'toJSON', 'valueOf',
+    'toInstant', 'toPlainDate', 'toPlainTime', 'toPlainDateTime',
+    'withTimeZone', 'withCalendar', 'withPlainTime',
   ]),
 };
 

@@ -2051,9 +2051,7 @@ final class Duration implements Stringable
         if ($zdtRelativeTo) {
             /** @var \Temporal\ZonedDateTime $rtRawForZdt */
             $zdtEpochNs = $rtRawForZdt->epochNanoseconds;
-            $zdtEpochSec = is_int($zdtEpochNs)
-                ? (float) intdiv(num1: $zdtEpochNs, num2: 1_000_000_000)
-                : floor($zdtEpochNs / 1_000_000_000.0);
+            $zdtEpochSec = (float) intdiv(num1: $zdtEpochNs, num2: 1_000_000_000);
             $zdtResultSec = $zdtEpochSec + (float) $sign * $totalAbsSec;
             if ($zdtResultSec > 8_640_000_000_000.0 || $zdtResultSec < -8_640_000_000_000.0) {
                 throw new InvalidArgumentException(
@@ -2417,15 +2415,10 @@ final class Duration implements Stringable
     private static function zdtToPlainDateBag(\Temporal\ZonedDateTime $zdt): array
     {
         $epochNs = $zdt->epochNanoseconds;
-        if (is_int($epochNs)) {
-            // Integer division: floor toward negative infinity.
-            $epochSec = intdiv(num1: $epochNs, num2: 1_000_000_000);
-            if ($epochNs < 0 && $epochNs % 1_000_000_000 !== 0) {
-                $epochSec -= 1;
-            }
-        } else {
-            // Float: use floor division.
-            $epochSec = (int) floor($epochNs / 1_000_000_000.0);
+        // Integer division: floor toward negative infinity.
+        $epochSec = intdiv(num1: $epochNs, num2: 1_000_000_000);
+        if ($epochNs < 0 && $epochNs % 1_000_000_000 !== 0) {
+            $epochSec -= 1;
         }
         $offsetSec = self::parseTimezoneToOffsetSec($zdt->timeZoneId);
         $localSec  = $epochSec + $offsetSec;
