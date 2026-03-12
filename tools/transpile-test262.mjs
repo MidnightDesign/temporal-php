@@ -63,6 +63,10 @@ const IMPLEMENTED = new Set([
   'PlainDate::compare',
   'PlainTime::from',
   'PlainTime::compare',
+  'Now::instant',
+  'Now::timeZoneId',
+  'Now::plainDateISO',
+  'Now::plainTimeISO',
 ]);
 
 /** Temporal classes whose constructors are implemented. */
@@ -135,6 +139,9 @@ const PHP_IMPLEMENTED_METHODS = {
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
     'round', 'equals', 'toString', 'toJSON', 'valueOf',
+  ]),
+  Now: new Set([
+    'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO',
   ]),
 };
 
@@ -1310,8 +1317,11 @@ class Emitter {
     if (node.operator === 'typeof') {
       const target = parseVerifyPropertyTarget(node.argument);
       if (target) {
-        // namespace and prototype are objects; class/method references are functions
-        return (target.type === 'namespace' || target.type === 'prototype') ? "'object'" : "'function'";
+        // namespace, prototype, and Now (a namespace object, not a constructor) are objects;
+        // other class/method references are functions
+        const isObject = target.type === 'namespace' || target.type === 'prototype'
+          || (target.type === 'class' && target.class === 'Now');
+        return isObject ? "'object'" : "'function'";
       }
       this.emitIncomplete('untranslatable: typeof');
       return null;
