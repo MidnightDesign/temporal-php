@@ -61,6 +61,8 @@ const IMPLEMENTED = new Set([
   'Instant::toJSON',
   'PlainDate::from',
   'PlainDate::compare',
+  'PlainDateTime::from',
+  'PlainDateTime::compare',
   'PlainTime::from',
   'PlainTime::compare',
   'Now::instant',
@@ -70,7 +72,7 @@ const IMPLEMENTED = new Set([
 ]);
 
 /** Temporal classes whose constructors are implemented. */
-const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate', 'PlainTime', 'ZonedDateTime']);
+const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate', 'PlainDateTime', 'PlainTime', 'ZonedDateTime']);
 
 /**
  * Instance methods on Temporal classes that are NOT yet implemented.
@@ -105,6 +107,8 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertInstantsEqual',
   'assertPlainDate',
   'assertPlainDatesEqual',
+  'assertPlainDateTime',
+  'assertPlainDateTimesEqual',
   'assertPlainTime',
   'assertPlainTimesEqual',
   'checkPluralUnitsAccepted',
@@ -134,6 +138,12 @@ const PHP_IMPLEMENTED_METHODS = {
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
     'equals', 'toString', 'toJSON', 'valueOf',
+  ]),
+  PlainDateTime: new Set([
+    '__construct', 'from', 'compare',
+    'with', 'withPlainTime', 'add', 'subtract', 'since', 'until', 'round',
+    'equals', 'toString', 'toJSON', 'valueOf',
+    'toPlainDate', 'toPlainTime',
   ]),
   PlainTime: new Set([
     '__construct', 'from', 'compare',
@@ -270,6 +280,9 @@ class Emitter {
     // Variables known to hold PHP arrays (assigned from JS object literals).
     // Member access on these uses ['key'] instead of ->key.
     this.objectVars = new Set();
+    // Variables known to hold arrays-of-object-literals.
+    // When a for-of loop iterates such a variable, the loop var is added to objectVars.
+    this.objectArrayVars = new Set();
     this.instantVars = new Set();  // variables known to hold Temporal.Instant instances
     // Variables that are aliases for a Temporal class (from `const { Instant } = Temporal;`).
     // Maps JS variable name → Temporal class name (e.g. 'Instant' → 'Instant').
@@ -382,6 +395,13 @@ class Emitter {
       if (decl.id.type === 'Identifier' && decl.init?.type === 'ObjectExpression'
           && decl.init.properties.length > 0) {
         this.objectVars.add(decl.id.name);
+      }
+      // Track arrays whose every element is a non-empty object literal.
+      // Used in transpileForOf to propagate objectVars to the loop variable.
+      if (decl.id.type === 'Identifier' && decl.init?.type === 'ArrayExpression'
+          && decl.init.elements.length > 0
+          && decl.init.elements.every(e => e?.type === 'ObjectExpression' && e.properties.length > 0)) {
+        this.objectArrayVars.add(decl.id.name);
       }
       // Track variables assigned from Temporal.Instant constructors
       if (decl.id.type === 'Identifier' && this.isInstantCall(decl.init)) {
@@ -598,6 +618,19 @@ class Emitter {
         this.transpileStatement(node.body);
         if (opened) this.lines.push('}');
         return;
+      }
+    }
+    // If iterating over an array-of-objects variable (or an inline array of objects),
+    // add the loop variable to objectVars so member access uses ['key'] not ->key.
+    const loopVarId = node.left.declarations?.[0]?.id ?? node.left;
+    if (loopVarId.type === 'Identifier') {
+      const iterRight = node.right;
+      const isArrayOfObjects =
+        (iterRight.type === 'Identifier' && this.objectArrayVars.has(iterRight.name))
+        || (iterRight.type === 'ArrayExpression' && iterRight.elements.length > 0
+            && iterRight.elements.every(e => e?.type === 'ObjectExpression' && e.properties.length > 0));
+      if (isArrayOfObjects) {
+        this.objectVars.add(loopVarId.name);
       }
     }
     const iter = this.transpileExpr(node.right);
@@ -1052,7 +1085,7 @@ class Emitter {
       // is passed to a string-accepting method, the test relies on JS-specific behaviour.
       // Duration.from/compare and PlainDate.from/compare accept property bags (objects),
       // so no coercion needed there.
-      const propertyBagClasses = new Set(['Duration', 'PlainDate', 'PlainTime']);
+      const propertyBagClasses = new Set(['Duration', 'PlainDate', 'PlainDateTime', 'PlainTime']);
       const stringArgMethods = new Set(['from', 'compare']);
       if (!propertyBagClasses.has(className) && stringArgMethods.has(method) && node.arguments.some(
           a => a.type === 'Identifier' && this.objectVars.has(a.name)

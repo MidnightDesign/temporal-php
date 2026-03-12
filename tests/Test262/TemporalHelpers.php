@@ -194,6 +194,61 @@ final class TemporalHelpers
     }
 
     /**
+     * Asserts that a PlainDateTime has the given field values.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainDateTime(pdt, y, m, mc, d, h, min, s, ms, us, ns, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainDateTime(
+        \Temporal\PlainDateTime $dt,
+        int $year,
+        int $month,
+        string $monthCode,
+        int $day,
+        int $hour,
+        int $minute,
+        int $second,
+        int $millisecond,
+        int $microsecond,
+        int $nanosecond,
+        string $description = '',
+    ): void {
+        $prefix = $description !== '' ? "{$description}: " : '';
+        PHPUnitAssert::assertSame($year, $dt->year, "{$prefix}year");
+        PHPUnitAssert::assertSame($month, $dt->month, "{$prefix}month");
+        PHPUnitAssert::assertSame($monthCode, $dt->monthCode, "{$prefix}monthCode");
+        PHPUnitAssert::assertSame($day, $dt->day, "{$prefix}day");
+        PHPUnitAssert::assertSame($hour, $dt->hour, "{$prefix}hour");
+        PHPUnitAssert::assertSame($minute, $dt->minute, "{$prefix}minute");
+        PHPUnitAssert::assertSame($second, $dt->second, "{$prefix}second");
+        PHPUnitAssert::assertSame($millisecond, $dt->millisecond, "{$prefix}millisecond");
+        PHPUnitAssert::assertSame($microsecond, $dt->microsecond, "{$prefix}microsecond");
+        PHPUnitAssert::assertSame($nanosecond, $dt->nanosecond, "{$prefix}nanosecond");
+    }
+
+    /**
+     * Asserts that two PlainDateTimes represent the same date and time.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainDateTimesEqual(one, two, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainDateTimesEqual(
+        \Temporal\PlainDateTime $one,
+        \Temporal\PlainDateTime $two,
+        string $description = '',
+    ): void {
+        self::assertPlainDateTime(
+            $two,
+            $one->year, $one->month, $one->monthCode, $one->day,
+            $one->hour, $one->minute, $one->second,
+            $one->millisecond, $one->microsecond, $one->nanosecond,
+            $description,
+        );
+    }
+
+    /**
      * Asserts that a Duration has the given calendar field values.
      *
      * Argument order matches JS TemporalHelpers.assertDateDuration(d, y, m, w, days, msg).

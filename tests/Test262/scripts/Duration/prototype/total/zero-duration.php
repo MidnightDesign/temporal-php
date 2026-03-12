@@ -8,4 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zero = new \Temporal\Duration();
-Assert::incomplete('\\Temporal\\PlainDateTime is not yet implemented');
+$relativeToDates = [new \Temporal\ZonedDateTime(0, 'UTC'), new \Temporal\PlainDateTime(1970, 1, 1)];
+$units = ['days', 'weeks', 'months', 'years'];
+foreach ($relativeToDates as $relativeTo) {
+foreach ($units as $unit) {
+Assert::sameValue($zero->total(['unit' => $unit, 'relativeTo' => $relativeTo]), 0, '');
+}
+}

@@ -9,4 +9,9 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 $relativeToDate = new \Temporal\PlainDate(1970, 1, 1);
-Assert::incomplete('\\Temporal\\PlainDateTime is not yet implemented');
+$relativeToDateTime = new \Temporal\PlainDateTime(1970, 1, 1);
+foreach (['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $unit) {
+$expected = $duration->total(['unit' => $unit, 'relativeTo' => $relativeToDate]);
+$actual = $duration->total(['unit' => $unit, 'relativeTo' => $relativeToDateTime]);
+Assert::sameValue($actual, $expected, "unit = {$unit}");
+}

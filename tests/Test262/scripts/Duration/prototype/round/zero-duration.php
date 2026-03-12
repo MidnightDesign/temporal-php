@@ -9,4 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $zero = new \Temporal\Duration();
-Assert::incomplete('\\Temporal\\PlainDateTime is not yet implemented');
+$relativeToDates = [new \Temporal\ZonedDateTime(0, 'UTC'), new \Temporal\PlainDateTime(1970, 1, 1)];
+$units = [['smallestUnit' => 'hours', 'largestUnit' => 'days'], ['smallestUnit' => 'minutes', 'largestUnit' => 'days'], ['smallestUnit' => 'seconds', 'largestUnit' => 'days'], ['smallestUnit' => 'hours', 'largestUnit' => 'weeks'], ['smallestUnit' => 'minutes', 'largestUnit' => 'weeks'], ['smallestUnit' => 'seconds', 'largestUnit' => 'weeks'], ['smallestUnit' => 'hours', 'largestUnit' => 'months'], ['smallestUnit' => 'minutes', 'largestUnit' => 'months'], ['smallestUnit' => 'seconds', 'largestUnit' => 'months'], ['smallestUnit' => 'hours', 'largestUnit' => 'years'], ['smallestUnit' => 'minutes', 'largestUnit' => 'years'], ['smallestUnit' => 'seconds', 'largestUnit' => 'years']];
+foreach ($relativeToDates as $relativeTo) {
+foreach ($units as $unit) {
+TemporalHelpers::assertDuration($zero->round(['smallestUnit' => $unit['smallestUnit'], 'largestUnit' => $unit['largestUnit'], 'relativeTo' => $relativeTo]), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+}

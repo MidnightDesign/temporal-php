@@ -165,6 +165,73 @@ echo $date->toJSON();                            // '2024-03-15'
 
 ---
 
+### `Temporal\PlainDateTime`
+
+Represents a date and time without a time zone (year, month, day, hour, minute, second, millisecond, microsecond, nanosecond). Only the ISO 8601 calendar is supported.
+
+```php
+use Temporal\PlainDateTime;
+
+$dt = new PlainDateTime(2024, 3, 15, 9, 30, 0);
+$dt = PlainDateTime::from('2024-03-15T09:30:00');
+$dt = PlainDateTime::from('2024-03-15');                  // midnight
+$dt = PlainDateTime::from(['year' => 2024, 'month' => 3, 'day' => 15, 'hour' => 9]);
+
+// Read-only fields
+echo $dt->year;         // 2024
+echo $dt->month;        // 3
+echo $dt->day;          // 15
+echo $dt->hour;         // 9
+echo $dt->minute;       // 30
+echo $dt->second;       // 0
+echo $dt->millisecond;  // 0
+echo $dt->microsecond;  // 0
+echo $dt->nanosecond;   // 0
+
+// Calendar-derived properties (virtual, get-only)
+echo $dt->calendarId;   // 'iso8601'
+echo $dt->monthCode;    // 'M03'
+echo $dt->dayOfWeek;    // 1–7 (1=Monday, 7=Sunday)
+echo $dt->dayOfYear;    // 1–366
+echo $dt->weekOfYear;   // 1–53
+echo $dt->yearOfWeek;   // ISO week-year
+echo $dt->daysInMonth;  // 28–31
+echo $dt->daysInWeek;   // 7
+echo $dt->daysInYear;   // 365 or 366
+echo $dt->monthsInYear; // 12
+echo $dt->inLeapYear;   // bool
+echo $dt->era;          // null (ISO calendar)
+echo $dt->eraYear;      // null (ISO calendar)
+
+// Arithmetic
+$later   = $dt->add(['days' => 30, 'hours' => 2]);
+$earlier = $dt->subtract(new Duration(months: 2));
+$copy    = $dt->with(['year' => 2025, 'hour' => 12]);
+
+// Comparison
+PlainDateTime::compare($a, $b);  // -1, 0, or 1
+$a->equals($b);                   // bool
+
+// Rounding
+$rounded = $dt->round(['smallestUnit' => 'minute']);
+$rounded = $dt->round(['smallestUnit' => 'hour', 'roundingMode' => 'floor']);
+
+// Calendar difference
+$duration = $a->since($b, ['largestUnit' => 'months']);
+$duration = $a->until($b, ['largestUnit' => 'years']);
+
+// Convert to PlainDate / PlainTime
+$date = $dt->toPlainDate();
+$time = $dt->toPlainTime();
+
+// Serialization
+echo $dt->toString();                             // '2024-03-15T09:30:00'
+echo $dt->toString(['calendarName' => 'always']); // '2024-03-15T09:30:00[u-ca=iso8601]'
+echo $dt->toJSON();                               // '2024-03-15T09:30:00'
+```
+
+---
+
 ## Development
 
 This project runs in Docker. Start the environment:
@@ -215,7 +282,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **1550 test262 tests passing** (0 failures, 361 incomplete due to JS-only features like Symbol and Proxy) across `Temporal.Instant`, `Temporal.Duration`, and `Temporal.PlainDate`. 179 additional hand-written unit tests also pass.
+Currently **1679 test262 tests passing** (0 failures, 527 incomplete due to JS-only features like Symbol and Proxy) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, and `Temporal.PlainDateTime`. 179 additional hand-written unit tests also pass.
 
 ---
 
@@ -226,8 +293,8 @@ Currently **1550 test262 tests passing** (0 failures, 361 incomplete due to JS-o
 | `Temporal\Instant` | Complete — `from`, `fromEpochMilliseconds`, `fromEpochNanoseconds`, `compare`, `equals`, `add`, `subtract`, `since`, `until`, `round`, `toZonedDateTimeISO`, `toString`, `toJSON` |
 | `Temporal\Duration` | Complete — all 10 fields, `from`, `compare`, `add`, `subtract`, `negated`, `abs`, `with`, `equals`, `total`, `toString`, `toJSON` |
 | `Temporal\PlainDate` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `equals`, `toString` (with `calendarName` option), `toJSON`; all 13 calendar properties |
+| `Temporal\PlainDateTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString` (with `calendarName` option), `toJSON`, `toPlainDate`, `toPlainTime`; all 22 virtual properties |
 | `Temporal\PlainTime` | Planned |
-| `Temporal\PlainDateTime` | Planned |
 | `Temporal\ZonedDateTime` | Stub (epochNanoseconds + calendarId stored; no arithmetic) |
 
 ## Transparency
