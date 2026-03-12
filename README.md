@@ -165,6 +165,74 @@ echo $date->toJSON();                            // '2024-03-15'
 
 ---
 
+### `Temporal\PlainTime`
+
+Represents a wall-clock time (hour, minute, second, millisecond, microsecond, nanosecond) without a date or time zone.
+
+```php
+use Temporal\PlainTime;
+
+$time = new PlainTime(9, 30, 0);
+$time = PlainTime::from('09:30:00');
+$time = PlainTime::from('T093000.123456789');
+$time = PlainTime::from(['hour' => 9, 'minute' => 30]);
+
+// Read-only fields
+echo $time->hour;         // 9
+echo $time->minute;       // 30
+echo $time->second;       // 0
+echo $time->millisecond;  // 0
+echo $time->microsecond;  // 0
+echo $time->nanosecond;   // 0
+
+// Arithmetic
+$later   = $time->add(['hours' => 2, 'minutes' => 15]);
+$earlier = $time->subtract(new Duration(minutes: 30));
+$copy    = $time->with(['hour' => 10]);
+
+// Comparison
+PlainTime::compare($a, $b);  // -1, 0, or 1
+$a->equals($b);               // bool
+
+// Rounding
+$rounded = $time->round(['smallestUnit' => 'minute']);
+$rounded = $time->round(['smallestUnit' => 'second', 'roundingMode' => 'ceil']);
+
+// Calendar difference
+$duration = $a->since($b, ['largestUnit' => 'hours']);
+$duration = $a->until($b, ['largestUnit' => 'minutes']);
+
+// Serialization
+echo $time->toString();  // '09:30:00'
+echo $time->toJSON();    // '09:30:00'
+```
+
+---
+
+### `Temporal\Now`
+
+Provides access to the current date and time. Not instantiable — all methods are static.
+
+```php
+use Temporal\Now;
+
+// Current instant (microsecond precision)
+$instant = Now::instant();
+
+// Current local time zone identifier
+$tzId = Now::timeZoneId();  // e.g. 'Europe/Amsterdam'
+
+// Today's date in the given (or system default) time zone
+$date = Now::plainDateISO();
+$date = Now::plainDateISO('America/New_York');
+
+// Current time (no date) in the given (or system default) time zone
+$time = Now::plainTimeISO();
+$time = Now::plainTimeISO('+05:30');
+```
+
+---
+
 ### `Temporal\PlainDateTime`
 
 Represents a date and time without a time zone (year, month, day, hour, minute, second, millisecond, microsecond, nanosecond). Only the ISO 8601 calendar is supported.
@@ -282,7 +350,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **1679 test262 tests passing** (0 failures, 527 incomplete due to JS-only features like Symbol and Proxy) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, and `Temporal.PlainDateTime`. 179 additional hand-written unit tests also pass.
+Currently **2206 test262 tests passing** (0 failures, 527 incomplete due to JS-only features like Symbol and Proxy) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, and `Temporal.Now`. 179 additional hand-written unit tests also pass.
 
 ---
 
@@ -294,7 +362,8 @@ Currently **1679 test262 tests passing** (0 failures, 527 incomplete due to JS-o
 | `Temporal\Duration` | Complete — all 10 fields, `from`, `compare`, `add`, `subtract`, `negated`, `abs`, `with`, `equals`, `total`, `toString`, `toJSON` |
 | `Temporal\PlainDate` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `equals`, `toString` (with `calendarName` option), `toJSON`; all 13 calendar properties |
 | `Temporal\PlainDateTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString` (with `calendarName` option), `toJSON`, `toPlainDate`, `toPlainTime`; all 22 virtual properties |
-| `Temporal\PlainTime` | Planned |
+| `Temporal\PlainTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString`, `toJSON`; all 6 time fields |
+| `Temporal\Now` | Complete — `instant`, `timeZoneId`, `plainDateISO`, `plainTimeISO` |
 | `Temporal\ZonedDateTime` | Stub (epochNanoseconds + calendarId stored; no arithmetic) |
 
 ## Transparency
