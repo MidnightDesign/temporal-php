@@ -8,6 +8,7 @@ Temporal is the modern replacement for JavaScript's `Date`, providing a precise,
 
 - PHP 8.4+
 - Composer
+- `ext-intl` (required for `toLocaleString()` on `Instant` and `ZonedDateTime`)
 
 ## Installation
 
@@ -358,13 +359,13 @@ Currently **2628 test262 tests passing** (0 failures, 650 incomplete due to JS-o
 
 | Class | Status |
 |-------|--------|
-| `Temporal\Instant` | Complete — `from`, `fromEpochMilliseconds`, `fromEpochNanoseconds`, `compare`, `equals`, `add`, `subtract`, `since`, `until`, `round`, `toZonedDateTimeISO` (returns ZonedDateTime with iso8601 calendar), `toString`, `toJSON`, `toLocaleString` |
+| `Temporal\Instant` | Complete — `from`, `fromEpochMilliseconds`, `fromEpochNanoseconds`, `compare`, `equals`, `add`, `subtract`, `since`, `until`, `round`, `toZonedDateTimeISO` (returns ZonedDateTime with iso8601 calendar), `toString`, `toJSON`, `toLocaleString` (locale-aware via `ext-intl`) |
 | `Temporal\Duration` | Complete — all 10 fields, `from`, `compare`, `add`, `subtract`, `negated`, `abs`, `with`, `equals`, `total`, `toString`, `toJSON`, `toLocaleString` |
 | `Temporal\PlainDate` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `equals`, `toString` (with `calendarName` option), `toJSON`; all 13 calendar properties |
 | `Temporal\PlainDateTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString` (with `calendarName` option), `toJSON`, `toPlainDate`, `toPlainTime`; all 22 virtual properties |
 | `Temporal\PlainTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString`, `toJSON`, `toLocaleString`; all 6 time fields |
 | `Temporal\Now` | Complete — `instant`, `timeZoneId`, `plainDateISO`, `plainTimeISO` |
-| `Temporal\ZonedDateTime` | Complete — `from` (with `disambiguation`/`offset` options), `compare`, `equals`, `toString`, `toJSON`, `toInstant`, `toPlainDate`, `toPlainTime`, `toPlainDateTime`, `withTimeZone`, `withCalendar`, `withPlainTime`; all virtual date/time/calendar/timezone properties |
+| `Temporal\ZonedDateTime` | Complete — `from` (with `disambiguation`/`offset` options), `compare`, `equals`, `toString`, `toJSON`, `toLocaleString` (locale-aware via `ext-intl`), `toInstant`, `toPlainDate`, `toPlainTime`, `toPlainDateTime`, `withTimeZone`, `withCalendar`, `withPlainTime`; all virtual date/time/calendar/timezone properties |
 
 ## Transparency
 

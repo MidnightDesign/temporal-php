@@ -644,19 +644,97 @@ final class Instant implements Stringable
     }
 
     /**
-     * Returns a locale-sensitive string for this Instant.
+     * Returns a locale-sensitive string for this Instant using IntlDateFormatter.
      *
-     * PHP has no ICU Temporal support, so this falls back to toString().
-     * The TC39 spec permits implementations to choose locale behavior.
+     * Supports a subset of Intl.DateTimeFormat options:
+     *   - dateStyle: "full" | "long" | "medium" | "short"
+     *   - timeStyle: "full" | "long" | "medium" | "short"
+     *   - timeZone: IANA timezone string (defaults to UTC for Instant)
+     *   - calendar: calendar identifier appended as u-ca locale extension
      *
-     * @param mixed $locales  BCP 47 locale string or array (ignored in PHP).
-     * @param mixed $options  Intl.DateTimeFormat options bag (ignored in PHP).
-     * @psalm-suppress UnusedParam
+     * @param mixed $locales  BCP 47 locale string or array of strings.
+     * @param mixed $options  Intl.DateTimeFormat options array.
      * @psalm-api
      */
     public function toLocaleString(mixed $locales = null, mixed $options = null): string
     {
-        return $this->toString();
+        $locale = self::resolveLocale($locales);
+        $opts   = is_array($options) ? $options : [];
+        /** @psalm-var array<string, mixed> $opts */
+
+        $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone'])
+            ? $opts['timeZone']
+            : 'UTC';
+
+        if (isset($opts['calendar']) && is_string($opts['calendar'])) {
+            $locale .= '@calendar=' . $opts['calendar'];
+        }
+
+        [$dateType, $timeType] = self::resolveDateTimeTypes($opts);
+
+        $formatter = new \IntlDateFormatter($locale, $dateType, $timeType, $timeZone);
+        $seconds   = intdiv(num1: $this->epochNanoseconds, num2: self::NS_PER_SECOND);
+        $result    = $formatter->format($seconds);
+
+        return $result !== false ? $result : $this->toString();
+    }
+
+    /**
+     * Maps dateStyle/timeStyle option strings to IntlDateFormatter type constants.
+     *
+     * Returns [dateType, timeType]. When neither style is provided both default to
+     * medium/short so the result includes a human-readable date and time.
+     *
+     * @param array<string, mixed> $opts
+     * @return array{int, int}
+     */
+    private static function resolveDateTimeTypes(array $opts): array
+    {
+        $styleMap = [
+            'full'   => \IntlDateFormatter::FULL,
+            'long'   => \IntlDateFormatter::LONG,
+            'medium' => \IntlDateFormatter::MEDIUM,
+            'short'  => \IntlDateFormatter::SHORT,
+        ];
+
+        $dateStyle = isset($opts['dateStyle']) && is_string($opts['dateStyle']) ? $opts['dateStyle'] : null;
+        $timeStyle = isset($opts['timeStyle']) && is_string($opts['timeStyle']) ? $opts['timeStyle'] : null;
+
+        if ($dateStyle !== null || $timeStyle !== null) {
+            $dateType = $dateStyle !== null
+                ? ($styleMap[$dateStyle] ?? \IntlDateFormatter::MEDIUM)
+                : \IntlDateFormatter::NONE;
+            $timeType = $timeStyle !== null
+                ? ($styleMap[$timeStyle] ?? \IntlDateFormatter::SHORT)
+                : \IntlDateFormatter::NONE;
+        } else {
+            // Default: show both date and time.
+            $dateType = \IntlDateFormatter::MEDIUM;
+            $timeType = \IntlDateFormatter::SHORT;
+        }
+
+        return [$dateType, $timeType];
+    }
+
+    /**
+     * Resolves a BCP 47 locale from a string, array, or null.
+     *
+     * Falls back to the system default locale when input is null or empty.
+     */
+    private static function resolveLocale(mixed $locales): string
+    {
+        if (is_string($locales) && $locales !== '') {
+            return $locales;
+        }
+        if (is_array($locales)) {
+            /** @psalm-suppress MixedAssignment */
+            foreach ($locales as $candidate) {
+                if (is_string($candidate) && $candidate !== '') {
+                    return $candidate;
+                }
+            }
+        }
+        return \Locale::getDefault();
     }
 
     /**

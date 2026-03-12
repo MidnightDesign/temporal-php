@@ -9,8 +9,8 @@ COPY --from=node:24-slim /usr/local/bin/node /usr/local/bin/node
 # Copy acorn package (used by tools/transpile-test262.mjs)
 COPY --from=node-builder /usr/local/lib/node_modules/acorn /usr/local/lib/node_modules/acorn
 
-RUN apt-get update && apt-get install -y git unzip libzip-dev \
-    && docker-php-ext-install zip \
+RUN apt-get update && apt-get install -y git unzip libzip-dev libicu-dev \
+    && docker-php-ext-install zip intl \
     && pecl install pcov \
     && docker-php-ext-enable pcov \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
