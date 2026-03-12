@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $zdt1 = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
 $zdt2 = new \Temporal\ZonedDateTime(1_572_342_398_271_986_102, '+01:00');
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($zdt1, $zdt1), 0, '');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($zdt1, $zdt2), -1, '');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($zdt2, $zdt1), 1, '');

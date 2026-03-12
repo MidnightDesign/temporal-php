@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+TemporalHelpers::assertZonedDateTimesEqual(\Temporal\ZonedDateTime::from('1976-11-18T15:23:30-08[-08:00]'), new \Temporal\ZonedDateTime(217_207_410_000_000_000, '-08:00'));
+TemporalHelpers::assertZonedDateTimesEqual(\Temporal\ZonedDateTime::from('1976-11-18T15-08:00[-08:00]'), new \Temporal\ZonedDateTime(217_206_000_000_000_000, '-08:00'));
+TemporalHelpers::assertZonedDateTimesEqual(\Temporal\ZonedDateTime::from('2020-01-01[+09:00]'), new \Temporal\ZonedDateTime(1_577_804_400_000_000_000, '+09:00'));

@@ -65,6 +65,8 @@ const IMPLEMENTED = new Set([
   'PlainDateTime::compare',
   'PlainTime::from',
   'PlainTime::compare',
+  'ZonedDateTime::from',
+  'ZonedDateTime::compare',
   'Now::instant',
   'Now::timeZoneId',
   'Now::plainDateISO',
@@ -1092,7 +1094,7 @@ class Emitter {
       // is passed to a string-accepting method, the test relies on JS-specific behaviour.
       // Duration.from/compare and PlainDate.from/compare accept property bags (objects),
       // so no coercion needed there.
-      const propertyBagClasses = new Set(['Duration', 'PlainDate', 'PlainDateTime', 'PlainTime']);
+      const propertyBagClasses = new Set(['Duration', 'PlainDate', 'PlainDateTime', 'PlainTime', 'ZonedDateTime']);
       const stringArgMethods = new Set(['from', 'compare']);
       if (!propertyBagClasses.has(className) && stringArgMethods.has(method) && node.arguments.some(
           a => a.type === 'Identifier' && this.objectVars.has(a.name)

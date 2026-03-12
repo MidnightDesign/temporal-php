@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $clockBefore = new \Temporal\ZonedDateTime(946_711_800_000_000_000, '-08:00');
 $clockAfter = new \Temporal\ZonedDateTime(946_704_600_000_000_000, '-04:00');
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($clockBefore, $clockAfter), 1, '');
+Assert::sameValue(\Temporal\PlainDateTime::compare($clockBefore->toPlainDateTime(), $clockAfter->toPlainDateTime()), -1, '');

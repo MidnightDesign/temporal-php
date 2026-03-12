@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $epoch = new \Temporal\ZonedDateTime(0, 'UTC');
 $tests = [['1970-01-01T00:00+00:00[UTC]', 'uppercase T'], ['1970-01-01t00:00+00:00[UTC]', 'lowercase T'], ['1970-01-01 00:00+00:00[UTC]', 'space between date and time']];
 foreach ($tests as [$arg, $description]) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($arg, $epoch), 0, "variant time separators ({$description}), first argument");
+Assert::sameValue(\Temporal\ZonedDateTime::compare($epoch, $arg), 0, "variant time separators ({$description}), second argument");
 }

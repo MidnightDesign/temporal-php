@@ -8,4 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($datetime, ['disambiguation' => 'other string']), '');
+$propertyBag = ['timeZone' => 'UTC', 'year' => 2001, 'month' => 9, 'day' => 9, 'hour' => 1, 'minute' => 46, 'second' => 40, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
+foreach (['', 'EARLIER', 'balance', 'other string', 3, null] as $disambiguation) {
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($propertyBag, ['disambiguation' => $disambiguation]), '');
+}

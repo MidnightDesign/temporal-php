@@ -9,5 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $validStrings = ['1970-01-01T00Z[UTC]', '1970-01-01T00Z[!UTC]', '1970-01-01T00+00[UTC]', '1970-01-01T00+00:00[UTC]', '1970-01-01T00+00:00:00,0[UTC]', '1970-01-01T00+00:00:00.000000000[UTC]', '1970-01-01T00+0000[UTC]', '1970-01-01T00+000000,0[UTC]', '1970-01-01T00+000000.000000000[UTC]', '1970-01-01T00+00:00[!UTC]', '1970-01-01T00-00[UTC]', '1970-01-01T00-00:00[UTC]', '1970-01-01T00-00:00:00,0[UTC]', '1970-01-01T00-00:00:00.000000000[UTC]', '1970-01-01T00-0000[UTC]', '1970-01-01T00-000000,0[UTC]', '1970-01-01T00-000000.000000000[UTC]'];
 foreach ($validStrings as $arg) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$result = \Temporal\ZonedDateTime::from($arg);
+Assert::sameValue($result->timeZoneId, 'UTC', "\"{$arg}\" is a valid UTC offset with time for ZonedDateTime");
+}
+$invalidStrings = ['2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00[UTC]', '2022-09-15-02:30[America/St_Johns]'];
+foreach ($invalidStrings as $arg) {
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($arg), "\"{$arg}\" UTC offset without time is not valid for ZonedDateTime");
 }

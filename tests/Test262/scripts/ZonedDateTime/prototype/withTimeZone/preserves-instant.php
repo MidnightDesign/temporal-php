@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$zdt = \Temporal\ZonedDateTime::from('2019-11-18T15:23:30.123456789+01:00[+01:00]');
+$zdt2 = $zdt->withTimeZone('-08:00');
+Assert::sameValue($zdt->epochNanoseconds, $zdt2->epochNanoseconds, '');
+Assert::sameValue($zdt2->timeZoneId, '-08:00', '');
+TemporalHelpers::assertPlainDateTime($zdt->toPlainDateTime(), 2019, 11, 'M11', 18, 15, 23, 30, 123, 456, 789);
+TemporalHelpers::assertPlainDateTime($zdt2->toPlainDateTime(), 2019, 11, 'M11', 18, 6, 23, 30, 123, 456, 789);

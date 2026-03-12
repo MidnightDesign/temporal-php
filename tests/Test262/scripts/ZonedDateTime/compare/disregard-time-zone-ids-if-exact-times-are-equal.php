@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt1 = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($zdt1, $zdt1->withTimeZone('+05:30')), 0, '');

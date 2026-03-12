@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $zdt1 = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
 $zdt2 = new \Temporal\ZonedDateTime(1_572_342_398_271_986_102, '+01:00');
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::sameValue(\Temporal\ZonedDateTime::compare(['year' => 1976, 'month' => 11, 'day' => 18, 'hour' => 15, 'timeZone' => '+01:00'], $zdt2), -1, '');
+Assert::sameValue(\Temporal\ZonedDateTime::compare('1976-11-18T15:23:30.123456789+01:00[+01:00]', $zdt2), -1, '');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($zdt1, ['year' => 2019, 'month' => 10, 'day' => 29, 'hour' => 10, 'timeZone' => '+01:00']), -1, '');
+Assert::sameValue(\Temporal\ZonedDateTime::compare($zdt1, '2019-10-29T10:46:38.271986102+01:00[+01:00]'), -1, '');

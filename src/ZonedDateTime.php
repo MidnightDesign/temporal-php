@@ -303,19 +303,34 @@ final class ZonedDateTime implements Stringable
      * e.g. '2020-01-01T12:00:00+05:30[Asia/Kolkata]'.
      *
      * @param mixed $item    ZonedDateTime, ISO string, or property-bag array/object.
-     * @param mixed $options Currently unused; reserved for future overflow option.
+     * @param mixed $options Options array; supports 'disambiguation' (string).
      * @throws \TypeError              for unsupported types.
      * @throws InvalidArgumentException for invalid strings or property bags.
-     * @psalm-suppress UnusedParam — $options reserved for future use.
      * @psalm-api
      */
     public static function from(mixed $item, mixed $options = null): self
     {
+        // Validate 'disambiguation' option if present.
+        if (is_array($options) && array_key_exists('disambiguation', $options)) {
+            /** @var mixed $dv */
+            $dv = $options['disambiguation'];
+            if (!is_string($dv)) {
+                throw new InvalidArgumentException(
+                    'ZonedDateTime::from() disambiguation option must be a string.',
+                );
+            }
+            if (!in_array(needle: $dv, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
+                throw new InvalidArgumentException(
+                    "Invalid disambiguation value \"{$dv}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",
+                );
+            }
+        }
+
         if ($item instanceof self) {
             return new self($item->epochNanoseconds, $item->timeZoneId, $item->calendarId);
         }
         if (is_string($item)) {
-            return self::parseZdtString($item);
+            return self::parseZdtString($item, $options);
         }
         if (is_array($item) || is_object($item)) {
             $bag = is_array($item) ? $item : (array) $item;
@@ -801,10 +816,30 @@ final class ZonedDateTime implements Stringable
             }
             return 'iso8601';
         }
-        // Looks like ISO date/datetime/year-month/month-day string.
+        // ISO date/datetime strings → iso8601 (check BEFORE time-only, to avoid ambiguity).
         // Match: date patterns (YYYY-MM, MM-DD, ±YYYYYY-) or datetime T-separator after digits.
         if (preg_match('/^\d{2}-\d{2}|^\d{4}-\d{2}|^[+-]\d{6}-/', $s) === 1
             || preg_match('/\d[Tt]\d/', $s) === 1
+        ) {
+            return 'iso8601';
+        }
+        // Time-only strings (no calendar annotation) → iso8601.
+        // These are checked AFTER date strings to avoid false positives on year-like digits.
+        if (preg_match('/^[Tt]\d/', $s) === 1) {
+            return 'iso8601';
+        }
+        // Extended time: starts with 2 digits followed by colon (HH:MM or HH:MM:SS).
+        if (preg_match('/^\d{2}:/', $s) === 1) {
+            return 'iso8601';
+        }
+        // Bare hour: exactly 2 digits (HH alone, no suffix).
+        if (preg_match('/^\d{2}$/', $s) === 1) {
+            return 'iso8601';
+        }
+        // Compact time HHMMSS or HHMM: 4–6 digits NOT followed by '-'
+        // (4 or 6 digits followed by end-of-string, fraction, or +/- offset).
+        if (preg_match('/^\d{4,6}(?:[.,]|\+|$)/', $s) === 1
+            || preg_match('/^\d{4,6}-(?!\d{2}-)/', $s) === 1
         ) {
             return 'iso8601';
         }
@@ -917,6 +952,7 @@ final class ZonedDateTime implements Stringable
      * Computes (and caches) all local date/time components for this instant in the stored timezone.
      *
      * @return array{year:int, month:int, day:int, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}
+     * @psalm-suppress UnusedMethod — called from PHP 8.4 property hooks that Psalm does not track
      */
     private function localComponents(): array
     {
@@ -1003,10 +1039,21 @@ final class ZonedDateTime implements Stringable
     /**
      * Parses a ZonedDateTime ISO string (with required bracket timezone annotation).
      *
+     * @param mixed $options Options from from() (may contain 'offset' key).
      * @throws InvalidArgumentException if the string is invalid.
      */
-    private static function parseZdtString(string $text): self
+    private static function parseZdtString(string $text, mixed $options = null): self
     {
+        // Resolve the 'offset' option (default: 'reject').
+        $offsetOption = 'reject';
+        if (is_array($options) && array_key_exists('offset', $options)) {
+            /** @var mixed $ov */
+            $ov = $options['offset'];
+            if (is_string($ov) && in_array(needle: $ov, haystack: ['use', 'ignore', 'prefer', 'reject'], strict: true)) {
+                $offsetOption = $ov;
+            }
+        }
+
         // Reject more than 9 fractional-second digits.
         if (preg_match('/[.,]\d{10,}/', $text) === 1) {
             throw new InvalidArgumentException(
@@ -1017,18 +1064,53 @@ final class ZonedDateTime implements Stringable
         /*
          * Pattern groups:
          *   1 — year (±YYYYYY or YYYY)
-         *   2 — date rest (-MM-DD or MMDD)
+         *   2 — date rest (-MM-DD or MMDD); must not mix extended and compact formats
          *   3 — hour
-         *   4 — minute (optional)
+         *   4 — minute (only present if consistent format: extended has :, compact has no :)
          *   5 — second (optional)
          *   6 — time fraction (optional)
          *   7 — inline offset (optional: Z, ±HH:MM, ±HHMM, etc.)
          *   8 — bracket annotation section (required: one or more [...])
+         *
+         * To reject mixed date formats (e.g. 202501-01 or 2025-0101) and mixed time
+         * formats (e.g. HH:MMSS or HHMMSS:), we use strict alternation:
+         *   - Extended date: -MM-DD  (year then -MM-DD)
+         *   - Compact date: MMDD     (year then 4 digits)
+         *   - Extended time: HH:MM[:SS]
+         *   - Compact time: HHMM[SS]  or just HH
          */
-        $pattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})'
+        // Extended date + extended time
+        $patternExtDateExtTime =
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2})'
             . '[T ]'
-            . '(\d{2})(?::?(\d{2})(?::?(\d{2}))?)?'
+            . '(\d{2})(?::(\d{2})(?::(\d{2}))?)?'
+            . '([.,]\d+)?'
+            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
+            . '((?:\[[^\]]*\])+)'
+            . '$/i';
+        // Extended date + compact time
+        $patternExtDateCptTime =
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2})'
+            . '[T ]'
+            . '(\d{2})(\d{2})(\d{2})?'
+            . '([.,]\d+)?'
+            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
+            . '((?:\[[^\]]*\])+)'
+            . '$/i';
+        // Compact date + extended time
+        $patternCptDateExtTime =
+            '/^([+-]\d{6}|\d{4})(\d{4})'
+            . '[T ]'
+            . '(\d{2})(?::(\d{2})(?::(\d{2}))?)?'
+            . '([.,]\d+)?'
+            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
+            . '((?:\[[^\]]*\])+)'
+            . '$/i';
+        // Compact date + compact time
+        $patternCptDateCptTime =
+            '/^([+-]\d{6}|\d{4})(\d{4})'
+            . '[T ]'
+            . '(\d{2})(\d{2})(\d{2})?'
             . '([.,]\d+)?'
             . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
             . '((?:\[[^\]]*\])+)'
@@ -1042,7 +1124,21 @@ final class ZonedDateTime implements Stringable
 
         /** @var list<string> $m */
         $m = [];
-        if (preg_match($pattern, $text, $m) !== 1) {
+        $matched = false;
+        foreach ([
+            $patternExtDateExtTime, $patternExtDateCptTime,
+            $patternCptDateExtTime, $patternCptDateCptTime,
+        ] as $pat) {
+            /** @var list<string> $tmp */
+            $tmp = [];
+            if (preg_match($pat, $text, $tmp) === 1) {
+                $m = $tmp;
+                $matched = true;
+                break;
+            }
+        }
+
+        if (!$matched) {
             /** @var list<string> $dm */
             $dm = [];
             if (preg_match($dateOnlyPattern, $text, $dm) !== 1) {
@@ -1126,15 +1222,20 @@ final class ZonedDateTime implements Stringable
         }
 
         $wallSec = $wallDt->getTimestamp();
-        // ISODateTimeWithinLimits check: the wall-clock (local) date must itself be within the
-        // representable ZonedDateTime date range [-271821-04-20, +275760-09-13].
-        // - Min: any wallSec < -8640000000000 is on a date before April 20, -271821.
-        // - Max: wallSec >= 8640000086400 is on a date after September 13, +275760.
-        //   (8640000086400 = max boundary epoch + 86400 s = midnight of +275760-09-14.)
-        if ($wallSec < -8_640_000_000_000 || $wallSec >= 8_640_000_086_400) {
-            throw new InvalidArgumentException(
-                "ZonedDateTime string \"{$text}\": local date-time is outside the representable range.",
-            );
+        // When offset='use' or 'ignore', the epoch is derived directly from the stated offset
+        // (or the timezone offset), so the wall-clock time need not be within the spec range.
+        // For 'prefer' and 'reject', we need the wall-clock-derived UTC to be valid, so check.
+        if ($offsetOption !== 'use' && $offsetOption !== 'ignore') {
+            // ISODateTimeWithinLimits check: the wall-clock (local) date must itself be within the
+            // representable ZonedDateTime date range [-271821-04-20, +275760-09-13].
+            // - Min: any wallSec < -8640000000000 is on a date before April 20, -271821.
+            // - Max: wallSec >= 8640000086400 is on a date after September 13, +275760.
+            //   (8640000086400 = max boundary epoch + 86400 s = midnight of +275760-09-14.)
+            if ($wallSec < -8_640_000_000_000 || $wallSec >= 8_640_000_086_400) {
+                throw new InvalidArgumentException(
+                    "ZonedDateTime string \"{$text}\": local date-time is outside the representable range.",
+                );
+            }
         }
         $subNs = $fractionRaw !== '' ? self::parseFraction($fractionRaw) : 0;
 

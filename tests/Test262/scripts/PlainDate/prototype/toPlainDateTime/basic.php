@@ -21,4 +21,6 @@ Assert::sameValue($plainTime->calendar, $date->calendar, 'PlainTime calendar');
 $plainDateTime = $date->toPlainDateTime(\Temporal\PlainDateTime::from('1999-07-14T11:30:23'));
 TemporalHelpers::assertPlainDateTime($plainDateTime, 2000, 5, 'M05', 2, 11, 30, 23, 0, 0, 0, 'PlainDateTime');
 Assert::sameValue($plainDateTime->calendar, $date->calendar, 'PlainDateTime calendar');
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$zonedDateTime = $date->toPlainDateTime(\Temporal\ZonedDateTime::from('1999-07-14T11:30:23Z[UTC]'));
+TemporalHelpers::assertPlainDateTime($zonedDateTime, 2000, 5, 'M05', 2, 11, 30, 23, 0, 0, 0, 'ZonedDateTime');
+Assert::sameValue($zonedDateTime->calendar, $date->calendar, 'ZonedDateTime calendar');

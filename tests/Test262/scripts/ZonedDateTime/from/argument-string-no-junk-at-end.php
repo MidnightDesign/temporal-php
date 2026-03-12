@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from('1976-11-18T15:23:30.123456789-08:00[-08:00]junk'), '');

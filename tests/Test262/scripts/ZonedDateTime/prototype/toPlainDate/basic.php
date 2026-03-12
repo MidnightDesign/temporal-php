@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$zdt = \Temporal\ZonedDateTime::from('2019-10-29T09:46:38.271986102[-07:00]');
+TemporalHelpers::assertPlainDate($zdt->toPlainDate(), 2019, 10, 'M10', 29);

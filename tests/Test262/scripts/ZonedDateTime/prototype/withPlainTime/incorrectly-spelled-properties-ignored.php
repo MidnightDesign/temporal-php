@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$zdt = \Temporal\ZonedDateTime::from('2015-12-07T03:24:30.000003500[-08:00]');
+TemporalHelpers::assertZonedDateTimesEqual($zdt->withPlainTime(['hour' => 10, 'seconds' => 55]), \Temporal\ZonedDateTime::from('2015-12-07T10:00:00-08:00[-08:00]'));

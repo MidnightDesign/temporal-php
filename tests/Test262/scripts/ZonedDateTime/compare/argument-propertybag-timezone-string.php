@@ -9,5 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 foreach (['UTC', '+01:30'] as $timeZone) {
 $epoch = new \Temporal\ZonedDateTime(0, $timeZone);
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+\Temporal\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $epoch);
+\Temporal\ZonedDateTime::compare($epoch, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
 }
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

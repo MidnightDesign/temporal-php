@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 for ($year = 1970; $year < 1975; $year++) {
 for ($month = 1; $month < 13; $month++) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$date = \Temporal\ZonedDateTime::from(['year' => $year, 'month' => $month, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
+Assert::sameValue($date->monthCode->endsWith('L'), false, '');
 }
 }

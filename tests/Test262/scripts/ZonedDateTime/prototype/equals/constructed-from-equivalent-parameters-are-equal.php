@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\ZonedDateTime(0, '-05:00', 'iso8601');
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$zdt2 = \Temporal\ZonedDateTime::from(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 19, 'timeZone' => '-05:00', 'calendar' => 'iso8601']);
+Assert::assertTrue($zdt->equals($zdt2), '');
+Assert::assertTrue($zdt2->equals($zdt), '');

@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\ZonedDateTime(0, 'UTC');
 $invalidStrings = [['1970-01-01T00:00[UTC][U-CA=iso8601]', 'invalid capitalized key'], ['1970-01-01T00:00[UTC][u-CA=iso8601]', 'invalid partially-capitalized key'], ['1970-01-01T00:00[UTC][FOO=bar]', 'invalid capitalized unrecognized key']];
 foreach ($invalidStrings as [$arg, $descr]) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($arg, $datetime), "annotation keys must be lowercase: {$arg} - {$descr} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($datetime, $arg), "annotation keys must be lowercase: {$arg} - {$descr} (second argument)");
 }

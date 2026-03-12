@@ -10,6 +10,22 @@ use Temporal\Tests\Test262\Assert;
 $validStringsForOffsetUseIgnore = ['-271821-04-20T00:00Z[UTC]', '-271821-04-19T23:00-01:00[-01:00]', '-271821-04-19T00:01-23:59[-23:59]', '+275760-09-13T00:00Z[UTC]', '+275760-09-13T01:00+01:00[+01:00]', '+275760-09-13T23:59+23:59[+23:59]'];
 foreach (['use', 'ignore'] as $offset) {
 foreach ($validStringsForOffsetUseIgnore as $arg) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+\Temporal\ZonedDateTime::from($arg, ['offset' => $offset]);
+}
+}
+$validStringsForOffsetPreferReject = ['-271821-04-20T00:00Z[UTC]', '+275760-09-13T00:00Z[UTC]', '+275760-09-13T01:00+01:00[+01:00]', '+275760-09-13T23:59+23:59[+23:59]'];
+$invalidStringsForOffsetPreferReject = ['-271821-04-19T23:00-01:00[-01:00]', '-271821-04-19T00:00:01-23:59[-23:59]'];
+foreach (['prefer', 'reject'] as $offset) {
+foreach ($validStringsForOffsetPreferReject as $arg) {
+\Temporal\ZonedDateTime::from($arg, ['offset' => $offset]);
+}
+foreach ($invalidStringsForOffsetPreferReject as $arg) {
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($arg, ['offset' => $offset]), "wall-clock time of \"{$arg}\" is outside the representable range of ZonedDateTime (offset={$offset})");
+}
+}
+$invalidStrings = ['-271821-04-19T23:59:59.999999999Z[UTC]', '-271821-04-19T23:00-00:59[-00:59]', '-271821-04-19T00:00:00-23:59[-23:59]', '+275760-09-13T00:00:00.000000001Z[UTC]', '+275760-09-13T01:00+00:59[+00:59]', '+275760-09-14T00:00+23:59[+23:59]'];
+foreach (['use', 'ignore', 'prefer', 'reject'] as $offset) {
+foreach ($invalidStrings as $arg) {
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($arg, ['offset' => $offset]), "\"{$arg}\" is outside the representable range of ZonedDateTime (offset={$offset})");
 }
 }

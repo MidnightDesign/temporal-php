@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue(new \Temporal\ZonedDateTime(0, 'UTC')->year, 1970, '');
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+Assert::sameValue(\Temporal\ZonedDateTime::from('2019-03-15T15:30:26+00:00[UTC]')->year, 2019, '');

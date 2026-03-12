@@ -10,5 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\ZonedDateTime(0, 'UTC');
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
 foreach ($primitiveTests as [$timeZone, $description]) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $datetime), "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::compare($datetime, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]), "{$description} does not convert to a valid ISO string (second argument)");
 }
+Assert::incomplete('untranslatable: Symbol()');

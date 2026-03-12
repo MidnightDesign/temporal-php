@@ -8,4 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$zdt = \Temporal\ZonedDateTime::from('0000-02-29T00:00-00:01[-00:01]');
+TemporalHelpers::assertInstantsEqual($zdt->toInstant(), \Temporal\Instant::from('0000-02-29T00:01:00Z'));
+$zdt = \Temporal\ZonedDateTime::from('+000000-02-29T00:00-00:01[-00:01]');
+TemporalHelpers::assertInstantsEqual($zdt->toInstant(), \Temporal\Instant::from('0000-02-29T00:01:00Z'));

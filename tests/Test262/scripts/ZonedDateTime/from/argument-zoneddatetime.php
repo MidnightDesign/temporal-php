@@ -8,4 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $orig = new \Temporal\ZonedDateTime(946_684_800_000_000_010, 'UTC');
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$result = \Temporal\ZonedDateTime::from($orig);
+Assert::sameValue($result->epochNanoseconds, 946_684_800_000_000_010, 'ZonedDateTime is copied');
+Assert::sameValue($result->timeZoneId, $orig->timeZoneId, 'time zone is the same');
+Assert::sameValue($result->calendarId, $orig->calendarId, 'calendar is the same');
+Assert::notSameValue($result, $orig, 'When a ZonedDateTime is given, the returned value is not the original ZonedDateTime');

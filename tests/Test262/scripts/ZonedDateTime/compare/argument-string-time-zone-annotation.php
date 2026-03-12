@@ -9,5 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00[UTC]', 'named, with no offset'], ['1970-01-01T00:00[!UTC]', 'named, with ! and no offset'], ['1970-01-01T00:00[+00:00]', 'numeric, with no offset'], ['1970-01-01T00:00[!+00:00]', 'numeric, with ! and no offset'], ['1970-01-01T00:00Z[UTC]', 'named, with Z'], ['1970-01-01T00:00Z[!UTC]', 'named, with Z and !'], ['1970-01-01T00:00Z[+00:00]', 'numeric, with Z'], ['1970-01-01T00:00Z[!+00:00]', 'numeric, with Z and !'], ['1970-01-01T00:00+00:00[UTC]', 'named, with offset'], ['1970-01-01T00:00+00:00[!UTC]', 'named, with offset and !'], ['1970-01-01T00:00+00:00[+00:00]', 'numeric, with offset'], ['1970-01-01T00:00+00:00[!+00:00]', 'numeric, with offset and !']];
 foreach ($tests as [$arg, $description]) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+$result = \Temporal\ZonedDateTime::compare($arg, $arg);
+Assert::sameValue($result, 0, "time zone annotation ({$description})");
 }

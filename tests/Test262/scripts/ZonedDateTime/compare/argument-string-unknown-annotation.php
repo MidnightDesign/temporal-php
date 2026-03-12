@@ -9,5 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00[UTC][foo=bar]', 'with time zone'], ['1970-01-01T00:00[UTC][foo=bar][u-ca=iso8601]', 'before calendar'], ['1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar]', 'after calendar'], ['1970-01-01T00:00[UTC][foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
 foreach ($tests as [$arg, $description]) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+$result = \Temporal\ZonedDateTime::compare($arg, $arg);
+Assert::sameValue($result, 0, "unknown annotation ({$description})");
 }

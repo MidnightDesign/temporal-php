@@ -7,4 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+Assert::throws(\TypeError::class, fn() => \Temporal\ZonedDateTime::from(), 'no argument');
+$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
+foreach ($primitiveTests as [$arg, $description]) {
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::from($arg), "{$description} does not convert to a valid ISO string");
+foreach ([null, ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::from($arg, $options), "{$description} does not convert to a valid ISO string with options {$options}");
+}
+}
+Assert::incomplete('untranslatable: Symbol()');

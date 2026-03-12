@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00[UTC][!u-ca=iso8601][u-ca=iso8601]', '1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar][!u-ca=iso8601]'];
 $datetime = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($arg, $datetime), "reject more than one calendar annotation if any critical: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($datetime, $arg), "reject more than one calendar annotation if any critical: {$arg} (second argument)");
 }

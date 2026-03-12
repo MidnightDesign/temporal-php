@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00[UTC][UTC]', '1970-01-01T00:00[!UTC][UTC]', '1970-01-01T00:00[UTC][!UTC]', '1970-01-01T00:00[UTC][u-ca=iso8601][UTC]', '1970-01-01T00:00[UTC][foo=bar][UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($arg), "reject more than one time zone annotation: {$arg}");
 }

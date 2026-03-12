@@ -7,4 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\ZonedDateTime::from() is not yet implemented');
+$zdt1 = \Temporal\ZonedDateTime::from('1976-11-18T15:23+00:00[UTC]');
+Assert::sameValue($zdt1->toString(['offset' => 'never']), '1976-11-18T15:23:00[UTC]', '');

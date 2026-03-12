@@ -10,5 +10,11 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\ZonedDateTime(0, 'UTC');
 $validStrings = ['-271821-04-20T00:00Z[UTC]', '+275760-09-13T00:00Z[UTC]', '+275760-09-13T01:00+01:00[+01:00]', '+275760-09-13T23:59+23:59[+23:59]'];
 foreach ($validStrings as $arg) {
-Assert::incomplete('\\Temporal\\ZonedDateTime::compare() is not yet implemented');
+\Temporal\ZonedDateTime::compare($arg, $instance);
+\Temporal\ZonedDateTime::compare($instance, $arg);
+}
+$invalidStrings = ['-271821-04-19T23:00-01:00[-01:00]', '-271821-04-19T00:01-23:59[-23:59]', '-271821-04-19T23:59:59.999999999Z[UTC]', '-271821-04-19T23:00-00:59[-00:59]', '-271821-04-19T00:00:00-23:59[-23:59]', '+275760-09-13T00:00:00.000000001Z[UTC]', '+275760-09-13T01:00+00:59[+00:59]', '+275760-09-14T00:00+23:59[+23:59]'];
+foreach ($invalidStrings as $arg) {
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($arg, $instance), "\"{$arg}\" is outside the representable range of ZonedDateTime (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($instance, $arg), "\"{$arg}\" is outside the representable range of ZonedDateTime (second argument)");
 }
