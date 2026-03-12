@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $earlier = new \Temporal\Instant(957_270_896_987_654_321);
 $later = new \Temporal\Instant(959_949_296_987_654_322);
-$explicit = $earlier->until($later, null);
+$explicit = $earlier->until($later);
 Assert::sameValue($explicit->years, 0, 'default largest unit is seconds');
 Assert::sameValue($explicit->months, 0, 'default largest unit is seconds');
 Assert::sameValue($explicit->weeks, 0, 'default largest unit is seconds');

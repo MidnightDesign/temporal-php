@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $date = new \Temporal\PlainDate(2000, 2, 2);
 $fields = ['day' => 31];
-$explicit = $date->with($fields, null);
+$explicit = $date->with($fields);
 Assert::sameValue($explicit->month, 2, 'default overflow is constrain');
 Assert::sameValue($explicit->day, 29, 'default overflow is constrain');
 $implicit = $date->with($fields);

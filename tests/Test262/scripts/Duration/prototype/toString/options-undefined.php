@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650, 0);
-$explicit = $duration->toString(null);
+$explicit = $duration->toString();
 Assert::sameValue($explicit, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');
 $implicit = $duration->toString();
 Assert::sameValue($implicit, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');

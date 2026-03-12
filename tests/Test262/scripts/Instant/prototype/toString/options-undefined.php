@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instant = \Temporal\Instant::from('1975-02-02T14:25:36.12345Z');
 Assert::sameValue($instant->toString(), '1975-02-02T14:25:36.12345Z', 'default time zone is none, precision is auto, and rounding is trunc');
-Assert::sameValue($instant->toString(null), '1975-02-02T14:25:36.12345Z', 'default time zone is none, precision is auto, and rounding is trunc');
+Assert::sameValue($instant->toString(), '1975-02-02T14:25:36.12345Z', 'default time zone is none, precision is auto, and rounding is trunc');

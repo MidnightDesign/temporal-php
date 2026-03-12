@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $time = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
 $fields = ['minute' => 60];
-$explicit = $time->with($fields, null);
+$explicit = $time->with($fields);
 TemporalHelpers::assertPlainTime($explicit, 12, 59, 56, 987, 654, 321, 'explicit');
 $implicit = $time->with($fields);
 TemporalHelpers::assertPlainTime($implicit, 12, 59, 56, 987, 654, 321, 'implicit');

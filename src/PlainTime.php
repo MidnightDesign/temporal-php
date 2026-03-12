@@ -600,6 +600,22 @@ final class PlainTime implements Stringable
     }
 
     /**
+     * Returns a locale-sensitive string for this PlainTime.
+     *
+     * PHP has no ICU Temporal support, so this falls back to toString().
+     * The TC39 spec permits implementations to choose locale behavior.
+     *
+     * @param mixed $locales  BCP 47 locale string or array (ignored in PHP).
+     * @param mixed $options  Intl.DateTimeFormat options bag (ignored in PHP).
+     * @psalm-suppress UnusedParam
+     * @psalm-api
+     */
+    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    {
+        return $this->toString();
+    }
+
+    /**
      * Always throws TypeError — PlainTime must not be used in arithmetic context.
      *
      * @throws \TypeError always.

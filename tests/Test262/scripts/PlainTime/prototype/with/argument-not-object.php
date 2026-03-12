@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
-Assert::throws(\TypeError::class, fn() => $instance->with(null), 'undefined');
+Assert::throws(\TypeError::class, fn() => $instance->with(), 'undefined');
 Assert::throws(\TypeError::class, fn() => $instance->with(null), 'null');
 Assert::throws(\TypeError::class, fn() => $instance->with(true), 'true');
 Assert::incomplete('untranslatable: Symbol()');

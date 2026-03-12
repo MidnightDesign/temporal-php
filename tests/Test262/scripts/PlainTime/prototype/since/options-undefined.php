@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $earlier = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
 $later = new \Temporal\PlainTime(18, 34, 56, 987, 654, 322);
-$explicit = $later->since($earlier, null);
+$explicit = $later->since($earlier);
 Assert::sameValue($explicit->hours, 6, 'default largest unit is hours');
 Assert::sameValue($explicit->nanoseconds, 1, 'default smallest unit is nanoseconds and no rounding');
 $implicit = $later->since($earlier);

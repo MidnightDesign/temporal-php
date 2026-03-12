@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $hour = 12;
-$explicit = new \Temporal\PlainTime($hour, null);
+$explicit = new \Temporal\PlainTime($hour);
 TemporalHelpers::assertPlainTime($explicit, $hour, 0, 0, 0, 0, 0, 'explicit');
 $implicit = new \Temporal\PlainTime($hour);
 TemporalHelpers::assertPlainTime($implicit, $hour, 0, 0, 0, 0, 0, 'implicit');

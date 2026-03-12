@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $time = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
-Assert::incomplete('Instant::toLocaleString() is not yet implemented');
+Assert::sameValue(is_string($time->toLocaleString('en', ['timeStyle' => 'short'])), true, '');

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof Duration.prototype.toLocaleString` is `function`');
-Assert::incomplete('\\Temporal\\Duration::toLocaleString() is not yet implemented');
+Assert::methodExists('\Temporal\Duration', 'toLocaleString');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(), 'undefined');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(null), 'undefined');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(), 'undefined');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(INF), 'Infinity');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(-INF), '-Infinity');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(NAN), 'NaN');

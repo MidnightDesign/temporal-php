@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $duration1 = new \Temporal\Duration(1);
 $duration2 = new \Temporal\Duration(0, 12);
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2), 'default relativeTo is undefined');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2, null), 'default relativeTo is undefined');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2), 'default relativeTo is undefined');

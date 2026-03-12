@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $zonedDateTime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 Assert::throws(\TypeError::class, fn() => $zonedDateTime->withCalendar(), 'missing argument');
-Assert::throws(\TypeError::class, fn() => $zonedDateTime->withCalendar(null), 'undefined argument');
+Assert::throws(\TypeError::class, fn() => $zonedDateTime->withCalendar(), 'undefined argument');

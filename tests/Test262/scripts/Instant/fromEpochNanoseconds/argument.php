@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::throws(\TypeError::class, fn() => \Temporal\Instant::fromEpochNanoseconds(), 'undefined');
-Assert::throws(\TypeError::class, fn() => \Temporal\Instant::fromEpochNanoseconds(null), 'undefined');
+Assert::throws(\TypeError::class, fn() => \Temporal\Instant::fromEpochNanoseconds(), 'undefined');
 Assert::throws(\TypeError::class, fn() => \Temporal\Instant::fromEpochNanoseconds(null), 'null');
 Assert::incomplete('Number passed to fromEpochNanoseconds; BigInt vs Number distinction not replicable in PHP');

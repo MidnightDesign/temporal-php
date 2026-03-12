@@ -454,8 +454,12 @@ final class ZonedDateTime implements Stringable
      */
     public function withPlainTime(mixed $time = null): self
     {
-        if ($time === null) {
+        // When called with no arguments, default to midnight.
+        // Explicit null is an invalid type (mirrors JS null vs undefined distinction).
+        if (func_num_args() === 0) {
             $h = $m = $s = $ms = $us = $ns = 0;
+        } elseif ($time === null) {
+            throw new \TypeError('ZonedDateTime::withPlainTime() argument must be a PlainTime, string, or property bag; null given.');
         } elseif ($time instanceof PlainTime) {
             $h  = $time->hour;
             $m  = $time->minute;

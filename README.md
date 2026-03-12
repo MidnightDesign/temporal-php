@@ -350,9 +350,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **2627 test262 tests passing** (1 known failure, 660 incomplete due to JS-only features like Symbol and Proxy) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, and `Temporal.ZonedDateTime`. 249 additional hand-written unit tests also pass (total: 2876 tests).
-
-The 1 known failure (`ZonedDateTime/prototype/withPlainTime/argument-wrong-type.php`) is a PHP limitation: PHP cannot distinguish JS `null` from `undefined`, so the test expects a `TypeError` for `null` but our implementation treats `null` as missing (defaulting to midnight).
+Currently **2628 test262 tests passing** (0 failures, 650 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, and `Temporal.ZonedDateTime`. 249 additional hand-written unit tests also pass (total: 2877 tests).
 
 ---
 
@@ -360,11 +358,11 @@ The 1 known failure (`ZonedDateTime/prototype/withPlainTime/argument-wrong-type.
 
 | Class | Status |
 |-------|--------|
-| `Temporal\Instant` | Complete — `from`, `fromEpochMilliseconds`, `fromEpochNanoseconds`, `compare`, `equals`, `add`, `subtract`, `since`, `until`, `round`, `toZonedDateTimeISO` (returns ZonedDateTime with iso8601 calendar), `toString`, `toJSON` |
-| `Temporal\Duration` | Complete — all 10 fields, `from`, `compare`, `add`, `subtract`, `negated`, `abs`, `with`, `equals`, `total`, `toString`, `toJSON` |
+| `Temporal\Instant` | Complete — `from`, `fromEpochMilliseconds`, `fromEpochNanoseconds`, `compare`, `equals`, `add`, `subtract`, `since`, `until`, `round`, `toZonedDateTimeISO` (returns ZonedDateTime with iso8601 calendar), `toString`, `toJSON`, `toLocaleString` |
+| `Temporal\Duration` | Complete — all 10 fields, `from`, `compare`, `add`, `subtract`, `negated`, `abs`, `with`, `equals`, `total`, `toString`, `toJSON`, `toLocaleString` |
 | `Temporal\PlainDate` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `equals`, `toString` (with `calendarName` option), `toJSON`; all 13 calendar properties |
 | `Temporal\PlainDateTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString` (with `calendarName` option), `toJSON`, `toPlainDate`, `toPlainTime`; all 22 virtual properties |
-| `Temporal\PlainTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString`, `toJSON`; all 6 time fields |
+| `Temporal\PlainTime` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `round`, `equals`, `toString`, `toJSON`, `toLocaleString`; all 6 time fields |
 | `Temporal\Now` | Complete — `instant`, `timeZoneId`, `plainDateISO`, `plainTimeISO` |
 | `Temporal\ZonedDateTime` | Complete — `from` (with `disambiguation`/`offset` options), `compare`, `equals`, `toString`, `toJSON`, `toInstant`, `toPlainDate`, `toPlainTime`, `toPlainDateTime`, `withTimeZone`, `withCalendar`, `withPlainTime`; all virtual date/time/calendar/timezone properties |
 

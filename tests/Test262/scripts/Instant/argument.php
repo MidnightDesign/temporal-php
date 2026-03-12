@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::throws(\TypeError::class, fn() => new \Temporal\Instant(), 'undefined');
-Assert::throws(\TypeError::class, fn() => new \Temporal\Instant(null), 'undefined');
+Assert::throws(\TypeError::class, fn() => new \Temporal\Instant(), 'undefined');
 Assert::throws(\TypeError::class, fn() => new \Temporal\Instant(null), 'null');
 Assert::incomplete('Number literal passed to new Temporal.Instant(); BigInt vs Number distinction not replicable in PHP');

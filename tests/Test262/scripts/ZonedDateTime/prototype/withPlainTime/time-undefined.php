@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\ZonedDateTime(957_270_896_987_654_321, 'UTC');
-$explicit = $datetime->withPlainTime(null);
+$explicit = $datetime->withPlainTime();
 Assert::sameValue($explicit->hour, 0, 'default time is midnight');
 Assert::sameValue($explicit->minute, 0, 'default time is midnight');
 Assert::sameValue($explicit->second, 0, 'default time is midnight');

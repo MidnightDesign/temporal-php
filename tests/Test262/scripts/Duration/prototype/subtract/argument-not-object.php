@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Duration(0, 0, 0, 1, 2, 3, 4, 987, 654, 321);
-Assert::throws(\TypeError::class, fn() => $instance->subtract(null), 'undefined');
+Assert::throws(\TypeError::class, fn() => $instance->subtract(), 'undefined');
 Assert::throws(\TypeError::class, fn() => $instance->subtract(null), 'null');
 Assert::throws(\TypeError::class, fn() => $instance->subtract(true), 'boolean');
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract(''), 'empty string');

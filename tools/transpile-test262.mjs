@@ -81,7 +81,6 @@ const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate', 'PlainDat
  * Calls to these are emitted as Assert::incomplete() rather than crashing.
  */
 const NOT_YET_IMPLEMENTED_METHODS = new Set([
-  'toLocaleString',
 ]);
 
 /**
@@ -129,12 +128,12 @@ const IMPLEMENTED_HELPERS = new Set([
 const PHP_IMPLEMENTED_METHODS = {
   Instant:  new Set([
     '__construct', 'from', 'fromEpochMilliseconds', 'fromEpochNanoseconds',
-    'compare', 'equals', 'valueOf', 'toString', 'toJSON',
+    'compare', 'equals', 'valueOf', 'toString', 'toJSON', 'toLocaleString',
     'add', 'subtract', 'round', 'since', 'until', 'toZonedDateTimeISO',
   ]),
   Duration: new Set([
     '__construct', 'from', 'negated', 'abs', 'equals', 'with',
-    'add', 'subtract', 'total', 'toString', 'toJSON', 'valueOf',
+    'add', 'subtract', 'total', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
     'compare', 'round',
   ]),
   PlainDate: new Set([
@@ -151,7 +150,7 @@ const PHP_IMPLEMENTED_METHODS = {
   PlainTime: new Set([
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
-    'round', 'equals', 'toString', 'toJSON', 'valueOf',
+    'round', 'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
   ]),
   Now: new Set([
     'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO',
@@ -1713,9 +1712,22 @@ class Emitter {
   }
 
   transpileArgs(argNodes) {
+    // Trim trailing `undefined` identifier arguments: omitting them achieves the
+    // same result in PHP as passing `undefined` in JS (the callee uses its default).
+    // This allows PHP to distinguish "no argument" from explicit null.
+    let effectiveArgs = argNodes;
+    while (effectiveArgs.length > 0) {
+      const last = effectiveArgs[effectiveArgs.length - 1];
+      if (last.type === 'Identifier' && last.name === 'undefined') {
+        effectiveArgs = effectiveArgs.slice(0, -1);
+      } else {
+        break;
+      }
+    }
+
     const parts = [];
     let hadSpread = false;
-    for (const a of argNodes) {
+    for (const a of effectiveArgs) {
       if (a.type === 'SpreadElement') {
         hadSpread = true;
         const arg = this.transpileExpr(a.argument);
@@ -1723,9 +1735,6 @@ class Emitter {
         parts.push(`...${arg}`);
       } else if (hadSpread) {
         // PHP does not allow positional arguments after spread unpacking.
-        // If the trailing arg is `undefined` (JS default), drop it — omitting it
-        // achieves the same effect (the callee uses its default value).
-        if (a.type === 'Identifier' && a.name === 'undefined') continue;
         // For other values: merge into a single spread of a combined array.
         // Rewrite all previous spread+positional args as [...spreadArr, extra, ...].
         const php = this.transpileExpr(a);

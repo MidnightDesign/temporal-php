@@ -143,7 +143,7 @@ final class ZonedDateTimeMethodsTest extends TestCase
         $epochSec = (int) mktime(hour: 12, minute: 0, second: 0, month: 1, day: 1, year: 2020);
         $zdt = new ZonedDateTime($epochSec * 1_000_000_000, 'UTC');
 
-        $result = $zdt->withPlainTime(null);
+        $result = $zdt->withPlainTime();
 
         static::assertSame(2020, $result->year);
         static::assertSame(1, $result->month);

@@ -644,6 +644,22 @@ final class Instant implements Stringable
     }
 
     /**
+     * Returns a locale-sensitive string for this Instant.
+     *
+     * PHP has no ICU Temporal support, so this falls back to toString().
+     * The TC39 spec permits implementations to choose locale behavior.
+     *
+     * @param mixed $locales  BCP 47 locale string or array (ignored in PHP).
+     * @param mixed $options  Intl.DateTimeFormat options bag (ignored in PHP).
+     * @psalm-suppress UnusedParam
+     * @psalm-api
+     */
+    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    {
+        return $this->toString();
+    }
+
+    /**
      * Returns a ZonedDateTime for this Instant in the given time zone.
      *
      * @param mixed $timeZone A timezone string: 'UTC', '±HH:MM', or an ISO datetime string
