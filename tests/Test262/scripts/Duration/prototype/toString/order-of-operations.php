@@ -11,4 +11,5 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.fractionalSecondDigits', 'get options.fractionalSecondDigits.toString', 'call options.fractionalSecondDigits.toString', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit'];
 $actual = [];
 $instance = new \Temporal\Duration(1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
-Assert::incomplete('untranslatable: Array.prototype.concat()');
+$expectedForSmallestUnit = array_merge($expected, ['get options.smallestUnit.toString', 'call options.smallestUnit.toString']);
+Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

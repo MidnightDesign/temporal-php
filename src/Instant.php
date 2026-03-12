@@ -87,12 +87,24 @@ final class Instant implements Stringable
      * @throws InvalidArgumentException if the string cannot be parsed, has no UTC offset,
      *                                  or represents a timestamp outside the nanosecond range.
      */
-    public static function from(self|string $item): self
+    public static function from(mixed $item): self
     {
         if ($item instanceof self) {
             return new self($item->epochNanoseconds);
         }
+        if (!is_string($item)) {
+            throw new InvalidArgumentException(
+                'Temporal.Instant.from() requires an Instant or string, got ' . get_debug_type($item) . '.',
+            );
+        }
         $text = $item;
+        // Reject more than 9 fractional-second digits (time part or offset fraction).
+        // TC39 spec: strings with 10+ fractional digits are invalid (test262 argument-string-too-many-decimals).
+        if (preg_match('/[.,]\d{10,}/', $text) === 1) {
+            throw new InvalidArgumentException(
+                "Invalid Instant string \"{$text}\": fractional seconds may have at most 9 digits.",
+            );
+        }
         /*
          * Regex groups:
          *   1 — year (±YYYYYY or YYYY)
@@ -629,6 +641,112 @@ final class Instant implements Stringable
     public function toJSON(mixed $options = null): string
     {
         return $this->toString();
+    }
+
+    /**
+     * Returns a ZonedDateTime for this Instant in the given time zone.
+     *
+     * @param mixed $timeZone A timezone string: 'UTC', '±HH:MM', or an ISO datetime string
+     *                        with an inline offset or bracket annotation (e.g. '2020-01-01T00:00Z').
+     * @psalm-api used by test262 scripts
+     * @throws \TypeError if $timeZone is not a string.
+     * @throws InvalidArgumentException if the timezone string is invalid (empty, sub-minute offset, etc.).
+     */
+    public function toZonedDateTimeISO(mixed $timeZone): ZonedDateTime
+    {
+        if (!is_string($timeZone)) {
+            throw new \TypeError(
+                'Temporal.Instant.prototype.toZonedDateTimeISO: timeZone must be a string.',
+            );
+        }
+        $tzId = self::parseTimeZoneId($timeZone);
+        return new ZonedDateTime($this->epochNanoseconds, $tzId);
+    }
+
+    /**
+     * Parses a timezone string and returns its canonical timezone ID.
+     *
+     * Accepts: 'UTC' (case-insensitive), '±HH:MM', or ISO datetime strings
+     * with an inline offset (Z or ±HH:MM) or a bracket annotation [tzId].
+     * Sub-minute offsets, bare datetimes, and empty strings are rejected.
+     *
+     * @throws InvalidArgumentException for invalid timezone strings.
+     */
+    private static function parseTimeZoneId(string $tz): string
+    {
+        if ($tz === '') {
+            throw new InvalidArgumentException('Time zone string must not be empty.');
+        }
+        // 'UTC' (case-insensitive).
+        if (strtoupper($tz) === 'UTC') {
+            return 'UTC';
+        }
+        // Reject minus-zero extended year.
+        if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
+            throw new InvalidArgumentException("Invalid time zone string \"{$tz}\": minus-zero year.");
+        }
+
+        // Determine if this looks like a datetime (has a T-separator after a date part).
+        $isDatetime = preg_match('/\d{4,}-\d{2}-\d{2}[Tt]|\d{8}[Tt]/', $tz) === 1;
+
+        if ($isDatetime) {
+            // Bracket annotation takes precedence over the inline offset.
+            if (preg_match('/\[(!?[^\]]+)\]/', $tz, $bm) === 1) {
+                $bracket = $bm[1];
+                // Sub-minute offset in bracket: reject.
+                if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bracket) === 1) {
+                    throw new InvalidArgumentException(
+                        "Invalid time zone string \"{$tz}\": sub-minute offset in bracket annotation.",
+                    );
+                }
+                if (strtoupper($bracket) === 'UTC') {
+                    return 'UTC';
+                }
+                if (preg_match('/^[+\-]\d{2}:\d{2}$/', $bracket) === 1) {
+                    return $bracket;
+                }
+                throw new InvalidArgumentException(
+                    "Invalid time zone string \"{$tz}\": unsupported bracket timezone \"{$bracket}\".",
+                );
+            }
+            // No bracket: inline offset (Z or ±HH:MM) required.
+            // Reject sub-minute inline offset.
+            if (preg_match('/[+\-]\d{2}:\d{2}:\d{2}/i', $tz) === 1) {
+                throw new InvalidArgumentException(
+                    "Invalid time zone string \"{$tz}\": inline offset contains a seconds component.",
+                );
+            }
+            // Extract inline offset (Z or ±HH:MM at end or after time part).
+            if (preg_match('/[Zz](?:\[|$)/', $tz) === 1) {
+                return 'UTC';
+            }
+            if (preg_match('/([+\-]\d{2}:\d{2})(?:\[|$)/', $tz, $om) === 1) {
+                return $om[1];
+            }
+            // Bare datetime with no offset and no bracket.
+            throw new InvalidArgumentException(
+                "Invalid time zone string \"{$tz}\": bare datetime without Z, offset, or bracket.",
+            );
+        }
+
+        // Pure UTC-offset strings: accept only ±HH:MM (no seconds component).
+        if (preg_match('/^[+\-]\d{2}:\d{2}$/', $tz) === 1) {
+            return $tz;
+        }
+        // ±HHMM (compact form) → normalize to ±HH:MM.
+        if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $tz, $m) === 1) {
+            return $m[1] . $m[2] . ':' . $m[3];
+        }
+        // Anything with more than ±HH:MM (seconds or fractional) → reject.
+        if (preg_match('/^[+\-]\d{2}:\d{2}[:.].*/i', $tz) === 1) {
+            throw new InvalidArgumentException(
+                "Invalid time zone string \"{$tz}\": sub-minute offset is not a valid timezone identifier.",
+            );
+        }
+
+        throw new InvalidArgumentException(
+            "Invalid time zone string \"{$tz}\": not a recognized timezone identifier.",
+        );
     }
 
     /**

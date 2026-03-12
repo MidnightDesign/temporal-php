@@ -19,3 +19,4 @@ $d5 = new \Temporal\Duration(1, 0, 3, 0, 5, 0, 7, 0, 9, 0);
 Assert::notSameValue($d5->abs(), $d5, '');
 $d6 = new \Temporal\Duration(0, 2, 0, 4, 0, 6, 0, 8, 0, 10);
 Assert::notSameValue($d6->abs(), $d6, '');
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

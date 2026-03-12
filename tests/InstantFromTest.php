@@ -58,10 +58,9 @@ final class InstantFromTest extends TestCase
 
     public function testFractionTruncatedBeyondNanoseconds(): void
     {
-        // Digits beyond the 9th are discarded (truncation, not rounding).
-        $instant = Instant::from('1970-01-01T00:00:00.1234567899Z'); // 10 digits
-
-        static::assertSame(123_456_789, $instant->epochNanoseconds);
+        // TC39 spec: strings with more than 9 fractional digits are invalid.
+        $this->expectException(InvalidArgumentException::class);
+        Instant::from('1970-01-01T00:00:00.1234567899Z'); // 10 digits → rejected
     }
 
     public function testFromThrowsWithoutOffset(): void

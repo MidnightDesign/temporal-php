@@ -733,8 +733,10 @@ final class Duration implements Stringable
             }
             /** @var mixed $rt */
             $rt = $totalOf['relativeTo'];
-            // PlainDate objects are valid relativeTo values; convert to property bag.
-            if ($rt instanceof \Temporal\PlainDate) {
+            // PlainDate and ZonedDateTime objects are valid relativeTo values; convert to property bag.
+            if ($rt instanceof \Temporal\ZonedDateTime) {
+                $rt = self::zdtToPlainDateBag($rt);
+            } elseif ($rt instanceof \Temporal\PlainDate) {
                 $rt = ['year' => $rt->year, 'month' => $rt->month, 'day' => $rt->day];
             } elseif (is_string($rt)) {
                 $rt = $this->parseRelativeToString($rt);
@@ -762,8 +764,10 @@ final class Duration implements Stringable
             }
             /** @var mixed $rt */
             $rt = $totalOf['relativeTo'];
-            // PlainDate objects are valid relativeTo values; convert to property bag.
-            if ($rt instanceof \Temporal\PlainDate) {
+            // PlainDate and ZonedDateTime objects are valid relativeTo values; convert to property bag.
+            if ($rt instanceof \Temporal\ZonedDateTime) {
+                $rt = self::zdtToPlainDateBag($rt);
+            } elseif ($rt instanceof \Temporal\PlainDate) {
                 $rt = ['year' => $rt->year, 'month' => $rt->month, 'day' => $rt->day];
             } elseif (is_string($rt)) {
                 $rt = $this->parseRelativeToString($rt);
@@ -778,7 +782,7 @@ final class Duration implements Stringable
             if (!$hasYear || !$hasMonth || !$hasDay) {
                 throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
             }
-            return $this->totalCalendarDays($rt);
+            return $this->totalCalendar($unit, $rt);
         }
 
         // Validate relativeTo if provided (even for pure-time unit computations).
@@ -826,6 +830,8 @@ final class Duration implements Stringable
                 }
             } elseif ($rtRaw instanceof \Temporal\PlainDate) {
                 // PlainDate objects are always valid for pure-time computations; no extra validation needed.
+            } elseif ($rtRaw instanceof \Temporal\ZonedDateTime) {
+                // ZonedDateTime objects are valid relativeTo values for pure-time computations.
             } elseif (is_array($rtRaw)) {
                 self::validateRelativeToPropertyBag($rtRaw);
             } elseif ($rtRaw !== null) {
@@ -1122,20 +1128,6 @@ final class Duration implements Stringable
         $startEpochDay = self::isoDateToEpochDays($year, $month, $day);
         $endEpochDay = $startEpochDay + $totalWholeDays;
 
-        if ($unit === 'weeks') {
-            if (
-                abs($endEpochDay) > 100_000_000
-                || ($endEpochDay === 100_000_000 && $fracNs > 0)
-                || ($endEpochDay === -100_000_000 && $fracNs < 0)
-            ) {
-                throw new InvalidArgumentException(
-                    'Duration with relativeTo exceeds the maximum representable date range.',
-                );
-            }
-            return self::toIntIfWhole(
-                ((float) $totalWholeDays + ((float) $fracNs / (float) $nsPerDay)) / 7.0,
-            );
-        }
         if (
             abs($endEpochDay) > 100_000_000
             || ($endEpochDay === 100_000_000 && $fracNs > 0)
@@ -1146,83 +1138,44 @@ final class Duration implements Stringable
             );
         }
 
+        $fracDay = (float) $fracNs / (float) $nsPerDay;
+
+        // For time units (weeks, days, hours, …): validate that the total fractional days don't
+        // exceed the maximum representable range (±100 000 000 days). This catches cases where
+        // large time fields (e.g. seconds = 2^53 - 1) push the total far beyond the limit.
+        if ($unit !== 'years' && $unit !== 'months') {
+            $totalDaysF = (float) $totalWholeDays + $fracDay;
+            if (abs($totalDaysF) > 100_000_000.0) {
+                throw new InvalidArgumentException(
+                    'Duration with relativeTo exceeds the maximum representable date range.',
+                );
+            }
+        }
+
         return match ($unit) {
             'months' => $this->totalCalendarMonths($start, $totalWholeDays, $fracNs, $nsPerDay),
-            'years'  => $this->totalCalendarYears($start, $totalWholeDays, $fracNs, $nsPerDay),
-            default => throw new InvalidArgumentException("Unhandled calendar unit: \"{$unit}\"."),
+            'years'  => $this->totalCalendarYears($start, $totalWholeDays, $fracNs),
+            // For weeks: use floor(days/7) + ((days%7 + fracDay)/7) to match TC39 test precision.
+            // Non-associative float: (totalDays+fracDay)/7 ≠ floor(totalDays/7)+((rem+fracDay)/7).
+            'weeks'  => self::toIntIfWhole(
+                (float) intdiv(num1: $totalWholeDays, num2: 7)
+                + (((float) ($totalWholeDays % 7) + $fracDay) / 7.0),
+            ),
+            'days'         => self::toIntIfWhole((float) $totalWholeDays + $fracDay),
+            'hours'        => self::toIntIfWhole((float) $totalWholeDays * 24.0
+                + (float) $fracNs / 3_600_000_000_000.0),
+            'minutes'      => self::toIntIfWhole((float) $totalWholeDays * 1_440.0
+                + (float) $fracNs / 60_000_000_000.0),
+            'seconds'      => self::toIntIfWhole((float) $totalWholeDays * 86_400.0
+                + (float) $fracNs / 1_000_000_000.0),
+            'milliseconds' => self::toIntIfWhole((float) $totalWholeDays * 86_400_000.0
+                + (float) $fracNs / 1_000_000.0),
+            'microseconds' => self::toIntIfWhole((float) $totalWholeDays * 86_400_000_000.0
+                + (float) $fracNs / 1_000.0),
+            'nanoseconds'  => self::toIntIfWhole((float) $totalWholeDays * 86_400_000_000_000.0
+                + (float) $fracNs),
+            default => throw new InvalidArgumentException("Unhandled unit: \"{$unit}\"."),
         };
-    }
-
-    /**
-     * Computes total fractional days for a duration with calendar fields (years/months/weeks)
-     * relative to a start date. The result is: days from relativeTo to (relativeTo + calendar fields)
-     * plus time fields converted to fractional days.
-     *
-     * @param array<array-key,mixed> $relativeTo Validated plain-date property bag.
-     */
-    private function totalCalendarDays(array $relativeTo): int|float
-    {
-        /** @var mixed $yearRaw */
-        $yearRaw = $relativeTo['year'];
-        /** @phpstan-ignore cast.int */
-        $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
-        if (array_key_exists('month', $relativeTo)) {
-            /** @var mixed $monthRaw */
-            $monthRaw = $relativeTo['month'];
-            /** @phpstan-ignore cast.int */
-            $month = is_int($monthRaw) ? $monthRaw : (int) $monthRaw;
-        } else {
-            /** @var mixed $monthCodeRaw */
-            $monthCodeRaw = $relativeTo['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $month = (int) substr(string: is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw, offset: 1);
-        }
-        /** @var mixed $dayRaw */
-        $dayRaw = $relativeTo['day'];
-        /** @phpstan-ignore cast.int */
-        $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
-
-        $tz    = new \DateTimeZone('UTC');
-        $start = (new \DateTimeImmutable('now', $tz))->setDate($year, $month, $day)->setTime(0, 0, 0);
-
-        // Advance start by calendar fields to find the end date.
-        // Apply calendar fields with TC39-compliant clamped arithmetic.
-        $end = $start;
-        $calSign2 = $this->sign;
-        if ((int) $this->years !== 0) {
-            $end = self::addYearsClamped($end, $calSign2 * abs((int) $this->years));
-        }
-        if ((int) $this->months !== 0) {
-            $end = self::addMonthsClamped($end, $calSign2 * abs((int) $this->months));
-        }
-        if ((int) $this->weeks !== 0) {
-            $awDays = $calSign2 * abs((int) $this->weeks) * 7;
-            $end = $end->modify(($awDays >= 0 ? '+' : '') . $awDays . ' days');
-        }
-
-        // Count calendar days between start and end.
-        $calendarDays = (int) $start->diff($end)->format('%r%a');
-
-        // Add remaining time fields as fractional days.
-        $nsPerDay = 86_400_000_000_000;
-        // Guard against int64 overflow when time fields are near MaxTimeDuration.
-        $timeNsF =
-            ((float) $this->days * (float) $nsPerDay)
-            + ((float) $this->hours * 3_600_000_000_000.0)
-            + ((float) $this->minutes * 60_000_000_000.0)
-            + ((float) $this->seconds * 1_000_000_000.0)
-            + ((float) $this->milliseconds * 1_000_000.0)
-            + ((float) $this->microseconds * 1_000.0)
-            + (float) $this->nanoseconds;
-        $totalDaysF = (float) $calendarDays + $timeNsF / (float) $nsPerDay;
-        // Epoch-day range: ±100 000 000. Combining calendar + time may exceed this.
-        if (abs($totalDaysF) > 100_000_000.0) {
-            throw new InvalidArgumentException(
-                'Duration with relativeTo exceeds the maximum representable date range.',
-            );
-        }
-
-        return self::toIntIfWhole($totalDaysF);
     }
 
     /**
@@ -1272,7 +1225,6 @@ final class Duration implements Stringable
         \DateTimeImmutable $start,
         int $wholeDays,
         int $fracNs,
-        int $nsPerDay,
     ): int|float {
         $absWholeDays = abs($wholeDays);
         $dir = $wholeDays >= 0 ? '+' : '-';
@@ -1295,10 +1247,18 @@ final class Duration implements Stringable
         // r2 = start + (years+1) years, not current + 1 year).
         $r2 = self::addYearsClamped($start, $sign * ($years + 1));
         $daysInNextYear = (int) $current->diff($r2)->days;
-        $result =
-            (float) ($years * $sign)
-            + ((float) ($sign * $remainingDays) / (float) $daysInNextYear)
-            + ((float) ($sign * $fracNs) / ((float) $nsPerDay * (float) $daysInNextYear));
+        // Convert fracNs → ms → fracDays via two exact divisions.
+        // Direct division fracNs / (nsPerDay * 365) loses precision (86400e9 * 365 > 2^53).
+        // Dividing fracNs by 1e6 first (ns → ms) gives the same float64 as the JS test's
+        // ms-level computation (fracMs / dayMs), avoiding the 1-ULP rounding difference.
+        $fracDays = (float) ($sign * $fracNs) / 1_000_000.0 / 86_400_000.0;
+        // Compute fractional part first (matching TC39 test evaluation order):
+        // test: $fractionalYear = $partialYearDays / 365 + ($fractionalDay / 365)
+        // then: $fullYears + $fractionalYear
+        // Float addition is non-associative: (a+b)+c ≠ a+(b+c) at this precision.
+        $fracPart = ((float) ($sign * $remainingDays) / (float) $daysInNextYear)
+            + ($fracDays / (float) $daysInNextYear);
+        $result   = (float) ($years * $sign) + $fracPart;
 
         return self::toIntIfWhole($result);
     }
@@ -1915,6 +1875,9 @@ final class Duration implements Stringable
         if ($increment < 1) {
             throw new InvalidArgumentException('roundingIncrement must be at least 1.');
         }
+        if ($increment > 1_000_000_000) {
+            throw new InvalidArgumentException('roundingIncrement must not exceed 10^9.');
+        }
 
         /** @phpstan-ignore cast.string */
         $roundingMode = $rmRaw === null ? 'halfExpand' : (string) $rmRaw;
@@ -1952,6 +1915,12 @@ final class Duration implements Stringable
         $needsRelativeTo = $suIsCalendar || $luIsCalendar || $durationHasCalendar;
 
         $relativeToProvided = self::extractRelativeTo($roundTo);
+
+        // Detect ZonedDateTime relativeTo for sub-day rounding behavior.
+        // $roundTo is always an array at this point (strings/objects normalized above).
+        /** @var mixed $rtRawForZdt */
+        $rtRawForZdt = $roundTo['relativeTo'] ?? null;
+        $zdtRelativeTo = $rtRawForZdt instanceof \Temporal\ZonedDateTime;
 
         if ($needsRelativeTo && !$relativeToProvided) {
             throw new InvalidArgumentException(
@@ -2025,6 +1994,17 @@ final class Duration implements Stringable
             );
         }
 
+        // Prevent undefined behavior from (int) cast on float Duration fields > PHP int64.
+        // This can occur with very large float microseconds/nanoseconds values.
+        foreach ([$this->days, $this->hours, $this->minutes, $this->seconds,
+                  $this->milliseconds, $this->microseconds, $this->nanoseconds] as $_field) {
+            if (is_float($_field) && abs($_field) >= 9.223372036854776e18) {
+                throw new InvalidArgumentException(
+                    'Duration time fields exceed the maximum representable range after rounding.',
+                );
+            }
+        }
+
         // Compute total absolute nanoseconds, balancing all sub-day fields first.
         $sign = $this->sign;
         $absNs = (int) abs((float) $this->nanoseconds);
@@ -2066,6 +2046,22 @@ final class Duration implements Stringable
             );
         }
 
+        // For ZonedDateTime relativeTo: the result instant must stay within ±8.64e21 ns
+        // (the valid Temporal.Instant range). Check zdtEpoch ± duration in seconds.
+        if ($zdtRelativeTo) {
+            /** @var \Temporal\ZonedDateTime $rtRawForZdt */
+            $zdtEpochNs = $rtRawForZdt->epochNanoseconds;
+            $zdtEpochSec = is_int($zdtEpochNs)
+                ? (float) intdiv(num1: $zdtEpochNs, num2: 1_000_000_000)
+                : floor($zdtEpochNs / 1_000_000_000.0);
+            $zdtResultSec = $zdtEpochSec + (float) $sign * $totalAbsSec;
+            if ($zdtResultSec > 8_640_000_000_000.0 || $zdtResultSec < -8_640_000_000_000.0) {
+                throw new InvalidArgumentException(
+                    'Duration with ZonedDateTime relativeTo would move the instant outside the valid range.',
+                );
+            }
+        }
+
         // Nanoseconds per unit (time units only; days and above handled separately).
         /** @var array<string,int> */
         static $NS_PER_UNIT = [
@@ -2077,13 +2073,14 @@ final class Duration implements Stringable
             'hours' => 3_600_000_000_000,
         ];
 
-        // For day-level smallest unit, treat each day as 86400e9 ns.
+        // Sub-day smallest unit: compute nanoseconds per increment and validate.
+        // The 'days' case is handled separately below (early return) to avoid int64 overflow.
         $suNormResolved = $suNorm ?? 'nanoseconds';
-        if ($suNormResolved === 'days') {
-            $nsIncrement = 86_400_000_000_000 * $increment;
-        } else {
+        if ($suNormResolved !== 'days') {
             $nsPerSmallest = $NS_PER_UNIT[$suNormResolved] ?? 1;
             $nsIncrement = $nsPerSmallest * $increment;
+        } else {
+            $nsIncrement = 0; // placeholder; the 'days' path returns early below before using this.
         }
 
         // Validate increment: must be strictly less than the next-higher-unit count and divide it evenly.
@@ -2107,10 +2104,54 @@ final class Duration implements Stringable
             }
         }
 
+        // ZDT sub-day rounding: for ZonedDateTime relativeTo with a time smallestUnit and
+        // largestUnit >= days, keep whole days intact and round only the sub-day portion.
+        // This differs from PlainDate behavior (which rounds the total nanoseconds).
+        if ($zdtRelativeTo && $suNormResolved !== 'days' && $luIdx >= 6) {
+            $roundedSubDayNs = self::roundNsPositive($subDayNs, $nsIncrement, $roundingMode);
+            // If rounding carried the sub-day portion beyond one full day, add extra days.
+            $extraDays = intdiv(num1: $roundedSubDayNs, num2: 86_400_000_000_000);
+            $roundedSubDayNs -= $extraDays * 86_400_000_000_000;
+            $absD += $extraDays;
+            // Balance the sub-day ns to fields; days go into $absD.
+            [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields($roundedSubDayNs, $luIdx);
+            /** @psalm-suppress InvalidOperand — balanceNsToFields returns int|float; $absD is int */
+            $rDays += $absD;
+            /** @psalm-suppress InvalidOperand — $sign (int) * int|float fields */
+            return new self(
+                0,
+                0,
+                0,
+                $sign * $rDays,
+                $sign * $rH,
+                $sign * $rM,
+                $sign * $rS,
+                $sign * $rMs,
+                $sign * $rUs,
+                $sign * $rNs,
+            );
+        }
+
+        // For 'days' smallest unit: work in day units to avoid int64 overflow for large increments.
+        // roundingIncrement=1e9 would give nsIncrement=8.64e22 > PHP_INT_MAX, breaking integer math.
+        // In the pure-time path largestUnit is always 'days' when smallestUnit='days'
+        // (weeks/months/years require relativeTo → calendar path via roundWithRelativeTo).
+        if ($suNormResolved === 'days') {
+            $totalAbsDaysF = (float) $absD + (float) $subDayNs / 86_400_000_000_000.0;
+            $roundedAbsDays = (int) self::roundNsFloat($totalAbsDaysF, (float) $increment, $roundingMode);
+            if ((float) $roundedAbsDays * 86_400.0 >= 9_007_199_254_740_992.0) {
+                throw new InvalidArgumentException(
+                    'Duration time fields exceed the maximum representable range after rounding.',
+                );
+            }
+            /** @psalm-suppress InvalidOperand */
+            return new self(0, 0, 0, $sign * $roundedAbsDays, 0, 0, 0, 0, 0, 0);
+        }
+
         // Compute totalNs as int when it fits in int64, float otherwise.
         // Safe threshold: 106_750 * 86_400_000_000_000 + 86_399_999_999_999 < PHP_INT_MAX.
-        $totalNsIsFloat = $absD > 106_750;
-        if (!$totalNsIsFloat) {
+        // Direct comparison (not a bool variable) lets Psalm narrow $absD's range inside the block.
+        if ($absD <= 106_750) {
             $totalNsInt = $absD * 86_400_000_000_000 + $subDayNs;
             // Round the total nanoseconds (int path).
             $roundedNsInt = self::roundNsPositive($totalNsInt, $nsIncrement, $roundingMode);
@@ -2238,8 +2279,8 @@ final class Duration implements Stringable
         if ($rt === null) {
             throw new \TypeError('relativeTo must be a string or property bag array.');
         }
-        if ($rt instanceof \Temporal\PlainDate) {
-            return true; // PlainDate objects are valid relativeTo values
+        if ($rt instanceof \Temporal\PlainDate || $rt instanceof \Temporal\ZonedDateTime) {
+            return true; // PlainDate and ZonedDateTime objects are valid relativeTo values
         }
         if (is_string($rt)) {
             // Reuse the instance-method parser via a temporary instance.
@@ -2263,6 +2304,9 @@ final class Duration implements Stringable
      */
     private function relativeToPlainDateBag(mixed $rt): array
     {
+        if ($rt instanceof \Temporal\ZonedDateTime) {
+            return self::zdtToPlainDateBag($rt);
+        }
         if ($rt instanceof \Temporal\PlainDate) {
             return ['year' => $rt->year, 'month' => $rt->month, 'day' => $rt->day];
         }
@@ -2359,6 +2403,59 @@ final class Duration implements Stringable
                 throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\": non-zero sub-seconds.");
             }
         }
+    }
+
+    /**
+     * Converts a ZonedDateTime to a year/month/day property bag.
+     *
+     * Uses the ZDT's epochNanoseconds and timezone offset to determine the local date.
+     * Only UTC ("UTC", "Z") and fixed-offset timezones (±HH:MM) are supported.
+     *
+     * @return array{year: int, month: int, day: int}
+     * @throws InvalidArgumentException for IANA timezone names (not implemented).
+     */
+    private static function zdtToPlainDateBag(\Temporal\ZonedDateTime $zdt): array
+    {
+        $epochNs = $zdt->epochNanoseconds;
+        if (is_int($epochNs)) {
+            // Integer division: floor toward negative infinity.
+            $epochSec = intdiv(num1: $epochNs, num2: 1_000_000_000);
+            if ($epochNs < 0 && $epochNs % 1_000_000_000 !== 0) {
+                $epochSec -= 1;
+            }
+        } else {
+            // Float: use floor division.
+            $epochSec = (int) floor($epochNs / 1_000_000_000.0);
+        }
+        $offsetSec = self::parseTimezoneToOffsetSec($zdt->timeZoneId);
+        $localSec  = $epochSec + $offsetSec;
+        $dt = new \DateTimeImmutable('@' . $localSec, new \DateTimeZone('UTC'));
+        return [
+            'year'  => (int) $dt->format('Y'),
+            'month' => (int) $dt->format('n'),
+            'day'   => (int) $dt->format('j'),
+        ];
+    }
+
+    /**
+     * Parses a timezone identifier to an offset in seconds.
+     *
+     * Supported: "UTC", "Z", and fixed-offset "±HH:MM[:SS]".
+     *
+     * @throws InvalidArgumentException for IANA timezone names or invalid formats.
+     */
+    private static function parseTimezoneToOffsetSec(string $tz): int
+    {
+        if ($tz === 'UTC' || $tz === 'Z') {
+            return 0;
+        }
+        if (preg_match('/^([+\-])(\d{2}):(\d{2})(?::(\d{2}))?$/', $tz, $m) === 1) {
+            $sign = $m[1] === '+' ? 1 : -1;
+            return $sign * ((int) $m[2] * 3_600 + (int) $m[3] * 60 + (isset($m[4]) ? (int) $m[4] : 0));
+        }
+        throw new InvalidArgumentException(
+            "ZonedDateTime timezone '{$tz}' is not a fixed-offset timezone. Only UTC and ±HH:MM are supported.",
+        );
     }
 
     /**
@@ -3267,12 +3364,6 @@ final class Duration implements Stringable
             'seconds' => 1_000_000_000, 'minutes' => 60_000_000_000, 'hours' => 3_600_000_000_000,
         ];
         $suNormResolved = $suNorm ?? 'nanoseconds';
-        if ($suNormResolved === 'days') {
-            $nsIncrement = $nsPerDay * $increment;
-        } else {
-            $nsPerSmallest = $NS_PER_UNIT[$suNormResolved] ?? 1;
-            $nsIncrement = $nsPerSmallest * $increment;
-        }
 
         // Validate sub-day increment: must be strictly less than next-higher-unit count and divide it evenly.
         // Per TC39: e.g. minutes increment must be < 60 and divide 60 evenly.
@@ -3311,27 +3402,58 @@ final class Duration implements Stringable
                 default     => $roundingMode,
             }
             : $roundingMode;
-        $roundedAbsNs = self::roundNsPositive($absNs, $nsIncrement, $signedMode);
-        $roundedNs = $sign * $roundedAbsNs;
 
-        // Balance the rounded nanoseconds back into duration fields.
-        $roundedDays = intdiv(num1: $roundedNs, num2: $nsPerDay);
-        $subDayNs = $roundedNs - $roundedDays * $nsPerDay;
+        // For 'days' smallest unit: work in day units to avoid int64 overflow when increment is large
+        // (e.g. roundingIncrement=1e9 days → nsIncrement=8.64e22 would overflow PHP_INT_MAX=9.2e18).
+        // For sub-day units: round in nanoseconds using integer arithmetic.
+        $roundedAbsNs = 0; // initialised here; only used in the sub-day path (luIdx < 6)
+        if ($suNormResolved === 'days') {
+            // Express total as fractional days and round using float arithmetic.
+            $totalAbsDaysF = (float) $absNs / (float) $nsPerDay;
+            $roundedAbsDays = (int) self::roundNsFloat($totalAbsDaysF, (float) $increment, $signedMode);
+            $roundedDays = $sign * $roundedAbsDays;
+            $subDayNs = 0;
+        } else {
+            $nsPerSmallest = $NS_PER_UNIT[$suNormResolved] ?? 1;
+            $nsIncrement = $nsPerSmallest * $increment;
+            $roundedAbsNs = self::roundNsPositive($absNs, $nsIncrement, $signedMode);
+            $roundedNs = $sign * $roundedAbsNs;
+            // Balance the rounded nanoseconds back into duration fields.
+            $roundedDays = intdiv(num1: $roundedNs, num2: $nsPerDay);
+            $subDayNs = $roundedNs - $roundedDays * $nsPerDay;
+        }
 
         // Balance calendar fields (years/months/weeks/days) from roundedDays.
         if ($luIdx >= 7) {
             // largestUnit is weeks, months, or years: split days into calendar units.
             [$ry, $rm, $rw, $rd] = self::balanceDateDuration($startDate, $roundedDays, $luIdx, $suIdx);
-        } else {
-            // largestUnit is days or smaller: keep as days, no calendar splitting.
+            // Distribute sub-day ns into time fields.
+            [$rH, $rM, $rS, $rMs, $rUs, $rNs] = self::distributeSubDayNs($subDayNs);
+        } elseif ($luIdx === 6) {
+            // largestUnit is days: keep as-is, distribute sub-day to time fields.
             $ry = 0;
             $rm = 0;
             $rw = 0;
             $rd = $roundedDays;
+            [$rH, $rM, $rS, $rMs, $rUs, $rNs] = self::distributeSubDayNs($subDayNs);
+        } else {
+            // largestUnit < days (hours, minutes, seconds, …): fold days into time units.
+            // Use balanceNsToFields on the absolute rounded nanoseconds so that excess days
+            // are absorbed by the largest time unit (e.g. hours = roundedDays * 24 + subDayH).
+            [$rDaysFolded, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields($roundedAbsNs, $luIdx);
+            $ry = 0;
+            $rm = 0;
+            $rw = 0;
+            // Cast sign to float so that float * float avoids Psalm strict InvalidOperand errors.
+            $signF  = (float) $sign;
+            $rd     = $signF * (float) $rDaysFolded; // should be 0 when luIdx < 6
+            $rH     = $signF * (float) $rH;
+            $rM     = $signF * (float) $rM;
+            $rS     = $signF * (float) $rS;
+            $rMs    = $signF * (float) $rMs;
+            $rUs    = $signF * (float) $rUs;
+            $rNs    = $signF * (float) $rNs;
         }
-
-        // Distribute sub-day ns into time fields.
-        [$rH, $rM, $rS, $rMs, $rUs, $rNs] = self::distributeSubDayNs($subDayNs);
 
         return new self($ry, $rm, $rw, $rd, $rH, $rM, $rS, $rMs, $rUs, $rNs);
     }

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2021, 3, 31)->subtract(['months' => 1]), 2021, 2, 'M02', 28, 'Mar 31 - 1 month constrained to Feb 28 (non-leap)');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2020, 3, 31)->subtract(['months' => 1]), 2020, 2, 'M02', 29, 'Mar 31 - 1 month constrained to Feb 29 (leap)');
+$mar31 = \Temporal\PlainDate::from('2020-03-31');
+TemporalHelpers::assertPlainDate($mar31->subtract(['months' => 1], ['overflow' => 'constrain']), 2020, 2, 'M02', 29);

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zero = new \Temporal\Duration();
-Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');
+Assert::incomplete('\\Temporal\\PlainDateTime is not yet implemented');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $blank = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 $oneDay = new \Temporal\Duration(0, 0, 0, 1);
-Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');
+Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');

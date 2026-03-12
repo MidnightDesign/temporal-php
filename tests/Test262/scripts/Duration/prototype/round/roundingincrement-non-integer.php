@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Duration(0, 0, 0, 1);
 $options = ['smallestUnit' => 'days', 'roundingMode' => 'expand', 'relativeTo' => new \Temporal\PlainDate(2000, 1, 1)];
-Assert::incomplete('untranslatable object property');
+$result = $instance->round(array_merge($options, ['roundingIncrement' => 2.5]));
+TemporalHelpers::assertDuration($result, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 'roundingIncrement 2.5 truncates to 2');
+$result2 = $instance->round(array_merge($options, ['roundingIncrement' => 1_000_000_000 + 0.5]));
+TemporalHelpers::assertDuration($result2, 0, 0, 0, 1_000_000_000, 0, 0, 0, 0, 0, 0, 'roundingIncrement 1e9 + 0.5 truncates to 1e9');

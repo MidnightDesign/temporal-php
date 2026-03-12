@@ -9,4 +9,22 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $timeZone = '2021-08-19T17:30';
-Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->toZonedDateTimeISO($timeZone), 'bare date-time string is not a time zone');
+foreach (['2021-08-19T17:30-07:00:01', '2021-08-19T17:30-07:00:00', '2021-08-19T17:30-07:00:00.1', '2021-08-19T17:30-07:00:00.0', '2021-08-19T17:30-07:00:00.01', '2021-08-19T17:30-07:00:00.00', '2021-08-19T17:30-07:00:00.001', '2021-08-19T17:30-07:00:00.000', '2021-08-19T17:30-07:00:00.0001', '2021-08-19T17:30-07:00:00.0000', '2021-08-19T17:30-07:00:00.00001', '2021-08-19T17:30-07:00:00.00000', '2021-08-19T17:30-07:00:00.000001', '2021-08-19T17:30-07:00:00.000000', '2021-08-19T17:30-07:00:00.0000001', '2021-08-19T17:30-07:00:00.0000000', '2021-08-19T17:30-07:00:00.00000001', '2021-08-19T17:30-07:00:00.00000000', '2021-08-19T17:30-07:00:00.000000001', '2021-08-19T17:30-07:00:00.000000000'] as $timeZone) {
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->toZonedDateTimeISO($timeZone), "ISO string {$timeZone} with a sub-minute offset is not a valid time zone");
+}
+$timeZone = '2021-08-19T17:30Z';
+$result1 = $instance->toZonedDateTimeISO($timeZone);
+Assert::sameValue($result1->timeZoneId, 'UTC', 'date-time + Z is UTC time zone');
+$timeZone = '2021-08-19T17:30-07:00';
+$result2 = $instance->toZonedDateTimeISO($timeZone);
+Assert::sameValue($result2->timeZoneId, '-07:00', 'date-time + offset is the offset time zone');
+$timeZone = '2021-08-19T17:30[UTC]';
+$result3 = $instance->toZonedDateTimeISO($timeZone);
+Assert::sameValue($result3->timeZoneId, 'UTC', 'date-time + IANA annotation is the IANA time zone');
+$timeZone = '2021-08-19T17:30Z[UTC]';
+$result4 = $instance->toZonedDateTimeISO($timeZone);
+Assert::sameValue($result4->timeZoneId, 'UTC', 'date-time + Z + IANA annotation is the IANA time zone');
+$timeZone = '2021-08-19T17:30-07:00[UTC]';
+$result5 = $instance->toZonedDateTimeISO($timeZone);
+Assert::sameValue($result5->timeZoneId, 'UTC', 'date-time + offset + IANA annotation is the IANA time zone');

@@ -11,4 +11,6 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Instant(0);
 $arg = new \stdClass();
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->until($arg), '[object Object] is not a valid ISO string');
-Assert::incomplete('untranslatable expression: FunctionExpression');
+$arg['toString'] = function () { return '1970-01-01T00:00Z'; };
+$result = $instance->until($arg);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'result of toString is interpreted as ISO string');

@@ -9,5 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 foreach (['UTC', '+01:30'] as $timeZone) {
-Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');
+$result = $instance->toZonedDateTimeISO($timeZone);
+Assert::sameValue($result->timeZoneId, $timeZone, "time zone slot should store string \"{$timeZone}\"");
 }

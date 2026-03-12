@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
-$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint'], [new \stdClass(), 'plain object'], [\Temporal\Instant::class, 'Temporal.Instant, object']];
+$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint'], [new \stdClass(), 'plain object'], [new \stdClass(), 'Temporal.Instant, object']];
 foreach ($primitiveTests as [$arg, $description]) {
 Assert::throws((is_string($arg) || is_object($arg) && $arg !== null || is_callable($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => $instance->since($arg), "{$description} does not convert to a valid ISO string");
 }

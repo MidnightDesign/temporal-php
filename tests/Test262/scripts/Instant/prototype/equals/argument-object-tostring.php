@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
 $arg = new \stdClass();
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), '[object Object] is not a valid ISO string');
-Assert::incomplete('untranslatable expression: FunctionExpression');
+$arg['toString'] = function () { return '1970-01-01T00:00Z'; };
+$result = $instance->equals($arg);
+Assert::sameValue($result, true, 'result of toString is interpreted as ISO string');

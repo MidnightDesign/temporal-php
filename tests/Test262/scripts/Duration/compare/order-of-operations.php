@@ -13,4 +13,6 @@ $actual = [];
 \Temporal\Duration::compare($createDurationPropertyBagObserver('one', 0, 0, 0, 7), $createDurationPropertyBagObserver('two', 0, 0, 0, 6), $createOptionsObserver(null));
 Assert::compareArray($actual, $expected, 'order of operations');
 $actual->splice(0);
-Assert::incomplete('untranslatable: Array.prototype.concat()');
+$baseExpectedOpsWithRelativeTo = array_merge($expected, ['get options.relativeTo.calendar', 'get options.relativeTo.day', 'get options.relativeTo.day.valueOf', 'call options.relativeTo.day.valueOf', 'get options.relativeTo.hour']);
+$expectedOpsForPlainRelativeTo = array_merge($baseExpectedOpsWithRelativeTo, ['get options.relativeTo.microsecond', 'get options.relativeTo.millisecond', 'get options.relativeTo.minute', 'get options.relativeTo.month', 'get options.relativeTo.month.valueOf', 'call options.relativeTo.month.valueOf', 'get options.relativeTo.monthCode', 'get options.relativeTo.monthCode.toString', 'call options.relativeTo.monthCode.toString', 'get options.relativeTo.nanosecond', 'get options.relativeTo.offset', 'get options.relativeTo.second', 'get options.relativeTo.timeZone', 'get options.relativeTo.year', 'get options.relativeTo.year.valueOf', 'call options.relativeTo.year.valueOf']);
+Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

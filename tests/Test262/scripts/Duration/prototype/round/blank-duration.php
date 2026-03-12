@@ -10,4 +10,18 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $blank = new \Temporal\Duration();
 $plainRelativeTo = new \Temporal\PlainDate(2025, 8, 22);
-Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');
+$zonedRelativeTo = new \Temporal\ZonedDateTime(1, 'UTC');
+foreach (['days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
+$result = $blank->round($smallestUnit);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} without relativeTo");
+$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $plainRelativeTo]);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with PlainDate relativeTo");
+$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $zonedRelativeTo]);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with ZonedDateTime relativeTo");
+}
+foreach (['years', 'months', 'weeks'] as $smallestUnit) {
+$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $plainRelativeTo]);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with PlainDate relativeTo");
+$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $zonedRelativeTo]);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with ZonedDateTime relativeTo");
+}

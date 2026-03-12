@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');
+Assert::incomplete('\\Temporal\\PlainDateTime is not yet implemented');

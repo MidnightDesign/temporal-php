@@ -34,5 +34,5 @@ $testData = [['2020-02-29', $p1y, '2021-02-28'], ['2020-02-29', $p4y, '2024-02-2
 foreach ($testData as [$dateString, $duration, $resultString]) {
 $date = \Temporal\PlainDate::from($dateString);
 $result = \Temporal\PlainDate::from($resultString);
-Assert::incomplete('TemporalHelpers.assertPlainDatesEqual() is not yet implemented');
+TemporalHelpers::assertPlainDatesEqual($date->add($duration), $result);
 }

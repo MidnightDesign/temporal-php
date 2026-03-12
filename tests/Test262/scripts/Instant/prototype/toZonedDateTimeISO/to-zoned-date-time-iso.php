@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inst = new \Temporal\Instant(1_000_000_000_000_000_000);
-Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');
+$zdt = $inst->toZonedDateTimeISO('UTC');
+Assert::sameValue($inst->epochNanoseconds, $zdt->epochNanoseconds, '');
+Assert::sameValue($zdt->timeZoneId, 'UTC', '');
+$zdtNonUTC = $inst->toZonedDateTimeISO('-05:00');
+Assert::sameValue($inst->epochNanoseconds, $zdtNonUTC->epochNanoseconds, '');
+Assert::sameValue($zdtNonUTC->timeZoneId, '-05:00', '');

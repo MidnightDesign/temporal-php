@@ -9,4 +9,18 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $blank = new \Temporal\Duration();
 $plainRelativeTo = new \Temporal\PlainDate(2025, 8, 22);
-Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');
+$zonedRelativeTo = new \Temporal\ZonedDateTime(1, 'UTC');
+foreach (['days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $unit) {
+$result = $blank->total($unit);
+Assert::sameValue($result, 0, "total of {$unit} without relativeTo");
+$result = $blank->total(['unit' => $unit, 'relativeTo' => $plainRelativeTo]);
+Assert::sameValue($result, 0, "total of {$unit} with PlainDate relativeTo");
+$result = $blank->total(['unit' => $unit, 'relativeTo' => $zonedRelativeTo]);
+Assert::sameValue($result, 0, "total of {$unit} with ZonedDateTime relativeTo");
+}
+foreach (['years', 'months', 'weeks'] as $unit) {
+$result = $blank->total(['unit' => $unit, 'relativeTo' => $plainRelativeTo]);
+Assert::sameValue($result, 0, "total of {$unit} with PlainDate relativeTo");
+$result = $blank->total(['unit' => $unit, 'relativeTo' => $zonedRelativeTo]);
+Assert::sameValue($result, 0, "total of {$unit} with ZonedDateTime relativeTo");
+}

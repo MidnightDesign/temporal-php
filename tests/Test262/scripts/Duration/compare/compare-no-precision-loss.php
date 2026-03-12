@@ -10,3 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $days200 = new \Temporal\Duration(0, 0, 0, 200);
 $days200oneNanosecond = new \Temporal\Duration(0, 0, 0, 200, 0, 0, 0, 0, 0, 1);
 Assert::notSameValue(\Temporal\Duration::compare($days200, $days200oneNanosecond), 0, '');
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

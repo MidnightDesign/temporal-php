@@ -8,7 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2024, 3, 15);
-TemporalHelpers::assertPlainDate($date->subtract('P10D'), 2024, 3, 'M03', 5, 'subtract ISO duration string P10D');
-TemporalHelpers::assertPlainDate($date->subtract('P1M'), 2024, 2, 'M02', 15, 'subtract ISO duration string P1M');
-TemporalHelpers::assertPlainDate($date->subtract('P1Y2M3D'), 2023, 1, 'M01', 12, 'subtract ISO duration string P1Y2M3D');
+$instance = \Temporal\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
+TemporalHelpers::assertPlainDate($instance->subtract('P3D'), 2000, 4, 'M04', 29);
+TemporalHelpers::assertPlainDate($instance->subtract('-P3D'), 2000, 5, 'M05', 5);

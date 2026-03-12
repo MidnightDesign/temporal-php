@@ -88,12 +88,20 @@ final class TemporalHelpers
         string $monthCode,
         int $day,
         string $description = '',
+        mixed $era = null,
+        mixed $eraYear = null,
     ): void {
         $prefix = $description !== '' ? "{$description}: " : '';
         PHPUnitAssert::assertSame($year, $date->year, "{$prefix}year");
         PHPUnitAssert::assertSame($month, $date->month, "{$prefix}month");
         PHPUnitAssert::assertSame($monthCode, $date->monthCode, "{$prefix}monthCode");
         PHPUnitAssert::assertSame($day, $date->day, "{$prefix}day");
+        if ($era !== null) {
+            PHPUnitAssert::assertSame($era, $date->era, "{$prefix}era");
+        }
+        if ($eraYear !== null) {
+            PHPUnitAssert::assertSame($eraYear, $date->eraYear, "{$prefix}eraYear");
+        }
     }
 
     /**
@@ -110,6 +118,28 @@ final class TemporalHelpers
             $one->epochNanoseconds,
             $two->epochNanoseconds,
             $description !== '' ? $description : 'epochNanoseconds should be equal',
+        );
+    }
+
+    /**
+     * Asserts that two PlainDates have identical field values.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainDatesEqual(one, two, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainDatesEqual(
+        \Temporal\PlainDate $one,
+        \Temporal\PlainDate $two,
+        string $description = '',
+    ): void {
+        self::assertPlainDate(
+            $one,
+            $two->year,
+            $two->month,
+            $two->monthCode,
+            $two->day,
+            $description,
         );
     }
 

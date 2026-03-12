@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Instant(0);
-Assert::incomplete('Instant::toZonedDateTimeISO() is not yet implemented');
+$result = $instance->toZonedDateTimeISO('UTC');
+Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');

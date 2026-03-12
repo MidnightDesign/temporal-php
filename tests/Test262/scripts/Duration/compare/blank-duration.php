@@ -11,4 +11,7 @@ $blank1 = new \Temporal\Duration();
 $blank2 = new \Temporal\Duration();
 $compare = [\Temporal\Duration::class, 'compare'];
 $plainRelativeTo = new \Temporal\PlainDate(2025, 8, 22);
-Assert::incomplete('\\Temporal\\ZonedDateTime is not yet implemented');
+$zonedRelativeTo = new \Temporal\ZonedDateTime(1, 'UTC');
+Assert::sameValue($compare($blank1, $blank2), 0, 'zero durations compared without relativeTo');
+Assert::sameValue($compare($blank1, $blank2, ['relativeTo' => $plainRelativeTo]), 0, 'zero durations compared with PlainDate relativeTo');
+Assert::sameValue($compare($blank1, $blank2, ['relativeTo' => $zonedRelativeTo]), 0, 'zero durations compared with ZonedDateTime relativeTo');
