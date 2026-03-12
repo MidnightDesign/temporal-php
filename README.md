@@ -47,6 +47,10 @@ $rounded = $instant->round(['smallestUnit' => 'minute']);
 Instant::compare($a, $b); // -1, 0, or 1
 $a->equals($b);            // bool
 
+// Convert to ZonedDateTime
+$zdt = $instant->toZonedDateTimeISO('America/New_York');
+$zdt = $instant->toZonedDateTimeISO('+05:30');
+
 // Serialize
 echo $instant->toString(); // '2020-01-01T12:00:00Z'
 echo $instant->toJSON();   // same
@@ -211,7 +215,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **1033 tests passing** (0 failures) across `Temporal.Instant`, `Temporal.Duration`, and `Temporal.PlainDate`.
+Currently **1550 test262 tests passing** (0 failures, 361 incomplete due to JS-only features like Symbol and Proxy) across `Temporal.Instant`, `Temporal.Duration`, and `Temporal.PlainDate`. 179 additional hand-written unit tests also pass.
 
 ---
 
@@ -219,12 +223,12 @@ Currently **1033 tests passing** (0 failures) across `Temporal.Instant`, `Tempor
 
 | Class | Status |
 |-------|--------|
-| `Temporal\Instant` | Complete — `from`, `fromEpochMilliseconds`, `fromEpochNanoseconds`, `compare`, `equals`, `add`, `subtract`, `since`, `until`, `round`, `toString`, `toJSON` |
+| `Temporal\Instant` | Complete — `from`, `fromEpochMilliseconds`, `fromEpochNanoseconds`, `compare`, `equals`, `add`, `subtract`, `since`, `until`, `round`, `toZonedDateTimeISO`, `toString`, `toJSON` |
 | `Temporal\Duration` | Complete — all 10 fields, `from`, `compare`, `add`, `subtract`, `negated`, `abs`, `with`, `equals`, `total`, `toString`, `toJSON` |
-| `Temporal\PlainDate` | Core complete — `from`, `compare`, `with`, `add`, `subtract`, `equals`, `toString` (with `calendarName` option), `toJSON`, all calendar properties |
+| `Temporal\PlainDate` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `equals`, `toString` (with `calendarName` option), `toJSON`; all 13 calendar properties |
 | `Temporal\PlainTime` | Planned |
 | `Temporal\PlainDateTime` | Planned |
-| `Temporal\ZonedDateTime` | Planned |
+| `Temporal\ZonedDateTime` | Stub (epochNanoseconds + calendarId stored; no arithmetic) |
 
 ## Transparency
 

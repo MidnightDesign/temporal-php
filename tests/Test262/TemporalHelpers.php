@@ -122,6 +122,56 @@ final class TemporalHelpers
     }
 
     /**
+     * Asserts that a PlainTime has the given field values.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainTime(t, h, min, s, ms, us, ns, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainTime(
+        \Temporal\PlainTime $time,
+        int $hour,
+        int $minute,
+        int $second,
+        int $millisecond,
+        int $microsecond,
+        int $nanosecond,
+        string $description = '',
+    ): void {
+        $prefix = $description !== '' ? "{$description}: " : '';
+        PHPUnitAssert::assertSame($hour, $time->hour, "{$prefix}hour");
+        PHPUnitAssert::assertSame($minute, $time->minute, "{$prefix}minute");
+        PHPUnitAssert::assertSame($second, $time->second, "{$prefix}second");
+        PHPUnitAssert::assertSame($millisecond, $time->millisecond, "{$prefix}millisecond");
+        PHPUnitAssert::assertSame($microsecond, $time->microsecond, "{$prefix}microsecond");
+        PHPUnitAssert::assertSame($nanosecond, $time->nanosecond, "{$prefix}nanosecond");
+    }
+
+    /**
+     * Asserts that two PlainTimes have identical field values.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainTimesEqual(one, two, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainTimesEqual(
+        \Temporal\PlainTime $one,
+        \Temporal\PlainTime $two,
+        string $description = '',
+    ): void {
+        self::assertPlainTime(
+            $one,
+            $two->hour,
+            $two->minute,
+            $two->second,
+            $two->millisecond,
+            $two->microsecond,
+            $two->nanosecond,
+            $description,
+        );
+    }
+
+    /**
      * Asserts that two PlainDates have identical field values.
      *
      * Argument order matches JS TemporalHelpers.assertPlainDatesEqual(one, two, msg).
@@ -200,6 +250,10 @@ final class TemporalHelpers
                 // @mago-ignore analysis:mixed-argument
                 // @phpstan-ignore argument.type
                 self::assertInstantsEqual($plural, $singular, $desc);
+            } elseif ($singular instanceof \Temporal\PlainTime) {
+                /** @psalm-suppress MixedArgument */
+                // @mago-ignore analysis:mixed-argument
+                PHPUnitAssert::assertTrue($singular->equals($plural), $desc);
             } else {
                 PHPUnitAssert::assertSame($singular, $plural, $desc);
             }

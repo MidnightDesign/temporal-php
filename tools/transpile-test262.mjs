@@ -61,10 +61,12 @@ const IMPLEMENTED = new Set([
   'Instant::toJSON',
   'PlainDate::from',
   'PlainDate::compare',
+  'PlainTime::from',
+  'PlainTime::compare',
 ]);
 
 /** Temporal classes whose constructors are implemented. */
-const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate', 'ZonedDateTime']);
+const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate', 'PlainTime', 'ZonedDateTime']);
 
 /**
  * Instance methods on Temporal classes that are NOT yet implemented.
@@ -99,6 +101,8 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertInstantsEqual',
   'assertPlainDate',
   'assertPlainDatesEqual',
+  'assertPlainTime',
+  'assertPlainTimesEqual',
   'checkPluralUnitsAccepted',
   'checkStringOptionWrongType',
   'checkSubclassingIgnored',
@@ -126,6 +130,11 @@ const PHP_IMPLEMENTED_METHODS = {
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
     'equals', 'toString', 'toJSON', 'valueOf',
+  ]),
+  PlainTime: new Set([
+    '__construct', 'from', 'compare',
+    'with', 'add', 'subtract', 'since', 'until',
+    'round', 'equals', 'toString', 'toJSON', 'valueOf',
   ]),
 };
 
@@ -1036,7 +1045,7 @@ class Emitter {
       // is passed to a string-accepting method, the test relies on JS-specific behaviour.
       // Duration.from/compare and PlainDate.from/compare accept property bags (objects),
       // so no coercion needed there.
-      const propertyBagClasses = new Set(['Duration', 'PlainDate']);
+      const propertyBagClasses = new Set(['Duration', 'PlainDate', 'PlainTime']);
       const stringArgMethods = new Set(['from', 'compare']);
       if (!propertyBagClasses.has(className) && stringArgMethods.has(method) && node.arguments.some(
           a => a.type === 'Identifier' && this.objectVars.has(a.name)
