@@ -161,8 +161,9 @@ final class PlainDate implements Stringable
                     'PlainDate calendar must be a string; got ' . get_debug_type($calendar) . '.',
                 );
             }
-            $calId = self::extractCalendarId($calendar);
-            if ($calId !== 'iso8601') {
+            // The constructor only accepts bare calendar IDs, not ISO date strings.
+            // Use ASCII-only lowercase to reject non-ASCII chars like U+0130 (İ).
+            if (strtolower($calendar) !== 'iso8601') {
                 throw new InvalidArgumentException(
                     "Unsupported calendar \"{$calendar}\": only iso8601 is supported.",
                 );

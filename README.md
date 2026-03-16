@@ -351,7 +351,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **2628 test262 tests passing** (0 failures, 650 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, and `Temporal.ZonedDateTime`. 249 additional hand-written unit tests also pass (total: 2877 tests).
+Currently **2641 test262 tests passing** (0 failures, 656 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, and `Temporal.ZonedDateTime`. 249 additional hand-written unit tests also pass (total: 2890 tests).
 
 ---
 

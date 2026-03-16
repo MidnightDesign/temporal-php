@@ -191,7 +191,22 @@ final class PlainDateTime implements Stringable
         int|float $millisecond = 0,
         int|float $microsecond = 0,
         int|float $nanosecond = 0,
+        mixed $calendar = null,
     ) {
+        if ($calendar !== null) {
+            if (!is_string($calendar)) {
+                throw new \TypeError(
+                    'PlainDateTime calendar must be a string; got ' . get_debug_type($calendar) . '.',
+                );
+            }
+            // The constructor only accepts bare calendar IDs, not ISO date strings.
+            // Use ASCII-only lowercase to reject non-ASCII chars like U+0130 (İ).
+            if (strtolower($calendar) !== 'iso8601') {
+                throw new InvalidArgumentException(
+                    "Unsupported calendar \"{$calendar}\": only iso8601 is supported.",
+                );
+            }
+        }
         if (
             !is_finite((float) $year)
             || !is_finite((float) $month)
