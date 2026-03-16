@@ -65,6 +65,8 @@ const IMPLEMENTED = new Set([
   'PlainDateTime::compare',
   'PlainTime::from',
   'PlainTime::compare',
+  'PlainYearMonth::from',
+  'PlainYearMonth::compare',
   'ZonedDateTime::from',
   'ZonedDateTime::compare',
   'Now::instant',
@@ -74,7 +76,7 @@ const IMPLEMENTED = new Set([
 ]);
 
 /** Temporal classes whose constructors are implemented. */
-const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate', 'PlainDateTime', 'PlainTime', 'ZonedDateTime']);
+const IMPLEMENTED_CTORS = new Set(['Duration', 'Instant', 'PlainDate', 'PlainDateTime', 'PlainTime', 'PlainYearMonth', 'ZonedDateTime']);
 
 /**
  * Instance methods on Temporal classes that are NOT yet implemented.
@@ -118,6 +120,8 @@ const IMPLEMENTED_HELPERS = new Set([
   'checkSubclassingIgnoredStatic',
   'checkRoundingIncrementOptionWrongType',
   'assertZonedDateTimesEqual',
+  'assertPlainYearMonth',
+  'assertPlainYearMonthsEqual',
 ]);
 
 /**
@@ -154,6 +158,11 @@ const PHP_IMPLEMENTED_METHODS = {
   ]),
   Now: new Set([
     'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO',
+  ]),
+  PlainYearMonth: new Set([
+    '__construct', 'from', 'compare',
+    'with', 'add', 'subtract', 'since', 'until',
+    'equals', 'toString', 'toJSON', 'valueOf', 'toPlainDate',
   ]),
   ZonedDateTime: new Set([
     '__construct', 'from', 'compare',
@@ -1093,7 +1102,7 @@ class Emitter {
       // is passed to a string-accepting method, the test relies on JS-specific behaviour.
       // Duration.from/compare and PlainDate.from/compare accept property bags (objects),
       // so no coercion needed there.
-      const propertyBagClasses = new Set(['Duration', 'PlainDate', 'PlainDateTime', 'PlainTime', 'ZonedDateTime']);
+      const propertyBagClasses = new Set(['Duration', 'PlainDate', 'PlainDateTime', 'PlainTime', 'PlainYearMonth', 'ZonedDateTime']);
       const stringArgMethods = new Set(['from', 'compare']);
       if (!propertyBagClasses.has(className) && stringArgMethods.has(method) && node.arguments.some(
           a => a.type === 'Identifier' && this.objectVars.has(a.name)
