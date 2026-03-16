@@ -489,6 +489,67 @@ final class TemporalHelpers
     }
 
     /**
+     * Asserts that a PlainYearMonth has the given year, month, and monthCode.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainYearMonth(ym, year, month, monthCode, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainYearMonth(
+        \Temporal\PlainYearMonth $ym,
+        int $year,
+        int $month,
+        string $monthCode,
+        string $description = '',
+    ): void {
+        $prefix = $description !== '' ? "{$description}: " : '';
+        PHPUnitAssert::assertSame($year, $ym->year, "{$prefix}year");
+        PHPUnitAssert::assertSame($month, $ym->month, "{$prefix}month");
+        PHPUnitAssert::assertSame($monthCode, $ym->monthCode, "{$prefix}monthCode");
+    }
+
+    /**
+     * Asserts that two PlainYearMonths have identical field values.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainYearMonthsEqual(one, two, msg).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainYearMonthsEqual(
+        \Temporal\PlainYearMonth $one,
+        \Temporal\PlainYearMonth $two,
+        string $description = '',
+    ): void {
+        self::assertPlainYearMonth(
+            $one,
+            $two->year,
+            $two->month,
+            $two->monthCode,
+            $description,
+        );
+    }
+
+    /**
+     * Asserts that a PlainMonthDay has the given monthCode and day.
+     *
+     * Argument order matches JS TemporalHelpers.assertPlainMonthDay(md, monthCode, day, msg[, refYear]).
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function assertPlainMonthDay(
+        \Temporal\PlainMonthDay $md,
+        string $monthCode,
+        int $day,
+        string $description = '',
+        int $referenceISOYear = 1972,
+    ): void {
+        $prefix = $description !== '' ? "{$description}: " : '';
+        PHPUnitAssert::assertSame($monthCode, $md->monthCode, "{$prefix}monthCode");
+        PHPUnitAssert::assertSame($day, $md->day, "{$prefix}day");
+        PHPUnitAssert::assertSame($referenceISOYear, $md->referenceISOYear, "{$prefix}referenceISOYear");
+    }
+
+    /**
      * Asserts that two ZonedDateTimes are equal (same epoch, timezone, and calendar).
      *
      * Argument order matches JS TemporalHelpers.assertZonedDateTimesEqual(actual, expected, msg).

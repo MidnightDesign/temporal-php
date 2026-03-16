@@ -351,7 +351,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **3138 test262 tests passing** (0 failures, 792 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, `Temporal.ZonedDateTime`, and `Temporal.PlainYearMonth`. 249 additional hand-written unit tests also pass (total: 3387 tests).
+Currently **3337 test262 tests passing** (0 failures, 858 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, `Temporal.ZonedDateTime`, `Temporal.PlainYearMonth`, and `Temporal.PlainMonthDay`. 249 additional hand-written unit tests also pass (total: 3586 tests).
 
 ---
 
@@ -367,6 +367,7 @@ Currently **3138 test262 tests passing** (0 failures, 792 incomplete due to JS-o
 | `Temporal\Now` | Complete — `instant`, `timeZoneId`, `plainDateISO`, `plainTimeISO` |
 | `Temporal\ZonedDateTime` | Complete — `from` (with `disambiguation`/`offset` options), `compare`, `equals`, `toString`, `toJSON`, `toLocaleString` (locale-aware via `ext-intl`), `toInstant`, `toPlainDate`, `toPlainTime`, `toPlainDateTime`, `withTimeZone`, `withCalendar`, `withPlainTime`; all virtual date/time/calendar/timezone properties |
 | `Temporal\PlainYearMonth` | Complete — `from`, `compare`, `with`, `add`, `subtract`, `since`, `until`, `equals`, `toString` (with `calendarName` option), `toJSON`, `toPlainDate`; all virtual properties (`calendarId`, `era`, `eraYear`, `monthCode`, `daysInMonth`, `daysInYear`, `monthsInYear`, `inLeapYear`) |
+| `Temporal\PlainMonthDay` | Complete — `from`, `with`, `equals`, `toString` (with `calendarName` option), `toJSON`, `toLocaleString`, `toPlainDate`; virtual properties (`calendarId`, `monthCode`, `month`, `day`, `referenceISOYear`) |
 
 ## Transparency
 
