@@ -8,15 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-foreach ($TemporalHelpers->ISO->plainYearMonthStringsValid() as $input) {
-$plainYearMonth = \Temporal\PlainYearMonth::from($input);
-TemporalHelpers::assertPlainYearMonth($plainYearMonth, 1976, 11, 'M11');
-Assert::sameValue($plainYearMonth->calendarId, 'iso8601', 'calendar string should be iso8601');
-Assert::sameValue($plainYearMonth->toString(['calendarName' => 'always']), '1976-11-01[u-ca=iso8601]', 'iso reference date');
-}
-foreach ($TemporalHelpers->ISO->plainYearMonthStringsValidNegativeYear() as $input) {
-$plainYearMonth = \Temporal\PlainYearMonth::from($input);
-TemporalHelpers::assertPlainYearMonth($plainYearMonth, -9999, 11, 'M11');
-Assert::sameValue($plainYearMonth->calendarId, 'iso8601', 'calendar string should be iso8601');
-Assert::sameValue($plainYearMonth->toString(['calendarName' => 'always']), '-009999-11-01[u-ca=iso8601]', 'iso reference date');
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

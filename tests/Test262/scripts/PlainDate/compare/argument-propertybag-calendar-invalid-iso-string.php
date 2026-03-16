@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar'], ['notacal', 'Unknown calendar']];
-foreach ($invalidStrings as [$cal, $description]) {
+foreach ($invalidStrings as $__entry__) {
+[$cal, $description] = array_pad($__entry__, 2, null);
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $cal];
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::compare($arg, new \Temporal\PlainDate(1976, 11, 18)), "{$description} is not a valid calendar ID (first argument)");
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::compare(new \Temporal\PlainDate(1976, 11, 18), $arg), "{$description} is not a valid calendar ID (second argument)");

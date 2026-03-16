@@ -10,12 +10,14 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\PlainDate(1970, 1, 1);
 $maxCases = [['P273790Y8M12DT23H59M59.999999999S', 'string with max years'], [['years' => 273_790, 'months' => 8, 'days' => 12, 'nanoseconds' => 86_399_999_999_999], 'property bag with max years'], ['P3285488M12DT23H59M59.999999999S', 'string with max months'], [['months' => 3_285_488, 'days' => 12, 'nanoseconds' => 86_399_999_999_999], 'property bag with max months'], ['P14285714W2DT23H59M59.999999999S', 'string with max weeks'], [['weeks' => 14_285_714, 'days' => 2, 'nanoseconds' => 86_399_999_999_999], 'property bag with max weeks'], ['P100000000DT23H59M59.999999999S', 'string with max days'], [['days' => 100_000_000, 'nanoseconds' => 86_399_999_999_999], 'property bag with max days'], ['PT2400000023H59M59.999999999S', 'string with max hours'], [['hours' => 2_400_000_023, 'nanoseconds' => 3_599_999_999_999], 'property bag with max hours'], ['PT144000001439M59.999999999S', 'string with max minutes'], [['minutes' => 144_000_001_439, 'nanoseconds' => 59_999_999_999], 'property bag with max minutes'], ['PT8640000086399.999999999S', 'string with max seconds'], [['seconds' => 8_640_000_086_399, 'nanoseconds' => 999_999_999], 'property bag with max seconds']];
-foreach ($maxCases as [$arg, $descr]) {
+foreach ($maxCases as $__entry__) {
+[$arg, $descr] = array_pad($__entry__, 2, null);
 $result = $instance->add($arg);
 TemporalHelpers::assertPlainDate($result, 275_760, 9, 'M09', 13, "operation succeeds with {$descr}");
 }
 $minCases = [['-P273790Y8M12DT23H59M59.999999999S', 'string with min years'], [['years' => -273_790, 'months' => -8, 'days' => -12, 'nanoseconds' => -86_399_999_999_999], 'property bag with min years'], ['-P3285488M12DT23H59M59.999999999S', 'string with min months'], [['months' => -3_285_488, 'days' => -12, 'nanoseconds' => -86_399_999_999_999], 'property bag with min months'], ['-P14285714W3DT23H59M59.999999999S', 'string with min weeks'], [['weeks' => -14_285_714, 'days' => -3, 'nanoseconds' => -86_399_999_999_999], 'property bag with min weeks'], ['-P100000001DT23H59M59.999999999S', 'string with min days'], [['days' => -100_000_001, 'nanoseconds' => -86_399_999_999_999], 'property bag with min days'], ['-PT2400000047H59M59.999999999S', 'string with min hours'], [['hours' => -2_400_000_047, 'nanoseconds' => -3_599_999_999_999], 'property bag with min hours'], ['-PT144000002879M59.999999999S', 'string with min minutes'], [['minutes' => -144_000_002_879, 'nanoseconds' => -59_999_999_999], 'property bag with min minutes'], ['-PT8640000172799.999999999S', 'string with min seconds'], [['seconds' => -8_640_000_172_799, 'nanoseconds' => -999_999_999], 'property bag with min seconds']];
-foreach ($minCases as [$arg, $descr]) {
+foreach ($minCases as $__entry__) {
+[$arg, $descr] = array_pad($__entry__, 2, null);
 $result = $instance->add($arg);
 TemporalHelpers::assertPlainDate($result, -271_821, 4, 'M04', 19, "operation succeeds with {$descr}");
 }

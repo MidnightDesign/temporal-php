@@ -60,7 +60,8 @@ $tests = [[$date20210716, $date20210716, 'same day', ['years', 0, 0, 0, 0], ['mo
 foreach ($tests as $__entry_units__) {
 [$one, $two, $descr] = array_pad($__entry_units__, 3, null);
 $units = array_slice($__entry_units__, 3);
-foreach ($units as [$largestUnit, $years, $months, $weeks, $days]) {
+foreach ($units as $__entry__) {
+[$largestUnit, $years, $months, $weeks, $days] = array_pad($__entry__, 5, null);
 TemporalHelpers::assertDuration($one->until($two, ['largestUnit' => $largestUnit]), $years, $months, $weeks, $days, 0, 0, 0, 0, 0, 0, $descr);
 }
 }

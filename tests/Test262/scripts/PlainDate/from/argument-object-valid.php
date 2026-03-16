@@ -13,5 +13,5 @@ foreach ($valid as $__entry_expected__) {
 [$dateTimeFields] = array_pad($__entry_expected__, 1, null);
 $expected = array_slice($__entry_expected__, 1);
 $plainDate = \Temporal\PlainDate::from($dateTimeFields);
-TemporalHelpers::assertPlainDate($plainDate, ...[...$expected, "from({$JSON->stringify($dateTimeFields)}"]);
+Assert::incomplete('untranslatable: JSON.stringify');
 }

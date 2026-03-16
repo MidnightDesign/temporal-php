@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00[UTC]', 'UTC', 'named, with no offset'], ['1970-01-01T00:00[!UTC]', 'UTC', 'named, with ! and no offset'], ['1970-01-01T00:00[+00:00]', '+00:00', 'numeric, with no offset'], ['1970-01-01T00:00[!+00:00]', '+00:00', 'numeric, with ! and no offset'], ['1970-01-01T00:00Z[UTC]', 'UTC', 'named, with Z'], ['1970-01-01T00:00Z[!UTC]', 'UTC', 'named, with Z and !'], ['1970-01-01T00:00Z[+00:00]', '+00:00', 'numeric, with Z'], ['1970-01-01T00:00Z[!+00:00]', '+00:00', 'numeric, with Z and !'], ['1970-01-01T00:00+00:00[UTC]', 'UTC', 'named, with offset'], ['1970-01-01T00:00+00:00[!UTC]', 'UTC', 'named, with offset and !'], ['1970-01-01T00:00+00:00[+00:00]', '+00:00', 'numeric, with offset'], ['1970-01-01T00:00+00:00[!+00:00]', '+00:00', 'numeric, with offset and !']];
-foreach ($tests as [$arg, $expectedZone, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $expectedZone, $description] = array_pad($__entry__, 3, null);
 $instance = new \Temporal\ZonedDateTime(0, $expectedZone);
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, "time zone annotation ({$description})");

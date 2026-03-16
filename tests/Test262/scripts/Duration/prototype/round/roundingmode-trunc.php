@@ -13,7 +13,8 @@ $relativeToForwards = new \Temporal\PlainDate(2020, 4, 1);
 $relativeToBackwards = new \Temporal\PlainDate(2020, 12, 1);
 $expected = [['years', [5], [-5]], ['months', [5, 7], [-5, -7]], ['weeks', [5, 7, 3], [-5, -7, -3]], ['days', [5, 7, 0, 27], [-5, -7, 0, -27]], ['hours', [5, 7, 0, 27, 16], [-5, -7, 0, -27, -16]], ['minutes', [5, 7, 0, 27, 16, 30], [-5, -7, 0, -27, -16, -30]], ['seconds', [5, 7, 0, 27, 16, 30, 20], [-5, -7, 0, -27, -16, -30, -20]], ['milliseconds', [5, 7, 0, 27, 16, 30, 20, 123], [-5, -7, 0, -27, -16, -30, -20, -123]], ['microseconds', [5, 7, 0, 27, 16, 30, 20, 123, 987], [-5, -7, 0, -27, -16, -30, -20, -123, -987]], ['nanoseconds', [5, 7, 0, 27, 16, 30, 20, 123, 987, 500], [-5, -7, 0, -27, -16, -30, -20, -123, -987, -500]]];
 $roundingMode = 'trunc';
-foreach ($expected as [$smallestUnit, $expectedPositive, $expectedNegative]) {
+foreach ($expected as $__entry__) {
+[$smallestUnit, $expectedPositive, $expectedNegative] = array_pad($__entry__, 3, null);
 [$py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns] = array_pad($expectedPositive, 10, 0);
 [$ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns] = array_pad($expectedNegative, 10, 0);
 TemporalHelpers::assertDuration($instance->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $relativeToForwards, 'roundingMode' => $roundingMode]), $py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode}, positive case)");

@@ -8,12 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$options = [['overflow' => 'constrain'], ['overflow' => 'reject']];
-$testData = [[2000, 1, 'M01', 1], [1, 1, 'M01', 1], [2021, 7, 'M07', 15], [2021, 7, 'M07', 3], [2021, 12, 'M12', 31], [2021, 7, 'M07', 15]];
-foreach ($testData as [$year, $month, $monthCode, $day]) {
-$testRoundtrip($year, $month, $monthCode, $day);
-}
-$testRoundtrip = function ($year, $month, $monthCode, $day) use ($options) {
+$testRoundtrip = function ($year, $month, $monthCode, $day) use (&$options) {
 foreach ($options as $opt) {
 $dateFromYearMonth = \Temporal\PlainDate::from(['year' => $year, 'month' => $month, 'day' => $day], $opt);
 TemporalHelpers::assertPlainDate($dateFromYearMonth, $year, $month, $monthCode, $day, "{$dateFromYearMonth} - created from year and month");
@@ -23,3 +18,9 @@ $dateFromYearMonthCode = \Temporal\PlainDate::from(['year' => $year, 'monthCode'
 TemporalHelpers::assertPlainDate($dateFromYearMonthCode, $year, $month, $monthCode, $day, "{$dateFromYearMonthCode} - created from year and month code");
 }
 };
+$options = [['overflow' => 'constrain'], ['overflow' => 'reject']];
+$testData = [[2000, 1, 'M01', 1], [1, 1, 'M01', 1], [2021, 7, 'M07', 15], [2021, 7, 'M07', 3], [2021, 12, 'M12', 31], [2021, 7, 'M07', 15]];
+foreach ($testData as $__entry__) {
+[$year, $month, $monthCode, $day] = array_pad($__entry__, 4, null);
+$testRoundtrip($year, $month, $monthCode, $day);
+}

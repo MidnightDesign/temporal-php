@@ -33,36 +33,4 @@ TemporalHelpers::assertPlainMonthDay($result, 'M12', 31, 'month 999999 is constr
 foreach ([-99_999, -1, 0] as $month) {
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, 'month' => $month, 'day' => 1], $opt), "Month {$month} is out of range for 2021 even with overflow: constrain");
 }
-foreach ($TemporalHelpers->ISOMonths as $__unknown__) {
-$day = $daysInMonth + 1;
-$result = \Temporal\PlainMonthDay::from(['month' => $month, 'day' => $day], $opt);
-TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "day is constrained from {$day} to {$daysInMonth} in month {$month}");
-$result = \Temporal\PlainMonthDay::from(['month' => $month, 'day' => 9001], $opt);
-TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "day is constrained to {$daysInMonth} in month {$month}");
-$result = \Temporal\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => $day], $opt);
-TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "day is constrained from {$day} to {$daysInMonth} in monthCode {$monthCode}");
-$result = \Temporal\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => 9001], $opt);
-TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "day is constrained to {$daysInMonth} in monthCode {$monthCode}");
-}
-foreach ([['month', 2], ['monthCode', 'M02']] as [$name, $value]) {
-$result = \Temporal\PlainMonthDay::from(['year' => 2020, $name => $value, 'day' => 30], $opt);
-TemporalHelpers::assertPlainMonthDay($result, 'M02', 29, "{$name} {$value} is constrained to 29 in leap year 2020");
-$result = \Temporal\PlainMonthDay::from(['year' => 2021, $name => $value, 'day' => 29], $opt);
-TemporalHelpers::assertPlainMonthDay($result, 'M02', 28, "{$name} {$value} is constrained to 28 in common year 2021");
-}
-foreach ([-1, 0, 13, 9995] as $month) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, 'month' => $month, 'day' => 5], ['overflow' => 'reject']), "Month {$month} is out of range for 2021 with overflow: reject");
-}
-foreach ([-1, 0, 32, 999] as $day) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, 'month' => 12, 'day' => $day], ['overflow' => 'reject']), "Day {$day} is out of range for 2021-12 with overflow: reject");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['monthCode' => 'M12', 'day' => $day], ['overflow' => 'reject']), "Day {$day} is out of range for 2021-M12 with overflow: reject");
-}
-foreach ($TemporalHelpers->ISOMonths as $__unknown__) {
-$day = $daysInMonth + 1;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['month' => $month, 'day' => $day], ['overflow' => 'reject']), "Day {$day} is out of range for month {$month} with overflow: reject");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => $day], ['overflow' => 'reject']), "Day {$day} is out of range for monthCode {$monthCode} with overflow: reject");
-}
-foreach ([['month', 2], ['monthCode', 'M02']] as [$name, $value]) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2020, $name => $value, 'day' => 30], ['overflow' => 'reject']), "Day 30 is out of range for {$name} {$value} in leap year 2020 with overflow: reject");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, $name => $value, 'day' => 29], ['overflow' => 'reject']), "Day 29 is out of range for {$name} {$value} in common year 2021 with overflow: reject");
-}
+Assert::incomplete('TemporalHelpers.ISOMonths is not translatable as iterable');

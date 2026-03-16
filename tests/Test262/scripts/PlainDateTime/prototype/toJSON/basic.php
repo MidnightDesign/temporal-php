@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $tests = [[new \Temporal\PlainDateTime(1976, 2, 4, 5, 3, 1), '1976-02-04T05:03:01'], [new \Temporal\PlainDateTime(1976, 11, 18, 15, 23), '1976-11-18T15:23:00'], [new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30), '1976-11-18T15:23:30'], [new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 400), '1976-11-18T15:23:30.1234']];
 $options = null;
-foreach ($tests as [$datetime, $expected]) {
+foreach ($tests as $__entry__) {
+[$datetime, $expected] = array_pad($__entry__, 2, null);
 Assert::sameValue($datetime->toJSON(), $expected, 'toJSON without argument');
 Assert::sameValue($datetime->toJSON($options), $expected, 'toJSON with argument');
 }

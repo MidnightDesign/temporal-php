@@ -8,7 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$expected = ['get other.calendar', 'get other.day', 'get other.day.valueOf', 'call other.day.valueOf', 'get other.month', 'get other.month.valueOf', 'call other.month.valueOf', 'get other.monthCode', 'get other.monthCode.toString', 'call other.monthCode.toString', 'get other.year', 'get other.year.valueOf', 'call other.year.valueOf', 'get options.largestUnit', 'get options.largestUnit.toString', 'call options.largestUnit.toString', 'get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString'];
-$actual = [];
-$instance = new \Temporal\PlainDate(2000, 5, 2, 'iso8601');
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

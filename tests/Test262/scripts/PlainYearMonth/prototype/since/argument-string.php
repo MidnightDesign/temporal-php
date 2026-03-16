@@ -9,12 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\PlainYearMonth(1976, 11);
-foreach ($TemporalHelpers->ISO->plainYearMonthStringsValid() as $arg) {
-$result = $instance->since($arg);
-TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\"{$arg}\" is a valid PlainYearMonth string");
-}
-$instanceNegativeYear = new \Temporal\PlainYearMonth(-9999, 11);
-foreach ($TemporalHelpers->ISO->plainYearMonthStringsValidNegativeYear() as $arg) {
-$result = $instanceNegativeYear->since($arg);
-TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\"{$arg}\" is a valid PlainYearMonth string");
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

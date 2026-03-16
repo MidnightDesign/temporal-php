@@ -306,6 +306,9 @@ class Emitter {
     // Variables known to hold arrays-of-object-literals.
     // When a for-of loop iterates such a variable, the loop var is added to objectVars.
     this.objectArrayVars = new Set();
+    // Variables that may hold PHP arrays (loop over mixed arrays with some objects).
+    // These are safe-stringified in template literals using json_encode().
+    this.maybeArrayVars = new Set();
     this.instantVars = new Set();  // variables known to hold Temporal.Instant instances
     // Variables that are aliases for a Temporal class (from `const { Instant } = Temporal;`).
     // Maps JS variable name → Temporal class name (e.g. 'Instant' → 'Instant').
@@ -326,7 +329,15 @@ class Emitter {
   // ── Top-level ─────────────────────────────────────────────────────────────
 
   transpileProgram(node) {
-    for (const stmt of node.body) {
+    // JS hoists FunctionDeclarations to the top of their scope.
+    // PHP closures are not hoisted, so emit all FunctionDeclarations first.
+    const funcDecls = node.body.filter(s => s.type === 'FunctionDeclaration');
+    const otherStmts = node.body.filter(s => s.type !== 'FunctionDeclaration');
+    for (const stmt of funcDecls) {
+      this.transpileStatement(stmt);
+      if (this.incomplete) return;
+    }
+    for (const stmt of otherStmts) {
       this.transpileStatement(stmt);
       if (this.incomplete) break;
     }
@@ -492,6 +503,13 @@ class Emitter {
     for (const line of inner) {
       // Regular assignment: $var = ...
       for (const m of line.matchAll(/\$([a-zA-Z_]\w*)\s*=/g)) localVars.add(m[1]);
+      // Array destructuring assignment: [$a, $b, ...] = ... (LHS before the =)
+      // Also handles: $a = array_pad(...) lines where $a is the temp loop var.
+      // Detect [$var1, $var2, ...] = pattern (array destructuring on LHS).
+      if (/^\[(?:\$[a-zA-Z_]\w*(?:,\s*)?)+\]\s*=/.test(line)) {
+        const lhs = line.slice(0, line.indexOf('] =') + 1);
+        for (const m of lhs.matchAll(/\$([a-zA-Z_]\w*)/g)) localVars.add(m[1]);
+      }
       // foreach loop variables: everything after " as " contains the loop vars
       if (line.startsWith('foreach (')) {
         const asIdx = line.indexOf(' as ');
@@ -509,7 +527,9 @@ class Emitter {
         if (v !== '__' && v !== 'this' && !localVars.has(v)) usedVars.add(v);
       }
     }
-    const useClause = usedVars.size > 0 ? `use (${[...usedVars].map(v => `$${v}`).join(', ')}) ` : '';
+    // Use by-reference capture so that variables defined after the closure (due to
+    // JS function hoisting) are accessible when the closure is actually called.
+    const useClause = usedVars.size > 0 ? `use (${[...usedVars].map(v => `&$${v}`).join(', ')}) ` : '';
     this.emit(`$${name} = function (${params}) ${useClause}{`);
     for (const line of inner) this.emit(line);
     this.emit('};');
@@ -601,7 +621,13 @@ class Emitter {
   }
 
   transpileForOf(node) {
-    const pat = this.transpilePattern(node.left.declarations?.[0]?.id ?? node.left);
+    // Detect TemporalHelpers.X used as iterable (e.g. TemporalHelpers.ISOMonths) — not translatable.
+    if (node.right.type === 'MemberExpression' && !node.right.computed
+        && node.right.object.type === 'Identifier' && node.right.object.name === 'TemporalHelpers') {
+      this.emitIncomplete(`TemporalHelpers.${node.right.property.name} is not translatable as iterable`);
+      return;
+    }
+
     // Special case: for (const [k, v] of Object.entries(obj)) → foreach ($obj as $k => $v)
     if (node.right.type === 'CallExpression'
         && isMember(node.right.callee, 'Object', 'entries')
@@ -643,8 +669,60 @@ class Emitter {
         return;
       }
     }
+    // ArrayPattern without rest: use a temp var and array_pad inside loop to avoid
+    // "Undefined array key N" warnings when arrays have fewer elements than destructured vars.
+    if (patNode2.type === 'ArrayPattern' && !patNode2.elements.some(e => e?.type === 'RestElement')) {
+      const n = patNode2.elements.length;
+      const hasDefaults = patNode2.elements.some(e => e?.type === 'AssignmentPattern');
+      const padVal = hasDefaults ? '0' : 'null';
+      const parts = patNode2.elements.map(e => e ? this.transpilePattern(e) : 'null');
+      const pat = '[' + parts.join(', ') + ']';
+      // Determine if iterating over objects (objectArrayVars) — if so add loop vars to objectVars
+      const iterRight2 = node.right;
+      const isArrayOfObjects2 =
+        (iterRight2.type === 'Identifier' && this.objectArrayVars.has(iterRight2.name))
+        || (iterRight2.type === 'ArrayExpression' && iterRight2.elements.length > 0
+            && iterRight2.elements.every(e => e?.type === 'ObjectExpression' && e.properties.length > 0));
+      if (isArrayOfObjects2) {
+        for (const e of patNode2.elements) {
+          if (e?.type === 'Identifier') this.objectVars.add(e.name);
+        }
+      }
+      const iter2 = this.transpileExpr(node.right);
+      if (iter2 === null) return;
+      const tmpVar2 = '$__entry__';
+      const before2 = this.lines.length;
+      this.emit(`foreach (${iter2} as ${tmpVar2}) {`);
+      const opened2 = this.lines.length > before2;
+      this.emit(`${pat} = array_pad(${tmpVar2}, ${n}, ${padVal});`);
+      this.transpileStatement(node.body);
+      if (opened2) this.lines.push('}');
+      return;
+    }
+    // ObjectPattern destructuring: for (const {a, b} of arr) → bind properties inside loop.
+    const patNode3 = node.left.declarations?.[0]?.id ?? node.left;
+    if (patNode3.type === 'ObjectPattern') {
+      const iter3 = this.transpileExpr(node.right);
+      if (iter3 === null) return;
+      const tmpVar3 = '$__obj__';
+      const before3 = this.lines.length;
+      this.emit(`foreach (${iter3} as ${tmpVar3}) {`);
+      const opened3 = this.lines.length > before3;
+      // Bind each destructured property from the temp array var.
+      for (const prop of patNode3.properties) {
+        if (prop.type === 'Property' && !prop.computed
+            && prop.key?.type === 'Identifier' && prop.value?.type === 'Identifier') {
+          this.emit(`$${prop.value.name} = ${tmpVar3}['${prop.key.name}'] ?? null;`);
+        }
+      }
+      this.transpileStatement(node.body);
+      if (opened3) this.lines.push('}');
+      return;
+    }
     // If iterating over an array-of-objects variable (or an inline array of objects),
     // add the loop variable to objectVars so member access uses ['key'] not ->key.
+    // Also track variables that MAY be arrays (mixed arrays with some object elements)
+    // for safe template literal stringification.
     const loopVarId = node.left.declarations?.[0]?.id ?? node.left;
     if (loopVarId.type === 'Identifier') {
       const iterRight = node.right;
@@ -655,9 +733,16 @@ class Emitter {
       if (isArrayOfObjects) {
         this.objectVars.add(loopVarId.name);
       }
+      // Mixed array: some elements are non-empty ObjectExpression → loop var may be an array.
+      const hasSomeObjects = iterRight.type === 'ArrayExpression'
+        && iterRight.elements.some(e => e?.type === 'ObjectExpression' && e.properties.length > 0);
+      if (hasSomeObjects && !isArrayOfObjects) {
+        this.maybeArrayVars.add(loopVarId.name);
+      }
     }
     const iter = this.transpileExpr(node.right);
     if (iter === null) return;
+    const pat = this.transpilePattern(node.left.declarations?.[0]?.id ?? node.left);
     const before = this.lines.length;
     this.emit(`foreach (${iter} as ${pat}) {`);
     const opened = this.lines.length > before;
@@ -781,10 +866,20 @@ class Emitter {
         .replace(/"/g, '\\"')
         .replace(/\$/g, '\\$');
       if (i < node.expressions.length) {
-        const exprPhp = this.transpileExpr(node.expressions[i]);
+        const exprNode = node.expressions[i];
+        const exprPhp = this.transpileExpr(exprNode);
         if (exprPhp === null) return null;
-        // Wrap complex expressions in {…} so PHP interpolates them
-        result += `{${exprPhp}}`;
+        // If the expression is a variable known to be a PHP array (from objectVars or
+        // maybeArrayVars), use json_encode() to avoid "Array to string conversion" warnings.
+        const isArrayVar = exprNode.type === 'Identifier'
+          && (this.objectVars.has(exprNode.name) || this.maybeArrayVars.has(exprNode.name));
+        if (isArrayVar) {
+          // Close the string, concatenate json_encode, re-open string
+          result += '" . json_encode(' + exprPhp + ') . "';
+        } else {
+          // Wrap complex expressions in {…} so PHP interpolates them
+          result += `{${exprPhp}}`;
+        }
       }
     }
     result += '"';
@@ -829,9 +924,16 @@ class Emitter {
         }
       }
 
+      // Any member access whose root object is TemporalHelpers is not translatable
+      // (handles both TemporalHelpers.X and TemporalHelpers.X.Y chains).
+      if (rootIdentifier(node) === 'TemporalHelpers') {
+        this.emitIncomplete(`untranslatable: TemporalHelpers member access`);
+        return null;
+      }
+
       // JS built-in globals that have no PHP equivalent
       if (node.object.type === 'Identifier') {
-        const jsGlobalObjects = ['Object', 'Reflect', 'Symbol', 'Proxy', 'Array'];
+        const jsGlobalObjects = ['Object', 'Reflect', 'Symbol', 'Proxy', 'Array', 'JSON', 'Date'];
         if (jsGlobalObjects.includes(node.object.name)) {
           this.emitIncomplete(`untranslatable: ${node.object.name}.${node.property.name ?? '?'}`);
           return null;
@@ -901,6 +1003,15 @@ class Emitter {
       const body = this.transpileExpr(cb.body);
       if (body === null) return null;
       return `array_map(fn(${params}) => ${body}, ${arr})`;
+    }
+
+    // TemporalHelpers.X.method() chains (e.g. TemporalHelpers.ISO.plainYearMonthStringsValid())
+    // are not translatable — emit incomplete for any chained TemporalHelpers call.
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.object.type === 'MemberExpression'
+        && rootIdentifier(callee.object) === 'TemporalHelpers') {
+      this.emitIncomplete(`untranslatable: TemporalHelpers chain call`);
+      return null;
     }
 
     // TemporalHelpers.method(args) → TemporalHelpers::method($args)
@@ -1001,7 +1112,7 @@ class Emitter {
         return this.emitMathCall(method, node.arguments);
       }
 
-      const jsGlobals = ['Object', 'Reflect', 'Symbol', 'Proxy', 'Array'];
+      const jsGlobals = ['Object', 'Reflect', 'Symbol', 'Proxy', 'Array', 'JSON', 'Date'];
       if (jsGlobals.includes(name)) {
         this.emitIncomplete(`untranslatable: ${name}.${method}`);
         return null;
@@ -1693,6 +1804,13 @@ class Emitter {
       return null;
     }
 
+    // Detect TemporalHelpers.X used as forEach receiver — not translatable.
+    if (arrNode.type === 'MemberExpression' && !arrNode.computed
+        && arrNode.object.type === 'Identifier' && arrNode.object.name === 'TemporalHelpers') {
+      this.emitIncomplete(`TemporalHelpers.${arrNode.property.name} is not translatable as iterable`);
+      return null;
+    }
+
     // Special case: Object.entries(obj).forEach(([k, v]) => {...})
     // → foreach ($obj as $k => $v) { ... }
     if (arrNode.type === 'CallExpression'
@@ -1717,11 +1835,51 @@ class Emitter {
 
     const arr = this.transpileExpr(arrNode);
     if (arr === null) return null;
-    const param = cb.params[0] ? this.transpilePattern(cb.params[0]) : '$_';
+
+    const cbBody = cb.body.type === 'BlockStatement' ? cb.body : { type: 'BlockStatement', body: [{ type: 'ExpressionStatement', expression: cb.body }] };
+    const param0 = cb.params[0];
+
+    // ObjectPattern destructuring callback: forEach(({a, b}) => {...})
+    // → foreach ($arr as $__obj__) { $a = $__obj__['a'] ?? null; ... }
+    if (param0?.type === 'ObjectPattern') {
+      const tmpVar = '$__obj__';
+      const before = this.lines.length;
+      this.emit(`foreach (${arr} as ${tmpVar}) {`);
+      const opened = this.lines.length > before;
+      for (const prop of param0.properties) {
+        if (prop.type === 'Property' && !prop.computed
+            && prop.key?.type === 'Identifier' && prop.value?.type === 'Identifier') {
+          this.emit(`$${prop.value.name} = ${tmpVar}['${prop.key.name}'] ?? null;`);
+        }
+      }
+      this.transpileStatement(cbBody);
+      if (opened) this.lines.push('}');
+      return null;
+    }
+
+    // ArrayPattern callback: forEach(([a, b, c, d]) => {...})
+    // Use a temp var + array_pad to avoid "Undefined array key" warnings.
+    if (param0?.type === 'ArrayPattern' && !param0.elements.some(e => e?.type === 'RestElement')) {
+      const n = param0.elements.length;
+      const hasDefaults = param0.elements.some(e => e?.type === 'AssignmentPattern');
+      const padVal = hasDefaults ? '0' : 'null';
+      const parts = param0.elements.map(e => e ? this.transpilePattern(e) : 'null');
+      const pat = '[' + parts.join(', ') + ']';
+      const tmpVar = '$__entry__';
+      const before = this.lines.length;
+      this.emit(`foreach (${arr} as ${tmpVar}) {`);
+      const opened = this.lines.length > before;
+      this.emit(`${pat} = array_pad(${tmpVar}, ${n}, ${padVal});`);
+      this.transpileStatement(cbBody);
+      if (opened) this.lines.push('}');
+      return null;
+    }
+
+    const param = param0 ? this.transpilePattern(param0) : '$_';
     const before = this.lines.length;
     this.emit(`foreach (${arr} as ${param}) {`);
     const opened = this.lines.length > before;
-    this.transpileStatement(cb.body.type === 'BlockStatement' ? cb.body : { type: 'BlockStatement', body: [{ type: 'ExpressionStatement', expression: cb.body }] });
+    this.transpileStatement(cbBody);
     if (opened) this.lines.push('}');
     return null; // already emitted
   }
@@ -1815,6 +1973,16 @@ function isMember(node, obj, prop) {
     && !node.computed
     && node.object.type === 'Identifier' && node.object.name === obj
     && node.property.type === 'Identifier' && node.property.name === prop;
+}
+
+/**
+ * Walk up a chain of MemberExpression nodes to find the root Identifier name.
+ * For `a.b.c`, returns `'a'`. For a non-MemberExpression root, returns null.
+ */
+function rootIdentifier(node) {
+  let cur = node;
+  while (cur.type === 'MemberExpression') cur = cur.object;
+  return cur.type === 'Identifier' ? cur.name : null;
 }
 
 /**

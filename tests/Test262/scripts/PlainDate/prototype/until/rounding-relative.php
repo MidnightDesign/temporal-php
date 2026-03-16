@@ -13,7 +13,8 @@ $date2 = \Temporal\PlainDate::from('2019-02-15');
 TemporalHelpers::assertDuration($date1->until($date2, ['smallestUnit' => 'months', 'roundingMode' => 'halfExpand']), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($date2->until($date1, ['smallestUnit' => 'months', 'roundingMode' => 'halfExpand']), 0, -1, 0, 0, 0, 0, 0, 0, 0, 0);
 $cases = [['2019-03-01', '2019-01-29', 1, 1], ['2019-01-29', '2019-03-01', -1, -3], ['2019-03-29', '2019-01-30', 1, 29], ['2019-01-30', '2019-03-29', -1, -29], ['2019-03-30', '2019-01-31', 1, 30], ['2019-01-31', '2019-03-30', -1, -28], ['2019-03-31', '2019-01-31', 2, 0], ['2019-01-31', '2019-03-31', -2, 0]];
-foreach ($cases as [$end, $start, $months, $days]) {
+foreach ($cases as $__entry__) {
+[$end, $start, $months, $days] = array_pad($__entry__, 4, null);
 $result = \Temporal\PlainDate::from($start)->until($end, ['largestUnit' => 'months']);
 TemporalHelpers::assertDuration($result, 0, $months, 0, $days, 0, 0, 0, 0, 0, 0, "{$end} - {$start}");
 }

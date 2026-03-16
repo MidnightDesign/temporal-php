@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$time = new \Temporal\PlainTime(12, 34, 56, 123, 456, 789);
 $test = function ($instance, $expectations, $description) {
-foreach ($expectations as [$smallestUnit, $expectedResult]) {
+foreach ($expectations as $__entry__) {
+[$smallestUnit, $expectedResult] = array_pad($__entry__, 2, null);
 Assert::sameValue($instance->toString(['smallestUnit' => $smallestUnit]), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
 }
 };
+$time = new \Temporal\PlainTime(12, 34, 56, 123, 456, 789);
 $test($time, [['minute', '12:34'], ['second', '12:34:56'], ['millisecond', '12:34:56.123'], ['microsecond', '12:34:56.123456'], ['nanosecond', '12:34:56.123456789']], 'subseconds toString');
 $test(new \Temporal\PlainTime(12, 34), [['minute', '12:34'], ['second', '12:34:00'], ['millisecond', '12:34:00.000'], ['microsecond', '12:34:00.000000'], ['nanosecond', '12:34:00.000000000']], 'whole minutes toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour'];

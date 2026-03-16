@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['2019-12-15[u-ca=iso8601]', 'without time or time zone'], ['2019-12-15T15:23[u-ca=iso8601]', 'without time zone'], ['2019-12-15T15:23[UTC][u-ca=iso8601]', 'with time zone'], ['2019-12-15T15:23[!u-ca=iso8601]', 'with ! and no time zone'], ['2019-12-15T15:23[UTC][!u-ca=iso8601]', 'with ! and time zone'], ['2019-12-15T15:23[u-ca=iso8601][u-ca=discord]', 'second annotation ignored']];
 $instance = new \Temporal\PlainYearMonth(2019, 12);
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->since($arg);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "calendar annotation ({$description})");
 }

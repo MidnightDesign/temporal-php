@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $tests = [['1976-05-02T15:23', 'uppercase T'], ['1976-05-02t15:23', 'lowercase T'], ['1976-05-02 15:23', 'space between date and time']];
 $instance = new \Temporal\PlainMonthDay(5, 2);
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, "variant time separators ({$description})");
 }

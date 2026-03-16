@@ -9,4 +9,11 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $plainDate = new \Temporal\PlainDate(2000, 5, 2);
 $plainDateTime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
-Assert::incomplete('\\Temporal\\PlainMonthDay is not yet implemented');
+$plainMonthDay = new \Temporal\PlainMonthDay(5, 2);
+$plainYearMonth = new \Temporal\PlainYearMonth(2000, 5);
+$zonedDateTime = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+foreach ([$plainDate, $plainDateTime, $plainMonthDay, $plainYearMonth, $zonedDateTime] as $arg) {
+$actual = [];
+$expected = [];
+Assert::incomplete('untranslatable: Object.defineProperty');
+}

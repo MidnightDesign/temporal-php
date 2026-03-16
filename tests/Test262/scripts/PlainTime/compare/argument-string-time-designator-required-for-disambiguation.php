@@ -9,18 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $midnight = new \Temporal\PlainTime();
-foreach ($TemporalHelpers->ISO->plainTimeStringsAmbiguous() as $string) {
-$arg = $string;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare($arg, $midnight), "'{$arg}' is ambiguous and requires T prefix (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare($midnight, $arg), "'{$arg}' is ambiguous and requires T prefix (second argument)");
-$arg = "T{$string}";
-\Temporal\PlainTime::compare($arg, $midnight);
-\Temporal\PlainTime::compare($midnight, $arg);
-$arg = " {$string}";
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare($arg, $midnight), "space is not accepted as a substitute for T prefix (first argument): '{$arg}'");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare($midnight, $arg), "space is not accepted as a substitute for T prefix (second argument): '{$arg}'");
-}
-foreach ($TemporalHelpers->ISO->plainTimeStringsUnambiguous() as $arg) {
-\Temporal\PlainTime::compare($arg, $midnight);
-\Temporal\PlainTime::compare($midnight, $arg);
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

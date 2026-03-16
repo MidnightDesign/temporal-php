@@ -12,7 +12,8 @@ $earlier = new \Temporal\PlainTime(8, 22, 36, 123, 456, 789);
 $later = new \Temporal\PlainTime(12, 39, 40, 987, 654, 289);
 $expected = [['hours', [0, 0, 0, 0, 5], [0, 0, 0, 0, -5]], ['minutes', [0, 0, 0, 0, 4, 18], [0, 0, 0, 0, -4, -18]], ['seconds', [0, 0, 0, 0, 4, 17, 5], [0, 0, 0, 0, -4, -17, -5]], ['milliseconds', [0, 0, 0, 0, 4, 17, 4, 865], [0, 0, 0, 0, -4, -17, -4, -865]], ['microseconds', [0, 0, 0, 0, 4, 17, 4, 864, 198], [0, 0, 0, 0, -4, -17, -4, -864, -198]], ['nanoseconds', [0, 0, 0, 0, 4, 17, 4, 864, 197, 500], [0, 0, 0, 0, -4, -17, -4, -864, -197, -500]]];
 $roundingMode = 'expand';
-foreach ($expected as [$smallestUnit, $expectedPositive, $expectedNegative]) {
+foreach ($expected as $__entry__) {
+[$smallestUnit, $expectedPositive, $expectedNegative] = array_pad($__entry__, 3, null);
 [$py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns] = array_pad($expectedPositive, 10, 0);
 [$ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns] = array_pad($expectedNegative, 10, 0);
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode}, positive case)");

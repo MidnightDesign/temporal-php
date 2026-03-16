@@ -8,7 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$validStrings = array_merge($TemporalHelpers->ISO->plainYearMonthStringsValid(), $TemporalHelpers->ISO->plainYearMonthStringsValidNegativeYear());
-foreach ($validStrings as $arg) {
-Assert::sameValue(\Temporal\PlainYearMonth::compare($arg, $arg), 0, "\"{$arg}\" is a valid PlainYearMonth string");
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

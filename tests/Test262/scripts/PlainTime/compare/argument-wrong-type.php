@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
-foreach ($primitiveTests as [$arg, $description]) {
+foreach ($primitiveTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainTime::compare($arg, new \Temporal\PlainTime(12, 34, 56, 987, 654, 321)), "{$description} does not convert to a valid ISO string (first argument)");
 Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainTime::compare(new \Temporal\PlainTime(12, 34, 56, 987, 654, 321), $arg), "{$description} does not convert to a valid ISO string (second argument)");
 }

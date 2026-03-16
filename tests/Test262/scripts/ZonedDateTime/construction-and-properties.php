@@ -7,5 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$epochMillis = $Date->UTC(1976, 10, 18, 15, 23, 30, 123);
-Assert::incomplete('untranslatable: BigInt()');
+Assert::incomplete('untranslatable: Date.UTC');

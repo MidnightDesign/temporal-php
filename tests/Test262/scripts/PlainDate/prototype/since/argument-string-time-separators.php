@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['2000-05-02T15:23', 'uppercase T'], ['2000-05-02t15:23', 'lowercase T'], ['2000-05-02 15:23', 'space between date and time']];
 $instance = new \Temporal\PlainDate(2000, 5, 2);
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->since($arg);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "variant time separators ({$description})");
 }

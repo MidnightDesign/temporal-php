@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = [['05:07.123', 'Fractional minutes'], ['12.5', 'Fractional hours']];
-foreach ($invalidStrings as [$arg, $description]) {
+foreach ($invalidStrings as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare($arg, new \Temporal\PlainTime(20, 4, 3)), "{$description} not allowed in time string (first argument)");
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare(new \Temporal\PlainTime(20, 4, 3), $arg), "{$description} not allowed in time string (second argument)");
 }

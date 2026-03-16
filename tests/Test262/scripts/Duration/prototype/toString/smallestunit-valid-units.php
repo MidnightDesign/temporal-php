@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 $test = function ($instance, $expectations, $description) {
-foreach ($expectations as [$smallestUnit, $expectedResult]) {
+foreach ($expectations as $__entry__) {
+[$smallestUnit, $expectedResult] = array_pad($__entry__, 2, null);
 Assert::sameValue($instance->toString(['smallestUnit' => $smallestUnit]), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
 }
 };
+$duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 $test($duration, [['seconds', 'P1Y2M3W4DT5H6M7S'], ['milliseconds', 'P1Y2M3W4DT5H6M7.987S'], ['microseconds', 'P1Y2M3W4DT5H6M7.987654S'], ['nanoseconds', 'P1Y2M3W4DT5H6M7.987654321S']], 'subseconds toString');
 $test(new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7), [['seconds', 'P1Y2M3W4DT5H6M7S'], ['milliseconds', 'P1Y2M3W4DT5H6M7.000S'], ['microseconds', 'P1Y2M3W4DT5H6M7.000000S'], ['nanoseconds', 'P1Y2M3W4DT5H6M7.000000000S']], 'whole seconds toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour', 'minute'];

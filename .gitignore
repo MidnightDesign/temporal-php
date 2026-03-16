@@ -4,3 +4,6 @@
 
 # PHPUnit cache
 /.phpunit.cache/
+
+# Build artifacts (coverage, infection reports)
+/build/

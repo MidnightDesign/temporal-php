@@ -9,7 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\PlainMonthDay(10, 1);
-foreach ($TemporalHelpers->ISO->plainMonthDayStringsValid() as $arg) {
-$result = $instance->equals($arg);
-Assert::sameValue($result, true, "\"{$arg}\" is a valid PlainMonthDay string");
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

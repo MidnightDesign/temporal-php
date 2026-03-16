@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['2019-12-15T15:23', 'uppercase T'], ['2019-12-15t15:23', 'lowercase T'], ['2019-12-15 15:23', 'space between date and time']];
 $instance = new \Temporal\PlainYearMonth(2019, 12);
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->until($arg);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "variant time separators ({$description})");
 }

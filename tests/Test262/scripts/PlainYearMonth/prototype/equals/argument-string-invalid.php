@@ -9,6 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\PlainYearMonth(1976, 11);
-foreach ($TemporalHelpers->ISO->plainYearMonthStringsInvalid() as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "\"{$arg}\" is not a valid PlainYearMonth string");
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

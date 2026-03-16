@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $tests = [[new \Temporal\PlainMonthDay(1, 1), '01-01'], [new \Temporal\PlainMonthDay(12, 31), '12-31']];
 $options = null;
-foreach ($tests as [$monthDay, $expected]) {
+foreach ($tests as $__entry__) {
+[$monthDay, $expected] = array_pad($__entry__, 2, null);
 Assert::sameValue($monthDay->toJSON(), $expected, 'toJSON without argument');
 Assert::sameValue($monthDay->toJSON($options), $expected, 'toJSON with argument');
 }

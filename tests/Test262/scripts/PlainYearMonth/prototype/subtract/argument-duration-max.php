@@ -10,12 +10,14 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\PlainYearMonth(1970, 1);
 $maxCases = [['P273790Y8M', 'string with max years'], [['years' => 273_790, 'months' => 8], 'property bag with max years'], ['P3285488M', 'string with max months'], [['months' => 3_285_488], 'property bag with max months']];
-foreach ($maxCases as [$arg, $descr]) {
+foreach ($maxCases as $__entry__) {
+[$arg, $descr] = array_pad($__entry__, 2, null);
 $result = $instance->subtract($arg);
 TemporalHelpers::assertPlainYearMonth($result, -271_821, 5, 'M05', "operation succeeds with {$descr}");
 }
 $minCases = [['-P273790Y8M', 'string with min years'], [['years' => -273_790, 'months' => -8], 'property bag with min years'], ['-P3285488M', 'string with min months'], [['months' => -3_285_488], 'property bag with min months']];
-foreach ($minCases as [$arg, $descr]) {
+foreach ($minCases as $__entry__) {
+[$arg, $descr] = array_pad($__entry__, 2, null);
 $result = $instance->subtract($arg);
 TemporalHelpers::assertPlainYearMonth($result, 275_760, 9, 'M09', "operation succeeds with {$descr}");
 }

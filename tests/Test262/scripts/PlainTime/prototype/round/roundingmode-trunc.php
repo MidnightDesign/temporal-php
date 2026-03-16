@@ -11,7 +11,8 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\PlainTime(13, 46, 23, 123, 987, 500);
 $expected = [['hour', [13]], ['minute', [13, 46]], ['second', [13, 46, 23]], ['millisecond', [13, 46, 23, 123]], ['microsecond', [13, 46, 23, 123, 987]], ['nanosecond', [13, 46, 23, 123, 987, 500]]];
 $roundingMode = 'trunc';
-foreach ($expected as [$smallestUnit, $expected]) {
+foreach ($expected as $__entry__) {
+[$smallestUnit, $expected] = array_pad($__entry__, 2, null);
 [$h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 6, 0);
 TemporalHelpers::assertPlainTime($instance->round(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $h, $min, $s, $ms, $µs, $ns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
 }

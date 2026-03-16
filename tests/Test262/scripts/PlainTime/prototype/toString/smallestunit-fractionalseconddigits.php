@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $time = new \Temporal\PlainTime(12, 34, 56, 789, 999, 999);
 $tests = [['minute', '12:34'], ['second', '12:34:56'], ['millisecond', '12:34:56.789'], ['microsecond', '12:34:56.789999'], ['nanosecond', '12:34:56.789999999']];
-foreach ($tests as [$smallestUnit, $expected]) {
+foreach ($tests as $__entry__) {
+[$smallestUnit, $expected] = array_pad($__entry__, 2, null);
 $string = $time->toString(['smallestUnit' => $smallestUnit, 'fractionalSecondDigits' => 5]);
 Assert::sameValue($string, $expected, "smallestUnit: \"{$smallestUnit}\" overrides fractionalSecondDigits");
 }

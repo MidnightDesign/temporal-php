@@ -12,6 +12,6 @@ $timeZone = 'UTC';
 $datetime = new \Temporal\ZonedDateTime(0, $timeZone);
 $arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => $calendar];
 $result1 = \Temporal\ZonedDateTime::compare($arg, $datetime);
-Assert::sameValue($result1, 0, "Calendar created from string \"{$arg}\" (first argument)");
+Assert::sameValue($result1, 0, "Calendar created from string \"" . json_encode($arg) . "\" (first argument)");
 $result2 = \Temporal\ZonedDateTime::compare($datetime, $arg);
-Assert::sameValue($result2, 0, "Calendar created from string \"{$arg}\" (second argument)");
+Assert::sameValue($result2, 0, "Calendar created from string \"" . json_encode($arg) . "\" (second argument)");

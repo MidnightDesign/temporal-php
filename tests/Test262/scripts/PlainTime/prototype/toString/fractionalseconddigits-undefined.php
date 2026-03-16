@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [[new \Temporal\PlainTime(5, 3, 1), '05:03:01'], [new \Temporal\PlainTime(15, 23), '15:23:00'], [new \Temporal\PlainTime(15, 23, 30), '15:23:30'], [new \Temporal\PlainTime(15, 23, 30, 123, 400), '15:23:30.1234']];
-foreach ($tests as [$time, $expected]) {
+foreach ($tests as $__entry__) {
+[$time, $expected] = array_pad($__entry__, 2, null);
 $explicit = $time->toString([]);
 Assert::sameValue($explicit, $expected, 'default fractionalSecondDigits is auto (property present but undefined)');
 $implicit = $time->toString(new \stdClass());

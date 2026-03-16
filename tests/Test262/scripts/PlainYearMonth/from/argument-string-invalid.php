@@ -8,7 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-foreach ($TemporalHelpers->ISO->plainYearMonthStringsInvalid() as $input) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::from($input, ['overflow' => 'reject']), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::from($input, ['overflow' => 'constrain']), '');
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

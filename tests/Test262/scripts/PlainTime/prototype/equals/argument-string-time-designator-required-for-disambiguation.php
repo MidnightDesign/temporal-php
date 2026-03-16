@@ -9,14 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
-foreach ($TemporalHelpers->ISO->plainTimeStringsAmbiguous() as $string) {
-$arg = $string;
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "'{$arg}' is ambiguous and requires T prefix");
-$arg = "T{$string}";
-$instance->equals($arg);
-$arg = " {$string}";
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "space is not accepted as a substitute for T prefix: '{$arg}'");
-}
-foreach ($TemporalHelpers->ISO->plainTimeStringsUnambiguous() as $arg) {
-$instance->equals($arg);
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

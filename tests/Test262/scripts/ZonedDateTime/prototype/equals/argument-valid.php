@@ -9,12 +9,14 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\ZonedDateTime(0, 'UTC');
 $validsEqual = [['+0330', '+03:30'], ['-0650', '-06:50'], ['-08', '-08:00'], ['1994-11-05T08:15:30-05:00', '-05:00'], ['1994-11-05T13:15:30Z', 'UTC']];
-foreach ($validsEqual as [$valid, $canonical]) {
+foreach ($validsEqual as $__entry__) {
+[$valid, $canonical] = array_pad($__entry__, 2, null);
 Assert::assertTrue($instance->withTimeZone($valid)->equals($instance->withTimeZone($canonical)), "{$valid} time zone equals {$canonical}");
 Assert::assertTrue($instance->withTimeZone($canonical)->equals($instance->withTimeZone($valid)), "{$canonical} time zone equals {$valid}");
 }
 $validsNotEqual = [['+0330', '+03:31'], ['-0650', '-06:51'], ['-08', '-08:01'], ['1994-11-05T08:15:30-05:00', '-05:01']];
-foreach ($validsNotEqual as [$valid, $canonical]) {
+foreach ($validsNotEqual as $__entry__) {
+[$valid, $canonical] = array_pad($__entry__, 2, null);
 Assert::assertTrue(!$instance->withTimeZone($valid)->equals($instance->withTimeZone($canonical)), "{$valid} time zone does not equal {$canonical}");
 Assert::assertTrue(!$instance->withTimeZone($canonical)->equals($instance->withTimeZone($valid)), "{$canonical} time zone does not equal {$valid}");
 }

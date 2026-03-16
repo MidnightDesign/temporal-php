@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
-foreach ($primitiveTests as [$timeZone, $description]) {
+foreach ($primitiveTests as $__entry__) {
+[$timeZone, $description] = array_pad($__entry__, 2, null);
 Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Duration::compare(new \Temporal\Duration(1), new \Temporal\Duration(), ['relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]), "{$description} does not convert to a valid ISO string");
 }
 Assert::incomplete('untranslatable: Symbol()');

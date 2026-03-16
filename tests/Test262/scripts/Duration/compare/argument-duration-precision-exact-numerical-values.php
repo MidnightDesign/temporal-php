@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $cases = [[['milliseconds' => 4_503_599_627_370_497_024, 'microseconds' => 4.503_599_627_370_495e+21], 'case where floating point inaccuracy brings total below limit, positive'], [['milliseconds' => -4_503_599_627_370_497_024, 'microseconds' => -4.503_599_627_370_495e+21], 'case where floating point inaccuracy brings total below limit, negative']];
-foreach ($cases as [$arg, $descr]) {
+foreach ($cases as $__entry__) {
+[$arg, $descr] = array_pad($__entry__, 2, null);
 Assert::sameValue(\Temporal\Duration::compare($arg, $arg), 0, $descr);
 }

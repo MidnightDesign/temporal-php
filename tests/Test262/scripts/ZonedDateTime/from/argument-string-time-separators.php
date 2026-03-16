@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00+00:00[UTC]', 'uppercase T'], ['1970-01-01t00:00+00:00[UTC]', 'lowercase T'], ['1970-01-01 00:00+00:00[UTC]', 'space between date and time']];
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = \Temporal\ZonedDateTime::from($arg);
 Assert::sameValue($result->timeZoneId, 'UTC', "variant time separators ({$description})");
 }

@@ -12,7 +12,8 @@ $earlier = new \Temporal\PlainYearMonth(2019, 1);
 $later = new \Temporal\PlainYearMonth(2021, 9);
 $expected = [['years', [2], [-2]], ['months', [2, 8], [-2, -8]]];
 $roundingMode = 'trunc';
-foreach ($expected as [$smallestUnit, $expectedPositive, $expectedNegative]) {
+foreach ($expected as $__entry__) {
+[$smallestUnit, $expectedPositive, $expectedNegative] = array_pad($__entry__, 3, null);
 [$py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns] = array_pad($expectedPositive, 10, 0);
 [$ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns] = array_pad($expectedNegative, 10, 0);
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode}, positive case)");

@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['1976-05-02T15:23', 'uppercase T'], ['1976-05-02t15:23', 'lowercase T'], ['1976-05-02 15:23', 'space between date and time']];
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = \Temporal\PlainMonthDay::from($arg);
 TemporalHelpers::assertPlainMonthDay($result, 'M05', 2, "variant time separators ({$description})");
 }

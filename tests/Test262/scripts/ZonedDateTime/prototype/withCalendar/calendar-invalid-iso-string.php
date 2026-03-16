@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC', 'iso8601');
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar']];
-foreach ($invalidStrings as [$arg, $description]) {
+foreach ($invalidStrings as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->withCalendar($arg), "{$description} is not a valid calendar ID");
 }

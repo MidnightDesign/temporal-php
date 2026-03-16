@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 $instance_1 = new \Temporal\Duration(1);
 $instance_2 = new \Temporal\Duration(2);
 $invalidStrings = [['', 'empty string'], ['notacal', 'Unknown calendar']];
-foreach ($invalidStrings as [$cal, $description]) {
+foreach ($invalidStrings as $__entry__) {
+[$cal, $description] = array_pad($__entry__, 2, null);
 $arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($instance_1, $instance_2, ['relativeTo' => $arg]), "{$description} is not a valid calendar ID");
 }

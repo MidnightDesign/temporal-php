@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $calendar = 'iso8601';
 $arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar];
 $result1 = \Temporal\PlainYearMonth::compare($arg, new \Temporal\PlainYearMonth(2019, 6));
-Assert::sameValue($result1, 0, "Calendar created from string \"{$arg}\" (first argument)");
+Assert::sameValue($result1, 0, "Calendar created from string \"" . json_encode($arg) . "\" (first argument)");
 $result2 = \Temporal\PlainYearMonth::compare(new \Temporal\PlainYearMonth(2019, 6), $arg);
-Assert::sameValue($result2, 0, "Calendar created from string \"{$arg}\" (second argument)");
+Assert::sameValue($result2, 0, "Calendar created from string \"" . json_encode($arg) . "\" (second argument)");

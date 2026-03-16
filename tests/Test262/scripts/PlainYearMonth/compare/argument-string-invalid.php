@@ -9,7 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $arg2 = new \Temporal\PlainYearMonth(1976, 11);
-foreach ($TemporalHelpers->ISO->plainYearMonthStringsInvalid() as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($arg, $arg2), "\"{$arg}\" is invalid (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($arg2, $arg), "\"{$arg}\" is invalid (second argument)");
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

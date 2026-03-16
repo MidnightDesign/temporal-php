@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['1976-11-18T12:34:56.987654321', 'uppercase T'], ['1976-11-18t12:34:56.987654321', 'lowercase T'], ['1976-11-18 12:34:56.987654321', 'space between date and time'], ['T12:34:56.987654321', 'time-only uppercase T'], ['t12:34:56.987654321', 'time-only lowercase T']];
 $timeZone = 'UTC';
 $instance = new \Temporal\ZonedDateTime(0, $timeZone);
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->withPlainTime($arg);
 Assert::sameValue($result->epochNanoseconds, 45_296_987_654_321, "variant time separators ({$description})");
 }

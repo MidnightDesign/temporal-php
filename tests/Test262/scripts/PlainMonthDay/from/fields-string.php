@@ -8,12 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-foreach ($TemporalHelpers->ISO->plainMonthDayStringsValid() as $argument) {
-$plainMonthDay = \Temporal\PlainMonthDay::from($argument);
-Assert::notSameValue($plainMonthDay, $argument, "from {$argument} converts");
-TemporalHelpers::assertPlainMonthDay($plainMonthDay, 'M10', 1, "from {$argument}");
-Assert::sameValue($plainMonthDay->calendarId, 'iso8601', "from {$argument} calendar");
-}
-foreach ($TemporalHelpers->ISO->plainMonthDayStringsInvalid() as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from($arg), "\"{$arg}\" not a valid PlainMonthDay string");
-}
+Assert::incomplete('untranslatable: TemporalHelpers chain call');

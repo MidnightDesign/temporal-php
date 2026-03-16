@@ -8,7 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['1976-11-18T15:23[u-ca=iso8601]', 'without time zone'], ['1976-11-18T15:23[UTC][u-ca=iso8601]', 'with time zone'], ['1976-11-18T15:23[!u-ca=iso8601]', 'with ! and no time zone'], ['1976-11-18T15:23[UTC][!u-ca=iso8601]', 'with ! and time zone'], ['1976-11-18T15:23[u-ca=iso8601][u-ca=discord]', 'second annotation ignored']];
-foreach ($tests as [$arg, $description]) {
+foreach ($tests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 $result = \Temporal\PlainDateTime::compare($arg, $arg);
 Assert::sameValue($result, 0, "calendar annotation ({$description})");
 }

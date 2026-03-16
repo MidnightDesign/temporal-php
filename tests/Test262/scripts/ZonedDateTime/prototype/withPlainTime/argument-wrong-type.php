@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
-foreach ($primitiveTests as [$arg, $description]) {
+foreach ($primitiveTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
 Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => $instance->withPlainTime($arg), "{$description} does not convert to a valid ISO string");
 }
 Assert::incomplete('untranslatable: Symbol()');
