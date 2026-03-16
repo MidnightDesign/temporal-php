@@ -819,6 +819,11 @@ final class PlainDateTime implements Stringable
         return $this->toString();
     }
 
+    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    {
+        return $this->toString();
+    }
+
     /**
      * Returns the date part as a PlainDate.
      *

@@ -482,6 +482,11 @@ final class PlainYearMonth implements Stringable
         return $this->toString();
     }
 
+    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    {
+        return $this->toString();
+    }
+
     /**
      * Always throws TypeError — PlainYearMonth must not be used in arithmetic context.
      *
