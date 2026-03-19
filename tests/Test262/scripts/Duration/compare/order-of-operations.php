@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+Assert::incomplete('untranslatable: Object.defineProperty');

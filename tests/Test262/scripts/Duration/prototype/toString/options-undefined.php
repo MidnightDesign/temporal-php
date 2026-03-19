@@ -12,3 +12,5 @@ $explicit = $duration->toString();
 Assert::sameValue($explicit, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');
 $implicit = $duration->toString();
 Assert::sameValue($implicit, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');
+$lambda = $duration->toString(function () {  });
+Assert::sameValue($lambda, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');

@@ -14,3 +14,5 @@ $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');
 $implicit = $earlier->until($later, new \stdClass());
 TemporalHelpers::assertDuration($implicit, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');
+$lambda = $earlier->until($later, function () {  });
+TemporalHelpers::assertDuration($lambda, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');

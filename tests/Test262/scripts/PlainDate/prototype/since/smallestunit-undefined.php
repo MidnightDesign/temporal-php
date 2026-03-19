@@ -14,3 +14,5 @@ $explicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default smallestUnit is day');
 $implicit = $later->since($earlier, new \stdClass());
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default smallestUnit is day');
+$lambda = $later->since($earlier, function () {  });
+TemporalHelpers::assertDuration($lambda, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default smallestUnit is day');

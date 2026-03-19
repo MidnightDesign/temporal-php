@@ -15,4 +15,6 @@ $explicit = $time->toString();
 Assert::sameValue($explicit, $expected, 'default precision is auto and no rounding');
 $implicit = $time->toString();
 Assert::sameValue($implicit, $expected, 'default precision is auto and no rounding');
+$lambda = $time->toString(function () {  });
+Assert::sameValue($lambda, $expected, 'default precision is auto and no rounding');
 }

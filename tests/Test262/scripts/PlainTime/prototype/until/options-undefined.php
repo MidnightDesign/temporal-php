@@ -15,3 +15,6 @@ Assert::sameValue($explicit->nanoseconds, 1, 'default smallest unit is nanosecon
 $implicit = $earlier->until($later);
 Assert::sameValue($implicit->hours, 6, 'default largest unit is hours');
 Assert::sameValue($implicit->nanoseconds, 1, 'default smallest unit is nanoseconds and no rounding');
+$lambda = $earlier->until($later, function () {  });
+Assert::sameValue($lambda->hours, 6, 'default largest unit is hours');
+Assert::sameValue($lambda->nanoseconds, 1, 'default smallest unit is nanoseconds and no rounding');

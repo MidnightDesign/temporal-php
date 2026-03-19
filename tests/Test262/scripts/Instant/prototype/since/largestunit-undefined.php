@@ -14,3 +14,5 @@ $explicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');
 $implicit = $later->since($earlier, new \stdClass());
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');
+$lambda = $later->since($earlier, function () {  });
+TemporalHelpers::assertDuration($lambda, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');

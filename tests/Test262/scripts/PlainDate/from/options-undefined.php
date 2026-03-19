@@ -14,3 +14,5 @@ $implicit = \Temporal\PlainDate::from($fields);
 Assert::sameValue($implicit->month, 12, 'default overflow is constrain');
 $implicitEmpty = \Temporal\PlainDate::from($fields, new \stdClass());
 Assert::sameValue($implicitEmpty->month, 12, 'default overflow is constrain');
+$lambda = \Temporal\PlainDate::from($fields, function () {  });
+Assert::sameValue($lambda->month, 12, 'default overflow is constrain');

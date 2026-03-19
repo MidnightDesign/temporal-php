@@ -13,3 +13,5 @@ $explicit = $time->with(['minute' => 67], []);
 TemporalHelpers::assertPlainTime($explicit, 12, 59, 0, 0, 0, 0, 'default overflow is constrain');
 $implicit = $time->with(['minute' => 67], new \stdClass());
 TemporalHelpers::assertPlainTime($implicit, 12, 59, 0, 0, 0, 0, 'default overflow is constrain');
+$lambda = $time->with(['minute' => 67], function () {  });
+TemporalHelpers::assertPlainTime($lambda, 12, 59, 0, 0, 0, 0, 'default overflow is constrain');

@@ -14,3 +14,5 @@ $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default smallestUnit is nanosecond');
 $implicit = $earlier->until($later, new \stdClass());
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default smallestUnit is nanosecond');
+$lambda = $earlier->until($later, function () {  });
+TemporalHelpers::assertDuration($lambda, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default smallestUnit is nanosecond');

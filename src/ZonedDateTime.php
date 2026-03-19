@@ -43,6 +43,15 @@ final class ZonedDateTime implements Stringable
     /** @var array{year:int, month:int, day:int, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}|null $localCache */
     private ?array $localCache = null;
 
+    /**
+     * True epoch seconds (UTC) — set when epochNanoseconds is a sentinel
+     * (PHP_INT_MIN/MAX) because the actual value overflows int64 nanoseconds.
+     */
+    private ?int $trueEpochSec = null;
+
+    /** Sub-second nanoseconds (0–999_999_999) paired with $trueEpochSec. */
+    private int $trueSubNs = 0;
+
     // -------------------------------------------------------------------------
     // Virtual (get-only) date/time properties
     // -------------------------------------------------------------------------
@@ -264,7 +273,7 @@ final class ZonedDateTime implements Stringable
 
     /**
      * @param int|float $epochNanoseconds Nanoseconds since the Unix epoch. Must be a
-     *        finite integer value within the PHP int64 range.
+     *        finite integer value within the Temporal spec range (±8.64e21 ns).
      * @param string    $timeZoneId       Timezone identifier: 'UTC', '±HH:MM', or an IANA name.
      * @param string    $calendarId       Calendar identifier (only 'iso8601' is supported).
      * @throws InvalidArgumentException if epochNanoseconds is not a finite integer value,
@@ -276,8 +285,33 @@ final class ZonedDateTime implements Stringable
             if (!is_finite($epochNanoseconds) || floor($epochNanoseconds) !== $epochNanoseconds) {
                 throw new InvalidArgumentException('ZonedDateTime epochNanoseconds must be a finite integer value.');
             }
+            // Float beyond int64 range: validate using epoch-second range and use sentinel.
             if ($epochNanoseconds > (float) PHP_INT_MAX || $epochNanoseconds < (float) PHP_INT_MIN) {
-                throw new InvalidArgumentException('ZonedDateTime epochNanoseconds value exceeds the PHP int64 range.');
+                // Validate epoch seconds first (avoids garbage from int cast of huge floats).
+                $epochSecF = floor($epochNanoseconds / 1e9);
+                $maxSec = 8_640_000_000_000.0;
+                if ($epochSecF > $maxSec || $epochSecF < -$maxSec) {
+                    throw new InvalidArgumentException('ZonedDateTime epochNanoseconds value exceeds the representable range.');
+                }
+                // Check for boundary: reject if at the exact limit with any sub-ns remainder.
+                // Since PHP floats can't distinguish nsMax from nsMax+1, accept only the exact boundary.
+                $epochSec = (int) $epochSecF;
+                $subNs = (int) fmod(num1: $epochNanoseconds, num2: 1e9);
+                if ($subNs < 0) {
+                    $epochSec--;
+                    $subNs += self::NS_PER_SECOND;
+                }
+                $this->epochNanoseconds = $epochNanoseconds < 0 ? PHP_INT_MIN : PHP_INT_MAX;
+                $this->trueEpochSec = $epochSec;
+                $this->trueSubNs = $subNs;
+                $this->timeZoneId = self::normalizeTimezoneId($timeZoneId, true);
+                if (strtolower($calendarId) !== 'iso8601') {
+                    throw new InvalidArgumentException(
+                        "Unsupported calendar \"{$calendarId}\": only iso8601 is supported.",
+                    );
+                }
+                $this->calendarId = 'iso8601';
+                return;
             }
             $epochNanoseconds = (int) $epochNanoseconds;
         }
@@ -310,10 +344,17 @@ final class ZonedDateTime implements Stringable
      */
     public static function from(mixed $item, mixed $options = null): self
     {
+        $opts = null;
+        if (is_array($options)) {
+            $opts = $options;
+        } elseif (is_object($options)) {
+            $opts = (array) $options;
+        }
+
         // Validate 'disambiguation' option if present.
-        if (is_array($options) && array_key_exists('disambiguation', $options)) {
+        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
             /** @var mixed $dv */
-            $dv = $options['disambiguation'];
+            $dv = $opts['disambiguation'];
             if (!is_string($dv)) {
                 throw new InvalidArgumentException(
                     'ZonedDateTime::from() disambiguation option must be a string.',
@@ -326,6 +367,43 @@ final class ZonedDateTime implements Stringable
             }
         }
 
+        // Validate 'overflow' option.
+        $overflow = 'constrain';
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
+            /** @var mixed $ov */
+            $ov = $opts['overflow'];
+            if ($ov === null || is_bool($ov)) {
+                throw new InvalidArgumentException(
+                    "Invalid overflow value: must be 'constrain' or 'reject'.",
+                );
+            }
+            if (!is_string($ov)) {
+                throw new \TypeError('overflow option must be a string.');
+            }
+            if ($ov !== 'constrain' && $ov !== 'reject') {
+                throw new InvalidArgumentException(
+                    "Invalid overflow value \"{$ov}\": must be 'constrain' or 'reject'.",
+                );
+            }
+            $overflow = $ov;
+        }
+
+        // Validate 'offset' option if present.
+        if ($opts !== null && array_key_exists('offset', $opts)) {
+            /** @var mixed $offOpt */
+            $offOpt = $opts['offset'];
+            if ($offOpt !== null) {
+                if (!is_string($offOpt)) {
+                    throw new \TypeError('offset option must be a string.');
+                }
+                if (!in_array(needle: $offOpt, haystack: ['use', 'ignore', 'prefer', 'reject'], strict: true)) {
+                    throw new InvalidArgumentException(
+                        "Invalid offset option \"{$offOpt}\"; must be 'use', 'ignore', 'prefer', or 'reject'.",
+                    );
+                }
+            }
+        }
+
         if ($item instanceof self) {
             return new self($item->epochNanoseconds, $item->timeZoneId, $item->calendarId);
         }
@@ -334,7 +412,7 @@ final class ZonedDateTime implements Stringable
         }
         if (is_array($item) || is_object($item)) {
             $bag = is_array($item) ? $item : (array) $item;
-            return self::fromPropertyBag($bag);
+            return self::fromPropertyBag($bag, $overflow);
         }
         throw new \TypeError(
             'ZonedDateTime::from() requires a ZonedDateTime, string, or property-bag array; got '
@@ -495,14 +573,8 @@ final class ZonedDateTime implements Stringable
         $epochSec = self::wallSecToEpochSec($wallSec, $this->timeZoneId);
 
         $subNs = $ms * self::NS_PER_MILLISECOND + $us * self::NS_PER_MICROSECOND + $ns;
-        $maxSecForNs = 9_223_372_035;
-        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
-            $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-        } else {
-            $epochNs = $epochSec * self::NS_PER_SECOND + $subNs;
-        }
 
-        return new self($epochNs, $this->timeZoneId, $this->calendarId);
+        return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
     }
 
     /**
@@ -853,6 +925,533 @@ final class ZonedDateTime implements Stringable
         return \Locale::getDefault();
     }
 
+    // -------------------------------------------------------------------------
+    // Arithmetic methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Returns a new ZonedDateTime with the given duration added.
+     *
+     * Calendar units (years/months) modify local date fields and re-resolve to ZDT.
+     * Time units add nanoseconds directly to the epoch.
+     *
+     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param mixed $options  Options array; supports 'overflow' ('constrain'|'reject').
+     * @psalm-api
+     */
+    public function add(mixed $duration, mixed $options = null): self
+    {
+        $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
+        return $this->addDurationZdt(1, $dur, $options);
+    }
+
+    /**
+     * Returns a new ZonedDateTime with the given duration subtracted.
+     *
+     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param mixed $options  Options array; supports 'overflow' ('constrain'|'reject').
+     * @psalm-api
+     */
+    public function subtract(mixed $duration, mixed $options = null): self
+    {
+        $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
+        return $this->addDurationZdt(-1, $dur, $options);
+    }
+
+    /**
+     * Returns the Duration from $other to this ZonedDateTime (this - other).
+     *
+     * Default largestUnit is 'hour' (per TC39 ZonedDateTime spec).
+     *
+     * @param mixed $other   ZonedDateTime or ZDT string.
+     * @param mixed $options Options array with largestUnit, smallestUnit, roundingMode, roundingIncrement.
+     * @psalm-api
+     */
+    public function since(mixed $other, mixed $options = null): Duration
+    {
+        $o = $other instanceof self ? $other : self::from($other);
+        return self::diffZdt($this, $o, $this, $options);
+    }
+
+    /**
+     * Returns the Duration from this ZonedDateTime to $other (other - this).
+     *
+     * Default largestUnit is 'hour' (per TC39 ZonedDateTime spec).
+     *
+     * @param mixed $other   ZonedDateTime or ZDT string.
+     * @param mixed $options Options array with largestUnit, smallestUnit, roundingMode, roundingIncrement.
+     * @psalm-api
+     */
+    public function until(mixed $other, mixed $options = null): Duration
+    {
+        $o = $other instanceof self ? $other : self::from($other);
+        return self::diffZdt($o, $this, $this, $options);
+    }
+
+    /**
+     * Returns a new ZonedDateTime rounded to the given unit and increment.
+     *
+     * For 'day': rounds relative to local midnight in the timezone.
+     * For sub-day units: rounds the epoch nanoseconds directly.
+     *
+     * @param mixed $options string smallestUnit or array with keys:
+     *   - smallestUnit (required): 'day'|'hour'|'minute'|'second'|'millisecond'|'microsecond'|'nanosecond'
+     *   - roundingMode (default 'halfExpand')
+     *   - roundingIncrement (default 1)
+     * @psalm-api
+     */
+    public function round(mixed $options): self
+    {
+        if (is_string($options)) {
+            $options = ['smallestUnit' => $options];
+        } elseif (is_object($options)) {
+            $options = (array) $options;
+        }
+        if (!is_array($options)) {
+            throw new \TypeError('Temporal\\ZonedDateTime::round() options must be a string, array, or object.');
+        }
+
+        /** @psalm-suppress MixedAssignment */
+        $suRaw = $options['smallestUnit'] ?? null;
+        if ($suRaw === null) {
+            throw new InvalidArgumentException('Temporal\\ZonedDateTime::round() requires smallestUnit.');
+        }
+        if (!is_string($suRaw)) {
+            throw new \TypeError('smallestUnit must be a string.');
+        }
+
+        // [nsPerUnit, maxIncrement (next-unit size, or 1 for day)]
+        $unitMap = [
+            'day'          => [86_400_000_000_000, 1],
+            'days'         => [86_400_000_000_000, 1],
+            'hour'         => [3_600_000_000_000,  24],
+            'hours'        => [3_600_000_000_000,  24],
+            'minute'       => [60_000_000_000,     60],
+            'minutes'      => [60_000_000_000,     60],
+            'second'       => [self::NS_PER_SECOND,      60],
+            'seconds'      => [self::NS_PER_SECOND,      60],
+            'millisecond'  => [self::NS_PER_MILLISECOND,  1_000],
+            'milliseconds' => [self::NS_PER_MILLISECOND,  1_000],
+            'microsecond'  => [self::NS_PER_MICROSECOND,  1_000],
+            'microseconds' => [self::NS_PER_MICROSECOND,  1_000],
+            'nanosecond'   => [1,                         1_000],
+            'nanoseconds'  => [1,                         1_000],
+        ];
+        if (!array_key_exists($suRaw, $unitMap)) {
+            throw new InvalidArgumentException("Invalid smallestUnit \"{$suRaw}\" for Temporal\\ZonedDateTime::round().");
+        }
+        [$nsPerUnit, $maxDivisor] = $unitMap[$suRaw];
+
+        $roundingMode = 'halfExpand';
+        if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
+            /** @psalm-suppress MixedArgument */
+            $roundingMode = (string) $options['roundingMode'];
+        }
+
+        $increment = 1;
+        if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
+            /** @psalm-suppress MixedArgument */
+            $rawIncrement = (int) $options['roundingIncrement'];
+            if ($rawIncrement < 1) {
+                throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
+            }
+            $increment = $rawIncrement;
+        }
+        if ($maxDivisor === 1) {
+            if ($increment !== 1) {
+                throw new InvalidArgumentException(
+                    "roundingIncrement {$increment} is invalid for unit \"{$suRaw}\".",
+                );
+            }
+        } elseif ($increment >= $maxDivisor || $maxDivisor % $increment !== 0) {
+            throw new InvalidArgumentException(
+                "roundingIncrement {$increment} does not evenly divide {$maxDivisor} for unit \"{$suRaw}\".",
+            );
+        }
+
+        $nsIncrement = $nsPerUnit * $increment;
+        $isDay = str_starts_with($suRaw, 'day');
+
+        // ZonedDateTime rounding is always relative to local midnight (start of day).
+        // Get local midnight epoch seconds and the offset from midnight in nanoseconds.
+        $lc = $this->localComponents();
+        $epochDays = self::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
+        $midnightWallSec = $epochDays * 86_400;
+        $midnightEpochSec = self::wallSecToEpochSec($midnightWallSec, $this->timeZoneId);
+
+        // Compute offset from midnight using true epoch parts to handle sentinels.
+        if ($this->trueEpochSec !== null) {
+            $thisEpochSec = $this->trueEpochSec;
+            $thisSubNs = $this->trueSubNs;
+        } else {
+            $thisEpochSec = self::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+            $thisSubNs = $this->epochNanoseconds - $thisEpochSec * self::NS_PER_SECOND;
+        }
+        $offsetFromMidnight = ($thisEpochSec - $midnightEpochSec) * self::NS_PER_SECOND + $thisSubNs;
+
+        if ($isDay) {
+            // Compute actual day length for DST-aware day rounding.
+            $nextDayWallSec = $midnightWallSec + 86_400;
+            $nextDayEpochSec = self::wallSecToEpochSec($nextDayWallSec, $this->timeZoneId);
+            $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * self::NS_PER_SECOND;
+
+            if ($dayLengthNs <= 0) {
+                throw new InvalidArgumentException(
+                    'Cannot round to day: day length is zero or negative (DST transition).',
+                );
+            }
+
+            $roundedOffsetNs = self::roundDayNs($offsetFromMidnight, $dayLengthNs, $roundingMode);
+        } elseif ($nsIncrement === 1) {
+            $roundedOffsetNs = $offsetFromMidnight;
+        } else {
+            // Round the offset from midnight, then add back midnight.
+            $roundedOffsetNs = self::roundPositiveNs($offsetFromMidnight, $nsIncrement, $roundingMode);
+        }
+
+        // Compute the rounded result as epoch seconds + sub-ns.
+        $roundedEpochSec = $midnightEpochSec + intdiv(num1: $roundedOffsetNs, num2: self::NS_PER_SECOND);
+        $roundedSubNs = $roundedOffsetNs % self::NS_PER_SECOND;
+        if ($roundedSubNs < 0) {
+            $roundedEpochSec--;
+            $roundedSubNs += self::NS_PER_SECOND;
+        }
+
+        return self::fromEpochParts($roundedEpochSec, $roundedSubNs, $this->timeZoneId, $this->calendarId);
+    }
+
+    /**
+     * Returns a new ZonedDateTime with the specified fields overridden.
+     *
+     * @param array<array-key,mixed> $fields   Property bag with fields to override.
+     * @param mixed                  $options  Options bag: ['overflow' => ..., 'disambiguation' => ...]
+     * @psalm-api
+     */
+    public function with(array $fields, mixed $options = null): self
+    {
+        if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
+            throw new \TypeError(
+                'ZonedDateTime::with() fields must not contain a calendar or timeZone property.',
+            );
+        }
+
+        $recognized = ['year', 'month', 'monthCode', 'day', 'hour', 'minute', 'second',
+            'millisecond', 'microsecond', 'nanosecond', 'offset'];
+        $hasField = false;
+        foreach ($recognized as $f) {
+            if (array_key_exists($f, $fields)) {
+                $hasField = true;
+                break;
+            }
+        }
+        if (!$hasField) {
+            throw new \TypeError('ZonedDateTime::with() requires at least one recognized property.');
+        }
+
+        $overflow = self::extractOverflow($options);
+        $disambiguation = self::extractDisambiguation($options);
+
+        // Validate the 'offset' option (how to use the offset field).
+        // Full DST-aware offset resolution is not yet implemented; for UTC/fixed-offset
+        // timezones the option has no effect beyond validation.
+        if ($options !== null && (is_array($options) || is_object($options))) {
+            $optArr = is_array($options) ? $options : (array) $options;
+            if (array_key_exists('offset', $optArr)) {
+                /** @var mixed $offOpt */
+                $offOpt = $optArr['offset'];
+                if ($offOpt !== null) {
+                    if (!is_string($offOpt)) {
+                        throw new \TypeError('ZonedDateTime::with() offset option must be a string.');
+                    }
+                    if (!in_array($offOpt, ['prefer', 'use', 'ignore', 'reject'], strict: true)) {
+                        throw new InvalidArgumentException(
+                            "Invalid offset option \"{$offOpt}\": must be 'prefer', 'use', 'ignore', or 'reject'.",
+                        );
+                    }
+                }
+            }
+        }
+
+        // Validate the 'offset' field in the property bag.
+        $hasOffsetField = array_key_exists('offset', $fields);
+        if ($hasOffsetField) {
+            /** @var mixed $offVal */
+            $offVal = $fields['offset'];
+            if (!is_string($offVal)) {
+                throw new \TypeError('ZonedDateTime::with() offset field must be a string.');
+            }
+            if (preg_match('/^[+-]\d{2}:\d{2}$/', $offVal) !== 1) {
+                throw new InvalidArgumentException(
+                    "Invalid offset string \"{$offVal}\": must be ±HH:MM.",
+                );
+            }
+        }
+
+        $lc = $this->localComponents();
+        $year  = $lc['year'];
+        $month = $lc['month'];
+        $day   = $lc['day'];
+        $h     = $lc['hour'];
+        $min   = $lc['minute'];
+        $sec   = $lc['second'];
+        $ms    = $lc['millisecond'];
+        $us    = $lc['microsecond'];
+        $ns    = $lc['nanosecond'];
+
+        if (array_key_exists('year', $fields)) {
+            /** @var mixed $yr */
+            $yr = $fields['year'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $yr)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() year must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $year = (int) $yr;
+        }
+
+        $hasMonth     = array_key_exists('month', $fields);
+        $hasMonthCode = array_key_exists('monthCode', $fields);
+        if ($hasMonthCode) {
+            /** @var mixed $mc */
+            $mc = $fields['monthCode'];
+            /** @phpstan-ignore cast.string */
+            $mcStr = (string) $mc;
+            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
+                throw new InvalidArgumentException(
+                    "Invalid monthCode for ISO calendar: \"{$mcStr}\".",
+                );
+            }
+            $month = (int) substr(string: $mcStr, offset: 1);
+        }
+        if ($hasMonth) {
+            /** @var mixed $m */
+            $m = $fields['month'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $m)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() month must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $newMonth = (int) $m;
+            if ($hasMonthCode && $newMonth !== $month) {
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+            }
+            $month = $newMonth;
+        }
+
+        if (array_key_exists('day', $fields)) {
+            /** @var mixed $dy */
+            $dy = $fields['day'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $dy)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() day must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $day = (int) $dy;
+        }
+
+        if (array_key_exists('hour', $fields)) {
+            /** @var mixed $v */
+            $v = $fields['hour'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $v)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() hour must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $h = (int) $v;
+        }
+        if (array_key_exists('minute', $fields)) {
+            /** @var mixed $v */
+            $v = $fields['minute'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $v)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() minute must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $min = (int) $v;
+        }
+        if (array_key_exists('second', $fields)) {
+            /** @var mixed $v */
+            $v = $fields['second'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $v)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() second must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $sec = (int) $v;
+        }
+        if (array_key_exists('millisecond', $fields)) {
+            /** @var mixed $v */
+            $v = $fields['millisecond'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $v)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() millisecond must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $ms = (int) $v;
+        }
+        if (array_key_exists('microsecond', $fields)) {
+            /** @var mixed $v */
+            $v = $fields['microsecond'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $v)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() microsecond must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $us = (int) $v;
+        }
+        if (array_key_exists('nanosecond', $fields)) {
+            /** @var mixed $v */
+            $v = $fields['nanosecond'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $v)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() nanosecond must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $ns = (int) $v;
+        }
+
+        if ($month < 1) {
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+        }
+        if ($day < 1) {
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+        }
+
+        if ($overflow === 'constrain') {
+            $month = min(12, $month);
+            $maxDay = self::calcDaysInMonth($year, $month);
+            $day    = min($maxDay, $day);
+            $h   = max(0, min(23, $h));
+            $min = max(0, min(59, $min));
+            $sec = max(0, min(59, $sec));
+            $ms  = max(0, min(999, $ms));
+            $us  = max(0, min(999, $us));
+            $ns  = max(0, min(999, $ns));
+        } else {
+            // overflow === 'reject'
+            if ($month > 12) {
+                throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
+            }
+            $maxDay = self::calcDaysInMonth($year, $month);
+            if ($day > $maxDay) {
+                throw new InvalidArgumentException(
+                    "Day {$day} is out of range for {$year}-{$month} (max {$maxDay}).",
+                );
+            }
+            if ($h < 0 || $h > 23) {
+                throw new InvalidArgumentException("Invalid hour {$h}: must be 0–23.");
+            }
+            if ($min < 0 || $min > 59) {
+                throw new InvalidArgumentException("Invalid minute {$min}: must be 0–59.");
+            }
+            if ($sec < 0 || $sec > 59) {
+                throw new InvalidArgumentException("Invalid second {$sec}: must be 0–59.");
+            }
+            if ($ms < 0 || $ms > 999) {
+                throw new InvalidArgumentException("Invalid millisecond {$ms}: must be 0–999.");
+            }
+            if ($us < 0 || $us > 999) {
+                throw new InvalidArgumentException("Invalid microsecond {$us}: must be 0–999.");
+            }
+            if ($ns < 0 || $ns > 999) {
+                throw new InvalidArgumentException("Invalid nanosecond {$ns}: must be 0–999.");
+            }
+        }
+
+        return self::localToZdt($year, $month, $day, $h, $min, $sec, $ms, $us, $ns, $this->timeZoneId, $this->calendarId, $disambiguation);
+    }
+
+    /**
+     * Finds the next or previous DST transition relative to this instant.
+     *
+     * Returns null for fixed-offset timezones (UTC, ±HH:MM).
+     *
+     * @param mixed $direction 'next' or 'previous', or an array with 'direction' key.
+     * @psalm-api
+     */
+    public function getTimeZoneTransition(mixed $direction): ?self
+    {
+        if (func_num_args() === 0) {
+            throw new \TypeError('ZonedDateTime::getTimeZoneTransition() requires a direction argument.');
+        }
+
+        $dir = null;
+        if (is_string($direction)) {
+            $dir = $direction;
+        } elseif (is_array($direction)) {
+            if (array_key_exists('direction', $direction)) {
+                /** @var mixed $dv */
+                $dv = $direction['direction'];
+                if (is_string($dv)) {
+                    $dir = $dv;
+                }
+            }
+            if ($dir === null) {
+                throw new InvalidArgumentException(
+                    "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
+                );
+            }
+        } else {
+            throw new InvalidArgumentException(
+                "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
+            );
+        }
+
+        if ($dir !== 'next' && $dir !== 'previous') {
+            throw new InvalidArgumentException(
+                "Invalid direction \"{$dir}\": must be 'next' or 'previous'.",
+            );
+        }
+
+        if ($this->timeZoneId === 'UTC') {
+            return null;
+        }
+        if (preg_match('/^[+\-]\d{2}:\d{2}$/', $this->timeZoneId) === 1) {
+            return null;
+        }
+
+        $epochSec = self::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+        /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated non-empty in constructor */
+        $tz = new \DateTimeZone($this->timeZoneId);
+
+        if ($dir === 'next') {
+            $transitions = $tz->getTransitions($epochSec + 1, $epochSec + 200 * 365 * 86_400);
+            if ($transitions === [] || $transitions === false) { // @phpstan-ignore identical.alwaysFalse
+                return null;
+            }
+            foreach ($transitions as $t) {
+                /** @var int $ts */
+                $ts = $t['ts'];
+                if ($ts > $epochSec) {
+                    $transNs = $ts * self::NS_PER_SECOND;
+                    return new self($transNs, $this->timeZoneId, $this->calendarId);
+                }
+            }
+            return null;
+        }
+
+        // 'previous'
+        $transitions = $tz->getTransitions($epochSec - 200 * 365 * 86_400, $epochSec);
+        if ($transitions === [] || $transitions === false) { // @phpstan-ignore identical.alwaysFalse
+            return null;
+        }
+        /** @var ?int $candidateTs */
+        $candidateTs = null;
+        for ($i = count($transitions) - 1; $i >= 0; $i--) {
+            /** @var int $ts */
+            $ts = $transitions[$i]['ts'];
+            if ($ts > 0 && $ts <= $epochSec) {
+                $candidateTs = $ts;
+                break;
+            }
+        }
+        if ($candidateTs === null) {
+            return null;
+        }
+        $transNs = $candidateTs * self::NS_PER_SECOND;
+        return new self($transNs, $this->timeZoneId, $this->calendarId);
+    }
+
     /**
      * Always throws TypeError — ZonedDateTime must not be used in numeric context.
      *
@@ -870,18 +1469,6 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * Normalizes a timezone identifier string to a canonical form.
-     *
-     * 'UTC' (case-insensitive) → 'UTC'.
-     * '±HH:MM' → kept as-is.
-     * '±HHMM'  → '±HH:MM'.
-     * '±HH'    → '±HH:00'.
-     * Datetime strings → extract timezone (same as Instant::parseTimeZoneId).
-     * IANA names → validate via DateTimeZone; return as-is.
-     *
-     * @throws InvalidArgumentException if the timezone is empty or unrecognized.
-     */
-    /**
      * Extracts and validates a calendar ID from a string.
      *
      * Accepts:
@@ -895,9 +1482,11 @@ final class ZonedDateTime implements Stringable
      *   - Unknown calendar IDs
      *
      * @throws InvalidArgumentException for invalid/unsupported calendars.
+     * @internal Used by PlainDate/PlainDateTime for calendar validation.
      * @psalm-suppress UnusedReturnValue — callers invoke this only for validation (side-effects/throws)
+     * @psalm-api
      */
-    private static function extractCalendarFromString(string $s): string
+    public static function extractCalendarFromString(string $s): string
     {
         if ($s === '') {
             throw new InvalidArgumentException('Calendar ID must not be empty.');
@@ -948,7 +1537,11 @@ final class ZonedDateTime implements Stringable
         throw new InvalidArgumentException("Unsupported calendar \"{$s}\": only iso8601 is supported.");
     }
 
-    private static function normalizeTimezoneId(string $id, bool $rejectDatetimeStrings = false): string
+    /**
+     * @internal Used by PlainDate/PlainDateTime for timezone validation.
+     * @psalm-api
+     */
+    public static function normalizeTimezoneId(string $id, bool $rejectDatetimeStrings = false): string
     {
         if ($id === '') {
             throw new InvalidArgumentException('ZonedDateTime timeZoneId must not be empty.');
@@ -1058,15 +1651,13 @@ final class ZonedDateTime implements Stringable
             return $this->localCache;
         }
 
-        $epochNs  = $this->epochNanoseconds;
-        $epochSec = self::floorDiv($epochNs, self::NS_PER_SECOND);
-        // Guard against int64 overflow when computing the sub-second remainder.
-        // Sentinel epoch values (PHP_INT_MIN/MAX) correspond to dates outside the int64
-        // nanosecond range; their sub-second part is not representable exactly.
-        $maxSecForNs = 9_223_372_035;
-        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
-            $subNs = 0;
+        // Use stored true epoch parts when available (sentinel values).
+        if ($this->trueEpochSec !== null) {
+            $epochSec = $this->trueEpochSec;
+            $subNs = $this->trueSubNs;
         } else {
+            $epochNs  = $this->epochNanoseconds;
+            $epochSec = self::floorDiv($epochNs, self::NS_PER_SECOND);
             $subNs = $epochNs - $epochSec * self::NS_PER_SECOND; // always 0–999_999_999
         }
 
@@ -1342,15 +1933,31 @@ final class ZonedDateTime implements Stringable
             // Z → UTC, epochSec = wallSec.
             $epochSec = $wallSec;
         } elseif ($hasInlineOffset) {
-            // Inline offset present: epochSec = wallSec - inlineOffsetSec.
-            $epochSec = $wallSec - $inlineOffsetSec;
-            // Verify that the stated timezone agrees at this epoch second.
+            // Inline offset present: behavior depends on offset option.
             $normalizedTzId = self::normalizeTimezoneId($tzId);
-            $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
-            if ($actualOffsetSec !== $inlineOffsetSec) {
-                throw new InvalidArgumentException(
-                    "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
-                );
+
+            if ($offsetOption === 'use') {
+                // Use the stated inline offset directly.
+                $epochSec = $wallSec - $inlineOffsetSec;
+            } elseif ($offsetOption === 'ignore') {
+                // Ignore the inline offset; use the wall clock with the bracket timezone.
+                $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId);
+            } elseif ($offsetOption === 'prefer') {
+                // Prefer the inline offset if it matches the timezone; otherwise use timezone.
+                $epochSec = $wallSec - $inlineOffsetSec;
+                $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
+                if ($actualOffsetSec !== $inlineOffsetSec) {
+                    $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId);
+                }
+            } else {
+                // offset: 'reject' (default): throw if inline offset doesn't match timezone.
+                $epochSec = $wallSec - $inlineOffsetSec;
+                $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
+                if ($actualOffsetSec !== $inlineOffsetSec) {
+                    throw new InvalidArgumentException(
+                        "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
+                    );
+                }
             }
             $tzId = $normalizedTzId;
         } else {
@@ -1368,15 +1975,7 @@ final class ZonedDateTime implements Stringable
             );
         }
 
-        // Guard int64 overflow.
-        $maxSecForNs = 9_223_372_035;
-        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
-            $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-        } else {
-            $epochNs = $epochSec * self::NS_PER_SECOND + $subNs;
-        }
-
-        return new self($epochNs, $tzId);
+        return self::fromEpochParts($epochSec, $subNs, $tzId);
     }
 
     /**
@@ -1388,7 +1987,7 @@ final class ZonedDateTime implements Stringable
      * @throws \TypeError              if required fields are missing or wrong type.
      * @throws InvalidArgumentException if values are invalid.
      */
-    private static function fromPropertyBag(array $bag): self
+    private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
         // Validate calendar first (spec validates calendar before required fields).
         if (array_key_exists('calendar', $bag)) {
@@ -1479,18 +2078,12 @@ final class ZonedDateTime implements Stringable
         /** @phpstan-ignore cast.int */
         $nano   = is_int($ns) ? $ns : (int) $ns;
 
-        // Resolve month from 'month' or 'monthCode'.
-        if (array_key_exists('month', $bag)) {
-            /** @var mixed $mo */
-            $mo = $bag['month'];
-            if (is_float($mo) && is_infinite($mo)) {
-                throw new InvalidArgumentException(
-                    'ZonedDateTime month must be finite; got ' . ($mo > 0 ? 'INF' : '-INF') . '.',
-                );
-            }
-            /** @phpstan-ignore cast.int */
-            $month = is_int($mo) ? $mo : (int) $mo;
-        } else {
+        // Resolve month from 'month' and/or 'monthCode'.
+        $month     = null;
+        $hasMonth  = array_key_exists('month', $bag);
+        $hasMC     = array_key_exists('monthCode', $bag);
+
+        if ($hasMC) {
             /** @var mixed $mc */
             $mc = $bag['monthCode'];
             if (!is_string($mc)) {
@@ -1502,16 +2095,56 @@ final class ZonedDateTime implements Stringable
             $month = (int) $mcm[1];
         }
 
-        try {
-            $wallDt = new \DateTimeImmutable(sprintf(
-                '%04d-%02d-%02dT%02d:%02d:%02d+00:00',
-                $year, $month, $day, $hour, $minute, $second,
-            ));
-        } catch (\Exception) {
-            throw new InvalidArgumentException('ZonedDateTime::from() could not construct datetime from property bag.');
+        if ($hasMonth) {
+            /** @var mixed $mo */
+            $mo = $bag['month'];
+            if (is_float($mo) && is_infinite($mo)) {
+                throw new InvalidArgumentException(
+                    'ZonedDateTime month must be finite; got ' . ($mo > 0 ? 'INF' : '-INF') . '.',
+                );
+            }
+            /** @phpstan-ignore cast.int */
+            $newMonth = is_int($mo) ? $mo : (int) $mo;
+            if ($hasMC && $newMonth !== $month) {
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+            }
+            $month = $newMonth;
+        }
+        /** @var int $month */
+
+        // Apply overflow (constrain or reject).
+        if ($month < 1) {
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+        }
+        if ($day < 1) {
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
         }
 
-        $wallSec   = $wallDt->getTimestamp();
+        if ($overflow === 'constrain') {
+            $month  = min(12, $month);
+            $maxDay = self::calcDaysInMonth($year, $month);
+            $day    = min($maxDay, $day);
+            $hour   = max(0, min(23, $hour));
+            $minute = max(0, min(59, $minute));
+            $second = max(0, min(59, $second));
+            $milli  = max(0, min(999, $milli));
+            $micro  = max(0, min(999, $micro));
+            $nano   = max(0, min(999, $nano));
+        } else {
+            // overflow === 'reject'
+            if ($month > 12) {
+                throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
+            }
+            $maxDay = self::calcDaysInMonth($year, $month);
+            if ($day > $maxDay) {
+                throw new InvalidArgumentException("Invalid day {$day}: exceeds {$maxDay} for {$year}-{$month}.");
+            }
+        }
+
+        // Use JDN-based computation to handle extreme years (DateTimeImmutable
+        // cannot represent years beyond ~9999 or negative years reliably).
+        $epochDays = self::toJulianDay($year, $month, $day) - 2_440_588;
+        $wallSec = $epochDays * 86_400 + $hour * 3600 + $minute * 60 + $second;
         // ISODateTimeWithinLimits check.
         if ($wallSec > 8_640_000_000_000 || $wallSec < -8_640_000_000_000) {
             throw new InvalidArgumentException('ZonedDateTime property bag: local date-time is outside the representable range.');
@@ -1543,14 +2176,7 @@ final class ZonedDateTime implements Stringable
             }
         }
 
-        $maxSecForNs = 9_223_372_035;
-        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
-            $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-        } else {
-            $epochNs = $epochSec * self::NS_PER_SECOND + $subNs;
-        }
-
-        return new self($epochNs, $normalTzId);
+        return self::fromEpochParts($epochSec, $subNs, $normalTzId);
     }
 
     /**
@@ -1654,7 +2280,11 @@ final class ZonedDateTime implements Stringable
      * For 'UTC' / fixed-offset: subtract the fixed offset.
      * For IANA: use PHP DateTimeZone transition data.
      */
-    private static function wallSecToEpochSec(int $wallSec, string $tzId): int
+    /**
+     * @internal Used by PlainDate/PlainDateTime for timezone resolution.
+     * @psalm-api
+     */
+    public static function wallSecToEpochSec(int $wallSec, string $tzId): int
     {
         if ($tzId === 'UTC') {
             return $wallSec;
@@ -1870,5 +2500,1060 @@ final class ZonedDateTime implements Stringable
         }
 
         return [$sign, $absSec, $fracNs];
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers for add/subtract/since/until/round/with
+    // -------------------------------------------------------------------------
+
+    /**
+     * Shared add/subtract implementation for ZonedDateTime.
+     *
+     * Calendar units are applied to local date fields and re-resolved;
+     * time units are added as nanoseconds to the epoch.
+     */
+    private function addDurationZdt(int $sign, Duration $dur, mixed $options): self
+    {
+        // Sentinel epoch values: if we don't have trueEpochSec for pure-time-unit
+        // arithmetic on a sentinel, reject (calendar-unit path uses localComponents
+        // which handles sentinels correctly via trueEpochSec).
+        if ($this->epochNanoseconds === PHP_INT_MAX || $this->epochNanoseconds === PHP_INT_MIN) {
+            $isBlank = $dur->years === 0 && $dur->months === 0 && $dur->weeks === 0
+                && $dur->days === 0 && $dur->hours === 0 && $dur->minutes === 0
+                && $dur->seconds === 0 && $dur->milliseconds === 0 && $dur->microseconds === 0
+                && $dur->nanoseconds === 0;
+            $hasCalendar = $dur->years !== 0 || $dur->months !== 0 || $dur->weeks !== 0 || $dur->days !== 0;
+            if (!$isBlank && !$hasCalendar && $this->trueEpochSec === null) {
+                throw new InvalidArgumentException(
+                    'ZonedDateTime arithmetic result is outside the representable range.',
+                );
+            }
+        }
+
+        $overflow = self::extractOverflow($options);
+
+        $years  = $sign * (int) $dur->years;
+        $months = $sign * (int) $dur->months;
+        $weeks  = $sign * (int) $dur->weeks;
+        $days   = $sign * (int) $dur->days;
+        $hours  = $sign * (int) $dur->hours;
+        $minutes = $sign * (int) $dur->minutes;
+        $seconds = $sign * (int) $dur->seconds;
+        $ms     = $sign * (int) $dur->milliseconds;
+        $us     = $sign * (int) $dur->microseconds;
+        $ns     = $sign * (int) $dur->nanoseconds;
+
+        $hasCalendarUnits = ($years !== 0 || $months !== 0 || $weeks !== 0 || $days !== 0);
+
+        if ($hasCalendarUnits) {
+            // Get local date/time, apply calendar units, then re-resolve to ZDT.
+            $lc = $this->localComponents();
+            $newYear  = $lc['year'] + $years;
+            $newMonth = $lc['month'] + $months;
+
+            // Normalize month into 1-12, carrying into year.
+            if ($newMonth > 12) {
+                $newYear  += intdiv(num1: $newMonth - 1, num2: 12);
+                $newMonth  = (($newMonth - 1) % 12) + 1;
+            } elseif ($newMonth < 1) {
+                $newYear  += intdiv(num1: $newMonth - 12, num2: 12);
+                $newMonth  = (($newMonth - 1) % 12 + 12) % 12 + 1;
+            }
+
+            // Clamp or reject day.
+            $newDay = $lc['day'];
+            $maxDay = self::calcDaysInMonth($newYear, $newMonth);
+            if ($newDay > $maxDay) {
+                if ($overflow === 'constrain') {
+                    $newDay = $maxDay;
+                } else {
+                    throw new InvalidArgumentException(
+                        "Day {$newDay} is out of range for {$newYear}-{$newMonth}.",
+                    );
+                }
+            }
+
+            // Add weeks and days via JDN.
+            $totalDays = $weeks * 7 + $days;
+            $jdn = self::toJulianDay($newYear, $newMonth, $newDay) + $totalDays;
+            [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn);
+
+            // Balance time units to nanoseconds.
+            $timeNs = $hours * 3_600_000_000_000
+                + $minutes * 60_000_000_000
+                + $seconds * self::NS_PER_SECOND
+                + $ms * self::NS_PER_MILLISECOND
+                + $us * self::NS_PER_MICROSECOND
+                + $ns;
+
+            // Combine with existing local time.
+            $localTimeNs = $lc['hour'] * 3_600_000_000_000
+                + $lc['minute'] * 60_000_000_000
+                + $lc['second'] * self::NS_PER_SECOND
+                + $lc['millisecond'] * self::NS_PER_MILLISECOND
+                + $lc['microsecond'] * self::NS_PER_MICROSECOND
+                + $lc['nanosecond'];
+            $newTimeNs = $localTimeNs + $timeNs;
+
+            // Carry overflow days from the time component.
+            $nsPerDay = 86_400_000_000_000;
+            if ($newTimeNs < 0) {
+                $overflowDays = (int) floor($newTimeNs / $nsPerDay);
+                $newTimeNs -= $overflowDays * $nsPerDay;
+            } else {
+                $overflowDays = intdiv(num1: $newTimeNs, num2: $nsPerDay);
+                $newTimeNs = $newTimeNs % $nsPerDay;
+            }
+
+            if ($overflowDays !== 0) {
+                $jdn2 = self::toJulianDay($newYear, $newMonth, $newDay) + $overflowDays;
+                [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn2);
+            }
+
+            // Decompose new time.
+            $h   = intdiv(num1: $newTimeNs, num2: 3_600_000_000_000);
+            $rem = $newTimeNs % 3_600_000_000_000;
+            $min = intdiv(num1: $rem, num2: 60_000_000_000);
+            $rem = $rem % 60_000_000_000;
+            $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
+            $rem = $rem % self::NS_PER_SECOND;
+            $msR = intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND);
+            $rem = $rem % self::NS_PER_MILLISECOND;
+            $usR = intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND);
+            $nsR = $rem % self::NS_PER_MICROSECOND;
+
+            return self::localToZdt($newYear, $newMonth, $newDay, $h, $min, $sec, $msR, $usR, $nsR, $this->timeZoneId, $this->calendarId, 'compatible');
+        }
+
+        // Pure time units: balance to days + sub-day ns to avoid int64 overflow.
+        // Step-by-step carry approach (same as PlainDateTime).
+        $hDays = intdiv(num1: $hours, num2: 24);
+        $hRem  = $hours % 24;
+
+        $totalMin = $hRem * 60 + $minutes;
+        $mDays   = intdiv(num1: $totalMin, num2: 1_440);
+        $mRem    = $totalMin % 1_440;
+
+        $totalSec = $mRem * 60 + $seconds;
+        $sDays   = intdiv(num1: $totalSec, num2: 86_400);
+        $sRem    = $totalSec % 86_400;
+
+        $totalMs = $sRem * 1_000 + $ms;
+        $msDays  = intdiv(num1: $totalMs, num2: 86_400_000);
+        $msRem   = $totalMs % 86_400_000;
+
+        $totalUs = $msRem * 1_000 + $us;
+        $usDays  = intdiv(num1: $totalUs, num2: 86_400_000_000);
+        $usRem   = $totalUs % 86_400_000_000;
+
+        $totalNsRem = $usRem * 1_000 + $ns;
+        $nsDays  = intdiv(num1: $totalNsRem, num2: 86_400_000_000_000);
+        $nsRem   = $totalNsRem % 86_400_000_000_000;
+
+        $totalDays = $hDays + $mDays + $sDays + $msDays + $usDays + $nsDays;
+
+        // Convert days to epoch seconds and add the sub-day ns.
+        if ($this->trueEpochSec !== null) {
+            $epochSec = $this->trueEpochSec;
+            $subNsOrig = $this->trueSubNs;
+        } else {
+            $epochSec = self::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+            $subNsOrig = $this->epochNanoseconds - $epochSec * self::NS_PER_SECOND;
+        }
+
+        $newEpochSec = $epochSec + $totalDays * 86_400;
+        $newSubNs = $subNsOrig + $nsRem;
+
+        // Carry from sub-ns.
+        if ($newSubNs >= self::NS_PER_SECOND) {
+            $carry = intdiv(num1: $newSubNs, num2: self::NS_PER_SECOND);
+            $newEpochSec += $carry;
+            $newSubNs -= $carry * self::NS_PER_SECOND;
+        } elseif ($newSubNs < 0) {
+            $carry = (int) ceil(-$newSubNs / self::NS_PER_SECOND);
+            $newEpochSec -= $carry;
+            $newSubNs += $carry * self::NS_PER_SECOND;
+        }
+
+        return self::fromEpochParts($newEpochSec, $newSubNs, $this->timeZoneId, $this->calendarId);
+    }
+
+    /**
+     * Converts local date/time components to a ZonedDateTime via the given timezone.
+     *
+     * Uses JDN-based epoch-day arithmetic to handle extreme years correctly
+     * (DateTimeImmutable cannot represent years beyond ~9999 or negative years reliably).
+     *
+     * @param string $disambiguation 'compatible', 'earlier', 'later', or 'reject'.
+     * @psalm-suppress UnusedParam — $disambiguation reserved for future DST-aware resolution
+     */
+    private static function localToZdt(
+        int $year,
+        int $month,
+        int $day,
+        int $h,
+        int $min,
+        int $sec,
+        int $ms,
+        int $us,
+        int $ns,
+        string $tzId,
+        string $calendarId,
+        string $disambiguation,
+    ): self {
+        // Compute wall-clock seconds from JDN to handle extreme years.
+        $epochDays = self::toJulianDay($year, $month, $day) - 2_440_588;
+        $wallSec = $epochDays * 86_400 + $h * 3600 + $min * 60 + $sec;
+        $epochSec = self::wallSecToEpochSec($wallSec, $tzId);
+
+        $subNs = $ms * self::NS_PER_MILLISECOND + $us * self::NS_PER_MICROSECOND + $ns;
+
+        return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId);
+    }
+
+    /**
+     * Creates a ZonedDateTime from UTC epoch seconds and sub-second nanoseconds.
+     *
+     * Internal factory used by PlainDate::toZonedDateTime() for dates outside
+     * the int64 nanosecond range. Not part of the public API.
+     *
+     * @internal
+     */
+    public static function createFromEpochParts(int $epochSec, int $subNs, string $tzId, string $calendarId = 'iso8601'): self
+    {
+        return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId);
+    }
+
+    /**
+     * Creates a ZonedDateTime from UTC epoch seconds and sub-second nanoseconds.
+     *
+     * Handles int64 overflow by storing a sentinel epochNanoseconds value while
+     * preserving the true epoch seconds for later decomposition in localComponents().
+     */
+    private static function fromEpochParts(int $epochSec, int $subNs, string $tzId, string $calendarId = 'iso8601'): self
+    {
+        // Range check.
+        $absEpochSec = abs($epochSec);
+        if ($absEpochSec > 8_640_000_000_000
+            || ($absEpochSec === 8_640_000_000_000 && $subNs > 0)
+        ) {
+            throw new InvalidArgumentException(
+                'ZonedDateTime arithmetic result is outside the representable range.',
+            );
+        }
+
+        $maxSecForNs = 9_223_372_035;
+        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
+            $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
+            $zdt = new self($epochNs, $tzId, $calendarId);
+            $zdt->trueEpochSec = $epochSec;
+            $zdt->trueSubNs = $subNs;
+            return $zdt;
+        }
+
+        return new self($epochSec * self::NS_PER_SECOND + $subNs, $tzId, $calendarId);
+    }
+
+    /**
+     * Core diff implementation for ZonedDateTime since() and until().
+     *
+     * Computes $later - $earlier. For calendar units, uses local date diffing.
+     * For time-only units, uses epoch nanosecond difference.
+     */
+    private static function diffZdt(self $later, self $earlier, self $receiver, mixed $options): Duration
+    {
+        /** @var list<string> $validUnits */
+        static $validUnits = [
+            'auto', 'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years',
+            'hour', 'hours', 'minute', 'minutes', 'second', 'seconds',
+            'millisecond', 'milliseconds', 'microsecond', 'microseconds',
+            'nanosecond', 'nanoseconds',
+        ];
+        /** @var array<string, int> $unitRank */
+        static $unitRank = [
+            'year' => 8, 'years' => 8, 'month' => 7, 'months' => 7,
+            'week' => 6, 'weeks' => 6, 'day' => 5, 'days' => 5,
+            'auto' => 4, 'hour' => 4, 'hours' => 4,
+            'minute' => 3, 'minutes' => 3,
+            'second' => 2, 'seconds' => 2,
+            'millisecond' => 1, 'milliseconds' => 1,
+            'microsecond' => 1, 'microseconds' => 1,
+            'nanosecond' => 1, 'nanoseconds' => 1,
+        ];
+        /** @var list<string> $validModes */
+        static $validModes = ['ceil', 'floor', 'expand', 'trunc',
+            'halfCeil', 'halfFloor', 'halfExpand', 'halfTrunc', 'halfEven'];
+
+        // Default for ZDT: largestUnit = 'hour' (not 'day').
+        $largestUnit         = 'hour';
+        $largestUnitExplicit = false;
+        $smallestUnit        = null;
+        $roundingMode        = 'trunc';
+        $roundingIncrement   = 1;
+
+        if ($options !== null && (is_array($options) || is_object($options))) {
+            $opts = is_array($options) ? $options : (array) $options;
+
+            if (array_key_exists('largestUnit', $opts)) {
+                /** @var mixed $lu */
+                $lu = $opts['largestUnit'];
+                if ($lu !== null && !is_string($lu)) {
+                    throw new \TypeError('largestUnit option must be a string.');
+                }
+                if (is_string($lu)) {
+                    if (!in_array($lu, $validUnits, strict: true)) {
+                        throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
+                    }
+                    $largestUnit         = $lu;
+                    $largestUnitExplicit = true;
+                }
+            }
+
+            if (array_key_exists('roundingIncrement', $opts)) {
+                /** @var mixed $ri */
+                $ri = $opts['roundingIncrement'];
+                if ($ri !== null) {
+                    if (!is_int($ri) && !is_float($ri) && !is_string($ri) && !is_bool($ri)) {
+                        throw new \TypeError('roundingIncrement must be numeric.');
+                    }
+                    $riFloat = (float) $ri;
+                    if (is_nan($riFloat) || !is_finite($riFloat)) {
+                        throw new InvalidArgumentException('roundingIncrement must be a finite number.');
+                    }
+                    $riInt = (int) $riFloat;
+                    if ($riInt < 1 || $riInt > 1_000_000_000) {
+                        throw new InvalidArgumentException(
+                            "roundingIncrement {$riInt} is out of range; must be 1–1000000000.",
+                        );
+                    }
+                    $roundingIncrement = $riInt;
+                }
+            }
+
+            if (array_key_exists('roundingMode', $opts)) {
+                /** @var mixed $rm */
+                $rm = $opts['roundingMode'];
+                if ($rm !== null && !is_string($rm)) {
+                    throw new \TypeError('roundingMode option must be a string.');
+                }
+                if (is_string($rm)) {
+                    if (!in_array($rm, $validModes, strict: true)) {
+                        throw new InvalidArgumentException("Invalid roundingMode value: \"{$rm}\".");
+                    }
+                    $roundingMode = $rm;
+                }
+            }
+
+            if (array_key_exists('smallestUnit', $opts)) {
+                /** @var mixed $su */
+                $su = $opts['smallestUnit'];
+                if ($su !== null && !is_string($su)) {
+                    throw new \TypeError('smallestUnit option must be a string.');
+                }
+                if (is_string($su)) {
+                    if (!in_array($su, $validUnits, strict: true)) {
+                        throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
+                    }
+                    $smallestUnit = $su;
+                }
+            }
+        }
+
+        if ($smallestUnit === null) {
+            $smallestUnit = 'nanosecond';
+        }
+
+        $normLargest = match ($largestUnit) {
+            'years' => 'year', 'months' => 'month', 'weeks' => 'week',
+            'days' => 'day', 'auto' => 'hour',
+            'hours' => 'hour', 'minutes' => 'minute', 'seconds' => 'second',
+            'milliseconds' => 'millisecond', 'microseconds' => 'microsecond',
+            'nanoseconds' => 'nanosecond',
+            default => $largestUnit,
+        };
+        $normSmallest = match ($smallestUnit) {
+            'years' => 'year', 'months' => 'month', 'weeks' => 'week',
+            'days' => 'day', 'auto' => 'hour',
+            'hours' => 'hour', 'minutes' => 'minute', 'seconds' => 'second',
+            'milliseconds' => 'millisecond', 'microseconds' => 'microsecond',
+            'nanoseconds' => 'nanosecond',
+            default => $smallestUnit,
+        };
+
+        /** @var array<string, int> $canonRank */
+        static $canonRank = [
+            'year' => 10, 'month' => 9, 'week' => 8, 'day' => 7,
+            'hour' => 6, 'minute' => 5, 'second' => 4,
+            'millisecond' => 3, 'microsecond' => 2, 'nanosecond' => 1,
+        ];
+        $suRank = $canonRank[$normSmallest] ?? 1;
+        $luRank = $canonRank[$normLargest]  ?? 4;
+
+        if ($suRank > $luRank) {
+            if ($largestUnitExplicit) {
+                throw new InvalidArgumentException(
+                    "smallestUnit \"{$normSmallest}\" cannot be larger than largestUnit \"{$normLargest}\".",
+                );
+            }
+            $normLargest = $normSmallest;
+        }
+
+        // Validate roundingIncrement against smallest unit.
+        if ($roundingIncrement > 1) {
+            /** @var array<string, int> $maxIncrementForUnit */
+            static $maxIncrementForUnit = [
+                'hour' => 24, 'minute' => 60, 'second' => 60,
+                'millisecond' => 1000, 'microsecond' => 1000, 'nanosecond' => 1000,
+            ];
+            $maxIncrement = $maxIncrementForUnit[$normSmallest] ?? 0;
+            if ($maxIncrement > 0 && ($roundingIncrement >= $maxIncrement || $maxIncrement % $roundingIncrement !== 0)) {
+                throw new InvalidArgumentException(
+                    "roundingIncrement {$roundingIncrement} is invalid for unit \"{$normSmallest}\".",
+                );
+            }
+        }
+
+        // Validate that rounding increment for day units doesn't exceed the date range.
+        if ($roundingIncrement > 1 && in_array($normSmallest, ['day', 'week'], strict: true)) {
+            $incDays = $normSmallest === 'week' ? $roundingIncrement * 7 : $roundingIncrement;
+            $maxEpochDays = 100_000_000;
+            // Check both directions from the earlier/later endpoints.
+            $recLocal = $receiver->localComponents();
+            $recEpochDays = self::toJulianDay($recLocal['year'], $recLocal['month'], $recLocal['day']) - 2_440_588;
+            if (abs($recEpochDays) + $incDays > $maxEpochDays) {
+                throw new InvalidArgumentException(
+                    "roundingIncrement {$roundingIncrement} for unit \"{$normSmallest}\" would exceed the representable date range.",
+                );
+            }
+        }
+
+        $isCalendarLargest = in_array($normLargest, ['year', 'month', 'week', 'day'], strict: true);
+
+        // Epoch ns difference.
+        $diffNs = $later->epochNanoseconds - $earlier->epochNanoseconds;
+
+        // Overall sign.
+        $sign = $diffNs > 0 ? 1 : ($diffNs < 0 ? -1 : 0);
+
+        // Negate directional rounding modes for negative durations so that
+        // floor/ceil behave correctly toward -infinity/+infinity.
+        $effectiveMode = $sign < 0 ? self::negateRoundingMode($roundingMode) : $roundingMode;
+
+        if ($isCalendarLargest) {
+            // Use local date/time fields for calendar-aware diff.
+            $laterLocal  = $later->localComponents();
+            $earlierLocal = $earlier->localComponents();
+
+            // Swap if negative to always diff in the positive direction.
+            $swapped = false;
+            if ($sign < 0) {
+                [$laterLocal, $earlierLocal] = [$earlierLocal, $laterLocal];
+                $swapped = true;
+            }
+
+            // Date diff in JDN.
+            $laterJdn   = self::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
+            $earlierJdn = self::toJulianDay($earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day']);
+            $laterTimeNs  = $laterLocal['hour'] * 3_600_000_000_000 + $laterLocal['minute'] * 60_000_000_000
+                + $laterLocal['second'] * self::NS_PER_SECOND + $laterLocal['millisecond'] * self::NS_PER_MILLISECOND
+                + $laterLocal['microsecond'] * self::NS_PER_MICROSECOND + $laterLocal['nanosecond'];
+            $earlierTimeNs = $earlierLocal['hour'] * 3_600_000_000_000 + $earlierLocal['minute'] * 60_000_000_000
+                + $earlierLocal['second'] * self::NS_PER_SECOND + $earlierLocal['millisecond'] * self::NS_PER_MILLISECOND
+                + $earlierLocal['microsecond'] * self::NS_PER_MICROSECOND + $earlierLocal['nanosecond'];
+
+            $dateDiff   = $laterJdn - $earlierJdn;
+            $timeDiffNs = $laterTimeNs - $earlierTimeNs;
+
+            // Borrow one day if time part is negative.
+            if ($timeDiffNs < 0) {
+                $dateDiff--;
+                $timeDiffNs += 86_400_000_000_000;
+            }
+
+            // Calendar diff.
+            $adjLaterJdn = $earlierJdn + $dateDiff;
+            [$adjY2, $adjM2, $adjD2] = self::fromJulianDay($adjLaterJdn);
+            // Determine whether the receiver corresponds to the later local date.
+            // For since(): receiver=$this=$later, so receiverIsLater=!swapped.
+            // For until(): receiver=$this=$earlier, so receiverIsLater=swapped.
+            $receiverIsLater = ($receiver === $later) ? !$swapped : $swapped;
+
+            if ($normLargest === 'day') {
+                $days = $dateDiff;
+                [$years, $months, $weeks] = [0, 0, 0];
+            } elseif ($normLargest === 'week') {
+                $weeks = intdiv(num1: $dateDiff, num2: 7);
+                $days  = $dateDiff - $weeks * 7;
+                [$years, $months] = [0, 0];
+            } else {
+                [$years, $months, $days] = self::calendarDiff(
+                    $earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day'],
+                    $adjY2, $adjM2, $adjD2,
+                    $receiverIsLater,
+                );
+                $weeks = 0;
+            }
+
+            // Convert years to months when largestUnit is 'month'.
+            if ($normLargest === 'month') {
+                $months = $years * 12 + $months;
+                $years  = 0;
+            }
+
+            $isSmallestCalendar = in_array($normSmallest, ['year', 'month', 'week', 'day'], strict: true);
+
+            if ($isSmallestCalendar) {
+                // Calendar-unit rounding: zero out time and round the calendar part.
+                $nsPerDayF = 86_400_000_000_000.0;
+
+                // Receiver's local components for calendar-aware rounding.
+                $recLocal = $receiverIsLater ? $laterLocal : $earlierLocal;
+
+                if ($normSmallest === 'year') {
+                    $floorCount = (intdiv(num1: $years, num2: $roundingIncrement)) * $roundingIncrement;
+
+                    // Compute actual interval by adding floor and floor+increment years
+                    // to the receiver and measuring the true day difference.
+                    $progress = self::calcYearProgress(
+                        $recLocal, $earlierLocal, $laterLocal,
+                        $floorCount, $roundingIncrement, $days, $timeDiffNs,
+                        $receiverIsLater,
+                    );
+                    $roundUp = self::applyRoundingProgress($years, $progress, $roundingIncrement, $effectiveMode);
+                    $roundedYears = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
+                    return new Duration(years: $sign * $roundedYears);
+                }
+                if ($normSmallest === 'month') {
+                    $totalMonths = $years * 12 + $months;
+                    $floorCount = (intdiv(num1: $totalMonths, num2: $roundingIncrement)) * $roundingIncrement;
+
+                    // Compute actual interval by adding floor and floor+increment months
+                    // to the receiver and measuring the true day difference.
+                    $progress = self::calcMonthProgress(
+                        $recLocal, $earlierLocal, $laterLocal,
+                        $floorCount, $roundingIncrement, $days, $timeDiffNs,
+                        $receiverIsLater,
+                    );
+                    $roundUp = self::applyRoundingProgress($totalMonths, $progress, $roundingIncrement, $effectiveMode);
+                    $roundedMonths = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
+                    if ($normLargest === 'year') {
+                        $ry = intdiv(num1: $roundedMonths, num2: 12);
+                        $rm = $roundedMonths - $ry * 12;
+                        return new Duration(years: $sign * $ry, months: $sign * $rm);
+                    }
+                    return new Duration(months: $sign * $roundedMonths);
+                }
+                if ($normSmallest === 'week') {
+                    $totalDays = $weeks * 7 + $days;
+                    $progress = $timeDiffNs > 0 ? ((float) $timeDiffNs / $nsPerDayF) : 0.0;
+                    $weekDays = $totalDays;
+                    $weekIncrement = $roundingIncrement * 7;
+                    $roundUp = self::applyRoundingProgress($weekDays, $progress, $weekIncrement, $effectiveMode);
+                    $q = intdiv(num1: $weekDays, num2: $weekIncrement);
+                    $roundedDays = $roundUp ? ($q + 1) * $weekIncrement : $q * $weekIncrement;
+                    return new Duration(weeks: $sign * intdiv(num1: $roundedDays, num2: 7));
+                }
+                // normSmallest === 'day'
+                $progress = $timeDiffNs > 0 ? ((float) $timeDiffNs / $nsPerDayF) : 0.0;
+                $roundUp = self::applyRoundingProgress($days, $progress, $roundingIncrement, $effectiveMode);
+                $q = intdiv(num1: $days, num2: $roundingIncrement);
+                $roundedDays = $roundUp ? ($q + 1) * $roundingIncrement : $q * $roundingIncrement;
+                if ($normLargest === 'day') {
+                    return new Duration(days: $sign * $roundedDays);
+                }
+                if ($normLargest === 'week') {
+                    $totalDays    = $weeks * 7 + $roundedDays;
+                    $roundedWeeks = intdiv(num1: $totalDays, num2: 7);
+                    $remDays      = $totalDays - $roundedWeeks * 7;
+                    return new Duration(weeks: $sign * $roundedWeeks, days: $sign * $remDays);
+                }
+                return new Duration(
+                    years:  $sign * $years,
+                    months: $sign * $months,
+                    days:   $sign * $roundedDays,
+                );
+            }
+
+            // smallestUnit is a time unit but largestUnit is a calendar unit.
+            $absTimeNs = $timeDiffNs;
+            $nsPerSmallest = match ($normSmallest) {
+                'hour'        => 3_600_000_000_000,
+                'minute'      => 60_000_000_000,
+                'second'      => self::NS_PER_SECOND,
+                'millisecond' => self::NS_PER_MILLISECOND,
+                'microsecond' => self::NS_PER_MICROSECOND,
+                default       => 1,
+            };
+            /** @psalm-var int<1, 1000> $roundingIncrement */
+            $nsIncrement = $nsPerSmallest * $roundingIncrement;
+            $absTimeNs   = self::roundPositiveNs($absTimeNs, $nsIncrement, $effectiveMode);
+
+            // Handle day overflow from rounding time.
+            $overflowDays = intdiv(num1: $absTimeNs, num2: 86_400_000_000_000);
+            $absTimeNs    = $absTimeNs % 86_400_000_000_000;
+            $days += $overflowDays;
+
+            // Re-balance calendar units when day overflow pushes past month boundaries.
+            if ($overflowDays > 0 && in_array($normLargest, ['year', 'month'], strict: true)) {
+                // Recompute from the anchor: add the total days to the earlier date,
+                // then re-diff to get the correct year/month/day breakdown.
+                $anchorJdn = $earlierJdn + $dateDiff + $overflowDays;
+                [$anchorY, $anchorM, $anchorD] = self::fromJulianDay($anchorJdn);
+                $receiverIsLater2 = ($receiver === $later) ? !$swapped : $swapped;
+                [$years, $months, $days] = self::calendarDiff(
+                    $earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day'],
+                    $anchorY, $anchorM, $anchorD,
+                    $receiverIsLater2,
+                );
+                if ($normLargest === 'month') {
+                    $months = $years * 12 + $months;
+                    $years  = 0;
+                }
+                $weeks = 0;
+            }
+
+            $h   = intdiv(num1: $absTimeNs, num2: 3_600_000_000_000);
+            $rem = $absTimeNs % 3_600_000_000_000;
+            $min = intdiv(num1: $rem, num2: 60_000_000_000);
+            $rem = $rem % 60_000_000_000;
+            $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
+            $rem = $rem % self::NS_PER_SECOND;
+            $msR = intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND);
+            $rem = $rem % self::NS_PER_MILLISECOND;
+            $usR = intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND);
+            $nsR = $rem % self::NS_PER_MICROSECOND;
+
+            return new Duration(
+                years:        $sign * $years,
+                months:       $sign * $months,
+                weeks:        $sign * $weeks,
+                days:         $sign * $days,
+                hours:        $sign * $h,
+                minutes:      $sign * $min,
+                seconds:      $sign * $sec,
+                milliseconds: $sign * $msR,
+                microseconds: $sign * $usR,
+                nanoseconds:  $sign * $nsR,
+            );
+        }
+
+        // Time-only units: use epoch ns difference.
+        $absDiffNs = $sign < 0 ? -$diffNs : $diffNs;
+
+        $nsPerSmallest = match ($normSmallest) {
+            'hour'        => 3_600_000_000_000,
+            'minute'      => 60_000_000_000,
+            'second'      => self::NS_PER_SECOND,
+            'millisecond' => self::NS_PER_MILLISECOND,
+            'microsecond' => self::NS_PER_MICROSECOND,
+            default       => 1,
+        };
+        /** @psalm-var int<1, 1000> $roundingIncrement */
+        $nsIncrement  = $nsPerSmallest * $roundingIncrement;
+        $roundedAbsNs = self::roundPositiveNs($absDiffNs, $nsIncrement, $effectiveMode);
+
+        /** @var array<string,int> $timeUnitRank */
+        static $timeUnitRank = [
+            'hour' => 6, 'minute' => 5, 'second' => 4, 'millisecond' => 3,
+            'microsecond' => 2, 'nanosecond' => 1,
+        ];
+        $luTimeRank = $timeUnitRank[$normLargest] ?? 6;
+
+        $h   = $luTimeRank >= 6 ? intdiv(num1: $roundedAbsNs, num2: 3_600_000_000_000) : 0;
+        $rem = $luTimeRank >= 6 ? $roundedAbsNs % 3_600_000_000_000 : $roundedAbsNs;
+        $min = $luTimeRank >= 5 ? intdiv(num1: $rem, num2: 60_000_000_000) : 0;
+        $rem = $luTimeRank >= 5 ? $rem % 60_000_000_000 : $rem;
+        $sec = $luTimeRank >= 4 ? intdiv(num1: $rem, num2: self::NS_PER_SECOND) : 0;
+        $rem = $luTimeRank >= 4 ? $rem % self::NS_PER_SECOND : $rem;
+        $msR = $luTimeRank >= 3 ? intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND) : 0;
+        $rem = $luTimeRank >= 3 ? $rem % self::NS_PER_MILLISECOND : $rem;
+        $usR = $luTimeRank >= 2 ? intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND) : 0;
+        $nsR = $luTimeRank >= 2 ? $rem % self::NS_PER_MICROSECOND : $rem;
+
+        return new Duration(
+            hours:        $sign * $h,
+            minutes:      $sign * $min,
+            seconds:      $sign * $sec,
+            milliseconds: $sign * $msR,
+            microseconds: $sign * $usR,
+            nanoseconds:  $sign * $nsR,
+        );
+    }
+
+    /**
+     * Calendar-aware year/month/day breakdown between two dates.
+     *
+     * @return array{0: int, 1: int, 2: int} [years, months, days] — all non-negative.
+     */
+    private static function calendarDiff(
+        int $y1,
+        int $m1,
+        int $d1,
+        int $y2,
+        int $m2,
+        int $d2,
+        bool $receiverIsY2 = true,
+    ): array {
+        $sign = ($y2 > $y1 || ($y2 === $y1 && ($m2 > $m1 || ($m2 === $m1 && $d2 >= $d1)))) ? 1 : -1;
+
+        $receiverIsY2AfterSwap = $receiverIsY2;
+
+        if ($sign < 0) {
+            [$y1, $m1, $d1, $y2, $m2, $d2] = [$y2, $m2, $d2, $y1, $m1, $d1];
+            $receiverIsY2AfterSwap = !$receiverIsY2;
+        }
+
+        $years  = $y2 - $y1;
+        $months = $m2 - $m1;
+
+        if ($months < 0) {
+            $years--;
+            $months += 12;
+        }
+
+        if ($d2 < $d1) {
+            if ($months > 0) {
+                $months--;
+            } else {
+                $years--;
+                $months = 11;
+            }
+        }
+
+        if ($receiverIsY2AfterSwap) {
+            $anchorMonth = $m2 - $months;
+            $anchorYear  = $y2 - $years;
+            if ($anchorMonth <= 0) {
+                $anchorYear--;
+                $anchorMonth += 12;
+            }
+            $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
+            $anchorDay    = min($d2, $anchorMaxDay);
+            $days = self::toJulianDay($anchorYear, $anchorMonth, $anchorDay)
+                - self::toJulianDay($y1, $m1, $d1);
+        } else {
+            $anchorMonth = $m1 + $months;
+            $anchorYear  = $y1 + $years;
+            if ($anchorMonth > 12) {
+                $anchorYear++;
+                $anchorMonth -= 12;
+            }
+            $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
+            $anchorDay    = min($d1, $anchorMaxDay);
+            $days = self::toJulianDay($y2, $m2, $d2)
+                - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
+        }
+
+        return [$sign * $years, $sign * $months, $sign * $days];
+    }
+
+    /**
+     * Rounds a non-negative nanosecond value to the nearest multiple of $increment.
+     */
+    private static function roundPositiveNs(int $ns, int $increment, string $mode): int
+    {
+        $q   = intdiv(num1: $ns, num2: $increment);
+        $rem = $ns - $q * $increment;
+        $r1  = $q * $increment;
+        $r2  = $r1 + $increment;
+        return match ($mode) {
+            'trunc', 'floor'             => $r1,
+            'ceil', 'expand'             => $rem === 0 ? $r1 : $r2,
+            'halfExpand', 'halfCeil'     => ($rem * 2) >= $increment ? $r2 : $r1,
+            'halfTrunc', 'halfFloor'     => ($rem * 2) > $increment ? $r2 : $r1,
+            'halfEven'                   => ($rem * 2) < $increment ? $r1
+                : (($rem * 2) > $increment ? $r2
+                    : ($q % 2 === 0 ? $r1 : $r2)),
+            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+        };
+    }
+
+    /**
+     * Rounds a nanosecond offset within a day for day-level rounding.
+     *
+     * Uses the actual day length (which may differ from 86400s due to DST).
+     */
+    private static function roundDayNs(int $offsetNs, int $dayLengthNs, string $mode): int
+    {
+        return match ($mode) {
+            'trunc', 'floor' => 0,
+            'ceil', 'expand' => $offsetNs === 0 ? 0 : $dayLengthNs,
+            'halfExpand', 'halfCeil' => $offsetNs * 2 >= $dayLengthNs ? $dayLengthNs : 0,
+            'halfTrunc', 'halfFloor' => $offsetNs * 2 > $dayLengthNs ? $dayLengthNs : 0,
+            'halfEven' => $offsetNs * 2 < $dayLengthNs ? 0
+                : ($offsetNs * 2 > $dayLengthNs ? $dayLengthNs : 0),
+            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+        };
+    }
+
+    /**
+     * Extracts and validates the 'overflow' option.
+     *
+     * When the key is present, the value must be a string ('constrain'|'reject').
+     * null/bool/other types throw.
+     */
+    private static function extractOverflow(mixed $options): string
+    {
+        if ($options === null) {
+            return 'constrain';
+        }
+        if (is_object($options)) {
+            $options = (array) $options;
+        }
+        if (!is_array($options)) {
+            return 'constrain';
+        }
+        if (!array_key_exists('overflow', $options)) {
+            return 'constrain';
+        }
+        /** @var mixed $val */
+        $val = $options['overflow'];
+        if (!is_string($val)) {
+            throw new InvalidArgumentException(
+                "overflow option must be a string; got " . get_debug_type($val) . '.',
+            );
+        }
+        if ($val !== 'constrain' && $val !== 'reject') {
+            throw new InvalidArgumentException(
+                "Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.",
+            );
+        }
+        return $val;
+    }
+
+    /**
+     * Extracts and validates the 'disambiguation' option.
+     */
+    private static function extractDisambiguation(mixed $options): string
+    {
+        if ($options === null) {
+            return 'compatible';
+        }
+        if (is_object($options)) {
+            $options = (array) $options;
+        }
+        if (!is_array($options)) {
+            return 'compatible';
+        }
+        if (!array_key_exists('disambiguation', $options)) {
+            return 'compatible';
+        }
+        /** @var mixed $val */
+        $val = $options['disambiguation'];
+        if ($val === null) {
+            return 'compatible';
+        }
+        if (!is_string($val)) {
+            throw new InvalidArgumentException(
+                'ZonedDateTime disambiguation option must be a string.',
+            );
+        }
+        if (!in_array(needle: $val, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
+            throw new InvalidArgumentException(
+                "Invalid disambiguation value \"{$val}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",
+            );
+        }
+        return $val;
+    }
+
+    /**
+     * Computes the fractional progress for year-level rounding using actual calendar dates.
+     *
+     * Adds floorYears to the receiver date, then floorYears+increment to get
+     * the true interval length, and measures how far the remainder extends.
+     *
+     * @param array{year:int,month:int,day:int,hour:int,minute:int,second:int,millisecond:int,microsecond:int,nanosecond:int,offsetSec:int,offset:string} $recLocal
+     * @param array{year:int,month:int,day:int,hour:int,minute:int,second:int,millisecond:int,microsecond:int,nanosecond:int,offsetSec:int,offset:string} $earlierLocal
+     * @param array{year:int,month:int,day:int,hour:int,minute:int,second:int,millisecond:int,microsecond:int,nanosecond:int,offsetSec:int,offset:string} $laterLocal
+     */
+    private static function calcYearProgress(
+        array $recLocal,
+        array $earlierLocal,
+        array $laterLocal,
+        int $floorCount,
+        int $increment,
+        int $days,
+        int $timeDiffNs,
+        bool $receiverIsLater,
+    ): float {
+        $nsPerDayF = 86_400_000_000_000.0;
+        if ($receiverIsLater) {
+            // Anchor from the later date backward.
+            $floorDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                -$floorCount, 0,
+            );
+            $nextDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                -($floorCount + $increment), 0,
+            );
+            // Remaining: from earlier to the floor anchor.
+            $floorJdn   = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $earlierJdn = self::toJulianDay($earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day']);
+            $remDays = $floorJdn - $earlierJdn;
+        } else {
+            // Anchor from the earlier date forward.
+            $floorDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                $floorCount, 0,
+            );
+            $nextDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                $floorCount + $increment, 0,
+            );
+            // Remaining: from the floor anchor to the later date.
+            $floorJdn  = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $laterJdn  = self::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
+            $remDays = $laterJdn - $floorJdn;
+        }
+        $nextJdn  = self::toJulianDay($nextDate[0], $nextDate[1], $nextDate[2]);
+        $intervalDays = abs($nextJdn - $floorJdn);
+
+        $totalRemNs = (float) ($remDays * 86_400_000_000_000 + $timeDiffNs);
+        return $intervalDays > 0 ? ($totalRemNs / ((float) $intervalDays * $nsPerDayF)) : 0.0;
+    }
+
+    /**
+     * Computes the fractional progress for month-level rounding using actual calendar dates.
+     *
+     * @param array{year:int,month:int,day:int,hour:int,minute:int,second:int,millisecond:int,microsecond:int,nanosecond:int,offsetSec:int,offset:string} $recLocal
+     * @param array{year:int,month:int,day:int,hour:int,minute:int,second:int,millisecond:int,microsecond:int,nanosecond:int,offsetSec:int,offset:string} $earlierLocal
+     * @param array{year:int,month:int,day:int,hour:int,minute:int,second:int,millisecond:int,microsecond:int,nanosecond:int,offsetSec:int,offset:string} $laterLocal
+     */
+    private static function calcMonthProgress(
+        array $recLocal,
+        array $earlierLocal,
+        array $laterLocal,
+        int $floorCount,
+        int $increment,
+        int $days,
+        int $timeDiffNs,
+        bool $receiverIsLater,
+    ): float {
+        $nsPerDayF = 86_400_000_000_000.0;
+        if ($receiverIsLater) {
+            $floorDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                0, -$floorCount,
+            );
+            $nextDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                0, -($floorCount + $increment),
+            );
+            $floorJdn   = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $earlierJdn = self::toJulianDay($earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day']);
+            $remDays = $floorJdn - $earlierJdn;
+        } else {
+            $floorDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                0, $floorCount,
+            );
+            $nextDate = self::addYearsMonthsToDate(
+                $recLocal['year'], $recLocal['month'], $recLocal['day'],
+                0, $floorCount + $increment,
+            );
+            $floorJdn  = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $laterJdn  = self::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
+            $remDays = $laterJdn - $floorJdn;
+        }
+        $nextJdn  = self::toJulianDay($nextDate[0], $nextDate[1], $nextDate[2]);
+        $intervalDays = abs($nextJdn - $floorJdn);
+
+        $totalRemNs = (float) ($remDays * 86_400_000_000_000 + $timeDiffNs);
+        return $intervalDays > 0 ? ($totalRemNs / ((float) $intervalDays * $nsPerDayF)) : 0.0;
+    }
+
+    /**
+     * Adds years and months to a date, clamping the day to the new month's max.
+     *
+     * @return array{0:int, 1:int, 2:int} [year, month, day]
+     */
+    private static function addYearsMonthsToDate(int $year, int $month, int $day, int $addYears, int $addMonths): array
+    {
+        $newYear  = $year + $addYears;
+        $newMonth = $month + $addMonths;
+        if ($newMonth > 12) {
+            $newYear  += intdiv(num1: $newMonth - 1, num2: 12);
+            $newMonth  = (($newMonth - 1) % 12) + 1;
+        } elseif ($newMonth < 1) {
+            $newYear  += intdiv(num1: $newMonth - 12, num2: 12);
+            $newMonth  = (($newMonth - 1) % 12 + 12) % 12 + 1;
+        }
+        $maxDay = self::calcDaysInMonth($newYear, $newMonth);
+        return [$newYear, $newMonth, min($day, $maxDay)];
+    }
+
+    /**
+     * Determines whether to round up based on fractional progress within an interval.
+     */
+    private static function applyRoundingProgress(int $wholeUnits, float $progress, int $increment, string $mode): bool
+    {
+        $q = intdiv(num1: $wholeUnits, num2: $increment);
+        $unitRem = $wholeUnits - $q * $increment;
+        $hasFraction = $unitRem > 0 || $progress > 0.0;
+        $halfPoint   = (float) $increment / 2.0;
+        $totalFrac   = (float) $unitRem + $progress;
+
+        return match ($mode) {
+            'trunc', 'floor'         => false,
+            'ceil', 'expand'         => $hasFraction,
+            'halfExpand', 'halfCeil' => $totalFrac >= $halfPoint,
+            'halfTrunc', 'halfFloor' => $totalFrac > $halfPoint,
+            'halfEven'               => $totalFrac > $halfPoint
+                || ($totalFrac === $halfPoint && $q % 2 !== 0),
+            default                  => false,
+        };
+    }
+
+    /**
+     * Negates directional rounding modes for use on absolute values of negative durations.
+     *
+     * Symmetric modes (trunc, expand, halfTrunc, halfExpand, halfEven) are unchanged.
+     */
+    private static function negateRoundingMode(string $mode): string
+    {
+        return match ($mode) {
+            'floor'     => 'ceil',
+            'ceil'      => 'floor',
+            'halfFloor' => 'halfCeil',
+            'halfCeil'  => 'halfFloor',
+            default     => $mode,
+        };
+    }
+
+    /**
+     * Converts a proleptic Gregorian calendar date to a Julian Day Number.
+     */
+    private static function toJulianDay(int $year, int $month, int $day): int
+    {
+        $a = intdiv(num1: 14 - $month, num2: 12);
+        $y = $year + 4800 - $a;
+        $m = $month + 12 * $a - 3;
+        return $day
+            + intdiv(num1: 153 * $m + 2, num2: 5)
+            + 365 * $y
+            + self::floorDiv($y, 4)
+            - self::floorDiv($y, 100)
+            + self::floorDiv($y, 400)
+            - 32_045;
+    }
+
+    /**
+     * Converts a Julian Day Number to a proleptic Gregorian calendar date.
+     *
+     * @return array{0: int, 1: int, 2: int} [year, month, day]
+     */
+    private static function fromJulianDay(int $jdn): array
+    {
+        $a = $jdn + 32_044;
+        $b = self::floorDiv(4 * $a + 3, 146_097);
+        $c = $a - self::floorDiv(146_097 * $b, 4);
+        $d = self::floorDiv(4 * $c + 3, 1_461);
+        $e = $c - self::floorDiv(1_461 * $d, 4);
+        $m = self::floorDiv(5 * $e + 2, 153);
+        $day   = $e - intdiv(num1: 153 * $m + 2, num2: 5) + 1;
+        $month = $m + 3 - 12 * intdiv(num1: $m, num2: 10);
+        $year  = 100 * $b + $d - 4800 + intdiv(num1: $m, num2: 10);
+        return [$year, $month, $day];
     }
 }

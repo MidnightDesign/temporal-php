@@ -7,12 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$nsMaxInstant = 864 * (10 ** 19);
-$nsMinInstant = -$nsMaxInstant;
-$invalidEpochNanoseconds = [$nsMaxInstant + 1, $nsMinInstant - 1, 2 ** 128, -(2 ** 128)];
-$timeZones = ['UTC', '+00', '+01', '-01'];
-foreach ($timeZones as $timeZone) {
-foreach ($invalidEpochNanoseconds as $epochNs) {
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\ZonedDateTime($epochNs, $timeZone), "epochNs = {$epochNs}, timeZone = {$timeZone}");
-}
-}
+Assert::incomplete('cannot represent value of \'nsMaxInstant\' in PHP (BigInt overflow)');

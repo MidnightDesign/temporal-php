@@ -510,9 +510,120 @@ final class PlainDate implements Stringable
         return $this->toString();
     }
 
+    /**
+     * @psalm-api
+     * @psalm-suppress UnusedParam
+     */
     public function toLocaleString(mixed $locales = null, mixed $options = null): string
     {
         return $this->toString();
+    }
+
+    /**
+     * Combines this date with a time to produce a PlainDateTime.
+     *
+     * If no argument is given, midnight (00:00:00) is used.
+     * Accepts a PlainTime, a time string, or a property-bag array.
+     *
+     * @param mixed $time PlainTime, string, array, or null for midnight.
+     * @throws \TypeError if $time is an invalid type (number, boolean, etc.).
+     * @throws InvalidArgumentException if the string is invalid or the result is out of range.
+     * @psalm-api
+     */
+    public function toPlainDateTime(mixed $time = null): PlainDateTime
+    {
+        if (func_num_args() === 0) {
+            return new PlainDateTime($this->year, $this->month, $this->day);
+        }
+        if ($time === null) {
+            throw new \TypeError(
+                'PlainDate::toPlainDateTime() argument must be a PlainTime, string, or property bag; null given.',
+            );
+        }
+        $t = $time instanceof PlainTime ? $time : PlainTime::from($time);
+        return new PlainDateTime(
+            $this->year, $this->month, $this->day,
+            $t->hour, $t->minute, $t->second,
+            $t->millisecond, $t->microsecond, $t->nanosecond,
+        );
+    }
+
+    /**
+     * Converts this date to a ZonedDateTime in the given timezone.
+     *
+     * Accepts a timezone string or an array with 'timeZone' and optional 'plainTime' keys.
+     *
+     * @param mixed $item Timezone string or property bag with 'timeZone' (and optional 'plainTime').
+     * @throws \TypeError if $item is null, number, boolean, or invalid type.
+     * @throws InvalidArgumentException if the timezone is invalid or the result is out of range.
+     * @psalm-api
+     */
+    public function toZonedDateTime(mixed $item): ZonedDateTime
+    {
+        if (is_string($item)) {
+            // String argument = timezone ID; combine with midnight.
+            $tzId = ZonedDateTime::normalizeTimezoneId($item);
+            return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0);
+        }
+        if (!is_array($item)) {
+            throw new \TypeError(
+                'PlainDate::toZonedDateTime() expects a timezone string or property bag; got '
+                . get_debug_type($item) . '.',
+            );
+        }
+        // Property bag: must have 'timeZone' key.
+        if (!array_key_exists('timeZone', $item)) {
+            throw new \TypeError(
+                'PlainDate::toZonedDateTime() property bag must have a timeZone property.',
+            );
+        }
+        /** @var mixed $tzRaw */
+        $tzRaw = $item['timeZone'];
+        if (!is_string($tzRaw)) {
+            throw new \TypeError(
+                'PlainDate::toZonedDateTime() timeZone must be a string; got '
+                . get_debug_type($tzRaw) . '.',
+            );
+        }
+        $tzId = ZonedDateTime::normalizeTimezoneId($tzRaw);
+
+        // Optional plainTime: if the key is present, pass through PlainTime::from()
+        // (null throws TypeError, matching JS behavior where null !== undefined).
+        $h = $m = $s = $ms = $us = $ns = 0;
+        if (array_key_exists('plainTime', $item)) {
+            /** @var mixed $ptRaw */
+            $ptRaw = $item['plainTime'];
+            $t = $ptRaw instanceof PlainTime ? $ptRaw : PlainTime::from($ptRaw);
+            $h  = $t->hour;
+            $m  = $t->minute;
+            $s  = $t->second;
+            $ms = $t->millisecond;
+            $us = $t->microsecond;
+            $ns = $t->nanosecond;
+        }
+        return $this->createZdt($tzId, $h, $m, $s, $ms, $us, $ns);
+    }
+
+    /**
+     * Returns a new PlainDate with the specified calendar.
+     *
+     * Accepts a bare calendar ID or an ISO date string from which the calendar is extracted.
+     *
+     * @param mixed $calendar Calendar string.
+     * @throws \TypeError if $calendar is not a string.
+     * @throws InvalidArgumentException if the calendar is unsupported.
+     * @psalm-api
+     */
+    public function withCalendar(mixed $calendar): self
+    {
+        if (!is_string($calendar)) {
+            throw new \TypeError(
+                'PlainDate::withCalendar() calendar must be a string; got '
+                . get_debug_type($calendar) . '.',
+            );
+        }
+        ZonedDateTime::extractCalendarFromString($calendar);
+        return new self($this->year, $this->month, $this->day, 'iso8601');
     }
 
     /**
@@ -536,6 +647,36 @@ final class PlainDate implements Stringable
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    private const int NS_PER_MILLISECOND = 1_000_000;
+    private const int NS_PER_MICROSECOND = 1_000;
+
+    /**
+     * Creates a ZonedDateTime from this date combined with the given time fields and timezone.
+     *
+     * Computes epoch seconds from Julian Day Numbers to handle extreme years correctly.
+     *
+     * @throws InvalidArgumentException if the resulting epoch nanoseconds are out of range.
+     */
+    private function createZdt(
+        string $tzId,
+        int $h,
+        int $m,
+        int $s,
+        int $ms,
+        int $us,
+        int $ns,
+    ): ZonedDateTime {
+        // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
+        // year-formatting issues with extended years > 9999 or negative years).
+        $epochDays = self::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
+        $wallSec = $epochDays * 86_400 + $h * 3600 + $m * 60 + $s;
+        $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
+
+        $subNs = $ms * self::NS_PER_MILLISECOND + $us * self::NS_PER_MICROSECOND + $ns;
+
+        return ZonedDateTime::createFromEpochParts($epochSec, $subNs, $tzId);
+    }
 
     /**
      * Parses an ISO 8601 date string into a PlainDate.

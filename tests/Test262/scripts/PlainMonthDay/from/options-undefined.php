@@ -13,3 +13,5 @@ $explicit = \Temporal\PlainMonthDay::from($fields);
 TemporalHelpers::assertPlainMonthDay($explicit, 'M02', 29, 'default overflow is constrain');
 $implicit = \Temporal\PlainMonthDay::from($fields);
 TemporalHelpers::assertPlainMonthDay($implicit, 'M02', 29, 'default overflow is constrain');
+$lambda = \Temporal\PlainMonthDay::from($fields, function () {  });
+TemporalHelpers::assertPlainMonthDay($lambda, 'M02', 29, 'default overflow is constrain');

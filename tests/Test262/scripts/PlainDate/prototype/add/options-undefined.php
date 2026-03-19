@@ -15,3 +15,6 @@ Assert::sameValue($explicit->day, 29, 'default overflow is constrain');
 $implicit = $date->add($duration);
 Assert::sameValue($implicit->month, 2, 'default overflow is constrain');
 Assert::sameValue($implicit->day, 29, 'default overflow is constrain');
+$lambda = $date->add($duration, function () {  });
+Assert::sameValue($lambda->month, 2, 'default overflow is constrain');
+Assert::sameValue($lambda->day, 29, 'default overflow is constrain');

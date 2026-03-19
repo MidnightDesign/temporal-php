@@ -13,3 +13,5 @@ $explicit = $yearmonth->with($fields);
 Assert::sameValue($explicit->month, 12, 'default overflow is constrain');
 $implicit = $yearmonth->with($fields);
 Assert::sameValue($implicit->month, 12, 'default overflow is constrain');
+$lambda = $yearmonth->with($fields, function () {  });
+Assert::sameValue($lambda->month, 12, 'default overflow is constrain');

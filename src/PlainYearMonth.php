@@ -482,6 +482,10 @@ final class PlainYearMonth implements Stringable
         return $this->toString();
     }
 
+    /**
+     * @psalm-api
+     * @psalm-suppress UnusedParam
+     */
     public function toLocaleString(mixed $locales = null, mixed $options = null): string
     {
         return $this->toString();

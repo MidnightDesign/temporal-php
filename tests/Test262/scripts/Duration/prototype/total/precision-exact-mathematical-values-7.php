@@ -11,5 +11,4 @@ $units = ['seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 $toNanos = ['seconds' => 1_000_000_000, 'milliseconds' => 1_000_000, 'microseconds' => 1000, 'nanoseconds' => 1];
 $integers = [0, 1, 2, 2 ** 51, 2 ** 52, 2 ** 53, 2 ** 54];
 $fractions = [0, 1, 10, 100, 125, 200, 250, 500, 750, 800, 900, 950, 999, 1000, 1999, 2000, 2999, 3000, 3999, 4000, 4999, 999_999, 1_000_000, 1_000_001, 999_999_999, 1_000_000_000, 1_000_000_001];
-$maxTimeDuration = 2 ** 53 * (10 ** 9) - 1;
-Assert::incomplete('untranslatable: Array.prototype.slice()');
+Assert::incomplete('cannot represent value of \'maxTimeDuration\' in PHP (BigInt overflow)');

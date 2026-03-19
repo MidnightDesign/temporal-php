@@ -12,3 +12,5 @@ $explicit = \Temporal\PlainTime::from($fields);
 Assert::sameValue($explicit->minute, 59, 'default overflow is constrain');
 $implicit = \Temporal\PlainTime::from($fields);
 Assert::sameValue($implicit->minute, 59, 'default overflow is constrain');
+$lambda = \Temporal\PlainTime::from($fields, function () {  });
+Assert::sameValue($lambda->minute, 59, 'default overflow is constrain');

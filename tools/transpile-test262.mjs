@@ -144,14 +144,15 @@ const PHP_IMPLEMENTED_METHODS = {
   ]),
   PlainDate: new Set([
     '__construct', 'from', 'compare',
-    'with', 'add', 'subtract', 'since', 'until',
+    'with', 'withCalendar', 'add', 'subtract', 'since', 'until',
+    'toPlainDateTime', 'toZonedDateTime',
     'equals', 'toString', 'toJSON', 'valueOf',
   ]),
   PlainDateTime: new Set([
     '__construct', 'from', 'compare',
-    'with', 'withPlainTime', 'add', 'subtract', 'since', 'until', 'round',
+    'with', 'withCalendar', 'withPlainTime', 'add', 'subtract', 'since', 'until', 'round',
     'equals', 'toString', 'toJSON', 'valueOf',
-    'toPlainDate', 'toPlainTime',
+    'toPlainDate', 'toPlainTime', 'toZonedDateTime',
   ]),
   PlainTime: new Set([
     '__construct', 'from', 'compare',
@@ -172,9 +173,11 @@ const PHP_IMPLEMENTED_METHODS = {
   ]),
   ZonedDateTime: new Set([
     '__construct', 'from', 'compare',
+    'add', 'subtract', 'since', 'until', 'round', 'with',
     'equals', 'toString', 'toJSON', 'valueOf',
     'toInstant', 'toPlainDate', 'toPlainTime', 'toPlainDateTime',
     'withTimeZone', 'withCalendar', 'withPlainTime',
+    'getTimeZoneTransition',
   ]),
 };
 
@@ -1393,10 +1396,10 @@ class Emitter {
         this.emitIncomplete(`\\Temporal\\${cls} is not yet implemented`);
         return null;
       }
-      if (cls === 'ZonedDateTime' && node.arguments.length > 0) {
+      if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
         const epNsBig = tryEvalBigInt(node.arguments[0]);
         if (epNsBig !== null && overflowsInt64(epNsBig)) {
-          this.emitIncomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+          this.emitIncomplete(`${cls} epoch nanoseconds exceed PHP int64 range`);
           return null;
         }
       }
@@ -1411,10 +1414,10 @@ class Emitter {
         this.emitIncomplete(`\\Temporal\\${cls} is not yet implemented`);
         return null;
       }
-      if (cls === 'ZonedDateTime' && node.arguments.length > 0) {
+      if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
         const epNsBig = tryEvalBigInt(node.arguments[0]);
         if (epNsBig !== null && overflowsInt64(epNsBig)) {
-          this.emitIncomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+          this.emitIncomplete(`${cls} epoch nanoseconds exceed PHP int64 range`);
           return null;
         }
       }
@@ -1527,12 +1530,23 @@ class Emitter {
         return `${leftPhp} instanceof ${classRef.replace(/::class$/, '')}`;
       }
     }
+    // Check if the combined BigInt expression overflows int64 (e.g. 864n * 10n ** 19n).
+    const combinedBig = tryEvalBigInt(node);
+    if (combinedBig !== null && overflowsInt64(combinedBig)) {
+      return null; // caller handles: variable decl → emitIncomplete, array → sentinel
+    }
     let left  = this.transpileExpr(node.left);
     let right = this.transpileExpr(node.right);
     if (left === null || right === null) return null;
     let op = node.operator === '===' ? '===' : node.operator;
     if (op === '+') {
       if (hasStringInPlusChain(node)) op = '.';
+    }
+    // JS `%` is a floating-point remainder; when the left operand involves
+    // division (producing a float), use fmod() to match JS semantics
+    // (PHP `%` coerces operands to int, losing the fractional part).
+    if (op === '%' && containsDivision(node.left)) {
+      return `fmod(num1: ${left}, num2: ${right})`;
     }
     // Wrap right if it's a binary expression (preserves explicit parenthesisation
     // from the JS AST, e.g. a / (b * c) → a / (b * c) in PHP).
@@ -1960,6 +1974,15 @@ function hasBigIntLiteral(node) {
  * contains a string literal.  Used to decide whether a `+` operator should
  * be emitted as PHP's `.` (string concatenation).
  */
+/** Checks if a node contains a division operator in the expression tree. */
+function containsDivision(node) {
+  if (node.type === 'BinaryExpression') {
+    if (node.operator === '/') return true;
+    return containsDivision(node.left) || containsDivision(node.right);
+  }
+  return false;
+}
+
 function hasStringInPlusChain(node) {
   if (node.type === 'Literal' && typeof node.value === 'string') return true;
   if (node.type === 'BinaryExpression' && node.operator === '+') {

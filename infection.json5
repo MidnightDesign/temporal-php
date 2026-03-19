@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/infection/infection/0.32/resources/schema.json",
+    "$schema": "vendor/infection/infection/resources/schema.json",
     "source": {
         "directories": ["src"]
     },
@@ -13,5 +13,6 @@
         "summary": "build/infection-summary.txt"
     },
     "minMsi": 100,
-    "minCoveredMsi": 100
+    "minCoveredMsi": 100,
+    "staticAnalysisTool": "phpstan",
 }

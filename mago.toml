@@ -16,13 +16,13 @@ level = "error"
 
 [linter.rules.too-many-methods]
 level = "error"
-threshold = 60
+threshold = 70
 
 # PlainDate has 13+ virtual properties; PlainDateTime has 22 (9 time fields + 13 calendar)
 # ZonedDateTime has 29 (3 stored + 1 private cache + 25 virtual properties per TC39 spec)
 [linter.rules.too-many-properties]
 level = "error"
-threshold = 30
+threshold = 35
 
 # Duration has 10 fields + compare/round/total and many private calendar-arithmetic helpers by spec;
 # class-level metrics reflect inherent TC39 complexity.

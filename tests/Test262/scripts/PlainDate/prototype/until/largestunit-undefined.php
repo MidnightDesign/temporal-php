@@ -14,3 +14,5 @@ $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default largestUnit is day');
 $implicit = $earlier->until($later, new \stdClass());
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default largestUnit is day');
+$lambda = $earlier->until($later, function () {  });
+TemporalHelpers::assertDuration($lambda, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default largestUnit is day');

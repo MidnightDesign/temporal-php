@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $i1 = new \Temporal\Instant(0);
-Assert::incomplete('cannot represent value of \'i2\' in PHP (BigInt overflow)');
+Assert::incomplete('Instant epoch nanoseconds exceed PHP int64 range');

@@ -13,3 +13,5 @@ $explicit = $monthday->with($fields);
 Assert::sameValue($explicit->day, 29, 'default overflow is constrain');
 $implicit = $monthday->with($fields);
 Assert::sameValue($implicit->day, 29, 'default overflow is constrain');
+$lambda = $monthday->with($fields, function () {  });
+Assert::sameValue($lambda->day, 29, 'default overflow is constrain');

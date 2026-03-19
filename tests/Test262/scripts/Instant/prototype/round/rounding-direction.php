@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('cannot represent value of \'instance\' in PHP (BigInt overflow)');
+Assert::incomplete('Instant epoch nanoseconds exceed PHP int64 range');
