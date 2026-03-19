@@ -7,4 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\Now::plainDateTimeISO() is not yet implemented');
+$result = \Temporal\Now::plainDateTimeISO();
+Assert::sameValue($result->calendarId, 'iso8601', 'calendar string should be iso8601');

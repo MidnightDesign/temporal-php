@@ -7,4 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\Now::plainDateTimeISO() is not yet implemented');
+$resultExplicit = \Temporal\Now::plainDateTimeISO();
+Assert::assertTrue($resultExplicit instanceof \Temporal\PlainDateTime, 'The result of evaluating (resultExplicit instanceof Temporal.PlainDateTime) is expected to be true');
+$resultImplicit = \Temporal\Now::plainDateTimeISO();
+Assert::assertTrue($resultImplicit instanceof \Temporal\PlainDateTime, 'The result of evaluating (resultImplicit instanceof Temporal.PlainDateTime) is expected to be true');

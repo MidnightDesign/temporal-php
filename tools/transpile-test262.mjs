@@ -74,6 +74,8 @@ const IMPLEMENTED = new Set([
   'Now::timeZoneId',
   'Now::plainDateISO',
   'Now::plainTimeISO',
+  'Now::plainDateTimeISO',
+  'Now::zonedDateTimeISO',
 ]);
 
 /** Temporal classes whose constructors are implemented. */
@@ -145,13 +147,13 @@ const PHP_IMPLEMENTED_METHODS = {
   PlainDate: new Set([
     '__construct', 'from', 'compare',
     'with', 'withCalendar', 'add', 'subtract', 'since', 'until',
-    'toPlainDateTime', 'toZonedDateTime',
-    'equals', 'toString', 'toJSON', 'valueOf',
+    'toPlainDateTime', 'toZonedDateTime', 'toPlainYearMonth', 'toPlainMonthDay',
+    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
   ]),
   PlainDateTime: new Set([
     '__construct', 'from', 'compare',
     'with', 'withCalendar', 'withPlainTime', 'add', 'subtract', 'since', 'until', 'round',
-    'equals', 'toString', 'toJSON', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
     'toPlainDate', 'toPlainTime', 'toZonedDateTime',
   ]),
   PlainTime: new Set([
@@ -160,12 +162,12 @@ const PHP_IMPLEMENTED_METHODS = {
     'round', 'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
   ]),
   Now: new Set([
-    'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO',
+    'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO', 'plainDateTimeISO', 'zonedDateTimeISO',
   ]),
   PlainYearMonth: new Set([
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
-    'equals', 'toString', 'toJSON', 'valueOf', 'toPlainDate',
+    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf', 'toPlainDate',
   ]),
   PlainMonthDay: new Set([
     '__construct', 'from',
@@ -174,10 +176,10 @@ const PHP_IMPLEMENTED_METHODS = {
   ZonedDateTime: new Set([
     '__construct', 'from', 'compare',
     'add', 'subtract', 'since', 'until', 'round', 'with',
-    'equals', 'toString', 'toJSON', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
     'toInstant', 'toPlainDate', 'toPlainTime', 'toPlainDateTime',
     'withTimeZone', 'withCalendar', 'withPlainTime',
-    'getTimeZoneTransition',
+    'startOfDay', 'getTimeZoneTransition',
   ]),
 };
 

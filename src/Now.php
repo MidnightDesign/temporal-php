@@ -86,6 +86,51 @@ final class Now
         );
     }
 
+    /**
+     * Returns the current date and time in the ISO 8601 calendar.
+     *
+     * If a time zone identifier string is provided, the date/time is computed
+     * relative to that time zone; otherwise the system default is used.
+     *
+     * @throws \TypeError              if $timeZone is not null and not a string.
+     * @throws InvalidArgumentException if the string is not a valid time zone identifier.
+     * @psalm-api
+     */
+    public static function plainDateTimeISO(mixed $timeZone = null): PlainDateTime
+    {
+        $tzId = self::resolveTimeZone($timeZone, func_num_args() > 0);
+        /** @psalm-suppress ArgumentTypeCoercion */
+        $tz = new \DateTimeZone($tzId);
+        $dt = new \DateTimeImmutable('now', $tz);
+        return new PlainDateTime(
+            (int) $dt->format('Y'),
+            (int) $dt->format('n'),
+            (int) $dt->format('j'),
+            (int) $dt->format('G'),
+            (int) $dt->format('i'),
+            (int) $dt->format('s'),
+        );
+    }
+
+    /**
+     * Returns the current date and time as a ZonedDateTime in the ISO 8601 calendar.
+     *
+     * If a time zone identifier string is provided, it is used; otherwise the
+     * system default is used.
+     *
+     * @throws \TypeError              if $timeZone is not null and not a string.
+     * @throws InvalidArgumentException if the string is not a valid time zone identifier.
+     * @psalm-api
+     */
+    public static function zonedDateTimeISO(mixed $timeZone = null): ZonedDateTime
+    {
+        $tzId = self::resolveTimeZone($timeZone, func_num_args() > 0);
+        // Use microsecond-precision epoch nanoseconds (same as instant()).
+        $us = (int) (microtime(as_float: true) * 1_000_000.0);
+        $epochNs = $us * 1_000;
+        return new ZonedDateTime($epochNs, $tzId);
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

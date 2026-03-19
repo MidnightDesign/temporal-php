@@ -8,5 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['UTC', '+01:00'] as $timeZone) {
-Assert::incomplete('\\Temporal\\Now::plainDateTimeISO() is not yet implemented');
+\Temporal\Now::plainDateTimeISO($timeZone);
 }
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

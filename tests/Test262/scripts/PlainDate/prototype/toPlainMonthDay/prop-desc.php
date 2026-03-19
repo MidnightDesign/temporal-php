@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainDate.prototype.toPlainMonthDay` is `function`');
-Assert::incomplete('\\Temporal\\PlainDate::toPlainMonthDay() is not yet implemented');
+Assert::methodExists('\Temporal\PlainDate', 'toPlainMonthDay');

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', 'typeof is function');
-Assert::incomplete('\\Temporal\\Now::plainDateTimeISO() is not yet implemented');
+Assert::methodExists('\Temporal\Now', 'plainDateTimeISO');

@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['-000000-10-31T17:45Z', '-000000-10-31T17:45+00:00[UTC]'];
 foreach ($invalidStrings as $timeZone) {
-Assert::incomplete('\\Temporal\\Now::zonedDateTimeISO() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Now::zonedDateTimeISO($timeZone), 'reject minus zero as extended year');
 }

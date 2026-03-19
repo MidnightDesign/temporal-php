@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UtC';
-Assert::incomplete('\\Temporal\\Now::zonedDateTimeISO() is not yet implemented');
+$result = \Temporal\Now::zonedDateTimeISO($timeZone);
+Assert::sameValue($result->timeZoneId, 'UTC', "Time zone created from string \"{$timeZone}\"");

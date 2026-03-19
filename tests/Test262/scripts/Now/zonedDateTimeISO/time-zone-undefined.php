@@ -8,4 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $systemTimeZone = \Temporal\Now::timeZoneId();
-Assert::incomplete('\\Temporal\\Now::zonedDateTimeISO() is not yet implemented');
+$resultExplicit = \Temporal\Now::zonedDateTimeISO();
+Assert::sameValue($resultExplicit->timeZoneId, $systemTimeZone, 'time zone string should be the system time zone');
+$resultImplicit = \Temporal\Now::zonedDateTimeISO();
+Assert::sameValue($resultImplicit->timeZoneId, $systemTimeZone, 'time zone string should be the system time zone');

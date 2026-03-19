@@ -605,6 +605,26 @@ final class PlainDate implements Stringable
     }
 
     /**
+     * Returns a PlainYearMonth from this date's year and month.
+     *
+     * @psalm-api
+     */
+    public function toPlainYearMonth(): PlainYearMonth
+    {
+        return new PlainYearMonth($this->year, $this->month);
+    }
+
+    /**
+     * Returns a PlainMonthDay from this date's month and day.
+     *
+     * @psalm-api
+     */
+    public function toPlainMonthDay(): PlainMonthDay
+    {
+        return new PlainMonthDay($this->month, $this->day);
+    }
+
+    /**
      * Returns a new PlainDate with the specified calendar.
      *
      * Accepts a bare calendar ID or an ISO date string from which the calendar is extracted.

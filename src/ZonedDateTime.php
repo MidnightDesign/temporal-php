@@ -578,6 +578,28 @@ final class ZonedDateTime implements Stringable
     }
 
     /**
+     * Returns a new ZonedDateTime representing the start of this date's day
+     * in the same timezone.
+     *
+     * For most timezones this is midnight (00:00:00), but DST transitions that
+     * skip midnight may produce a different start-of-day time.
+     *
+     * @throws InvalidArgumentException if the resulting epoch nanoseconds are out of range.
+     * @psalm-api
+     */
+    public function startOfDay(): self
+    {
+        // Compute wall-clock midnight for the current local date.
+        $lc = $this->localComponents();
+        $epochDays = self::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
+        $wallSec = $epochDays * 86_400; // midnight in wall-clock seconds
+
+        $epochSec = self::wallSecToEpochSec($wallSec, $this->timeZoneId);
+
+        return self::createFromEpochParts($epochSec, 0, $this->timeZoneId, $this->calendarId);
+    }
+
+    /**
      * Returns true if this ZonedDateTime represents the same instant, timezone, and calendar.
      *
      * @param mixed $other ZonedDateTime, string, or array.

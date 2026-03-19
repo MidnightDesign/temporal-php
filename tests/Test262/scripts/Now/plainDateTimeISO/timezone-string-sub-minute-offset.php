@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['-12:12:59.9', '2021-08-19T17:30:45.123456789-12:12:59.9[-12:12:59.9]'] as $timeZone) {
-Assert::incomplete('\\Temporal\\Now::plainDateTimeISO() is not yet implemented');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Now::plainDateTimeISO($timeZone), "{$timeZone} is not a valid time zone string");
 }
