@@ -1,3 +1,6 @@
+rules:
+    - Temporal\Tools\PHPStan\NoMixedIntFloatArithmeticRule
+
 parameters:
     level: 9
     paths:
