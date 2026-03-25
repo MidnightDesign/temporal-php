@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt1 = new \Temporal\ZonedDateTime(1_582_966_647_747_612_578, 'America/Los_Angeles');
+$zdt1 = new \Temporal\ZonedDateTime(1_582_966_647_747_612_578, 'UTC');
 Assert::sameValue($zdt1->add(\Temporal\Duration::from(['nanoseconds' => 9_007_199_254_740_991]))->epochNanoseconds, 1_591_973_847_002_353_569, '');
 Assert::sameValue($zdt1->add(\Temporal\Duration::from(['nanoseconds' => -9_007_199_254_740_991]))->epochNanoseconds, 1_573_959_448_492_871_587, '');
 // SKIP (int64 overflow): Assert::sameValue($zdt1->add(\Temporal\Duration::from(['microseconds' => 9_007_199_254_740_991]))->epochNanoseconds, 10590165902488603578, ...);
