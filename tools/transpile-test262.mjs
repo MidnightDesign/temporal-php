@@ -970,7 +970,10 @@ class Emitter {
       if (node.object.type === 'Identifier' && this.objectVars.has(node.object.name)) {
         return `${obj}['${node.property.name}']`;
       }
-      return `${obj}->${node.property.name}`;
+      // Rename deprecated TC39 properties to their PHP equivalents
+      const PROPERTY_RENAMES = Object.create(null, { calendar: { value: 'calendarId' } });
+      const phpProp = PROPERTY_RENAMES[node.property.name] ?? node.property.name;
+      return `${obj}->${phpProp}`;
     }
     // computed member (arr[i]) — rare in test262 temporal tests
     const obj = this.transpileExpr(node.object);
@@ -1062,6 +1065,10 @@ class Emitter {
     }
     if (callee.type === 'Identifier' && callee.name === 'Number') {
       this.emitIncomplete('untranslatable: Number()');
+      return null;
+    }
+    if (callee.type === 'Identifier' && callee.name === 'String') {
+      this.emitIncomplete('untranslatable: String()');
       return null;
     }
 
