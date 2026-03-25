@@ -46,6 +46,10 @@ final class RunnerTest extends TestCase
             require $path;
         } catch (NotYetImplementedException $e) {
             static::markTestIncomplete($e->getMessage());
+        } catch (\ParseError $e) {
+            // Syntax errors in generated scripts must fail loudly — they indicate
+            // a transpiler bug, not a legitimately unimplemented test.
+            static::fail('Syntax error in generated script: ' . $e->getMessage());
         } catch (\Error $e) {
             // PHP errors (e.g. "Value of type null is not callable") from untranslatable JS
             // code patterns indicate the script cannot run in PHP — mark as incomplete.
