@@ -221,7 +221,10 @@ final class PlainDateTime implements Stringable
     ) {
         if ($calendar !== null) {
             if (!is_string($calendar)) {
-                throw new \TypeError('PlainDateTime calendar must be a string; got ' . get_debug_type($calendar) . '.');
+                throw new \TypeError(sprintf(
+                    'PlainDateTime calendar must be a string; got %s.',
+                    get_debug_type($calendar),
+                ));
             }
             // The constructor only accepts bare calendar IDs, not ISO date strings.
             // Use ASCII-only lowercase to reject non-ASCII chars like U+0130 (İ).
@@ -338,11 +341,10 @@ final class PlainDateTime implements Stringable
         if (is_array($item)) {
             return self::fromPropertyBag($item, $overflow);
         }
-        throw new \TypeError(
-            'PlainDateTime::from() expects a PlainDateTime, ISO 8601 datetime string, or property-bag array; got '
-            . get_debug_type($item)
-            . '.',
-        );
+        throw new \TypeError(sprintf(
+            'PlainDateTime::from() expects a PlainDateTime, ISO 8601 datetime string, or property-bag array; got %s.',
+            get_debug_type($item),
+        ));
     }
 
     /**
@@ -941,8 +943,8 @@ final class PlainDateTime implements Stringable
 
         return match ($calendarName) {
             'auto', 'never' => $base,
-            'always' => $base . '[u-ca=iso8601]',
-            'critical' => $base . '[!u-ca=iso8601]',
+            'always' => sprintf('%s[u-ca=iso8601]', $base),
+            'critical' => sprintf('%s[!u-ca=iso8601]', $base),
             default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
@@ -1036,19 +1038,19 @@ final class PlainDateTime implements Stringable
     public function toZonedDateTime(mixed $timeZone, mixed $options = null): ZonedDateTime
     {
         if (!is_string($timeZone)) {
-            throw new \TypeError(
-                'PlainDateTime::toZonedDateTime() timeZone must be a string; got ' . get_debug_type($timeZone) . '.',
-            );
+            throw new \TypeError(sprintf(
+                'PlainDateTime::toZonedDateTime() timeZone must be a string; got %s.',
+                get_debug_type($timeZone),
+            ));
         }
 
         // Validate options bag type.
         if ($options !== null) {
             if (!is_array($options) && !is_object($options)) {
-                throw new \TypeError(
-                    'PlainDateTime::toZonedDateTime() options must be an object or null; got '
-                    . get_debug_type($options)
-                    . '.',
-                );
+                throw new \TypeError(sprintf(
+                    'PlainDateTime::toZonedDateTime() options must be an object or null; got %s.',
+                    get_debug_type($options),
+                ));
             }
             if (is_object($options)) {
                 $options = (array) $options;
@@ -1106,9 +1108,10 @@ final class PlainDateTime implements Stringable
     public function withCalendar(mixed $calendar): self
     {
         if (!is_string($calendar)) {
-            throw new \TypeError(
-                'PlainDateTime::withCalendar() calendar must be a string; got ' . get_debug_type($calendar) . '.',
-            );
+            throw new \TypeError(sprintf(
+                'PlainDateTime::withCalendar() calendar must be a string; got %s.',
+                get_debug_type($calendar),
+            ));
         }
         ZonedDateTime::extractCalendarFromString($calendar);
         return new self(
@@ -1183,19 +1186,14 @@ final class PlainDateTime implements Stringable
         $offsetHH = '(?:[01]\d|2[0-3])';
         $offsetMM = '[0-5]\d';
         $offsetSS = '[0-5]\d';
-        $offsetNonZ =
-            '[+-]'
-            . $offsetHH
-            . '(?::'
-            . $offsetMM
-            . '(?::'
-            . $offsetSS
-            . '(?:[.,]\d+)?)?'
-            . '|'
-            . $offsetMM
-            . '(?:'
-            . $offsetSS
-            . '(?:[.,]\d+)?)?)?';
+        $offsetNonZ = sprintf(
+            '[+-]%s(?::%s(?::%s(?:[.,]\d+)?)?|%s(?:%s(?:[.,]\d+)?)?)?',
+            $offsetHH,
+            $offsetMM,
+            $offsetSS,
+            $offsetMM,
+            $offsetSS,
+        );
 
         // Full datetime pattern (T/t/space separator required).
         // Time section: three mutually exclusive branches to enforce separator consistency:
@@ -1204,26 +1202,15 @@ final class PlainDateTime implements Stringable
         //   hour-only = HH                 (group 13)
         // Group 11 captures a Z designator (which is then rejected).
         // Group 12 captures bracket annotations.
-        $dtPattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' // groups 1=year, 2=dateRest
-            . '[Tt ]'
-            . '(?:'
-            . '(\d{2}):(\d{2})(?::(\d{2})([.,]\d+)?)?' // ext: groups 3,4,5,6
-            . '|'
-            . '(\d{2})(\d{2})(?:(\d{2})([.,]\d+)?)?' // basic: groups 7,8,9,10
-            . '|'
-            . '(\d{2})' // hour-only: group 13
-            . ')'
-            . '(Z)?' // group 11: Z designator
-            . '(?:'
-            . $offsetNonZ
-            . ')?' // offset (consumed, ignored)
-            . '((?:\[[^\]]*\])*)' // group 12: annotations
-            . '$/i';
+        // groups: 1=year, 2=dateRest, 3-6=ext time, 7-10=basic time, 13=hour-only, 11=Z, 12=annotations
+        $dtPattern = sprintf(
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})[Tt ](?:(\d{2}):(\d{2})(?::(\d{2})([.,]\d+)?)?|(\d{2})(\d{2})(?:(\d{2})([.,]\d+)?)?|(\d{2}))(Z)?(?:%s)?((?:\[[^\]]*\])*)$/i',
+            $offsetNonZ,
+        );
 
         // Date-only pattern: YYYY-MM-DD or ±YYYYYY-MM-DD or YYYYMMDD, plus optional annotations.
         // Groups: 1=year, 2=dateRest, 3=annotations.
-        $dateOnlyPattern = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' . '((?:\[[^\]]*\])*)' . '$/i';
+        $dateOnlyPattern = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})((?:\[[^\]]*\])*)$/i';
 
         /** @var list<string> $m */
         $m = [];
@@ -1341,7 +1328,7 @@ final class PlainDateTime implements Stringable
             /** @var mixed $cal */
             $cal = $bag['calendar'];
             if (!is_string($cal)) {
-                throw new \TypeError('PlainDateTime calendar must be a string; got ' . get_debug_type($cal) . '.');
+                throw new \TypeError(sprintf('PlainDateTime calendar must be a string; got %s.', get_debug_type($cal)));
             }
             ZonedDateTime::extractCalendarFromString($cal);
         }

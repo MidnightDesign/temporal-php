@@ -93,9 +93,10 @@ final class Instant implements Stringable
             return new self($item->epochNanoseconds);
         }
         if (!is_string($item)) {
-            throw new InvalidArgumentException(
-                'Temporal.Instant.from() requires an Instant or string, got ' . get_debug_type($item) . '.',
-            );
+            throw new InvalidArgumentException(sprintf(
+                'Temporal.Instant.from() requires an Instant or string, got %s.',
+                get_debug_type($item),
+            ));
         }
         $text = $item;
         // Reject more than 9 fractional-second digits (time part or offset fraction).
@@ -121,14 +122,7 @@ final class Instant implements Stringable
          *   ±HH:MM | ±HH:MM:SS | ±HH:MM:SS[.,]frac  (colon-separated)
          *   ±HHMM  | ±HHMMSS  | ±HHMMSS[.,]frac     (no separators)
          */
-        $pattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})'
-            . '[T ]'
-            . '(\d{2})(?::?(\d{2})(?::?(\d{2}))?)?'
-            . '([.,]\d+)?'
-            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)'
-            . '((?:\[[^\]]*\])*)' // annotation section (group 8)
-            . '$/i';
+        $pattern = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})[T ](\d{2})(?::?(\d{2})(?::?(\d{2}))?)?([.,]\d+)?(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)((?:\[[^\]]*\])*)$/i';
 
         /** @var list<string> $m */
         $m = [];
@@ -143,11 +137,11 @@ final class Instant implements Stringable
         // Normalise compact date (MMDD) → extended form (-MM-DD) so that both
         // PHP's DateTimeImmutable and our component extraction work uniformly.
         if (!str_starts_with($dateRest, '-')) {
-            $dateRest =
-                '-'
-                . substr(string: $dateRest, offset: 0, length: 2)
-                . '-'
-                . substr(string: $dateRest, offset: 2, length: 2);
+            $dateRest = sprintf(
+                '-%s-%s',
+                substr(string: $dateRest, offset: 0, length: 2),
+                substr(string: $dateRest, offset: 2, length: 2),
+            );
         }
 
         // Extract and validate date/time components.
@@ -492,7 +486,7 @@ final class Instant implements Stringable
 
         // Apply timezone offset to get local datetime.
         $localSecs = $tzOffsetMinutes !== null ? $secs + ($tzOffsetMinutes * 60) : $secs;
-        $dt = new DateTimeImmutable('@' . $localSecs)->setTimezone(new DateTimeZone('UTC'));
+        $dt = new DateTimeImmutable(sprintf('@%d', $localSecs))->setTimezone(new DateTimeZone('UTC'));
 
         // Build the UTC-offset suffix: 'Z' or ±HH:MM.
         if ($tzOffsetMinutes === null) {
@@ -663,7 +657,7 @@ final class Instant implements Stringable
         $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone']) ? $opts['timeZone'] : 'UTC';
 
         if (isset($opts['calendar']) && is_string($opts['calendar'])) {
-            $locale .= '@calendar=' . $opts['calendar'];
+            $locale = sprintf('%s@calendar=%s', $locale, $opts['calendar']);
         }
 
         [$dateType, $timeType] = self::resolveDateTimeTypes($opts);
@@ -823,7 +817,7 @@ final class Instant implements Stringable
         }
         // ±HHMM (compact form) → normalize to ±HH:MM.
         if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $tz, $m) === 1) {
-            return $m[1] . $m[2] . ':' . $m[3];
+            return sprintf('%s%s:%s', $m[1], $m[2], $m[3]);
         }
         // Anything with more than ±HH:MM (seconds or fractional) → reject.
         if (preg_match('/^[+\-]\d{2}:\d{2}[:.].*/i', $tz) === 1) {
@@ -1103,9 +1097,11 @@ final class Instant implements Stringable
 
                 // Key must be all-lowercase ASCII.
                 if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(
-                        "Invalid annotation key \"{$key}\" in \"{$original}\":" . ' annotation keys must be lowercase.',
-                    );
+                    throw new InvalidArgumentException(sprintf(
+                        'Invalid annotation key "%s" in "%s": annotation keys must be lowercase.',
+                        $key,
+                        $original,
+                    ));
                 }
 
                 if ($key === 'u-ca') {

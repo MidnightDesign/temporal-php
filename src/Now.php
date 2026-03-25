@@ -152,7 +152,10 @@ final class Now
             return date_default_timezone_get();
         }
         if (!is_string($timeZone)) {
-            throw new \TypeError('Temporal.Now: timeZone must be a string; got ' . get_debug_type($timeZone) . '.');
+            throw new \TypeError(sprintf(
+                'Temporal.Now: timeZone must be a string; got %s.',
+                get_debug_type($timeZone),
+            ));
         }
         if ($timeZone === '') {
             throw new InvalidArgumentException('Temporal.Now: timeZone string must not be empty.');

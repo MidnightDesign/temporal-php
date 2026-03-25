@@ -299,7 +299,7 @@ final class TemporalHelpers
             /** @var mixed $singular */
             $singular = $func($unit);
             /** @var mixed $plural */
-            $plural = $func($plurals[$unit] ?? $unit . 's');
+            $plural = $func($plurals[$unit] ?? sprintf('%ss', $unit));
             $desc = "Plural {$plurals[$unit]} produces the same result as singular {$unit}";
             if ($singular instanceof \Temporal\Duration) {
                 /** @psalm-suppress MixedArgument */
@@ -488,11 +488,11 @@ final class TemporalHelpers
         foreach ([true, false, 2, new \stdClass()] as $wrongValue) {
             try {
                 $checkFunc($wrongValue);
-                PHPUnitAssert::fail(
-                    "Expected exception for {$propertyName}="
-                    . var_export(value: $wrongValue, return: true)
-                    . ', but nothing was thrown.',
-                );
+                PHPUnitAssert::fail(sprintf(
+                    'Expected exception for %s=%s, but nothing was thrown.',
+                    $propertyName,
+                    var_export(value: $wrongValue, return: true),
+                ));
             } catch (\PHPUnit\Framework\AssertionFailedError $e) {
                 throw $e;
             } catch (\Throwable) {

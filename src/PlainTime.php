@@ -181,11 +181,10 @@ final class PlainTime implements Stringable
             $overflow = self::extractOverflow($options);
             return self::fromPropertyBag($item, $overflow);
         }
-        throw new \TypeError(
-            'PlainTime::from() expects a PlainTime, ISO 8601 time string, or property-bag array; got '
-            . get_debug_type($item)
-            . '.',
-        );
+        throw new \TypeError(sprintf(
+            'PlainTime::from() expects a PlainTime, ISO 8601 time string, or property-bag array; got %s.',
+            get_debug_type($item),
+        ));
     }
 
     /**
@@ -752,30 +751,19 @@ final class PlainTime implements Stringable
         $offsetHH = '(?:[01]\d|2[0-3])';
         $offsetMM = '[0-5]\d';
         $offsetSS = '[0-5]\d';
-        $offsetPattern =
-            '[+-]'
-            . $offsetHH
-            . '(?::'
-            . $offsetMM
-            . '(?::'
-            . $offsetSS
-            . '(?:[.,]\d+)?)?'
-            . '|'
-            . $offsetMM
-            . '(?:'
-            . $offsetSS
-            . '(?:[.,]\d+)?)?)?';
+        $offsetPattern = sprintf(
+            '[+-]%s(?::%s(?::%s(?:[.,]\d+)?)?|%s(?:%s(?:[.,]\d+)?)?)?',
+            $offsetHH,
+            $offsetMM,
+            $offsetSS,
+            $offsetMM,
+            $offsetSS,
+        );
 
-        $fullDatetimePattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' // year + date-rest
-            . '[T ]' // T or space separator
-            . '(\d{2}):?(\d{2})' // HH:MM or HHMM (mandatory)
-            . '(?::?(\d{2})([.,]\d+)?)?' // optional :SS[.frac] or SS[.frac]
-            . '(?:Z|'
-            . $offsetPattern
-            . ')?' // optional offset (Z ignored, non-Z ok)
-            . '((?:\[[^\]]*\])*)' // bracket annotations
-            . '$/i';
+        $fullDatetimePattern = sprintf(
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})[T ](\d{2}):?(\d{2})(?::?(\d{2})([.,]\d+)?)?(?:Z|%s)?((?:\[[^\]]*\])*)$/i',
+            $offsetPattern,
+        );
 
         /** @var list<string> $m */
         $m = [];
@@ -839,23 +827,13 @@ final class PlainTime implements Stringable
         }
 
         // Colon-separated format: HH:MM[:SS[.frac]][offset][annotations]
-        $colonTimePattern =
-            '/^(\d{2}):(\d{2})' // HH:MM
-            . '(?::(\d{2})([.,]\d+)?)?' // optional :SS[.frac]
-            . '(?:'
-            . $offsetPattern
-            . ')?' // optional non-Z offset
-            . '((?:\[[^\]]*\])*)' // bracket annotations
-            . '$/i';
+        $colonTimePattern = sprintf(
+            '/^(\d{2}):(\d{2})(?::(\d{2})([.,]\d+)?)?(?:%s)?((?:\[[^\]]*\])*)$/i',
+            $offsetPattern,
+        );
 
         // Compact format: HHMMSS[.frac][offset][annotations] or HHMM[offset][annotations] or HH[offset][annotations]
-        $compactTimePattern =
-            '/^(\d{2})(\d{2})?(\d{2})?([.,]\d+)?' // HH[MM[SS[.frac]]]
-            . '(?:'
-            . $offsetPattern
-            . ')?' // optional non-Z offset
-            . '((?:\[[^\]]*\])*)' // bracket annotations
-            . '$/i';
+        $compactTimePattern = sprintf('/^(\d{2})(\d{2})?(\d{2})?([.,]\d+)?(?:%s)?((?:\[[^\]]*\])*)$/i', $offsetPattern);
 
         /** @var list<string> $m2 */
         $m2 = [];

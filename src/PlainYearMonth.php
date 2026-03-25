@@ -145,9 +145,10 @@ final class PlainYearMonth implements Stringable
     ) {
         if ($calendar !== null) {
             if (!is_string($calendar)) {
-                throw new \TypeError(
-                    'PlainYearMonth calendar must be a string; got ' . get_debug_type($calendar) . '.',
-                );
+                throw new \TypeError(sprintf(
+                    'PlainYearMonth calendar must be a string; got %s.',
+                    get_debug_type($calendar),
+                ));
             }
             // Only bare calendar IDs (not ISO date strings) accepted in constructor.
             if (strtolower($calendar) !== 'iso8601') {
@@ -246,11 +247,10 @@ final class PlainYearMonth implements Stringable
         if (is_array($item)) {
             return self::fromPropertyBag($item, $overflow);
         }
-        throw new \TypeError(
-            'PlainYearMonth::from() expects a PlainYearMonth, ISO 8601 string, or property-bag array; got '
-            . get_debug_type($item)
-            . '.',
-        );
+        throw new \TypeError(sprintf(
+            'PlainYearMonth::from() expects a PlainYearMonth, ISO 8601 string, or property-bag array; got %s.',
+            get_debug_type($item),
+        ));
     }
 
     /**
@@ -470,8 +470,8 @@ final class PlainYearMonth implements Stringable
 
         return match ($calendarName) {
             'auto', 'never' => $base,
-            'always' => $base . sprintf('-%02d', $this->referenceISODay) . '[u-ca=iso8601]',
-            'critical' => $base . sprintf('-%02d', $this->referenceISODay) . '[!u-ca=iso8601]',
+            'always' => sprintf('%s-%02d[u-ca=iso8601]', $base, $this->referenceISODay),
+            'critical' => sprintf('%s-%02d[!u-ca=iso8601]', $base, $this->referenceISODay),
             default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
@@ -525,9 +525,10 @@ final class PlainYearMonth implements Stringable
             /** @var array<array-key, mixed> $bag */
             $bag = get_object_vars($fields);
         } else {
-            throw new \TypeError(
-                'PlainYearMonth::toPlainDate() argument must be an object; got ' . get_debug_type($fields) . '.',
-            );
+            throw new \TypeError(sprintf(
+                'PlainYearMonth::toPlainDate() argument must be an object; got %s.',
+                get_debug_type($fields),
+            ));
         }
 
         if (!array_key_exists('day', $bag)) {
@@ -597,17 +598,8 @@ final class PlainYearMonth implements Stringable
         // Optional non-Z offset: ±HH[:MM[:SS[.frac]]] or ±HHMM...
         // Z is never valid for PlainYearMonth
         // Bracket annotations are allowed
-        $pattern =
-            '/^([+-]\d{6}|\d{4})' // group 1: year (4 or 6 digits, optional ± prefix)
-            . '(-\d{2}(?:-\d{2})?|\d{2}(?:\d{2})?)' // group 2: -MM[-DD] or MMDD or MM (compact)
-            . '(?:[Tt ](\d{2})' // group 3: optional T + HH
-            . '(?::?(\d{2})' // group 4: optional :MM
-            . '(?::?(\d{2})([.,]\d+)?)?)?' // group 5+6: optional :SS[.frac]
-            . '(?:[+-]\d{2}' // optional offset ±HH
-            . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?'
-            . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?'
-            . '((?:\[[^\]]*\])*)' // group 7: bracket annotations
-            . '$/';
+        // Groups: 1=year, 2=month[-day], 3=HH, 4=MM, 5=SS, 6=frac, 7=annotations
+        $pattern = '/^([+-]\d{6}|\d{4})(-\d{2}(?:-\d{2})?|\d{2}(?:\d{2})?)(?:[Tt ](\d{2})(?::?(\d{2})(?::?(\d{2})([.,]\d+)?)?)?(?:[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?((?:\[[^\]]*\])*)$/';
 
         /** @var list<string> $m */
         $m = [];
@@ -769,7 +761,10 @@ final class PlainYearMonth implements Stringable
             /** @var mixed $cal */
             $cal = $bag['calendar'];
             if (!is_string($cal)) {
-                throw new \TypeError('PlainYearMonth calendar must be a string; got ' . get_debug_type($cal) . '.');
+                throw new \TypeError(sprintf(
+                    'PlainYearMonth calendar must be a string; got %s.',
+                    get_debug_type($cal),
+                ));
             }
             if (preg_match('/^-0{6}/', $cal) === 1) {
                 throw new InvalidArgumentException(

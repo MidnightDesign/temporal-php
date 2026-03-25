@@ -213,11 +213,10 @@ final class Duration implements Stringable
         if (is_string($item)) {
             return self::fromString($item);
         }
-        throw new \TypeError(
-            'Duration::from() expects a Duration, ISO 8601 string, or property-bag array; got '
-            . get_debug_type($item)
-            . '.',
-        );
+        throw new \TypeError(sprintf(
+            'Duration::from() expects a Duration, ISO 8601 string, or property-bag array; got %s.',
+            get_debug_type($item),
+        ));
     }
 
     /**
@@ -244,11 +243,7 @@ final class Duration implements Stringable
          *
          * The (?=\d) lookahead after T prevents 'P1YT' from matching.
          */
-        $pattern =
-            '/^([+-])?P'
-            . '(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?'
-            . '(?:T(?=\d)(?:(\d+)(?:[.,](\d+))?H)?(?:(\d+)(?:[.,](\d+))?M)?(?:(\d+)(?:[.,](\d+))?S)?)?'
-            . '$/i';
+        $pattern = '/^([+-])?P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?(?:T(?=\d)(?:(\d+)(?:[.,](\d+))?H)?(?:(\d+)(?:[.,](\d+))?M)?(?:(\d+)(?:[.,](\d+))?S)?)?$/i';
 
         // PCRE2 omits optional group captures from the array when their outer
         // optional group never participated.
@@ -448,7 +443,10 @@ final class Duration implements Stringable
     public function with(mixed $fields): self
     {
         if (!is_array($fields)) {
-            throw new \TypeError('Duration::with() expects a property-bag array; got ' . get_debug_type($fields) . '.');
+            throw new \TypeError(sprintf(
+                'Duration::with() expects a property-bag array; got %s.',
+                get_debug_type($fields),
+            ));
         }
 
         // TC39 ToTemporalPartialDurationRecord: at least one recognized plural field required.
@@ -474,8 +472,7 @@ final class Duration implements Stringable
         }
         if (!$hasAny) {
             throw new \TypeError(
-                'Duration::with() property bag must contain at least one recognized Duration field '
-                . '(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).',
+                'Duration::with() property bag must contain at least one recognized Duration field (years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).',
             );
         }
 
@@ -518,9 +515,10 @@ final class Duration implements Stringable
             // TC39: any object (including functions) is a valid options bag; non-recognised
             // properties are silently ignored.  Only throw for non-array, non-object values.
             if (!is_array($options) && !is_object($options)) {
-                throw new \TypeError(
-                    'Duration::toString() options must be an array or object; got ' . get_debug_type($options) . '.',
-                );
+                throw new \TypeError(sprintf(
+                    'Duration::toString() options must be an array or object; got %s.',
+                    get_debug_type($options),
+                ));
             }
             if (!is_array($options)) {
                 // Treat non-array objects (e.g. Closures) as empty options bags → all defaults.
@@ -609,7 +607,7 @@ final class Duration implements Stringable
         // Apply rounding and format the fractional seconds string.
         if ($digits === null) {
             // auto: retain only significant digits.
-            $frac = $subNs !== 0 ? '.' . rtrim(sprintf('%09d', $subNs), characters: '0') : '';
+            $frac = $subNs !== 0 ? sprintf('.%s', rtrim(sprintf('%09d', $subNs), characters: '0')) : '';
         } else {
             // Exact digit count with rounding.
             [$roundedFrac, $carrySecond] = self::roundSubSecond($subNs, $digits, $roundingMode, $sign);
@@ -643,22 +641,22 @@ final class Duration implements Stringable
                 }
             }
 
-            $frac = $digits === 0 ? '' : '.' . sprintf('%0' . $digits . 'd', $roundedFrac);
+            $frac = $digits === 0 ? '' : sprintf(sprintf('.%%0%dd', $digits), $roundedFrac);
         }
 
-        $s = $prefix . 'P';
+        $s = sprintf('%sP', $prefix);
 
         if ($abs->years !== 0) {
-            $s .= (string) $abs->years . 'Y';
+            $s .= sprintf('%dY', $abs->years);
         }
         if ($abs->months !== 0) {
-            $s .= (string) $abs->months . 'M';
+            $s .= sprintf('%dM', $abs->months);
         }
         if ($abs->weeks !== 0) {
-            $s .= (string) $abs->weeks . 'W';
+            $s .= sprintf('%dW', $abs->weeks);
         }
         if ($absDays !== 0) {
-            $s .= (string) $absDays . 'D';
+            $s .= sprintf('%dD', $absDays);
         }
 
         // With a fixed digit count we always emit the time component (even if zero).
@@ -667,14 +665,14 @@ final class Duration implements Stringable
         if ($hasTime) {
             $s .= 'T';
             if ($absHours !== 0) {
-                $s .= (string) $absHours . 'H';
+                $s .= sprintf('%dH', $absHours);
             }
             if ($absMinutes !== 0) {
-                $s .= (string) $absMinutes . 'M';
+                $s .= sprintf('%dM', $absMinutes);
             }
             // In fixed-digit mode always emit seconds; in auto mode emit only when non-zero.
             if ($digits !== null || $totalSeconds !== 0 || $subNs !== 0) {
-                $s .= $totalSeconds . $frac . 'S';
+                $s .= sprintf('%s%sS', $totalSeconds, $frac);
             }
         }
 
@@ -1136,7 +1134,7 @@ final class Duration implements Stringable
         }
         if ((int) $this->weeks !== 0) {
             $aw = $calSign * abs((int) $this->weeks) * 7;
-            $calendarDateEnd = $calendarDateEnd->modify(($aw >= 0 ? '+' : '') . $aw . ' days');
+            $calendarDateEnd = $calendarDateEnd->modify(sprintf('%+d days', $aw));
         }
         $calendarDays = (int) $start->diff($calendarDateEnd)->format('%r%a');
 
@@ -1400,7 +1398,7 @@ final class Duration implements Stringable
      */
     private static function distributeFracNs(string $fracDigits, int $nsPerUnit): array
     {
-        $totalFracNs = (int) round((float) ('0.' . $fracDigits) * (float) $nsPerUnit);
+        $totalFracNs = (int) round((float) sprintf('0.%s', $fracDigits) * (float) $nsPerUnit);
 
         $dm = intdiv(num1: $totalFracNs, num2: 60_000_000_000);
         $rem = $totalFracNs % 60_000_000_000;
@@ -1449,8 +1447,7 @@ final class Duration implements Stringable
         }
         if (!$hasAny) {
             throw new \TypeError(
-                'Duration property bag must contain at least one recognized field '
-                . '(years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).',
+                'Duration property bag must contain at least one recognized field (years, months, weeks, days, hours, minutes, seconds, milliseconds, microseconds, nanoseconds).',
             );
         }
 
@@ -1875,11 +1872,10 @@ final class Duration implements Stringable
             // Non-array objects (e.g. closures) are treated as empty options bags per TC39.
             $roundTo = [];
         } elseif (!is_array($roundTo)) {
-            throw new \TypeError(
-                'Duration::round() expects a string (smallestUnit) or options array; got '
-                . get_debug_type($roundTo)
-                . '.',
-            );
+            throw new \TypeError(sprintf(
+                'Duration::round() expects a string (smallestUnit) or options array; got %s.',
+                get_debug_type($roundTo),
+            ));
         }
 
         /** @var mixed $suRaw */
@@ -2513,7 +2509,7 @@ final class Duration implements Stringable
         }
         $offsetSec = self::parseTimezoneToOffsetSec($zdt->timeZoneId);
         $localSec = $epochSec + $offsetSec;
-        $dt = new \DateTimeImmutable('@' . $localSec, new \DateTimeZone('UTC'));
+        $dt = new \DateTimeImmutable(sprintf('@%d', $localSec), new \DateTimeZone('UTC'));
         return [
             'year' => (int) $dt->format('Y'),
             'month' => (int) $dt->format('n'),
@@ -3204,7 +3200,7 @@ final class Duration implements Stringable
         }
         if ((int) $this->weeks !== 0) {
             $awDays = $applySign * abs((int) $this->weeks) * 7;
-            $endDate = $endDate->modify(($awDays >= 0 ? '+' : '') . $awDays . ' days');
+            $endDate = $endDate->modify(sprintf('%+d days', $awDays));
         }
         // Apply days.
         $calDays = (int) $this->days;
@@ -3410,8 +3406,7 @@ final class Duration implements Stringable
         // e.g. smallestUnit='days', largestUnit='weeks', increment=30 → RangeError.
         if ($increment > 1 && $luIdx > $suIdx && $suIdx >= 6) {
             throw new InvalidArgumentException(
-                "roundingIncrement > 1 is not allowed when smallestUnit is \"{$suNorm}\" "
-                . 'and largestUnit is a larger unit.',
+                "roundingIncrement > 1 is not allowed when smallestUnit is \"{$suNorm}\" and largestUnit is a larger unit.",
             );
         }
 

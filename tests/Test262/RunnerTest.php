@@ -21,7 +21,7 @@ final class RunnerTest extends TestCase
     /** @return iterable<string, array{string}> */
     public static function scripts(): iterable
     {
-        $dir = __DIR__ . '/scripts';
+        $dir = sprintf('%s/scripts', __DIR__);
         if (!is_dir($dir)) {
             return;
         }
@@ -49,11 +49,11 @@ final class RunnerTest extends TestCase
         } catch (\ParseError $e) {
             // Syntax errors in generated scripts must fail loudly — they indicate
             // a transpiler bug, not a legitimately unimplemented test.
-            static::fail('Syntax error in generated script: ' . $e->getMessage());
+            static::fail(sprintf('Syntax error in generated script: %s', $e->getMessage()));
         } catch (\Error $e) {
             // PHP errors (e.g. "Value of type null is not callable") from untranslatable JS
             // code patterns indicate the script cannot run in PHP — mark as incomplete.
-            static::markTestIncomplete('PHP error: ' . $e->getMessage());
+            static::markTestIncomplete(sprintf('PHP error: %s', $e->getMessage()));
         }
     }
 }

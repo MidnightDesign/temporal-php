@@ -460,11 +460,10 @@ final class ZonedDateTime implements Stringable
             $bag = is_array($item) ? $item : (array) $item;
             return self::fromPropertyBag($bag, $overflow);
         }
-        throw new \TypeError(
-            'ZonedDateTime::from() requires a ZonedDateTime, string, or property-bag array; got '
-            . get_debug_type($item)
-            . '.',
-        );
+        throw new \TypeError(sprintf(
+            'ZonedDateTime::from() requires a ZonedDateTime, string, or property-bag array; got %s.',
+            get_debug_type($item),
+        ));
     }
 
     /**
@@ -678,11 +677,10 @@ final class ZonedDateTime implements Stringable
             if (is_string($other) || is_array($other)) {
                 $other = self::from($other);
             } else {
-                throw new \TypeError(
-                    'ZonedDateTime::equals() requires a ZonedDateTime, string, or array; got '
-                    . get_debug_type($other)
-                    . '.',
-                );
+                throw new \TypeError(sprintf(
+                    'ZonedDateTime::equals() requires a ZonedDateTime, string, or array; got %s.',
+                    get_debug_type($other),
+                ));
             }
         }
         return (
@@ -837,7 +835,7 @@ final class ZonedDateTime implements Stringable
 
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
-        $dt = new \DateTimeImmutable('@' . $localSec);
+        $dt = new \DateTimeImmutable(sprintf('@%d', $localSec));
 
         $year = (int) $dt->format('Y');
         $month = (int) $dt->format('n');
@@ -888,7 +886,7 @@ final class ZonedDateTime implements Stringable
             $timePart = sprintf('%02d:%02d:%02d.%s', $hour, $min, $sec, $fraction);
         }
 
-        $result = $datePart . 'T' . $timePart;
+        $result = sprintf('%sT%s', $datePart, $timePart);
 
         if ($offsetMode !== 'never') {
             $result .= $offsetStr;
@@ -896,18 +894,18 @@ final class ZonedDateTime implements Stringable
 
         if ($tzNameMode !== 'never') {
             if ($tzNameMode === 'critical') {
-                $result .= '[!' . $this->timeZoneId . ']';
+                $result .= sprintf('[!%s]', $this->timeZoneId);
             } else {
-                $result .= '[' . $this->timeZoneId . ']';
+                $result .= sprintf('[%s]', $this->timeZoneId);
             }
         }
 
         if ($calendarName === 'always') {
-            $result .= '[u-ca=' . $this->calendarId . ']';
+            $result .= sprintf('[u-ca=%s]', $this->calendarId);
         } elseif ($calendarName === 'critical') {
-            $result .= '[!u-ca=' . $this->calendarId . ']';
+            $result .= sprintf('[!u-ca=%s]', $this->calendarId);
         } elseif ($calendarName === 'auto' && $this->calendarId !== 'iso8601') { // @phpstan-ignore booleanAnd.alwaysFalse, notIdentical.alwaysFalse
-            $result .= '[u-ca=' . $this->calendarId . ']';
+            $result .= sprintf('[u-ca=%s]', $this->calendarId);
         }
         // 'never': omit calendar annotation entirely.
 
@@ -948,7 +946,7 @@ final class ZonedDateTime implements Stringable
         $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone']) ? $opts['timeZone'] : $this->timeZoneId;
 
         if (isset($opts['calendar']) && is_string($opts['calendar'])) {
-            $locale .= '@calendar=' . $opts['calendar'];
+            $locale .= sprintf('@calendar=%s', $opts['calendar']);
         }
 
         [$dateType, $timeType] = self::resolveDateTimeStyleTypes($opts);
@@ -1718,11 +1716,11 @@ final class ZonedDateTime implements Stringable
         }
         // ±HHMM → ±HH:MM
         if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $id, $m) === 1) {
-            return $m[1] . $m[2] . ':' . $m[3];
+            return sprintf('%s%s:%s', $m[1], $m[2], $m[3]);
         }
         // ±HH → ±HH:00
         if (preg_match('/^([+\-])(\d{2})$/', $id, $m) === 1) {
-            return $m[1] . $m[2] . ':00';
+            return sprintf('%s%s:00', $m[1], $m[2]);
         }
         // Sub-minute offsets → reject.
         if (preg_match('/^[+\-]\d{2}:\d{2}[:.].*/i', $id) === 1) {
@@ -1766,7 +1764,7 @@ final class ZonedDateTime implements Stringable
         $localSec = $epochSec + $offsetSec;
 
         // Create a UTC DateTimeImmutable at local seconds to extract Y/m/d H:i:s.
-        $dt = new \DateTimeImmutable('@' . $localSec);
+        $dt = new \DateTimeImmutable(sprintf('@%d', $localSec));
 
         $year = (int) $dt->format('Y');
         $month = (int) $dt->format('n');
@@ -1823,7 +1821,7 @@ final class ZonedDateTime implements Stringable
         // IANA timezone: use PHP to find the offset at the given instant.
         /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated to be non-empty in constructor */
         $tz = new \DateTimeZone($this->timeZoneId);
-        return $tz->getOffset(new \DateTimeImmutable('@' . $epochSec));
+        return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
     }
 
     /**
@@ -1872,44 +1870,16 @@ final class ZonedDateTime implements Stringable
          *   - Compact time: HHMM[SS]  or just HH
          */
         // Extended date + extended time
-        $patternExtDateExtTime =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2})'
-            . '[T ]'
-            . '(\d{2})(?::(\d{2})(?::(\d{2}))?)?'
-            . '([.,]\d+)?'
-            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
-            . '((?:\[[^\]]*\])+)'
-            . '$/i';
+        $patternExtDateExtTime = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2})[T ](\d{2})(?::(\d{2})(?::(\d{2}))?)?([.,]\d+)?(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?((?:\[[^\]]*\])+)$/i';
         // Extended date + compact time
-        $patternExtDateCptTime =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2})'
-            . '[T ]'
-            . '(\d{2})(\d{2})(\d{2})?'
-            . '([.,]\d+)?'
-            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
-            . '((?:\[[^\]]*\])+)'
-            . '$/i';
+        $patternExtDateCptTime = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2})[T ](\d{2})(\d{2})(\d{2})?([.,]\d+)?(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?((?:\[[^\]]*\])+)$/i';
         // Compact date + extended time
-        $patternCptDateExtTime =
-            '/^([+-]\d{6}|\d{4})(\d{4})'
-            . '[T ]'
-            . '(\d{2})(?::(\d{2})(?::(\d{2}))?)?'
-            . '([.,]\d+)?'
-            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
-            . '((?:\[[^\]]*\])+)'
-            . '$/i';
+        $patternCptDateExtTime = '/^([+-]\d{6}|\d{4})(\d{4})[T ](\d{2})(?::(\d{2})(?::(\d{2}))?)?([.,]\d+)?(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?((?:\[[^\]]*\])+)$/i';
         // Compact date + compact time
-        $patternCptDateCptTime =
-            '/^([+-]\d{6}|\d{4})(\d{4})'
-            . '[T ]'
-            . '(\d{2})(\d{2})(\d{2})?'
-            . '([.,]\d+)?'
-            . '(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?'
-            . '((?:\[[^\]]*\])+)'
-            . '$/i';
+        $patternCptDateCptTime = '/^([+-]\d{6}|\d{4})(\d{4})[T ](\d{2})(\d{2})(\d{2})?([.,]\d+)?(Z|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?((?:\[[^\]]*\])+)$/i';
 
         // Date-only pattern: YYYY-MM-DD[tzAnnotation] (no time part; defaults to midnight).
-        $dateOnlyPattern = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' . '((?:\[[^\]]*\])+)' . '$/i';
+        $dateOnlyPattern = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})((?:\[[^\]]*\])+)$/i';
 
         /** @var list<string> $m */
         $m = [];
@@ -1945,11 +1915,11 @@ final class ZonedDateTime implements Stringable
 
         // Normalize compact date rest.
         if (!str_starts_with($dateRest, '-')) {
-            $dateRest =
-                '-'
-                . substr(string: $dateRest, offset: 0, length: 2)
-                . '-'
-                . substr(string: $dateRest, offset: 2, length: 2);
+            $dateRest = sprintf(
+                '-%s-%s',
+                substr(string: $dateRest, offset: 0, length: 2),
+                substr(string: $dateRest, offset: 2, length: 2),
+            );
         }
 
         $yearNum = (int) $yearRaw;
@@ -2163,9 +2133,11 @@ final class ZonedDateTime implements Stringable
             'nanosecond' => $ns,
         ] as $fname => $fval) {
             if (is_float($fval) && is_infinite($fval)) {
-                throw new InvalidArgumentException(
-                    "ZonedDateTime {$fname} must be finite; got " . ($fval > 0 ? 'INF' : '-INF') . '.',
-                );
+                throw new InvalidArgumentException(sprintf(
+                    'ZonedDateTime %s must be finite; got %s.',
+                    $fname,
+                    $fval > 0 ? 'INF' : '-INF',
+                ));
             }
         }
 
@@ -2207,9 +2179,10 @@ final class ZonedDateTime implements Stringable
             /** @var mixed $mo */
             $mo = $bag['month'];
             if (is_float($mo) && is_infinite($mo)) {
-                throw new InvalidArgumentException(
-                    'ZonedDateTime month must be finite; got ' . ($mo > 0 ? 'INF' : '-INF') . '.',
-                );
+                throw new InvalidArgumentException(sprintf(
+                    'ZonedDateTime month must be finite; got %s.',
+                    $mo > 0 ? 'INF' : '-INF',
+                ));
             }
             /** @phpstan-ignore cast.int */
             $newMonth = is_int($mo) ? $mo : (int) $mo;
@@ -2410,10 +2383,10 @@ final class ZonedDateTime implements Stringable
         /** @psalm-suppress ArgumentTypeCoercion — $tzId is validated non-empty before this call */
         $tz = new \DateTimeZone($tzId);
         // First approximation: use wallSec as UTC.
-        $approxOffset = $tz->getOffset(new \DateTimeImmutable('@' . $wallSec));
+        $approxOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $wallSec)));
         $approxEpoch = $wallSec - $approxOffset;
         // Second pass: refine with the actual offset at the approximation.
-        $finalOffset = $tz->getOffset(new \DateTimeImmutable('@' . $approxEpoch));
+        $finalOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $approxEpoch)));
         return $wallSec - $finalOffset;
     }
 
@@ -2432,7 +2405,7 @@ final class ZonedDateTime implements Stringable
         }
         /** @psalm-suppress ArgumentTypeCoercion — $tzId is validated non-empty before this call */
         $tz = new \DateTimeZone($tzId);
-        return $tz->getOffset(new \DateTimeImmutable('@' . $epochSec));
+        return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
     }
 
     // -------------------------------------------------------------------------
@@ -3536,7 +3509,10 @@ final class ZonedDateTime implements Stringable
         /** @var mixed $val */
         $val = $options['overflow'];
         if (!is_string($val)) {
-            throw new InvalidArgumentException('overflow option must be a string; got ' . get_debug_type($val) . '.');
+            throw new InvalidArgumentException(sprintf(
+                'overflow option must be a string; got %s.',
+                get_debug_type($val),
+            ));
         }
         if ($val !== 'constrain' && $val !== 'reject') {
             throw new InvalidArgumentException("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
