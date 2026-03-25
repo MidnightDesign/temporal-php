@@ -58,25 +58,25 @@ final class InstantRoundTest extends TestCase
     public function testRoundMissingSmallestUnitThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->round([]);
+        new Instant(0)->round([]);
     }
 
     public function testRoundInvalidSmallestUnitThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->round('day');
+        new Instant(0)->round('day');
     }
 
     public function testRoundNonStringNonArrayThrows(): void
     {
         $this->expectException(TypeError::class);
-        (new Instant(0))->round(42);
+        new Instant(0)->round(42);
     }
 
     public function testRoundInvalidIncrementThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 7]);
+        new Instant(0)->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 7]);
     }
 
     public function testRoundNanosecondIsNoOp(): void

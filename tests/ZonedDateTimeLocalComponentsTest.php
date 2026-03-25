@@ -14,8 +14,8 @@ final class ZonedDateTimeLocalComponentsTest extends TestCase
         // 2020-01-15T12:30:45.123456789Z
         /** @psalm-suppress RedundantCast — PHPStan types mktime() as int|false */
         $epochSec = (int) mktime(hour: 12, minute: 30, second: 45, month: 1, day: 15, year: 2020);
-        $subNs    = 123_456_789;
-        $epochNs  = $epochSec * 1_000_000_000 + $subNs;
+        $subNs = 123_456_789;
+        $epochNs = ($epochSec * 1_000_000_000) + $subNs;
 
         $zdt = new ZonedDateTime($epochNs, 'UTC');
 

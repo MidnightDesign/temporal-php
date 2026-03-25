@@ -46,13 +46,13 @@ final class InstantAddSubtractTest extends TestCase
     public function testAddThrowsForCalendarDays(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->add(new Duration(days: 1));
+        new Instant(0)->add(new Duration(days: 1));
     }
 
     public function testAddThrowsForCalendarYears(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->add(new Duration(years: 1));
+        new Instant(0)->add(new Duration(years: 1));
     }
 
     public function testSubtractSecondsBackwardInTime(): void
@@ -74,7 +74,7 @@ final class InstantAddSubtractTest extends TestCase
     public function testSubtractThrowsForCalendarWeeks(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->subtract(new Duration(weeks: 1));
+        new Instant(0)->subtract(new Duration(weeks: 1));
     }
 
     public function testAddOutOfSpecRangeThrows(): void

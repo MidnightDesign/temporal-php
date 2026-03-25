@@ -14,7 +14,7 @@ final class ZonedDateTimeMethodsTest extends TestCase
     public function testToInstantReturnsCorrectEpoch(): void
     {
         $epochNs = 1_000_000_000;
-        $zdt     = new ZonedDateTime($epochNs, 'UTC');
+        $zdt = new ZonedDateTime($epochNs, 'UTC');
 
         $instant = $zdt->toInstant();
 
@@ -38,7 +38,7 @@ final class ZonedDateTimeMethodsTest extends TestCase
     {
         /** @psalm-suppress RedundantCast — PHPStan types mktime() as int|false */
         $epochSec = (int) mktime(hour: 14, minute: 35, second: 22, month: 1, day: 1, year: 2020);
-        $zdt = new ZonedDateTime($epochSec * 1_000_000_000 + 500_000_000, 'UTC');
+        $zdt = new ZonedDateTime(($epochSec * 1_000_000_000) + 500_000_000, 'UTC');
 
         $pt = $zdt->toPlainTime();
 
@@ -75,7 +75,7 @@ final class ZonedDateTimeMethodsTest extends TestCase
     public function testWithTimeZoneThrowsForNonString(): void
     {
         $this->expectException(\TypeError::class);
-        (new ZonedDateTime(0, 'UTC'))->withTimeZone(42);
+        new ZonedDateTime(0, 'UTC')->withTimeZone(42);
     }
 
     public function testWithCalendarReturnsSameForIso8601(): void
@@ -90,13 +90,13 @@ final class ZonedDateTimeMethodsTest extends TestCase
     public function testWithCalendarThrowsForUnsupported(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new ZonedDateTime(0, 'UTC'))->withCalendar('gregory');
+        new ZonedDateTime(0, 'UTC')->withCalendar('gregory');
     }
 
     public function testWithCalendarThrowsForNonString(): void
     {
         $this->expectException(\TypeError::class);
-        (new ZonedDateTime(0, 'UTC'))->withCalendar(42);
+        new ZonedDateTime(0, 'UTC')->withCalendar(42);
     }
 
     public function testEqualsReturnsTrueForSameData(): void
@@ -127,13 +127,13 @@ final class ZonedDateTimeMethodsTest extends TestCase
     public function testEqualsThrowsForUnsupportedType(): void
     {
         $this->expectException(\TypeError::class);
-        (new ZonedDateTime(0, 'UTC'))->equals(42);
+        new ZonedDateTime(0, 'UTC')->equals(42);
     }
 
     public function testValueOfThrows(): void
     {
         $this->expectException(\TypeError::class);
-        (new ZonedDateTime(0, 'UTC'))->valueOf();
+        new ZonedDateTime(0, 'UTC')->valueOf();
     }
 
     public function testWithPlainTimeMidnight(): void
@@ -159,7 +159,7 @@ final class ZonedDateTimeMethodsTest extends TestCase
         $epochSec = (int) mktime(hour: 0, minute: 0, second: 0, month: 1, day: 1, year: 2020);
         $zdt = new ZonedDateTime($epochSec * 1_000_000_000, 'UTC');
 
-        $pt     = new PlainTime(14, 30, 0);
+        $pt = new PlainTime(14, 30, 0);
         $result = $zdt->withPlainTime($pt);
 
         static::assertSame(14, $result->hour);

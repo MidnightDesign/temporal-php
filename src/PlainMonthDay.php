@@ -28,7 +28,9 @@ final class PlainMonthDay implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $calendarId { get => 'iso8601'; }
+    public string $calendarId {
+        get => 'iso8601';
+    }
 
     /**
      * Month code in "M01"–"M12" format.
@@ -37,7 +39,9 @@ final class PlainMonthDay implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $monthCode { get => sprintf('M%02d', $this->isoMonth); }
+    public string $monthCode {
+        get => sprintf('M%02d', $this->isoMonth);
+    }
 
     /**
      * Month number 1–12 (derived from monthCode).
@@ -46,7 +50,9 @@ final class PlainMonthDay implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $month { get => $this->isoMonth; }
+    public int $month {
+        get => $this->isoMonth;
+    }
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -94,15 +100,11 @@ final class PlainMonthDay implements Stringable
     ) {
         if ($calendar !== null) {
             if (!is_string($calendar)) {
-                throw new \TypeError(
-                    'PlainMonthDay calendar must be a string; got ' . get_debug_type($calendar) . '.',
-                );
+                throw new \TypeError('PlainMonthDay calendar must be a string; got ' . get_debug_type($calendar) . '.');
             }
             // Only bare calendar IDs (not ISO date strings) accepted in constructor.
             if (strtolower($calendar) !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$calendar}\": only iso8601 is supported.",
-                );
+                throw new InvalidArgumentException("Unsupported calendar \"{$calendar}\": only iso8601 is supported.");
             }
         }
         if (!is_finite((float) $isoMonth) || !is_finite((float) $isoDay) || !is_finite((float) $referenceISOYear)) {
@@ -110,19 +112,15 @@ final class PlainMonthDay implements Stringable
                 'Invalid PlainMonthDay: isoMonth, isoDay, and referenceISOYear must be finite numbers.',
             );
         }
-        $this->isoMonth         = (int) $isoMonth;
-        $this->day              = (int) $isoDay;
+        $this->isoMonth = (int) $isoMonth;
+        $this->day = (int) $isoDay;
         $this->referenceISOYear = (int) $referenceISOYear;
 
         if ($this->isoMonth < 1 || $this->isoMonth > 12) {
-            throw new InvalidArgumentException(
-                "Invalid PlainMonthDay: month {$this->isoMonth} is out of range 1–12.",
-            );
+            throw new InvalidArgumentException("Invalid PlainMonthDay: month {$this->isoMonth} is out of range 1–12.");
         }
         if ($this->day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainMonthDay: day {$this->day} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainMonthDay: day {$this->day} must be at least 1.");
         }
 
         // Validate day against the reference year's month.
@@ -207,7 +205,8 @@ final class PlainMonthDay implements Stringable
         }
         throw new \TypeError(
             'PlainMonthDay::from() expects a PlainMonthDay, ISO 8601 string, or property-bag array; got '
-            . get_debug_type($item) . '.',
+            . get_debug_type($item)
+            . '.',
         );
     }
 
@@ -239,7 +238,8 @@ final class PlainMonthDay implements Stringable
         }
 
         // Reject Temporal objects (IsPartialTemporalObject step 2).
-        if ($fields instanceof PlainDate
+        if (
+            $fields instanceof PlainDate
             || $fields instanceof PlainDateTime
             || $fields instanceof self
             || $fields instanceof PlainTime
@@ -248,9 +248,7 @@ final class PlainMonthDay implements Stringable
             || $fields instanceof Instant
             || $fields instanceof Duration
         ) {
-            throw new \TypeError(
-                'PlainMonthDay::with() argument must not be a Temporal object.',
-            );
+            throw new \TypeError('PlainMonthDay::with() argument must not be a Temporal object.');
         }
 
         if (is_object($fields)) {
@@ -262,28 +260,22 @@ final class PlainMonthDay implements Stringable
 
         // IsPartialTemporalObject step 3: calendar key present → TypeError.
         if (array_key_exists('calendar', $bag)) {
-            throw new \TypeError(
-                'PlainMonthDay::with() fields must not contain a calendar property.',
-            );
+            throw new \TypeError('PlainMonthDay::with() fields must not contain a calendar property.');
         }
         // IsPartialTemporalObject step 4: timeZone key present → TypeError.
         if (array_key_exists('timeZone', $bag)) {
-            throw new \TypeError(
-                'PlainMonthDay::with() fields must not contain a timeZone property.',
-            );
+            throw new \TypeError('PlainMonthDay::with() fields must not contain a timeZone property.');
         }
 
         // PrepareCalendarFields step 10: at least one recognized calendar field must be present
         // and not undefined (null in PHP).
-        $hasYear      = array_key_exists('year', $bag) && $bag['year'] !== null;
-        $hasMonth     = array_key_exists('month', $bag) && $bag['month'] !== null;
+        $hasYear = array_key_exists('year', $bag) && $bag['year'] !== null;
+        $hasMonth = array_key_exists('month', $bag) && $bag['month'] !== null;
         $hasMonthCode = array_key_exists('monthCode', $bag) && $bag['monthCode'] !== null;
-        $hasDay       = array_key_exists('day', $bag) && $bag['day'] !== null;
+        $hasDay = array_key_exists('day', $bag) && $bag['day'] !== null;
 
         if (!$hasYear && !$hasMonth && !$hasMonthCode && !$hasDay) {
-            throw new \TypeError(
-                'PlainMonthDay::with() requires at least one of: year, month, monthCode, day.',
-            );
+            throw new \TypeError('PlainMonthDay::with() requires at least one of: year, month, monthCode, day.');
         }
 
         // Validate overflow option.
@@ -323,13 +315,11 @@ final class PlainMonthDay implements Stringable
         $month = $this->isoMonth;
         if ($hasMonthCode) {
             /** @var mixed $mc */
-            $mc    = $bag['monthCode'];
+            $mc = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mcStr}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
             }
             $month = (int) substr(string: $mcStr, offset: 1);
         }
@@ -343,9 +333,7 @@ final class PlainMonthDay implements Stringable
             /** @phpstan-ignore cast.int */
             $newMonth = (int) $m;
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException(
-                    'Conflicting month and monthCode fields.',
-                );
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -376,26 +364,20 @@ final class PlainMonthDay implements Stringable
         }
 
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid month {$month}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid day {$day}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
-            $month  = min(12, $month);
+            $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($refYear, $month);
-            $day    = min($maxDay, $day);
+            $day = min($maxDay, $day);
         } else {
             // reject: validate against refYear's month
             if ($month > 12) {
-                throw new InvalidArgumentException(
-                    "Invalid month {$month}: must be in range 1–12.",
-                );
+                throw new InvalidArgumentException("Invalid month {$month}: must be in range 1–12.");
             }
             $maxDay = self::calcDaysInMonth($refYear, $month);
             if ($day > $maxDay) {
@@ -406,8 +388,8 @@ final class PlainMonthDay implements Stringable
         }
 
         // Always use 1972 as the new referenceISOYear unless the day exceeds 1972's days for that month.
-        $newRefYear      = 1972;
-        $maxDayIn1972    = self::calcDaysInMonth(1972, $month);
+        $newRefYear = 1972;
+        $maxDayIn1972 = self::calcDaysInMonth(1972, $month);
         if ($day > $maxDayIn1972) {
             $newRefYear = $refYear;
         }
@@ -426,9 +408,11 @@ final class PlainMonthDay implements Stringable
     public function equals(mixed $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
-        return $this->isoMonth === $o->isoMonth
+        return (
+            $this->isoMonth === $o->isoMonth
             && $this->day === $o->day
-            && $this->referenceISOYear === $o->referenceISOYear;
+            && $this->referenceISOYear === $o->referenceISOYear
+        );
     }
 
     /**
@@ -457,13 +441,11 @@ final class PlainMonthDay implements Stringable
 
         return match ($calendarName) {
             'auto', 'never' => sprintf('%02d-%02d', $this->isoMonth, $this->day),
-            'always'        => sprintf('%04d-%02d-%02d', $this->referenceISOYear, $this->isoMonth, $this->day)
+            'always' => sprintf('%04d-%02d-%02d', $this->referenceISOYear, $this->isoMonth, $this->day)
                 . '[u-ca=iso8601]',
-            'critical'      => sprintf('%04d-%02d-%02d', $this->referenceISOYear, $this->isoMonth, $this->day)
+            'critical' => sprintf('%04d-%02d-%02d', $this->referenceISOYear, $this->isoMonth, $this->day)
                 . '[!u-ca=iso8601]',
-            default         => throw new InvalidArgumentException(
-                "Invalid calendarName value: \"{$calendarName}\".",
-            ),
+            default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
 
@@ -526,9 +508,7 @@ final class PlainMonthDay implements Stringable
         }
 
         if (!array_key_exists('year', $bag)) {
-            throw new \TypeError(
-                'PlainMonthDay::toPlainDate() argument must have a year property.',
-            );
+            throw new \TypeError('PlainMonthDay::toPlainDate() argument must have a year property.');
         }
 
         /** @var mixed $yearRaw */
@@ -542,7 +522,7 @@ final class PlainMonthDay implements Stringable
 
         // Constrain day to valid range for this year-month (default overflow behaviour per spec).
         $maxDay = self::calcDaysInMonth($year, $this->isoMonth);
-        $day    = min($this->day, $maxDay);
+        $day = min($this->day, $maxDay);
 
         return new PlainDate($year, $this->isoMonth, $day);
     }
@@ -589,22 +569,22 @@ final class PlainMonthDay implements Stringable
         // Pattern captures: (1) month, (2) day, (3) hour, (4) min, (5) sec, (6) frac, (7) brackets
         // The double-dash prefix (--) is optional.
         $monthDayPattern =
-            '/^(?:--)?(\d{2})-(\d{2})'                        // optional '--' prefix + MM-DD
-            . '(?:[Tt ](\d{2})'                                // optional T + HH
-            . '(?::?(\d{2})'                                   // optional :MM
-            . '(?::?(\d{2})([.,]\d+)?)?)?'                     // optional :SS[.frac]
-            . '(?:[Zz]'                                        // Z (UTC) — only valid with time
-            . '|[+-]\d{2}'                                     // or ±HH offset — only valid with time
-            . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?'              //   ±HH:MM[:SS[.frac]]
-            . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?'            //   or ±HHMM[SS[.frac]]
-            . '((?:\[[^\]]*\])*)'                              // bracket annotations
+            '/^(?:--)?(\d{2})-(\d{2})' // optional '--' prefix + MM-DD
+            . '(?:[Tt ](\d{2})' // optional T + HH
+            . '(?::?(\d{2})' // optional :MM
+            . '(?::?(\d{2})([.,]\d+)?)?)?' // optional :SS[.frac]
+            . '(?:[Zz]' // Z (UTC) — only valid with time
+            . '|[+-]\d{2}' // or ±HH offset — only valid with time
+            . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?' //   ±HH:MM[:SS[.frac]]
+            . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?' //   or ±HHMM[SS[.frac]]
+            . '((?:\[[^\]]*\])*)' // bracket annotations
             . '$/';
 
         /** @var list<string> $m */
         $m = [];
         if (preg_match($monthDayPattern, $s, $m) === 1) {
             $month = (int) $m[1];
-            $day   = (int) $m[2];
+            $day = (int) $m[2];
 
             // Validate time portion if present.
             if ($m[3] !== '') {
@@ -632,8 +612,8 @@ final class PlainMonthDay implements Stringable
                 }
                 // Z is not valid for PlainMonthDay.
                 // Determine the offset of the date part: MM-DD = 5 chars, --MM-DD = 7 chars.
-                $dateLen    = str_starts_with($s, '--') ? 7 : 5;
-                $afterDate  = substr(string: $s, offset: $dateLen);
+                $dateLen = str_starts_with($s, '--') ? 7 : 5;
+                $afterDate = substr(string: $s, offset: $dateLen);
                 $bracketPos = strpos(haystack: $afterDate, needle: '[');
                 $timeOffset = $bracketPos !== false
                     ? substr(string: $afterDate, offset: 0, length: $bracketPos)
@@ -646,7 +626,7 @@ final class PlainMonthDay implements Stringable
             } else {
                 // No time — check for Z or offset immediately following the date portion.
                 $dateLen = str_starts_with($s, '--') ? 7 : 5;
-                $rest    = substr(string: $s, offset: $dateLen);
+                $rest = substr(string: $s, offset: $dateLen);
                 if ($rest !== '' && preg_match('/^[Zz]|^[+-]\d{2}/', $rest) === 1) {
                     throw new InvalidArgumentException(
                         "PlainMonthDay::from() cannot parse \"{$s}\": UTC offset without time is not valid.",
@@ -681,15 +661,15 @@ final class PlainMonthDay implements Stringable
         // Try full date string formats: YYYY-MM-DD, ±YYYYYY-MM-DD, YYYYMMDD, ±YYYYYYMMDD
         // Also handles MM-DD (without --) as a bare month-day string.
         $datePattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})'   // date: year + rest
-            . '(?:[Tt ](\d{2})'                             // optional T + HH
-            . '(?::?(\d{2})'                                // optional :MM
-            . '(?::?(\d{2})([.,]\d+)?)?)?'                  // optional :SS[.frac]
-            . '(?:[Zz]'                                     // Z — only valid with time
-            . '|[+-]\d{2}'                                  // or ±HH offset — only valid with time
-            . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?'           //   ±HH:MM[:SS[.frac]]
-            . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?'         //   or ±HHMM[SS[.frac]]
-            . '((?:\[[^\]]*\])*)'                           // bracket annotations
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' // date: year + rest
+            . '(?:[Tt ](\d{2})' // optional T + HH
+            . '(?::?(\d{2})' // optional :MM
+            . '(?::?(\d{2})([.,]\d+)?)?)?' // optional :SS[.frac]
+            . '(?:[Zz]' // Z — only valid with time
+            . '|[+-]\d{2}' // or ±HH offset — only valid with time
+            . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?' //   ±HH:MM[:SS[.frac]]
+            . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?' //   or ±HHMM[SS[.frac]]
+            . '((?:\[[^\]]*\])*)' // bracket annotations
             . '$/';
 
         /** @var list<string> $m */
@@ -710,17 +690,17 @@ final class PlainMonthDay implements Stringable
         // Extract month and day from the date rest.
         if (!str_starts_with($dateRest, '-')) {
             $month = (int) substr(string: $dateRest, offset: 0, length: 2);
-            $day   = (int) substr(string: $dateRest, offset: 2, length: 2);
+            $day = (int) substr(string: $dateRest, offset: 2, length: 2);
         } else {
             $month = (int) substr(string: $dateRest, offset: 1, length: 2);
-            $day   = (int) substr(string: $dateRest, offset: 4, length: 2);
+            $day = (int) substr(string: $dateRest, offset: 4, length: 2);
         }
 
         // Check for UTC offset without time — NOT valid for PlainMonthDay.
         if ($m[3] === '') {
             // No time component. Check if there's a Z or offset after the date portion.
             $dateLen = strlen($yearRaw) + strlen($dateRest);
-            $rest    = substr(string: $s, offset: $dateLen);
+            $rest = substr(string: $s, offset: $dateLen);
             if ($rest !== '' && preg_match('/^[Zz]|^[+-]\d{2}/', $rest) === 1) {
                 throw new InvalidArgumentException(
                     "PlainMonthDay::from() cannot parse \"{$s}\": UTC offset without time is not valid.",
@@ -754,7 +734,7 @@ final class PlainMonthDay implements Stringable
             }
 
             // Reject UTC designator (Z) — not valid for PlainMonthDay.
-            $afterDate  = substr(string: $s, offset: strlen($yearRaw) + strlen($dateRest));
+            $afterDate = substr(string: $s, offset: strlen($yearRaw) + strlen($dateRest));
             $bracketPos = strpos(haystack: $afterDate, needle: '[');
             $timeOffset = $bracketPos !== false
                 ? substr(string: $afterDate, offset: 0, length: $bracketPos)
@@ -802,42 +782,34 @@ final class PlainMonthDay implements Stringable
             }
             $calId = self::extractCalendarId($calRaw);
             if ($calId !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$calRaw}\": only iso8601 is supported.",
-                );
+                throw new InvalidArgumentException("Unsupported calendar \"{$calRaw}\": only iso8601 is supported.");
             }
         }
 
-        $hasMonth     = array_key_exists('month', $bag) && $bag['month'] !== null;
+        $hasMonth = array_key_exists('month', $bag) && $bag['month'] !== null;
         $hasMonthCode = array_key_exists('monthCode', $bag) && $bag['monthCode'] !== null;
-        $hasDay       = array_key_exists('day', $bag) && $bag['day'] !== null;
-        $hasYear      = array_key_exists('year', $bag) && $bag['year'] !== null;
+        $hasDay = array_key_exists('day', $bag) && $bag['day'] !== null;
+        $hasYear = array_key_exists('year', $bag) && $bag['year'] !== null;
 
         // day is required.
         if (!$hasDay) {
-            throw new \TypeError(
-                'PlainMonthDay::from() property bag must have a day property.',
-            );
+            throw new \TypeError('PlainMonthDay::from() property bag must have a day property.');
         }
 
         // Either month or monthCode is required.
         if (!$hasMonth && !$hasMonthCode) {
-            throw new \TypeError(
-                'PlainMonthDay::from() property bag must have a month or monthCode property.',
-            );
+            throw new \TypeError('PlainMonthDay::from() property bag must have a month or monthCode property.');
         }
 
         // Parse month.
         $month = 0;
         if ($hasMonthCode) {
             /** @var mixed $mc */
-            $mc    = $bag['monthCode'];
+            $mc = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mcStr}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
             }
             $month = (int) substr(string: $mcStr, offset: 1);
         }
@@ -854,9 +826,7 @@ final class PlainMonthDay implements Stringable
             /** @phpstan-ignore cast.int */
             $newMonth = (int) $m;
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException(
-                    'Conflicting month and monthCode fields.',
-                );
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -886,27 +856,21 @@ final class PlainMonthDay implements Stringable
 
         // month < 1 is always invalid.
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid month {$month}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
         }
         // day < 1 is always invalid.
         if ($day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid day {$day}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
-            $month  = min(12, $month);
+            $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
-            $day    = min($maxDay, $day);
+            $day = min($maxDay, $day);
         } else {
             // reject
             if ($month > 12) {
-                throw new InvalidArgumentException(
-                    "Invalid month {$month}: must be in range 1–12.",
-                );
+                throw new InvalidArgumentException("Invalid month {$month}: must be in range 1–12.");
             }
             $maxDay = self::calcDaysInMonth($year, $month);
             if ($day > $maxDay) {
@@ -918,7 +882,7 @@ final class PlainMonthDay implements Stringable
 
         // For the stored referenceISOYear: use 1972 if the day is valid for 1972,
         // otherwise use the provided year (for cases like Feb 29 constrained to 28 in common year).
-        $refYear      = 1972;
+        $refYear = 1972;
         $maxDayIn1972 = self::calcDaysInMonth(1972, $month);
         if ($day > $maxDayIn1972) {
             $refYear = $year;
@@ -939,8 +903,8 @@ final class PlainMonthDay implements Stringable
             return;
         }
 
-        $tzCount        = 0;
-        $calCount       = 0;
+        $tzCount = 0;
+        $calCount = 0;
         $calHasCritical = false;
 
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
@@ -986,9 +950,7 @@ final class PlainMonthDay implements Stringable
             } else {
                 ++$tzCount;
                 if ($tzCount > 1) {
-                    throw new InvalidArgumentException(
-                        "Multiple time-zone annotations in \"{$original}\".",
-                    );
+                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
                 }
             }
         }
@@ -999,7 +961,7 @@ final class PlainMonthDay implements Stringable
      */
     private static function isLeapYear(int $year): bool
     {
-        return ($year % 4 === 0 && $year % 100 !== 0) || ($year % 400 === 0);
+        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
     }
 
     /**
@@ -1023,14 +985,16 @@ final class PlainMonthDay implements Stringable
     {
         $a = intdiv(num1: 14 - $month, num2: 12);
         $y = $year + 4800 - $a;
-        $m = $month + 12 * $a - 3;
-        return $day
-            + intdiv(num1: 153 * $m + 2, num2: 5)
-            + 365 * $y
+        $m = $month + (12 * $a) - 3;
+        return (
+            $day
+            + intdiv(num1: (153 * $m) + 2, num2: 5)
+            + (365 * $y)
             + self::floorDiv($y, 4)
             - self::floorDiv($y, 100)
             + self::floorDiv($y, 400)
-            - 32_045;
+            - 32_045
+        );
     }
 
     /**
@@ -1055,11 +1019,11 @@ final class PlainMonthDay implements Stringable
         }
         // Plain calendar ID: ASCII-only lowercase.
         $lower = '';
-        $len   = strlen($cal);
+        $len = strlen($cal);
         for ($i = 0; $i < $len; $i++) {
             $c = $cal[$i];
             $o = ord($c);
-            $lower .= ($o >= 0x41 && $o <= 0x5A) ? chr($o + 32) : $c;
+            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
         }
         return $lower;
     }

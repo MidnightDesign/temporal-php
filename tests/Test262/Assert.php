@@ -132,10 +132,7 @@ final class Assert
      */
     public static function methodExists(string $class, string $method): void
     {
-        PHPUnitAssert::assertTrue(
-            method_exists($class, $method),
-            "Expected method {$class}::{$method}() to exist",
-        );
+        PHPUnitAssert::assertTrue(method_exists($class, $method), "Expected method {$class}::{$method}() to exist");
     }
 
     /**
@@ -150,13 +147,12 @@ final class Assert
      */
     public static function methodLength(string $class, string $method, int $expected): void
     {
-        $rm       = new \ReflectionMethod($class, $method);
+        $rm = new \ReflectionMethod($class, $method);
         $required = $rm->getNumberOfRequiredParameters();
-        $total    = $rm->getNumberOfParameters();
+        $total = $rm->getNumberOfParameters();
         PHPUnitAssert::assertTrue(
             $required === $expected || $total === $expected,
-            "Expected {$class}::{$method} JS length {$expected}, "
-                . "got required={$required}, total={$total}",
+            "Expected {$class}::{$method} JS length {$expected}, " . "got required={$required}, total={$total}",
         );
     }
 

@@ -28,7 +28,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $calendarId { get => 'iso8601'; }
+    public string $calendarId {
+        get => 'iso8601';
+    }
 
     /**
      * Always undefined (null) for the ISO 8601 calendar.
@@ -37,7 +39,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public ?string $era { get => null; }
+    public ?string $era {
+        get => null;
+    }
 
     /**
      * Always undefined (null) for the ISO 8601 calendar.
@@ -46,7 +50,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public ?int $eraYear { get => null; }
+    public ?int $eraYear {
+        get => null;
+    }
 
     /**
      * Month code in "M01"–"M12" format.
@@ -55,7 +61,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $monthCode { get => sprintf('M%02d', $this->month); }
+    public string $monthCode {
+        get => sprintf('M%02d', $this->month);
+    }
 
     /**
      * ISO 8601 day of week: 1 = Monday, 7 = Sunday.
@@ -64,7 +72,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $dayOfWeek { get => self::isoWeekday($this->year, $this->month, $this->day); }
+    public int $dayOfWeek {
+        get => self::isoWeekday($this->year, $this->month, $this->day);
+    }
 
     /**
      * Ordinal day of the year: 1–366.
@@ -73,7 +83,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $dayOfYear { get => self::calcDayOfYear($this->year, $this->month, $this->day); }
+    public int $dayOfYear {
+        get => self::calcDayOfYear($this->year, $this->month, $this->day);
+    }
 
     /**
      * ISO 8601 week number: 1–53.
@@ -82,7 +94,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $weekOfYear { get => self::isoWeekInfo($this->year, $this->month, $this->day)['week']; }
+    public int $weekOfYear {
+        get => self::isoWeekInfo($this->year, $this->month, $this->day)['week'];
+    }
 
     /**
      * ISO 8601 week-year (may differ from calendar year near year boundaries).
@@ -91,7 +105,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $yearOfWeek { get => self::isoWeekInfo($this->year, $this->month, $this->day)['year']; }
+    public int $yearOfWeek {
+        get => self::isoWeekInfo($this->year, $this->month, $this->day)['year'];
+    }
 
     /**
      * Number of days in this date's month.
@@ -100,7 +116,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInMonth { get => self::calcDaysInMonth($this->year, $this->month); }
+    public int $daysInMonth {
+        get => self::calcDaysInMonth($this->year, $this->month);
+    }
 
     /**
      * Always 7 (ISO 8601 calendar).
@@ -109,7 +127,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInWeek { get => 7; }
+    public int $daysInWeek {
+        get => 7;
+    }
 
     /**
      * 365 or 366, depending on whether this date's year is a leap year.
@@ -118,7 +138,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInYear { get => self::isLeapYear($this->year) ? 366 : 365; }
+    public int $daysInYear {
+        get => self::isLeapYear($this->year) ? 366 : 365;
+    }
 
     /**
      * Always 12 (ISO 8601 calendar).
@@ -127,7 +149,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $monthsInYear { get => 12; }
+    public int $monthsInYear {
+        get => 12;
+    }
 
     /**
      * True if this date's year is a leap year.
@@ -136,7 +160,9 @@ final class PlainDate implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public bool $inLeapYear { get => self::isLeapYear($this->year); }
+    public bool $inLeapYear {
+        get => self::isLeapYear($this->year);
+    }
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -157,35 +183,25 @@ final class PlainDate implements Stringable
     {
         if ($calendar !== null) {
             if (!is_string($calendar)) {
-                throw new \TypeError(
-                    'PlainDate calendar must be a string; got ' . get_debug_type($calendar) . '.',
-                );
+                throw new \TypeError('PlainDate calendar must be a string; got ' . get_debug_type($calendar) . '.');
             }
             // The constructor only accepts bare calendar IDs, not ISO date strings.
             // Use ASCII-only lowercase to reject non-ASCII chars like U+0130 (İ).
             if (strtolower($calendar) !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$calendar}\": only iso8601 is supported.",
-                );
+                throw new InvalidArgumentException("Unsupported calendar \"{$calendar}\": only iso8601 is supported.");
             }
         }
         if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $day)) {
-            throw new InvalidArgumentException(
-                'Invalid PlainDate: year, month, and day must be finite numbers.',
-            );
+            throw new InvalidArgumentException('Invalid PlainDate: year, month, and day must be finite numbers.');
         }
-        $this->year  = (int) $year;
+        $this->year = (int) $year;
         $this->month = (int) $month;
-        $this->day   = (int) $day;
+        $this->day = (int) $day;
         if ($this->month < 1 || $this->month > 12) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDate: month {$this->month} is out of range 1–12.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDate: month {$this->month} is out of range 1–12.");
         }
         if ($this->day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDate: day {$this->day} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDate: day {$this->day} must be at least 1.");
         }
         $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
         if ($this->day > $daysInMonth) {
@@ -247,7 +263,8 @@ final class PlainDate implements Stringable
         }
         throw new \TypeError(
             'PlainDate::from() expects a PlainDate, ISO 8601 string, or property-bag array; got '
-            . get_debug_type($item) . '.',
+            . get_debug_type($item)
+            . '.',
         );
     }
 
@@ -294,9 +311,7 @@ final class PlainDate implements Stringable
     public function with(array $fields, mixed $options = null): self
     {
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
-            throw new \TypeError(
-                'PlainDate::with() fields must not contain a calendar or timeZone property.',
-            );
+            throw new \TypeError('PlainDate::with() fields must not contain a calendar or timeZone property.');
         }
 
         // Validate and extract overflow option.
@@ -328,8 +343,8 @@ final class PlainDate implements Stringable
             $year = (int) $yr;
         }
 
-        $month        = $this->month;
-        $hasMonth     = array_key_exists('month', $fields);
+        $month = $this->month;
+        $hasMonth = array_key_exists('month', $fields);
         $hasMonthCode = array_key_exists('monthCode', $fields);
         if ($hasMonthCode) {
             /** @var mixed $mc */
@@ -338,9 +353,7 @@ final class PlainDate implements Stringable
             $mcStr = (string) $mc;
             // monthCode must be M01–M12 in the ISO calendar.
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mcStr}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
             }
             $month = (int) substr(string: $mcStr, offset: 1);
         }
@@ -354,9 +367,7 @@ final class PlainDate implements Stringable
             /** @phpstan-ignore cast.int */
             $newMonth = (int) $m;
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException(
-                    'Conflicting month and monthCode fields.',
-                );
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -375,20 +386,16 @@ final class PlainDate implements Stringable
 
         // month < 1 and day < 1 are always invalid (cannot constrain below minimum).
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid month {$month}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid day {$day}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
-            $month  = min(12, $month);
+            $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
-            $day    = min($maxDay, $day);
+            $day = min($maxDay, $day);
         }
 
         return new self($year, $month, $day);
@@ -462,9 +469,7 @@ final class PlainDate implements Stringable
     public function equals(mixed $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
-        return $this->year === $o->year
-            && $this->month === $o->month
-            && $this->day === $o->day;
+        return $this->year === $o->year && $this->month === $o->month && $this->day === $o->day;
     }
 
     /**
@@ -496,11 +501,9 @@ final class PlainDate implements Stringable
 
         return match ($calendarName) {
             'auto', 'never' => $base,
-            'always'        => $base . '[u-ca=iso8601]',
-            'critical'      => $base . '[!u-ca=iso8601]',
-            default         => throw new InvalidArgumentException(
-                "Invalid calendarName value: \"{$calendarName}\".",
-            ),
+            'always' => $base . '[u-ca=iso8601]',
+            'critical' => $base . '[!u-ca=iso8601]',
+            default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
 
@@ -542,9 +545,15 @@ final class PlainDate implements Stringable
         }
         $t = $time instanceof PlainTime ? $time : PlainTime::from($time);
         return new PlainDateTime(
-            $this->year, $this->month, $this->day,
-            $t->hour, $t->minute, $t->second,
-            $t->millisecond, $t->microsecond, $t->nanosecond,
+            $this->year,
+            $this->month,
+            $this->day,
+            $t->hour,
+            $t->minute,
+            $t->second,
+            $t->millisecond,
+            $t->microsecond,
+            $t->nanosecond,
         );
     }
 
@@ -568,21 +577,19 @@ final class PlainDate implements Stringable
         if (!is_array($item)) {
             throw new \TypeError(
                 'PlainDate::toZonedDateTime() expects a timezone string or property bag; got '
-                . get_debug_type($item) . '.',
+                . get_debug_type($item)
+                . '.',
             );
         }
         // Property bag: must have 'timeZone' key.
         if (!array_key_exists('timeZone', $item)) {
-            throw new \TypeError(
-                'PlainDate::toZonedDateTime() property bag must have a timeZone property.',
-            );
+            throw new \TypeError('PlainDate::toZonedDateTime() property bag must have a timeZone property.');
         }
         /** @var mixed $tzRaw */
         $tzRaw = $item['timeZone'];
         if (!is_string($tzRaw)) {
             throw new \TypeError(
-                'PlainDate::toZonedDateTime() timeZone must be a string; got '
-                . get_debug_type($tzRaw) . '.',
+                'PlainDate::toZonedDateTime() timeZone must be a string; got ' . get_debug_type($tzRaw) . '.',
             );
         }
         $tzId = ZonedDateTime::normalizeTimezoneId($tzRaw);
@@ -594,9 +601,9 @@ final class PlainDate implements Stringable
             /** @var mixed $ptRaw */
             $ptRaw = $item['plainTime'];
             $t = $ptRaw instanceof PlainTime ? $ptRaw : PlainTime::from($ptRaw);
-            $h  = $t->hour;
-            $m  = $t->minute;
-            $s  = $t->second;
+            $h = $t->hour;
+            $m = $t->minute;
+            $s = $t->second;
             $ms = $t->millisecond;
             $us = $t->microsecond;
             $ns = $t->nanosecond;
@@ -638,8 +645,7 @@ final class PlainDate implements Stringable
     {
         if (!is_string($calendar)) {
             throw new \TypeError(
-                'PlainDate::withCalendar() calendar must be a string; got '
-                . get_debug_type($calendar) . '.',
+                'PlainDate::withCalendar() calendar must be a string; got ' . get_debug_type($calendar) . '.',
             );
         }
         ZonedDateTime::extractCalendarFromString($calendar);
@@ -678,22 +684,15 @@ final class PlainDate implements Stringable
      *
      * @throws InvalidArgumentException if the resulting epoch nanoseconds are out of range.
      */
-    private function createZdt(
-        string $tzId,
-        int $h,
-        int $m,
-        int $s,
-        int $ms,
-        int $us,
-        int $ns,
-    ): ZonedDateTime {
+    private function createZdt(string $tzId, int $h, int $m, int $s, int $ms, int $us, int $ns): ZonedDateTime
+    {
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
         // year-formatting issues with extended years > 9999 or negative years).
         $epochDays = self::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
-        $wallSec = $epochDays * 86_400 + $h * 3600 + $m * 60 + $s;
+        $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($m * 60) + $s;
         $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
 
-        $subNs = $ms * self::NS_PER_MILLISECOND + $us * self::NS_PER_MICROSECOND + $ns;
+        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
 
         return ZonedDateTime::createFromEpochParts($epochSec, $subNs, $tzId);
     }
@@ -733,14 +732,14 @@ final class PlainDate implements Stringable
         // Optional bracket annotations
         // Z (UTC designator) is NEVER valid for PlainDate.
         $pattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})'   // date: year + rest
-            . '(?:[Tt ](\d{2})'                             // optional T + HH
-            . '(?::?(\d{2})'                                // optional :MM
-            . '(?::?(\d{2})([.,]\d+)?)?)?'                  // optional :SS[.frac]
-            . '(?:[+-]\d{2}'                                // optional offset ±HH
-            . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?'           //   ±HH:MM[:SS[.frac]]
-            . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?'         //   or ±HHMM[SS[.frac]]
-            . '((?:\[[^\]]*\])*)'                           // bracket annotations
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' // date: year + rest
+            . '(?:[Tt ](\d{2})' // optional T + HH
+            . '(?::?(\d{2})' // optional :MM
+            . '(?::?(\d{2})([.,]\d+)?)?)?' // optional :SS[.frac]
+            . '(?:[+-]\d{2}' // optional offset ±HH
+            . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?' //   ±HH:MM[:SS[.frac]]
+            . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?' //   or ±HHMM[SS[.frac]]
+            . '((?:\[[^\]]*\])*)' // bracket annotations
             . '$/';
 
         /** @var list<string> $m */
@@ -761,10 +760,10 @@ final class PlainDate implements Stringable
         // Compact date rest (MMDD) → extract components.
         if (!str_starts_with($dateRest, '-')) {
             $month = (int) substr(string: $dateRest, offset: 0, length: 2);
-            $day   = (int) substr(string: $dateRest, offset: 2, length: 2);
+            $day = (int) substr(string: $dateRest, offset: 2, length: 2);
         } else {
             $month = (int) substr(string: $dateRest, offset: 1, length: 2);
-            $day   = (int) substr(string: $dateRest, offset: 4, length: 2);
+            $day = (int) substr(string: $dateRest, offset: 4, length: 2);
         }
         $year = (int) $yearRaw;
 
@@ -883,9 +882,7 @@ final class PlainDate implements Stringable
             /** @var mixed $cal */
             $cal = $bag['calendar'];
             if (!is_string($cal)) {
-                throw new \TypeError(
-                    'PlainDate calendar must be a string; got ' . get_debug_type($cal) . '.',
-                );
+                throw new \TypeError('PlainDate calendar must be a string; got ' . get_debug_type($cal) . '.');
             }
             // Reject minus-zero extended year in date-like calendar strings.
             if (preg_match('/^-0{6}/', $cal) === 1) {
@@ -895,9 +892,7 @@ final class PlainDate implements Stringable
             }
             $calId = self::extractCalendarId($cal);
             if ($calId !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$cal}\": only iso8601 is supported.",
-                );
+                throw new InvalidArgumentException("Unsupported calendar \"{$cal}\": only iso8601 is supported.");
             }
         }
 
@@ -925,7 +920,7 @@ final class PlainDate implements Stringable
 
         // Resolve month from monthCode or month field.
         $month = null;
-        $hasMonth     = array_key_exists('month', $bag);
+        $hasMonth = array_key_exists('month', $bag);
         $hasMonthCode = array_key_exists('monthCode', $bag);
 
         if ($hasMonthCode) {
@@ -935,9 +930,7 @@ final class PlainDate implements Stringable
             $mc = is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw;
             // monthCode must match M01–M12 exactly (no suffix like L).
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mc) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mc}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mc}\".");
             }
             $month = (int) substr(string: $mc, offset: 1);
         }
@@ -976,20 +969,16 @@ final class PlainDate implements Stringable
 
         // month < 1 and day < 1 are always invalid (cannot constrain below minimum of 1).
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDate: month {$month} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDate: month {$month} must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDate: day {$day} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDate: day {$day} must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
-            $month  = min(12, $month);
+            $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
-            $day    = min($maxDay, $day);
+            $day = min($maxDay, $day);
         }
 
         return new self($year, $month, $day);
@@ -1008,17 +997,35 @@ final class PlainDate implements Stringable
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years'];
         /** @var array<string, int> $unitRank */
-        static $unitRank = ['year' => 4, 'years' => 4, 'month' => 3, 'months' => 3,
-            'week' => 2, 'weeks' => 2, 'day' => 1, 'days' => 1, 'auto' => 1];
+        static $unitRank = [
+            'year' => 4,
+            'years' => 4,
+            'month' => 3,
+            'months' => 3,
+            'week' => 2,
+            'weeks' => 2,
+            'day' => 1,
+            'days' => 1,
+            'auto' => 1,
+        ];
         /** @var list<string> $validModes */
-        static $validModes = ['ceil', 'floor', 'expand', 'trunc',
-            'halfCeil', 'halfFloor', 'halfExpand', 'halfTrunc', 'halfEven'];
+        static $validModes = [
+            'ceil',
+            'floor',
+            'expand',
+            'trunc',
+            'halfCeil',
+            'halfFloor',
+            'halfExpand',
+            'halfTrunc',
+            'halfEven',
+        ];
 
-        $largestUnit        = 'day';
-        $largestUnitExplicit = false;  // whether largestUnit was explicitly specified
-        $smallestUnit       = null;    // null = not specified
-        $roundingMode       = 'trunc';
-        $roundingIncrement  = 1;
+        $largestUnit = 'day';
+        $largestUnitExplicit = false; // whether largestUnit was explicitly specified
+        $smallestUnit = null; // null = not specified
+        $roundingMode = 'trunc';
+        $roundingIncrement = 1;
 
         if ($options !== null && (is_array($options) || is_object($options))) {
             $opts = is_array($options) ? $options : (array) $options;
@@ -1112,14 +1119,24 @@ final class PlainDate implements Stringable
         }
 
         // Normalize to canonical singular forms.
-        $normLargest  = match ($largestUnit)  { 'days', 'auto' => 'day', 'weeks' => 'week',
-            'months' => 'month', 'years' => 'year', default => $largestUnit };
-        $normSmallest = match ($smallestUnit) { 'days', 'auto' => 'day', 'weeks' => 'week',
-            'months' => 'month', 'years' => 'year', default => $smallestUnit };
+        $normLargest = match ($largestUnit) {
+            'days', 'auto' => 'day',
+            'weeks' => 'week',
+            'months' => 'month',
+            'years' => 'year',
+            default => $largestUnit,
+        };
+        $normSmallest = match ($smallestUnit) {
+            'days', 'auto' => 'day',
+            'weeks' => 'week',
+            'months' => 'month',
+            'years' => 'year',
+            default => $smallestUnit,
+        };
 
-        $laterJdn   = self::toJulianDay($later->year, $later->month, $later->day);
+        $laterJdn = self::toJulianDay($later->year, $later->month, $later->day);
         $earlierJdn = self::toJulianDay($earlier->year, $earlier->month, $earlier->day);
-        $totalDays  = $laterJdn - $earlierJdn;
+        $totalDays = $laterJdn - $earlierJdn;
 
         // ---- Compute raw diff and apply rounding ----
         //
@@ -1136,12 +1153,12 @@ final class PlainDate implements Stringable
             // Decompose totalDays into weeks + remaining days, then round at $normSmallest.
             if ($normSmallest === 'week') {
                 $weekIncrement = $roundingIncrement * 7;
-                $roundedDays   = self::roundDays($totalDays, $weekIncrement, $roundingMode);
+                $roundedDays = self::roundDays($totalDays, $weekIncrement, $roundingMode);
                 return new Duration(weeks: intdiv(num1: $roundedDays, num2: 7));
             }
             // smallestUnit=day: round days within the week decomposition.
             $rawWeeks = intdiv(num1: $totalDays, num2: 7);
-            $rawDays  = $totalDays - $rawWeeks * 7;
+            $rawDays = $totalDays - ($rawWeeks * 7);
             $roundedDays = self::roundDays($rawDays, $roundingIncrement, $roundingMode);
             return new Duration(weeks: $rawWeeks, days: $roundedDays);
         }
@@ -1149,21 +1166,29 @@ final class PlainDate implements Stringable
         // Calendar units (months/years): compute via calendarDiff.
         // Pass whether the receiver corresponds to the y2 (later) argument so
         // calendarDiff knows from which end to anchor the day-remainder calculation.
-        $receiverIsLater = ($receiver->year === $later->year
-            && $receiver->month === $later->month
-            && $receiver->day === $later->day);
+        $receiverIsLater =
+            $receiver->year === $later->year && $receiver->month === $later->month && $receiver->day === $later->day;
         [$years, $months, $days] = self::calendarDiff(
-            $earlier->year, $earlier->month, $earlier->day,
-            $later->year, $later->month, $later->day,
+            $earlier->year,
+            $earlier->month,
+            $earlier->day,
+            $later->year,
+            $later->month,
+            $later->day,
             $receiverIsLater,
         );
 
         if ($normLargest === 'month') {
-            $totalMonths = $years * 12 + $months;
+            $totalMonths = ($years * 12) + $months;
             if ($normSmallest === 'month') {
                 // Round months; discard remaining days.
                 return new Duration(months: self::roundCalendarMonths(
-                    $totalMonths, $days, $receiver, $roundingIncrement, $roundingMode, $receiverIsLater,
+                    $totalMonths,
+                    $days,
+                    $receiver,
+                    $roundingIncrement,
+                    $roundingMode,
+                    $receiverIsLater,
                 ));
             }
             // smallestUnit=day: round remaining days (usually increment=1 = no-op).
@@ -1174,19 +1199,30 @@ final class PlainDate implements Stringable
         // normLargest === 'year'
         if ($normSmallest === 'year') {
             // Round years; discard months and remaining days.
-            $totalMonths = $years * 12 + $months;
+            $totalMonths = ($years * 12) + $months;
             return new Duration(years: self::roundCalendarYears(
-                $years, $totalMonths, $days, $receiver, $roundingIncrement, $roundingMode, $receiverIsLater,
+                $years,
+                $totalMonths,
+                $days,
+                $receiver,
+                $roundingIncrement,
+                $roundingMode,
+                $receiverIsLater,
             ));
         }
         if ($normSmallest === 'month') {
             // Round months (collapse years into months), then reconvert to years+months.
-            $totalMonths   = $years * 12 + $months;
+            $totalMonths = ($years * 12) + $months;
             $roundedMonths = self::roundCalendarMonths(
-                $totalMonths, $days, $receiver, $roundingIncrement, $roundingMode, $receiverIsLater,
+                $totalMonths,
+                $days,
+                $receiver,
+                $roundingIncrement,
+                $roundingMode,
+                $receiverIsLater,
             );
-            $roundedYears  = intdiv(num1: $roundedMonths, num2: 12);
-            $roundedMonths = $roundedMonths - $roundedYears * 12;
+            $roundedYears = intdiv(num1: $roundedMonths, num2: 12);
+            $roundedMonths = $roundedMonths - ($roundedYears * 12);
             return new Duration(years: $roundedYears, months: $roundedMonths);
         }
         // smallestUnit=day (or week, but week < month so that would have been caught earlier):
@@ -1207,16 +1243,16 @@ final class PlainDate implements Stringable
         if ($increment === 1 && $mode === 'trunc') {
             return $totalDays;
         }
-        $sign    = $totalDays >= 0 ? 1 : -1;
+        $sign = $totalDays >= 0 ? 1 : -1;
         $absDays = abs($totalDays);
         $effectiveMode = $mode;
         if ($sign < 0) {
             $effectiveMode = match ($mode) {
-                'floor'     => 'ceil',
-                'ceil'      => 'floor',
+                'floor' => 'ceil',
+                'ceil' => 'floor',
                 'halfFloor' => 'halfCeil',
-                'halfCeil'  => 'halfFloor',
-                default     => $mode,
+                'halfCeil' => 'halfFloor',
+                default => $mode,
             };
         }
         return $sign * self::roundPositive($absDays, $increment, $effectiveMode);
@@ -1231,18 +1267,18 @@ final class PlainDate implements Stringable
      */
     private static function roundPositive(int $absValue, int $increment, string $mode): int
     {
-        $q   = intdiv(num1: $absValue, num2: $increment);
-        $rem = $absValue - $q * $increment;
-        $r1  = $q * $increment;       // floor multiple
-        $r2  = $r1 + $increment;      // ceil multiple
+        $q = intdiv(num1: $absValue, num2: $increment);
+        $rem = $absValue - ($q * $increment);
+        $r1 = $q * $increment; // floor multiple
+        $r2 = $r1 + $increment; // ceil multiple
         return match ($mode) {
-            'trunc', 'floor'    => $r1,
-            'ceil', 'expand'    => $rem === 0 ? $r1 : $r2,
+            'trunc', 'floor' => $r1,
+            'ceil', 'expand' => $rem === 0 ? $r1 : $r2,
             'halfExpand', 'halfCeil' => ($rem * 2) >= $increment ? $r2 : $r1,
             'halfTrunc', 'halfFloor' => ($rem * 2) > $increment ? $r2 : $r1,
-            'halfEven' => ($rem * 2) < $increment ? $r1
-                : (($rem * 2) > $increment ? $r2
-                    : ($q % 2 === 0 ? $r1 : $r2)),
+            'halfEven' => ($rem * 2) < $increment
+                ? $r1
+                : (($rem * 2) > $increment ? $r2 : (($q % 2) === 0 ? $r1 : $r2)),
             default => $r1,
         };
     }
@@ -1272,10 +1308,10 @@ final class PlainDate implements Stringable
             $sign = $remainingDays >= 0 ? 1 : -1;
         }
         $absTotalMonths = abs($totalMonths);
-        $absRemDays     = abs($remainingDays);
+        $absRemDays = abs($remainingDays);
 
         // floor-count (rounded down to nearest multiple of increment).
-        $floorCount = (intdiv(num1: $absTotalMonths, num2: $increment)) * $increment;
+        $floorCount = intdiv(num1: $absTotalMonths, num2: $increment) * $increment;
 
         // Anchor: receiver going toward "other" by floorCount months.
         // When receiver is the later date (since): go backward → receiver − sign*floorCount months.
@@ -1286,20 +1322,18 @@ final class PlainDate implements Stringable
         $anchorJdn = self::addSignedMonths($receiver, $dir * $floorCount);
 
         // Next boundary: one increment further in the same direction.
-        $nextJdn   = self::addSignedMonths($receiver, $dir * ($floorCount + $increment));
+        $nextJdn = self::addSignedMonths($receiver, $dir * ($floorCount + $increment));
 
         // Interval size in days (absolute value of the interval).
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Remaining distance from anchor toward target = |remainingDays| from calendarDiff.
-        $progress = $intervalDays > 0 ? ($absRemDays / $intervalDays) : 0.0;
+        $progress = $intervalDays > 0 ? $absRemDays / $intervalDays : 0.0;
 
         // Apply rounding (for negative diffs, flip floor/ceil per spec §11.5.12).
         $roundUp = self::applyRoundingProgress($progress, $mode, $sign);
 
-        $roundedAbsMonths = $roundUp
-            ? $floorCount + $increment
-            : $floorCount;
+        $roundedAbsMonths = $roundUp ? $floorCount + $increment : $floorCount;
 
         // Validate: the rounded result must not exceed the valid PlainDate range.
         self::addSignedMonths($receiver, $dir * $roundedAbsMonths); // throws if out of range
@@ -1324,38 +1358,33 @@ final class PlainDate implements Stringable
         string $mode,
         bool $receiverIsLater,
     ): int {
-        $sign = $years !== 0 ? ($years >= 0 ? 1 : -1)
-            : ($totalMonths !== 0 ? ($totalMonths >= 0 ? 1 : -1)
-                : ($remainingDays >= 0 ? 1 : -1));
+        $sign = $years !== 0
+            ? ($years >= 0 ? 1 : -1)
+            : ($totalMonths !== 0 ? ($totalMonths >= 0 ? 1 : -1) : ($remainingDays >= 0 ? 1 : -1));
         $absYears = abs($years);
 
-        $floorCount = (intdiv(num1: $absYears, num2: $increment)) * $increment;
+        $floorCount = intdiv(num1: $absYears, num2: $increment) * $increment;
 
         // Anchor: receiver going toward "other" by floorCount years.
         // When receiver is later (since): go backward → -sign direction.
         // When receiver is earlier (until): go forward → +sign direction.
-        $dir       = $receiverIsLater ? -$sign : $sign;
+        $dir = $receiverIsLater ? -$sign : $sign;
         $anchorJdn = self::addSignedYears($receiver, $dir * $floorCount);
-        $nextJdn   = self::addSignedYears($receiver, $dir * ($floorCount + $increment));
+        $nextJdn = self::addSignedYears($receiver, $dir * ($floorCount + $increment));
 
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Compute the target JDN: from anchor, go further in the same direction
         // (toward next boundary) by the remaining months+days.
-        $absRemMonths = abs($totalMonths) - $floorCount * 12;
-        $subAnchorJdn = self::addSignedMonths(
-            self::fromJulianDayStatic($anchorJdn),
-            $dir * $absRemMonths,
-        );
-        $targetJdn      = $subAnchorJdn + ($dir * abs($remainingDays));
+        $absRemMonths = abs($totalMonths) - ($floorCount * 12);
+        $subAnchorJdn = self::addSignedMonths(self::fromJulianDayStatic($anchorJdn), $dir * $absRemMonths);
+        $targetJdn = $subAnchorJdn + ($dir * abs($remainingDays));
         $absRemDistance = abs($targetJdn - $anchorJdn);
 
-        $progress = $intervalDays > 0 ? ($absRemDistance / $intervalDays) : 0.0;
-        $roundUp  = self::applyRoundingProgress($progress, $mode, $sign);
+        $progress = $intervalDays > 0 ? $absRemDistance / $intervalDays : 0.0;
+        $roundUp = self::applyRoundingProgress($progress, $mode, $sign);
 
-        $roundedAbsYears = $roundUp
-            ? $floorCount + $increment
-            : $floorCount;
+        $roundedAbsYears = $roundUp ? $floorCount + $increment : $floorCount;
 
         // Validate: the rounded result must not exceed the valid PlainDate range.
         self::addSignedYears($receiver, $dir * $roundedAbsYears); // throws if out of range
@@ -1375,20 +1404,20 @@ final class PlainDate implements Stringable
         $effectiveMode = $mode;
         if ($sign < 0) {
             $effectiveMode = match ($mode) {
-                'floor'     => 'ceil',
-                'ceil'      => 'floor',
+                'floor' => 'ceil',
+                'ceil' => 'floor',
                 'halfFloor' => 'halfCeil',
-                'halfCeil'  => 'halfFloor',
-                default     => $mode,
+                'halfCeil' => 'halfFloor',
+                default => $mode,
             };
         }
         return match ($effectiveMode) {
-            'trunc', 'floor'         => false,
-            'ceil', 'expand'         => $progress > 0.0,
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $progress > 0.0,
             'halfExpand', 'halfCeil' => $progress >= 0.5,
             'halfTrunc', 'halfFloor' => $progress > 0.5,
-            'halfEven'               => $progress > 0.5,  // at exactly 0.5, leave at floor (calendar units differ from numeric even/odd)
-            default                  => false,
+            'halfEven' => $progress > 0.5, // at exactly 0.5, leave at floor (calendar units differ from numeric even/odd)
+            default => false,
         };
     }
 
@@ -1407,10 +1436,10 @@ final class PlainDate implements Stringable
 
         if ($m > 12) {
             $y += intdiv(num1: $m - 1, num2: 12);
-            $m  = (($m - 1) % 12) + 1;
+            $m = (($m - 1) % 12) + 1;
         } elseif ($m < 1) {
             $y += intdiv(num1: $m - 12, num2: 12);
-            $m  = (($m - 1) % 12 + 12) % 12 + 1;
+            $m = (((($m - 1) % 12) + 12) % 12) + 1;
         }
 
         $maxDay = self::calcDaysInMonth($y, $m);
@@ -1420,11 +1449,9 @@ final class PlainDate implements Stringable
 
         $minJdn = self::toJulianDay(-271821, 4, 19);
         $maxJdn = self::toJulianDay(275760, 9, 13);
-        $jdn    = self::toJulianDay($y, $m, $d);
+        $jdn = self::toJulianDay($y, $m, $d);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException(
-                'PlainDate rounding result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainDate rounding result is outside the representable range.');
         }
         return $jdn;
     }
@@ -1469,7 +1496,7 @@ final class PlainDate implements Stringable
         int $d2,
         bool $receiverIsY2 = true,
     ): array {
-        $sign = ($y2 > $y1 || ($y2 === $y1 && ($m2 > $m1 || ($m2 === $m1 && $d2 >= $d1)))) ? 1 : -1;
+        $sign = $y2 > $y1 || $y2 === $y1 && ($m2 > $m1 || $m2 === $m1 && $d2 >= $d1) ? 1 : -1;
 
         // Track whether the receiver ends up as y1 or y2 after a potential swap.
         // A swap happens when sign < 0, which flips the receiver position.
@@ -1481,7 +1508,7 @@ final class PlainDate implements Stringable
             $receiverIsY2AfterSwap = !$receiverIsY2;
         }
 
-        $years  = $y2 - $y1;
+        $years = $y2 - $y1;
         $months = $m2 - $m1;
 
         if ($months < 0) {
@@ -1507,27 +1534,25 @@ final class PlainDate implements Stringable
         if ($receiverIsY2AfterSwap) {
             // Anchor from y2 (receiver) going backward.
             $anchorMonth = $m2 - $months;
-            $anchorYear  = $y2 - $years;
+            $anchorYear = $y2 - $years;
             if ($anchorMonth <= 0) {
                 $anchorYear--;
                 $anchorMonth += 12;
             }
             $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
-            $anchorDay    = min($d2, $anchorMaxDay);
-            $days = self::toJulianDay($anchorYear, $anchorMonth, $anchorDay)
-                - self::toJulianDay($y1, $m1, $d1);
+            $anchorDay = min($d2, $anchorMaxDay);
+            $days = self::toJulianDay($anchorYear, $anchorMonth, $anchorDay) - self::toJulianDay($y1, $m1, $d1);
         } else {
             // Anchor from y1 (receiver) going forward.
             $anchorMonth = $m1 + $months;
-            $anchorYear  = $y1 + $years;
+            $anchorYear = $y1 + $years;
             if ($anchorMonth > 12) {
                 $anchorYear++;
                 $anchorMonth -= 12;
             }
             $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
-            $anchorDay    = min($d1, $anchorMaxDay);
-            $days = self::toJulianDay($y2, $m2, $d2)
-                - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
+            $anchorDay = min($d1, $anchorMaxDay);
+            $days = self::toJulianDay($y2, $m2, $d2) - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
         }
 
         return [$sign * $years, $sign * $months, $sign * $days];
@@ -1558,72 +1583,70 @@ final class PlainDate implements Stringable
             $overflow = $ov;
         }
 
-        $years  = $sign * (int) $dur->years;
+        $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
-        $days   = $sign * ((int) $dur->weeks * 7 + (int) $dur->days);
+        $days = $sign * (((int) $dur->weeks * 7) + (int) $dur->days);
 
         // Balance sub-day time units (hours → days, etc.) using cascade arithmetic.
         // Each step: extract full days, carry remainder to the next smaller unit.
-        $hours   = $sign * (int) $dur->hours;
+        $hours = $sign * (int) $dur->hours;
         $minutes = $sign * (int) $dur->minutes;
         $seconds = $sign * (int) $dur->seconds;
-        $ms      = $sign * (int) $dur->milliseconds;
-        $us      = $sign * (int) $dur->microseconds;
-        $ns      = $sign * (int) $dur->nanoseconds;
+        $ms = $sign * (int) $dur->milliseconds;
+        $us = $sign * (int) $dur->microseconds;
+        $ns = $sign * (int) $dur->nanoseconds;
 
         // hours → full days + remainder hours
-        $hDays  = intdiv(num1: $hours, num2: 24);
-        $hRem   = $hours % 24;
+        $hDays = intdiv(num1: $hours, num2: 24);
+        $hRem = $hours % 24;
 
         // carry + minutes → full days + remainder minutes
-        $totalMin = $hRem * 60 + $minutes;
-        $mDays    = intdiv(num1: $totalMin, num2: 1_440);
-        $mRem     = $totalMin % 1_440;
+        $totalMin = ($hRem * 60) + $minutes;
+        $mDays = intdiv(num1: $totalMin, num2: 1_440);
+        $mRem = $totalMin % 1_440;
 
         // carry + seconds → full days + remainder seconds
-        $totalSec = $mRem * 60 + $seconds;
-        $sDays    = intdiv(num1: $totalSec, num2: 86_400);
-        $sRem     = $totalSec % 86_400;
+        $totalSec = ($mRem * 60) + $seconds;
+        $sDays = intdiv(num1: $totalSec, num2: 86_400);
+        $sRem = $totalSec % 86_400;
 
         // carry + milliseconds → full days + remainder ms
-        $totalMs = $sRem * 1_000 + $ms;
-        $msDays  = intdiv(num1: $totalMs, num2: 86_400_000);
-        $msRem   = $totalMs % 86_400_000;
+        $totalMs = ($sRem * 1_000) + $ms;
+        $msDays = intdiv(num1: $totalMs, num2: 86_400_000);
+        $msRem = $totalMs % 86_400_000;
 
         // carry + microseconds → full days + remainder μs
-        $totalUs = $msRem * 1_000 + $us;
-        $usDays  = intdiv(num1: $totalUs, num2: 86_400_000_000);
-        $usRem   = $totalUs % 86_400_000_000;
+        $totalUs = ($msRem * 1_000) + $us;
+        $usDays = intdiv(num1: $totalUs, num2: 86_400_000_000);
+        $usRem = $totalUs % 86_400_000_000;
 
         // carry + nanoseconds → full days
-        $totalNs = $usRem * 1_000 + $ns;
-        $nsDays  = intdiv(num1: $totalNs, num2: 86_400_000_000_000);
+        $totalNs = ($usRem * 1_000) + $ns;
+        $nsDays = intdiv(num1: $totalNs, num2: 86_400_000_000_000);
 
         $days += $hDays + $mDays + $sDays + $msDays + $usDays + $nsDays;
 
         // Add years/months calendrically.
-        $newYear  = $this->year + $years;
+        $newYear = $this->year + $years;
         $newMonth = $this->month + $months;
 
         // Normalize month into 1–12, carrying into year.
         if ($newMonth > 12) {
-            $newYear  += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12) + 1;
+            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
+            $newMonth = (($newMonth - 1) % 12) + 1;
         } elseif ($newMonth < 1) {
-            $newYear  += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12 + 12) % 12 + 1;
+            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
+            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
         }
 
         // Clamp or reject day within new month.
-        $newDay  = $this->day;
-        $maxDay  = self::calcDaysInMonth($newYear, $newMonth);
+        $newDay = $this->day;
+        $maxDay = self::calcDaysInMonth($newYear, $newMonth);
         if ($newDay > $maxDay) {
             if ($overflow === 'constrain') {
                 $newDay = $maxDay;
             } else {
-                throw new InvalidArgumentException(
-                    "Day {$newDay} is out of range for {$newYear}-{$newMonth}.",
-                );
+                throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
             }
         }
 
@@ -1634,9 +1657,7 @@ final class PlainDate implements Stringable
         $minJdn = self::toJulianDay(-271821, 4, 19);
         $maxJdn = self::toJulianDay(275760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException(
-                'PlainDate arithmetic result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainDate arithmetic result is outside the representable range.');
         }
 
         [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn);
@@ -1652,14 +1673,16 @@ final class PlainDate implements Stringable
     {
         $a = intdiv(num1: 14 - $month, num2: 12);
         $y = $year + 4800 - $a;
-        $m = $month + 12 * $a - 3;
-        return $day
-            + intdiv(num1: 153 * $m + 2, num2: 5)
-            + 365 * $y
+        $m = $month + (12 * $a) - 3;
+        return (
+            $day
+            + intdiv(num1: (153 * $m) + 2, num2: 5)
+            + (365 * $y)
             + self::floorDiv($y, 4)
             - self::floorDiv($y, 100)
             + self::floorDiv($y, 400)
-            - 32_045;
+            - 32_045
+        );
     }
 
     /**
@@ -1670,14 +1693,14 @@ final class PlainDate implements Stringable
     private static function fromJulianDay(int $jdn): array
     {
         $a = $jdn + 32_044;
-        $b = self::floorDiv(4 * $a + 3, 146_097);
+        $b = self::floorDiv((4 * $a) + 3, 146_097);
         $c = $a - self::floorDiv(146_097 * $b, 4);
-        $d = self::floorDiv(4 * $c + 3, 1_461);
+        $d = self::floorDiv((4 * $c) + 3, 1_461);
         $e = $c - self::floorDiv(1_461 * $d, 4);
-        $m = self::floorDiv(5 * $e + 2, 153);
-        $day   = $e - intdiv(num1: 153 * $m + 2, num2: 5) + 1;
-        $month = $m + 3 - 12 * intdiv(num1: $m, num2: 10);
-        $year  = 100 * $b + $d - 4800 + intdiv(num1: $m, num2: 10);
+        $m = self::floorDiv((5 * $e) + 2, 153);
+        $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
+        $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
+        $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
         return [$year, $month, $day];
     }
 
@@ -1693,7 +1716,7 @@ final class PlainDate implements Stringable
 
     private static function isLeapYear(int $year): bool
     {
-        return ($year % 4 === 0 && $year % 100 !== 0) || ($year % 400 === 0);
+        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
     }
 
     /**
@@ -1708,12 +1731,15 @@ final class PlainDate implements Stringable
         if ($month < 3) {
             $year--;
         }
-        $dow = ($year
-            + intdiv(num1: $year, num2: 4)
-            - intdiv(num1: $year, num2: 100)
-            + intdiv(num1: $year, num2: 400)
-            + $t[$month - 1]
-            + $day) % 7;
+        $dow =
+            (
+                $year + intdiv(num1: $year, num2: 4)
+                - intdiv(num1: $year, num2: 100)
+                + intdiv(num1: $year, num2: 400)
+                + $t[$month - 1]
+                + $day
+            )
+            % 7;
         return $dow === 0 ? 7 : $dow;
     }
 
@@ -1739,7 +1765,7 @@ final class PlainDate implements Stringable
      */
     private static function isoWeekInfo(int $year, int $month, int $day): array
     {
-        $dow     = self::isoWeekday($year, $month, $day);
+        $dow = self::isoWeekday($year, $month, $day);
         $ordinal = self::calcDayOfYear($year, $month, $day);
 
         // Move to the Thursday of this ISO week; its ordinal determines the week number.
@@ -1747,10 +1773,10 @@ final class PlainDate implements Stringable
 
         if ($thursdayOrdinal < 1) {
             // Thursday fell in the previous year → last week of that year.
-            $prevYear    = $year - 1;
-            $dec31Dow    = self::isoWeekday($prevYear, 12, 31);
-            $dec31Ord    = self::isLeapYear($prevYear) ? 366 : 365;
-            $prevWeek    = intdiv(num1: $dec31Ord + (4 - $dec31Dow) - 1, num2: 7) + 1;
+            $prevYear = $year - 1;
+            $dec31Dow = self::isoWeekday($prevYear, 12, 31);
+            $dec31Ord = self::isLeapYear($prevYear) ? 366 : 365;
+            $prevWeek = intdiv(num1: $dec31Ord + (4 - $dec31Dow) - 1, num2: 7) + 1;
             return ['week' => $prevWeek, 'year' => $prevYear];
         }
 
@@ -1803,12 +1829,12 @@ final class PlainDate implements Stringable
         // A plain calendar ID: lowercase for case-insensitive comparison.
         // Use ASCII-only lowercase to reject non-ASCII characters like U+0130 (İ).
         $lower = '';
-        $len   = strlen($cal);
+        $len = strlen($cal);
         for ($i = 0; $i < $len; $i++) {
             $c = $cal[$i];
             $o = ord($c);
             // Only lowercase ASCII A-Z; leave all other bytes unchanged.
-            $lower .= ($o >= 0x41 && $o <= 0x5A) ? chr($o + 32) : $c;
+            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
         }
         return $lower;
     }

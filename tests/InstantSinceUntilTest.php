@@ -14,7 +14,7 @@ final class InstantSinceUntilTest extends TestCase
     public function testSinceReturnsPositiveDurationWhenLater(): void
     {
         $earlier = new Instant(0);
-        $later   = new Instant(5_000_000_000); // 5 seconds later
+        $later = new Instant(5_000_000_000); // 5 seconds later
 
         $d = $later->since($earlier);
 
@@ -26,7 +26,7 @@ final class InstantSinceUntilTest extends TestCase
     public function testSinceReturnsNegativeDurationWhenEarlier(): void
     {
         $earlier = new Instant(0);
-        $later   = new Instant(5_000_000_000);
+        $later = new Instant(5_000_000_000);
 
         $d = $earlier->since($later);
 
@@ -36,7 +36,7 @@ final class InstantSinceUntilTest extends TestCase
     public function testUntilReturnsPositiveDurationWhenOtherIsLater(): void
     {
         $start = new Instant(0);
-        $end   = new Instant(3_600_000_000_000); // 1 hour
+        $end = new Instant(3_600_000_000_000); // 1 hour
 
         $d = $start->until($end);
 
@@ -46,7 +46,7 @@ final class InstantSinceUntilTest extends TestCase
     public function testUntilWithLargestUnitHour(): void
     {
         $start = new Instant(0);
-        $end   = new Instant(3_600_000_000_000);
+        $end = new Instant(3_600_000_000_000);
 
         $d = $start->until($end, ['largestUnit' => 'hour']);
 
@@ -76,7 +76,7 @@ final class InstantSinceUntilTest extends TestCase
     public function testSinceWithSmallestUnitMillisecond(): void
     {
         $earlier = new Instant(0);
-        $later   = new Instant(1_500_000_000); // 1.5 s
+        $later = new Instant(1_500_000_000); // 1.5 s
 
         $d = $later->since($earlier, ['smallestUnit' => 'millisecond']);
 
@@ -87,20 +87,20 @@ final class InstantSinceUntilTest extends TestCase
     public function testUntilInvalidLargestUnitThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->until(new Instant(1), ['largestUnit' => 'day']);
+        new Instant(0)->until(new Instant(1), ['largestUnit' => 'day']);
     }
 
     public function testSinceInvalidOptionsTypeThrows(): void
     {
         $this->expectException(TypeError::class);
-        (new Instant(0))->since(new Instant(1), 'bad-options');
+        new Instant(0)->since(new Instant(1), 'bad-options');
     }
 
     public function testUntilSmallestLargerThanLargestThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new Instant(0))->until(new Instant(1), [
-            'largestUnit'  => 'second',
+        new Instant(0)->until(new Instant(1), [
+            'largestUnit' => 'second',
             'smallestUnit' => 'hour',
         ]);
     }

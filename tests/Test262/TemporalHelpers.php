@@ -183,14 +183,7 @@ final class TemporalHelpers
         \Temporal\PlainDate $two,
         string $description = '',
     ): void {
-        self::assertPlainDate(
-            $one,
-            $two->year,
-            $two->month,
-            $two->monthCode,
-            $two->day,
-            $description,
-        );
+        self::assertPlainDate($one, $two->year, $two->month, $two->monthCode, $two->day, $description);
     }
 
     /**
@@ -241,9 +234,16 @@ final class TemporalHelpers
     ): void {
         self::assertPlainDateTime(
             $two,
-            $one->year, $one->month, $one->monthCode, $one->day,
-            $one->hour, $one->minute, $one->second,
-            $one->millisecond, $one->microsecond, $one->nanosecond,
+            $one->year,
+            $one->month,
+            $one->monthCode,
+            $one->day,
+            $one->hour,
+            $one->minute,
+            $one->second,
+            $one->millisecond,
+            $one->microsecond,
+            $one->nanosecond,
             $description,
         );
     }
@@ -284,17 +284,23 @@ final class TemporalHelpers
     public static function checkPluralUnitsAccepted(callable $func, array $validSingularUnits): void
     {
         $plurals = [
-            'year' => 'years', 'month' => 'months', 'week' => 'weeks', 'day' => 'days',
-            'hour' => 'hours', 'minute' => 'minutes', 'second' => 'seconds',
-            'millisecond' => 'milliseconds', 'microsecond' => 'microseconds',
+            'year' => 'years',
+            'month' => 'months',
+            'week' => 'weeks',
+            'day' => 'days',
+            'hour' => 'hours',
+            'minute' => 'minutes',
+            'second' => 'seconds',
+            'millisecond' => 'milliseconds',
+            'microsecond' => 'microseconds',
             'nanosecond' => 'nanoseconds',
         ];
         foreach ($validSingularUnits as $unit) {
             /** @var mixed $singular */
             $singular = $func($unit);
             /** @var mixed $plural */
-            $plural   = $func($plurals[$unit] ?? $unit . 's');
-            $desc     = "Plural {$plurals[$unit]} produces the same result as singular {$unit}";
+            $plural = $func($plurals[$unit] ?? $unit . 's');
+            $desc = "Plural {$plurals[$unit]} produces the same result as singular {$unit}";
             if ($singular instanceof \Temporal\Duration) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
@@ -483,13 +489,15 @@ final class TemporalHelpers
             try {
                 $checkFunc($wrongValue);
                 PHPUnitAssert::fail(
-                    "Expected exception for {$propertyName}=" . var_export(value: $wrongValue, return: true) . ', but nothing was thrown.'
+                    "Expected exception for {$propertyName}="
+                    . var_export(value: $wrongValue, return: true)
+                    . ', but nothing was thrown.',
                 );
             } catch (\PHPUnit\Framework\AssertionFailedError $e) {
                 throw $e;
             } catch (\Throwable) {
                 /** @phpstan-ignore staticMethod.alreadyNarrowedType */
-                PHPUnitAssert::assertTrue(true);  // count the assertion
+                PHPUnitAssert::assertTrue(true); // count the assertion
             }
         }
         // Symbol and BigInt skipped — PHP has no equivalent types.
@@ -533,13 +541,7 @@ final class TemporalHelpers
         \Temporal\PlainYearMonth $two,
         string $description = '',
     ): void {
-        self::assertPlainYearMonth(
-            $one,
-            $two->year,
-            $two->month,
-            $two->monthCode,
-            $description,
-        );
+        self::assertPlainYearMonth($one, $two->year, $two->month, $two->monthCode, $description);
     }
 
     /**

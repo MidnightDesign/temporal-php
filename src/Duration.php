@@ -60,9 +60,18 @@ final class Duration implements Stringable
     ) {
         // TC39: each Duration field must be an integer value (not fractional).
         // Reject any float with a non-zero fractional part.
-        foreach ([$this->years, $this->months, $this->weeks, $this->days,
-                  $this->hours, $this->minutes, $this->seconds,
-                  $this->milliseconds, $this->microseconds, $this->nanoseconds] as $field) {
+        foreach ([
+            $this->years,
+            $this->months,
+            $this->weeks,
+            $this->days,
+            $this->hours,
+            $this->minutes,
+            $this->seconds,
+            $this->milliseconds,
+            $this->microseconds,
+            $this->nanoseconds,
+        ] as $field) {
             if (is_float($field) && !is_infinite($field) && fmod(num1: $field, num2: 1.0) !== 0.0) {
                 throw new InvalidArgumentException(
                     'Duration fields must be integer-valued; fractional values are not allowed.',
@@ -594,8 +603,8 @@ final class Duration implements Stringable
 
         // Initialize local copies of time units that may be updated by carry after rounding.
         $absMinutes = (int) $abs->minutes;
-        $absHours   = (int) $abs->hours;
-        $absDays    = (int) $abs->days;
+        $absHours = (int) $abs->hours;
+        $absDays = (int) $abs->days;
 
         // Apply rounding and format the fractional seconds string.
         if ($digits === null) {
@@ -640,16 +649,16 @@ final class Duration implements Stringable
         $s = $prefix . 'P';
 
         if ($abs->years !== 0) {
-            $s .= ((string) $abs->years) . 'Y';
+            $s .= (string) $abs->years . 'Y';
         }
         if ($abs->months !== 0) {
-            $s .= ((string) $abs->months) . 'M';
+            $s .= (string) $abs->months . 'M';
         }
         if ($abs->weeks !== 0) {
-            $s .= ((string) $abs->weeks) . 'W';
+            $s .= (string) $abs->weeks . 'W';
         }
         if ($absDays !== 0) {
-            $s .= ((string) $absDays) . 'D';
+            $s .= (string) $absDays . 'D';
         }
 
         // With a fixed digit count we always emit the time component (even if zero).
@@ -658,10 +667,10 @@ final class Duration implements Stringable
         if ($hasTime) {
             $s .= 'T';
             if ($absHours !== 0) {
-                $s .= ((string) $absHours) . 'H';
+                $s .= (string) $absHours . 'H';
             }
             if ($absMinutes !== 0) {
-                $s .= ((string) $absMinutes) . 'M';
+                $s .= (string) $absMinutes . 'M';
             }
             // In fixed-digit mode always emit seconds; in auto mode emit only when non-zero.
             if ($digits !== null || $totalSeconds !== 0 || $subNs !== 0) {
@@ -792,9 +801,9 @@ final class Duration implements Stringable
             } else {
                 throw new \TypeError('relativeTo must be a string or property bag.');
             }
-            $hasYear  = array_key_exists('year', $rt);
+            $hasYear = array_key_exists('year', $rt);
             $hasMonth = array_key_exists('month', $rt) || array_key_exists('monthCode', $rt);
-            $hasDay   = array_key_exists('day', $rt);
+            $hasDay = array_key_exists('day', $rt);
             if (!$hasYear || !$hasMonth || !$hasDay) {
                 throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
             }
@@ -821,25 +830,28 @@ final class Duration implements Stringable
                         + ((float) $this->hours * 3_600.0)
                         + ((float) $this->minutes * 60.0)
                         + (float) $this->seconds
-                        + ((
-                            ((float) $this->milliseconds * 1_000_000.0)
-                            + ((float) $this->microseconds * 1_000.0)
-                            + (float) $this->nanoseconds
-                        ) / 1_000_000_000.0);
+                        + (
+                            (
+                                ((float) $this->milliseconds * 1_000_000.0)
+                                + ((float) $this->microseconds * 1_000.0)
+                                + (float) $this->nanoseconds
+                            )
+                            / 1_000_000_000.0
+                        );
                     if ($rtIsZDT) {
                         if (
-                            (float) $parsedRt['_utcSec'] + $rtTotalSec > 8_640_000_000_000.0
-                            || (float) $parsedRt['_utcSec'] + $rtTotalSec < -8_640_000_000_000.0
+                            ((float) $parsedRt['_utcSec'] + $rtTotalSec) > 8_640_000_000_000.0
+                            || ((float) $parsedRt['_utcSec'] + $rtTotalSec) < -8_640_000_000_000.0
                         ) {
                             throw new InvalidArgumentException(
-                                "relativeTo ZonedDateTime is outside the representable range after applying duration.",
+                                'relativeTo ZonedDateTime is outside the representable range after applying duration.',
                             );
                         }
                     } else {
                         // PlainDate: epoch days must be within ±100 000 000.
                         if (abs((int) $parsedRt['_epochDays']) > 100_000_000) {
                             throw new InvalidArgumentException(
-                                "relativeTo PlainDate is outside the representable range after applying duration.",
+                                'relativeTo PlainDate is outside the representable range after applying duration.',
                             );
                         }
                     }
@@ -924,7 +936,7 @@ final class Duration implements Stringable
 
         // Detect inline Z/offset and timezone bracket annotation.
         $hasInlineOffset = preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]|Z)/i', $s) === 1;
-        $hasTzBracket    = preg_match('/\[(?!u-ca=)[^\]]+\]/', $s) === 1;
+        $hasTzBracket = preg_match('/\[(?!u-ca=)[^\]]+\]/', $s) === 1;
 
         // TC39: ToTemporalRelativeTo:
         // - Z + no bracket → invalid (must have a timezone bracket for ZonedDateTime).
@@ -939,7 +951,13 @@ final class Duration implements Stringable
             }
             // Numeric offset: validate that the offset format is ±HH:MM[:SS[.frac]] followed by
             // end-of-string, '[', or whitespace (not extra digits).  Invalid formats (e.g. +00:0000) must throw.
-            if (preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:\[|$)/i', $s, $offMatch) !== 1) {
+            if (
+                preg_match(
+                    '/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:\[|$)/i',
+                    $s,
+                    $offMatch,
+                ) !== 1
+            ) {
                 throw new InvalidArgumentException("relativeTo string \"{$s}\" has an invalid UTC offset format.");
             }
             // Valid numeric offset without bracket: treat as PlainDate (ignore the time+offset part).
@@ -958,14 +976,14 @@ final class Duration implements Stringable
             // Bracket is a numeric UTC offset (±HH:MM or ±HHMM): must match the inline offset
             // UNLESS the inline offset is Z (UTC instant — any timezone bracket is allowed).
             if (preg_match('/^([+\-])(\d{2}):?(\d{2})$/', $bracket, $bOff) === 1) {
-                $bMin = (int) $bOff[2] * 60 + (int) $bOff[3];
+                $bMin = ((int) $bOff[2] * 60) + (int) $bOff[3];
                 $bMin = $bOff[1] === '-' ? -$bMin : $bMin;
                 if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] === 'Z' || $iOff[1] === 'z') {
                         // Z inline offset: any bracket timezone is allowed (no matching required).
                     } else {
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
-                        $iMin = (int) $iOffParts[2] * 60 + (int) $iOffParts[3];
+                        $iMin = ((int) $iOffParts[2] * 60) + (int) $iOffParts[3];
                         $iMin = $iOffParts[1] === '-' ? -$iMin : $iMin;
                         if ($bMin !== $iMin) {
                             throw new InvalidArgumentException(
@@ -978,7 +996,7 @@ final class Duration implements Stringable
                 if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
-                        $iMin = (int) $iOffParts[2] * 60 + (int) $iOffParts[3];
+                        $iMin = ((int) $iOffParts[2] * 60) + (int) $iOffParts[3];
                         if ($iMin !== 0) {
                             throw new InvalidArgumentException(
                                 'relativeTo string bracket offset does not match inline UTC offset.',
@@ -996,17 +1014,17 @@ final class Duration implements Stringable
         ) {
             throw new InvalidArgumentException("Invalid relativeTo date string \"{$s}\".");
         }
-        $year  = (int) $dateMatch[1];
+        $year = (int) $dateMatch[1];
         $month = (int) $dateMatch[2];
-        $day   = (int) $dateMatch[3];
+        $day = (int) $dateMatch[3];
 
         // Compute the proleptic Gregorian epoch-day count.
         $epochDays = self::isoDateToEpochDays($year, $month, $day);
 
         // Defaults for the extended return metadata (set inside ZDT branch only).
         $localTimeSec = 0;
-        $hasFracSec   = false;
-        $utcSec       = 0;
+        $hasFracSec = false;
+        $utcSec = 0;
 
         /** @psalm-suppress RedundantCondition */
         if ($hasInlineOffset && $hasTzBracket) {
@@ -1021,9 +1039,9 @@ final class Duration implements Stringable
 
             // Extract local time (hours, minutes, seconds) and detect sub-second fraction.
             if (preg_match('/T(\d{2}):?(\d{2})(?::?(\d{2})(\.\d+)?)?/i', $s, $tm) === 1) {
-                $localTimeSec = (int) $tm[1] * 3_600 + (int) $tm[2] * 60 + (isset($tm[3]) ? (int) $tm[3] : 0);
+                $localTimeSec = ((int) $tm[1] * 3_600) + ((int) $tm[2] * 60) + (isset($tm[3]) ? (int) $tm[3] : 0);
                 // @phpstan-ignore notIdentical.alwaysTrue
-                $hasFracSec   = isset($tm[4]) && $tm[4] !== '';
+                $hasFracSec = isset($tm[4]) && $tm[4] !== '';
             }
 
             // Extract the inline UTC offset in seconds.
@@ -1031,7 +1049,7 @@ final class Duration implements Stringable
             if (preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                 if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
                     preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $offParts);
-                    $offsetSec = (int) $offParts[2] * 3_600 + (int) $offParts[3] * 60;
+                    $offsetSec = ((int) $offParts[2] * 3_600) + ((int) $offParts[3] * 60);
                     if ($offParts[1] === '-') {
                         $offsetSec = -$offsetSec;
                     }
@@ -1040,13 +1058,11 @@ final class Duration implements Stringable
 
             // Sub-second fractional components are not allowed.
             if ($hasFracSec) {
-                throw new InvalidArgumentException(
-                    "relativeTo ZonedDateTime \"{$s}\" has a sub-second component.",
-                );
+                throw new InvalidArgumentException("relativeTo ZonedDateTime \"{$s}\" has a sub-second component.");
             }
 
             // Compute UTC instant.
-            $utcSec = $epochDays * 86_400 + $localTimeSec - $offsetSec;
+            $utcSec = ($epochDays * 86_400) + $localTimeSec - $offsetSec;
 
             // UTC instant must be within ±8 640 000 000 000 seconds.
             if ($utcSec > 8_640_000_000_000 || $utcSec < -8_640_000_000_000) {
@@ -1058,22 +1074,20 @@ final class Duration implements Stringable
             // PlainDate string: valid range is [-271821-04-19, +275760-09-13]
             // (epoch-days in [-100 000 001, +100 000 000]).
             if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
-                throw new InvalidArgumentException(
-                    "relativeTo PlainDate \"{$s}\" is outside the representable range.",
-                );
+                throw new InvalidArgumentException("relativeTo PlainDate \"{$s}\" is outside the representable range.");
             }
         }
 
         /** @psalm-suppress RedundantCondition */
         $isZDT = $hasInlineOffset && $hasTzBracket;
         return [
-            'year'           => $year,
-            'month'          => $month,
-            'day'            => $day,
-            '_epochDays'     => $epochDays,
-            '_isZDT'         => $isZDT,
-            '_utcSec'        => $utcSec,
-            '_localTimeSec'  => $localTimeSec,
+            'year' => $year,
+            'month' => $month,
+            'day' => $day,
+            '_epochDays' => $epochDays,
+            '_isZDT' => $isZDT,
+            '_utcSec' => $utcSec,
+            '_localTimeSec' => $localTimeSec,
         ];
     }
 
@@ -1146,8 +1160,8 @@ final class Duration implements Stringable
 
         if (
             abs($endEpochDay) > 100_000_000
-            || ($endEpochDay === 100_000_000 && $fracNs > 0)
-            || ($endEpochDay === -100_000_000 && $fracNs < 0)
+            || $endEpochDay === 100_000_000 && $fracNs > 0
+            || $endEpochDay === -100_000_000 && $fracNs < 0
         ) {
             throw new InvalidArgumentException(
                 'Duration with relativeTo exceeds the maximum representable date range.',
@@ -1170,26 +1184,21 @@ final class Duration implements Stringable
 
         return match ($unit) {
             'months' => $this->totalCalendarMonths($start, $totalWholeDays, $fracNs, $nsPerDay),
-            'years'  => $this->totalCalendarYears($start, $totalWholeDays, $fracNs),
+            'years' => $this->totalCalendarYears($start, $totalWholeDays, $fracNs),
             // For weeks: use floor(days/7) + ((days%7 + fracDay)/7) to match TC39 test precision.
             // Non-associative float: (totalDays+fracDay)/7 ≠ floor(totalDays/7)+((rem+fracDay)/7).
-            'weeks'  => self::toIntIfWhole(
-                (float) intdiv(num1: $totalWholeDays, num2: 7)
-                + (((float) ($totalWholeDays % 7) + $fracDay) / 7.0),
+            'weeks' => self::toIntIfWhole(
+                (float) intdiv(num1: $totalWholeDays, num2: 7) + (((float) ($totalWholeDays % 7) + $fracDay) / 7.0),
             ),
-            'days'         => self::toIntIfWhole((float) $totalWholeDays + $fracDay),
-            'hours'        => self::toIntIfWhole((float) $totalWholeDays * 24.0
-                + (float) $fracNs / 3_600_000_000_000.0),
-            'minutes'      => self::toIntIfWhole((float) $totalWholeDays * 1_440.0
-                + (float) $fracNs / 60_000_000_000.0),
-            'seconds'      => self::toIntIfWhole((float) $totalWholeDays * 86_400.0
-                + (float) $fracNs / 1_000_000_000.0),
-            'milliseconds' => self::toIntIfWhole((float) $totalWholeDays * 86_400_000.0
-                + (float) $fracNs / 1_000_000.0),
-            'microseconds' => self::toIntIfWhole((float) $totalWholeDays * 86_400_000_000.0
-                + (float) $fracNs / 1_000.0),
-            'nanoseconds'  => self::toIntIfWhole((float) $totalWholeDays * 86_400_000_000_000.0
-                + (float) $fracNs),
+            'days' => self::toIntIfWhole((float) $totalWholeDays + $fracDay),
+            'hours' => self::toIntIfWhole(((float) $totalWholeDays * 24.0) + ((float) $fracNs / 3_600_000_000_000.0)),
+            'minutes' => self::toIntIfWhole(((float) $totalWholeDays * 1_440.0) + ((float) $fracNs / 60_000_000_000.0)),
+            'seconds' => self::toIntIfWhole(((float) $totalWholeDays * 86_400.0) + ((float) $fracNs / 1_000_000_000.0)),
+            'milliseconds' => self::toIntIfWhole(((float) $totalWholeDays * 86_400_000.0)
+            + ((float) $fracNs / 1_000_000.0)),
+            'microseconds' => self::toIntIfWhole(((float) $totalWholeDays * 86_400_000_000.0)
+            + ((float) $fracNs / 1_000.0)),
+            'nanoseconds' => self::toIntIfWhole(((float) $totalWholeDays * 86_400_000_000_000.0) + (float) $fracNs),
             default => throw new InvalidArgumentException("Unhandled unit: \"{$unit}\"."),
         };
     }
@@ -1237,11 +1246,8 @@ final class Duration implements Stringable
      * Counts fractional years from $start spanning $wholeDays days + $fracNs nanoseconds.
      * Implements TC39 RoundDuration for unit = "years".
      */
-    private function totalCalendarYears(
-        \DateTimeImmutable $start,
-        int $wholeDays,
-        int $fracNs,
-    ): int|float {
+    private function totalCalendarYears(\DateTimeImmutable $start, int $wholeDays, int $fracNs): int|float
+    {
         $absWholeDays = abs($wholeDays);
         $dir = $wholeDays >= 0 ? '+' : '-';
         $sign = $wholeDays >= 0 ? 1 : -1;
@@ -1267,14 +1273,14 @@ final class Duration implements Stringable
         // Direct division fracNs / (nsPerDay * 365) loses precision (86400e9 * 365 > 2^53).
         // Dividing fracNs by 1e6 first (ns → ms) gives the same float64 as the JS test's
         // ms-level computation (fracMs / dayMs), avoiding the 1-ULP rounding difference.
-        $fracDays = (float) ($sign * $fracNs) / 1_000_000.0 / 86_400_000.0;
+        $fracDays = ((float) ($sign * $fracNs) / 1_000_000.0) / 86_400_000.0;
         // Compute fractional part first (matching TC39 test evaluation order):
         // test: $fractionalYear = $partialYearDays / 365 + ($fractionalDay / 365)
         // then: $fullYears + $fractionalYear
         // Float addition is non-associative: (a+b)+c ≠ a+(b+c) at this precision.
-        $fracPart = ((float) ($sign * $remainingDays) / (float) $daysInNextYear)
-            + ($fracDays / (float) $daysInNextYear);
-        $result   = (float) ($years * $sign) + $fracPart;
+        $fracPart =
+            ((float) ($sign * $remainingDays) / (float) $daysInNextYear) + ($fracDays / (float) $daysInNextYear);
+        $result = (float) ($years * $sign) + $fracPart;
 
         return self::toIntIfWhole($result);
     }
@@ -1806,10 +1812,13 @@ final class Duration implements Stringable
         $d1 = self::from($one);
         $d2 = self::from($two);
 
-        $hasCalendar = (
-            $d1->years !== 0 || $d1->months !== 0 || $d1->weeks !== 0
-            || $d2->years !== 0 || $d2->months !== 0 || $d2->weeks !== 0
-        );
+        $hasCalendar =
+            $d1->years !== 0
+            || $d1->months !== 0
+            || $d1->weeks !== 0
+            || $d2->years !== 0
+            || $d2->months !== 0
+            || $d2->weeks !== 0;
 
         // Always validate relativeTo before any early return (invalid values must throw).
         $relativeToProvided = self::extractRelativeTo($options);
@@ -1828,7 +1837,7 @@ final class Duration implements Stringable
         }
         if ($hasCalendar) {
             /** @var mixed $rt */
-            $rt = is_array($options) ? ($options['relativeTo'] ?? null) : null;
+            $rt = is_array($options) ? $options['relativeTo'] ?? null : null;
             $ns1 = $d1->totalNsFromRelativeTo($rt);
             $ns2 = $d2->totalNsFromRelativeTo($rt);
             return $ns1 <=> $ns2;
@@ -1844,7 +1853,7 @@ final class Duration implements Stringable
         }
         [$days1, $subNs1] = self::balanceToDayNs($d1);
         [$days2, $subNs2] = self::balanceToDayNs($d2);
-        $cmp = ($days1 <=> $days2) !== 0 ? ($days1 <=> $days2) : ($subNs1 <=> $subNs2);
+        $cmp = ($days1 <=> $days2) !== 0 ? $days1 <=> $days2 : $subNs1 <=> $subNs2;
         return $s1 * $cmp;
     }
 
@@ -1868,7 +1877,8 @@ final class Duration implements Stringable
         } elseif (!is_array($roundTo)) {
             throw new \TypeError(
                 'Duration::round() expects a string (smallestUnit) or options array; got '
-                . get_debug_type($roundTo) . '.',
+                . get_debug_type($roundTo)
+                . '.',
             );
         }
 
@@ -1910,14 +1920,21 @@ final class Duration implements Stringable
         // Validate and normalize units.
         /** @var array<string,int> Unit index (0=nanosecond, 9=year). */
         static $UNIT_IDX = [
-            'nanoseconds' => 0, 'microseconds' => 1, 'milliseconds' => 2,
-            'seconds' => 3, 'minutes' => 4, 'hours' => 5,
-            'days' => 6, 'weeks' => 7, 'months' => 8, 'years' => 9,
+            'nanoseconds' => 0,
+            'microseconds' => 1,
+            'milliseconds' => 2,
+            'seconds' => 3,
+            'minutes' => 4,
+            'hours' => 5,
+            'days' => 6,
+            'weeks' => 7,
+            'months' => 8,
+            'years' => 9,
         ];
 
         /** @phpstan-ignore cast.string */
         $suNorm = $suProvided ? self::normalizeUnit((string) $suRaw) : null;
-        $luIsAuto = (!$luProvided || $luRaw === 'auto');
+        $luIsAuto = !$luProvided || $luRaw === 'auto';
         /** @phpstan-ignore cast.string */
         $luNorm = $luIsAuto ? null : self::normalizeUnit((string) $luRaw);
 
@@ -1926,7 +1943,7 @@ final class Duration implements Stringable
         $luIsCalendar = $luNorm !== null && isset($UNIT_IDX[$luNorm]) && $UNIT_IDX[$luNorm] >= 7;
 
         // Duration itself has calendar units.
-        $durationHasCalendar = ($this->years !== 0 || $this->months !== 0 || $this->weeks !== 0);
+        $durationHasCalendar = $this->years !== 0 || $this->months !== 0 || $this->weeks !== 0;
 
         $needsRelativeTo = $suIsCalendar || $luIsCalendar || $durationHasCalendar;
 
@@ -1946,7 +1963,15 @@ final class Duration implements Stringable
         if ($needsRelativeTo) {
             /** @var mixed $rtRaw */
             $rtRaw = $roundTo['relativeTo'] ?? null;
-            return $this->roundWithRelativeTo($rtRaw, $suNorm, $luIsAuto, $luNorm, $increment, $roundingMode, $UNIT_IDX);
+            return $this->roundWithRelativeTo(
+                $rtRaw,
+                $suNorm,
+                $luIsAuto,
+                $luNorm,
+                $increment,
+                $roundingMode,
+                $UNIT_IDX,
+            );
         }
 
         // For pure-time rounds: validate relativeTo and check overflow for non-blank durations.
@@ -1964,25 +1989,28 @@ final class Duration implements Stringable
                     + ((float) $this->hours * 3_600.0)
                     + ((float) $this->minutes * 60.0)
                     + (float) $this->seconds
-                    + ((
-                        ((float) $this->milliseconds * 1_000_000.0)
-                        + ((float) $this->microseconds * 1_000.0)
-                        + (float) $this->nanoseconds
-                    ) / 1_000_000_000.0);
+                    + (
+                        (
+                            ((float) $this->milliseconds * 1_000_000.0)
+                            + ((float) $this->microseconds * 1_000.0)
+                            + (float) $this->nanoseconds
+                        )
+                        / 1_000_000_000.0
+                    );
                 if ($rtIsZDT) {
                     if (
-                        (float) $parsedRt['_utcSec'] + $rtTotalSec > 8_640_000_000_000.0
-                        || (float) $parsedRt['_utcSec'] + $rtTotalSec < -8_640_000_000_000.0
+                        ((float) $parsedRt['_utcSec'] + $rtTotalSec) > 8_640_000_000_000.0
+                        || ((float) $parsedRt['_utcSec'] + $rtTotalSec) < -8_640_000_000_000.0
                     ) {
                         throw new InvalidArgumentException(
-                            "relativeTo ZonedDateTime is outside the representable range after applying duration.",
+                            'relativeTo ZonedDateTime is outside the representable range after applying duration.',
                         );
                     }
                 } else {
                     // PlainDate: epoch days must be within ±100 000 000.
                     if (abs((int) $parsedRt['_epochDays']) > 100_000_000) {
                         throw new InvalidArgumentException(
-                            "relativeTo PlainDate is outside the representable range after applying duration.",
+                            'relativeTo PlainDate is outside the representable range after applying duration.',
                         );
                     }
                 }
@@ -2005,15 +2033,20 @@ final class Duration implements Stringable
 
         // largestUnit must be >= smallestUnit.
         if ($luIdx < $suIdx) {
-            throw new InvalidArgumentException(
-                'largestUnit must be at least as large as smallestUnit.',
-            );
+            throw new InvalidArgumentException('largestUnit must be at least as large as smallestUnit.');
         }
 
         // Prevent undefined behavior from (int) cast on float Duration fields > PHP int64.
         // This can occur with very large float microseconds/nanoseconds values.
-        foreach ([$this->days, $this->hours, $this->minutes, $this->seconds,
-                  $this->milliseconds, $this->microseconds, $this->nanoseconds] as $_field) {
+        foreach ([
+            $this->days,
+            $this->hours,
+            $this->minutes,
+            $this->seconds,
+            $this->milliseconds,
+            $this->microseconds,
+            $this->nanoseconds,
+        ] as $_field) {
             if (is_float($_field) && abs($_field) >= 9.223372036854776e18) {
                 throw new InvalidArgumentException(
                     'Duration time fields exceed the maximum representable range after rounding.',
@@ -2026,36 +2059,44 @@ final class Duration implements Stringable
         $absNs = (int) abs((float) $this->nanoseconds);
         $absUs = (int) abs((float) $this->microseconds);
         $absMs = (int) abs((float) $this->milliseconds);
-        $absS  = (int) abs((float) $this->seconds);
-        $absM  = (int) abs((float) $this->minutes);
-        $absH  = (int) abs((float) $this->hours);
-        $absD  = (int) abs((float) $this->days);
+        $absS = (int) abs((float) $this->seconds);
+        $absM = (int) abs((float) $this->minutes);
+        $absH = (int) abs((float) $this->hours);
+        $absD = (int) abs((float) $this->days);
 
         // Balance up to get exact integers.
-        $absUs += intdiv(num1: $absNs, num2: 1_000);     $absNs = $absNs % 1_000;
-        $absMs += intdiv(num1: $absUs, num2: 1_000);     $absUs = $absUs % 1_000;
-        $absS  += intdiv(num1: $absMs, num2: 1_000);     $absMs = $absMs % 1_000;
-        $absM  += intdiv(num1: $absS,  num2: 60);        $absS  = $absS  % 60;
-        $absH  += intdiv(num1: $absM,  num2: 60);        $absM  = $absM  % 60;
-        $absD  += intdiv(num1: $absH,  num2: 24);        $absH  = $absH  % 24;
+        $absUs += intdiv(num1: $absNs, num2: 1_000);
+        $absNs = $absNs % 1_000;
+        $absMs += intdiv(num1: $absUs, num2: 1_000);
+        $absUs = $absUs % 1_000;
+        $absS += intdiv(num1: $absMs, num2: 1_000);
+        $absMs = $absMs % 1_000;
+        $absM += intdiv(num1: $absS, num2: 60);
+        $absS = $absS % 60;
+        $absH += intdiv(num1: $absM, num2: 60);
+        $absM = $absM % 60;
+        $absD += intdiv(num1: $absH, num2: 24);
+        $absH = $absH % 24;
 
         // Compute totalNs, guarding against int64 overflow for large day counts.
-        $subDayNs = $absH * 3_600_000_000_000
-            + $absM * 60_000_000_000
-            + $absS * 1_000_000_000
-            + $absMs * 1_000_000
-            + $absUs * 1_000
+        $subDayNs =
+            ($absH * 3_600_000_000_000)
+            + ($absM * 60_000_000_000)
+            + ($absS * 1_000_000_000)
+            + ($absMs * 1_000_000)
+            + ($absUs * 1_000)
             + $absNs;
 
         // Validate: total seconds must not exceed MaxTimeDuration (MAX_SAFE_INT seconds).
         // Use float arithmetic to avoid int64 overflow in the check.
-        $totalAbsSec = (float) $absD * 86_400.0
-            + (float) $absH * 3_600.0
-            + (float) $absM * 60.0
+        $totalAbsSec =
+            ((float) $absD * 86_400.0)
+            + ((float) $absH * 3_600.0)
+            + ((float) $absM * 60.0)
             + (float) $absS
-            + (float) $absMs / 1_000.0
-            + (float) $absUs / 1_000_000.0
-            + (float) $absNs / 1_000_000_000.0;
+            + ((float) $absMs / 1_000.0)
+            + ((float) $absUs / 1_000_000.0)
+            + ((float) $absNs / 1_000_000_000.0);
         if ($totalAbsSec > 9_007_199_254_740_992.0) {
             throw new InvalidArgumentException(
                 'Duration time fields exceed the maximum representable range after rounding.',
@@ -2068,7 +2109,7 @@ final class Duration implements Stringable
             /** @var \Temporal\ZonedDateTime $rtRawForZdt */
             $zdtEpochNs = $rtRawForZdt->epochNanoseconds;
             $zdtEpochSec = (float) intdiv(num1: $zdtEpochNs, num2: 1_000_000_000);
-            $zdtResultSec = $zdtEpochSec + (float) $sign * $totalAbsSec;
+            $zdtResultSec = $zdtEpochSec + ((float) $sign * $totalAbsSec);
             if ($zdtResultSec > 8_640_000_000_000.0 || $zdtResultSec < -8_640_000_000_000.0) {
                 throw new InvalidArgumentException(
                     'Duration with ZonedDateTime relativeTo would move the instant outside the valid range.',
@@ -2102,8 +2143,12 @@ final class Duration implements Stringable
         if ($suNormResolved !== 'days' && $suIdx < 6) {
             /** @var array<string,int> */
             static $MAX_PER_UNIT = [
-                'nanoseconds' => 1_000, 'microseconds' => 1_000, 'milliseconds' => 1_000,
-                'seconds' => 60, 'minutes' => 60, 'hours' => 24,
+                'nanoseconds' => 1_000,
+                'microseconds' => 1_000,
+                'milliseconds' => 1_000,
+                'seconds' => 60,
+                'minutes' => 60,
+                'hours' => 24,
             ];
             $maxPerUnit = $MAX_PER_UNIT[$suNormResolved] ?? 1;
             if ($increment >= $maxPerUnit) {
@@ -2111,7 +2156,7 @@ final class Duration implements Stringable
                     "roundingIncrement {$increment} is too large for unit \"{$suNormResolved}\".",
                 );
             }
-            if ($maxPerUnit % $increment !== 0) {
+            if (($maxPerUnit % $increment) !== 0) {
                 throw new InvalidArgumentException(
                     "roundingIncrement {$increment} does not evenly divide into the next unit for \"{$suNormResolved}\".",
                 );
@@ -2151,9 +2196,9 @@ final class Duration implements Stringable
         // In the pure-time path largestUnit is always 'days' when smallestUnit='days'
         // (weeks/months/years require relativeTo → calendar path via roundWithRelativeTo).
         if ($suNormResolved === 'days') {
-            $totalAbsDaysF = (float) $absD + (float) $subDayNs / 86_400_000_000_000.0;
+            $totalAbsDaysF = (float) $absD + ((float) $subDayNs / 86_400_000_000_000.0);
             $roundedAbsDays = (int) self::roundNsFloat($totalAbsDaysF, (float) $increment, $roundingMode);
-            if ((float) $roundedAbsDays * 86_400.0 >= 9_007_199_254_740_992.0) {
+            if (((float) $roundedAbsDays * 86_400.0) >= 9_007_199_254_740_992.0) {
                 throw new InvalidArgumentException(
                     'Duration time fields exceed the maximum representable range after rounding.',
                 );
@@ -2166,13 +2211,13 @@ final class Duration implements Stringable
         // Safe threshold: 106_750 * 86_400_000_000_000 + 86_399_999_999_999 < PHP_INT_MAX.
         // Direct comparison (not a bool variable) lets Psalm narrow $absD's range inside the block.
         if ($absD <= 106_750) {
-            $totalNsInt = $absD * 86_400_000_000_000 + $subDayNs;
+            $totalNsInt = ($absD * 86_400_000_000_000) + $subDayNs;
             // Round the total nanoseconds (int path).
             $roundedNsInt = self::roundNsPositive($totalNsInt, $nsIncrement, $roundingMode);
             // Validate rounded result is within MaxTimeDuration (MAX_SAFE_INT seconds).
             // MaxTimeDuration = 9_007_199_254_740_991 seconds + 999_999_999 ns.
             // 9_007_199_254_740_992 * 1e9 exceeds MaxTimeDuration, so use >=.
-            if ((float) $roundedNsInt / 1_000_000_000.0 >= 9_007_199_254_740_992.0) {
+            if (((float) $roundedNsInt / 1_000_000_000.0) >= 9_007_199_254_740_992.0) {
                 throw new InvalidArgumentException(
                     'Duration time fields exceed the maximum representable range after rounding.',
                 );
@@ -2181,10 +2226,10 @@ final class Duration implements Stringable
             [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields($roundedNsInt, $luIdx);
         } else {
             // Float path: totalNs > PHP_INT_MAX.
-            $totalNsFloat = (float) $absD * 86_400_000_000_000.0 + (float) $subDayNs;
+            $totalNsFloat = ((float) $absD * 86_400_000_000_000.0) + (float) $subDayNs;
             $roundedNsFloat = self::roundNsFloat($totalNsFloat, (float) $nsIncrement, $roundingMode);
             // Validate rounded result.
-            if ($roundedNsFloat / 1_000_000_000.0 >= 9_007_199_254_740_992.0) {
+            if (($roundedNsFloat / 1_000_000_000.0) >= 9_007_199_254_740_992.0) {
                 throw new InvalidArgumentException(
                     'Duration time fields exceed the maximum representable range after rounding.',
                 );
@@ -2201,8 +2246,8 @@ final class Duration implements Stringable
                 // exact = 9007199254740991000000000, offset = 73741824,
                 // halfUlp = 536870912, threshold = 536870912 − 73741824 = 463129088.
                 if ($luIdx === 0) {
-                    $totalSecondsExact = $absD * 86_400 + $absH * 3_600 + $absM * 60 + $absS;
-                    $subNsExact = $absMs * 1_000_000 + $absUs * 1_000 + $absNs;
+                    $totalSecondsExact = ($absD * 86_400) + ($absH * 3_600) + ($absM * 60) + $absS;
+                    $subNsExact = ($absMs * 1_000_000) + ($absUs * 1_000) + $absNs;
                     if ($totalSecondsExact === 9_007_199_254_740_991 && $subNsExact >= 463_129_088) {
                         throw new InvalidArgumentException(
                             'Duration time fields exceed the maximum representable range after rounding.',
@@ -2210,7 +2255,14 @@ final class Duration implements Stringable
                     }
                 }
                 [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::accumulateFieldsToUnit(
-                    $absD, $absH, $absM, $absS, $absMs, $absUs, $absNs, $luIdx,
+                    $absD,
+                    $absH,
+                    $absM,
+                    $absS,
+                    $absMs,
+                    $absUs,
+                    $absNs,
+                    $luIdx,
                 );
                 // After accumulation, the top field may have overflowed int64 and been promoted
                 // to float by PHP. When the float64-rounded value exceeds MaxTimeDuration, throw.
@@ -2218,22 +2270,25 @@ final class Duration implements Stringable
                 // where the nanoseconds field overflows int64 and rounds up past the limit.
                 // The divisors convert the top-field unit back to seconds for comparison.
                 $topField = match ($luIdx) {
-                    0 => $rNs, 1 => $rUs, 2 => $rMs, 3 => $rS,
-                    4 => $rM, 5 => $rH, default => $rDays,
+                    0 => $rNs,
+                    1 => $rUs,
+                    2 => $rMs,
+                    3 => $rS,
+                    4 => $rM,
+                    5 => $rH,
+                    default => $rDays,
                 };
                 /** @var array<int,float> $TOP_UNIT_TO_NS */
                 static $TOP_UNIT_TO_NS = [
-                    1_000_000_000.0,    // ns: divide by 1e9 to get seconds
-                    1_000_000.0,        // us: divide by 1e6
-                    1_000.0,            // ms: divide by 1e3
-                    1.0,                // s:  no conversion
-                    1.0 / 60.0,         // min: multiply by 60 → skip (cannot exceed in minutes alone)
-                    1.0 / 3_600.0,      // h
-                    1.0 / 86_400.0,     // day
+                    1_000_000_000.0, // ns: divide by 1e9 to get seconds
+                    1_000_000.0, // us: divide by 1e6
+                    1_000.0, // ms: divide by 1e3
+                    1.0, // s:  no conversion
+                    1.0 / 60.0, // min: multiply by 60 → skip (cannot exceed in minutes alone)
+                    1.0 / 3_600.0, // h
+                    1.0 / 86_400.0, // day
                 ];
-                if (is_float($topField)
-                    && abs($topField) / $TOP_UNIT_TO_NS[$luIdx] >= 9_007_199_254_740_992.0
-                ) {
+                if (is_float($topField) && (abs($topField) / $TOP_UNIT_TO_NS[$luIdx]) >= 9_007_199_254_740_992.0) {
                     throw new InvalidArgumentException(
                         'Duration time fields exceed the maximum representable range after rounding.',
                     );
@@ -2244,8 +2299,16 @@ final class Duration implements Stringable
                 // The spec uses BigInt internally; we simulate by working in a larger unit
                 // (µs or ms) where the total fits in int64.
                 $result = self::tryRoundExact(
-                    $absD, $absH, $absM, $absS, $absMs, $absUs, $absNs,
-                    $nsIncrement, $roundingMode, $luIdx,
+                    $absD,
+                    $absH,
+                    $absM,
+                    $absS,
+                    $absMs,
+                    $absUs,
+                    $absNs,
+                    $nsIncrement,
+                    $roundingMode,
+                    $luIdx,
                 );
                 if ($result !== null) {
                     [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = $result;
@@ -2370,7 +2433,17 @@ final class Duration implements Stringable
             throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
         }
         // Validate Infinity/NaN in numeric fields.
-        foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $field) {
+        foreach ([
+            'year',
+            'month',
+            'day',
+            'hour',
+            'minute',
+            'second',
+            'millisecond',
+            'microsecond',
+            'nanosecond',
+        ] as $field) {
             if (!array_key_exists($field, $rt)) {
                 continue;
             }
@@ -2414,7 +2487,9 @@ final class Duration implements Stringable
                 throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\": non-zero seconds.");
             }
             if (isset($offM[5]) && ltrim($offM[5], characters: '0') !== '') {
-                throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\": non-zero sub-seconds.");
+                throw new InvalidArgumentException(
+                    "Invalid relativeTo offset string \"{$offVal}\": non-zero sub-seconds.",
+                );
             }
         }
     }
@@ -2433,16 +2508,16 @@ final class Duration implements Stringable
         $epochNs = $zdt->epochNanoseconds;
         // Integer division: floor toward negative infinity.
         $epochSec = intdiv(num1: $epochNs, num2: 1_000_000_000);
-        if ($epochNs < 0 && $epochNs % 1_000_000_000 !== 0) {
+        if ($epochNs < 0 && ($epochNs % 1_000_000_000) !== 0) {
             $epochSec -= 1;
         }
         $offsetSec = self::parseTimezoneToOffsetSec($zdt->timeZoneId);
-        $localSec  = $epochSec + $offsetSec;
+        $localSec = $epochSec + $offsetSec;
         $dt = new \DateTimeImmutable('@' . $localSec, new \DateTimeZone('UTC'));
         return [
-            'year'  => (int) $dt->format('Y'),
+            'year' => (int) $dt->format('Y'),
             'month' => (int) $dt->format('n'),
-            'day'   => (int) $dt->format('j'),
+            'day' => (int) $dt->format('j'),
         ];
     }
 
@@ -2460,7 +2535,7 @@ final class Duration implements Stringable
         }
         if (preg_match('/^([+\-])(\d{2}):(\d{2})(?::(\d{2}))?$/', $tz, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
-            return $sign * ((int) $m[2] * 3_600 + (int) $m[3] * 60 + (isset($m[4]) ? (int) $m[4] : 0));
+            return $sign * (((int) $m[2] * 3_600) + ((int) $m[3] * 60) + (isset($m[4]) ? (int) $m[4] : 0));
         }
         throw new InvalidArgumentException(
             "ZonedDateTime timezone '{$tz}' is not a fixed-offset timezone. Only UTC and ±HH:MM are supported.",
@@ -2475,26 +2550,32 @@ final class Duration implements Stringable
      */
     private static function balanceToDayNs(self $d): array
     {
-        $h   = (int) abs((float) $d->hours);
-        $m   = (int) abs((float) $d->minutes);
-        $s   = (int) abs((float) $d->seconds);
-        $ms  = (int) abs((float) $d->milliseconds);
-        $us  = (int) abs((float) $d->microseconds);
-        $ns  = (int) abs((float) $d->nanoseconds);
+        $h = (int) abs((float) $d->hours);
+        $m = (int) abs((float) $d->minutes);
+        $s = (int) abs((float) $d->seconds);
+        $ms = (int) abs((float) $d->milliseconds);
+        $us = (int) abs((float) $d->microseconds);
+        $ns = (int) abs((float) $d->nanoseconds);
 
-        $us  += intdiv(num1: $ns, num2: 1_000);    $ns = $ns % 1_000;
-        $ms  += intdiv(num1: $us, num2: 1_000);    $us = $us % 1_000;
-        $s   += intdiv(num1: $ms, num2: 1_000);    $ms = $ms % 1_000;
-        $m   += intdiv(num1: $s,  num2: 60);       $s  = $s  % 60;
-        $h   += intdiv(num1: $m,  num2: 60);       $m  = $m  % 60;
+        $us += intdiv(num1: $ns, num2: 1_000);
+        $ns = $ns % 1_000;
+        $ms += intdiv(num1: $us, num2: 1_000);
+        $us = $us % 1_000;
+        $s += intdiv(num1: $ms, num2: 1_000);
+        $ms = $ms % 1_000;
+        $m += intdiv(num1: $s, num2: 60);
+        $s = $s % 60;
+        $h += intdiv(num1: $m, num2: 60);
+        $m = $m % 60;
         $days = (int) abs((float) $d->days) + intdiv(num1: $h, num2: 24);
-        $h    = $h % 24;
+        $h = $h % 24;
 
-        $subNs = $h * 3_600_000_000_000
-            + $m * 60_000_000_000
-            + $s * 1_000_000_000
-            + $ms * 1_000_000
-            + $us * 1_000
+        $subNs =
+            ($h * 3_600_000_000_000)
+            + ($m * 60_000_000_000)
+            + ($s * 1_000_000_000)
+            + ($ms * 1_000_000)
+            + ($us * 1_000)
             + $ns;
 
         return [$days, $subNs];
@@ -2512,43 +2593,43 @@ final class Duration implements Stringable
      */
     private static function balanceNsToFields(int $totalAbsNs, int $largestUnitIdx): array
     {
-        $ns  = $totalAbsNs % 1_000;
+        $ns = $totalAbsNs % 1_000;
         $rem = intdiv(num1: $totalAbsNs, num2: 1_000);
-        $us  = $rem % 1_000;
+        $us = $rem % 1_000;
         $rem = intdiv(num1: $rem, num2: 1_000);
-        $ms  = $rem % 1_000;
+        $ms = $rem % 1_000;
         $rem = intdiv(num1: $rem, num2: 1_000);
-        $s   = $rem % 60;
+        $s = $rem % 60;
         $rem = intdiv(num1: $rem, num2: 60);
-        $m   = $rem % 60;
+        $m = $rem % 60;
         $rem = intdiv(num1: $rem, num2: 60);
-        $h   = $rem % 24;
+        $h = $rem % 24;
         $days = intdiv(num1: $rem, num2: 24);
 
         // Bubble excess upward when largestUnit is smaller than 'day' (idx 6).
         if ($largestUnitIdx < 6) {
-            $h   += $days * 24;
+            $h += $days * 24;
             $days = 0;
         }
         if ($largestUnitIdx < 5) {
             $m += $h * 60;
-            $h  = 0;
+            $h = 0;
         }
         if ($largestUnitIdx < 4) {
             $s += $m * 60;
-            $m  = 0;
+            $m = 0;
         }
         if ($largestUnitIdx < 3) {
             $ms += $s * 1_000;
-            $s   = 0;
+            $s = 0;
         }
         if ($largestUnitIdx < 2) {
             $us += $ms * 1_000;
-            $ms  = 0;
+            $ms = 0;
         }
         if ($largestUnitIdx < 1) {
             $ns += $us * 1_000;
-            $us  = 0;
+            $us = 0;
         }
 
         // Apply float64 rounding to field values that exceed 2^53 (MAX_SAFE_INTEGER).
@@ -2577,19 +2658,15 @@ final class Duration implements Stringable
      */
     private static function roundNsPositive(int $ns, int $increment, string $mode): int
     {
-        $q  = intdiv(num1: $ns, num2: $increment);
-        $d1 = $ns - $q * $increment; // remainder, >= 0
+        $q = intdiv(num1: $ns, num2: $increment);
+        $d1 = $ns - ($q * $increment); // remainder, >= 0
         $r2 = $q + 1;
         $rounded = match ($mode) {
-            'trunc', 'floor'      => $q,
-            'ceil', 'expand'      => $d1 === 0 ? $q : $r2,
+            'trunc', 'floor' => $q,
+            'ceil', 'expand' => $d1 === 0 ? $q : $r2,
             'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $q,
             'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $q,
-            'halfEven' => ($d1 * 2) < $increment
-                ? $q
-                : (($d1 * 2) > $increment
-                    ? $r2
-                    : (($q % 2) === 0 ? $q : $r2)),
+            'halfEven' => ($d1 * 2) < $increment ? $q : (($d1 * 2) > $increment ? $r2 : (($q % 2) === 0 ? $q : $r2)),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
         return $rounded * $increment;
@@ -2631,54 +2708,54 @@ final class Duration implements Stringable
         // and fields within their normal ranges after balancing.
 
         // Nanosecond remainder.
-        $ns   = $absNs % 1_000;
+        $ns = $absNs % 1_000;
         $carryUs = intdiv(num1: $absNs, num2: 1_000) + $absUs;
 
         // Microsecond level.
-        $us   = $carryUs % 1_000;
+        $us = $carryUs % 1_000;
         $carryMs = intdiv(num1: $carryUs, num2: 1_000) + $absMs;
 
         // Millisecond level.
-        $ms   = $carryMs % 1_000;
+        $ms = $carryMs % 1_000;
         $carryS = intdiv(num1: $carryMs, num2: 1_000) + $absS;
 
         // Second level.
-        $s    = $carryS % 60;
+        $s = $carryS % 60;
         $carryM = intdiv(num1: $carryS, num2: 60) + $absM;
 
         // Minute level.
-        $m    = $carryM % 60;
+        $m = $carryM % 60;
         $carryH = intdiv(num1: $carryM, num2: 60) + $absH;
 
         // Hour level.
-        $h    = $carryH % 24;
+        $h = $carryH % 24;
         $days = intdiv(num1: $carryH, num2: 24) + $absD;
 
         // Now: days, h(0-23), m(0-59), s(0-59), ms(0-999), us(0-999), ns(0-999).
         // Bubble up: if largestUnit is smaller than 'day', fold days into h, etc.
         if ($largestUnitIdx < 6) {
-            $h   += $days * 24;
+            $h += $days * 24;
             $days = 0;
         }
         if ($largestUnitIdx < 5) {
             $m += $h * 60;
-            $h  = 0;
+            $h = 0;
         }
         if ($largestUnitIdx < 4) {
             $s += $m * 60;
-            $m  = 0;
+            $m = 0;
         }
         if ($largestUnitIdx < 3) {
             $ms += $s * 1_000;
-            $s   = 0;
+            $s = 0;
         }
         if ($largestUnitIdx < 2) {
             $us += $ms * 1_000;
-            $ms  = 0;
+            $ms = 0;
         }
         if ($largestUnitIdx < 1) {
             $ns += $us * 1_000;
-            $us  = 0;
+            $us = 0;
         }
 
         return [$f64($days), $f64($h), $f64($m), $f64($s), $f64($ms), $f64($us), $f64($ns)];
@@ -2735,10 +2812,10 @@ final class Duration implements Stringable
         // Try ms level first (coarser), then µs level.
         // Entry: [nsPerWorkUnit, d-coeff, h-coeff, m-coeff, s-coeff, ms-coeff, us-coeff-in-work-unit]
         foreach ([
-            [1_000_000, 86_400_000, 3_600_000, 60_000, 1_000, 1, 0],        // ms level
-            [1_000, 86_400_000_000, 3_600_000_000, 60_000_000, 1_000_000, 1_000, 1], // µs level
+            [1_000_000, 86_400_000,     3_600_000,     60_000,     1_000,     1,     0], // ms level
+            [1_000,     86_400_000_000, 3_600_000_000, 60_000_000, 1_000_000, 1_000, 1], // µs level
         ] as [$nsPerWu, $dC, $hC, $mC, $sC, $msC, $usC]) {
-            if ($nsIncrement % $nsPerWu !== 0) {
+            if (($nsIncrement % $nsPerWu) !== 0) {
                 continue;
             }
             $incWu = intdiv(num1: $nsIncrement, num2: $nsPerWu);
@@ -2754,17 +2831,19 @@ final class Duration implements Stringable
             }
 
             // Guard against int64 overflow in the total computation.
-            $floatTotal = (float) $absD * (float) $dC
-                + (float) $absH * (float) $hC
-                + (float) $absM * (float) $mC
-                + (float) $absS * (float) $sC
-                + (float) $absMs * (float) $msC
-                + (float) $absUs * (float) $usC;
+            $floatTotal =
+                ((float) $absD * (float) $dC)
+                + ((float) $absH * (float) $hC)
+                + ((float) $absM * (float) $mC)
+                + ((float) $absS * (float) $sC)
+                + ((float) $absMs * (float) $msC)
+                + ((float) $absUs * (float) $usC);
             if ($floatTotal >= (float) PHP_INT_MAX || $floatTotal <= (float) PHP_INT_MIN) {
                 continue;
             }
 
-            $totalWu = $absD * $dC + $absH * $hC + $absM * $mC + $absS * $sC + $absMs * $msC + $absUs * $usC;
+            $totalWu =
+                ($absD * $dC) + ($absH * $hC) + ($absM * $mC) + ($absS * $sC) + ($absMs * $msC) + ($absUs * $usC);
             $roundedWu = self::roundNsPositive($totalWu, $incWu, $roundingMode);
 
             // Decompose roundedWu back into fields.
@@ -2791,12 +2870,30 @@ final class Duration implements Stringable
             $rD = intdiv(num1: $carry, num2: 24);
 
             // Bubble up for largestUnit < day.
-            if ($luIdx < 6) { $rH += $rD * 24;   $rD = 0; }
-            if ($luIdx < 5) { $rM += $rH * 60;   $rH = 0; }
-            if ($luIdx < 4) { $rS += $rM * 60;   $rM = 0; }
-            if ($luIdx < 3) { $rMs += $rS * 1_000; $rS = 0; }
-            if ($luIdx < 2) { $rUs += $rMs * 1_000; $rMs = 0; }
-            if ($luIdx < 1) { $rNs += $rUs * 1_000; $rUs = 0; }
+            if ($luIdx < 6) {
+                $rH += $rD * 24;
+                $rD = 0;
+            }
+            if ($luIdx < 5) {
+                $rM += $rH * 60;
+                $rH = 0;
+            }
+            if ($luIdx < 4) {
+                $rS += $rM * 60;
+                $rM = 0;
+            }
+            if ($luIdx < 3) {
+                $rMs += $rS * 1_000;
+                $rS = 0;
+            }
+            if ($luIdx < 2) {
+                $rUs += $rMs * 1_000;
+                $rMs = 0;
+            }
+            if ($luIdx < 1) {
+                $rNs += $rUs * 1_000;
+                $rUs = 0;
+            }
 
             return [$f64($rD), $f64($rH), $f64($rM), $f64($rS), $f64($rMs), $f64($rUs), $f64($rNs)];
         }
@@ -2815,18 +2912,16 @@ final class Duration implements Stringable
     private static function roundNsFloat(float $ns, float $increment, string $mode): float
     {
         $q = floor($ns / $increment);
-        $d1 = $ns - $q * $increment; // >= 0
+        $d1 = $ns - ($q * $increment); // >= 0
         $r2 = $q + 1.0;
         $rounded = match ($mode) {
-            'trunc', 'floor'         => $q,
-            'ceil', 'expand'         => $d1 === 0.0 ? $q : $r2,
+            'trunc', 'floor' => $q,
+            'ceil', 'expand' => $d1 === 0.0 ? $q : $r2,
             'halfExpand', 'halfCeil' => ($d1 * 2.0) >= $increment ? $r2 : $q,
             'halfTrunc', 'halfFloor' => ($d1 * 2.0) > $increment ? $r2 : $q,
             'halfEven' => ($d1 * 2.0) < $increment
                 ? $q
-                : (($d1 * 2.0) > $increment
-                    ? $r2
-                    : (fmod(num1: $q, num2: 2.0) === 0.0 ? $q : $r2)),
+                : (($d1 * 2.0) > $increment ? $r2 : (fmod(num1: $q, num2: 2.0) === 0.0 ? $q : $r2)),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
         return $rounded * $increment;
@@ -2909,7 +3004,9 @@ final class Duration implements Stringable
     {
         // Reject empty string.
         if ($tz === '') {
-            throw new InvalidArgumentException("Invalid timeZone \"\": empty string is not a valid timezone identifier.");
+            throw new InvalidArgumentException(
+                "Invalid timeZone \"\": empty string is not a valid timezone identifier.",
+            );
         }
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
@@ -2924,15 +3021,8 @@ final class Duration implements Stringable
             }
         }
         // Pure UTC-offset strings (no T date/time part): must be ±HH:MM or ±HHMM.
-        if (
-            preg_match('/^[+\-]\d{2}/', $tz) === 1
-            && !str_contains($tz, 'T')
-            && !str_contains($tz, 't')
-        ) {
-            if (
-                preg_match('/^[+\-]\d{2}:\d{2}(?:$|[^:\d])/', $tz) !== 1
-                && preg_match('/^[+\-]\d{4}$/', $tz) !== 1
-            ) {
+        if (preg_match('/^[+\-]\d{2}/', $tz) === 1 && !str_contains($tz, 'T') && !str_contains($tz, 't')) {
+            if (preg_match('/^[+\-]\d{2}:\d{2}(?:$|[^:\d])/', $tz) !== 1 && preg_match('/^[+\-]\d{4}$/', $tz) !== 1) {
                 throw new InvalidArgumentException(
                     "Invalid timeZone \"{$tz}\": offset contains seconds or is in an invalid format.",
                 );
@@ -2965,7 +3055,7 @@ final class Duration implements Stringable
     private static function floorDivInt(int $a, int $b): int
     {
         $q = intdiv(num1: $a, num2: $b);
-        return ($a < 0 && $a % $b !== 0) ? $q - 1 : $q;
+        return $a < 0 && ($a % $b) !== 0 ? $q - 1 : $q;
     }
 
     /**
@@ -2992,12 +3082,12 @@ final class Duration implements Stringable
         } elseif ($m < 1) {
             // For negative: m-1 makes the -1 offset work for intdiv.
             $y += self::floorDivInt($m - 1, 12);
-            $m = (($m - 1) % 12 + 12) % 12 + 1;
+            $m = (((($m - 1) % 12) + 12) % 12) + 1;
         }
         // Days in the target month (handles leap years via cal_days_in_month).
-        $daysInMonth = (int) (new \DateTimeImmutable("{$y}-{$m}-01 UTC"))->format('t');
+        $daysInMonth = (int) new \DateTimeImmutable("{$y}-{$m}-01 UTC")->format('t');
         $clampedDay = min($d, $daysInMonth);
-        return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+        return new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
             ->setDate($y, $m, $clampedDay)
             ->setTime(0, 0, 0);
     }
@@ -3016,9 +3106,9 @@ final class Duration implements Stringable
         $y = (int) $date->format('Y') + $years;
         $m = (int) $date->format('n');
         $d = (int) $date->format('j');
-        $daysInMonth = (int) (new \DateTimeImmutable("{$y}-{$m}-01 UTC"))->format('t');
+        $daysInMonth = (int) new \DateTimeImmutable("{$y}-{$m}-01 UTC")->format('t');
         $clampedDay = min($d, $daysInMonth);
-        return (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))
+        return new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
             ->setDate($y, $m, $clampedDay)
             ->setTime(0, 0, 0);
     }
@@ -3032,15 +3122,13 @@ final class Duration implements Stringable
      */
     private static function isoDateToEpochDays(int $y, int $m, int $d): int
     {
-        $a   = self::floorDivInt(14 - $m, 12);
-        $yp  = $y + 4800 - $a;
-        $mp  = $m + 12 * $a - 3;
-        $jdn = $d
-            + self::floorDivInt(153 * $mp + 2, 5)
-            + 365 * $yp
-            + self::floorDivInt($yp, 4)
-            - self::floorDivInt($yp, 100)
-            + self::floorDivInt($yp, 400)
+        $a = self::floorDivInt(14 - $m, 12);
+        $yp = $y + 4800 - $a;
+        $mp = $m + (12 * $a) - 3;
+        $jdn =
+            $d + self::floorDivInt((153 * $mp) + 2, 5) + (365 * $yp) + self::floorDivInt($yp, 4)
+                - self::floorDivInt($yp, 100)
+                + self::floorDivInt($yp, 400)
             - 32045;
         return $jdn - 2_440_588;
     }
@@ -3122,9 +3210,7 @@ final class Duration implements Stringable
         $calDays = (int) $this->days;
         if ($calDays !== 0) {
             $absD = abs($calDays);
-            $endDate = $calDays > 0
-                ? $endDate->modify("+{$absD} days")
-                : $endDate->modify("-{$absD} days");
+            $endDate = $calDays > 0 ? $endDate->modify("+{$absD} days") : $endDate->modify("-{$absD} days");
         }
         $calendarDays = (int) $startDate->diff($endDate)->format('%r%a');
         // Validate: epoch-day range ±100 000 000 (matches Temporal spec PlainDate limits).
@@ -3146,7 +3232,7 @@ final class Duration implements Stringable
     {
         $bag = $this->relativeToPlainDateBag($rt);
         $tz = new \DateTimeZone('UTC');
-        $startDate = (new \DateTimeImmutable('now', $tz))
+        $startDate = new \DateTimeImmutable('now', $tz)
             ->setDate($bag['year'], $bag['month'], $bag['day'])
             ->setTime(0, 0, 0);
 
@@ -3163,14 +3249,12 @@ final class Duration implements Stringable
             + (int) $this->nanoseconds;
 
         // Guard against int64 overflow when combining calendar days and time nanoseconds.
-        $totalNsF = (float) $calendarDays * (float) $nsPerDay + (float) $timeNs;
+        $totalNsF = ((float) $calendarDays * (float) $nsPerDay) + (float) $timeNs;
         if ($totalNsF > (float) PHP_INT_MAX || $totalNsF < (float) PHP_INT_MIN) {
-            throw new InvalidArgumentException(
-                'Duration nanosecond total overflows the 64-bit range.',
-            );
+            throw new InvalidArgumentException('Duration nanosecond total overflows the 64-bit range.');
         }
 
-        return $calendarDays * $nsPerDay + $timeNs;
+        return ($calendarDays * $nsPerDay) + $timeNs;
     }
 
     /**
@@ -3202,11 +3286,7 @@ final class Duration implements Stringable
             'halfTrunc' => $progress > 0.5 ? $r2 : $r1,
             'halfFloor' => $positive ? ($progress > 0.5 ? $r2 : $r1) : ($progress >= 0.5 ? $r2 : $r1),
             'halfCeil' => $positive ? ($progress >= 0.5 ? $r2 : $r1) : ($progress > 0.5 ? $r2 : $r1),
-            'halfEven' => $progress > 0.5
-                ? $r2
-                : ($progress < 0.5
-                    ? $r1
-                    : (($r1 % 2 === 0) ? $r1 : $r2)), // ties-to-even: use even boundary
+            'halfEven' => $progress > 0.5 ? $r2 : ($progress < 0.5 ? $r1 : (($r1 % 2) === 0 ? $r1 : $r2)), // ties-to-even: use even boundary
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
     }
@@ -3221,8 +3301,12 @@ final class Duration implements Stringable
      * @param int $suIdx Smallest unit index.
      * @return array{0: int, 1: int, 2: int, 3: int} [years, months, weeks, days]
      */
-    private static function balanceDateDuration(\DateTimeImmutable $startDate, int $totalDays, int $luIdx, int $suIdx): array
-    {
+    private static function balanceDateDuration(
+        \DateTimeImmutable $startDate,
+        int $totalDays,
+        int $luIdx,
+        int $suIdx,
+    ): array {
         if ($totalDays === 0) {
             return [0, 0, 0, 0];
         }
@@ -3302,7 +3386,7 @@ final class Duration implements Stringable
     ): self {
         $bag = $this->relativeToPlainDateBag($rtRaw);
         $tz = new \DateTimeZone('UTC');
-        $startDate = (new \DateTimeImmutable('now', $tz))
+        $startDate = new \DateTimeImmutable('now', $tz)
             ->setDate($bag['year'], $bag['month'], $bag['day'])
             ->setTime(0, 0, 0);
 
@@ -3327,7 +3411,7 @@ final class Duration implements Stringable
         if ($increment > 1 && $luIdx > $suIdx && $suIdx >= 6) {
             throw new InvalidArgumentException(
                 "roundingIncrement > 1 is not allowed when smallestUnit is \"{$suNorm}\" "
-                . "and largestUnit is a larger unit.",
+                . 'and largestUnit is a larger unit.',
             );
         }
 
@@ -3345,7 +3429,7 @@ final class Duration implements Stringable
             + (int) $this->nanoseconds;
 
         // Total nanoseconds = calendar days * nsPerDay + time fields.
-        $totalNs = $calendarDays * $nsPerDay + $timeNs;
+        $totalNs = ($calendarDays * $nsPerDay) + $timeNs;
         $isPositive = $totalNs >= 0;
 
         // -----------------------------------------------------------------------
@@ -3355,22 +3439,39 @@ final class Duration implements Stringable
         if ($suIdx >= 8) {
             // Smallest unit is months or years: NudgeToCalendarUnit
             return $this->nudgeToCalendarMonthsOrYears(
-                $startDate, $totalNs, $nsPerDay, $suIdx, $luIdx, $increment, $roundingMode, $isPositive,
+                $startDate,
+                $totalNs,
+                $nsPerDay,
+                $suIdx,
+                $luIdx,
+                $increment,
+                $roundingMode,
+                $isPositive,
             );
         }
 
         if ($suIdx === 7) {
             // Smallest unit is weeks: NudgeToCalendarUnit for weeks
             return $this->nudgeToCalendarWeeks(
-                $startDate, $totalNs, $nsPerDay, $luIdx, $increment, $roundingMode, $isPositive,
+                $startDate,
+                $totalNs,
+                $nsPerDay,
+                $luIdx,
+                $increment,
+                $roundingMode,
+                $isPositive,
             );
         }
 
         // Smallest unit is days or smaller: NudgeToTimeUnit
         /** @var array<string,int> */
         static $NS_PER_UNIT = [
-            'nanoseconds' => 1, 'microseconds' => 1_000, 'milliseconds' => 1_000_000,
-            'seconds' => 1_000_000_000, 'minutes' => 60_000_000_000, 'hours' => 3_600_000_000_000,
+            'nanoseconds' => 1,
+            'microseconds' => 1_000,
+            'milliseconds' => 1_000_000,
+            'seconds' => 1_000_000_000,
+            'minutes' => 60_000_000_000,
+            'hours' => 3_600_000_000_000,
         ];
         $suNormResolved = $suNorm ?? 'nanoseconds';
 
@@ -3379,8 +3480,12 @@ final class Duration implements Stringable
         if ($suIdx < 6) {
             /** @var array<string,int> */
             static $MAX_PER_UNIT_RWR = [
-                'nanoseconds' => 1_000, 'microseconds' => 1_000, 'milliseconds' => 1_000,
-                'seconds' => 60, 'minutes' => 60, 'hours' => 24,
+                'nanoseconds' => 1_000,
+                'microseconds' => 1_000,
+                'milliseconds' => 1_000,
+                'seconds' => 60,
+                'minutes' => 60,
+                'hours' => 24,
             ];
             $maxPerUnit = $MAX_PER_UNIT_RWR[$suNormResolved] ?? 1;
             if ($increment >= $maxPerUnit) {
@@ -3388,7 +3493,7 @@ final class Duration implements Stringable
                     "roundingIncrement {$increment} is too large for unit \"{$suNormResolved}\".",
                 );
             }
-            if ($maxPerUnit % $increment !== 0) {
+            if (($maxPerUnit % $increment) !== 0) {
                 throw new InvalidArgumentException(
                     "roundingIncrement {$increment} does not evenly divide into the next unit for \"{$suNormResolved}\".",
                 );
@@ -3404,11 +3509,11 @@ final class Duration implements Stringable
         $absNs = abs($totalNs);
         $signedMode = $sign < 0
             ? match ($roundingMode) {
-                'floor'     => 'ceil',
-                'ceil'      => 'floor',
+                'floor' => 'ceil',
+                'ceil' => 'floor',
                 'halfFloor' => 'halfCeil',
-                'halfCeil'  => 'halfFloor',
-                default     => $roundingMode,
+                'halfCeil' => 'halfFloor',
+                default => $roundingMode,
             }
             : $roundingMode;
 
@@ -3429,7 +3534,7 @@ final class Duration implements Stringable
             $roundedNs = $sign * $roundedAbsNs;
             // Balance the rounded nanoseconds back into duration fields.
             $roundedDays = intdiv(num1: $roundedNs, num2: $nsPerDay);
-            $subDayNs = $roundedNs - $roundedDays * $nsPerDay;
+            $subDayNs = $roundedNs - ($roundedDays * $nsPerDay);
         }
 
         // Balance calendar fields (years/months/weeks/days) from roundedDays.
@@ -3454,14 +3559,14 @@ final class Duration implements Stringable
             $rm = 0;
             $rw = 0;
             // Cast sign to float so that float * float avoids Psalm strict InvalidOperand errors.
-            $signF  = (float) $sign;
-            $rd     = $signF * (float) $rDaysFolded; // should be 0 when luIdx < 6
-            $rH     = $signF * (float) $rH;
-            $rM     = $signF * (float) $rM;
-            $rS     = $signF * (float) $rS;
-            $rMs    = $signF * (float) $rMs;
-            $rUs    = $signF * (float) $rUs;
-            $rNs    = $signF * (float) $rNs;
+            $signF = (float) $sign;
+            $rd = $signF * (float) $rDaysFolded; // should be 0 when luIdx < 6
+            $rH = $signF * (float) $rH;
+            $rM = $signF * (float) $rM;
+            $rS = $signF * (float) $rS;
+            $rMs = $signF * (float) $rMs;
+            $rUs = $signF * (float) $rUs;
+            $rNs = $signF * (float) $rNs;
         }
 
         return new self($ry, $rm, $rw, $rd, $rH, $rM, $rS, $rMs, $rUs, $rNs);
@@ -3479,12 +3584,17 @@ final class Duration implements Stringable
         $sign = $subDayNs >= 0 ? 1 : -1;
         $abs = abs($subDayNs);
 
-        $rNs = $abs % 1_000;                          $abs = intdiv(num1: $abs, num2: 1_000);
-        $rUs = $abs % 1_000;                          $abs = intdiv(num1: $abs, num2: 1_000);
-        $rMs = $abs % 1_000;                          $abs = intdiv(num1: $abs, num2: 1_000);
-        $rS  = $abs % 60;                             $abs = intdiv(num1: $abs, num2: 60);
-        $rM  = $abs % 60;                             $abs = intdiv(num1: $abs, num2: 60);
-        $rH  = $abs; // remaining hours (< 24 for valid sub-day ns)
+        $rNs = $abs % 1_000;
+        $abs = intdiv(num1: $abs, num2: 1_000);
+        $rUs = $abs % 1_000;
+        $abs = intdiv(num1: $abs, num2: 1_000);
+        $rMs = $abs % 1_000;
+        $abs = intdiv(num1: $abs, num2: 1_000);
+        $rS = $abs % 60;
+        $abs = intdiv(num1: $abs, num2: 60);
+        $rM = $abs % 60;
+        $abs = intdiv(num1: $abs, num2: 60);
+        $rH = $abs; // remaining hours (< 24 for valid sub-day ns)
 
         return [$sign * $rH, $sign * $rM, $sign * $rS, $sign * $rMs, $sign * $rUs, $sign * $rNs];
     }
@@ -3536,13 +3646,19 @@ final class Duration implements Stringable
             // Round remaining fractional weeks using unsigned counts.
             $absRemainingDaysF = (float) $absRemainingNs / (float) $nsPerDay;
             $nLow = (int) floor($absRemainingDaysF / (7.0 * (float) $increment)) * $increment;
-            $r1Ns = $absMonthsNs + $nLow * 7 * $nsPerDay;
-            $r2Ns = $absMonthsNs + ($nLow + $increment) * 7 * $nsPerDay;
+            $r1Ns = $absMonthsNs + ($nLow * 7 * $nsPerDay);
+            $r2Ns = $absMonthsNs + (($nLow + $increment) * 7 * $nsPerDay);
             $denominator = $r2Ns - $r1Ns;
             $progress = $denominator === 0 ? 0.0 : (float) ($absNs - $r1Ns) / (float) $denominator;
             // $roundedWeeks is unsigned; sign is applied below.
-            $roundedWeeks = self::applyCalendarRounding($nLow, $nLow + $increment, $progress, $roundingMode, $isPositive);
-            $roundedDays = $monthsSignedDays + $sign * $roundedWeeks * 7;
+            $roundedWeeks = self::applyCalendarRounding(
+                $nLow,
+                $nLow + $increment,
+                $progress,
+                $roundingMode,
+                $isPositive,
+            );
+            $roundedDays = $monthsSignedDays + ($sign * $roundedWeeks * 7);
 
             [$ry, $rm, $rw, $rd] = self::balanceDateDuration($startDate, $roundedDays, $luIdx, 7);
             return new self($ry, $rm, $rw, $rd, 0, 0, 0, 0, 0, 0);
@@ -3594,9 +3710,7 @@ final class Duration implements Stringable
         $totalUnits = 0;
         $current = $startDate;
         while (true) {
-            $next = $isYears
-                ? self::addYearsClamped($current, $sign)
-                : self::addMonthsClamped($current, $sign);
+            $next = $isYears ? self::addYearsClamped($current, $sign) : self::addMonthsClamped($current, $sign);
             // Check if the next boundary in ns is still <= totalNs (in absolute terms).
             $nextDays = (int) $startDate->diff($next)->format('%r%a');
             $nextNs = $nextDays * $nsPerDay;

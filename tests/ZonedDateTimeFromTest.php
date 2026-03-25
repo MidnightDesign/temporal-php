@@ -13,7 +13,7 @@ final class ZonedDateTimeFromTest extends TestCase
     public function testFromZonedDateTimeReturnsCopy(): void
     {
         $original = new ZonedDateTime(0, 'UTC');
-        $copy     = ZonedDateTime::from($original);
+        $copy = ZonedDateTime::from($original);
 
         static::assertSame($original->epochNanoseconds, $copy->epochNanoseconds);
         static::assertSame($original->timeZoneId, $copy->timeZoneId);

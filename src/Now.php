@@ -79,11 +79,7 @@ final class Now
         /** @psalm-suppress ArgumentTypeCoercion */
         $tz = new \DateTimeZone($tzId);
         $dt = new \DateTimeImmutable('now', $tz);
-        return new PlainTime(
-            (int) $dt->format('G'),
-            (int) $dt->format('i'),
-            (int) $dt->format('s'),
-        );
+        return new PlainTime((int) $dt->format('G'), (int) $dt->format('i'), (int) $dt->format('s'));
     }
 
     /**
@@ -151,16 +147,12 @@ final class Now
     {
         if ($timeZone === null) {
             if ($provided) {
-                throw new \TypeError(
-                    'Temporal.Now: timeZone must be a string; got null.',
-                );
+                throw new \TypeError('Temporal.Now: timeZone must be a string; got null.');
             }
             return date_default_timezone_get();
         }
         if (!is_string($timeZone)) {
-            throw new \TypeError(
-                'Temporal.Now: timeZone must be a string; got ' . get_debug_type($timeZone) . '.',
-            );
+            throw new \TypeError('Temporal.Now: timeZone must be a string; got ' . get_debug_type($timeZone) . '.');
         }
         if ($timeZone === '') {
             throw new InvalidArgumentException('Temporal.Now: timeZone string must not be empty.');
@@ -168,9 +160,7 @@ final class Now
 
         // Reject minus-zero extended year.
         if (str_starts_with($timeZone, '-000000')) {
-            throw new InvalidArgumentException(
-                'Temporal.Now: year −000000 is invalid (minus zero).',
-            );
+            throw new InvalidArgumentException('Temporal.Now: year −000000 is invalid (minus zero).');
         }
 
         // Detect ISO datetime strings (YYYY-MM-DDTHH... or YYYYMMDDThh...).
@@ -205,9 +195,7 @@ final class Now
 
         // No IANA annotation — check for sub-minute inline offset (±HH:MM:SS...).
         if (preg_match('/[+-]\d{2}:?\d{2}:\d/', $s) === 1) {
-            throw new InvalidArgumentException(
-                "Temporal.Now: datetime string \"{$s}\" has a sub-minute UTC offset.",
-            );
+            throw new InvalidArgumentException("Temporal.Now: datetime string \"{$s}\" has a sub-minute UTC offset.");
         }
 
         // Z → UTC.
@@ -221,9 +209,7 @@ final class Now
         }
 
         // Bare datetime string with no timezone information.
-        throw new InvalidArgumentException(
-            "Temporal.Now: datetime string \"{$s}\" has no time zone information.",
-        );
+        throw new InvalidArgumentException("Temporal.Now: datetime string \"{$s}\" has no time zone information.");
     }
 
     /**
@@ -235,9 +221,7 @@ final class Now
     {
         // Reject offsets with a seconds component: ±HH:MM:... or ±HHMM:...
         if (preg_match('/^[+-]\d{2}:?\d{2}:/', $s) === 1) {
-            throw new InvalidArgumentException(
-                "Temporal.Now: time zone offset \"{$s}\" has sub-minute precision.",
-            );
+            throw new InvalidArgumentException("Temporal.Now: time zone offset \"{$s}\" has sub-minute precision.");
         }
         return $s;
     }

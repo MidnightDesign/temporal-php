@@ -17,12 +17,12 @@ use Stringable;
  */
 final class PlainTime implements Stringable
 {
-    private const int NS_PER_HOUR   = 3_600_000_000_000;
-    private const int NS_PER_MINUTE =    60_000_000_000;
-    private const int NS_PER_SECOND =     1_000_000_000;
-    private const int NS_PER_MS     =         1_000_000;
-    private const int NS_PER_US     =             1_000;
-    private const int NS_PER_DAY    = 86_400_000_000_000;
+    private const int NS_PER_HOUR = 3_600_000_000_000;
+    private const int NS_PER_MINUTE = 60_000_000_000;
+    private const int NS_PER_SECOND = 1_000_000_000;
+    private const int NS_PER_MS = 1_000_000;
+    private const int NS_PER_US = 1_000;
+    private const int NS_PER_DAY = 86_400_000_000_000;
 
     // -------------------------------------------------------------------------
     // Virtual (get-only) properties
@@ -33,42 +33,54 @@ final class PlainTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $hour { get => intdiv(num1: $this->ns, num2: self::NS_PER_HOUR); }
+    public int $hour {
+        get => intdiv(num1: $this->ns, num2: self::NS_PER_HOUR);
+    }
 
     /**
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $minute { get => intdiv(num1: $this->ns % self::NS_PER_HOUR, num2: self::NS_PER_MINUTE); }
+    public int $minute {
+        get => intdiv(num1: $this->ns % self::NS_PER_HOUR, num2: self::NS_PER_MINUTE);
+    }
 
     /**
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $second { get => intdiv(num1: $this->ns % self::NS_PER_MINUTE, num2: self::NS_PER_SECOND); }
+    public int $second {
+        get => intdiv(num1: $this->ns % self::NS_PER_MINUTE, num2: self::NS_PER_SECOND);
+    }
 
     /**
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $millisecond { get => intdiv(num1: $this->ns % self::NS_PER_SECOND, num2: self::NS_PER_MS); }
+    public int $millisecond {
+        get => intdiv(num1: $this->ns % self::NS_PER_SECOND, num2: self::NS_PER_MS);
+    }
 
     /**
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $microsecond { get => intdiv(num1: $this->ns % self::NS_PER_MS, num2: self::NS_PER_US); }
+    public int $microsecond {
+        get => intdiv(num1: $this->ns % self::NS_PER_MS, num2: self::NS_PER_US);
+    }
 
     /**
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $nanosecond { get => $this->ns % self::NS_PER_US; }
+    public int $nanosecond {
+        get => $this->ns % self::NS_PER_US;
+    }
 
     // -------------------------------------------------------------------------
     // Internal storage
@@ -106,25 +118,23 @@ final class PlainTime implements Stringable
             || !is_finite((float) $microsecond)
             || !is_finite((float) $nanosecond)
         ) {
-            throw new InvalidArgumentException(
-                'Invalid PlainTime: all fields must be finite numbers.',
-            );
+            throw new InvalidArgumentException('Invalid PlainTime: all fields must be finite numbers.');
         }
-        $h   = (int) $hour;
+        $h = (int) $hour;
         $min = (int) $minute;
         $sec = (int) $second;
-        $ms  = (int) $millisecond;
-        $us  = (int) $microsecond;
-        $ns  = (int) $nanosecond;
+        $ms = (int) $millisecond;
+        $us = (int) $microsecond;
+        $ns = (int) $nanosecond;
 
         self::validateFields($h, $min, $sec, $ms, $us, $ns);
 
         $this->ns =
-            $h   * self::NS_PER_HOUR
-            + $min * self::NS_PER_MINUTE
-            + $sec * self::NS_PER_SECOND
-            + $ms  * self::NS_PER_MS
-            + $us  * self::NS_PER_US
+            ($h * self::NS_PER_HOUR)
+            + ($min * self::NS_PER_MINUTE)
+            + ($sec * self::NS_PER_SECOND)
+            + ($ms * self::NS_PER_MS)
+            + ($us * self::NS_PER_US)
             + $ns;
     }
 
@@ -173,7 +183,8 @@ final class PlainTime implements Stringable
         }
         throw new \TypeError(
             'PlainTime::from() expects a PlainTime, ISO 8601 time string, or property-bag array; got '
-            . get_debug_type($item) . '.',
+            . get_debug_type($item)
+            . '.',
         );
     }
 
@@ -211,12 +222,12 @@ final class PlainTime implements Stringable
     {
         $overflow = self::extractOverflow($options);
 
-        $h   = $this->hour;
+        $h = $this->hour;
         $min = $this->minute;
         $sec = $this->second;
-        $ms  = $this->millisecond;
-        $us  = $this->microsecond;
-        $ns  = $this->nanosecond;
+        $ms = $this->millisecond;
+        $us = $this->microsecond;
+        $ns = $this->nanosecond;
 
         if (array_key_exists('hour', $fields)) {
             /** @var mixed $v */
@@ -280,12 +291,12 @@ final class PlainTime implements Stringable
         }
 
         if ($overflow === 'constrain') {
-            $h   = max(0, min(23, $h));
+            $h = max(0, min(23, $h));
             $min = max(0, min(59, $min));
             $sec = max(0, min(59, $sec));
-            $ms  = max(0, min(999, $ms));
-            $us  = max(0, min(999, $us));
-            $ns  = max(0, min(999, $ns));
+            $ms = max(0, min(999, $ms));
+            $us = max(0, min(999, $us));
+            $ns = max(0, min(999, $ns));
         } else {
             self::validateFields($h, $min, $sec, $ms, $us, $ns);
         }
@@ -392,18 +403,18 @@ final class PlainTime implements Stringable
         // ns-per-unit → max increment (exclusive: must be strictly less than this)
         // The max is the number of units in the next-larger unit (for rounding to divide evenly).
         $unitMap = [
-            'nanosecond'   => [1,                 1_000],
-            'nanoseconds'  => [1,                 1_000],
-            'microsecond'  => [1_000,             1_000],
-            'microseconds' => [1_000,             1_000],
-            'millisecond'  => [1_000_000,         1_000],
-            'milliseconds' => [1_000_000,         1_000],
-            'second'       => [1_000_000_000,     60],
-            'seconds'      => [1_000_000_000,     60],
-            'minute'       => [60_000_000_000,    60],
-            'minutes'      => [60_000_000_000,    60],
-            'hour'         => [3_600_000_000_000, 24],
-            'hours'        => [3_600_000_000_000, 24],
+            'nanosecond' => [1, 1_000],
+            'nanoseconds' => [1, 1_000],
+            'microsecond' => [1_000, 1_000],
+            'microseconds' => [1_000, 1_000],
+            'millisecond' => [1_000_000, 1_000],
+            'milliseconds' => [1_000_000, 1_000],
+            'second' => [1_000_000_000, 60],
+            'seconds' => [1_000_000_000, 60],
+            'minute' => [60_000_000_000, 60],
+            'minutes' => [60_000_000_000, 60],
+            'hour' => [3_600_000_000_000, 24],
+            'hours' => [3_600_000_000_000, 24],
         ];
         if (!array_key_exists($suRaw, $unitMap)) {
             throw new InvalidArgumentException("Invalid smallestUnit \"{$suRaw}\" for Temporal\\PlainTime::round().");
@@ -426,10 +437,8 @@ final class PlainTime implements Stringable
             $increment = $rawIncrement;
         }
         // Increment must be strictly less than maxIncrement and must divide it evenly.
-        if ($increment >= $maxIncrement || $maxIncrement % $increment !== 0) {
-            throw new InvalidArgumentException(
-                "roundingIncrement {$increment} is invalid for unit \"{$suRaw}\".",
-            );
+        if ($increment >= $maxIncrement || ($maxIncrement % $increment) !== 0) {
+            throw new InvalidArgumentException("roundingIncrement {$increment} is invalid for unit \"{$suRaw}\".");
         }
 
         $nsIncrement = $nsPerUnit * $increment;
@@ -477,8 +486,8 @@ final class PlainTime implements Stringable
         }
 
         // $digits: -2 = 'auto', -1 = minute format (no seconds), 0-9 = fixed digits.
-        $digits       = -2;
-        $isMinute     = false;
+        $digits = -2;
+        $isMinute = false;
         $roundingMode = 'trunc'; // default: truncate
 
         if ($options !== null) {
@@ -487,9 +496,7 @@ final class PlainTime implements Stringable
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd !== 'auto') {
                     if ($fsd === null || is_bool($fsd)) {
-                        throw new InvalidArgumentException(
-                            "fractionalSecondDigits must be 'auto' or an integer 0–9.",
-                        );
+                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
                     }
                     if (is_float($fsd)) {
                         if (is_nan($fsd) || is_infinite($fsd)) {
@@ -499,9 +506,7 @@ final class PlainTime implements Stringable
                         }
                         $fsd = (int) floor($fsd);
                     } elseif (!is_int($fsd)) {
-                        throw new InvalidArgumentException(
-                            "fractionalSecondDigits must be 'auto' or an integer 0–9.",
-                        );
+                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
                     }
                     if ($fsd < 0 || $fsd > 9) {
                         throw new InvalidArgumentException(
@@ -516,11 +521,11 @@ final class PlainTime implements Stringable
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
                 $su = (string) $options['smallestUnit'];
                 [$digits, $isMinute] = match ($su) {
-                    'minute', 'minutes'           => [-1, true],
-                    'second', 'seconds'           => [0, false],
+                    'minute', 'minutes' => [-1, true],
+                    'second', 'seconds' => [0, false],
                     'millisecond', 'milliseconds' => [3, false],
                     'microsecond', 'microseconds' => [6, false],
-                    'nanosecond', 'nanoseconds'   => [9, false],
+                    'nanosecond', 'nanoseconds' => [9, false],
                     default => throw new InvalidArgumentException("Invalid smallestUnit \"{$su}\"."),
                 };
             }
@@ -534,8 +539,15 @@ final class PlainTime implements Stringable
                 }
                 /** @var list<string> $validModes */
                 static $validModes = [
-                    'trunc', 'floor', 'ceil', 'expand', 'halfExpand',
-                    'halfTrunc', 'halfFloor', 'halfCeil', 'halfEven',
+                    'trunc',
+                    'floor',
+                    'ceil',
+                    'expand',
+                    'halfExpand',
+                    'halfTrunc',
+                    'halfFloor',
+                    'halfCeil',
+                    'halfEven',
                 ];
                 if (!in_array($rm, $validModes, strict: true)) {
                     throw new InvalidArgumentException("Invalid roundingMode \"{$rm}\".");
@@ -562,7 +574,7 @@ final class PlainTime implements Stringable
         // Wrap modulo one day (rounding could reach exactly NS_PER_DAY for ceil-like modes).
         $nsToFormat %= self::NS_PER_DAY;
 
-        $h   = intdiv(num1: $nsToFormat, num2: self::NS_PER_HOUR);
+        $h = intdiv(num1: $nsToFormat, num2: self::NS_PER_HOUR);
         $rem = $nsToFormat % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem = $rem % self::NS_PER_MINUTE;
@@ -643,16 +655,16 @@ final class PlainTime implements Stringable
      */
     private static function fromNs(int $nsTotal): self
     {
-        $h   = intdiv(num1: $nsTotal, num2: self::NS_PER_HOUR);
+        $h = intdiv(num1: $nsTotal, num2: self::NS_PER_HOUR);
         $rem = $nsTotal % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem = $rem % self::NS_PER_MINUTE;
         $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
         $rem = $rem % self::NS_PER_SECOND;
-        $ms  = intdiv(num1: $rem, num2: self::NS_PER_MS);
+        $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
         $rem = $rem % self::NS_PER_MS;
-        $us  = intdiv(num1: $rem, num2: self::NS_PER_US);
-        $ns  = $rem % self::NS_PER_US;
+        $us = intdiv(num1: $rem, num2: self::NS_PER_US);
+        $ns = $rem % self::NS_PER_US;
         return new self($h, $min, $sec, $ms, $us, $ns);
     }
 
@@ -689,9 +701,7 @@ final class PlainTime implements Stringable
             throw new \TypeError('overflow option must be a string.');
         }
         if ($val !== 'constrain' && $val !== 'reject') {
-            throw new InvalidArgumentException(
-                "Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.",
-            );
+            throw new InvalidArgumentException("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
         }
         return $val;
     }
@@ -743,17 +753,28 @@ final class PlainTime implements Stringable
         $offsetMM = '[0-5]\d';
         $offsetSS = '[0-5]\d';
         $offsetPattern =
-            '[+-]' . $offsetHH
-            . '(?::' . $offsetMM . '(?::' . $offsetSS . '(?:[.,]\d+)?)?'
-            . '|' . $offsetMM . '(?:' . $offsetSS . '(?:[.,]\d+)?)?)?';
+            '[+-]'
+            . $offsetHH
+            . '(?::'
+            . $offsetMM
+            . '(?::'
+            . $offsetSS
+            . '(?:[.,]\d+)?)?'
+            . '|'
+            . $offsetMM
+            . '(?:'
+            . $offsetSS
+            . '(?:[.,]\d+)?)?)?';
 
         $fullDatetimePattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})'          // year + date-rest
-            . '[T ]'                                              // T or space separator
-            . '(\d{2}):?(\d{2})'                                 // HH:MM or HHMM (mandatory)
-            . '(?::?(\d{2})([.,]\d+)?)?'                         // optional :SS[.frac] or SS[.frac]
-            . '(?:Z|' . $offsetPattern . ')?'                    // optional offset (Z ignored, non-Z ok)
-            . '((?:\[[^\]]*\])*)'                                 // bracket annotations
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' // year + date-rest
+            . '[T ]' // T or space separator
+            . '(\d{2}):?(\d{2})' // HH:MM or HHMM (mandatory)
+            . '(?::?(\d{2})([.,]\d+)?)?' // optional :SS[.frac] or SS[.frac]
+            . '(?:Z|'
+            . $offsetPattern
+            . ')?' // optional offset (Z ignored, non-Z ok)
+            . '((?:\[[^\]]*\])*)' // bracket annotations
             . '$/i';
 
         /** @var list<string> $m */
@@ -776,21 +797,21 @@ final class PlainTime implements Stringable
             self::validateAnnotations($annotationSection, $s);
 
             $hourNum = (int) $m[3];
-            $minNum  = (int) $m[4];
-            $secNum  = $m[5] !== '' ? (int) $m[5] : 0;
+            $minNum = (int) $m[4];
+            $secNum = $m[5] !== '' ? (int) $m[5] : 0;
             // Leap second 60 maps to 59.
             if ($secNum === 60) {
                 $secNum = 59;
             }
             $fracRaw = $m[6] !== '' ? $m[6] : '';
-            $subNs   = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
+            $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
 
             self::validateFields($hourNum, $minNum, $secNum, 0, 0, 0);
 
             $totalNs =
-                $hourNum * self::NS_PER_HOUR
-                + $minNum  * self::NS_PER_MINUTE
-                + $secNum  * self::NS_PER_SECOND
+                ($hourNum * self::NS_PER_HOUR)
+                + ($minNum * self::NS_PER_MINUTE)
+                + ($secNum * self::NS_PER_SECOND)
                 + $subNs;
 
             return self::fromNs($totalNs);
@@ -819,17 +840,21 @@ final class PlainTime implements Stringable
 
         // Colon-separated format: HH:MM[:SS[.frac]][offset][annotations]
         $colonTimePattern =
-            '/^(\d{2}):(\d{2})'                                   // HH:MM
-            . '(?::(\d{2})([.,]\d+)?)?'                           // optional :SS[.frac]
-            . '(?:' . $offsetPattern . ')?'                       // optional non-Z offset
-            . '((?:\[[^\]]*\])*)'                                  // bracket annotations
+            '/^(\d{2}):(\d{2})' // HH:MM
+            . '(?::(\d{2})([.,]\d+)?)?' // optional :SS[.frac]
+            . '(?:'
+            . $offsetPattern
+            . ')?' // optional non-Z offset
+            . '((?:\[[^\]]*\])*)' // bracket annotations
             . '$/i';
 
         // Compact format: HHMMSS[.frac][offset][annotations] or HHMM[offset][annotations] or HH[offset][annotations]
         $compactTimePattern =
-            '/^(\d{2})(\d{2})?(\d{2})?([.,]\d+)?'                // HH[MM[SS[.frac]]]
-            . '(?:' . $offsetPattern . ')?'                       // optional non-Z offset
-            . '((?:\[[^\]]*\])*)'                                  // bracket annotations
+            '/^(\d{2})(\d{2})?(\d{2})?([.,]\d+)?' // HH[MM[SS[.frac]]]
+            . '(?:'
+            . $offsetPattern
+            . ')?' // optional non-Z offset
+            . '((?:\[[^\]]*\])*)' // bracket annotations
             . '$/i';
 
         /** @var list<string> $m2 */
@@ -839,20 +864,20 @@ final class PlainTime implements Stringable
             self::validateAnnotations($annotationSection, $s);
 
             $hourNum = (int) $m2[1];
-            $minNum  = (int) $m2[2];
-            $secNum  = $m2[3] !== '' ? (int) $m2[3] : 0;
+            $minNum = (int) $m2[2];
+            $secNum = $m2[3] !== '' ? (int) $m2[3] : 0;
             if ($secNum === 60) {
                 $secNum = 59;
             }
             $fracRaw = $m2[4] !== '' ? $m2[4] : '';
-            $subNs   = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
+            $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
 
             self::validateFields($hourNum, $minNum, $secNum, 0, 0, 0);
 
             $totalNs =
-                $hourNum * self::NS_PER_HOUR
-                + $minNum  * self::NS_PER_MINUTE
-                + $secNum  * self::NS_PER_SECOND
+                ($hourNum * self::NS_PER_HOUR)
+                + ($minNum * self::NS_PER_MINUTE)
+                + ($secNum * self::NS_PER_SECOND)
                 + $subNs;
 
             return self::fromNs($totalNs);
@@ -863,13 +888,13 @@ final class PlainTime implements Stringable
         if (preg_match($compactTimePattern, $timeStr, $m3) === 1) {
             // Compact: m3[1]=HH, m3[2]=MM (or ''), m3[3]=SS (or ''), m3[4]=.frac (or ''), m3[5]=annotations
             $hourNum = (int) $m3[1];
-            $minNum  = $m3[2] !== '' ? (int) $m3[2] : 0;
-            $secNum  = $m3[3] !== '' ? (int) $m3[3] : 0;
+            $minNum = $m3[2] !== '' ? (int) $m3[2] : 0;
+            $secNum = $m3[3] !== '' ? (int) $m3[3] : 0;
             if ($secNum === 60) {
                 $secNum = 59;
             }
             $fracRaw = $m3[4] !== '' ? $m3[4] : '';
-            $subNs   = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
+            $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
             $annotationSection = $m3[5] !== '' ? $m3[5] : '';
             self::validateAnnotations($annotationSection, $s);
 
@@ -884,17 +909,15 @@ final class PlainTime implements Stringable
             self::validateFields($hourNum, $minNum, $secNum, 0, 0, 0);
 
             $totalNs =
-                $hourNum * self::NS_PER_HOUR
-                + $minNum  * self::NS_PER_MINUTE
-                + $secNum  * self::NS_PER_SECOND
+                ($hourNum * self::NS_PER_HOUR)
+                + ($minNum * self::NS_PER_MINUTE)
+                + ($secNum * self::NS_PER_SECOND)
                 + $subNs;
 
             return self::fromNs($totalNs);
         }
 
-        throw new InvalidArgumentException(
-            "PlainTime::from() cannot parse \"{$s}\": invalid ISO 8601 time string.",
-        );
+        throw new InvalidArgumentException("PlainTime::from() cannot parse \"{$s}\": invalid ISO 8601 time string.");
     }
 
     /**
@@ -1001,12 +1024,12 @@ final class PlainTime implements Stringable
         }
 
         if ($overflow === 'constrain') {
-            $h   = max(0, min(23, $h));
+            $h = max(0, min(23, $h));
             $min = max(0, min(59, $min));
             $sec = max(0, min(59, $sec));
-            $ms  = max(0, min(999, $ms));
-            $us  = max(0, min(999, $us));
-            $ns  = max(0, min(999, $ns));
+            $ms = max(0, min(999, $ms));
+            $us = max(0, min(999, $us));
+            $ns = max(0, min(999, $ns));
         } else {
             self::validateFields($h, $min, $sec, $ms, $us, $ns);
         }
@@ -1022,34 +1045,22 @@ final class PlainTime implements Stringable
     private static function validateFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
     {
         if ($h < 0 || $h > 23) {
-            throw new InvalidArgumentException(
-                "Invalid PlainTime: hour {$h} is out of range 0–23.",
-            );
+            throw new InvalidArgumentException("Invalid PlainTime: hour {$h} is out of range 0–23.");
         }
         if ($min < 0 || $min > 59) {
-            throw new InvalidArgumentException(
-                "Invalid PlainTime: minute {$min} is out of range 0–59.",
-            );
+            throw new InvalidArgumentException("Invalid PlainTime: minute {$min} is out of range 0–59.");
         }
         if ($sec < 0 || $sec > 59) {
-            throw new InvalidArgumentException(
-                "Invalid PlainTime: second {$sec} is out of range 0–59.",
-            );
+            throw new InvalidArgumentException("Invalid PlainTime: second {$sec} is out of range 0–59.");
         }
         if ($ms < 0 || $ms > 999) {
-            throw new InvalidArgumentException(
-                "Invalid PlainTime: millisecond {$ms} is out of range 0–999.",
-            );
+            throw new InvalidArgumentException("Invalid PlainTime: millisecond {$ms} is out of range 0–999.");
         }
         if ($us < 0 || $us > 999) {
-            throw new InvalidArgumentException(
-                "Invalid PlainTime: microsecond {$us} is out of range 0–999.",
-            );
+            throw new InvalidArgumentException("Invalid PlainTime: microsecond {$us} is out of range 0–999.");
         }
         if ($ns < 0 || $ns > 999) {
-            throw new InvalidArgumentException(
-                "Invalid PlainTime: nanosecond {$ns} is out of range 0–999.",
-            );
+            throw new InvalidArgumentException("Invalid PlainTime: nanosecond {$ns} is out of range 0–999.");
         }
     }
 
@@ -1150,18 +1161,18 @@ final class PlainTime implements Stringable
     {
         // Reduce each field modulo its day-cycle count before multiplying, to prevent int64 overflow.
         // NS_PER_DAY / NS_PER_HOUR = 24; / NS_PER_MINUTE = 1440; / NS_PER_SECOND = 86400; etc.
-        $hNs   = ((int) $d->hours         % 24)            * self::NS_PER_HOUR;
-        $minNs = ((int) $d->minutes        % 1_440)         * self::NS_PER_MINUTE;
-        $secNs = ((int) $d->seconds        % 86_400)        * self::NS_PER_SECOND;
-        $msNs  = ((int) $d->milliseconds   % 86_400_000)    * self::NS_PER_MS;
-        $usNs  = ((int) $d->microseconds   % 86_400_000_000) * self::NS_PER_US;
-        $nsNs  = (int) $d->nanoseconds     % self::NS_PER_DAY;
+        $hNs = ((int) $d->hours % 24) * self::NS_PER_HOUR;
+        $minNs = ((int) $d->minutes % 1_440) * self::NS_PER_MINUTE;
+        $secNs = ((int) $d->seconds % 86_400) * self::NS_PER_SECOND;
+        $msNs = ((int) $d->milliseconds % 86_400_000) * self::NS_PER_MS;
+        $usNs = ((int) $d->microseconds % 86_400_000_000) * self::NS_PER_US;
+        $nsNs = (int) $d->nanoseconds % self::NS_PER_DAY;
 
         // Sum each reduced component (each is in (-NS_PER_DAY, NS_PER_DAY)).
         // Use modular addition step-by-step to stay within int64 range.
         $deltaNs = $hNs + $minNs + $secNs + $msNs + $usNs + $nsNs;
 
-        $resultNs = $this->ns + $sign * $deltaNs;
+        $resultNs = $this->ns + ($sign * $deltaNs);
 
         // Wrap to [0, NS_PER_DAY) using true modulo (PHP's % can be negative).
         $resultNs = (($resultNs % self::NS_PER_DAY) + self::NS_PER_DAY) % self::NS_PER_DAY;
@@ -1181,12 +1192,22 @@ final class PlainTime implements Stringable
     {
         /** @var list<string> $validUnits */
         static $validUnits = [
-            'auto', 'hour', 'hours', 'minute', 'minutes', 'second', 'seconds',
-            'millisecond', 'milliseconds', 'microsecond', 'microseconds',
-            'nanosecond', 'nanoseconds',
+            'auto',
+            'hour',
+            'hours',
+            'minute',
+            'minutes',
+            'second',
+            'seconds',
+            'millisecond',
+            'milliseconds',
+            'microsecond',
+            'microseconds',
+            'nanosecond',
+            'nanoseconds',
         ];
 
-        $largestUnit  = 'hour'; // default per TC39 for PlainTime
+        $largestUnit = 'hour'; // default per TC39 for PlainTime
         $smallestUnit = 'nanosecond'; // default: no rounding
         $roundingMode = 'trunc'; // default for since/until
         $roundingIncrement = 1;
@@ -1206,12 +1227,12 @@ final class PlainTime implements Stringable
                     }
                     $largestUnit = match ($lu) {
                         'auto', 'hours' => 'hour',
-                        'minutes'       => 'minute',
-                        'seconds'       => 'second',
-                        'milliseconds'  => 'millisecond',
-                        'microseconds'  => 'microsecond',
-                        'nanoseconds'   => 'nanosecond',
-                        default         => $lu,
+                        'minutes' => 'minute',
+                        'seconds' => 'second',
+                        'milliseconds' => 'millisecond',
+                        'microseconds' => 'microsecond',
+                        'nanoseconds' => 'nanosecond',
+                        default => $lu,
                     };
                 }
             }
@@ -1226,21 +1247,30 @@ final class PlainTime implements Stringable
                     // Valid smallestUnit values for PlainTime (no calendar units).
                     /** @var list<string> $validSmallest */
                     static $validSmallest = [
-                        'hour', 'hours', 'minute', 'minutes', 'second', 'seconds',
-                        'millisecond', 'milliseconds', 'microsecond', 'microseconds',
-                        'nanosecond', 'nanoseconds',
+                        'hour',
+                        'hours',
+                        'minute',
+                        'minutes',
+                        'second',
+                        'seconds',
+                        'millisecond',
+                        'milliseconds',
+                        'microsecond',
+                        'microseconds',
+                        'nanosecond',
+                        'nanoseconds',
                     ];
                     if (!in_array($su, $validSmallest, strict: true)) {
                         throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
                     }
                     $smallestUnit = match ($su) {
-                        'hours'        => 'hour',
-                        'minutes'      => 'minute',
-                        'seconds'      => 'second',
+                        'hours' => 'hour',
+                        'minutes' => 'minute',
+                        'seconds' => 'second',
                         'milliseconds' => 'millisecond',
                         'microseconds' => 'microsecond',
-                        'nanoseconds'  => 'nanosecond',
-                        default        => $su,
+                        'nanoseconds' => 'nanosecond',
+                        default => $su,
                     };
                 }
             }
@@ -1254,8 +1284,15 @@ final class PlainTime implements Stringable
                 if (is_string($rm)) {
                     /** @var list<string> $validModes */
                     static $validModes = [
-                        'trunc', 'floor', 'ceil', 'expand', 'halfExpand',
-                        'halfTrunc', 'halfFloor', 'halfCeil', 'halfEven',
+                        'trunc',
+                        'floor',
+                        'ceil',
+                        'expand',
+                        'halfExpand',
+                        'halfTrunc',
+                        'halfFloor',
+                        'halfCeil',
+                        'halfEven',
                     ];
                     if (!in_array($rm, $validModes, strict: true)) {
                         throw new InvalidArgumentException("Invalid roundingMode value: \"{$rm}\".");
@@ -1282,8 +1319,12 @@ final class PlainTime implements Stringable
 
         // Unit rank: higher = larger unit.
         $unitRank = [
-            'hour' => 6, 'minute' => 5, 'second' => 4,
-            'millisecond' => 3, 'microsecond' => 2, 'nanosecond' => 1,
+            'hour' => 6,
+            'minute' => 5,
+            'second' => 4,
+            'millisecond' => 3,
+            'microsecond' => 2,
+            'nanosecond' => 1,
         ];
 
         $luRank = $unitRank[$largestUnit] ?? 6;
@@ -1298,15 +1339,15 @@ final class PlainTime implements Stringable
 
         // Validate roundingIncrement: must evenly divide the next-unit count.
         $maxIncrements = [
-            'hour'        => 24,
-            'minute'      => 60,
-            'second'      => 60,
+            'hour' => 24,
+            'minute' => 60,
+            'second' => 60,
             'millisecond' => 1_000,
             'microsecond' => 1_000,
-            'nanosecond'  => 1_000,
+            'nanosecond' => 1_000,
         ];
         $maxIncrement = $maxIncrements[$smallestUnit] ?? 1_000_000_000;
-        if ($roundingIncrement >= $maxIncrement || $maxIncrement % $roundingIncrement !== 0) {
+        if ($roundingIncrement >= $maxIncrement || ($maxIncrement % $roundingIncrement) !== 0) {
             throw new InvalidArgumentException(
                 "roundingIncrement {$roundingIncrement} is invalid for smallestUnit \"{$smallestUnit}\".",
             );
@@ -1314,16 +1355,16 @@ final class PlainTime implements Stringable
 
         // ns-per-unit table for rounding.
         $nsPerUnit = [
-            'hour'        => self::NS_PER_HOUR,
-            'minute'      => self::NS_PER_MINUTE,
-            'second'      => self::NS_PER_SECOND,
+            'hour' => self::NS_PER_HOUR,
+            'minute' => self::NS_PER_MINUTE,
+            'second' => self::NS_PER_SECOND,
             'millisecond' => self::NS_PER_MS,
             'microsecond' => self::NS_PER_US,
-            'nanosecond'  => 1,
+            'nanosecond' => 1,
         ];
 
-        $sign   = $diffNs >= 0 ? 1 : -1;
-        $absNs  = abs($diffNs);
+        $sign = $diffNs >= 0 ? 1 : -1;
+        $absNs = abs($diffNs);
 
         // Round diffNs to the nearest multiple of nsIncrement.
         // For floor/ceil/halfFloor/halfCeil, the direction depends on the sign of diffNs.
@@ -1336,41 +1377,41 @@ final class PlainTime implements Stringable
         // Balance the rounded absolute value up to largestUnit.
         $remaining = $roundedAbsNs;
 
-        $hours   = 0;
+        $hours = 0;
         $minutes = 0;
         $seconds = 0;
-        $ms      = 0;
-        $us      = 0;
+        $ms = 0;
+        $us = 0;
 
         if ($luRank >= 6) {
-            $hours     = intdiv(num1: $remaining, num2: self::NS_PER_HOUR);
+            $hours = intdiv(num1: $remaining, num2: self::NS_PER_HOUR);
             $remaining = $remaining % self::NS_PER_HOUR;
         }
         if ($luRank >= 5) {
-            $minutes   = intdiv(num1: $remaining, num2: self::NS_PER_MINUTE);
+            $minutes = intdiv(num1: $remaining, num2: self::NS_PER_MINUTE);
             $remaining = $remaining % self::NS_PER_MINUTE;
         }
         if ($luRank >= 4) {
-            $seconds   = intdiv(num1: $remaining, num2: self::NS_PER_SECOND);
+            $seconds = intdiv(num1: $remaining, num2: self::NS_PER_SECOND);
             $remaining = $remaining % self::NS_PER_SECOND;
         }
         if ($luRank >= 3) {
-            $ms        = intdiv(num1: $remaining, num2: self::NS_PER_MS);
+            $ms = intdiv(num1: $remaining, num2: self::NS_PER_MS);
             $remaining = $remaining % self::NS_PER_MS;
         }
         if ($luRank >= 2) {
-            $us        = intdiv(num1: $remaining, num2: self::NS_PER_US);
+            $us = intdiv(num1: $remaining, num2: self::NS_PER_US);
             $remaining = $remaining % self::NS_PER_US;
         }
         $ns = $remaining;
 
         return new Duration(
-            hours:        $sign * $hours,
-            minutes:      $sign * $minutes,
-            seconds:      $sign * $seconds,
+            hours: $sign * $hours,
+            minutes: $sign * $minutes,
+            seconds: $sign * $seconds,
             milliseconds: $sign * $ms,
             microseconds: $sign * $us,
-            nanoseconds:  $sign * $ns,
+            nanoseconds: $sign * $ns,
         );
     }
 
@@ -1382,18 +1423,18 @@ final class PlainTime implements Stringable
      */
     private static function roundPositiveNs(int $ns, int $increment, string $mode): int
     {
-        $q   = intdiv(num1: $ns, num2: $increment);
-        $rem = $ns - $q * $increment;
-        $r1  = $q * $increment;        // floor multiple
-        $r2  = $r1 + $increment;       // ceil multiple
+        $q = intdiv(num1: $ns, num2: $increment);
+        $rem = $ns - ($q * $increment);
+        $r1 = $q * $increment; // floor multiple
+        $r2 = $r1 + $increment; // ceil multiple
         return match ($mode) {
-            'trunc', 'floor'             => $r1,
-            'ceil', 'expand'             => $rem === 0 ? $r1 : $r2,
-            'halfExpand', 'halfCeil'     => ($rem * 2) >= $increment ? $r2 : $r1,
-            'halfTrunc', 'halfFloor'     => ($rem * 2) > $increment ? $r2 : $r1,
-            'halfEven'                   => ($rem * 2) < $increment ? $r1
-                : (($rem * 2) > $increment ? $r2
-                    : ($q % 2 === 0 ? $r1 : $r2)),
+            'trunc', 'floor' => $r1,
+            'ceil', 'expand' => $rem === 0 ? $r1 : $r2,
+            'halfExpand', 'halfCeil' => ($rem * 2) >= $increment ? $r2 : $r1,
+            'halfTrunc', 'halfFloor' => ($rem * 2) > $increment ? $r2 : $r1,
+            'halfEven' => ($rem * 2) < $increment
+                ? $r1
+                : (($rem * 2) > $increment ? $r2 : (($q % 2) === 0 ? $r1 : $r2)),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
     }
@@ -1410,35 +1451,45 @@ final class PlainTime implements Stringable
     private static function roundSignedNs(int $ns, int $increment, string $mode): int
     {
         // PHP's intdiv truncates toward zero.
-        $q      = intdiv(num1: $ns, num2: $increment);
-        $rem    = $ns - $q * $increment;  // same sign as $ns (or 0)
-        $trunc  = $q * $increment;        // truncated toward zero
+        $q = intdiv(num1: $ns, num2: $increment);
+        $rem = $ns - ($q * $increment); // same sign as $ns (or 0)
+        $trunc = $q * $increment; // truncated toward zero
         $absRem = abs($rem);
 
         return match ($mode) {
-            'trunc'      => $trunc,
-            'floor'      => $rem < 0 ? $trunc - $increment : $trunc,
-            'ceil'       => $rem > 0 ? $trunc + $increment : $trunc,
-            'expand'     => $rem < 0 ? $trunc - $increment : ($rem > 0 ? $trunc + $increment : $trunc),
+            'trunc' => $trunc,
+            'floor' => $rem < 0 ? $trunc - $increment : $trunc,
+            'ceil' => $rem > 0 ? $trunc + $increment : $trunc,
+            'expand' => $rem < 0 ? $trunc - $increment : ($rem > 0 ? $trunc + $increment : $trunc),
             // half modes: not at exact midpoint → same as expand/trunc; at midpoint → direction-dependent.
-            'halfExpand' => $absRem * 2 >= $increment
+            'halfExpand' => ($absRem * 2) >= $increment
                 ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
                 : $trunc,
-            'halfTrunc'  => $absRem * 2 > $increment
-                ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                : $trunc,
-            'halfFloor'  => $absRem * 2 < $increment ? $trunc
-                : ($absRem * 2 > $increment
-                    ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                    : ($ns >= 0 ? $trunc : $trunc - $increment)),  // tie: toward -∞
-            'halfCeil'   => $absRem * 2 < $increment ? $trunc
-                : ($absRem * 2 > $increment
-                    ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                    : ($ns >= 0 ? $trunc + $increment : $trunc)),  // tie: toward +∞
-            'halfEven'   => $absRem * 2 < $increment ? $trunc
-                : ($absRem * 2 > $increment
-                    ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                    : ($q % 2 === 0 ? $trunc : ($ns >= 0 ? $trunc + $increment : $trunc - $increment))),
+            'halfTrunc' => ($absRem * 2) > $increment ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment) : $trunc,
+            'halfFloor' => ($absRem * 2) < $increment
+                ? $trunc
+                : (
+                    ($absRem * 2)
+                    > $increment
+                        ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
+                        : ($ns >= 0 ? $trunc : $trunc - $increment)
+                ), // tie: toward -∞
+            'halfCeil' => ($absRem * 2) < $increment
+                ? $trunc
+                : (
+                    ($absRem * 2)
+                    > $increment
+                        ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
+                        : ($ns >= 0 ? $trunc + $increment : $trunc)
+                ), // tie: toward +∞
+            'halfEven' => ($absRem * 2) < $increment
+                ? $trunc
+                : (
+                    ($absRem * 2)
+                    > $increment
+                        ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
+                        : (($q % 2) === 0 ? $trunc : ($ns >= 0 ? $trunc + $increment : $trunc - $increment))
+                ),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
     }

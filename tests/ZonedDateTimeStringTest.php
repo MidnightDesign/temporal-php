@@ -19,7 +19,7 @@ final class ZonedDateTimeStringTest extends TestCase
 
     public function testToStringWithFractionalSeconds(): void
     {
-        $epochNs = 0 * 1_000_000_000 + 123_456_789;
+        $epochNs = (0 * 1_000_000_000) + 123_456_789;
         $zdt = new ZonedDateTime($epochNs, 'UTC');
 
         static::assertSame('1970-01-01T00:00:00.123456789+00:00[UTC]', $zdt->toString());
@@ -75,7 +75,9 @@ final class ZonedDateTimeStringTest extends TestCase
     {
         $zdt = new ZonedDateTime(0, 'UTC');
 
-        static::assertSame('1970-01-01T00:00:00+00:00[UTC][u-ca=iso8601]', $zdt->toString(['calendarName' => 'always']));
+        static::assertSame('1970-01-01T00:00:00+00:00[UTC][u-ca=iso8601]', $zdt->toString([
+            'calendarName' => 'always',
+        ]));
     }
 
     public function testToStringCalendarNameNever(): void
@@ -90,7 +92,9 @@ final class ZonedDateTimeStringTest extends TestCase
     {
         $zdt = new ZonedDateTime(0, 'UTC');
 
-        static::assertSame('1970-01-01T00:00:00+00:00[UTC][!u-ca=iso8601]', $zdt->toString(['calendarName' => 'critical']));
+        static::assertSame('1970-01-01T00:00:00+00:00[UTC][!u-ca=iso8601]', $zdt->toString([
+            'calendarName' => 'critical',
+        ]));
     }
 
     public function testToStringWithPositiveOffset(): void
@@ -133,18 +137,18 @@ final class ZonedDateTimeStringTest extends TestCase
     public function testToStringOffsetOptionWrongTypeThrows(): void
     {
         $this->expectException(\TypeError::class);
-        (new ZonedDateTime(0, 'UTC'))->toString(['offset' => 42]);
+        new ZonedDateTime(0, 'UTC')->toString(['offset' => 42]);
     }
 
     public function testToStringInvalidOffsetOptionThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new ZonedDateTime(0, 'UTC'))->toString(['offset' => 'invalid']);
+        new ZonedDateTime(0, 'UTC')->toString(['offset' => 'invalid']);
     }
 
     public function testToStringInvalidCalendarNameThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        (new ZonedDateTime(0, 'UTC'))->toString(['calendarName' => 'bad']);
+        new ZonedDateTime(0, 'UTC')->toString(['calendarName' => 'bad']);
     }
 }

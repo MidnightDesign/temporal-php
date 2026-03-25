@@ -18,12 +18,12 @@ use Stringable;
  */
 final class PlainDateTime implements Stringable
 {
-    private const int NS_PER_HOUR   = 3_600_000_000_000;
-    private const int NS_PER_MINUTE =    60_000_000_000;
-    private const int NS_PER_SECOND =     1_000_000_000;
-    private const int NS_PER_MS     =         1_000_000;
-    private const int NS_PER_US     =             1_000;
-    private const int NS_PER_DAY    = 86_400_000_000_000;
+    private const int NS_PER_HOUR = 3_600_000_000_000;
+    private const int NS_PER_MINUTE = 60_000_000_000;
+    private const int NS_PER_SECOND = 1_000_000_000;
+    private const int NS_PER_MS = 1_000_000;
+    private const int NS_PER_US = 1_000;
+    private const int NS_PER_DAY = 86_400_000_000_000;
 
     // -------------------------------------------------------------------------
     // Virtual (get-only) properties
@@ -36,7 +36,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $calendarId { get => 'iso8601'; }
+    public string $calendarId {
+        get => 'iso8601';
+    }
 
     /**
      * Always undefined (null) for the ISO 8601 calendar.
@@ -45,7 +47,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public ?string $era { get => null; }
+    public ?string $era {
+        get => null;
+    }
 
     /**
      * Always undefined (null) for the ISO 8601 calendar.
@@ -54,7 +58,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public ?int $eraYear { get => null; }
+    public ?int $eraYear {
+        get => null;
+    }
 
     /**
      * Month code in "M01"–"M12" format.
@@ -63,7 +69,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $monthCode { get => sprintf('M%02d', $this->month); }
+    public string $monthCode {
+        get => sprintf('M%02d', $this->month);
+    }
 
     /**
      * ISO 8601 day of week: 1 = Monday, 7 = Sunday.
@@ -72,7 +80,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $dayOfWeek { get => self::isoWeekday($this->year, $this->month, $this->day); }
+    public int $dayOfWeek {
+        get => self::isoWeekday($this->year, $this->month, $this->day);
+    }
 
     /**
      * Ordinal day of the year: 1–366.
@@ -81,7 +91,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $dayOfYear { get => self::calcDayOfYear($this->year, $this->month, $this->day); }
+    public int $dayOfYear {
+        get => self::calcDayOfYear($this->year, $this->month, $this->day);
+    }
 
     /**
      * ISO 8601 week number: 1–53.
@@ -90,7 +102,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $weekOfYear { get => self::isoWeekInfo($this->year, $this->month, $this->day)['week']; }
+    public int $weekOfYear {
+        get => self::isoWeekInfo($this->year, $this->month, $this->day)['week'];
+    }
 
     /**
      * ISO 8601 week-year (may differ from calendar year near year boundaries).
@@ -99,7 +113,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $yearOfWeek { get => self::isoWeekInfo($this->year, $this->month, $this->day)['year']; }
+    public int $yearOfWeek {
+        get => self::isoWeekInfo($this->year, $this->month, $this->day)['year'];
+    }
 
     /**
      * Number of days in this date's month.
@@ -108,7 +124,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInMonth { get => self::calcDaysInMonth($this->year, $this->month); }
+    public int $daysInMonth {
+        get => self::calcDaysInMonth($this->year, $this->month);
+    }
 
     /**
      * Always 7 (ISO 8601 calendar).
@@ -117,7 +135,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInWeek { get => 7; }
+    public int $daysInWeek {
+        get => 7;
+    }
 
     /**
      * 365 or 366, depending on whether this date's year is a leap year.
@@ -126,7 +146,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInYear { get => self::isLeapYear($this->year) ? 366 : 365; }
+    public int $daysInYear {
+        get => self::isLeapYear($this->year) ? 366 : 365;
+    }
 
     /**
      * Always 12 (ISO 8601 calendar).
@@ -135,7 +157,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $monthsInYear { get => 12; }
+    public int $monthsInYear {
+        get => 12;
+    }
 
     /**
      * True if this date's year is a leap year.
@@ -144,7 +168,9 @@ final class PlainDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public bool $inLeapYear { get => self::isLeapYear($this->year); }
+    public bool $inLeapYear {
+        get => self::isLeapYear($this->year);
+    }
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -195,16 +221,12 @@ final class PlainDateTime implements Stringable
     ) {
         if ($calendar !== null) {
             if (!is_string($calendar)) {
-                throw new \TypeError(
-                    'PlainDateTime calendar must be a string; got ' . get_debug_type($calendar) . '.',
-                );
+                throw new \TypeError('PlainDateTime calendar must be a string; got ' . get_debug_type($calendar) . '.');
             }
             // The constructor only accepts bare calendar IDs, not ISO date strings.
             // Use ASCII-only lowercase to reject non-ASCII chars like U+0130 (İ).
             if (strtolower($calendar) !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$calendar}\": only iso8601 is supported.",
-                );
+                throw new InvalidArgumentException("Unsupported calendar \"{$calendar}\": only iso8601 is supported.");
             }
         }
         if (
@@ -218,29 +240,23 @@ final class PlainDateTime implements Stringable
             || !is_finite((float) $microsecond)
             || !is_finite((float) $nanosecond)
         ) {
-            throw new InvalidArgumentException(
-                'Invalid PlainDateTime: all fields must be finite numbers.',
-            );
+            throw new InvalidArgumentException('Invalid PlainDateTime: all fields must be finite numbers.');
         }
-        $this->year        = (int) $year;
-        $this->month       = (int) $month;
-        $this->day         = (int) $day;
-        $this->hour        = (int) $hour;
-        $this->minute      = (int) $minute;
-        $this->second      = (int) $second;
+        $this->year = (int) $year;
+        $this->month = (int) $month;
+        $this->day = (int) $day;
+        $this->hour = (int) $hour;
+        $this->minute = (int) $minute;
+        $this->second = (int) $second;
         $this->millisecond = (int) $millisecond;
         $this->microsecond = (int) $microsecond;
-        $this->nanosecond  = (int) $nanosecond;
+        $this->nanosecond = (int) $nanosecond;
 
         if ($this->month < 1 || $this->month > 12) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: month {$this->month} is out of range 1–12.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: month {$this->month} is out of range 1–12.");
         }
         if ($this->day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: day {$this->day} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: day {$this->day} must be at least 1.");
         }
         $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
         if ($this->day > $daysInMonth) {
@@ -259,16 +275,28 @@ final class PlainDateTime implements Stringable
         }
         // Midnight (-271821-04-19 00:00:00.000000000) is itself outside the range.
         // The first valid instant is one nanosecond past midnight on that date.
-        if ($epochDays === -100_000_001
-            && $this->hour === 0 && $this->minute === 0 && $this->second === 0
-            && $this->millisecond === 0 && $this->microsecond === 0 && $this->nanosecond === 0
+        if (
+            $epochDays === -100_000_001
+            && $this->hour === 0
+            && $this->minute === 0
+            && $this->second === 0
+            && $this->millisecond === 0
+            && $this->microsecond === 0
+            && $this->nanosecond === 0
         ) {
             throw new InvalidArgumentException(
                 'Invalid PlainDateTime: -271821-04-19T00:00:00 is outside the representable range (use T00:00:00.000000001 or later).',
             );
         }
 
-        self::validateTimeFields($this->hour, $this->minute, $this->second, $this->millisecond, $this->microsecond, $this->nanosecond);
+        self::validateTimeFields(
+            $this->hour,
+            $this->minute,
+            $this->second,
+            $this->millisecond,
+            $this->microsecond,
+            $this->nanosecond,
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -293,9 +321,15 @@ final class PlainDateTime implements Stringable
 
         if ($item instanceof self) {
             return new self(
-                $item->year, $item->month, $item->day,
-                $item->hour, $item->minute, $item->second,
-                $item->millisecond, $item->microsecond, $item->nanosecond,
+                $item->year,
+                $item->month,
+                $item->day,
+                $item->hour,
+                $item->minute,
+                $item->second,
+                $item->millisecond,
+                $item->microsecond,
+                $item->nanosecond,
             );
         }
         if (is_string($item)) {
@@ -306,7 +340,8 @@ final class PlainDateTime implements Stringable
         }
         throw new \TypeError(
             'PlainDateTime::from() expects a PlainDateTime, ISO 8601 datetime string, or property-bag array; got '
-            . get_debug_type($item) . '.',
+            . get_debug_type($item)
+            . '.',
         );
     }
 
@@ -359,15 +394,23 @@ final class PlainDateTime implements Stringable
     public function with(array $fields, mixed $options = null): self
     {
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
-            throw new \TypeError(
-                'PlainDateTime::with() fields must not contain a calendar or timeZone property.',
-            );
+            throw new \TypeError('PlainDateTime::with() fields must not contain a calendar or timeZone property.');
         }
 
         // At least one recognized property must be present.
         /** @var list<string> $recognized */
-        static $recognized = ['year', 'month', 'monthCode', 'day',
-            'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
+        static $recognized = [
+            'year',
+            'month',
+            'monthCode',
+            'day',
+            'hour',
+            'minute',
+            'second',
+            'millisecond',
+            'microsecond',
+            'nanosecond',
+        ];
         $hasRecognized = false;
         foreach ($recognized as $key) {
             if (array_key_exists($key, $fields)) {
@@ -376,9 +419,7 @@ final class PlainDateTime implements Stringable
             }
         }
         if (!$hasRecognized) {
-            throw new \TypeError(
-                'PlainDateTime::with() requires at least one recognized temporal property.',
-            );
+            throw new \TypeError('PlainDateTime::with() requires at least one recognized temporal property.');
         }
 
         $overflow = self::extractOverflow($options);
@@ -396,8 +437,8 @@ final class PlainDateTime implements Stringable
             $year = (int) $yr;
         }
 
-        $month        = $this->month;
-        $hasMonth     = array_key_exists('month', $fields);
+        $month = $this->month;
+        $hasMonth = array_key_exists('month', $fields);
         $hasMonthCode = array_key_exists('monthCode', $fields);
         if ($hasMonthCode) {
             /** @var mixed $mc */
@@ -405,9 +446,7 @@ final class PlainDateTime implements Stringable
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mcStr}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
             }
             $month = (int) substr(string: $mcStr, offset: 1);
         }
@@ -439,12 +478,12 @@ final class PlainDateTime implements Stringable
         }
 
         // Merge time fields.
-        $h   = $this->hour;
+        $h = $this->hour;
         $min = $this->minute;
         $sec = $this->second;
-        $ms  = $this->millisecond;
-        $us  = $this->microsecond;
-        $ns  = $this->nanosecond;
+        $ms = $this->millisecond;
+        $us = $this->microsecond;
+        $ns = $this->nanosecond;
 
         if (array_key_exists('hour', $fields)) {
             /** @var mixed $v */
@@ -509,26 +548,22 @@ final class PlainDateTime implements Stringable
 
         // month < 1 and day < 1 are always invalid (cannot constrain below minimum).
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid month {$month}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid day {$day}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
-            $month  = min(12, $month);
+            $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
-            $day    = min($maxDay, $day);
-            $h   = max(0, min(23, $h));
+            $day = min($maxDay, $day);
+            $h = max(0, min(23, $h));
             $min = max(0, min(59, $min));
             $sec = max(0, min(59, $sec));
-            $ms  = max(0, min(999, $ms));
-            $us  = max(0, min(999, $us));
-            $ns  = max(0, min(999, $ns));
+            $ms = max(0, min(999, $ms));
+            $us = max(0, min(999, $us));
+            $ns = max(0, min(999, $ns));
         }
 
         return new self($year, $month, $day, $h, $min, $sec, $ms, $us, $ns);
@@ -622,23 +657,25 @@ final class PlainDateTime implements Stringable
         // ns-per-unit and max increment (exclusive) for each unit.
         // For 'day', max = 1 (only increment 1 is valid).
         $unitMap = [
-            'day'          => [self::NS_PER_DAY,    2],   // only increment=1 is valid for day
-            'days'         => [self::NS_PER_DAY,    2],
-            'hour'         => [self::NS_PER_HOUR,   24],
-            'hours'        => [self::NS_PER_HOUR,   24],
-            'minute'       => [self::NS_PER_MINUTE, 60],
-            'minutes'      => [self::NS_PER_MINUTE, 60],
-            'second'       => [self::NS_PER_SECOND, 60],
-            'seconds'      => [self::NS_PER_SECOND, 60],
-            'millisecond'  => [self::NS_PER_MS,     1_000],
-            'milliseconds' => [self::NS_PER_MS,     1_000],
-            'microsecond'  => [self::NS_PER_US,     1_000],
-            'microseconds' => [self::NS_PER_US,     1_000],
-            'nanosecond'   => [1,                   1_000],
-            'nanoseconds'  => [1,                   1_000],
+            'day' => [self::NS_PER_DAY, 2], // only increment=1 is valid for day
+            'days' => [self::NS_PER_DAY, 2],
+            'hour' => [self::NS_PER_HOUR, 24],
+            'hours' => [self::NS_PER_HOUR, 24],
+            'minute' => [self::NS_PER_MINUTE, 60],
+            'minutes' => [self::NS_PER_MINUTE, 60],
+            'second' => [self::NS_PER_SECOND, 60],
+            'seconds' => [self::NS_PER_SECOND, 60],
+            'millisecond' => [self::NS_PER_MS, 1_000],
+            'milliseconds' => [self::NS_PER_MS, 1_000],
+            'microsecond' => [self::NS_PER_US, 1_000],
+            'microseconds' => [self::NS_PER_US, 1_000],
+            'nanosecond' => [1, 1_000],
+            'nanoseconds' => [1, 1_000],
         ];
         if (!array_key_exists($suRaw, $unitMap)) {
-            throw new InvalidArgumentException("Invalid smallestUnit \"{$suRaw}\" for Temporal\\PlainDateTime::round().");
+            throw new InvalidArgumentException(
+                "Invalid smallestUnit \"{$suRaw}\" for Temporal\\PlainDateTime::round().",
+            );
         }
         [$nsPerUnit, $maxIncrement] = $unitMap[$suRaw];
 
@@ -659,15 +696,20 @@ final class PlainDateTime implements Stringable
         }
         // Increment must be strictly less than maxIncrement (for sub-day) and must divide it.
         // For 'day', increment must be exactly 1 (maxIncrement = 1).
-        if ($increment >= $maxIncrement || $maxIncrement % $increment !== 0) {
-            throw new InvalidArgumentException(
-                "roundingIncrement {$increment} is invalid for unit \"{$suRaw}\".",
-            );
+        if ($increment >= $maxIncrement || ($maxIncrement % $increment) !== 0) {
+            throw new InvalidArgumentException("roundingIncrement {$increment} is invalid for unit \"{$suRaw}\".");
         }
 
         // Total ns since epoch midnight: use Julian Day Number to count days.
-        $jdn   = self::toJulianDay($this->year, $this->month, $this->day);
-        $timeNs = self::timeToNs($this->hour, $this->minute, $this->second, $this->millisecond, $this->microsecond, $this->nanosecond);
+        $jdn = self::toJulianDay($this->year, $this->month, $this->day);
+        $timeNs = self::timeToNs(
+            $this->hour,
+            $this->minute,
+            $this->second,
+            $this->millisecond,
+            $this->microsecond,
+            $this->nanosecond,
+        );
 
         // For day rounding, increment wraps in units of a full day relative to the
         // day boundary (midnight), so we simply round the time-of-day ns.
@@ -678,7 +720,7 @@ final class PlainDateTime implements Stringable
 
         // Determine how many days of overflow result from rounding (0 or 1).
         $overflowDays = intdiv(num1: $roundedTimeNs, num2: self::NS_PER_DAY);
-        $newTimeNs    = $roundedTimeNs % self::NS_PER_DAY;
+        $newTimeNs = $roundedTimeNs % self::NS_PER_DAY;
 
         $newJdn = $jdn + $overflowDays;
 
@@ -691,16 +733,16 @@ final class PlainDateTime implements Stringable
 
         [$newYear, $newMonth, $newDay] = self::fromJulianDay($newJdn);
 
-        $h   = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
+        $h = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem = $rem % self::NS_PER_MINUTE;
         $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
         $rem = $rem % self::NS_PER_SECOND;
-        $ms  = intdiv(num1: $rem, num2: self::NS_PER_MS);
+        $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
         $rem = $rem % self::NS_PER_MS;
-        $us  = intdiv(num1: $rem, num2: self::NS_PER_US);
-        $ns  = $rem % self::NS_PER_US;
+        $us = intdiv(num1: $rem, num2: self::NS_PER_US);
+        $ns = $rem % self::NS_PER_US;
 
         return new self($newYear, $newMonth, $newDay, $h, $min, $sec, $ms, $us, $ns);
     }
@@ -714,15 +756,17 @@ final class PlainDateTime implements Stringable
     public function equals(mixed $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
-        return $this->year        === $o->year
-            && $this->month       === $o->month
-            && $this->day         === $o->day
-            && $this->hour        === $o->hour
-            && $this->minute      === $o->minute
-            && $this->second      === $o->second
+        return (
+            $this->year === $o->year
+            && $this->month === $o->month
+            && $this->day === $o->day
+            && $this->hour === $o->hour
+            && $this->minute === $o->minute
+            && $this->second === $o->second
             && $this->millisecond === $o->millisecond
             && $this->microsecond === $o->microsecond
-            && $this->nanosecond  === $o->nanosecond;
+            && $this->nanosecond === $o->nanosecond
+        );
     }
 
     /**
@@ -745,9 +789,9 @@ final class PlainDateTime implements Stringable
         }
 
         $calendarName = 'auto';
-        $digits       = -2; // -2 = 'auto'
-        $isMinute     = false;
-        $roundMode    = 'trunc';
+        $digits = -2; // -2 = 'auto'
+        $isMinute = false;
+        $roundMode = 'trunc';
 
         if ($options !== null) {
             if (array_key_exists('calendarName', $options)) {
@@ -765,9 +809,7 @@ final class PlainDateTime implements Stringable
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd !== 'auto') {
                     if ($fsd === null || is_bool($fsd)) {
-                        throw new InvalidArgumentException(
-                            "fractionalSecondDigits must be 'auto' or an integer 0–9.",
-                        );
+                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
                     }
                     if (is_float($fsd)) {
                         if (is_nan($fsd) || is_infinite($fsd)) {
@@ -777,9 +819,7 @@ final class PlainDateTime implements Stringable
                         }
                         $fsd = (int) floor($fsd);
                     } elseif (!is_int($fsd)) {
-                        throw new InvalidArgumentException(
-                            "fractionalSecondDigits must be 'auto' or an integer 0–9.",
-                        );
+                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
                     }
                     if ($fsd < 0 || $fsd > 9) {
                         throw new InvalidArgumentException(
@@ -829,17 +869,19 @@ final class PlainDateTime implements Stringable
 
         // Round time-of-day nanoseconds.
         $timeNs = self::timeToNs(
-            $this->hour, $this->minute, $this->second,
-            $this->millisecond, $this->microsecond, $this->nanosecond,
+            $this->hour,
+            $this->minute,
+            $this->second,
+            $this->millisecond,
+            $this->microsecond,
+            $this->nanosecond,
         );
 
-        $roundedTimeNs = $increment === 1
-            ? $timeNs
-            : self::roundPositiveNs($timeNs, $increment, $roundMode);
+        $roundedTimeNs = $increment === 1 ? $timeNs : self::roundPositiveNs($timeNs, $increment, $roundMode);
 
         // Determine overflow days from rounding (0 or 1).
         $overflowDays = intdiv(num1: $roundedTimeNs, num2: self::NS_PER_DAY);
-        $newTimeNs    = $roundedTimeNs % self::NS_PER_DAY;
+        $newTimeNs = $roundedTimeNs % self::NS_PER_DAY;
 
         // Apply overflow days to date via Julian Day Number.
         $jdn = self::toJulianDay($this->year, $this->month, $this->day) + $overflowDays;
@@ -848,25 +890,21 @@ final class PlainDateTime implements Stringable
         $minJdn = self::toJulianDay(-271821, 4, 19);
         $maxJdn = self::toJulianDay(275760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException(
-                'PlainDateTime rounding result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainDateTime rounding result is outside the representable range.');
         }
         // Midnight at the min boundary is outside the range.
         if ($jdn === $minJdn && $newTimeNs === 0) {
-            throw new InvalidArgumentException(
-                'PlainDateTime rounding result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainDateTime rounding result is outside the representable range.');
         }
 
         [$year, $month, $day] = self::fromJulianDay($jdn);
 
         $hour = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
-        $rem  = $newTimeNs % self::NS_PER_HOUR;
-        $min  = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
-        $rem  = $rem % self::NS_PER_MINUTE;
-        $sec  = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem  = $rem % self::NS_PER_SECOND;
+        $rem = $newTimeNs % self::NS_PER_HOUR;
+        $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
+        $rem = $rem % self::NS_PER_MINUTE;
+        $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
+        $rem = $rem % self::NS_PER_SECOND;
 
         $subNs = $rem;
 
@@ -890,24 +928,22 @@ final class PlainDateTime implements Stringable
                 $timeStr = $timeBase;
             } else {
                 $fraction = rtrim(sprintf('%09d', $subNs), characters: '0');
-                $timeStr  = "{$timeBase}.{$fraction}";
+                $timeStr = "{$timeBase}.{$fraction}";
             }
         } elseif ($digits === 0) {
             $timeStr = sprintf('%02d:%02d:%02d', $hour, $min, $sec);
         } else {
             $fraction = substr(string: sprintf('%09d', $subNs), offset: 0, length: $digits);
-            $timeStr  = sprintf('%02d:%02d:%02d.%s', $hour, $min, $sec, $fraction);
+            $timeStr = sprintf('%02d:%02d:%02d.%s', $hour, $min, $sec, $fraction);
         }
 
         $base = "{$dateStr}T{$timeStr}";
 
         return match ($calendarName) {
             'auto', 'never' => $base,
-            'always'        => $base . '[u-ca=iso8601]',
-            'critical'      => $base . '[!u-ca=iso8601]',
-            default         => throw new InvalidArgumentException(
-                "Invalid calendarName value: \"{$calendarName}\".",
-            ),
+            'always' => $base . '[u-ca=iso8601]',
+            'critical' => $base . '[!u-ca=iso8601]',
+            default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
 
@@ -943,7 +979,14 @@ final class PlainDateTime implements Stringable
      */
     public function toPlainTime(): PlainTime
     {
-        return new PlainTime($this->hour, $this->minute, $this->second, $this->millisecond, $this->microsecond, $this->nanosecond);
+        return new PlainTime(
+            $this->hour,
+            $this->minute,
+            $this->second,
+            $this->millisecond,
+            $this->microsecond,
+            $this->nanosecond,
+        );
     }
 
     /**
@@ -968,9 +1011,15 @@ final class PlainDateTime implements Stringable
         }
         $t = $time instanceof PlainTime ? $time : PlainTime::from($time);
         return new self(
-            $this->year, $this->month, $this->day,
-            $t->hour, $t->minute, $t->second,
-            $t->millisecond, $t->microsecond, $t->nanosecond,
+            $this->year,
+            $this->month,
+            $this->day,
+            $t->hour,
+            $t->minute,
+            $t->second,
+            $t->millisecond,
+            $t->microsecond,
+            $t->nanosecond,
         );
     }
 
@@ -988,8 +1037,7 @@ final class PlainDateTime implements Stringable
     {
         if (!is_string($timeZone)) {
             throw new \TypeError(
-                'PlainDateTime::toZonedDateTime() timeZone must be a string; got '
-                . get_debug_type($timeZone) . '.',
+                'PlainDateTime::toZonedDateTime() timeZone must be a string; got ' . get_debug_type($timeZone) . '.',
             );
         }
 
@@ -998,7 +1046,8 @@ final class PlainDateTime implements Stringable
             if (!is_array($options) && !is_object($options)) {
                 throw new \TypeError(
                     'PlainDateTime::toZonedDateTime() options must be an object or null; got '
-                    . get_debug_type($options) . '.',
+                    . get_debug_type($options)
+                    . '.',
                 );
             }
             if (is_object($options)) {
@@ -1008,7 +1057,10 @@ final class PlainDateTime implements Stringable
             if (array_key_exists('disambiguation', $options)) {
                 /** @var mixed $disamb */
                 $disamb = $options['disambiguation'];
-                if (!is_string($disamb) || !in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
+                if (
+                    !is_string($disamb)
+                    || !in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)
+                ) {
                     throw new InvalidArgumentException(
                         'PlainDateTime::toZonedDateTime() disambiguation must be one of: compatible, earlier, later, reject.',
                     );
@@ -1021,19 +1073,14 @@ final class PlainDateTime implements Stringable
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
         // year-formatting issues with extended years > 9999 or negative years).
         $epochDays = self::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
-        $wallSec = $epochDays * 86_400
-            + $this->hour * 3600 + $this->minute * 60 + $this->second;
+        $wallSec = ($epochDays * 86_400) + ($this->hour * 3600) + ($this->minute * 60) + $this->second;
         $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $normalTzId);
 
-        $subNs = $this->millisecond * self::NS_PER_MS
-            + $this->microsecond * self::NS_PER_US
-            + $this->nanosecond;
+        $subNs = ($this->millisecond * self::NS_PER_MS) + ($this->microsecond * self::NS_PER_US) + $this->nanosecond;
 
         // Instant range: |epochNs| ≤ 8_640_000_000_000_000_000_000 (i.e. ±8_640_000_000_000 seconds + 0 sub-ns).
         $absEpochSec = abs($epochSec);
-        if ($absEpochSec > 8_640_000_000_000
-            || ($absEpochSec === 8_640_000_000_000 && $subNs > 0)
-        ) {
+        if ($absEpochSec > 8_640_000_000_000 || $absEpochSec === 8_640_000_000_000 && $subNs > 0) {
             throw new InvalidArgumentException(
                 'PlainDateTime::toZonedDateTime() result is outside the representable Instant range.',
             );
@@ -1042,7 +1089,7 @@ final class PlainDateTime implements Stringable
         if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
             $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
         } else {
-            $epochNs = $epochSec * self::NS_PER_SECOND + $subNs;
+            $epochNs = ($epochSec * self::NS_PER_SECOND) + $subNs;
         }
 
         return new ZonedDateTime($epochNs, $normalTzId, 'iso8601');
@@ -1060,15 +1107,20 @@ final class PlainDateTime implements Stringable
     {
         if (!is_string($calendar)) {
             throw new \TypeError(
-                'PlainDateTime::withCalendar() calendar must be a string; got '
-                . get_debug_type($calendar) . '.',
+                'PlainDateTime::withCalendar() calendar must be a string; got ' . get_debug_type($calendar) . '.',
             );
         }
         ZonedDateTime::extractCalendarFromString($calendar);
         return new self(
-            $this->year, $this->month, $this->day,
-            $this->hour, $this->minute, $this->second,
-            $this->millisecond, $this->microsecond, $this->nanosecond,
+            $this->year,
+            $this->month,
+            $this->day,
+            $this->hour,
+            $this->minute,
+            $this->second,
+            $this->millisecond,
+            $this->microsecond,
+            $this->nanosecond,
             'iso8601',
         );
     }
@@ -1132,9 +1184,18 @@ final class PlainDateTime implements Stringable
         $offsetMM = '[0-5]\d';
         $offsetSS = '[0-5]\d';
         $offsetNonZ =
-            '[+-]' . $offsetHH
-            . '(?::' . $offsetMM . '(?::' . $offsetSS . '(?:[.,]\d+)?)?'
-            . '|' . $offsetMM . '(?:' . $offsetSS . '(?:[.,]\d+)?)?)?';
+            '[+-]'
+            . $offsetHH
+            . '(?::'
+            . $offsetMM
+            . '(?::'
+            . $offsetSS
+            . '(?:[.,]\d+)?)?'
+            . '|'
+            . $offsetMM
+            . '(?:'
+            . $offsetSS
+            . '(?:[.,]\d+)?)?)?';
 
         // Full datetime pattern (T/t/space separator required).
         // Time section: three mutually exclusive branches to enforce separator consistency:
@@ -1144,33 +1205,32 @@ final class PlainDateTime implements Stringable
         // Group 11 captures a Z designator (which is then rejected).
         // Group 12 captures bracket annotations.
         $dtPattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})'        // groups 1=year, 2=dateRest
+            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' // groups 1=year, 2=dateRest
             . '[Tt ]'
             . '(?:'
-            .   '(\d{2}):(\d{2})(?::(\d{2})([.,]\d+)?)?'      // ext: groups 3,4,5,6
+            . '(\d{2}):(\d{2})(?::(\d{2})([.,]\d+)?)?' // ext: groups 3,4,5,6
             . '|'
-            .   '(\d{2})(\d{2})(?:(\d{2})([.,]\d+)?)?'        // basic: groups 7,8,9,10
+            . '(\d{2})(\d{2})(?:(\d{2})([.,]\d+)?)?' // basic: groups 7,8,9,10
             . '|'
-            .   '(\d{2})'                                      // hour-only: group 13
+            . '(\d{2})' // hour-only: group 13
             . ')'
-            . '(Z)?'                                            // group 11: Z designator
-            . '(?:' . $offsetNonZ . ')?'                       // offset (consumed, ignored)
-            . '((?:\[[^\]]*\])*)'                              // group 12: annotations
+            . '(Z)?' // group 11: Z designator
+            . '(?:'
+            . $offsetNonZ
+            . ')?' // offset (consumed, ignored)
+            . '((?:\[[^\]]*\])*)' // group 12: annotations
             . '$/i';
 
         // Date-only pattern: YYYY-MM-DD or ±YYYYYY-MM-DD or YYYYMMDD, plus optional annotations.
         // Groups: 1=year, 2=dateRest, 3=annotations.
-        $dateOnlyPattern =
-            '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})'
-            . '((?:\[[^\]]*\])*)'
-            . '$/i';
+        $dateOnlyPattern = '/^([+-]\d{6}|\d{4})(-\d{2}-\d{2}|\d{4})' . '((?:\[[^\]]*\])*)' . '$/i';
 
         /** @var list<string> $m */
         $m = [];
-        $hourNum  = 0;
-        $minNum   = 0;
-        $secNum   = 0;
-        $fracRaw  = '';
+        $hourNum = 0;
+        $minNum = 0;
+        $secNum = 0;
+        $fracRaw = '';
 
         if (preg_match($dtPattern, $s, $m) === 1) {
             // UTC designator Z is not allowed for PlainDateTime.
@@ -1179,27 +1239,27 @@ final class PlainDateTime implements Stringable
                     "PlainDateTime::from() cannot parse \"{$s}\": UTC designator (Z) is not allowed.",
                 );
             }
-            $yearRaw     = $m[1];
-            $dateRest    = $m[2];
+            $yearRaw = $m[1];
+            $dateRest = $m[2];
             $annotations = $m[13] ?? ''; // @phpstan-ignore nullCoalesce.offset
             // Determine which time branch matched (extended uses group 3, basic uses group 7, hour-only uses group 11).
             if ($m[3] !== '') {
                 // Extended format: HH:MM[:SS[.frac]]
                 $hourNum = (int) $m[3];
-                $minNum  = (int) $m[4];
-                $secNum  = ($m[5] !== '') ? (int) $m[5] : 0;
+                $minNum = (int) $m[4];
+                $secNum = $m[5] !== '' ? (int) $m[5] : 0;
                 $fracRaw = $m[6];
             } elseif ($m[7] !== '') {
                 // Basic format: HHMM[SS[.frac]]
                 $hourNum = (int) $m[7];
-                $minNum  = (int) $m[8];
-                $secNum  = ($m[9] !== '') ? (int) $m[9] : 0;
+                $minNum = (int) $m[8];
+                $secNum = $m[9] !== '' ? (int) $m[9] : 0;
                 $fracRaw = $m[10];
             } else {
                 // Hour-only format: HH
                 $hourNum = (int) ($m[11] ?? '0'); // @phpstan-ignore nullCoalesce.offset
-                $minNum  = 0;
-                $secNum  = 0;
+                $minNum = 0;
+                $secNum = 0;
                 $fracRaw = '';
             }
             // Leap second 60 → 59.
@@ -1224,8 +1284,8 @@ final class PlainDateTime implements Stringable
             }
         } elseif (preg_match($dateOnlyPattern, $s, $m) === 1) {
             // Date-only string: time defaults to midnight (all zeros).
-            $yearRaw     = $m[1];
-            $dateRest    = $m[2];
+            $yearRaw = $m[1];
+            $dateRest = $m[2];
             $annotations = $m[3];
         } else {
             throw new InvalidArgumentException(
@@ -1243,10 +1303,10 @@ final class PlainDateTime implements Stringable
         // Parse date components.
         if (!str_starts_with($dateRest, '-')) {
             $month = (int) substr(string: $dateRest, offset: 0, length: 2);
-            $day   = (int) substr(string: $dateRest, offset: 2, length: 2);
+            $day = (int) substr(string: $dateRest, offset: 2, length: 2);
         } else {
             $month = (int) substr(string: $dateRest, offset: 1, length: 2);
-            $day   = (int) substr(string: $dateRest, offset: 4, length: 2);
+            $day = (int) substr(string: $dateRest, offset: 4, length: 2);
         }
         $year = (int) $yearRaw;
 
@@ -1255,9 +1315,9 @@ final class PlainDateTime implements Stringable
 
         // Decompose sub-second nanoseconds.
         $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
-        $ms    = intdiv(num1: $subNs, num2: self::NS_PER_MS);
-        $us    = intdiv(num1: $subNs % self::NS_PER_MS, num2: self::NS_PER_US);
-        $ns    = $subNs % self::NS_PER_US;
+        $ms = intdiv(num1: $subNs, num2: self::NS_PER_MS);
+        $us = intdiv(num1: $subNs % self::NS_PER_MS, num2: self::NS_PER_US);
+        $ns = $subNs % self::NS_PER_US;
 
         return new self($year, $month, $day, $hourNum, $minNum, $secNum, $ms, $us, $ns);
     }
@@ -1281,9 +1341,7 @@ final class PlainDateTime implements Stringable
             /** @var mixed $cal */
             $cal = $bag['calendar'];
             if (!is_string($cal)) {
-                throw new \TypeError(
-                    'PlainDateTime calendar must be a string; got ' . get_debug_type($cal) . '.',
-                );
+                throw new \TypeError('PlainDateTime calendar must be a string; got ' . get_debug_type($cal) . '.');
             }
             ZonedDateTime::extractCalendarFromString($cal);
         }
@@ -1311,8 +1369,8 @@ final class PlainDateTime implements Stringable
         $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
 
         // Resolve month from monthCode or month field.
-        $month        = null;
-        $hasMonth     = array_key_exists('month', $bag);
+        $month = null;
+        $hasMonth = array_key_exists('month', $bag);
         $hasMonthCode = array_key_exists('monthCode', $bag);
 
         if ($hasMonthCode) {
@@ -1321,9 +1379,7 @@ final class PlainDateTime implements Stringable
             /** @phpstan-ignore cast.string */
             $mc = is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw;
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mc) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mc}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mc}\".");
             }
             $month = (int) substr(string: $mc, offset: 1);
         }
@@ -1361,34 +1417,30 @@ final class PlainDateTime implements Stringable
         $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
 
         // Time fields default to 0 when absent.
-        $h   = self::extractIntField($bag, 'hour',        0, 'PlainDateTime');
-        $min = self::extractIntField($bag, 'minute',      0, 'PlainDateTime');
-        $sec = self::extractIntField($bag, 'second',      0, 'PlainDateTime');
-        $ms  = self::extractIntField($bag, 'millisecond', 0, 'PlainDateTime');
-        $us  = self::extractIntField($bag, 'microsecond', 0, 'PlainDateTime');
-        $ns  = self::extractIntField($bag, 'nanosecond',  0, 'PlainDateTime');
+        $h = self::extractIntField($bag, 'hour', 0, 'PlainDateTime');
+        $min = self::extractIntField($bag, 'minute', 0, 'PlainDateTime');
+        $sec = self::extractIntField($bag, 'second', 0, 'PlainDateTime');
+        $ms = self::extractIntField($bag, 'millisecond', 0, 'PlainDateTime');
+        $us = self::extractIntField($bag, 'microsecond', 0, 'PlainDateTime');
+        $ns = self::extractIntField($bag, 'nanosecond', 0, 'PlainDateTime');
 
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: month {$month} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: month {$month} must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: day {$day} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: day {$day} must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
-            $month  = min(12, $month);
+            $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
-            $day    = min($maxDay, $day);
-            $h   = max(0, min(23, $h));
+            $day = min($maxDay, $day);
+            $h = max(0, min(23, $h));
             $min = max(0, min(59, $min));
             $sec = max(0, min(59, $sec));
-            $ms  = max(0, min(999, $ms));
-            $us  = max(0, min(999, $us));
-            $ns  = max(0, min(999, $ns));
+            $ms = max(0, min(999, $ms));
+            $us = max(0, min(999, $us));
+            $ns = max(0, min(999, $ns));
         }
 
         return new self($year, $month, $day, $h, $min, $sec, $ms, $us, $ns);
@@ -1433,30 +1485,70 @@ final class PlainDateTime implements Stringable
     {
         /** @var list<string> $validUnits */
         static $validUnits = [
-            'auto', 'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years',
-            'hour', 'hours', 'minute', 'minutes', 'second', 'seconds',
-            'millisecond', 'milliseconds', 'microsecond', 'microseconds',
-            'nanosecond', 'nanoseconds',
+            'auto',
+            'day',
+            'days',
+            'week',
+            'weeks',
+            'month',
+            'months',
+            'year',
+            'years',
+            'hour',
+            'hours',
+            'minute',
+            'minutes',
+            'second',
+            'seconds',
+            'millisecond',
+            'milliseconds',
+            'microsecond',
+            'microseconds',
+            'nanosecond',
+            'nanoseconds',
         ];
         /** @var array<string, int> $unitRank */
         static $unitRank = [
-            'year' => 9, 'years' => 9, 'month' => 8, 'months' => 8,
-            'week' => 7, 'weeks' => 7, 'day' => 6, 'days' => 6, 'auto' => 6,
-            'hour' => 5, 'hours' => 5, 'minute' => 4, 'minutes' => 4,
-            'second' => 3, 'seconds' => 3,
-            'millisecond' => 2, 'milliseconds' => 2,
-            'microsecond' => 1, 'microseconds' => 1,
-            'nanosecond' => 0, 'nanoseconds' => 0,
+            'year' => 9,
+            'years' => 9,
+            'month' => 8,
+            'months' => 8,
+            'week' => 7,
+            'weeks' => 7,
+            'day' => 6,
+            'days' => 6,
+            'auto' => 6,
+            'hour' => 5,
+            'hours' => 5,
+            'minute' => 4,
+            'minutes' => 4,
+            'second' => 3,
+            'seconds' => 3,
+            'millisecond' => 2,
+            'milliseconds' => 2,
+            'microsecond' => 1,
+            'microseconds' => 1,
+            'nanosecond' => 0,
+            'nanoseconds' => 0,
         ];
         /** @var list<string> $validModes */
-        static $validModes = ['ceil', 'floor', 'expand', 'trunc',
-            'halfCeil', 'halfFloor', 'halfExpand', 'halfTrunc', 'halfEven'];
+        static $validModes = [
+            'ceil',
+            'floor',
+            'expand',
+            'trunc',
+            'halfCeil',
+            'halfFloor',
+            'halfExpand',
+            'halfTrunc',
+            'halfEven',
+        ];
 
-        $largestUnit         = 'day'; // default per TC39 PlainDateTime spec
+        $largestUnit = 'day'; // default per TC39 PlainDateTime spec
         $largestUnitExplicit = false;
-        $smallestUnit        = null;
-        $roundingMode        = 'trunc';
-        $roundingIncrement   = 1;
+        $smallestUnit = null;
+        $roundingMode = 'trunc';
+        $roundingIncrement = 1;
 
         if ($options !== null && (is_array($options) || is_object($options))) {
             $opts = is_array($options) ? $options : (array) $options;
@@ -1471,7 +1563,7 @@ final class PlainDateTime implements Stringable
                     if (!in_array($lu, $validUnits, strict: true)) {
                         throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
                     }
-                    $largestUnit         = $lu;
+                    $largestUnit = $lu;
                     $largestUnitExplicit = true;
                 }
             }
@@ -1532,24 +1624,34 @@ final class PlainDateTime implements Stringable
 
         // Normalize plural/auto to canonical singular.
         $normLargest = match ($largestUnit) {
-            'years' => 'year', 'months' => 'month', 'weeks' => 'week',
+            'years' => 'year',
+            'months' => 'month',
+            'weeks' => 'week',
             'days', 'auto' => 'day',
-            'hours' => 'hour', 'minutes' => 'minute', 'seconds' => 'second',
-            'milliseconds' => 'millisecond', 'microseconds' => 'microsecond',
+            'hours' => 'hour',
+            'minutes' => 'minute',
+            'seconds' => 'second',
+            'milliseconds' => 'millisecond',
+            'microseconds' => 'microsecond',
             'nanoseconds' => 'nanosecond',
             default => $largestUnit,
         };
         $normSmallest = match ($smallestUnit) {
-            'years' => 'year', 'months' => 'month', 'weeks' => 'week',
+            'years' => 'year',
+            'months' => 'month',
+            'weeks' => 'week',
             'days', 'auto' => 'day',
-            'hours' => 'hour', 'minutes' => 'minute', 'seconds' => 'second',
-            'milliseconds' => 'millisecond', 'microseconds' => 'microsecond',
+            'hours' => 'hour',
+            'minutes' => 'minute',
+            'seconds' => 'second',
+            'milliseconds' => 'millisecond',
+            'microseconds' => 'microsecond',
             'nanoseconds' => 'nanosecond',
             default => $smallestUnit,
         };
 
         $suRank = $unitRank[$normSmallest] ?? 0;
-        $luRank = $unitRank[$normLargest]  ?? 6;
+        $luRank = $unitRank[$normLargest] ?? 6;
 
         if ($suRank > $luRank) {
             if ($largestUnitExplicit) {
@@ -1558,18 +1660,22 @@ final class PlainDateTime implements Stringable
                 );
             }
             $normLargest = $normSmallest;
-            $luRank      = $suRank;
+            $luRank = $suRank;
         }
 
         // Validate roundingIncrement for time units: must divide evenly into next higher unit.
         if ($roundingIncrement > 1) {
             /** @var array<string, int> $maxIncrementMap */
             static $maxIncrementMap = [
-                'hour' => 24, 'minute' => 60, 'second' => 60,
-                'millisecond' => 1000, 'microsecond' => 1000, 'nanosecond' => 1000,
+                'hour' => 24,
+                'minute' => 60,
+                'second' => 60,
+                'millisecond' => 1000,
+                'microsecond' => 1000,
+                'nanosecond' => 1000,
             ];
             $maxInc = $maxIncrementMap[$normSmallest] ?? 0;
-            if ($maxInc > 0 && ($roundingIncrement >= $maxInc || $maxInc % $roundingIncrement !== 0)) {
+            if ($maxInc > 0 && ($roundingIncrement >= $maxInc || ($maxInc % $roundingIncrement) !== 0)) {
                 throw new InvalidArgumentException(
                     "roundingIncrement {$roundingIncrement} does not divide evenly into the next highest unit for \"{$normSmallest}\".",
                 );
@@ -1577,19 +1683,33 @@ final class PlainDateTime implements Stringable
         }
 
         // Compute the raw date and time differences.
-        $laterJdn   = self::toJulianDay($later->year, $later->month, $later->day);
+        $laterJdn = self::toJulianDay($later->year, $later->month, $later->day);
         $earlierJdn = self::toJulianDay($earlier->year, $earlier->month, $earlier->day);
-        $laterNs    = self::timeToNs($later->hour, $later->minute, $later->second, $later->millisecond, $later->microsecond, $later->nanosecond);
-        $earlierNs  = self::timeToNs($earlier->hour, $earlier->minute, $earlier->second, $earlier->millisecond, $earlier->microsecond, $earlier->nanosecond);
+        $laterNs = self::timeToNs(
+            $later->hour,
+            $later->minute,
+            $later->second,
+            $later->millisecond,
+            $later->microsecond,
+            $later->nanosecond,
+        );
+        $earlierNs = self::timeToNs(
+            $earlier->hour,
+            $earlier->minute,
+            $earlier->second,
+            $earlier->millisecond,
+            $earlier->microsecond,
+            $earlier->nanosecond,
+        );
 
-        $dateDiff   = $laterJdn - $earlierJdn;  // signed: positive if later > earlier (date-wise)
-        $timeDiffNs = $laterNs - $earlierNs;    // signed: may be negative
+        $dateDiff = $laterJdn - $earlierJdn; // signed: positive if later > earlier (date-wise)
+        $timeDiffNs = $laterNs - $earlierNs; // signed: may be negative
 
         // The overall sign is determined by the combined date+time diff.
         // To get a consistent sign: compute total ns from both components.
         // A positive diff means later > earlier.
         $sign = 0;
-        if ($dateDiff > 0 || ($dateDiff === 0 && $timeDiffNs > 0)) {
+        if ($dateDiff > 0 || $dateDiff === 0 && $timeDiffNs > 0) {
             $sign = 1;
         } elseif ($dateDiff < 0 || $timeDiffNs < 0) {
             $sign = -1;
@@ -1599,11 +1719,25 @@ final class PlainDateTime implements Stringable
         // Swap so that we always compute (positive later) - (positive earlier).
         if ($sign < 0) {
             [$later, $earlier] = [$earlier, $later];
-            $laterJdn   = self::toJulianDay($later->year, $later->month, $later->day);
+            $laterJdn = self::toJulianDay($later->year, $later->month, $later->day);
             $earlierJdn = self::toJulianDay($earlier->year, $earlier->month, $earlier->day);
-            $laterNs    = self::timeToNs($later->hour, $later->minute, $later->second, $later->millisecond, $later->microsecond, $later->nanosecond);
-            $earlierNs  = self::timeToNs($earlier->hour, $earlier->minute, $earlier->second, $earlier->millisecond, $earlier->microsecond, $earlier->nanosecond);
-            $dateDiff   = $laterJdn - $earlierJdn;
+            $laterNs = self::timeToNs(
+                $later->hour,
+                $later->minute,
+                $later->second,
+                $later->millisecond,
+                $later->microsecond,
+                $later->nanosecond,
+            );
+            $earlierNs = self::timeToNs(
+                $earlier->hour,
+                $earlier->minute,
+                $earlier->second,
+                $earlier->millisecond,
+                $earlier->microsecond,
+                $earlier->nanosecond,
+            );
+            $dateDiff = $laterJdn - $earlierJdn;
             $timeDiffNs = $laterNs - $earlierNs;
         }
 
@@ -1618,33 +1752,37 @@ final class PlainDateTime implements Stringable
         $isCalendarLargest = $luRank >= 6; // day or above
 
         if ($isCalendarLargest) {
-            $adjLaterJdn            = $earlierJdn + $dateDiff;
+            $adjLaterJdn = $earlierJdn + $dateDiff;
             [$adjY2, $adjM2, $adjD2] = self::fromJulianDay($adjLaterJdn);
             $earlierY = $earlier->year;
             $earlierM = $earlier->month;
             $earlierD = $earlier->day;
             // The receiver is always $this. After a possible swap, determine whether
             // the receiver corresponds to the "later" date in the positive-direction diff.
-            $receiverIsLater = ($receiver === $later);
+            $receiverIsLater = $receiver === $later;
 
             if ($normLargest === 'day') {
                 $days = $dateDiff;
                 [$years, $months, $weeks] = [0, 0, 0];
             } elseif ($normLargest === 'week') {
                 $weeks = intdiv(num1: $dateDiff, num2: 7);
-                $days  = $dateDiff - $weeks * 7;
+                $days = $dateDiff - ($weeks * 7);
                 [$years, $months] = [0, 0];
             } else {
                 [$years, $months, $days] = self::calendarDiff(
-                    $earlierY, $earlierM, $earlierD,
-                    $adjY2, $adjM2, $adjD2,
+                    $earlierY,
+                    $earlierM,
+                    $earlierD,
+                    $adjY2,
+                    $adjM2,
+                    $adjD2,
                     $receiverIsLater,
                 );
                 $weeks = 0;
                 // Convert years to months when largestUnit is 'month'.
                 if ($normLargest === 'month') {
-                    $months = $years * 12 + $months;
-                    $years  = 0;
+                    $months = ($years * 12) + $months;
+                    $years = 0;
                 }
             }
 
@@ -1653,30 +1791,49 @@ final class PlainDateTime implements Stringable
             if ($isSmallestCalendar) {
                 // Calendar-unit rounding: zero out time and round the calendar part.
                 if ($normSmallest === 'year') {
-                    $totalMonths = $years * 12 + $months;
+                    $totalMonths = ($years * 12) + $months;
                     $roundedYears = self::roundCalendarYears(
-                        $years, $totalMonths, $days, $timeDiffNs, $later,
-                        $roundingIncrement, $roundingMode, $receiverIsLater, $sign,
+                        $years,
+                        $totalMonths,
+                        $days,
+                        $timeDiffNs,
+                        $later,
+                        $roundingIncrement,
+                        $roundingMode,
+                        $receiverIsLater,
+                        $sign,
                     );
                     return new Duration(years: $sign * $roundedYears);
                 }
                 if ($normSmallest === 'month') {
-                    $totalMonths = $years * 12 + $months;
+                    $totalMonths = ($years * 12) + $months;
                     $roundedMonths = self::roundCalendarMonths(
-                        $totalMonths, $days, $timeDiffNs, $later,
-                        $roundingIncrement, $roundingMode, $receiverIsLater, $sign,
+                        $totalMonths,
+                        $days,
+                        $timeDiffNs,
+                        $later,
+                        $roundingIncrement,
+                        $roundingMode,
+                        $receiverIsLater,
+                        $sign,
                     );
                     if ($normLargest === 'year') {
-                        $roundedYears  = intdiv(num1: $roundedMonths, num2: 12);
-                        $roundedMonths = $roundedMonths - $roundedYears * 12;
+                        $roundedYears = intdiv(num1: $roundedMonths, num2: 12);
+                        $roundedMonths = $roundedMonths - ($roundedYears * 12);
                         return new Duration(years: $sign * $roundedYears, months: $sign * $roundedMonths);
                     }
                     return new Duration(months: $sign * $roundedMonths);
                 }
                 if ($normSmallest === 'week') {
-                    $totalDays = $weeks * 7 + $days;
+                    $totalDays = ($weeks * 7) + $days;
                     $weekIncrement = $roundingIncrement * 7;
-                    $roundedDays   = self::roundDaysWithTime($totalDays, $timeDiffNs, $weekIncrement, $roundingMode, $sign);
+                    $roundedDays = self::roundDaysWithTime(
+                        $totalDays,
+                        $timeDiffNs,
+                        $weekIncrement,
+                        $roundingMode,
+                        $sign,
+                    );
                     return new Duration(weeks: $sign * intdiv(num1: $roundedDays, num2: 7));
                 }
                 // normSmallest === 'day'
@@ -1685,26 +1842,22 @@ final class PlainDateTime implements Stringable
                     return new Duration(days: $sign * $roundedDays);
                 }
                 if ($normLargest === 'week') {
-                    $totalDays    = $weeks * 7 + $roundedDays;
+                    $totalDays = ($weeks * 7) + $roundedDays;
                     $roundedWeeks = intdiv(num1: $totalDays, num2: 7);
-                    $remDays      = $totalDays - $roundedWeeks * 7;
+                    $remDays = $totalDays - ($roundedWeeks * 7);
                     return new Duration(weeks: $sign * $roundedWeeks, days: $sign * $remDays);
                 }
-                return new Duration(
-                    years:  $sign * $years,
-                    months: $sign * $months,
-                    days:   $sign * $roundedDays,
-                );
+                return new Duration(years: $sign * $years, months: $sign * $months, days: $sign * $roundedDays);
             }
 
             // smallestUnit is a time unit but largestUnit is a calendar unit.
             $nsPerSmallest = match ($normSmallest) {
-                'hour'        => self::NS_PER_HOUR,
-                'minute'      => self::NS_PER_MINUTE,
-                'second'      => self::NS_PER_SECOND,
+                'hour' => self::NS_PER_HOUR,
+                'minute' => self::NS_PER_MINUTE,
+                'second' => self::NS_PER_SECOND,
                 'millisecond' => self::NS_PER_MS,
                 'microsecond' => self::NS_PER_US,
-                default       => 1,
+                default => 1,
             };
             /** @psalm-var int<1, 1000> $roundingIncrement */
             $nsIncrement = $nsPerSmallest * $roundingIncrement;
@@ -1712,8 +1865,10 @@ final class PlainDateTime implements Stringable
             $effTimeMode = $roundingMode;
             if ($sign < 0) {
                 $effTimeMode = match ($roundingMode) {
-                    'floor' => 'ceil', 'ceil' => 'floor',
-                    'halfFloor' => 'halfCeil', 'halfCeil' => 'halfFloor',
+                    'floor' => 'ceil',
+                    'ceil' => 'floor',
+                    'halfFloor' => 'halfCeil',
+                    'halfCeil' => 'halfFloor',
                     default => $roundingMode,
                 };
             }
@@ -1721,7 +1876,7 @@ final class PlainDateTime implements Stringable
 
             // Handle day overflow from rounding time (e.g., 23:59 rounds up to 24:00).
             $overflowDays = intdiv(num1: $absTimeNs, num2: self::NS_PER_DAY);
-            $absTimeNs    = $absTimeNs % self::NS_PER_DAY;
+            $absTimeNs = $absTimeNs % self::NS_PER_DAY;
 
             // When time overflow produces extra days, recompute the calendar diff
             // from the updated position to properly rebalance months/years.
@@ -1729,53 +1884,57 @@ final class PlainDateTime implements Stringable
                 $adjLaterJdn2 = $adjLaterJdn + $overflowDays;
                 [$adjY3, $adjM3, $adjD3] = self::fromJulianDay($adjLaterJdn2);
                 [$years, $months, $days] = self::calendarDiff(
-                    $earlierY, $earlierM, $earlierD,
-                    $adjY3, $adjM3, $adjD3,
+                    $earlierY,
+                    $earlierM,
+                    $earlierD,
+                    $adjY3,
+                    $adjM3,
+                    $adjD3,
                     $receiverIsLater,
                 );
                 if ($normLargest === 'month') {
-                    $months = $years * 12 + $months;
-                    $years  = 0;
+                    $months = ($years * 12) + $months;
+                    $years = 0;
                 }
             } else {
                 $days += $overflowDays;
             }
 
-            $h   = intdiv(num1: $absTimeNs, num2: self::NS_PER_HOUR);
+            $h = intdiv(num1: $absTimeNs, num2: self::NS_PER_HOUR);
             $rem = $absTimeNs % self::NS_PER_HOUR;
             $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
             $rem = $rem % self::NS_PER_MINUTE;
             $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
             $rem = $rem % self::NS_PER_SECOND;
-            $ms  = intdiv(num1: $rem, num2: self::NS_PER_MS);
+            $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
             $rem = $rem % self::NS_PER_MS;
-            $us  = intdiv(num1: $rem, num2: self::NS_PER_US);
-            $ns  = $rem % self::NS_PER_US;
+            $us = intdiv(num1: $rem, num2: self::NS_PER_US);
+            $ns = $rem % self::NS_PER_US;
 
             return new Duration(
-                years:        $sign * $years,
-                months:       $sign * $months,
-                weeks:        $sign * $weeks,
-                days:         $sign * $days,
-                hours:        $sign * $h,
-                minutes:      $sign * $min,
-                seconds:      $sign * $sec,
+                years: $sign * $years,
+                months: $sign * $months,
+                weeks: $sign * $weeks,
+                days: $sign * $days,
+                hours: $sign * $h,
+                minutes: $sign * $min,
+                seconds: $sign * $sec,
                 milliseconds: $sign * $ms,
                 microseconds: $sign * $us,
-                nanoseconds:  $sign * $ns,
+                nanoseconds: $sign * $ns,
             );
         }
 
         // largestUnit is a time unit (hour or smaller): accumulate all days into ns.
-        $totalAbsNs = $dateDiff * self::NS_PER_DAY + $timeDiffNs;
+        $totalAbsNs = ($dateDiff * self::NS_PER_DAY) + $timeDiffNs;
 
         $nsPerSmallest = match ($normSmallest) {
-            'hour'        => self::NS_PER_HOUR,
-            'minute'      => self::NS_PER_MINUTE,
-            'second'      => self::NS_PER_SECOND,
+            'hour' => self::NS_PER_HOUR,
+            'minute' => self::NS_PER_MINUTE,
+            'second' => self::NS_PER_SECOND,
             'millisecond' => self::NS_PER_MS,
             'microsecond' => self::NS_PER_US,
-            default       => 1,
+            default => 1,
         };
         /** @psalm-var int<1, 1000> $roundingIncrement */
         $nsIncrement = $nsPerSmallest * $roundingIncrement;
@@ -1783,11 +1942,11 @@ final class PlainDateTime implements Stringable
         $effectiveRoundMode = $roundingMode;
         if ($sign < 0) {
             $effectiveRoundMode = match ($roundingMode) {
-                'floor'     => 'ceil',
-                'ceil'      => 'floor',
+                'floor' => 'ceil',
+                'ceil' => 'floor',
                 'halfFloor' => 'halfCeil',
-                'halfCeil'  => 'halfFloor',
-                default     => $roundingMode,
+                'halfCeil' => 'halfFloor',
+                default => $roundingMode,
             };
         }
         $roundedAbsNs = self::roundPositiveNs($totalAbsNs, $nsIncrement, $effectiveRoundMode);
@@ -1795,9 +1954,12 @@ final class PlainDateTime implements Stringable
         // Decompose based on largest unit (no conversion to higher units).
         /** @var array<string, int> $timeUnitNs */
         static $timeUnitNs = [
-            'hour' => 3_600_000_000_000, 'minute' => 60_000_000_000,
-            'second' => 1_000_000_000, 'millisecond' => 1_000_000,
-            'microsecond' => 1_000, 'nanosecond' => 1,
+            'hour' => 3_600_000_000_000,
+            'minute' => 60_000_000_000,
+            'second' => 1_000_000_000,
+            'millisecond' => 1_000_000,
+            'microsecond' => 1_000,
+            'nanosecond' => 1,
         ];
         /** @var list<string> $timeUnitOrder */
         static $timeUnitOrder = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
@@ -1818,26 +1980,26 @@ final class PlainDateTime implements Stringable
                 continue;
             }
             $perUnit = $timeUnitNs[$unit];
-            $val     = intdiv(num1: $rem, num2: $perUnit);
-            $rem     = $rem % $perUnit;
+            $val = intdiv(num1: $rem, num2: $perUnit);
+            $rem = $rem % $perUnit;
             match ($unit) {
-                'hour'        => $h   = $val,
-                'minute'      => $min = $val,
-                'second'      => $sec = $val,
-                'millisecond' => $ms  = $val,
-                'microsecond' => $us  = $val,
-                'nanosecond'  => $ns  = $val,
-                default       => null,
+                'hour' => $h = $val,
+                'minute' => $min = $val,
+                'second' => $sec = $val,
+                'millisecond' => $ms = $val,
+                'microsecond' => $us = $val,
+                'nanosecond' => $ns = $val,
+                default => null,
             };
         }
 
         return new Duration(
-            hours:        $sign * $h,
-            minutes:      $sign * $min,
-            seconds:      $sign * $sec,
+            hours: $sign * $h,
+            minutes: $sign * $min,
+            seconds: $sign * $sec,
             milliseconds: $sign * $ms,
             microseconds: $sign * $us,
-            nanoseconds:  $sign * $ns,
+            nanoseconds: $sign * $ns,
         );
     }
 
@@ -1853,93 +2015,98 @@ final class PlainDateTime implements Stringable
     {
         $overflow = self::extractOverflow($options);
 
-        $years  = $sign * (int) $dur->years;
+        $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
-        $days   = $sign * ((int) $dur->weeks * 7 + (int) $dur->days);
+        $days = $sign * (((int) $dur->weeks * 7) + (int) $dur->days);
 
         // Balance time units to nanoseconds, then extract whole days.
-        $hours   = $sign * (int) $dur->hours;
+        $hours = $sign * (int) $dur->hours;
         $minutes = $sign * (int) $dur->minutes;
         $seconds = $sign * (int) $dur->seconds;
-        $ms      = $sign * (int) $dur->milliseconds;
-        $us      = $sign * (int) $dur->microseconds;
-        $ns      = $sign * (int) $dur->nanoseconds;
+        $ms = $sign * (int) $dur->milliseconds;
+        $us = $sign * (int) $dur->microseconds;
+        $ns = $sign * (int) $dur->nanoseconds;
 
         // Balance time units using the same step-by-step carry approach as PlainDate,
         // to avoid int64 overflow with large Duration field values.
         // Each step extracts whole days and passes the remainder to the next smaller unit.
 
         // hours → full days + remainder hours
-        $hDays  = intdiv(num1: $hours, num2: 24);
-        $hRem   = $hours % 24;
+        $hDays = intdiv(num1: $hours, num2: 24);
+        $hRem = $hours % 24;
 
         // carry + minutes → full days + remainder minutes
-        $totalMin = $hRem * 60 + $minutes;
-        $mDays    = intdiv(num1: $totalMin, num2: 1_440);
-        $mRem     = $totalMin % 1_440;
+        $totalMin = ($hRem * 60) + $minutes;
+        $mDays = intdiv(num1: $totalMin, num2: 1_440);
+        $mRem = $totalMin % 1_440;
 
         // carry + seconds → full days + remainder seconds
-        $totalSec = $mRem * 60 + $seconds;
-        $sDays    = intdiv(num1: $totalSec, num2: 86_400);
-        $sRem     = $totalSec % 86_400;
+        $totalSec = ($mRem * 60) + $seconds;
+        $sDays = intdiv(num1: $totalSec, num2: 86_400);
+        $sRem = $totalSec % 86_400;
 
         // carry + milliseconds → full days + remainder ms
-        $totalMs = $sRem * 1_000 + $ms;
-        $msDays  = intdiv(num1: $totalMs, num2: 86_400_000);
-        $msRem   = $totalMs % 86_400_000;
+        $totalMs = ($sRem * 1_000) + $ms;
+        $msDays = intdiv(num1: $totalMs, num2: 86_400_000);
+        $msRem = $totalMs % 86_400_000;
 
         // carry + microseconds → full days + remainder μs
-        $totalUs = $msRem * 1_000 + $us;
-        $usDays  = intdiv(num1: $totalUs, num2: 86_400_000_000);
-        $usRem   = $totalUs % 86_400_000_000;
+        $totalUs = ($msRem * 1_000) + $us;
+        $usDays = intdiv(num1: $totalUs, num2: 86_400_000_000);
+        $usRem = $totalUs % 86_400_000_000;
 
         // carry + nanoseconds → full days + remainder ns
-        $totalNs = $usRem * 1_000 + $ns;
-        $nsDays  = intdiv(num1: $totalNs, num2: 86_400_000_000_000);
-        $nsRem   = $totalNs % 86_400_000_000_000;
+        $totalNs = ($usRem * 1_000) + $ns;
+        $nsDays = intdiv(num1: $totalNs, num2: 86_400_000_000_000);
+        $nsRem = $totalNs % 86_400_000_000_000;
 
         $days += $hDays + $mDays + $sDays + $msDays + $usDays + $nsDays;
 
         // Reconstruct time-of-day from the accumulated remainders.
         // $nsRem is the total sub-day nanoseconds; it may be negative when the
         // duration is negative. Normalise to [0, NS_PER_DAY) using floor-div.
-        $currentTimeNs = self::timeToNs($this->hour, $this->minute, $this->second, $this->millisecond, $this->microsecond, $this->nanosecond);
-        $newTimeNs     = $currentTimeNs + $nsRem;
+        $currentTimeNs = self::timeToNs(
+            $this->hour,
+            $this->minute,
+            $this->second,
+            $this->millisecond,
+            $this->microsecond,
+            $this->nanosecond,
+        );
+        $newTimeNs = $currentTimeNs + $nsRem;
 
         // Carry overflow days from the time component.
         if ($newTimeNs < 0) {
             $overflowDays = (int) floor($newTimeNs / self::NS_PER_DAY);
-            $newTimeNs   -= $overflowDays * self::NS_PER_DAY;
+            $newTimeNs -= $overflowDays * self::NS_PER_DAY;
         } else {
             $overflowDays = intdiv(num1: $newTimeNs, num2: self::NS_PER_DAY);
-            $newTimeNs    = $newTimeNs % self::NS_PER_DAY;
+            $newTimeNs = $newTimeNs % self::NS_PER_DAY;
         }
 
         $days += $overflowDays;
 
         // Apply years and months calendrically.
-        $newYear  = $this->year + $years;
+        $newYear = $this->year + $years;
         $newMonth = $this->month + $months;
 
         // Normalize month into 1–12, carrying into year.
         if ($newMonth > 12) {
-            $newYear  += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12) + 1;
+            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
+            $newMonth = (($newMonth - 1) % 12) + 1;
         } elseif ($newMonth < 1) {
-            $newYear  += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12 + 12) % 12 + 1;
+            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
+            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
         }
 
         // Clamp or reject day within new month.
-        $newDay  = $this->day;
-        $maxDay  = self::calcDaysInMonth($newYear, $newMonth);
+        $newDay = $this->day;
+        $maxDay = self::calcDaysInMonth($newYear, $newMonth);
         if ($newDay > $maxDay) {
             if ($overflow === 'constrain') {
                 $newDay = $maxDay;
             } else {
-                throw new InvalidArgumentException(
-                    "Day {$newDay} is out of range for {$newYear}-{$newMonth}.",
-                );
+                throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
             }
         }
 
@@ -1949,15 +2116,13 @@ final class PlainDateTime implements Stringable
         $minJdn = self::toJulianDay(-271821, 4, 19);
         $maxJdn = self::toJulianDay(275760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException(
-                'PlainDateTime arithmetic result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainDateTime arithmetic result is outside the representable range.');
         }
 
         [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn);
 
         // Decompose new time.
-        $h   = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
+        $h = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem = $rem % self::NS_PER_MINUTE;
@@ -1982,8 +2147,8 @@ final class PlainDateTime implements Stringable
             return;
         }
 
-        $tzCount        = 0;
-        $calCount       = 0;
+        $tzCount = 0;
+        $calCount = 0;
         $calHasCritical = false;
 
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
@@ -2069,34 +2234,22 @@ final class PlainDateTime implements Stringable
     private static function validateTimeFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
     {
         if ($h < 0 || $h > 23) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: hour {$h} is out of range 0–23.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: hour {$h} is out of range 0–23.");
         }
         if ($min < 0 || $min > 59) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: minute {$min} is out of range 0–59.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: minute {$min} is out of range 0–59.");
         }
         if ($sec < 0 || $sec > 59) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: second {$sec} is out of range 0–59.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: second {$sec} is out of range 0–59.");
         }
         if ($ms < 0 || $ms > 999) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: millisecond {$ms} is out of range 0–999.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: millisecond {$ms} is out of range 0–999.");
         }
         if ($us < 0 || $us > 999) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: microsecond {$us} is out of range 0–999.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: microsecond {$us} is out of range 0–999.");
         }
         if ($ns < 0 || $ns > 999) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: nanosecond {$ns} is out of range 0–999.",
-            );
+            throw new InvalidArgumentException("Invalid PlainDateTime: nanosecond {$ns} is out of range 0–999.");
         }
     }
 
@@ -2125,17 +2278,13 @@ final class PlainDateTime implements Stringable
         /** @var mixed $val */
         $val = $options['overflow'];
         if ($val === null || is_bool($val)) {
-            throw new InvalidArgumentException(
-                "Invalid overflow value: must be 'constrain' or 'reject'.",
-            );
+            throw new InvalidArgumentException("Invalid overflow value: must be 'constrain' or 'reject'.");
         }
         if (!is_string($val)) {
             throw new \TypeError('overflow option must be a string.');
         }
         if ($val !== 'constrain' && $val !== 'reject') {
-            throw new InvalidArgumentException(
-                "Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.",
-            );
+            throw new InvalidArgumentException("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
         }
         return $val;
     }
@@ -2145,12 +2294,14 @@ final class PlainDateTime implements Stringable
      */
     private static function timeToNs(int $h, int $min, int $sec, int $ms, int $us, int $ns): int
     {
-        return $h   * self::NS_PER_HOUR
-            + $min * self::NS_PER_MINUTE
-            + $sec * self::NS_PER_SECOND
-            + $ms  * self::NS_PER_MS
-            + $us  * self::NS_PER_US
-            + $ns;
+        return (
+            ($h * self::NS_PER_HOUR)
+            + ($min * self::NS_PER_MINUTE)
+            + ($sec * self::NS_PER_SECOND)
+            + ($ms * self::NS_PER_MS)
+            + ($us * self::NS_PER_US)
+            + $ns
+        );
     }
 
     /**
@@ -2167,7 +2318,7 @@ final class PlainDateTime implements Stringable
         int $d2,
         bool $receiverIsY2 = true,
     ): array {
-        $sign = ($y2 > $y1 || ($y2 === $y1 && ($m2 > $m1 || ($m2 === $m1 && $d2 >= $d1)))) ? 1 : -1;
+        $sign = $y2 > $y1 || $y2 === $y1 && ($m2 > $m1 || $m2 === $m1 && $d2 >= $d1) ? 1 : -1;
 
         $receiverIsY2AfterSwap = $receiverIsY2;
 
@@ -2176,7 +2327,7 @@ final class PlainDateTime implements Stringable
             $receiverIsY2AfterSwap = !$receiverIsY2;
         }
 
-        $years  = $y2 - $y1;
+        $years = $y2 - $y1;
         $months = $m2 - $m1;
 
         if ($months < 0) {
@@ -2195,26 +2346,24 @@ final class PlainDateTime implements Stringable
 
         if ($receiverIsY2AfterSwap) {
             $anchorMonth = $m2 - $months;
-            $anchorYear  = $y2 - $years;
+            $anchorYear = $y2 - $years;
             if ($anchorMonth <= 0) {
                 $anchorYear--;
                 $anchorMonth += 12;
             }
             $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
-            $anchorDay    = min($d2, $anchorMaxDay);
-            $days = self::toJulianDay($anchorYear, $anchorMonth, $anchorDay)
-                - self::toJulianDay($y1, $m1, $d1);
+            $anchorDay = min($d2, $anchorMaxDay);
+            $days = self::toJulianDay($anchorYear, $anchorMonth, $anchorDay) - self::toJulianDay($y1, $m1, $d1);
         } else {
             $anchorMonth = $m1 + $months;
-            $anchorYear  = $y1 + $years;
+            $anchorYear = $y1 + $years;
             if ($anchorMonth > 12) {
                 $anchorYear++;
                 $anchorMonth -= 12;
             }
             $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
-            $anchorDay    = min($d1, $anchorMaxDay);
-            $days = self::toJulianDay($y2, $m2, $d2)
-                - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
+            $anchorDay = min($d1, $anchorMaxDay);
+            $days = self::toJulianDay($y2, $m2, $d2) - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
         }
 
         return [$sign * $years, $sign * $months, $sign * $days];
@@ -2226,8 +2375,8 @@ final class PlainDateTime implements Stringable
      */
     private static function roundDaysWithTime(int $days, int $timeNs, int $increment, string $mode, int $sign = 1): int
     {
-        $progress = $timeNs > 0 ? ((float) $timeNs / (float) self::NS_PER_DAY) : 0.0;
-        $roundUp  = self::applyRoundingProgress($days, $progress, $increment, $mode, $sign);
+        $progress = $timeNs > 0 ? (float) $timeNs / (float) self::NS_PER_DAY : 0.0;
+        $roundUp = self::applyRoundingProgress($days, $progress, $increment, $mode, $sign);
         $q = intdiv(num1: $days, num2: $increment);
         return $roundUp ? ($q + 1) * $increment : $q * $increment;
     }
@@ -2253,22 +2402,20 @@ final class PlainDateTime implements Stringable
         $dir = $receiverIsLater ? -1 : 1;
 
         // floor-count (rounded down to nearest multiple of increment).
-        $floorCount = (intdiv(num1: $totalMonths, num2: $increment)) * $increment;
+        $floorCount = intdiv(num1: $totalMonths, num2: $increment) * $increment;
 
         $anchorJdn = self::addSignedMonths($receiver, $dir * $floorCount);
-        $nextJdn   = self::addSignedMonths($receiver, $dir * ($floorCount + $increment));
+        $nextJdn = self::addSignedMonths($receiver, $dir * ($floorCount + $increment));
 
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Total fractional progress: remaining days + remaining time as fraction of a day.
-        $totalRemNs = $remainingDays * self::NS_PER_DAY + $remainingTimeNs;
-        $progress   = $intervalDays > 0 ? ((float) $totalRemNs / ((float) $intervalDays * (float) self::NS_PER_DAY)) : 0.0;
+        $totalRemNs = ($remainingDays * self::NS_PER_DAY) + $remainingTimeNs;
+        $progress = $intervalDays > 0 ? (float) $totalRemNs / ((float) $intervalDays * (float) self::NS_PER_DAY) : 0.0;
 
         $roundUp = self::applyRoundingProgress($totalMonths, $progress, $increment, $mode, $sign);
 
-        $roundedAbsMonths = $roundUp
-            ? $floorCount + $increment
-            : $floorCount;
+        $roundedAbsMonths = $roundUp ? $floorCount + $increment : $floorCount;
 
         // Validate: the rounded result must not exceed the valid PlainDate range.
         self::addSignedMonths($receiver, $dir * $roundedAbsMonths);
@@ -2294,20 +2441,20 @@ final class PlainDateTime implements Stringable
     ): int {
         $dir = $receiverIsLater ? -1 : 1;
 
-        $floorCount = (intdiv(num1: $years, num2: $increment)) * $increment;
+        $floorCount = intdiv(num1: $years, num2: $increment) * $increment;
 
         // For year rounding, we go by year increments (12 months each).
         $anchorJdn = self::addSignedMonths($receiver, $dir * $floorCount * 12);
-        $nextJdn   = self::addSignedMonths($receiver, $dir * ($floorCount + $increment) * 12);
+        $nextJdn = self::addSignedMonths($receiver, $dir * ($floorCount + $increment) * 12);
 
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Compute the total distance from anchor (floorCount years) to actual position.
-        $remMonths = $totalMonths - $floorCount * 12;
-        $monthsJdn = self::addSignedMonths($receiver, $dir * ($floorCount * 12 + $remMonths));
+        $remMonths = $totalMonths - ($floorCount * 12);
+        $monthsJdn = self::addSignedMonths($receiver, $dir * (($floorCount * 12) + $remMonths));
         $remDaysFromMonths = abs($monthsJdn - $anchorJdn);
-        $totalRemNs = ($remDaysFromMonths + $remainingDays) * self::NS_PER_DAY + $remainingTimeNs;
-        $progress   = $intervalDays > 0 ? ((float) $totalRemNs / ((float) $intervalDays * (float) self::NS_PER_DAY)) : 0.0;
+        $totalRemNs = (($remDaysFromMonths + $remainingDays) * self::NS_PER_DAY) + $remainingTimeNs;
+        $progress = $intervalDays > 0 ? (float) $totalRemNs / ((float) $intervalDays * (float) self::NS_PER_DAY) : 0.0;
 
         $roundUp = self::applyRoundingProgress($years, $progress, $increment, $mode, $sign);
 
@@ -2331,34 +2478,38 @@ final class PlainDateTime implements Stringable
      * @param string $mode      The rounding mode.
      * @return bool True if the value should be rounded up.
      */
-    private static function applyRoundingProgress(int $wholeUnits, float $progress, int $increment, string $mode, int $sign = 1): bool
-    {
+    private static function applyRoundingProgress(
+        int $wholeUnits,
+        float $progress,
+        int $increment,
+        string $mode,
+        int $sign = 1,
+    ): bool {
         $q = intdiv(num1: $wholeUnits, num2: $increment);
-        $unitRem = $wholeUnits - $q * $increment;
+        $unitRem = $wholeUnits - ($q * $increment);
         $hasFraction = $unitRem > 0 || $progress > 0.0;
-        $halfPoint   = (float) $increment / 2.0;
-        $totalFrac   = (float) $unitRem + $progress;
+        $halfPoint = (float) $increment / 2.0;
+        $totalFrac = (float) $unitRem + $progress;
 
         // For negative diffs, flip floor/ceil so they retain their directional meaning.
         $effectiveMode = $mode;
         if ($sign < 0) {
             $effectiveMode = match ($mode) {
-                'floor'     => 'ceil',
-                'ceil'      => 'floor',
+                'floor' => 'ceil',
+                'ceil' => 'floor',
                 'halfFloor' => 'halfCeil',
-                'halfCeil'  => 'halfFloor',
-                default     => $mode,
+                'halfCeil' => 'halfFloor',
+                default => $mode,
             };
         }
 
         return match ($effectiveMode) {
-            'trunc', 'floor'         => false,
-            'ceil', 'expand'         => $hasFraction,
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $hasFraction,
             'halfExpand', 'halfCeil' => $totalFrac >= $halfPoint,
             'halfTrunc', 'halfFloor' => $totalFrac > $halfPoint,
-            'halfEven'               => $totalFrac > $halfPoint
-                || ($totalFrac === $halfPoint && $q % 2 !== 0),
-            default                  => false,
+            'halfEven' => $totalFrac > $halfPoint || $totalFrac === $halfPoint && ($q % 2) !== 0,
+            default => false,
         };
     }
 
@@ -2370,14 +2521,14 @@ final class PlainDateTime implements Stringable
     private static function addSignedMonths(self $receiver, int $signedMonths): int
     {
         $newMonth = $receiver->month + $signedMonths;
-        $newYear  = $receiver->year;
+        $newYear = $receiver->year;
 
         if ($newMonth > 12) {
-            $newYear  += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12) + 1;
+            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
+            $newMonth = (($newMonth - 1) % 12) + 1;
         } elseif ($newMonth < 1) {
-            $newYear  += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12 + 12) % 12 + 1;
+            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
+            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
         }
 
         $maxDay = self::calcDaysInMonth($newYear, $newMonth);
@@ -2387,9 +2538,7 @@ final class PlainDateTime implements Stringable
         $minJdn = self::toJulianDay(-271821, 4, 19);
         $maxJdn = self::toJulianDay(275760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException(
-                'Rounded PlainDateTime is outside the representable range.',
-            );
+            throw new InvalidArgumentException('Rounded PlainDateTime is outside the representable range.');
         }
 
         return $jdn;
@@ -2402,18 +2551,18 @@ final class PlainDateTime implements Stringable
      */
     private static function roundPositiveNs(int $ns, int $increment, string $mode): int
     {
-        $q   = intdiv(num1: $ns, num2: $increment);
-        $rem = $ns - $q * $increment;
-        $r1  = $q * $increment;        // floor multiple
-        $r2  = $r1 + $increment;       // ceil multiple
+        $q = intdiv(num1: $ns, num2: $increment);
+        $rem = $ns - ($q * $increment);
+        $r1 = $q * $increment; // floor multiple
+        $r2 = $r1 + $increment; // ceil multiple
         return match ($mode) {
-            'trunc', 'floor'             => $r1,
-            'ceil', 'expand'             => $rem === 0 ? $r1 : $r2,
-            'halfExpand', 'halfCeil'     => ($rem * 2) >= $increment ? $r2 : $r1,
-            'halfTrunc', 'halfFloor'     => ($rem * 2) > $increment ? $r2 : $r1,
-            'halfEven'                   => ($rem * 2) < $increment ? $r1
-                : (($rem * 2) > $increment ? $r2
-                    : ($q % 2 === 0 ? $r1 : $r2)),
+            'trunc', 'floor' => $r1,
+            'ceil', 'expand' => $rem === 0 ? $r1 : $r2,
+            'halfExpand', 'halfCeil' => ($rem * 2) >= $increment ? $r2 : $r1,
+            'halfTrunc', 'halfFloor' => ($rem * 2) > $increment ? $r2 : $r1,
+            'halfEven' => ($rem * 2) < $increment
+                ? $r1
+                : (($rem * 2) > $increment ? $r2 : (($q % 2) === 0 ? $r1 : $r2)),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
     }
@@ -2426,14 +2575,16 @@ final class PlainDateTime implements Stringable
     {
         $a = intdiv(num1: 14 - $month, num2: 12);
         $y = $year + 4800 - $a;
-        $m = $month + 12 * $a - 3;
-        return $day
-            + intdiv(num1: 153 * $m + 2, num2: 5)
-            + 365 * $y
+        $m = $month + (12 * $a) - 3;
+        return (
+            $day
+            + intdiv(num1: (153 * $m) + 2, num2: 5)
+            + (365 * $y)
             + self::floorDiv($y, 4)
             - self::floorDiv($y, 100)
             + self::floorDiv($y, 400)
-            - 32_045;
+            - 32_045
+        );
     }
 
     /**
@@ -2444,14 +2595,14 @@ final class PlainDateTime implements Stringable
     private static function fromJulianDay(int $jdn): array
     {
         $a = $jdn + 32_044;
-        $b = self::floorDiv(4 * $a + 3, 146_097);
+        $b = self::floorDiv((4 * $a) + 3, 146_097);
         $c = $a - self::floorDiv(146_097 * $b, 4);
-        $d = self::floorDiv(4 * $c + 3, 1_461);
+        $d = self::floorDiv((4 * $c) + 3, 1_461);
         $e = $c - self::floorDiv(1_461 * $d, 4);
-        $m = self::floorDiv(5 * $e + 2, 153);
-        $day   = $e - intdiv(num1: 153 * $m + 2, num2: 5) + 1;
-        $month = $m + 3 - 12 * intdiv(num1: $m, num2: 10);
-        $year  = 100 * $b + $d - 4800 + intdiv(num1: $m, num2: 10);
+        $m = self::floorDiv((5 * $e) + 2, 153);
+        $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
+        $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
+        $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
         return [$year, $month, $day];
     }
 
@@ -2467,7 +2618,7 @@ final class PlainDateTime implements Stringable
 
     private static function isLeapYear(int $year): bool
     {
-        return ($year % 4 === 0 && $year % 100 !== 0) || ($year % 400 === 0);
+        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
     }
 
     /**
@@ -2482,12 +2633,15 @@ final class PlainDateTime implements Stringable
         if ($month < 3) {
             $year--;
         }
-        $dow = ($year
-            + intdiv(num1: $year, num2: 4)
-            - intdiv(num1: $year, num2: 100)
-            + intdiv(num1: $year, num2: 400)
-            + $t[$month - 1]
-            + $day) % 7;
+        $dow =
+            (
+                $year + intdiv(num1: $year, num2: 4)
+                - intdiv(num1: $year, num2: 100)
+                + intdiv(num1: $year, num2: 400)
+                + $t[$month - 1]
+                + $day
+            )
+            % 7;
         return $dow === 0 ? 7 : $dow;
     }
 
@@ -2513,7 +2667,7 @@ final class PlainDateTime implements Stringable
      */
     private static function isoWeekInfo(int $year, int $month, int $day): array
     {
-        $dow     = self::isoWeekday($year, $month, $day);
+        $dow = self::isoWeekday($year, $month, $day);
         $ordinal = self::calcDayOfYear($year, $month, $day);
 
         $thursdayOrdinal = $ordinal + (4 - $dow);
@@ -2534,8 +2688,6 @@ final class PlainDateTime implements Stringable
         $week = intdiv(num1: $thursdayOrdinal - 1, num2: 7) + 1;
         return ['week' => $week, 'year' => $year];
     }
-
-
 
     /**
      * Floor division: rounds towards negative infinity (unlike intdiv which truncates towards zero).

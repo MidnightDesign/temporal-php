@@ -27,7 +27,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $calendarId { get => 'iso8601'; }
+    public string $calendarId {
+        get => 'iso8601';
+    }
 
     /**
      * Always undefined (null) for the ISO 8601 calendar.
@@ -36,7 +38,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public ?string $era { get => null; }
+    public ?string $era {
+        get => null;
+    }
 
     /**
      * Always undefined (null) for the ISO 8601 calendar.
@@ -45,7 +49,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public ?int $eraYear { get => null; }
+    public ?int $eraYear {
+        get => null;
+    }
 
     /**
      * Month code in "M01"–"M12" format.
@@ -54,7 +60,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public string $monthCode { get => sprintf('M%02d', $this->month); }
+    public string $monthCode {
+        get => sprintf('M%02d', $this->month);
+    }
 
     /**
      * Number of days in this year-month's month.
@@ -63,7 +71,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInMonth { get => self::calcDaysInMonth($this->year, $this->month); }
+    public int $daysInMonth {
+        get => self::calcDaysInMonth($this->year, $this->month);
+    }
 
     /**
      * 365 or 366, depending on whether this year-month's year is a leap year.
@@ -72,7 +82,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $daysInYear { get => self::isLeapYear($this->year) ? 366 : 365; }
+    public int $daysInYear {
+        get => self::isLeapYear($this->year) ? 366 : 365;
+    }
 
     /**
      * Always 12 (ISO 8601 calendar).
@@ -81,7 +93,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $monthsInYear { get => 12; }
+    public int $monthsInYear {
+        get => 12;
+    }
 
     /**
      * True if this year-month's year is a leap year.
@@ -90,7 +104,9 @@ final class PlainYearMonth implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public bool $inLeapYear { get => self::isLeapYear($this->year); }
+    public bool $inLeapYear {
+        get => self::isLeapYear($this->year);
+    }
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -135,9 +151,7 @@ final class PlainYearMonth implements Stringable
             }
             // Only bare calendar IDs (not ISO date strings) accepted in constructor.
             if (strtolower($calendar) !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$calendar}\": only iso8601 is supported.",
-                );
+                throw new InvalidArgumentException("Unsupported calendar \"{$calendar}\": only iso8601 is supported.");
             }
         }
         if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $referenceISODay)) {
@@ -146,14 +160,12 @@ final class PlainYearMonth implements Stringable
             );
         }
 
-        $this->year  = (int) $year;
+        $this->year = (int) $year;
         $this->month = (int) $month;
-        $refDay      = (int) $referenceISODay;
+        $refDay = (int) $referenceISODay;
 
         if ($this->month < 1 || $this->month > 12) {
-            throw new InvalidArgumentException(
-                "Invalid PlainYearMonth: month {$this->month} is out of range 1–12.",
-            );
+            throw new InvalidArgumentException("Invalid PlainYearMonth: month {$this->month} is out of range 1–12.");
         }
 
         // Validate referenceISODay is within the valid range for this year-month.
@@ -236,7 +248,8 @@ final class PlainYearMonth implements Stringable
         }
         throw new \TypeError(
             'PlainYearMonth::from() expects a PlainYearMonth, ISO 8601 string, or property-bag array; got '
-            . get_debug_type($item) . '.',
+            . get_debug_type($item)
+            . '.',
         );
     }
 
@@ -282,19 +295,16 @@ final class PlainYearMonth implements Stringable
     public function with(array $fields, mixed $options = null): self
     {
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
-            throw new \TypeError(
-                'PlainYearMonth::with() fields must not contain a calendar or timeZone property.',
-            );
+            throw new \TypeError('PlainYearMonth::with() fields must not contain a calendar or timeZone property.');
         }
 
         // At least one recognized field must be present.
-        if (!array_key_exists('year', $fields)
+        if (
+            !array_key_exists('year', $fields)
             && !array_key_exists('month', $fields)
             && !array_key_exists('monthCode', $fields)
         ) {
-            throw new \TypeError(
-                'PlainYearMonth::with() requires at least one of: year, month, monthCode.',
-            );
+            throw new \TypeError('PlainYearMonth::with() requires at least one of: year, month, monthCode.');
         }
 
         // Validate overflow option.
@@ -326,8 +336,8 @@ final class PlainYearMonth implements Stringable
             $year = (int) $yr;
         }
 
-        $month        = $this->month;
-        $hasMonth     = array_key_exists('month', $fields);
+        $month = $this->month;
+        $hasMonth = array_key_exists('month', $fields);
         $hasMonthCode = array_key_exists('monthCode', $fields);
 
         if ($hasMonthCode) {
@@ -336,9 +346,7 @@ final class PlainYearMonth implements Stringable
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mcStr}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
             }
             $month = (int) substr(string: $mcStr, offset: 1);
         }
@@ -352,17 +360,13 @@ final class PlainYearMonth implements Stringable
             /** @phpstan-ignore cast.int */
             $newMonth = (int) $m;
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException(
-                    'Conflicting month and monthCode fields.',
-                );
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
 
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid month {$month}: must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
@@ -436,9 +440,7 @@ final class PlainYearMonth implements Stringable
     public function equals(mixed $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
-        return $this->year === $o->year
-            && $this->month === $o->month
-            && $this->referenceISODay === $o->referenceISODay;
+        return $this->year === $o->year && $this->month === $o->month && $this->referenceISODay === $o->referenceISODay;
     }
 
     /**
@@ -454,7 +456,7 @@ final class PlainYearMonth implements Stringable
     public function toString(mixed $options = null): string
     {
         $yearStr = self::formatYear($this->year);
-        $base    = sprintf('%s-%02d', $yearStr, $this->month);
+        $base = sprintf('%s-%02d', $yearStr, $this->month);
 
         $calendarName = 'auto';
         if ($options !== null && is_array($options) && array_key_exists('calendarName', $options)) {
@@ -468,11 +470,9 @@ final class PlainYearMonth implements Stringable
 
         return match ($calendarName) {
             'auto', 'never' => $base,
-            'always'        => $base . sprintf('-%02d', $this->referenceISODay) . '[u-ca=iso8601]',
-            'critical'      => $base . sprintf('-%02d', $this->referenceISODay) . '[!u-ca=iso8601]',
-            default         => throw new InvalidArgumentException(
-                "Invalid calendarName value: \"{$calendarName}\".",
-            ),
+            'always' => $base . sprintf('-%02d', $this->referenceISODay) . '[u-ca=iso8601]',
+            'critical' => $base . sprintf('-%02d', $this->referenceISODay) . '[!u-ca=iso8601]',
+            default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
 
@@ -531,9 +531,7 @@ final class PlainYearMonth implements Stringable
         }
 
         if (!array_key_exists('day', $bag)) {
-            throw new \TypeError(
-                'PlainYearMonth::toPlainDate() argument must have a day property.',
-            );
+            throw new \TypeError('PlainYearMonth::toPlainDate() argument must have a day property.');
         }
 
         /** @var mixed $dayRaw */
@@ -600,15 +598,15 @@ final class PlainYearMonth implements Stringable
         // Z is never valid for PlainYearMonth
         // Bracket annotations are allowed
         $pattern =
-            '/^([+-]\d{6}|\d{4})'              // group 1: year (4 or 6 digits, optional ± prefix)
+            '/^([+-]\d{6}|\d{4})' // group 1: year (4 or 6 digits, optional ± prefix)
             . '(-\d{2}(?:-\d{2})?|\d{2}(?:\d{2})?)' // group 2: -MM[-DD] or MMDD or MM (compact)
-            . '(?:[Tt ](\d{2})'                  // group 3: optional T + HH
-            . '(?::?(\d{2})'                     // group 4: optional :MM
-            . '(?::?(\d{2})([.,]\d+)?)?)?'       // group 5+6: optional :SS[.frac]
-            . '(?:[+-]\d{2}'                     // optional offset ±HH
+            . '(?:[Tt ](\d{2})' // group 3: optional T + HH
+            . '(?::?(\d{2})' // group 4: optional :MM
+            . '(?::?(\d{2})([.,]\d+)?)?)?' // group 5+6: optional :SS[.frac]
+            . '(?:[+-]\d{2}' // optional offset ±HH
             . '(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?'
             . '|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?'
-            . '((?:\[[^\]]*\])*)'               // group 7: bracket annotations
+            . '((?:\[[^\]]*\])*)' // group 7: bracket annotations
             . '$/';
 
         /** @var list<string> $m */
@@ -619,7 +617,7 @@ final class PlainYearMonth implements Stringable
             );
         }
 
-        $yearRaw  = $m[1];
+        $yearRaw = $m[1];
         $dateRest = $m[2];
 
         // Reject minus-zero extended year (-000000).
@@ -703,8 +701,8 @@ final class PlainYearMonth implements Stringable
             return;
         }
 
-        $tzCount        = 0;
-        $calCount       = 0;
+        $tzCount = 0;
+        $calCount = 0;
         $calHasCritical = false;
 
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
@@ -771,9 +769,7 @@ final class PlainYearMonth implements Stringable
             /** @var mixed $cal */
             $cal = $bag['calendar'];
             if (!is_string($cal)) {
-                throw new \TypeError(
-                    'PlainYearMonth calendar must be a string; got ' . get_debug_type($cal) . '.',
-                );
+                throw new \TypeError('PlainYearMonth calendar must be a string; got ' . get_debug_type($cal) . '.');
             }
             if (preg_match('/^-0{6}/', $cal) === 1) {
                 throw new InvalidArgumentException(
@@ -782,9 +778,7 @@ final class PlainYearMonth implements Stringable
             }
             $calId = self::extractCalendarId($cal);
             if ($calId !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$cal}\": only iso8601 is supported.",
-                );
+                throw new InvalidArgumentException("Unsupported calendar \"{$cal}\": only iso8601 is supported.");
             }
         }
 
@@ -808,8 +802,8 @@ final class PlainYearMonth implements Stringable
         $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
 
         // Resolve month from monthCode or month field.
-        $month        = null;
-        $hasMonth     = array_key_exists('month', $bag);
+        $month = null;
+        $hasMonth = array_key_exists('month', $bag);
         $hasMonthCode = array_key_exists('monthCode', $bag);
 
         if ($hasMonthCode) {
@@ -818,9 +812,7 @@ final class PlainYearMonth implements Stringable
             /** @phpstan-ignore cast.string */
             $mc = is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw;
             if (preg_match('/^M(0[1-9]|1[0-2])$/', $mc) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode for ISO calendar: \"{$mc}\".",
-                );
+                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mc}\".");
             }
             $month = (int) substr(string: $mc, offset: 1);
         }
@@ -847,9 +839,7 @@ final class PlainYearMonth implements Stringable
 
         // month < 1 is always invalid (cannot constrain below minimum of 1).
         if ($month < 1) {
-            throw new InvalidArgumentException(
-                "Invalid PlainYearMonth: month {$month} must be at least 1.",
-            );
+            throw new InvalidArgumentException("Invalid PlainYearMonth: month {$month} must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
@@ -884,28 +874,47 @@ final class PlainYearMonth implements Stringable
      *
      * @param mixed $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
-    private static function diffYearMonth(
-        self $later,
-        self $earlier,
-        self $receiver,
-        mixed $options,
-    ): Duration {
+    private static function diffYearMonth(self $later, self $earlier, self $receiver, mixed $options): Duration
+    {
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'month', 'months', 'year', 'years'];
         /** @var list<string> $disallowedUnits */
-        static $disallowedUnits = ['week', 'weeks', 'day', 'days', 'hour', 'hours',
-            'minute', 'minutes', 'second', 'seconds',
-            'millisecond', 'milliseconds', 'microsecond', 'microseconds',
-            'nanosecond', 'nanoseconds'];
+        static $disallowedUnits = [
+            'week',
+            'weeks',
+            'day',
+            'days',
+            'hour',
+            'hours',
+            'minute',
+            'minutes',
+            'second',
+            'seconds',
+            'millisecond',
+            'milliseconds',
+            'microsecond',
+            'microseconds',
+            'nanosecond',
+            'nanoseconds',
+        ];
         /** @var list<string> $validModes */
-        static $validModes = ['ceil', 'floor', 'expand', 'trunc',
-            'halfCeil', 'halfFloor', 'halfExpand', 'halfTrunc', 'halfEven'];
+        static $validModes = [
+            'ceil',
+            'floor',
+            'expand',
+            'trunc',
+            'halfCeil',
+            'halfFloor',
+            'halfExpand',
+            'halfTrunc',
+            'halfEven',
+        ];
 
-        $largestUnit         = 'year';   // default for PlainYearMonth per spec (auto = year)
+        $largestUnit = 'year'; // default for PlainYearMonth per spec (auto = year)
         $largestUnitExplicit = false;
-        $smallestUnit        = null;
-        $roundingMode        = 'trunc';
-        $roundingIncrement   = 1;
+        $smallestUnit = null;
+        $roundingMode = 'trunc';
+        $roundingIncrement = 1;
 
         if ($options !== null && (is_array($options) || is_object($options))) {
             $opts = is_array($options) ? $options : (array) $options;
@@ -925,7 +934,7 @@ final class PlainYearMonth implements Stringable
                     if (!in_array($lu, $validUnits, strict: true)) {
                         throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
                     }
-                    $largestUnit         = $lu;
+                    $largestUnit = $lu;
                     $largestUnitExplicit = true;
                 }
             }
@@ -993,8 +1002,16 @@ final class PlainYearMonth implements Stringable
         }
 
         // Normalize to canonical forms. 'auto' for PlainYearMonth = 'year'.
-        $normLargest  = match ($largestUnit)  { 'months' => 'month', 'auto', 'years' => 'year', default => $largestUnit };
-        $normSmallest = match ($smallestUnit) { 'months', 'auto' => 'month', 'years' => 'year', default => $smallestUnit };
+        $normLargest = match ($largestUnit) {
+            'months' => 'month',
+            'auto', 'years' => 'year',
+            default => $largestUnit,
+        };
+        $normSmallest = match ($smallestUnit) {
+            'months', 'auto' => 'month',
+            'years' => 'year',
+            default => $smallestUnit,
+        };
 
         /** @var array<string, int> $unitRank */
         static $unitRank = ['year' => 2, 'years' => 2, 'month' => 1, 'months' => 1, 'auto' => 1];
@@ -1008,7 +1025,7 @@ final class PlainYearMonth implements Stringable
                     "smallestUnit \"{$smallestUnit}\" cannot be larger than largestUnit \"{$largestUnit}\".",
                 );
             }
-            $normLargest  = $normSmallest;
+            $normLargest = $normSmallest;
         }
 
         // Short-circuit when both year-months are equal: diff is always zero.
@@ -1022,8 +1039,10 @@ final class PlainYearMonth implements Stringable
         self::validateYearMonthForDiff($earlier);
 
         // Compute raw year+month diff.
-        $sign = ($later->year > $earlier->year
-            || ($later->year === $earlier->year && $later->month >= $earlier->month)) ? 1 : -1;
+        $sign =
+            $later->year > $earlier->year || $later->year === $earlier->year && $later->month >= $earlier->month
+                ? 1
+                : -1;
 
         $y1 = $earlier->year;
         $m1 = $earlier->month;
@@ -1034,19 +1053,19 @@ final class PlainYearMonth implements Stringable
             [$y1, $m1, $y2, $m2] = [$y2, $m2, $y1, $m1];
         }
 
-        $years  = $y2 - $y1;
+        $years = $y2 - $y1;
         $months = $m2 - $m1;
         if ($months < 0) {
             $years--;
             $months += 12;
         }
 
-        $totalMonths = $sign * ($years * 12 + $months);
-        $rawYears    = $sign * $years;
-        $rawMonths   = $sign * $months;
+        $totalMonths = $sign * (($years * 12) + $months);
+        $rawYears = $sign * $years;
+        $rawMonths = $sign * $months;
 
         // The receiver is "later" when since() is called (receiver is $this = later arg).
-        $receiverIsLater = ($receiver->year === $later->year && $receiver->month === $later->month);
+        $receiverIsLater = $receiver->year === $later->year && $receiver->month === $later->month;
 
         if ($normLargest === 'month') {
             // All months; no years in output.
@@ -1056,7 +1075,11 @@ final class PlainYearMonth implements Stringable
                 }
                 // Round totalMonths by increment.
                 $rounded = self::roundCalendarYearMonths(
-                    $totalMonths, $receiver, $roundingIncrement, $roundingMode, $receiverIsLater,
+                    $totalMonths,
+                    $receiver,
+                    $roundingIncrement,
+                    $roundingMode,
+                    $receiverIsLater,
                 );
                 return new Duration(months: $rounded);
             }
@@ -1071,7 +1094,12 @@ final class PlainYearMonth implements Stringable
                 return new Duration(years: $rawYears);
             }
             $roundedYears = self::roundCalendarYearsYM(
-                $rawYears, $rawMonths, $receiver, $roundingIncrement, $roundingMode, $receiverIsLater,
+                $rawYears,
+                $rawMonths,
+                $receiver,
+                $roundingIncrement,
+                $roundingMode,
+                $receiverIsLater,
             );
             return new Duration(years: $roundedYears);
         }
@@ -1083,7 +1111,12 @@ final class PlainYearMonth implements Stringable
             return new Duration(years: $rawYears, months: $rawMonths);
         }
         [$ry, $rm] = self::roundCalendarMonthsWithinYear(
-            $rawYears, $rawMonths, $receiver, $roundingIncrement, $roundingMode, $receiverIsLater,
+            $rawYears,
+            $rawMonths,
+            $receiver,
+            $roundingIncrement,
+            $roundingMode,
+            $receiverIsLater,
         );
         return new Duration(years: $ry, months: $rm);
     }
@@ -1103,10 +1136,10 @@ final class PlainYearMonth implements Stringable
         string $mode,
         bool $receiverIsLater,
     ): int {
-        $sign      = $totalMonths >= 0 ? 1 : -1;
+        $sign = $totalMonths >= 0 ? 1 : -1;
         $absMonths = abs($totalMonths);
 
-        $floorCount = (intdiv(num1: $absMonths, num2: $increment)) * $increment;
+        $floorCount = intdiv(num1: $absMonths, num2: $increment) * $increment;
         $remainingMonths = $absMonths - $floorCount;
 
         // No rounding needed when mode is trunc/floor (always rounds down).
@@ -1128,26 +1161,28 @@ final class PlainYearMonth implements Stringable
 
         // Compute anchor and next boundary as year-month.
         [$anchorY, $anchorM] = self::addSignedMonthsYM($receiver->year, $receiver->month, $dir * $floorCount);
-        [$nextY, $nextM]     = self::addSignedMonthsYM($receiver->year, $receiver->month, $dir * ($floorCount + $increment));
+        [$nextY, $nextM] = self::addSignedMonthsYM(
+            $receiver->year,
+            $receiver->month,
+            $dir * ($floorCount + $increment),
+        );
 
         // Validate the next boundary is within the representable range (§NudgeToCalendarUnit step 8).
         if (!self::isoYearMonthWithinLimits($nextY, $nextM)) {
-            throw new InvalidArgumentException(
-                'PlainYearMonth rounding result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainYearMonth rounding result is outside the representable range.');
         }
 
         // Interval size in days (anchor → next boundary).
-        $anchorJdn    = self::toJulianDay($anchorY, $anchorM, 1);
-        $nextJdn      = self::toJulianDay($nextY, $nextM, 1);
+        $anchorJdn = self::toJulianDay($anchorY, $anchorM, 1);
+        $nextJdn = self::toJulianDay($nextY, $nextM, 1);
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Compute how far the remaining months reach within the interval (in days).
         [$remY, $remM] = self::addSignedMonthsYM($anchorY, $anchorM, $dir * $remainingMonths);
-        $remJdn        = self::toJulianDay($remY, $remM, 1);
-        $remDays       = abs($remJdn - $anchorJdn);
+        $remJdn = self::toJulianDay($remY, $remM, 1);
+        $remDays = abs($remJdn - $anchorJdn);
 
-        $progress = $intervalDays > 0 ? ($remDays / $intervalDays) : 0.0;
+        $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
 
         $roundUp = self::applyRoundingProgress($progress, $mode, $sign);
 
@@ -1156,9 +1191,7 @@ final class PlainYearMonth implements Stringable
         // Validate range.
         [$ry, $rm] = self::addSignedMonthsYM($receiver->year, $receiver->month, $dir * $roundedAbs);
         if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new InvalidArgumentException(
-                'PlainYearMonth arithmetic result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return $sign * $roundedAbs;
@@ -1180,46 +1213,46 @@ final class PlainYearMonth implements Stringable
         $sign = $years !== 0 ? ($years >= 0 ? 1 : -1) : ($months >= 0 ? 1 : -1);
         $absYears = abs($years);
 
-        $floorCount = (intdiv(num1: $absYears, num2: $increment)) * $increment;
+        $floorCount = intdiv(num1: $absYears, num2: $increment) * $increment;
 
         $dir = $receiverIsLater ? -$sign : $sign;
 
         // Anchor at floorCount years from receiver.
         [$anchorY, $anchorM] = self::addSignedMonthsYM($receiver->year, $receiver->month, $dir * $floorCount * 12);
-        [$nextY, $nextM]     = self::addSignedMonthsYM($receiver->year, $receiver->month, $dir * ($floorCount + $increment) * 12);
+        [$nextY, $nextM] = self::addSignedMonthsYM(
+            $receiver->year,
+            $receiver->month,
+            $dir * ($floorCount + $increment) * 12,
+        );
 
         // Validate the next boundary is within the representable range.
         if (!self::isoYearMonthWithinLimits($nextY, $nextM)) {
-            throw new InvalidArgumentException(
-                'PlainYearMonth rounding result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainYearMonth rounding result is outside the representable range.');
         }
 
-        $anchorJdn    = self::toJulianDay($anchorY, $anchorM, 1);
-        $nextJdn      = self::toJulianDay($nextY, $nextM, 1);
+        $anchorJdn = self::toJulianDay($anchorY, $anchorM, 1);
+        $nextJdn = self::toJulianDay($nextY, $nextM, 1);
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Target: anchor + (total remaining months from anchor to target).
         // The target is at floorCount*12 + remaining_months from receiver,
         // i.e., the full abs diff (absYears*12 + absMonths) months from receiver.
         // From anchor (= receiver + dir*floorCount*12), the target is at dir*(absYears-floorCount)*12 + dir*absMonths.
-        $absMonths    = abs($months);
-        $remMonthsFromAnchor = ($absYears - $floorCount) * 12 + $absMonths;
+        $absMonths = abs($months);
+        $remMonthsFromAnchor = (($absYears - $floorCount) * 12) + $absMonths;
         [$subY, $subM] = self::addSignedMonthsYM($anchorY, $anchorM, $dir * $remMonthsFromAnchor);
-        $subJdn         = self::toJulianDay($subY, $subM, 1);
-        $remDays        = abs($subJdn - $anchorJdn);
+        $subJdn = self::toJulianDay($subY, $subM, 1);
+        $remDays = abs($subJdn - $anchorJdn);
 
-        $progress = $intervalDays > 0 ? ($remDays / $intervalDays) : 0.0;
-        $roundUp  = self::applyRoundingProgress($progress, $mode, $sign);
+        $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
+        $roundUp = self::applyRoundingProgress($progress, $mode, $sign);
 
         $roundedAbs = $roundUp ? $floorCount + $increment : $floorCount;
 
         // Validate range.
         [$ry, $rm] = self::addSignedMonthsYM($receiver->year, $receiver->month, $dir * $roundedAbs * 12);
         if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new InvalidArgumentException(
-                'PlainYearMonth arithmetic result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return $sign * $roundedAbs;
@@ -1251,52 +1284,50 @@ final class PlainYearMonth implements Stringable
 
         // Yearly anchor: receiver moved by |rawYears| years (the whole-year portion of the diff).
         [$yearAnchorY, $yearAnchorM] = self::addSignedMonthsYM(
-            $receiver->year, $receiver->month, $dir * abs($rawYears) * 12,
+            $receiver->year,
+            $receiver->month,
+            $dir * abs($rawYears) * 12,
         );
 
-        $absMonths   = abs($rawMonths);
-        $floorCount  = (intdiv(num1: $absMonths, num2: $increment)) * $increment;
-        $nextCount   = $floorCount + $increment;
+        $absMonths = abs($rawMonths);
+        $floorCount = intdiv(num1: $absMonths, num2: $increment) * $increment;
+        $nextCount = $floorCount + $increment;
 
         // Month anchor: yearAnchor moved by floorCount months (= lower boundary of the rounding bucket).
         [$monthAnchorY, $monthAnchorM] = self::addSignedMonthsYM($yearAnchorY, $yearAnchorM, $dir * $floorCount);
-        [$nextY, $nextM]               = self::addSignedMonthsYM($yearAnchorY, $yearAnchorM, $dir * $nextCount);
+        [$nextY, $nextM] = self::addSignedMonthsYM($yearAnchorY, $yearAnchorM, $dir * $nextCount);
 
         // Validate that the next boundary is representable.
         if (!self::isoYearMonthWithinLimits($nextY, $nextM)) {
-            throw new InvalidArgumentException(
-                'PlainYearMonth rounding result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainYearMonth rounding result is outside the representable range.');
         }
 
         // Calendar-aware progress: measure remaining months in days from the month anchor.
         $monthAnchorJdn = self::toJulianDay($monthAnchorY, $monthAnchorM, 1);
-        $nextJdn        = self::toJulianDay($nextY, $nextM, 1);
-        $intervalDays   = abs($nextJdn - $monthAnchorJdn);
+        $nextJdn = self::toJulianDay($nextY, $nextM, 1);
+        $intervalDays = abs($nextJdn - $monthAnchorJdn);
 
         $remainingMonths = $absMonths - $floorCount;
-        [$remY, $remM]   = self::addSignedMonthsYM($monthAnchorY, $monthAnchorM, $dir * $remainingMonths);
-        $remJdn          = self::toJulianDay($remY, $remM, 1);
-        $remDays         = abs($remJdn - $monthAnchorJdn);
+        [$remY, $remM] = self::addSignedMonthsYM($monthAnchorY, $monthAnchorM, $dir * $remainingMonths);
+        $remJdn = self::toJulianDay($remY, $remM, 1);
+        $remDays = abs($remJdn - $monthAnchorJdn);
 
-        $progress = $intervalDays > 0 ? ($remDays / $intervalDays) : 0.0;
-        $roundUp  = self::applyRoundingProgress($progress, $mode, $sign);
+        $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
+        $roundUp = self::applyRoundingProgress($progress, $mode, $sign);
 
         $roundedAbsMonths = $roundUp ? $nextCount : $floorCount;
 
         // Convert rounded abs months to a years+months result with carry.
-        $carryYears    = intdiv(num1: $roundedAbsMonths, num2: 12);
-        $remainMonths  = $roundedAbsMonths % 12;
-        $roundedYears  = $rawYears + $sign * $carryYears;
+        $carryYears = intdiv(num1: $roundedAbsMonths, num2: 12);
+        $remainMonths = $roundedAbsMonths % 12;
+        $roundedYears = $rawYears + ($sign * $carryYears);
         $roundedMonths = $sign * $remainMonths;
 
         // Validate range.
-        $totalAbsMonths = abs($rawYears) * 12 + $roundedAbsMonths;
+        $totalAbsMonths = (abs($rawYears) * 12) + $roundedAbsMonths;
         [$ry, $rm] = self::addSignedMonthsYM($receiver->year, $receiver->month, $dir * $totalAbsMonths);
         if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new InvalidArgumentException(
-                'PlainYearMonth arithmetic result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return [$roundedYears, $roundedMonths];
@@ -1310,20 +1341,20 @@ final class PlainYearMonth implements Stringable
         $effectiveMode = $mode;
         if ($sign < 0) {
             $effectiveMode = match ($mode) {
-                'floor'     => 'ceil',
-                'ceil'      => 'floor',
+                'floor' => 'ceil',
+                'ceil' => 'floor',
                 'halfFloor' => 'halfCeil',
-                'halfCeil'  => 'halfFloor',
-                default     => $mode,
+                'halfCeil' => 'halfFloor',
+                default => $mode,
             };
         }
         return match ($effectiveMode) {
-            'trunc', 'floor'         => false,
-            'ceil', 'expand'         => $progress > 0.0,
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $progress > 0.0,
             'halfExpand', 'halfCeil' => $progress >= 0.5,
             'halfTrunc', 'halfFloor' => $progress > 0.5,
-            'halfEven'               => $progress > 0.5,
-            default                  => false,
+            'halfEven' => $progress > 0.5,
+            default => false,
         };
     }
 
@@ -1366,36 +1397,39 @@ final class PlainYearMonth implements Stringable
         // PlainYearMonth.add/subtract: sub-month units (weeks, days, hours, etc.) are forbidden.
         // TC39 spec: §9.5.7 AddDurationToOrSubtractDurationFromPlainYearMonth step 4.
         // Any non-zero week, day, or sub-day field causes a RangeError.
-        if ((int) $dur->weeks !== 0 || (int) $dur->days !== 0
-            || (int) $dur->hours !== 0 || (int) $dur->minutes !== 0
-            || (int) $dur->seconds !== 0 || (int) $dur->milliseconds !== 0
-            || (int) $dur->microseconds !== 0 || (int) $dur->nanoseconds !== 0
+        if (
+            (int) $dur->weeks !== 0
+            || (int) $dur->days !== 0
+            || (int) $dur->hours !== 0
+            || (int) $dur->minutes !== 0
+            || (int) $dur->seconds !== 0
+            || (int) $dur->milliseconds !== 0
+            || (int) $dur->microseconds !== 0
+            || (int) $dur->nanoseconds !== 0
         ) {
             throw new InvalidArgumentException(
                 'PlainYearMonth::add()/subtract() does not support sub-month units (weeks, days, hours, etc.).',
             );
         }
 
-        $years  = $sign * (int) $dur->years;
+        $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
 
-        $newYear  = $this->year + $years;
+        $newYear = $this->year + $years;
         $newMonth = $this->month + $months;
 
         // Normalize month into 1–12, carrying into year.
         if ($newMonth > 12) {
-            $newYear  += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12) + 1;
+            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
+            $newMonth = (($newMonth - 1) % 12) + 1;
         } elseif ($newMonth < 1) {
-            $newYear  += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth  = (($newMonth - 1) % 12 + 12) % 12 + 1;
+            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
+            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
         }
 
         // Range check using month-granular limit.
         if (!self::isoYearMonthWithinLimits($newYear, $newMonth)) {
-            throw new InvalidArgumentException(
-                'PlainYearMonth arithmetic result is outside the representable range.',
-            );
+            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return new self($newYear, $newMonth, 'iso8601', 1);
@@ -1413,10 +1447,10 @@ final class PlainYearMonth implements Stringable
 
         if ($m > 12) {
             $y += intdiv(num1: $m - 1, num2: 12);
-            $m  = (($m - 1) % 12) + 1;
+            $m = (($m - 1) % 12) + 1;
         } elseif ($m < 1) {
             $y += intdiv(num1: $m - 12, num2: 12);
-            $m  = (($m - 1) % 12 + 12) % 12 + 1;
+            $m = (((($m - 1) % 12) + 12) % 12) + 1;
         }
 
         return [$y, $m];
@@ -1452,11 +1486,11 @@ final class PlainYearMonth implements Stringable
         }
         // ASCII-only lowercase.
         $lower = '';
-        $len   = strlen($cal);
+        $len = strlen($cal);
         for ($i = 0; $i < $len; $i++) {
             $c = $cal[$i];
             $o = ord($c);
-            $lower .= ($o >= 0x41 && $o <= 0x5A) ? chr($o + 32) : $c;
+            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
         }
         return $lower;
     }
@@ -1469,14 +1503,16 @@ final class PlainYearMonth implements Stringable
     {
         $a = intdiv(num1: 14 - $month, num2: 12);
         $y = $year + 4800 - $a;
-        $m = $month + 12 * $a - 3;
-        return $day
-            + intdiv(num1: 153 * $m + 2, num2: 5)
-            + 365 * $y
+        $m = $month + (12 * $a) - 3;
+        return (
+            $day
+            + intdiv(num1: (153 * $m) + 2, num2: 5)
+            + (365 * $y)
             + self::floorDiv($y, 4)
             - self::floorDiv($y, 100)
             + self::floorDiv($y, 400)
-            - 32_045;
+            - 32_045
+        );
     }
 
     private static function calcDaysInMonth(int $year, int $month): int
@@ -1491,7 +1527,7 @@ final class PlainYearMonth implements Stringable
 
     private static function isLeapYear(int $year): bool
     {
-        return ($year % 4 === 0 && $year % 100 !== 0) || ($year % 400 === 0);
+        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
     }
 
     /**
