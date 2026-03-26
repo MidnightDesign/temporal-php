@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Temporal\Tests;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
 use Temporal\PlainTime;
 use Temporal\ZonedDateTime;
 
-final class ZonedDateTimeMethodsTest extends TestCase
+final class ZonedDateTimeMethodsTest extends TemporalTestCase
 {
     public function testToInstantReturnsCorrectEpoch(): void
     {

@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Temporal\Tests;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
 use Temporal\Duration;
 
-final class DurationFromTest extends TestCase
+final class DurationFromTest extends TemporalTestCase
 {
     public function testSimple(): void
     {
@@ -22,13 +21,7 @@ final class DurationFromTest extends TestCase
     {
         $d = Duration::from('P1Y2M3W4DT5H6M7S');
 
-        static::assertSame(1, $d->years);
-        static::assertSame(2, $d->months);
-        static::assertSame(3, $d->weeks);
-        static::assertSame(4, $d->days);
-        static::assertSame(5, $d->hours);
-        static::assertSame(6, $d->minutes);
-        static::assertSame(7, $d->seconds);
+        $this->assertDurationIs(1, 2, 3, 4, 5, 6, 7, 0, 0, 0, $d);
     }
 
     public function testNegative(): void
@@ -71,10 +64,7 @@ final class DurationFromTest extends TestCase
     {
         $d = Duration::from('P1Y2M3W4DT5H6M7.008009001S');
 
-        static::assertSame(7, $d->seconds);
-        static::assertSame(8, $d->milliseconds);
-        static::assertSame(9, $d->microseconds);
-        static::assertSame(1, $d->nanoseconds);
+        $this->assertDurationIs(1, 2, 3, 4, 5, 6, 7, 8, 9, 1, $d);
     }
 
     public function testZeroComponent(): void

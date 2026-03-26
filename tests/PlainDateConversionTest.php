@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Temporal\Tests;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
 use Temporal\PlainDate;
 use Temporal\PlainDateTime;
 use Temporal\PlainTime;
 use Temporal\ZonedDateTime;
 
-final class PlainDateConversionTest extends TestCase
+final class PlainDateConversionTest extends TemporalTestCase
 {
     // -------------------------------------------------------------------------
     // toPlainDateTime
