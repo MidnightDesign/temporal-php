@@ -6,6 +6,7 @@ namespace Temporal;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Internal\TemporalSerde;
 
 /**
  * A wall-clock time without a date or time zone.
@@ -17,6 +18,8 @@ use Stringable;
  */
 final class PlainTime implements Stringable
 {
+    use TemporalSerde;
+
     private const int NS_PER_HOUR = 3_600_000_000_000;
     private const int NS_PER_MINUTE = 60_000_000_000;
     private const int NS_PER_SECOND = 1_000_000_000;
@@ -473,6 +476,7 @@ final class PlainTime implements Stringable
      * @throws \TypeError if $options is a non-null, non-array, non-object scalar.
      * @psalm-api
      */
+    #[\Override]
     public function toString(array|object|null $options = null): string
     {
         if (is_object($options)) {
@@ -599,28 +603,6 @@ final class PlainTime implements Stringable
         return "{$base}.{$fraction}";
     }
 
-    /** @psalm-api */
-    public function toJSON(): string
-    {
-        return $this->toString();
-    }
-
-    /**
-     * Returns a locale-sensitive string for this PlainTime.
-     *
-     * PHP has no ICU Temporal support, so this falls back to toString().
-     * The TC39 spec permits implementations to choose locale behavior.
-     *
-     * @param string|array<array-key, mixed>|null $locales BCP 47 locale string or array (ignored in PHP).
-     * @param array<array-key, mixed>|object|null $options Intl.DateTimeFormat options bag (ignored in PHP).
-     * @psalm-suppress UnusedParam
-     * @psalm-api
-     */
-    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
-    {
-        return $this->toString();
-    }
-
     /**
      * Always throws TypeError — PlainTime must not be used in arithmetic context.
      *
@@ -631,12 +613,6 @@ final class PlainTime implements Stringable
     public function valueOf(): never
     {
         throw new \TypeError('Use Temporal.PlainTime.compare() to compare Temporal.PlainTime values.');
-    }
-
-    #[\Override]
-    public function __toString(): string
-    {
-        return $this->toString();
     }
 
     // -------------------------------------------------------------------------

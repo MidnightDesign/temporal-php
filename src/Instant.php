@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Internal\CalendarMath;
 
 /**
  * A fixed point in time with nanosecond precision.
@@ -31,7 +32,7 @@ final class Instant implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $epochMilliseconds {
-        get => self::floorDiv($this->epochNanoseconds, self::NS_PER_MILLISECOND);
+        get => CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_MILLISECOND);
     }
 
     /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
@@ -161,7 +162,7 @@ final class Instant implements Stringable
         if ($monthNum < 1 || $monthNum > 12) {
             throw new InvalidArgumentException("Invalid Instant string \"{$text}\": month out of range.");
         }
-        $maxDay = self::daysInMonth($yearNum, $monthNum);
+        $maxDay = CalendarMath::calcDaysInMonth($yearNum, $monthNum);
         if ($dayNum < 1 || $dayNum > $maxDay) {
             throw new InvalidArgumentException("Invalid Instant string \"{$text}\": day out of range.");
         }
@@ -226,11 +227,7 @@ final class Instant implements Stringable
         // Checked at second granularity; at the boundary second, any non-zero
         // sub-second component puts the instant out of range.
         $maxSec = 8_640_000_000_000;
-        if (
-            $utcEpochSec < -$maxSec
-            || $utcEpochSec > $maxSec
-            || $utcEpochSec === $maxSec && $baseNs > 0
-        ) {
+        if ($utcEpochSec < -$maxSec || $utcEpochSec > $maxSec || $utcEpochSec === $maxSec && $baseNs > 0) {
             throw new InvalidArgumentException(
                 "Instant string \"{$text}\" is outside the representable nanosecond range.",
             );
@@ -472,7 +469,7 @@ final class Instant implements Stringable
             : self::roundAsIfPositive($this->epochNanoseconds, $increment, $roundMode);
 
         // Extract whole UTC seconds and sub-second nanoseconds.
-        $secs = self::floorDiv($ns, self::NS_PER_SECOND);
+        $secs = CalendarMath::floorDiv($ns, self::NS_PER_SECOND);
         $subNs = $ns - ($secs * self::NS_PER_SECOND); // always 0–999_999_999
 
         // Apply timezone offset to get local datetime.
@@ -1142,30 +1139,6 @@ final class Instant implements Stringable
     }
 
     /**
-     * Returns the number of days in the given month of the given year,
-     * applying the proleptic Gregorian calendar (including for BCE years).
-     *
-     * @param int<1, 12> $month
-     * @return int<28, 31>
-     */
-    private static function daysInMonth(int $year, int $month): int
-    {
-        return match ($month) {
-            1, 3, 5, 7, 8, 10, 12 => 31,
-            4, 6, 9, 11 => 30,
-            2 => self::isLeapYear($year) ? 29 : 28,
-        };
-    }
-
-    /**
-     * Proleptic Gregorian leap-year test (valid for negative years too).
-     */
-    private static function isLeapYear(int $year): bool
-    {
-        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
-    }
-
-    /**
      * Strips the leading separator and truncates/pads the fractional-second
      * string to exactly 9 digits, then returns the nanosecond count.
      *
@@ -1218,19 +1191,6 @@ final class Instant implements Stringable
         };
 
         return $rounded * $increment;
-    }
-
-    /**
-     * Integer division that always rounds towards negative infinity.
-     *
-     * PHP's intdiv() truncates towards zero; when the remainder is negative
-     * the true floor is one less than the truncated quotient.
-     */
-    private static function floorDiv(int $a, int $b): int
-    {
-        $q = intdiv($a, $b);
-        $r = $a - ($q * $b);
-        return $r < 0 ? $q - 1 : $q;
     }
 
     /**

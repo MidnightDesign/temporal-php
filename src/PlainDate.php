@@ -6,6 +6,8 @@ namespace Temporal;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Internal\CalendarMath;
+use Temporal\Internal\TemporalSerde;
 
 /**
  * A calendar date without a time or time zone.
@@ -17,6 +19,8 @@ use Stringable;
  */
 final class PlainDate implements Stringable
 {
+    use TemporalSerde;
+
     // -------------------------------------------------------------------------
     // Virtual (get-only) properties
     // -------------------------------------------------------------------------
@@ -74,7 +78,7 @@ final class PlainDate implements Stringable
      * @var int<1, 7>
      */
     public int $dayOfWeek {
-        get => self::isoWeekday($this->year, $this->month, $this->day);
+        get => CalendarMath::isoWeekday($this->year, $this->month, $this->day);
     }
 
     /**
@@ -86,7 +90,7 @@ final class PlainDate implements Stringable
      * @var int<1, 366>
      */
     public int $dayOfYear {
-        get => self::calcDayOfYear($this->year, $this->month, $this->day);
+        get => CalendarMath::calcDayOfYear($this->year, $this->month, $this->day);
     }
 
     /**
@@ -98,7 +102,7 @@ final class PlainDate implements Stringable
      * @var int<1, 53>
      */
     public int $weekOfYear {
-        get => self::isoWeekInfo($this->year, $this->month, $this->day)['week'];
+        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['week'];
     }
 
     /**
@@ -109,7 +113,7 @@ final class PlainDate implements Stringable
      * @psalm-api
      */
     public int $yearOfWeek {
-        get => self::isoWeekInfo($this->year, $this->month, $this->day)['year'];
+        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['year'];
     }
 
     /**
@@ -121,7 +125,7 @@ final class PlainDate implements Stringable
      * @var int<28, 31>
      */
     public int $daysInMonth {
-        get => self::calcDaysInMonth($this->year, $this->month);
+        get => CalendarMath::calcDaysInMonth($this->year, $this->month);
     }
 
     /**
@@ -145,7 +149,7 @@ final class PlainDate implements Stringable
      * @var int<365, 366>
      */
     public int $daysInYear {
-        get => self::isLeapYear($this->year) ? 366 : 365;
+        get => CalendarMath::isLeapYear($this->year) ? 366 : 365;
     }
 
     /**
@@ -168,7 +172,7 @@ final class PlainDate implements Stringable
      * @psalm-api
      */
     public bool $inLeapYear {
-        get => self::isLeapYear($this->year);
+        get => CalendarMath::isLeapYear($this->year);
     }
 
     // -------------------------------------------------------------------------
@@ -214,7 +218,7 @@ final class PlainDate implements Stringable
         if ($dayInt < 1) {
             throw new InvalidArgumentException("Invalid PlainDate: day {$dayInt} must be at least 1.");
         }
-        $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
+        $daysInMonth = CalendarMath::calcDaysInMonth($this->year, $this->month);
         if ($dayInt > $daysInMonth) {
             throw new InvalidArgumentException(
                 "Invalid PlainDate: day {$dayInt} exceeds {$daysInMonth} for {$this->year}-{$this->month}.",
@@ -223,7 +227,7 @@ final class PlainDate implements Stringable
         /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
         $this->day = $dayInt;
         // TC39 range: Apr 19 −271821 … Sep 13 +275760.
-        $epochDays = self::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
             throw new InvalidArgumentException(
                 "Invalid PlainDate: {$this->year}-{$this->month}-{$this->day} is outside the representable range.",
@@ -410,7 +414,7 @@ final class PlainDate implements Stringable
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
         }
 
@@ -493,6 +497,7 @@ final class PlainDate implements Stringable
      * @throws InvalidArgumentException for invalid calendarName values.
      * @psalm-api
      */
+    #[\Override]
     public function toString(array|object|null $options = null): string
     {
         // TC39: years 0–9999 → 4 digits; years outside → ±YYYYYY (6 digits with sign prefix).
@@ -521,23 +526,6 @@ final class PlainDate implements Stringable
             'critical' => sprintf('%s[!u-ca=iso8601]', $base),
             default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
-    }
-
-    /** @psalm-api */
-    public function toJSON(): string
-    {
-        return $this->toString();
-    }
-
-    /**
-     * @param string|array<array-key, mixed>|null $locales
-     * @param array<array-key, mixed>|object|null $options
-     * @psalm-api
-     * @psalm-suppress UnusedParam
-     */
-    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
-    {
-        return $this->toString();
     }
 
     /**
@@ -677,12 +665,6 @@ final class PlainDate implements Stringable
         throw new \TypeError('PlainDate objects are not orderable');
     }
 
-    #[\Override]
-    public function __toString(): string
-    {
-        return $this->toString();
-    }
-
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
@@ -701,7 +683,7 @@ final class PlainDate implements Stringable
     {
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
         // year-formatting issues with extended years > 9999 or negative years).
-        $epochDays = self::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($m * 60) + $s;
         $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
 
@@ -986,7 +968,7 @@ final class PlainDate implements Stringable
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
         }
 
@@ -1143,8 +1125,8 @@ final class PlainDate implements Stringable
             default => $smallestUnit,
         };
 
-        $laterJdn = self::toJulianDay($later->year, $later->month, $later->day);
-        $earlierJdn = self::toJulianDay($earlier->year, $earlier->month, $earlier->day);
+        $laterJdn = CalendarMath::toJulianDay($later->year, $later->month, $later->day);
+        $earlierJdn = CalendarMath::toJulianDay($earlier->year, $earlier->month, $earlier->day);
         $totalDays = $laterJdn - $earlierJdn;
 
         // ---- Compute raw diff and apply rounding ----
@@ -1451,14 +1433,14 @@ final class PlainDate implements Stringable
             $m = (((($m - 1) % 12) + 12) % 12) + 1;
         }
 
-        $maxDay = self::calcDaysInMonth($y, $m);
+        $maxDay = CalendarMath::calcDaysInMonth($y, $m);
         if ($d > $maxDay) {
             $d = $maxDay; // constrain
         }
 
-        $minJdn = self::toJulianDay(-271821, 4, 19);
-        $maxJdn = self::toJulianDay(275760, 9, 13);
-        $jdn = self::toJulianDay($y, $m, $d);
+        $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
+        $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $jdn = CalendarMath::toJulianDay($y, $m, $d);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
             throw new InvalidArgumentException('PlainDate rounding result is outside the representable range.');
         }
@@ -1482,7 +1464,7 @@ final class PlainDate implements Stringable
      */
     private static function fromJulianDayStatic(int $jdn): self
     {
-        [$y, $m, $d] = self::fromJulianDay($jdn);
+        [$y, $m, $d] = CalendarMath::fromJulianDay($jdn);
         return new self($y, $m, $d);
     }
 
@@ -1550,9 +1532,11 @@ final class PlainDate implements Stringable
                 $anchorYear--;
                 $anchorMonth += 12;
             }
-            $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
+            $anchorMaxDay = CalendarMath::calcDaysInMonth($anchorYear, $anchorMonth);
             $anchorDay = min($d2, $anchorMaxDay);
-            $days = self::toJulianDay($anchorYear, $anchorMonth, $anchorDay) - self::toJulianDay($y1, $m1, $d1);
+            $days =
+                CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay)
+                - CalendarMath::toJulianDay($y1, $m1, $d1);
         } else {
             // Anchor from y1 (receiver) going forward.
             $anchorMonth = $m1 + $months;
@@ -1561,9 +1545,11 @@ final class PlainDate implements Stringable
                 $anchorYear++;
                 $anchorMonth -= 12;
             }
-            $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
+            $anchorMaxDay = CalendarMath::calcDaysInMonth($anchorYear, $anchorMonth);
             $anchorDay = min($d1, $anchorMaxDay);
-            $days = self::toJulianDay($y2, $m2, $d2) - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
+            $days =
+                CalendarMath::toJulianDay($y2, $m2, $d2)
+                - CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
         }
 
         return [$sign * $years, $sign * $months, $sign * $days];
@@ -1652,7 +1638,7 @@ final class PlainDate implements Stringable
 
         // Clamp or reject day within new month.
         $newDay = $this->day;
-        $maxDay = self::calcDaysInMonth($newYear, $newMonth);
+        $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
         if ($newDay > $maxDay) {
             if ($overflow === 'constrain') {
                 $newDay = $maxDay;
@@ -1662,158 +1648,18 @@ final class PlainDate implements Stringable
         }
 
         // Add days via Julian Day Number to handle month/year boundaries.
-        $jdn = self::toJulianDay($newYear, $newMonth, $newDay) + $days;
+        $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $days;
 
         // Arithmetic that crosses the valid PlainDate range always throws, regardless of overflow.
-        $minJdn = self::toJulianDay(-271821, 4, 19);
-        $maxJdn = self::toJulianDay(275760, 9, 13);
+        $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
+        $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
             throw new InvalidArgumentException('PlainDate arithmetic result is outside the representable range.');
         }
 
-        [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn);
+        [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
 
         return new self($newYear, $newMonth, $newDay);
-    }
-
-    /**
-     * Converts a proleptic Gregorian calendar date to a Julian Day Number.
-     * Algorithm: Richards (2013).
-     */
-    private static function toJulianDay(int $year, int $month, int $day): int
-    {
-        $a = intdiv(num1: 14 - $month, num2: 12);
-        $y = $year + 4800 - $a;
-        $m = $month + (12 * $a) - 3;
-        return (
-            $day
-            + intdiv(num1: (153 * $m) + 2, num2: 5)
-            + (365 * $y)
-            + self::floorDiv($y, 4)
-            - self::floorDiv($y, 100)
-            + self::floorDiv($y, 400)
-            - 32_045
-        );
-    }
-
-    /**
-     * Converts a Julian Day Number to a proleptic Gregorian calendar date.
-     *
-     * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>} [year, month, day]
-     */
-    private static function fromJulianDay(int $jdn): array
-    {
-        $a = $jdn + 32_044;
-        $b = self::floorDiv((4 * $a) + 3, 146_097);
-        $c = $a - self::floorDiv(146_097 * $b, 4);
-        $d = self::floorDiv((4 * $c) + 3, 1_461);
-        $e = $c - self::floorDiv(1_461 * $d, 4);
-        $m = self::floorDiv((5 * $e) + 2, 153);
-        /** @var int<1, 31> Richards algorithm guarantees day is 1–31 */
-        $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
-        /** @var int<1, 12> Richards algorithm guarantees month is 1–12 */
-        $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
-        $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
-        return [$year, $month, $day];
-    }
-
-    /**
-     * @param int<1, 12> $month
-     * @return int<28, 31>
-     */
-    private static function calcDaysInMonth(int $year, int $month): int
-    {
-        return match ($month) {
-            1, 3, 5, 7, 8, 10, 12 => 31,
-            4, 6, 9, 11 => 30,
-            2 => self::isLeapYear($year) ? 29 : 28,
-        };
-    }
-
-    private static function isLeapYear(int $year): bool
-    {
-        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
-    }
-
-    /**
-     * ISO 8601 day of week using Sakamoto's algorithm.
-     *
-     * Returns 1 = Monday … 7 = Sunday.
-     *
-     * @return int<1, 7>
-     */
-    private static function isoWeekday(int $year, int $month, int $day): int
-    {
-        /** @var array<int, int> $t */
-        static $t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
-        if ($month < 3) {
-            $year--;
-        }
-        $dow =
-            (
-                $year + intdiv(num1: $year, num2: 4)
-                - intdiv(num1: $year, num2: 100)
-                + intdiv(num1: $year, num2: 400)
-                + $t[$month - 1]
-                + $day
-            )
-            % 7;
-        /** @var int<1, 7> Sakamoto maps 0→7, rest 1–6 unchanged */
-        $result = $dow === 0 ? 7 : $dow;
-        return $result;
-    }
-
-    /**
-     * Ordinal day of the year (1 = January 1).
-     *
-     * @return int<1, 366>
-     */
-    private static function calcDayOfYear(int $year, int $month, int $day): int
-    {
-        /** @var array<int, int> $cumDays */
-        static $cumDays = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-        $result = $cumDays[$month - 1] + $day;
-        if ($month > 2 && self::isLeapYear($year)) {
-            $result++;
-        }
-        /** @var int<1, 366> $result — max 335 + 31 = 366 (Dec 31 in leap year) */
-        $ordinal = $result;
-        return $ordinal;
-    }
-
-    /**
-     * Returns the ISO 8601 week number and week-year for the given date.
-     *
-     * @return array{week: int<1, 53>, year: int}
-     * @psalm-suppress UnusedMethod — called from weekOfYear and yearOfWeek property hooks
-     */
-    private static function isoWeekInfo(int $year, int $month, int $day): array
-    {
-        $dow = self::isoWeekday($year, $month, $day);
-        $ordinal = self::calcDayOfYear($year, $month, $day);
-
-        // Move to the Thursday of this ISO week; its ordinal determines the week number.
-        $thursdayOrdinal = $ordinal + (4 - $dow);
-
-        if ($thursdayOrdinal < 1) {
-            // Thursday fell in the previous year → last week of that year.
-            $prevYear = $year - 1;
-            $dec31Dow = self::isoWeekday($prevYear, 12, 31);
-            $dec31Ord = self::isLeapYear($prevYear) ? 366 : 365;
-            /** @var int<1, 53> ISO week of previous year's Dec 31 */
-            $prevWeek = intdiv(num1: $dec31Ord + (4 - $dec31Dow) - 1, num2: 7) + 1;
-            return ['week' => $prevWeek, 'year' => $prevYear];
-        }
-
-        $yearDays = self::isLeapYear($year) ? 366 : 365;
-        if ($thursdayOrdinal > $yearDays) {
-            // Thursday fell in the next year → week 1 of next year.
-            return ['week' => 1, 'year' => $year + 1];
-        }
-
-        /** @var int<1, 53> thursdayOrdinal 1–366 maps to week 1–53 */
-        $week = intdiv(num1: $thursdayOrdinal - 1, num2: 7) + 1;
-        return ['week' => $week, 'year' => $year];
     }
 
     /**
@@ -1863,15 +1709,5 @@ final class PlainDate implements Stringable
             $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
         }
         return $lower;
-    }
-
-    /**
-     * Floor division: rounds towards negative infinity (unlike intdiv which truncates towards zero).
-     *
-     * Required for correct Julian Day Number conversions with negative years.
-     */
-    private static function floorDiv(int $a, int $b): int
-    {
-        return (int) floor($a / $b);
     }
 }

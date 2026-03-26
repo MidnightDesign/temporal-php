@@ -6,6 +6,8 @@ namespace Temporal;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Internal\CalendarMath;
+use Temporal\Internal\TemporalSerde;
 
 /**
  * A calendar year-month without a specific day, time, or time zone.
@@ -16,6 +18,8 @@ use Stringable;
  */
 final class PlainYearMonth implements Stringable
 {
+    use TemporalSerde;
+
     // -------------------------------------------------------------------------
     // Virtual (get-only) properties
     // -------------------------------------------------------------------------
@@ -72,7 +76,7 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public int $daysInMonth {
-        get => self::calcDaysInMonth($this->year, $this->month);
+        get => CalendarMath::calcDaysInMonth($this->year, $this->month);
     }
 
     /**
@@ -83,7 +87,7 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public int $daysInYear {
-        get => self::isLeapYear($this->year) ? 366 : 365;
+        get => CalendarMath::isLeapYear($this->year) ? 366 : 365;
     }
 
     /**
@@ -105,7 +109,7 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public bool $inLeapYear {
-        get => self::isLeapYear($this->year);
+        get => CalendarMath::isLeapYear($this->year);
     }
 
     // -------------------------------------------------------------------------
@@ -166,7 +170,7 @@ final class PlainYearMonth implements Stringable
         $refDay = (int) $referenceISODay;
 
         // Validate referenceISODay is within the valid range for this year-month.
-        $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
+        $daysInMonth = CalendarMath::calcDaysInMonth($this->year, $this->month);
         if ($refDay < 1 || $refDay > $daysInMonth) {
             throw new InvalidArgumentException(
                 "Invalid PlainYearMonth: referenceISODay {$refDay} is out of range 1–{$daysInMonth}.",
@@ -447,6 +451,7 @@ final class PlainYearMonth implements Stringable
      * @throws InvalidArgumentException for invalid calendarName values.
      * @psalm-api
      */
+    #[\Override]
     public function toString(array|object|null $options = null): string
     {
         $yearStr = self::formatYear($this->year);
@@ -470,23 +475,6 @@ final class PlainYearMonth implements Stringable
         };
     }
 
-    /** @psalm-api */
-    public function toJSON(): string
-    {
-        return $this->toString();
-    }
-
-    /**
-     * @param string|array<array-key, mixed>|null $locales
-     * @param array<array-key, mixed>|object|null $options
-     * @psalm-api
-     * @psalm-suppress UnusedParam
-     */
-    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
-    {
-        return $this->toString();
-    }
-
     /**
      * Always throws TypeError — PlainYearMonth must not be used in arithmetic context.
      *
@@ -497,12 +485,6 @@ final class PlainYearMonth implements Stringable
     public function valueOf(): never
     {
         throw new \TypeError('PlainYearMonth objects are not orderable');
-    }
-
-    #[\Override]
-    public function __toString(): string
-    {
-        return $this->toString();
     }
 
     /**
@@ -536,7 +518,7 @@ final class PlainYearMonth implements Stringable
         $day = (int) $dayRaw;
 
         // Constrain day to valid range for this year-month.
-        $maxDay = self::calcDaysInMonth($this->year, $this->month);
+        $maxDay = CalendarMath::calcDaysInMonth($this->year, $this->month);
         if ($day < 1) {
             throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
         }
@@ -673,7 +655,7 @@ final class PlainYearMonth implements Stringable
         }
 
         // Validate that $refDay is a valid day for this month (day from string).
-        $daysInMonth = self::calcDaysInMonth($year, $month);
+        $daysInMonth = CalendarMath::calcDaysInMonth($year, $month);
         if ($refDay < 1 || $refDay > $daysInMonth) {
             throw new InvalidArgumentException(
                 "PlainYearMonth::from() cannot parse \"{$s}\": day {$refDay} is out of range for month {$month}.",
@@ -854,7 +836,7 @@ final class PlainYearMonth implements Stringable
      */
     private static function validateYearMonthForDiff(self $ym): void
     {
-        $epochDays = self::toJulianDay($ym->year, $ym->month, 1) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($ym->year, $ym->month, 1) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
             throw new InvalidArgumentException(
                 "PlainYearMonth {$ym->year}-{$ym->month}: first day is outside the representable PlainDate range.",
@@ -1172,13 +1154,13 @@ final class PlainYearMonth implements Stringable
         }
 
         // Interval size in days (anchor → next boundary).
-        $anchorJdn = self::toJulianDay($anchorY, $anchorM, 1);
-        $nextJdn = self::toJulianDay($nextY, $nextM, 1);
+        $anchorJdn = CalendarMath::toJulianDay($anchorY, $anchorM, 1);
+        $nextJdn = CalendarMath::toJulianDay($nextY, $nextM, 1);
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Compute how far the remaining months reach within the interval (in days).
         [$remY, $remM] = self::addSignedMonthsYM($anchorY, $anchorM, $dir * $remainingMonths);
-        $remJdn = self::toJulianDay($remY, $remM, 1);
+        $remJdn = CalendarMath::toJulianDay($remY, $remM, 1);
         $remDays = abs($remJdn - $anchorJdn);
 
         $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
@@ -1229,8 +1211,8 @@ final class PlainYearMonth implements Stringable
             throw new InvalidArgumentException('PlainYearMonth rounding result is outside the representable range.');
         }
 
-        $anchorJdn = self::toJulianDay($anchorY, $anchorM, 1);
-        $nextJdn = self::toJulianDay($nextY, $nextM, 1);
+        $anchorJdn = CalendarMath::toJulianDay($anchorY, $anchorM, 1);
+        $nextJdn = CalendarMath::toJulianDay($nextY, $nextM, 1);
         $intervalDays = abs($nextJdn - $anchorJdn);
 
         // Target: anchor + (total remaining months from anchor to target).
@@ -1240,7 +1222,7 @@ final class PlainYearMonth implements Stringable
         $absMonths = abs($months);
         $remMonthsFromAnchor = (($absYears - $floorCount) * 12) + $absMonths;
         [$subY, $subM] = self::addSignedMonthsYM($anchorY, $anchorM, $dir * $remMonthsFromAnchor);
-        $subJdn = self::toJulianDay($subY, $subM, 1);
+        $subJdn = CalendarMath::toJulianDay($subY, $subM, 1);
         $remDays = abs($subJdn - $anchorJdn);
 
         $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
@@ -1302,13 +1284,13 @@ final class PlainYearMonth implements Stringable
         }
 
         // Calendar-aware progress: measure remaining months in days from the month anchor.
-        $monthAnchorJdn = self::toJulianDay($monthAnchorY, $monthAnchorM, 1);
-        $nextJdn = self::toJulianDay($nextY, $nextM, 1);
+        $monthAnchorJdn = CalendarMath::toJulianDay($monthAnchorY, $monthAnchorM, 1);
+        $nextJdn = CalendarMath::toJulianDay($nextY, $nextM, 1);
         $intervalDays = abs($nextJdn - $monthAnchorJdn);
 
         $remainingMonths = $absMonths - $floorCount;
         [$remY, $remM] = self::addSignedMonthsYM($monthAnchorY, $monthAnchorM, $dir * $remainingMonths);
-        $remJdn = self::toJulianDay($remY, $remM, 1);
+        $remJdn = CalendarMath::toJulianDay($remY, $remM, 1);
         $remDays = abs($remJdn - $monthAnchorJdn);
 
         $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
@@ -1495,44 +1477,6 @@ final class PlainYearMonth implements Stringable
     }
 
     /**
-     * Converts a proleptic Gregorian calendar date to a Julian Day Number.
-     * Algorithm: Richards (2013).
-     */
-    private static function toJulianDay(int $year, int $month, int $day): int
-    {
-        $a = intdiv(num1: 14 - $month, num2: 12);
-        $y = $year + 4800 - $a;
-        $m = $month + (12 * $a) - 3;
-        return (
-            $day
-            + intdiv(num1: (153 * $m) + 2, num2: 5)
-            + (365 * $y)
-            + self::floorDiv($y, 4)
-            - self::floorDiv($y, 100)
-            + self::floorDiv($y, 400)
-            - 32_045
-        );
-    }
-
-    /**
-     * @param int<1, 12> $month
-     * @return int<28, 31>
-     */
-    private static function calcDaysInMonth(int $year, int $month): int
-    {
-        return match ($month) {
-            1, 3, 5, 7, 8, 10, 12 => 31,
-            4, 6, 9, 11 => 30,
-            2 => self::isLeapYear($year) ? 29 : 28,
-        };
-    }
-
-    private static function isLeapYear(int $year): bool
-    {
-        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
-    }
-
-    /**
      * TC39 §9.5.9 ISOYearMonthWithinLimits.
      *
      * Valid range: April −271821 … September +275760.
@@ -1549,13 +1493,5 @@ final class PlainYearMonth implements Stringable
             return false;
         }
         return true;
-    }
-
-    /**
-     * Floor division: rounds towards negative infinity.
-     */
-    private static function floorDiv(int $a, int $b): int
-    {
-        return (int) floor($a / $b);
     }
 }

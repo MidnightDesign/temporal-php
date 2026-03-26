@@ -6,6 +6,8 @@ namespace Temporal;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Internal\CalendarMath;
+use Temporal\Internal\TemporalSerde;
 
 /**
  * A calendar month-day without a year, time, or time zone.
@@ -17,6 +19,8 @@ use Stringable;
  */
 final class PlainMonthDay implements Stringable
 {
+    use TemporalSerde;
+
     // -------------------------------------------------------------------------
     // Virtual (get-only) properties
     // -------------------------------------------------------------------------
@@ -122,7 +126,7 @@ final class PlainMonthDay implements Stringable
         $this->referenceISOYear = (int) $referenceISOYear;
 
         // Validate day against the reference year's month.
-        $daysInMonth = self::calcDaysInMonth($this->referenceISOYear, $this->isoMonth);
+        $daysInMonth = CalendarMath::calcDaysInMonth($this->referenceISOYear, $this->isoMonth);
         if ($dayInt > $daysInMonth) {
             throw new InvalidArgumentException(
                 "Invalid PlainMonthDay: day {$dayInt} exceeds {$daysInMonth} days in "
@@ -134,7 +138,7 @@ final class PlainMonthDay implements Stringable
 
         // TC39 range: the resulting date (referenceISOYear-month-day) must be within the
         // representable PlainDate range (Apr 19 −271821 … Sep 13 +275760).
-        $epochDays = self::toJulianDay($this->referenceISOYear, $this->isoMonth, $this->day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($this->referenceISOYear, $this->isoMonth, $this->day) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
             throw new InvalidArgumentException(sprintf(
                 'Invalid PlainMonthDay: %d-%d-%d is outside the representable range.',
@@ -368,14 +372,14 @@ final class PlainMonthDay implements Stringable
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
-            $maxDay = self::calcDaysInMonth($refYear, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($refYear, $month);
             $day = min($maxDay, $day);
         } else {
             // reject: validate against refYear's month
             if ($month > 12) {
                 throw new InvalidArgumentException("Invalid month {$month}: must be in range 1–12.");
             }
-            $maxDay = self::calcDaysInMonth($refYear, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($refYear, $month);
             if ($day > $maxDay) {
                 throw new InvalidArgumentException(
                     "Invalid day {$day}: exceeds {$maxDay} days in month {$month} of year {$refYear}.",
@@ -389,7 +393,7 @@ final class PlainMonthDay implements Stringable
          * @var int<1, 12> $month
          * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
          */
-        $maxDayIn1972 = self::calcDaysInMonth(1972, $month);
+        $maxDayIn1972 = CalendarMath::calcDaysInMonth(1972, $month);
         if ($day > $maxDayIn1972) {
             $newRefYear = $refYear;
         }
@@ -427,6 +431,7 @@ final class PlainMonthDay implements Stringable
      * @throws InvalidArgumentException for invalid calendarName values.
      * @psalm-api
      */
+    #[\Override]
     public function toString(array|object|null $options = null): string
     {
         $calendarName = 'auto';
@@ -452,23 +457,6 @@ final class PlainMonthDay implements Stringable
         };
     }
 
-    /** @psalm-api */
-    public function toJSON(): string
-    {
-        return $this->toString();
-    }
-
-    /**
-     * @param string|array<array-key, mixed>|null $locales BCP 47 locale string or array (ignored in PHP).
-     * @param array<array-key, mixed>|object|null $options Intl.DateTimeFormat options bag (ignored in PHP).
-     * @psalm-suppress UnusedParam
-     * @psalm-api
-     */
-    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
-    {
-        return $this->toString();
-    }
-
     /**
      * Always throws TypeError — PlainMonthDay must not be used in arithmetic context.
      *
@@ -479,12 +467,6 @@ final class PlainMonthDay implements Stringable
     public function valueOf(): never
     {
         throw new \TypeError('PlainMonthDay objects are not orderable');
-    }
-
-    #[\Override]
-    public function __toString(): string
-    {
-        return $this->toString();
     }
 
     /**
@@ -520,7 +502,7 @@ final class PlainMonthDay implements Stringable
         $year = (int) $yearRaw;
 
         // Constrain day to valid range for this year-month (default overflow behaviour per spec).
-        $maxDay = self::calcDaysInMonth($year, $this->isoMonth);
+        $maxDay = CalendarMath::calcDaysInMonth($year, $this->isoMonth);
         $day = min($this->day, $maxDay);
 
         return new PlainDate($year, $this->isoMonth, $day);
@@ -637,7 +619,7 @@ final class PlainMonthDay implements Stringable
                     "PlainMonthDay::from() cannot parse \"{$s}\": day {$day} must be at least 1.",
                 );
             }
-            $maxDay = self::calcDaysInMonth(1972, $month);
+            $maxDay = CalendarMath::calcDaysInMonth(1972, $month);
             if ($day > $maxDay) {
                 throw new InvalidArgumentException(
                     "PlainMonthDay::from() cannot parse \"{$s}\": day {$day} exceeds {$maxDay} for month {$month}.",
@@ -851,14 +833,14 @@ final class PlainMonthDay implements Stringable
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
         } else {
             // reject
             if ($month > 12) {
                 throw new InvalidArgumentException("Invalid month {$month}: must be in range 1–12.");
             }
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             if ($day > $maxDay) {
                 throw new InvalidArgumentException(
                     "Invalid day {$day}: exceeds {$maxDay} days in month {$month} of year {$year}.",
@@ -873,7 +855,7 @@ final class PlainMonthDay implements Stringable
          * @var int<1, 12> $month
          * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
          */
-        $maxDayIn1972 = self::calcDaysInMonth(1972, $month);
+        $maxDayIn1972 = CalendarMath::calcDaysInMonth(1972, $month);
         if ($day > $maxDayIn1972) {
             $refYear = $year;
         }
@@ -947,49 +929,6 @@ final class PlainMonthDay implements Stringable
     }
 
     /**
-     * Returns true if the given year is a leap year in the proleptic Gregorian calendar.
-     */
-    private static function isLeapYear(int $year): bool
-    {
-        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
-    }
-
-    /**
-     * Returns the number of days in the given month of the given year.
-     *
-     * @param int<1, 12> $month
-     * @return int<28, 31>
-     */
-    private static function calcDaysInMonth(int $year, int $month): int
-    {
-        return match ($month) {
-            1, 3, 5, 7, 8, 10, 12 => 31,
-            4, 6, 9, 11 => 30,
-            2 => self::isLeapYear($year) ? 29 : 28,
-        };
-    }
-
-    /**
-     * Computes the Julian Day Number for a proleptic Gregorian date.
-     * Uses the Richards (2013) algorithm with floor division (handles negative years correctly).
-     */
-    private static function toJulianDay(int $year, int $month, int $day): int
-    {
-        $a = intdiv(num1: 14 - $month, num2: 12);
-        $y = $year + 4800 - $a;
-        $m = $month + (12 * $a) - 3;
-        return (
-            $day
-            + intdiv(num1: (153 * $m) + 2, num2: 5)
-            + (365 * $y)
-            + self::floorDiv($y, 4)
-            - self::floorDiv($y, 100)
-            + self::floorDiv($y, 400)
-            - 32_045
-        );
-    }
-
-    /**
      * Extracts and validates the calendar ID from a calendar string.
      *
      * Accepts bare calendar IDs ("iso8601"), ISO date strings ("2020-01-01", "01-01"),
@@ -1018,11 +957,5 @@ final class PlainMonthDay implements Stringable
             $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
         }
         return $lower;
-    }
-
-    /** Floor division: rounds toward negative infinity (unlike intdiv which rounds toward zero). */
-    private static function floorDiv(int $a, int $b): int
-    {
-        return (int) floor($a / $b);
     }
 }

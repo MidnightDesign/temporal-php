@@ -6,6 +6,8 @@ namespace Temporal;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Internal\CalendarMath;
+use Temporal\Internal\TemporalSerde;
 
 /**
  * A date-time anchored to a specific timezone and instant.
@@ -20,6 +22,8 @@ use Stringable;
  */
 final class ZonedDateTime implements Stringable
 {
+    use TemporalSerde;
+
     private const int NS_PER_SECOND = 1_000_000_000;
     private const int NS_PER_MILLISECOND = 1_000_000;
     private const int NS_PER_MICROSECOND = 1_000;
@@ -153,7 +157,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $epochMilliseconds {
-        get => self::floorDiv($this->epochNanoseconds, self::NS_PER_MILLISECOND);
+        get => CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_MILLISECOND);
     }
 
     /**
@@ -224,7 +228,7 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 7>
      */
     public int $dayOfWeek {
-        get => self::isoWeekday($this->year, $this->month, $this->day);
+        get => CalendarMath::isoWeekday($this->year, $this->month, $this->day);
     }
 
     /**
@@ -236,7 +240,7 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 366>
      */
     public int $dayOfYear {
-        get => self::calcDayOfYear($this->year, $this->month, $this->day);
+        get => CalendarMath::calcDayOfYear($this->year, $this->month, $this->day);
     }
 
     /**
@@ -248,7 +252,7 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 53>
      */
     public int $weekOfYear {
-        get => self::isoWeekInfo($this->year, $this->month, $this->day)['week'];
+        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['week'];
     }
 
     /**
@@ -259,7 +263,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $yearOfWeek {
-        get => self::isoWeekInfo($this->year, $this->month, $this->day)['year'];
+        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['year'];
     }
 
     /**
@@ -271,7 +275,7 @@ final class ZonedDateTime implements Stringable
      * @var int<28, 31>
      */
     public int $daysInMonth {
-        get => self::calcDaysInMonth($this->year, $this->month);
+        get => CalendarMath::calcDaysInMonth($this->year, $this->month);
     }
 
     /**
@@ -295,7 +299,7 @@ final class ZonedDateTime implements Stringable
      * @var int<365, 366>
      */
     public int $daysInYear {
-        get => self::isLeapYear($this->year) ? 366 : 365;
+        get => CalendarMath::isLeapYear($this->year) ? 366 : 365;
     }
 
     /**
@@ -318,7 +322,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public bool $inLeapYear {
-        get => self::isLeapYear($this->year);
+        get => CalendarMath::isLeapYear($this->year);
     }
 
     /**
@@ -658,7 +662,7 @@ final class ZonedDateTime implements Stringable
     {
         // Compute wall-clock midnight for the current local date.
         $lc = $this->localComponents();
-        $epochDays = self::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
         $wallSec = $epochDays * 86_400; // midnight in wall-clock seconds
 
         $epochSec = self::wallSecToEpochSec($wallSec, $this->timeZoneId);
@@ -699,6 +703,7 @@ final class ZonedDateTime implements Stringable
      * @throws InvalidArgumentException if option values are invalid strings.
      * @psalm-api
      */
+    #[\Override]
     public function toString(array|object|null $options = null): string
     {
         if (is_object($options)) {
@@ -818,7 +823,7 @@ final class ZonedDateTime implements Stringable
             : self::roundAsIfPositive($this->epochNanoseconds, $increment, $roundMode);
 
         // Recompute local date/time components from the rounded epoch.
-        $epochSec = self::floorDiv($roundedNs, self::NS_PER_SECOND);
+        $epochSec = CalendarMath::floorDiv($roundedNs, self::NS_PER_SECOND);
         $maxSecForNsCheck = 9_223_372_035;
         if ($epochSec > $maxSecForNsCheck || $epochSec < -$maxSecForNsCheck) {
             $roundedSubNs = 0;
@@ -903,18 +908,6 @@ final class ZonedDateTime implements Stringable
         // 'never': omit calendar annotation entirely.
 
         return $result;
-    }
-
-    /** @psalm-api */
-    public function toJSON(): string
-    {
-        return $this->toString();
-    }
-
-    #[\Override]
-    public function __toString(): string
-    {
-        return $this->toString();
     }
 
     /**
@@ -1158,7 +1151,7 @@ final class ZonedDateTime implements Stringable
         // ZonedDateTime rounding is always relative to local midnight (start of day).
         // Get local midnight epoch seconds and the offset from midnight in nanoseconds.
         $lc = $this->localComponents();
-        $epochDays = self::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
         $midnightWallSec = $epochDays * 86_400;
         $midnightEpochSec = self::wallSecToEpochSec($midnightWallSec, $this->timeZoneId);
 
@@ -1167,7 +1160,7 @@ final class ZonedDateTime implements Stringable
             $thisEpochSec = $this->trueEpochSec;
             $thisSubNs = $this->trueSubNs;
         } else {
-            $thisEpochSec = self::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+            $thisEpochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
             $thisSubNs = $this->epochNanoseconds - ($thisEpochSec * self::NS_PER_SECOND);
         }
         $offsetFromMidnight = (($thisEpochSec - $midnightEpochSec) * self::NS_PER_SECOND) + $thisSubNs;
@@ -1411,7 +1404,7 @@ final class ZonedDateTime implements Stringable
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
             $h = max(0, min(23, $h));
             $min = max(0, min(59, $min));
@@ -1424,7 +1417,7 @@ final class ZonedDateTime implements Stringable
             if ($month > 12) {
                 throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
             }
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             if ($day > $maxDay) {
                 throw new InvalidArgumentException("Day {$day} is out of range for {$year}-{$month} (max {$maxDay}).");
             }
@@ -1511,7 +1504,7 @@ final class ZonedDateTime implements Stringable
             return null;
         }
 
-        $epochSec = self::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
         /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated non-empty in constructor */
         $tz = new \DateTimeZone($this->timeZoneId);
 
@@ -1752,7 +1745,7 @@ final class ZonedDateTime implements Stringable
             $subNs = $this->trueSubNs;
         } else {
             $epochNs = $this->epochNanoseconds;
-            $epochSec = self::floorDiv($epochNs, self::NS_PER_SECOND);
+            $epochSec = CalendarMath::floorDiv($epochNs, self::NS_PER_SECOND);
             $subNs = $epochNs - ($epochSec * self::NS_PER_SECOND); // always 0–999_999_999
         }
 
@@ -1943,7 +1936,7 @@ final class ZonedDateTime implements Stringable
         if ($monthNum < 1 || $monthNum > 12) {
             throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": month out of range.");
         }
-        $maxDay = self::calcDaysInMonth($yearNum, $monthNum);
+        $maxDay = CalendarMath::calcDaysInMonth($yearNum, $monthNum);
         if ($dayNum < 1 || $dayNum > $maxDay) {
             throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": day out of range.");
         }
@@ -2211,7 +2204,7 @@ final class ZonedDateTime implements Stringable
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
             $hour = max(0, min(23, $hour));
             $minute = max(0, min(59, $minute));
@@ -2224,7 +2217,7 @@ final class ZonedDateTime implements Stringable
             if ($month > 12) {
                 throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
             }
-            $maxDay = self::calcDaysInMonth($year, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             if ($day > $maxDay) {
                 throw new InvalidArgumentException("Invalid day {$day}: exceeds {$maxDay} for {$year}-{$month}.");
             }
@@ -2232,7 +2225,7 @@ final class ZonedDateTime implements Stringable
 
         // Use JDN-based computation to handle extreme years (DateTimeImmutable
         // cannot represent years beyond ~9999 or negative years reliably).
-        $epochDays = self::toJulianDay($year, $month, $day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($hour * 3600) + ($minute * 60) + $second;
         // ISODateTimeWithinLimits check.
         if ($wallSec > 8_640_000_000_000 || $wallSec < -8_640_000_000_000) {
@@ -2416,96 +2409,6 @@ final class ZonedDateTime implements Stringable
         return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
     }
 
-    // -------------------------------------------------------------------------
-    // Calendar helpers (copied from PlainDate.php)
-    // -------------------------------------------------------------------------
-
-    private static function isLeapYear(int $year): bool
-    {
-        return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
-    }
-
-    /**
-     * @param int<1, 12> $month
-     * @return int<28, 31>
-     */
-    private static function calcDaysInMonth(int $year, int $month): int
-    {
-        return match ($month) {
-            1, 3, 5, 7, 8, 10, 12 => 31,
-            4, 6, 9, 11 => 30,
-            2 => self::isLeapYear($year) ? 29 : 28,
-        };
-    }
-
-    /** @return int<1, 7> */
-    private static function isoWeekday(int $year, int $month, int $day): int
-    {
-        /** @var array<int, int> $t */
-        static $t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
-        if ($month < 3) {
-            $year--;
-        }
-        $dow =
-            (
-                $year + intdiv(num1: $year, num2: 4)
-                - intdiv(num1: $year, num2: 100)
-                + intdiv(num1: $year, num2: 400)
-                + $t[$month - 1]
-                + $day
-            )
-            % 7;
-        /** @var int<1, 7> Sakamoto maps 0→7, rest 1–6 unchanged */
-        $result = $dow === 0 ? 7 : $dow;
-        return $result;
-    }
-
-    /** @return int<1, 366> */
-    private static function calcDayOfYear(int $year, int $month, int $day): int
-    {
-        /** @var array<int, int> $cumDays */
-        static $cumDays = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-        $result = $cumDays[$month - 1] + $day;
-        if ($month > 2 && self::isLeapYear($year)) {
-            $result++;
-        }
-        /** @var int<1, 366> $result — max 335 + 31 = 366 (Dec 31 in leap year) */
-        $ordinal = $result;
-        return $ordinal;
-    }
-
-    /**
-     * Returns the ISO 8601 week number and week-year for the given date.
-     *
-     * @return array{week: int<1, 53>, year: int}
-     * @psalm-suppress UnusedMethod — called from weekOfYear and yearOfWeek property hooks
-     */
-    private static function isoWeekInfo(int $year, int $month, int $day): array
-    {
-        $dow = self::isoWeekday($year, $month, $day);
-        $ordinal = self::calcDayOfYear($year, $month, $day);
-
-        $thursdayOrdinal = $ordinal + (4 - $dow);
-
-        if ($thursdayOrdinal < 1) {
-            $prevYear = $year - 1;
-            $dec31Dow = self::isoWeekday($prevYear, 12, 31);
-            $dec31Ord = self::isLeapYear($prevYear) ? 366 : 365;
-            /** @var int<1, 53> ISO week of previous year's Dec 31 */
-            $prevWeek = intdiv(num1: $dec31Ord + (4 - $dec31Dow) - 1, num2: 7) + 1;
-            return ['week' => $prevWeek, 'year' => $prevYear];
-        }
-
-        $yearDays = self::isLeapYear($year) ? 366 : 365;
-        if ($thursdayOrdinal > $yearDays) {
-            return ['week' => 1, 'year' => $year + 1];
-        }
-
-        /** @var int<1, 53> thursdayOrdinal 1–366 maps to week 1–53 */
-        $week = intdiv(num1: $thursdayOrdinal - 1, num2: 7) + 1;
-        return ['week' => $week, 'year' => $year];
-    }
-
     /**
      * Rounds $ns to the nearest multiple of $increment, treating the number "as if positive"
      * (i.e., using floor-division for the base and always rounding toward positive infinity
@@ -2535,13 +2438,6 @@ final class ZonedDateTime implements Stringable
         };
 
         return $rounded * $increment;
-    }
-
-    private static function floorDiv(int $a, int $b): int
-    {
-        $q = intdiv($a, $b);
-        $r = $a - ($q * $b);
-        return $r < 0 ? $q - 1 : $q;
     }
 
     // -------------------------------------------------------------------------
@@ -2682,7 +2578,7 @@ final class ZonedDateTime implements Stringable
 
             // Clamp or reject day.
             $newDay = $lc['day'];
-            $maxDay = self::calcDaysInMonth($newYear, $newMonth);
+            $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
             if ($newDay > $maxDay) {
                 if ($overflow === 'constrain') {
                     $newDay = $maxDay;
@@ -2693,8 +2589,8 @@ final class ZonedDateTime implements Stringable
 
             // Add weeks and days via JDN.
             $totalDays = ($weeks * 7) + $days;
-            $jdn = self::toJulianDay($newYear, $newMonth, $newDay) + $totalDays;
-            [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn);
+            $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $totalDays;
+            [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
 
             // Balance time units to nanoseconds.
             $timeNs =
@@ -2726,8 +2622,8 @@ final class ZonedDateTime implements Stringable
             }
 
             if ($overflowDays !== 0) {
-                $jdn2 = self::toJulianDay($newYear, $newMonth, $newDay) + $overflowDays;
-                [$newYear, $newMonth, $newDay] = self::fromJulianDay($jdn2);
+                $jdn2 = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $overflowDays;
+                [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn2);
             }
 
             // Decompose new time.
@@ -2790,7 +2686,7 @@ final class ZonedDateTime implements Stringable
             $epochSec = $this->trueEpochSec;
             $subNsOrig = $this->trueSubNs;
         } else {
-            $epochSec = self::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+            $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
             $subNsOrig = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
         }
 
@@ -2835,7 +2731,7 @@ final class ZonedDateTime implements Stringable
         string $disambiguation,
     ): self {
         // Compute wall-clock seconds from JDN to handle extreme years.
-        $epochDays = self::toJulianDay($year, $month, $day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($min * 60) + $sec;
         $epochSec = self::wallSecToEpochSec($wallSec, $tzId);
 
@@ -3123,7 +3019,8 @@ final class ZonedDateTime implements Stringable
             $maxEpochDays = 100_000_000;
             // Check both directions from the earlier/later endpoints.
             $recLocal = $receiver->localComponents();
-            $recEpochDays = self::toJulianDay($recLocal['year'], $recLocal['month'], $recLocal['day']) - 2_440_588;
+            $recEpochDays =
+                CalendarMath::toJulianDay($recLocal['year'], $recLocal['month'], $recLocal['day']) - 2_440_588;
             if ((abs($recEpochDays) + $incDays) > $maxEpochDays) {
                 throw new InvalidArgumentException(
                     "roundingIncrement {$roundingIncrement} for unit \"{$normSmallest}\" would exceed the representable date range.",
@@ -3156,8 +3053,12 @@ final class ZonedDateTime implements Stringable
             }
 
             // Date diff in JDN.
-            $laterJdn = self::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
-            $earlierJdn = self::toJulianDay($earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day']);
+            $laterJdn = CalendarMath::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
+            $earlierJdn = CalendarMath::toJulianDay(
+                $earlierLocal['year'],
+                $earlierLocal['month'],
+                $earlierLocal['day'],
+            );
             $laterTimeNs =
                 ($laterLocal['hour'] * 3_600_000_000_000)
                 + ($laterLocal['minute'] * 60_000_000_000)
@@ -3184,7 +3085,7 @@ final class ZonedDateTime implements Stringable
 
             // Calendar diff.
             $adjLaterJdn = $earlierJdn + $dateDiff;
-            [$adjY2, $adjM2, $adjD2] = self::fromJulianDay($adjLaterJdn);
+            [$adjY2, $adjM2, $adjD2] = CalendarMath::fromJulianDay($adjLaterJdn);
             // Determine whether the receiver corresponds to the later local date.
             // For since(): receiver=$this=$later, so receiverIsLater=!swapped.
             // For until(): receiver=$this=$earlier, so receiverIsLater=swapped.
@@ -3320,7 +3221,7 @@ final class ZonedDateTime implements Stringable
                 // Recompute from the anchor: add the total days to the earlier date,
                 // then re-diff to get the correct year/month/day breakdown.
                 $anchorJdn = $earlierJdn + $dateDiff + $overflowDays;
-                [$anchorY, $anchorM, $anchorD] = self::fromJulianDay($anchorJdn);
+                [$anchorY, $anchorM, $anchorD] = CalendarMath::fromJulianDay($anchorJdn);
                 $receiverIsLater2 = $receiver === $later ? !$swapped : $swapped;
                 [$years, $months, $days] = self::calendarDiff(
                     $earlierLocal['year'],
@@ -3459,9 +3360,11 @@ final class ZonedDateTime implements Stringable
                 $anchorYear--;
                 $anchorMonth += 12;
             }
-            $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
+            $anchorMaxDay = CalendarMath::calcDaysInMonth($anchorYear, $anchorMonth);
             $anchorDay = min($d2, $anchorMaxDay);
-            $days = self::toJulianDay($anchorYear, $anchorMonth, $anchorDay) - self::toJulianDay($y1, $m1, $d1);
+            $days =
+                CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay)
+                - CalendarMath::toJulianDay($y1, $m1, $d1);
         } else {
             $anchorMonth = $m1 + $months;
             $anchorYear = $y1 + $years;
@@ -3469,9 +3372,11 @@ final class ZonedDateTime implements Stringable
                 $anchorYear++;
                 $anchorMonth -= 12;
             }
-            $anchorMaxDay = self::calcDaysInMonth($anchorYear, $anchorMonth);
+            $anchorMaxDay = CalendarMath::calcDaysInMonth($anchorYear, $anchorMonth);
             $anchorDay = min($d1, $anchorMaxDay);
-            $days = self::toJulianDay($y2, $m2, $d2) - self::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
+            $days =
+                CalendarMath::toJulianDay($y2, $m2, $d2)
+                - CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
         }
 
         return [$sign * $years, $sign * $months, $sign * $days];
@@ -3618,8 +3523,12 @@ final class ZonedDateTime implements Stringable
                 0,
             );
             // Remaining: from earlier to the floor anchor.
-            $floorJdn = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
-            $earlierJdn = self::toJulianDay($earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day']);
+            $floorJdn = CalendarMath::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $earlierJdn = CalendarMath::toJulianDay(
+                $earlierLocal['year'],
+                $earlierLocal['month'],
+                $earlierLocal['day'],
+            );
             $remDays = $floorJdn - $earlierJdn;
         } else {
             // Anchor from the earlier date forward.
@@ -3638,11 +3547,11 @@ final class ZonedDateTime implements Stringable
                 0,
             );
             // Remaining: from the floor anchor to the later date.
-            $floorJdn = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
-            $laterJdn = self::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
+            $floorJdn = CalendarMath::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $laterJdn = CalendarMath::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
             $remDays = $laterJdn - $floorJdn;
         }
-        $nextJdn = self::toJulianDay($nextDate[0], $nextDate[1], $nextDate[2]);
+        $nextJdn = CalendarMath::toJulianDay($nextDate[0], $nextDate[1], $nextDate[2]);
         $intervalDays = abs($nextJdn - $floorJdn);
 
         $totalRemNs = (float) (($remDays * 86_400_000_000_000) + $timeDiffNs);
@@ -3682,8 +3591,12 @@ final class ZonedDateTime implements Stringable
                 0,
                 -($floorCount + $increment),
             );
-            $floorJdn = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
-            $earlierJdn = self::toJulianDay($earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day']);
+            $floorJdn = CalendarMath::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $earlierJdn = CalendarMath::toJulianDay(
+                $earlierLocal['year'],
+                $earlierLocal['month'],
+                $earlierLocal['day'],
+            );
             $remDays = $floorJdn - $earlierJdn;
         } else {
             $floorDate = self::addYearsMonthsToDate(
@@ -3700,11 +3613,11 @@ final class ZonedDateTime implements Stringable
                 0,
                 $floorCount + $increment,
             );
-            $floorJdn = self::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
-            $laterJdn = self::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
+            $floorJdn = CalendarMath::toJulianDay($floorDate[0], $floorDate[1], $floorDate[2]);
+            $laterJdn = CalendarMath::toJulianDay($laterLocal['year'], $laterLocal['month'], $laterLocal['day']);
             $remDays = $laterJdn - $floorJdn;
         }
-        $nextJdn = self::toJulianDay($nextDate[0], $nextDate[1], $nextDate[2]);
+        $nextJdn = CalendarMath::toJulianDay($nextDate[0], $nextDate[1], $nextDate[2]);
         $intervalDays = abs($nextJdn - $floorJdn);
 
         $totalRemNs = (float) (($remDays * 86_400_000_000_000) + $timeDiffNs);
@@ -3727,7 +3640,7 @@ final class ZonedDateTime implements Stringable
             $newYear += intdiv(num1: $newMonth - 12, num2: 12);
             $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
         }
-        $maxDay = self::calcDaysInMonth($newYear, $newMonth);
+        $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
         return [$newYear, $newMonth, min($day, $maxDay)];
     }
 
@@ -3766,45 +3679,5 @@ final class ZonedDateTime implements Stringable
             'halfCeil' => 'halfFloor',
             default => $mode,
         };
-    }
-
-    /**
-     * Converts a proleptic Gregorian calendar date to a Julian Day Number.
-     */
-    private static function toJulianDay(int $year, int $month, int $day): int
-    {
-        $a = intdiv(num1: 14 - $month, num2: 12);
-        $y = $year + 4800 - $a;
-        $m = $month + (12 * $a) - 3;
-        return (
-            $day
-            + intdiv(num1: (153 * $m) + 2, num2: 5)
-            + (365 * $y)
-            + self::floorDiv($y, 4)
-            - self::floorDiv($y, 100)
-            + self::floorDiv($y, 400)
-            - 32_045
-        );
-    }
-
-    /**
-     * Converts a Julian Day Number to a proleptic Gregorian calendar date.
-     *
-     * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>} [year, month, day]
-     */
-    private static function fromJulianDay(int $jdn): array
-    {
-        $a = $jdn + 32_044;
-        $b = self::floorDiv((4 * $a) + 3, 146_097);
-        $c = $a - self::floorDiv(146_097 * $b, 4);
-        $d = self::floorDiv((4 * $c) + 3, 1_461);
-        $e = $c - self::floorDiv(1_461 * $d, 4);
-        $m = self::floorDiv((5 * $e) + 2, 153);
-        /** @var int<1, 31> Richards algorithm guarantees day is 1–31 */
-        $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
-        /** @var int<1, 12> Richards algorithm guarantees month is 1–12 */
-        $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
-        $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
-        return [$year, $month, $day];
     }
 }
