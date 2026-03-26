@@ -13,7 +13,7 @@ Temporal is the modern replacement for JavaScript's `Date`, providing a precise,
 ## Installation
 
 ```bash
-composer require temporal/temporal
+composer require midnight/temporal-php
 ```
 
 ## Usage
@@ -351,7 +351,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **3337 test262 tests passing** (0 failures, 858 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, `Temporal.ZonedDateTime`, `Temporal.PlainYearMonth`, and `Temporal.PlainMonthDay`. 249 additional hand-written unit tests also pass (total: 3586 tests).
+Currently **3475 test262 tests passing** (0 failures, 1135 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access) across `Temporal.Instant`, `Temporal.Duration`, `Temporal.PlainDate`, `Temporal.PlainDateTime`, `Temporal.PlainTime`, `Temporal.Now`, `Temporal.ZonedDateTime`, `Temporal.PlainYearMonth`, and `Temporal.PlainMonthDay`. 276 additional hand-written unit tests also pass (total: 3751 tests).
 
 ---
 
