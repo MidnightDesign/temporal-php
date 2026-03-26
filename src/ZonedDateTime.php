@@ -40,7 +40,7 @@ final class ZonedDateTime implements Stringable
      */
     public readonly string $calendarId;
 
-    /** @var array{year:int, month:int<1,12>, day:int<1,31>, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}|null $localCache */
+    /** @var array{year:int, month:int<1,12>, day:int<1,31>, hour:int<0,23>, minute:int<0,59>, second:int<0,59>, millisecond:int<0,999>, microsecond:int<0,999>, nanosecond:int<0,999>, offsetSec:int, offset:string}|null $localCache */
     private ?array $localCache = null;
 
     /**
@@ -89,6 +89,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<0, 23>
      */
     public int $hour {
         get => $this->localComponents()['hour'];
@@ -98,6 +99,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<0, 59>
      */
     public int $minute {
         get => $this->localComponents()['minute'];
@@ -107,6 +109,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<0, 59>
      */
     public int $second {
         get => $this->localComponents()['second'];
@@ -116,6 +119,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<0, 999>
      */
     public int $millisecond {
         get => $this->localComponents()['millisecond'];
@@ -125,6 +129,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<0, 999>
      */
     public int $microsecond {
         get => $this->localComponents()['microsecond'];
@@ -134,6 +139,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<0, 999>
      */
     public int $nanosecond {
         get => $this->localComponents()['nanosecond'];
@@ -1724,7 +1730,7 @@ final class ZonedDateTime implements Stringable
     /**
      * Computes (and caches) all local date/time components for this instant in the stored timezone.
      *
-     * @return array{year:int, month:int<1,12>, day:int<1,31>, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}
+     * @return array{year:int, month:int<1,12>, day:int<1,31>, hour:int<0,23>, minute:int<0,59>, second:int<0,59>, millisecond:int<0,999>, microsecond:int<0,999>, nanosecond:int<0,999>, offsetSec:int, offset:string}
      * @psalm-suppress UnusedMethod — called from PHP 8.4 property hooks that Psalm does not track
      */
     private function localComponents(): array
@@ -1754,12 +1760,18 @@ final class ZonedDateTime implements Stringable
         $month = (int) $dt->format('n');
         /** @var int<1, 31> format('j') always returns 1–31 */
         $day = (int) $dt->format('j');
+        /** @var int<0, 23> format('G') always returns 0–23 */
         $hour = (int) $dt->format('G');
+        /** @var int<0, 59> format('i') always returns 00–59 */
         $minute = (int) $dt->format('i');
+        /** @var int<0, 59> format('s') always returns 00–59 */
         $second = (int) $dt->format('s');
 
+        /** @var int<0, 999> $ms — $subNs < 10^9, dividing by 10^6 gives 0–999 */
         $ms = intdiv(num1: $subNs, num2: self::NS_PER_MILLISECOND);
+        /** @var int<0, 999> $us — remainder mod 10^6 / 10^3 gives 0–999 */
         $us = intdiv(num1: $subNs % self::NS_PER_MILLISECOND, num2: self::NS_PER_MICROSECOND);
+        /** @var int<0, 999> $ns — remainder mod 10^3 gives 0–999 */
         $ns = $subNs % self::NS_PER_MICROSECOND;
 
         // Build offset string: ±HH:MM.

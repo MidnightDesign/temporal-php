@@ -188,17 +188,35 @@ final class PlainDateTime implements Stringable
      * @var int<1, 31>
      */
     public readonly int $day;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<0, 23>
+     */
     public readonly int $hour;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<0, 59>
+     */
     public readonly int $minute;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<0, 59>
+     */
     public readonly int $second;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<0, 999>
+     */
     public readonly int $millisecond;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<0, 999>
+     */
     public readonly int $microsecond;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<0, 999>
+     */
     public readonly int $nanosecond;
 
     /**
@@ -269,12 +287,13 @@ final class PlainDateTime implements Stringable
         }
         /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
         $this->day = $dayInt;
-        $this->hour = (int) $hour;
-        $this->minute = (int) $minute;
-        $this->second = (int) $second;
-        $this->millisecond = (int) $millisecond;
-        $this->microsecond = (int) $microsecond;
-        $this->nanosecond = (int) $nanosecond;
+        $hInt = (int) $hour;
+        $minInt = (int) $minute;
+        $secInt = (int) $second;
+        $msInt = (int) $millisecond;
+        $usInt = (int) $microsecond;
+        $nsInt = (int) $nanosecond;
+        self::validateTimeFields($hInt, $minInt, $secInt, $msInt, $usInt, $nsInt);
         // TC39 range: strictly after -271821-04-19T00:00:00 … up to +275760-09-13T23:59:59.999999999.
         // epochDays = days from Unix epoch (1970-01-01 = 0).
         // -271821-04-19 = epochDay -100_000_001; +275760-09-13 = epochDay 100_000_000.
@@ -288,26 +307,24 @@ final class PlainDateTime implements Stringable
         // The first valid instant is one nanosecond past midnight on that date.
         if (
             $epochDays === -100_000_001
-            && $this->hour === 0
-            && $this->minute === 0
-            && $this->second === 0
-            && $this->millisecond === 0
-            && $this->microsecond === 0
-            && $this->nanosecond === 0
+            && $hInt === 0
+            && $minInt === 0
+            && $secInt === 0
+            && $msInt === 0
+            && $usInt === 0
+            && $nsInt === 0
         ) {
             throw new InvalidArgumentException(
                 'Invalid PlainDateTime: -271821-04-19T00:00:00 is outside the representable range (use T00:00:00.000000001 or later).',
             );
         }
 
-        self::validateTimeFields(
-            $this->hour,
-            $this->minute,
-            $this->second,
-            $this->millisecond,
-            $this->microsecond,
-            $this->nanosecond,
-        );
+        $this->hour = $hInt;
+        $this->minute = $minInt;
+        $this->second = $secInt;
+        $this->millisecond = $msInt;
+        $this->microsecond = $usInt;
+        $this->nanosecond = $nsInt;
     }
 
     // -------------------------------------------------------------------------
@@ -2207,6 +2224,12 @@ final class PlainDateTime implements Stringable
     /**
      * Validates all time fields and throws if any are out of range.
      *
+     * @phpstan-assert int<0, 23> $h
+     * @phpstan-assert int<0, 59> $min
+     * @phpstan-assert int<0, 59> $sec
+     * @phpstan-assert int<0, 999> $ms
+     * @phpstan-assert int<0, 999> $us
+     * @phpstan-assert int<0, 999> $ns
      * @throws InvalidArgumentException if any field is out of its valid range.
      */
     private static function validateTimeFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
