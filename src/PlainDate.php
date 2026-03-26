@@ -179,15 +179,9 @@ final class PlainDate implements Stringable
      * @throws InvalidArgumentException if year/month/day form an invalid ISO date or are infinite.
      * @throws InvalidArgumentException if calendar is provided and is not "iso8601" (case-insensitive, ASCII-only).
      */
-    public function __construct(int|float $year, int|float $month, int|float $day, mixed $calendar = null)
+    public function __construct(int|float $year, int|float $month, int|float $day, ?string $calendar = null)
     {
         if ($calendar !== null) {
-            if (!is_string($calendar)) {
-                throw new \TypeError(sprintf(
-                    'PlainDate calendar must be a string; got %s.',
-                    get_debug_type($calendar),
-                ));
-            }
             // The constructor only accepts bare calendar IDs, not ISO date strings.
             // Use ASCII-only lowercase to reject non-ASCII chars like U+0130 (İ).
             if (strtolower($calendar) !== 'iso8601') {
@@ -229,13 +223,13 @@ final class PlainDate implements Stringable
      * Creates a PlainDate from another PlainDate, an ISO 8601 string, or a
      * property-bag array with 'year', 'month'/'monthCode', and 'day' fields.
      *
-     * @param mixed $item     PlainDate, ISO 8601 date string, or property-bag array.
-     * @param mixed $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @param self|string|array<array-key, mixed>|object $item     PlainDate, ISO 8601 date string, or property-bag array.
+     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws InvalidArgumentException if the string is invalid or overflow option is invalid.
      * @throws \TypeError if the type cannot be interpreted as a PlainDate.
      * @psalm-api
      */
-    public static function from(mixed $item, mixed $options = null): self
+    public static function from(string|array|object $item, array|object|null $options = null): self
     {
         // Validate and extract overflow option (must be done before processing item).
         $overflow = 'constrain';
@@ -275,11 +269,11 @@ final class PlainDate implements Stringable
      *
      * Returns -1, 0, or +1 (or a value with the same sign).
      *
-     * @param self|string $one
-     * @param self|string $two
+     * @param self|string|array<array-key, mixed>|object $one
+     * @param self|string|array<array-key, mixed>|object $two
      * @psalm-api
      */
-    public static function compare(mixed $one, mixed $two): int
+    public static function compare(string|array|object $one, string|array|object $two): int
     {
         $a = $one instanceof self ? $one : self::from($one);
         $b = $two instanceof self ? $two : self::from($two);
@@ -305,12 +299,12 @@ final class PlainDate implements Stringable
      * must not be present.
      *
      * @param array<array-key,mixed> $fields   Property bag with fields to override.
-     * @param mixed                  $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
      * @throws InvalidArgumentException if the resulting date is invalid (overflow: reject).
      * @psalm-api
      */
-    public function with(array $fields, mixed $options = null): self
+    public function with(array $fields, array|object|null $options = null): self
     {
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
             throw new \TypeError('PlainDate::with() fields must not contain a calendar or timeZone property.');
@@ -411,11 +405,11 @@ final class PlainDate implements Stringable
      * are added using Julian Day Numbers so they work correctly across month and
      * year boundaries. Time units are balanced into days before applying.
      *
-     * @param Duration|array<array-key,mixed>|string $duration
-     * @param mixed                                  $options  ['overflow' => 'constrain'|'reject']
+     * @param Duration|string|array<array-key, mixed>|object $duration
+     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function add(mixed $duration, mixed $options = null): self
+    public function add(string|array|object $duration, array|object|null $options = null): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(1, $dur, $options);
@@ -424,11 +418,11 @@ final class PlainDate implements Stringable
     /**
      * Returns a new PlainDate with the given duration subtracted.
      *
-     * @param Duration|array<array-key,mixed>|string $duration
-     * @param mixed                                  $options  ['overflow' => 'constrain'|'reject']
+     * @param Duration|string|array<array-key, mixed>|object $duration
+     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function subtract(mixed $duration, mixed $options = null): self
+    public function subtract(string|array|object $duration, array|object|null $options = null): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(-1, $dur, $options);
@@ -439,11 +433,11 @@ final class PlainDate implements Stringable
      *
      * Supports largestUnit, smallestUnit, roundingMode, and roundingIncrement options.
      *
-     * @param mixed $other   PlainDate or ISO 8601 date string.
-     * @param mixed $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param self|string|array<array-key, mixed>|object $other   PlainDate or ISO 8601 date string.
+     * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function since(mixed $other, mixed $options = null): Duration
+    public function since(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         return self::diffDate($this, $o, $this, $options);
@@ -452,11 +446,11 @@ final class PlainDate implements Stringable
     /**
      * Returns the Duration from this date to $other (other − this).
      *
-     * @param mixed $other   PlainDate or ISO 8601 date string.
-     * @param mixed $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param self|string|array<array-key, mixed>|object $other   PlainDate or ISO 8601 date string.
+     * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function until(mixed $other, mixed $options = null): Duration
+    public function until(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         return self::diffDate($o, $this, $this, $options);
@@ -465,21 +459,21 @@ final class PlainDate implements Stringable
     /**
      * Returns true if this PlainDate is the same date as $other.
      *
-     * @param mixed $other A PlainDate or ISO 8601 date string.
+     * @param self|string|array<array-key, mixed>|object $other A PlainDate or ISO 8601 date string.
      * @psalm-api
      */
-    public function equals(mixed $other): bool
+    public function equals(string|array|object $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
         return $this->year === $o->year && $this->month === $o->month && $this->day === $o->day;
     }
 
     /**
-     * @param mixed $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
+     * @param array<array-key, mixed>|object|null $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
      * @throws InvalidArgumentException for invalid calendarName values.
      * @psalm-api
      */
-    public function toString(mixed $options = null): string
+    public function toString(array|object|null $options = null): string
     {
         // TC39: years 0–9999 → 4 digits; years outside → ±YYYYYY (6 digits with sign prefix).
         if ($this->year < 0) {
@@ -516,10 +510,12 @@ final class PlainDate implements Stringable
     }
 
     /**
+     * @param string|array<array-key, mixed>|null $locales
+     * @param array<array-key, mixed>|object|null $options
      * @psalm-api
      * @psalm-suppress UnusedParam
      */
-    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         return $this->toString();
     }
@@ -530,12 +526,12 @@ final class PlainDate implements Stringable
      * If no argument is given, midnight (00:00:00) is used.
      * Accepts a PlainTime, a time string, or a property-bag array.
      *
-     * @param mixed $time PlainTime, string, array, or null for midnight.
+     * @param PlainTime|string|array<array-key, mixed>|object|null $time PlainTime, string, array, or null for midnight.
      * @throws \TypeError if $time is an invalid type (number, boolean, etc.).
      * @throws InvalidArgumentException if the string is invalid or the result is out of range.
      * @psalm-api
      */
-    public function toPlainDateTime(mixed $time = null): PlainDateTime
+    public function toPlainDateTime(string|array|object|null $time = null): PlainDateTime
     {
         if (func_num_args() === 0) {
             return new PlainDateTime($this->year, $this->month, $this->day);
@@ -564,23 +560,16 @@ final class PlainDate implements Stringable
      *
      * Accepts a timezone string or an array with 'timeZone' and optional 'plainTime' keys.
      *
-     * @param mixed $item Timezone string or property bag with 'timeZone' (and optional 'plainTime').
-     * @throws \TypeError if $item is null, number, boolean, or invalid type.
+     * @param string|array<array-key, mixed> $item Timezone string or property bag with 'timeZone' (and optional 'plainTime').
      * @throws InvalidArgumentException if the timezone is invalid or the result is out of range.
      * @psalm-api
      */
-    public function toZonedDateTime(mixed $item): ZonedDateTime
+    public function toZonedDateTime(string|array $item): ZonedDateTime
     {
         if (is_string($item)) {
             // String argument = timezone ID; combine with midnight.
             $tzId = ZonedDateTime::normalizeTimezoneId($item);
             return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0);
-        }
-        if (!is_array($item)) {
-            throw new \TypeError(sprintf(
-                'PlainDate::toZonedDateTime() expects a timezone string or property bag; got %s.',
-                get_debug_type($item),
-            ));
         }
         // Property bag: must have 'timeZone' key.
         if (!array_key_exists('timeZone', $item)) {
@@ -602,6 +591,15 @@ final class PlainDate implements Stringable
         if (array_key_exists('plainTime', $item)) {
             /** @var mixed $ptRaw */
             $ptRaw = $item['plainTime'];
+            if ($ptRaw === null) {
+                throw new \TypeError('PlainDate::toZonedDateTime() plainTime must not be null.');
+            }
+            if (!is_string($ptRaw) && !is_array($ptRaw) && !is_object($ptRaw)) {
+                throw new \TypeError(sprintf(
+                    'PlainDate::toZonedDateTime() plainTime must be a PlainTime, string, or property bag; got %s.',
+                    get_debug_type($ptRaw),
+                ));
+            }
             $t = $ptRaw instanceof PlainTime ? $ptRaw : PlainTime::from($ptRaw);
             $h = $t->hour;
             $m = $t->minute;
@@ -638,19 +636,11 @@ final class PlainDate implements Stringable
      *
      * Accepts a bare calendar ID or an ISO date string from which the calendar is extracted.
      *
-     * @param mixed $calendar Calendar string.
-     * @throws \TypeError if $calendar is not a string.
      * @throws InvalidArgumentException if the calendar is unsupported.
      * @psalm-api
      */
-    public function withCalendar(mixed $calendar): self
+    public function withCalendar(string $calendar): self
     {
-        if (!is_string($calendar)) {
-            throw new \TypeError(sprintf(
-                'PlainDate::withCalendar() calendar must be a string; got %s.',
-                get_debug_type($calendar),
-            ));
-        }
         ZonedDateTime::extractCalendarFromString($calendar);
         return new self($this->year, $this->month, $this->day, 'iso8601');
     }
@@ -985,9 +975,9 @@ final class PlainDate implements Stringable
      * $later and $earlier define the raw difference; $receiver is $this (used as
      * the anchor for calendar-aware rounding, per the TC39 NudgeToCalendarUnit spec).
      *
-     * @param mixed $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
-    private static function diffDate(self $later, self $earlier, self $receiver, mixed $options): Duration
+    private static function diffDate(self $later, self $earlier, self $receiver, array|object|null $options): Duration
     {
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years'];
@@ -1022,7 +1012,7 @@ final class PlainDate implements Stringable
         $roundingMode = 'trunc';
         $roundingIncrement = 1;
 
-        if ($options !== null && (is_array($options) || is_object($options))) {
+        if ($options !== null) {
             $opts = is_array($options) ? $options : (array) $options;
 
             // largestUnit
@@ -1559,9 +1549,9 @@ final class PlainDate implements Stringable
      * Sub-day time units (hours, minutes, seconds, milliseconds, microseconds,
      * nanoseconds) are balanced into whole days before applying day arithmetic.
      *
-     * @param mixed $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object|null $options
      */
-    private function addDuration(int $sign, Duration $dur, mixed $options): self
+    private function addDuration(int $sign, Duration $dur, array|object|null $options): self
     {
         $overflow = 'constrain';
         if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {

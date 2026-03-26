@@ -72,12 +72,6 @@ final class ZonedDateTimeMethodsTest extends TestCase
         static::assertSame('+05:30', $result->timeZoneId);
     }
 
-    public function testWithTimeZoneThrowsForNonString(): void
-    {
-        $this->expectException(\TypeError::class);
-        new ZonedDateTime(0, 'UTC')->withTimeZone(42);
-    }
-
     public function testWithCalendarReturnsSameForIso8601(): void
     {
         $zdt = new ZonedDateTime(0, 'UTC');
@@ -91,12 +85,6 @@ final class ZonedDateTimeMethodsTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         new ZonedDateTime(0, 'UTC')->withCalendar('gregory');
-    }
-
-    public function testWithCalendarThrowsForNonString(): void
-    {
-        $this->expectException(\TypeError::class);
-        new ZonedDateTime(0, 'UTC')->withCalendar(42);
     }
 
     public function testEqualsReturnsTrueForSameData(): void
@@ -122,12 +110,6 @@ final class ZonedDateTimeMethodsTest extends TestCase
         $b = new ZonedDateTime(0, '+05:30');
 
         static::assertFalse($a->equals($b));
-    }
-
-    public function testEqualsThrowsForUnsupportedType(): void
-    {
-        $this->expectException(\TypeError::class);
-        new ZonedDateTime(0, 'UTC')->equals(42);
     }
 
     public function testValueOfThrows(): void

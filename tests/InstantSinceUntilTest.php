@@ -90,12 +90,6 @@ final class InstantSinceUntilTest extends TestCase
         new Instant(0)->until(new Instant(1), ['largestUnit' => 'day']);
     }
 
-    public function testSinceInvalidOptionsTypeThrows(): void
-    {
-        $this->expectException(TypeError::class);
-        new Instant(0)->since(new Instant(1), 'bad-options');
-    }
-
     public function testUntilSmallestLargerThanLargestThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);

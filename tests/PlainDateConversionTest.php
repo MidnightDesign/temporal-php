@@ -78,22 +78,6 @@ final class PlainDateConversionTest extends TestCase
         $pd->toPlainDateTime(null);
     }
 
-    public function testToPlainDateTimeNumberThrowsTypeError(): void
-    {
-        $pd = new PlainDate(2020, 6, 15);
-
-        $this->expectException(\TypeError::class);
-        $pd->toPlainDateTime(42);
-    }
-
-    public function testToPlainDateTimeBoolThrowsTypeError(): void
-    {
-        $pd = new PlainDate(2020, 6, 15);
-
-        $this->expectException(\TypeError::class);
-        $pd->toPlainDateTime(true);
-    }
-
     // -------------------------------------------------------------------------
     // toZonedDateTime
     // -------------------------------------------------------------------------
@@ -148,22 +132,6 @@ final class PlainDateConversionTest extends TestCase
         $zdt = $pd->toZonedDateTime('+05:30');
 
         static::assertSame('+05:30', $zdt->timeZoneId);
-    }
-
-    public function testToZonedDateTimeNullThrowsTypeError(): void
-    {
-        $pd = new PlainDate(2020, 1, 1);
-
-        $this->expectException(\TypeError::class);
-        $pd->toZonedDateTime(null);
-    }
-
-    public function testToZonedDateTimeNumberThrowsTypeError(): void
-    {
-        $pd = new PlainDate(2020, 1, 1);
-
-        $this->expectException(\TypeError::class);
-        $pd->toZonedDateTime(42);
     }
 
     public function testToZonedDateTimeEmptyStringThrowsInvalidArgument(): void
@@ -232,21 +200,6 @@ final class PlainDateConversionTest extends TestCase
         static::assertSame('iso8601', $result->calendarId);
     }
 
-    public function testWithCalendarNullThrowsTypeError(): void
-    {
-        $pd = new PlainDate(1976, 11, 18);
-
-        $this->expectException(\TypeError::class);
-        $pd->withCalendar(null);
-    }
-
-    public function testWithCalendarNumberThrowsTypeError(): void
-    {
-        $pd = new PlainDate(1976, 11, 18);
-
-        $this->expectException(\TypeError::class);
-        $pd->withCalendar(42);
-    }
 
     public function testWithCalendarEmptyStringThrowsInvalidArgument(): void
     {

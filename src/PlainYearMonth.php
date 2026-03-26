@@ -195,33 +195,31 @@ final class PlainYearMonth implements Stringable
      * Creates a PlainYearMonth from another PlainYearMonth, an ISO 8601 string, or a
      * property-bag array with 'year' and 'month'/'monthCode' fields.
      *
-     * @param mixed $item     PlainYearMonth, ISO 8601 year-month string, or property-bag array.
-     * @param mixed $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @param self|string|array<array-key, mixed>|object $item     PlainYearMonth, ISO 8601 year-month string, or property-bag array.
+     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws InvalidArgumentException if the string is invalid or overflow option is invalid.
      * @throws \TypeError if the type cannot be interpreted as a PlainYearMonth.
      * @psalm-api
      */
-    public static function from(mixed $item, mixed $options = null): self
+    public static function from(string|array|object $item, array|object|null $options = null): self
     {
         // Validate overflow option before processing item (per spec ordering).
         $overflow = 'constrain';
         if ($options !== null) {
             if (!is_array($options)) {
-                if (is_object($options)) {
-                    $opts = (array) $options;
-                    if (array_key_exists('overflow', $opts)) {
-                        /** @var mixed $ov */
-                        $ov = $opts['overflow'];
-                        if (!is_string($ov)) {
-                            throw new \TypeError('overflow option must be a string.');
-                        }
-                        if ($ov !== 'constrain' && $ov !== 'reject') {
-                            throw new InvalidArgumentException(
-                                "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                            );
-                        }
-                        $overflow = $ov;
+                $opts = (array) $options;
+                if (array_key_exists('overflow', $opts)) {
+                    /** @var mixed $ov */
+                    $ov = $opts['overflow'];
+                    if (!is_string($ov)) {
+                        throw new \TypeError('overflow option must be a string.');
                     }
+                    if ($ov !== 'constrain' && $ov !== 'reject') {
+                        throw new InvalidArgumentException(
+                            "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
+                        );
+                    }
+                    $overflow = $ov;
                 }
             } elseif (array_key_exists('overflow', $options)) {
                 /** @var mixed $ov */
@@ -258,11 +256,11 @@ final class PlainYearMonth implements Stringable
      *
      * Returns -1, 0, or +1 (or a value with the same sign).
      *
-     * @param self|string $one
-     * @param self|string $two
+     * @param self|string|array<array-key, mixed>|object $one
+     * @param self|string|array<array-key, mixed>|object $two
      * @psalm-api
      */
-    public static function compare(mixed $one, mixed $two): int
+    public static function compare(string|array|object $one, string|array|object $two): int
     {
         $a = $one instanceof self ? $one : self::from($one);
         $b = $two instanceof self ? $two : self::from($two);
@@ -287,12 +285,12 @@ final class PlainYearMonth implements Stringable
      * The 'calendar' and 'timeZone' keys must not be present.
      *
      * @param array<array-key,mixed> $fields   Property bag with fields to override.
-     * @param mixed                  $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
      * @throws InvalidArgumentException if the resulting year-month is invalid.
      * @psalm-api
      */
-    public function with(array $fields, mixed $options = null): self
+    public function with(array $fields, array|object|null $options = null): self
     {
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
             throw new \TypeError('PlainYearMonth::with() fields must not contain a calendar or timeZone property.');
@@ -382,11 +380,11 @@ final class PlainYearMonth implements Stringable
      *
      * Only years and months are relevant; weeks and days are rejected.
      *
-     * @param Duration|array<array-key,mixed>|string $duration
-     * @param mixed                                  $options  ['overflow' => 'constrain'|'reject']
+     * @param Duration|string|array<array-key, mixed>|object $duration
+     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function add(mixed $duration, mixed $options = null): self
+    public function add(string|array|object $duration, array|object|null $options = null): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(1, $dur, $options);
@@ -395,11 +393,11 @@ final class PlainYearMonth implements Stringable
     /**
      * Returns a new PlainYearMonth with the given duration subtracted.
      *
-     * @param Duration|array<array-key,mixed>|string $duration
-     * @param mixed                                  $options  ['overflow' => 'constrain'|'reject']
+     * @param Duration|string|array<array-key, mixed>|object $duration
+     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function subtract(mixed $duration, mixed $options = null): self
+    public function subtract(string|array|object $duration, array|object|null $options = null): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(-1, $dur, $options);
@@ -408,11 +406,11 @@ final class PlainYearMonth implements Stringable
     /**
      * Returns the Duration from $other to this year-month (this − other).
      *
-     * @param mixed $other   PlainYearMonth or ISO 8601 year-month string.
-     * @param mixed $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param self|string|array<array-key, mixed>|object $other   PlainYearMonth or ISO 8601 year-month string.
+     * @param array<array-key, mixed>|object|null $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function since(mixed $other, mixed $options = null): Duration
+    public function since(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         return self::diffYearMonth($this, $o, $this, $options);
@@ -421,11 +419,11 @@ final class PlainYearMonth implements Stringable
     /**
      * Returns the Duration from this year-month to $other (other − this).
      *
-     * @param mixed $other   PlainYearMonth or ISO 8601 year-month string.
-     * @param mixed $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param self|string|array<array-key, mixed>|object $other   PlainYearMonth or ISO 8601 year-month string.
+     * @param array<array-key, mixed>|object|null $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function until(mixed $other, mixed $options = null): Duration
+    public function until(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         return self::diffYearMonth($o, $this, $this, $options);
@@ -434,10 +432,10 @@ final class PlainYearMonth implements Stringable
     /**
      * Returns true if this PlainYearMonth is the same as $other.
      *
-     * @param mixed $other A PlainYearMonth or ISO 8601 year-month string.
+     * @param self|string|array<array-key, mixed>|object $other A PlainYearMonth or ISO 8601 year-month string.
      * @psalm-api
      */
-    public function equals(mixed $other): bool
+    public function equals(string|array|object $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
         return $this->year === $o->year && $this->month === $o->month && $this->referenceISODay === $o->referenceISODay;
@@ -449,11 +447,11 @@ final class PlainYearMonth implements Stringable
      * Format: YYYY-MM (with ±YYYYYY for years outside 0–9999).
      * With calendarName="always" or "critical": YYYY-MM-DD[...] using referenceISODay.
      *
-     * @param mixed $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
+     * @param array<array-key, mixed>|object|null $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
      * @throws InvalidArgumentException for invalid calendarName values.
      * @psalm-api
      */
-    public function toString(mixed $options = null): string
+    public function toString(array|object|null $options = null): string
     {
         $yearStr = self::formatYear($this->year);
         $base = sprintf('%s-%02d', $yearStr, $this->month);
@@ -483,10 +481,12 @@ final class PlainYearMonth implements Stringable
     }
 
     /**
+     * @param string|array<array-key, mixed>|null $locales
+     * @param array<array-key, mixed>|object|null $options
      * @psalm-api
      * @psalm-suppress UnusedParam
      */
-    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         return $this->toString();
     }
@@ -512,23 +512,18 @@ final class PlainYearMonth implements Stringable
     /**
      * Converts this PlainYearMonth to a PlainDate by supplying the day.
      *
-     * @param array<array-key,mixed>|mixed $fields Must contain 'day' key.
+     * @param array<array-key, mixed>|object $fields Must contain 'day' key.
      * @throws \TypeError             if $fields is not an object/array or 'day' is missing.
      * @throws InvalidArgumentException if the resulting date is invalid.
      * @psalm-api
      */
-    public function toPlainDate(mixed $fields): PlainDate
+    public function toPlainDate(array|object $fields): PlainDate
     {
         if (is_array($fields)) {
             $bag = $fields;
-        } elseif (is_object($fields)) {
+        } else {
             /** @var array<array-key, mixed> $bag */
             $bag = get_object_vars($fields);
-        } else {
-            throw new \TypeError(sprintf(
-                'PlainYearMonth::toPlainDate() argument must be an object; got %s.',
-                get_debug_type($fields),
-            ));
         }
 
         if (!array_key_exists('day', $bag)) {
@@ -867,9 +862,9 @@ final class PlainYearMonth implements Stringable
      *
      * $later and $earlier define the raw difference; $receiver is $this.
      *
-     * @param mixed $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
-    private static function diffYearMonth(self $later, self $earlier, self $receiver, mixed $options): Duration
+    private static function diffYearMonth(self $later, self $earlier, self $receiver, array|object|null $options): Duration
     {
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'month', 'months', 'year', 'years'];
@@ -911,7 +906,7 @@ final class PlainYearMonth implements Stringable
         $roundingMode = 'trunc';
         $roundingIncrement = 1;
 
-        if ($options !== null && (is_array($options) || is_object($options))) {
+        if ($options !== null) {
             $opts = is_array($options) ? $options : (array) $options;
 
             // largestUnit
@@ -1356,9 +1351,9 @@ final class PlainYearMonth implements Stringable
     /**
      * Shared implementation for add() and subtract().
      *
-     * @param mixed $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object|null $options
      */
-    private function addDuration(int $sign, Duration $dur, mixed $options): self
+    private function addDuration(int $sign, Duration $dur, array|object|null $options): self
     {
         // Validate overflow option. Per TC39 spec §9.5.7:
         // GetOption calls ToString(value) first, then validates the string.

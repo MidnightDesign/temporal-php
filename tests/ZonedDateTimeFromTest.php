@@ -100,12 +100,6 @@ final class ZonedDateTimeFromTest extends TestCase
         ZonedDateTime::from('2020-01-15T12:30:00+05:30[UTC]');
     }
 
-    public function testFromThrowsTypeErrorForInt(): void
-    {
-        $this->expectException(\TypeError::class);
-        ZonedDateTime::from(42);
-    }
-
     public function testCompareReturnsMinusOneWhenFirstIsEarlier(): void
     {
         $a = new ZonedDateTime(0, 'UTC');

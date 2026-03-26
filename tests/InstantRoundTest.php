@@ -67,12 +67,6 @@ final class InstantRoundTest extends TestCase
         new Instant(0)->round('day');
     }
 
-    public function testRoundNonStringNonArrayThrows(): void
-    {
-        $this->expectException(TypeError::class);
-        new Instant(0)->round(42);
-    }
-
     public function testRoundInvalidIncrementThrows(): void
     {
         $this->expectException(InvalidArgumentException::class);

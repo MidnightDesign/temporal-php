@@ -314,15 +314,15 @@ final class TemporalHelpers
             } elseif ($singular instanceof \Temporal\PlainTime) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
-                PHPUnitAssert::assertTrue($singular->equals($plural), $desc);
+                PHPUnitAssert::assertTrue($singular->equals($plural), $desc); // @phpstan-ignore argument.type
             } elseif ($singular instanceof \Temporal\PlainDateTime) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
-                PHPUnitAssert::assertTrue($singular->equals($plural), $desc);
+                PHPUnitAssert::assertTrue($singular->equals($plural), $desc); // @phpstan-ignore argument.type
             } elseif ($singular instanceof \Temporal\PlainDate) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
-                PHPUnitAssert::assertTrue($singular->equals($plural), $desc);
+                PHPUnitAssert::assertTrue($singular->equals($plural), $desc); // @phpstan-ignore argument.type
             } elseif ($singular instanceof \Temporal\ZonedDateTime) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument

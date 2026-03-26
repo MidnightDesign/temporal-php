@@ -159,13 +159,13 @@ final class PlainTime implements Stringable
      *   - For property bags: 'constrain' clamps out-of-range values; 'reject' throws.
      *   - For PlainTime instances: overflow is ignored.
      *
-     * @param mixed $item    PlainTime, ISO 8601 time string, or property-bag array.
-     * @param mixed $options Options bag or null; supports 'overflow' key.
+     * @param self|string|array<array-key, mixed>|object $item PlainTime, ISO 8601 time string, or property-bag array.
+     * @param array<array-key, mixed>|object|null $options Options bag or null; supports 'overflow' key.
      * @throws InvalidArgumentException if the string is invalid or any field is out of range.
      * @throws \TypeError if the type cannot be interpreted as a PlainTime.
      * @psalm-api
      */
-    public static function from(mixed $item, mixed $options = null): self
+    public static function from(string|array|object $item, array|object|null $options = null): self
     {
         if ($item instanceof self) {
             // Validate overflow option even though it's ignored for PlainTime instances.
@@ -190,12 +190,12 @@ final class PlainTime implements Stringable
     /**
      * Compares two PlainTime values.
      *
-     * @param mixed $one PlainTime or ISO 8601 time string.
-     * @param mixed $two PlainTime or ISO 8601 time string.
+     * @param self|string|array<array-key, mixed>|object $one PlainTime or ISO 8601 time string.
+     * @param self|string|array<array-key, mixed>|object $two PlainTime or ISO 8601 time string.
      * @return int -1, 0, or 1.
      * @psalm-api
      */
-    public static function compare(mixed $one, mixed $two): int
+    public static function compare(string|array|object $one, string|array|object $two): int
     {
         $a = $one instanceof self ? $one : self::from($one);
         $b = $two instanceof self ? $two : self::from($two);
@@ -213,11 +213,11 @@ final class PlainTime implements Stringable
      * are recognized; unrecognized keys are silently ignored.
      *
      * @param array<array-key, mixed> $fields
-     * @param mixed                   $options Options bag or null; supports 'overflow' key.
+     * @param array<array-key, mixed>|object|null        $options Options bag or null; supports 'overflow' key.
      * @throws InvalidArgumentException if a field value is infinite or out of range.
      * @psalm-api
      */
-    public function with(array $fields, mixed $options = null): self
+    public function with(array $fields, array|object|null $options = null): self
     {
         $overflow = self::extractOverflow($options);
 
@@ -309,10 +309,10 @@ final class PlainTime implements Stringable
      * Calendar fields (years, months, weeks, days) are silently ignored — PlainTime
      * has no calendar context and only time fields are applied.
      *
-     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param Duration|string|array<array-key, mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
      * @psalm-api
      */
-    public function add(mixed $duration): self
+    public function add(string|array|object $duration): self
     {
         $d = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addTimeFields(1, $d);
@@ -323,10 +323,10 @@ final class PlainTime implements Stringable
      *
      * Calendar fields (years, months, weeks, days) are silently ignored.
      *
-     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param Duration|string|array<array-key,mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
      * @psalm-api
      */
-    public function subtract(mixed $duration): self
+    public function subtract(string|array|object $duration): self
     {
         $d = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addTimeFields(-1, $d);
@@ -338,12 +338,12 @@ final class PlainTime implements Stringable
      * The result is always positive (or zero) when $other > $this within the same day.
      * Options: largestUnit, smallestUnit, roundingMode, roundingIncrement.
      *
-     * @param mixed $other   PlainTime or ISO 8601 time string.
-     * @param mixed $options Options array or null.
+     * @param self|string|array<array-key, mixed>|object $other   PlainTime or ISO 8601 time string.
+     * @param array<array-key, mixed>|object|null $options Options array or null.
      * @throws InvalidArgumentException for invalid option values.
      * @psalm-api
      */
-    public function until(mixed $other, mixed $options = null): Duration
+    public function until(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         $diffNs = $o->ns - $this->ns;
@@ -355,12 +355,12 @@ final class PlainTime implements Stringable
      *
      * Options: largestUnit, smallestUnit, roundingMode, roundingIncrement.
      *
-     * @param mixed $other   PlainTime or ISO 8601 time string.
-     * @param mixed $options Options array or null.
+     * @param self|string|array<array-key, mixed>|object $other   PlainTime or ISO 8601 time string.
+     * @param array<array-key, mixed>|object|null $options Options array or null.
      * @throws InvalidArgumentException for invalid option values.
      * @psalm-api
      */
-    public function since(mixed $other, mixed $options = null): Duration
+    public function since(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         $diffNs = $this->ns - $o->ns;
@@ -370,7 +370,7 @@ final class PlainTime implements Stringable
     /**
      * Returns a new PlainTime rounded to the given unit and increment.
      *
-     * @param mixed $options string smallestUnit or array with keys:
+     * @param string|array<array-key, mixed>|object $options string smallestUnit or array with keys:
      *   - smallestUnit (required): 'hour'|'minute'|'second'|'millisecond'|'microsecond'|'nanosecond'
      *   - roundingMode (default 'halfExpand'): 'trunc'|'floor'|'ceil'|'expand'|'halfExpand'|
      *                                          'halfTrunc'|'halfFloor'|'halfCeil'|'halfEven'
@@ -379,15 +379,12 @@ final class PlainTime implements Stringable
      * @throws InvalidArgumentException for invalid option values.
      * @psalm-api
      */
-    public function round(mixed $options): self
+    public function round(string|array|object $options): self
     {
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
             $options = (array) $options;
-        }
-        if (!is_array($options)) {
-            throw new \TypeError('Temporal\\PlainTime::round() options must be a string, array, or object.');
         }
 
         /** @psalm-suppress MixedAssignment */
@@ -451,10 +448,10 @@ final class PlainTime implements Stringable
     /**
      * Returns true if this PlainTime represents the same time as $other.
      *
-     * @param mixed $other A PlainTime or ISO 8601 time string.
+     * @param self|string|array<array-key, mixed>|object $other A PlainTime or ISO 8601 time string.
      * @psalm-api
      */
-    public function equals(mixed $other): bool
+    public function equals(string|array|object $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
         return $this->ns === $o->ns;
@@ -471,17 +468,15 @@ final class PlainTime implements Stringable
      *   - roundingMode: rounding mode (default 'trunc').
      *     When combined with smallestUnit/fractionalSecondDigits, rounds the time before output.
      *
-     * @param mixed $options null, an array of options, or any object (treated as empty options bag).
+     * @param array<array-key, mixed>|object|null $options null, an array of options, or any object (treated as empty options bag).
      * @throws InvalidArgumentException if options are invalid.
      * @throws \TypeError if $options is a non-null, non-array, non-object scalar.
      * @psalm-api
      */
-    public function toString(mixed $options = null): string
+    public function toString(array|object|null $options = null): string
     {
         if (is_object($options)) {
             $options = [];
-        } elseif ($options !== null && !is_array($options)) {
-            throw new \TypeError('PlainTime::toString() options must be null, an array, or an object.');
         }
 
         // $digits: -2 = 'auto', -1 = minute format (no seconds), 0-9 = fixed digits.
@@ -616,12 +611,12 @@ final class PlainTime implements Stringable
      * PHP has no ICU Temporal support, so this falls back to toString().
      * The TC39 spec permits implementations to choose locale behavior.
      *
-     * @param mixed $locales  BCP 47 locale string or array (ignored in PHP).
-     * @param mixed $options  Intl.DateTimeFormat options bag (ignored in PHP).
+     * @param string|array<array-key, mixed>|null $locales BCP 47 locale string or array (ignored in PHP).
+     * @param array<array-key, mixed>|object|null $options Intl.DateTimeFormat options bag (ignored in PHP).
      * @psalm-suppress UnusedParam
      * @psalm-api
      */
-    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         return $this->toString();
     }
@@ -673,20 +668,17 @@ final class PlainTime implements Stringable
      * Returns 'constrain' or 'reject'. Default is 'constrain'.
      * If $options is null, an empty array, or an object with no overflow key, returns 'constrain'.
      *
+     * @param array<array-key, mixed>|object|null $options
      * @throws \TypeError if the overflow value is not a string (or null).
      * @throws InvalidArgumentException if the overflow value is an unrecognized string.
      */
-    private static function extractOverflow(mixed $options): string
+    private static function extractOverflow(array|object|null $options): string
     {
         if ($options === null) {
             return 'constrain';
         }
         if (is_object($options)) {
             $options = (array) $options;
-        }
-        if (!is_array($options)) {
-            // non-null scalars and callables: treat as empty options bag (no overflow key).
-            return 'constrain';
         }
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
@@ -1164,9 +1156,9 @@ final class PlainTime implements Stringable
      * Balances a nanosecond difference (possibly negative) into a Duration according
      * to largestUnit, then rounds to smallestUnit with the given mode and increment.
      *
-     * @param mixed $options Options array or null. Keys: largestUnit, smallestUnit, roundingMode, roundingIncrement.
+     * @param array<array-key, mixed>|object|null $options Options array or null. Keys: largestUnit, smallestUnit, roundingMode, roundingIncrement.
      */
-    private static function diffTime(int $diffNs, mixed $options): Duration
+    private static function diffTime(int $diffNs, array|object|null $options): Duration
     {
         /** @var list<string> $validUnits */
         static $validUnits = [
@@ -1190,7 +1182,7 @@ final class PlainTime implements Stringable
         $roundingMode = 'trunc'; // default for since/until
         $roundingIncrement = 1;
 
-        if ($options !== null && (is_array($options) || is_object($options))) {
+        if ($options !== null) {
             $opts = is_array($options) ? $options : (array) $options;
 
             if (array_key_exists('largestUnit', $opts)) {

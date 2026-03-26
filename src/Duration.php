@@ -186,11 +186,11 @@ final class Duration implements Stringable
      * Property-bag example: ['years' => 1, 'hours' => 2]
      * String examples: 'P1Y', 'PT30M', '-P1DT2H', 'PT1.5S', 'PT1,5S', 'PT1.03125H'
      *
-     * @param mixed $item Duration, array property bag, or ISO 8601 duration string.
+     * @param self|string|array<array-key, mixed>|object $item Duration, array property bag, or ISO 8601 duration string.
      * @throws InvalidArgumentException if the value cannot be interpreted as a Duration.
      * @throws \TypeError if the type is not Duration, array, or string.
      */
-    public static function from(mixed $item): self
+    public static function from(string|array|object $item): self
     {
         if ($item instanceof self) {
             // TC39 requires a new instance, not the same reference.
@@ -438,17 +438,11 @@ final class Duration implements Stringable
     /**
      * Returns a Duration with the specified fields replaced.
      *
+     * @param array<array-key, mixed> $fields
      * @throws \TypeError if $fields is not an array or has no recognized plural Duration field.
      */
-    public function with(mixed $fields): self
+    public function with(array $fields): self
     {
-        if (!is_array($fields)) {
-            throw new \TypeError(sprintf(
-                'Duration::with() expects a property-bag array; got %s.',
-                get_debug_type($fields),
-            ));
-        }
-
         // TC39 ToTemporalPartialDurationRecord: at least one recognized plural field required.
         /** @var list<string> $PLURAL_FIELDS */
         static $PLURAL_FIELDS = [
@@ -501,25 +495,17 @@ final class Duration implements Stringable
      *   - smallestUnit: 'second[s]'|'millisecond[s]'|'microsecond[s]'|'nanosecond[s]' (overrides fractionalSecondDigits)
      *   - roundingMode: 'trunc' (default) | 'floor' | 'ceil' | 'expand' | 'halfExpand' | 'halfTrunc' | 'halfFloor' | 'halfCeil' | 'halfEven'
      *
-     * @param mixed $options null or array of options
+     * @param array<array-key, mixed>|object|null $options null or array of options
      * @throws InvalidArgumentException if options are invalid or rounding causes overflow.
      * @throws \TypeError if $options is not null and not an array.
      */
-    public function toString(mixed $options = null): string
+    public function toString(array|object|null $options = null): string
     {
         // $digits: null = auto, 0–9 = exact digit count.
         $digits = null;
         $roundingMode = 'trunc';
 
         if ($options !== null) {
-            // TC39: any object (including functions) is a valid options bag; non-recognised
-            // properties are silently ignored.  Only throw for non-array, non-object values.
-            if (!is_array($options) && !is_object($options)) {
-                throw new \TypeError(sprintf(
-                    'Duration::toString() options must be an array or object; got %s.',
-                    get_debug_type($options),
-                ));
-            }
             if (!is_array($options)) {
                 // Treat non-array objects (e.g. Closures) as empty options bags → all defaults.
                 $options = [];
@@ -697,12 +683,12 @@ final class Duration implements Stringable
      * PHP has no ICU Temporal support, so this falls back to toString().
      * The TC39 spec permits implementations to choose locale behavior.
      *
-     * @param mixed $locales  BCP 47 locale string or array (ignored in PHP).
-     * @param mixed $options  Intl.DateTimeFormat options bag (ignored in PHP).
+     * @param string|array<array-key, mixed>|null $locales BCP 47 locale string or array (ignored in PHP).
+     * @param array<array-key, mixed>|object|null $options Intl.DateTimeFormat options bag (ignored in PHP).
      * @psalm-suppress UnusedParam
      * @psalm-api
      */
-    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         return $this->toString();
     }
@@ -729,13 +715,13 @@ final class Duration implements Stringable
      * bag is inspected; invalid bags throw TypeError, absent required options throw
      * InvalidArgumentException.
      *
-     * @param mixed $totalOf Unit string or options bag with 'unit' key.
+     * @param string|array<array-key, mixed>|object $totalOf Unit string or options bag with 'unit' key.
      * @return int|float
      * @throws InvalidArgumentException if the unit is invalid or unavailable without relativeTo.
      * @throws \TypeError if $totalOf is not a string or array, or if relativeTo is an invalid bag.
      * @psalm-api
      */
-    public function total(mixed $totalOf): int|float
+    public function total(string|array|object $totalOf): int|float
     {
         if (!is_string($totalOf) && !is_array($totalOf)) {
             throw new InvalidArgumentException('total() expects a unit string or an options bag array.');
@@ -1295,11 +1281,11 @@ final class Duration implements Stringable
      * result is balanced: sub-second carries are propagated upward to the largest
      * unit present in either operand. Uses integer arithmetic for exact results.
      *
-     * @param mixed $other Duration, ISO 8601 string, or property-bag array.
+     * @param self|string|array<array-key, mixed>|object $other Duration, ISO 8601 string, or property-bag array.
      * @throws InvalidArgumentException if either duration has calendar fields or the result is out of range.
      * @throws \TypeError if $other is not a Duration, string, or array.
      */
-    public function add(mixed $other): self
+    public function add(string|array|object $other): self
     {
         $other = self::from($other);
 
@@ -1352,12 +1338,12 @@ final class Duration implements Stringable
     /**
      * Returns the difference of this duration and another (equivalent to adding the negation).
      *
-     * @param mixed $other Duration, ISO 8601 string, or property-bag array.
+     * @param self|string|array<array-key, mixed>|object $other Duration, ISO 8601 string, or property-bag array.
      * @throws InvalidArgumentException if either duration has calendar fields.
      * @throws \TypeError if $other is not a Duration, string, or array.
      * @psalm-api
      */
-    public function subtract(mixed $other): self
+    public function subtract(string|array|object $other): self
     {
         return $this->add(self::from($other)->negated());
     }
@@ -1796,15 +1782,15 @@ final class Duration implements Stringable
      * For calendar fields without relativeTo: throws InvalidArgumentException.
      * For calendar fields with valid relativeTo: throws NotYetImplementedException.
      *
-     * @param mixed $one     Duration, ISO 8601 string, or property-bag array.
-     * @param mixed $two     Duration, ISO 8601 string, or property-bag array.
-     * @param mixed $options null or options array (may contain 'relativeTo').
+     * @param self|string|array<array-key, mixed>|object $one     Duration, ISO 8601 string, or property-bag array.
+     * @param self|string|array<array-key, mixed>|object $two     Duration, ISO 8601 string, or property-bag array.
+     * @param array<array-key, mixed>|object|null $options null or options array (may contain 'relativeTo').
      * @return int -1, 0, or 1.
      * @throws InvalidArgumentException when calendar units are present without relativeTo.
      * @throws \Temporal\Exception\NotYetImplementedException when calendar arithmetic is needed.
      * @psalm-api
      */
-    public static function compare(mixed $one, mixed $two, mixed $options = null): int
+    public static function compare(string|array|object $one, string|array|object $two, array|object|null $options = null): int
     {
         $d1 = self::from($one);
         $d2 = self::from($two);
@@ -1857,25 +1843,20 @@ final class Duration implements Stringable
     /**
      * Rounds this duration to the given unit/options.
      *
-     * @param mixed $roundTo string (smallestUnit) or options array.
+     * @param string|array<array-key, mixed>|object $roundTo string (smallestUnit) or options array.
      * @return self
      * @throws \TypeError if $roundTo is not a string or array.
      * @throws InvalidArgumentException if options are invalid.
      * @throws \Temporal\Exception\NotYetImplementedException if calendar arithmetic is needed.
      * @psalm-api
      */
-    public function round(mixed $roundTo): self
+    public function round(string|array|object $roundTo): self
     {
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
         } elseif (is_object($roundTo)) {
             // Non-array objects (e.g. closures) are treated as empty options bags per TC39.
             $roundTo = [];
-        } elseif (!is_array($roundTo)) {
-            throw new \TypeError(sprintf(
-                'Duration::round() expects a string (smallestUnit) or options array; got %s.',
-                get_debug_type($roundTo),
-            ));
         }
 
         /** @var mixed $suRaw */
@@ -2334,11 +2315,11 @@ final class Duration implements Stringable
      * Extracts and validates the relativeTo option from an options array/null.
      * Returns true if a non-null relativeTo was found (and is valid).
      *
-     * @param mixed $options
+     * @param array<array-key, mixed>|object|null $options
      * @throws InvalidArgumentException for invalid relativeTo strings or property bags.
      * @throws \TypeError for invalid relativeTo types.
      */
-    private static function extractRelativeTo(mixed $options): bool
+    private static function extractRelativeTo(array|object|null $options): bool
     {
         if (!is_array($options)) {
             return false;
@@ -2372,7 +2353,7 @@ final class Duration implements Stringable
      * Converts a relativeTo value (PlainDate, string, or array property bag) into
      * an array with integer 'year', 'month', 'day' keys.
      *
-     * @param mixed $rt Already validated relativeTo value (PlainDate, string, or array).
+     * @param mixed $rt
      * @return array{year: int, month: int, day: int}
      */
     private function relativeToPlainDateBag(mixed $rt): array
@@ -2388,7 +2369,7 @@ final class Duration implements Stringable
             return ['year' => (int) $parsed['year'], 'month' => (int) $parsed['month'], 'day' => (int) $parsed['day']];
         }
         // Array property bag — extract year/month/day.
-        /** @var array<array-key,mixed> $bag */
+        assert(is_array($rt));
         $bag = $rt;
         /** @var mixed $yearRaw */
         $yearRaw = $bag['year'];
@@ -3222,7 +3203,7 @@ final class Duration implements Stringable
      * Computes the signed total nanoseconds this duration represents when anchored
      * to a PlainDate relativeTo. Used for Duration::compare() with calendar units.
      *
-     * @param mixed $rt Validated relativeTo value (PlainDate, string, or array bag).
+     * @param mixed $rt Validated relativeTo value.
      */
     private function totalNsFromRelativeTo(mixed $rt): int
     {

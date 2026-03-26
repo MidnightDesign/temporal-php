@@ -87,7 +87,7 @@ final class Instant implements Stringable
      * @throws InvalidArgumentException if the string cannot be parsed, has no UTC offset,
      *                                  or represents a timestamp outside the nanosecond range.
      */
-    public static function from(mixed $item): self
+    public static function from(string|object $item): self
     {
         if ($item instanceof self) {
             return new self($item->epochNanoseconds);
@@ -305,7 +305,7 @@ final class Instant implements Stringable
      *
      * @return int -1, 0, or 1.
      */
-    public static function compare(mixed $one, mixed $two): int
+    public static function compare(string|object $one, string|object $two): int
     {
         $a = $one instanceof self ? $one : self::coerceToInstant($one);
         $b = $two instanceof self ? $two : self::coerceToInstant($two);
@@ -320,17 +320,14 @@ final class Instant implements Stringable
      * @throws \TypeError for primitive non-string values.
      * @throws InvalidArgumentException for objects/arrays or invalid strings.
      */
-    private static function coerceToInstant(mixed $arg): self
+    private static function coerceToInstant(string|object $arg): self
     {
         if (is_string($arg)) {
             return self::from($arg);
         }
-        if (is_array($arg) || is_object($arg)) {
-            throw new InvalidArgumentException(
-                'Temporal\\Instant argument must be a Temporal\\Instant or an ISO string.',
-            );
-        }
-        throw new \TypeError('Temporal\\Instant argument must be a Temporal\\Instant or a string.');
+        throw new InvalidArgumentException(
+            'Temporal\\Instant argument must be a Temporal\\Instant or an ISO string.',
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -345,7 +342,7 @@ final class Instant implements Stringable
      *
      * @throws InvalidArgumentException if $other is not an Instant or a valid ISO string.
      */
-    public function equals(mixed $other): bool
+    public function equals(string|object $other): bool
     {
         return (
             $this->epochNanoseconds
@@ -383,17 +380,14 @@ final class Instant implements Stringable
      * Uses RoundNumberToIncrementAsIfPositive (spec §8.3.13): rounding is always applied
      * using the unsigned mode for a positive sign, regardless of the actual sign of the epoch.
      *
-     * @param mixed $options null, an array of options, or any object (treated as empty options bag).
+     * @param array<array-key, mixed>|object|null $options
      * @throws InvalidArgumentException if options are invalid.
-     * @throws \TypeError if $options is a non-null, non-array, non-object scalar.
      */
-    public function toString(mixed $options = null): string
+    public function toString(array|object|null $options = null): string
     {
         // TC39: any object (including closures) is a valid options bag treated as empty.
         if (is_object($options)) {
             $options = [];
-        } elseif ($options !== null && !is_array($options)) {
-            throw new \TypeError('Instant::toString() options must be null, an array, or an object.');
         }
 
         // $digits: -2 = 'auto' (strip trailing zeros), -1 = minute format, 0-9 = fixed.
@@ -644,11 +638,11 @@ final class Instant implements Stringable
      *   - timeZone: IANA timezone string (defaults to UTC for Instant)
      *   - calendar: calendar identifier appended as u-ca locale extension
      *
-     * @param mixed $locales  BCP 47 locale string or array of strings.
-     * @param mixed $options  Intl.DateTimeFormat options array.
+     * @param string|array<array-key, mixed>|null $locales  BCP 47 locale string or array of strings.
+     * @param array<array-key, mixed>|object|null $options  Intl.DateTimeFormat options array.
      * @psalm-api
      */
-    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         $locale = self::resolveLocale($locales);
         $opts = is_array($options) ? $options : [];
@@ -710,8 +704,10 @@ final class Instant implements Stringable
      * Resolves a BCP 47 locale from a string, array, or null.
      *
      * Falls back to the system default locale when input is null or empty.
+     *
+     * @param string|array<array-key, mixed>|null $locales
      */
-    private static function resolveLocale(mixed $locales): string
+    private static function resolveLocale(string|array|null $locales): string
     {
         if (is_string($locales) && $locales !== '') {
             return $locales;
@@ -730,17 +726,13 @@ final class Instant implements Stringable
     /**
      * Returns a ZonedDateTime for this Instant in the given time zone.
      *
-     * @param mixed $timeZone A timezone string: 'UTC', '±HH:MM', or an ISO datetime string
+     * @param string $timeZone A timezone string: 'UTC', '±HH:MM', or an ISO datetime string
      *                        with an inline offset or bracket annotation (e.g. '2020-01-01T00:00Z').
      * @psalm-api used by test262 scripts
-     * @throws \TypeError if $timeZone is not a string.
      * @throws InvalidArgumentException if the timezone string is invalid (empty, sub-minute offset, etc.).
      */
-    public function toZonedDateTimeISO(mixed $timeZone): ZonedDateTime
+    public function toZonedDateTimeISO(string $timeZone): ZonedDateTime
     {
-        if (!is_string($timeZone)) {
-            throw new \TypeError('Temporal.Instant.prototype.toZonedDateTimeISO: timeZone must be a string.');
-        }
         $tzId = self::parseTimeZoneId($timeZone);
         return new ZonedDateTime($this->epochNanoseconds, $tzId);
     }
@@ -836,11 +828,11 @@ final class Instant implements Stringable
      * no calendar context. Passing a Duration with any of those fields non-zero
      * throws RangeError.
      *
-     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param Duration|string|array<array-key, mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
      * @psalm-api used by test262 scripts
      * @throws InvalidArgumentException if the duration contains calendar fields or the result is out of range.
      */
-    public function add(mixed $duration): self
+    public function add(string|array|object $duration): self
     {
         $d = Duration::from($duration);
         if ($d->years !== 0 || $d->months !== 0 || $d->weeks !== 0 || $d->days !== 0) {
@@ -864,11 +856,11 @@ final class Instant implements Stringable
      *
      * Calendar fields (years, months, weeks, days) are forbidden.
      *
-     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param Duration|string|array<array-key, mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
      * @psalm-api used by test262 scripts
      * @throws InvalidArgumentException if the duration contains calendar fields or the result is out of range.
      */
-    public function subtract(mixed $duration): self
+    public function subtract(string|array|object $duration): self
     {
         $d = Duration::from($duration);
         if ($d->years !== 0 || $d->months !== 0 || $d->weeks !== 0 || $d->days !== 0) {
@@ -894,21 +886,17 @@ final class Instant implements Stringable
      * options array with keys: smallestUnit (required), roundingMode (default
      * 'halfExpand'), roundingIncrement (default 1).
      *
-     * @param mixed $roundTo string smallestUnit or options array.
+     * @param string|array<array-key, mixed>|object $roundTo
      * @psalm-api used by test262 scripts
-     * @throws \TypeError if $roundTo is not a string or array.
      * @throws InvalidArgumentException if smallestUnit is missing/invalid or roundingIncrement is invalid.
      */
-    public function round(mixed $roundTo): self
+    public function round(string|array|object $roundTo): self
     {
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
         } elseif (is_object($roundTo)) {
             // TC39: any object is a valid options bag treated as empty if no properties.
             $roundTo = [];
-        }
-        if (!is_array($roundTo)) {
-            throw new \TypeError('Temporal\\Instant::round() options must be a string or array.');
         }
 
         /** @psalm-suppress MixedAssignment */
@@ -969,11 +957,11 @@ final class Instant implements Stringable
      *
      * The result is positive when $this is after $other.
      *
-     * @param mixed $other   The starting instant (Instant or ISO string).
-     * @param mixed $options Options array (largestUnit, smallestUnit, roundingMode, roundingIncrement).
+     * @param string|object $other The starting instant (Instant or ISO string).
+     * @param array<array-key, mixed>|object|null $options
      * @psalm-api used by test262 scripts
      */
-    public function since(mixed $other, mixed $options = null): Duration
+    public function since(string|object $other, array|object|null $options = null): Duration
     {
         $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
         $diffNs = $this->epochNanoseconds - $otherInst->epochNanoseconds;
@@ -985,11 +973,11 @@ final class Instant implements Stringable
      *
      * The result is positive when $other is after $this.
      *
-     * @param mixed $other   The ending instant (Instant or ISO string).
-     * @param mixed $options Options array (largestUnit, smallestUnit, roundingMode, roundingIncrement).
+     * @param string|object $other The ending instant (Instant or ISO string).
+     * @param array<array-key, mixed>|object|null $options
      * @psalm-api used by test262 scripts
      */
-    public function until(mixed $other, mixed $options = null): Duration
+    public function until(string|object $other, array|object|null $options = null): Duration
     {
         $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
         $diffNs = $otherInst->epochNanoseconds - $this->epochNanoseconds;
@@ -1316,14 +1304,14 @@ final class Instant implements Stringable
      * Unit ordering (smallest to largest):
      *   nanosecond < microsecond < millisecond < second < minute < hour
      *
-     * @param int|float $diffNs  Signed nanosecond difference (this − other for since, other − this for until).
-     *                           May be float when the subtraction of two int64 sentinels overflows.
-     * @param mixed     $options Options array, object (treated as empty bag), or null.
+     * @param int|float $diffNs Signed nanosecond difference (this − other for since, other − this for until).
+     *                         May be float when the subtraction of two int64 sentinels overflows.
+     * @param array<array-key, mixed>|object|null $options
      * @throws InvalidArgumentException for invalid unit/mode strings.
      * @throws InvalidArgumentException for invalid roundingIncrement.
      * @throws \TypeError for wrong-typed option values.
      */
-    private static function diffInstant(int|float $diffNs, mixed $options): Duration
+    private static function diffInstant(int|float $diffNs, array|object|null $options): Duration
     {
         // If diffNs is a float (int64 overflow), clamp it to the spec range for balancing.
         if (is_float($diffNs)) {
@@ -1385,8 +1373,6 @@ final class Instant implements Stringable
             $options = [];
         } elseif ($options === null) {
             $options = [];
-        } elseif (!is_array($options)) {
-            throw new \TypeError('options must be null, an array, or an object.');
         }
 
         // Track whether largestUnit was explicitly provided.

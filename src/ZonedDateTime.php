@@ -386,13 +386,13 @@ final class ZonedDateTime implements Stringable
      * String format: ISO datetime with REQUIRED bracket timezone annotation,
      * e.g. '2020-01-01T12:00:00+05:30[Asia/Kolkata]'.
      *
-     * @param mixed $item    ZonedDateTime, ISO string, or property-bag array/object.
-     * @param mixed $options Options array; supports 'disambiguation' (string).
+     * @param self|string|array<array-key, mixed>|object $item    ZonedDateTime, ISO string, or property-bag array/object.
+     * @param array<array-key, mixed>|object|null $options Options array; supports 'disambiguation' (string).
      * @throws \TypeError              for unsupported types.
      * @throws InvalidArgumentException for invalid strings or property bags.
      * @psalm-api
      */
-    public static function from(mixed $item, mixed $options = null): self
+    public static function from(string|array|object $item, array|object|null $options = null): self
     {
         $opts = null;
         if (is_array($options)) {
@@ -456,25 +456,19 @@ final class ZonedDateTime implements Stringable
         if (is_string($item)) {
             return self::parseZdtString($item, $options);
         }
-        if (is_array($item) || is_object($item)) {
-            $bag = is_array($item) ? $item : (array) $item;
-            return self::fromPropertyBag($bag, $overflow);
-        }
-        throw new \TypeError(sprintf(
-            'ZonedDateTime::from() requires a ZonedDateTime, string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        $bag = is_array($item) ? $item : (array) $item;
+        return self::fromPropertyBag($bag, $overflow);
     }
 
     /**
      * Compares two ZonedDateTimes by their epoch nanoseconds.
      *
-     * @param mixed $one ZonedDateTime or value coercible via from().
-     * @param mixed $two ZonedDateTime or value coercible via from().
+     * @param self|string|array<array-key, mixed>|object $one ZonedDateTime or value coercible via from().
+     * @param self|string|array<array-key, mixed>|object $two ZonedDateTime or value coercible via from().
      * @return int -1, 0, or 1.
      * @psalm-api
      */
-    public static function compare(mixed $one, mixed $two): int
+    public static function compare(string|array|object $one, string|array|object $two): int
     {
         $a = $one instanceof self ? $one : self::from($one);
         $b = $two instanceof self ? $two : self::from($two);
@@ -551,11 +545,8 @@ final class ZonedDateTime implements Stringable
      * @throws InvalidArgumentException if the timezone is invalid.
      * @psalm-api
      */
-    public function withTimeZone(mixed $timeZone): self
+    public function withTimeZone(string $timeZone): self
     {
-        if (!is_string($timeZone)) {
-            throw new \TypeError('ZonedDateTime::withTimeZone() timeZone must be a string.');
-        }
         // Normalize before constructing so datetime strings are accepted here
         // (the constructor rejects them with $rejectDatetimeStrings = true).
         $normalizedTz = self::normalizeTimezoneId($timeZone);
@@ -567,15 +558,11 @@ final class ZonedDateTime implements Stringable
      *
      * Only 'iso8601' is supported (case-insensitive).
      *
-     * @throws \TypeError              if $calendar is not a string.
      * @throws InvalidArgumentException if an unsupported calendar is given.
      * @psalm-api
      */
-    public function withCalendar(mixed $calendar): self
+    public function withCalendar(string $calendar): self
     {
-        if (!is_string($calendar)) {
-            throw new \TypeError('ZonedDateTime::withCalendar() calendar must be a string.');
-        }
         self::extractCalendarFromString($calendar); // validates; throws if unsupported
         return new self($this->epochNanoseconds, $this->timeZoneId, 'iso8601');
     }
@@ -586,10 +573,10 @@ final class ZonedDateTime implements Stringable
      * If $time is null the time is set to midnight (00:00:00).
      * Accepts PlainTime, null, a time string, or a property-bag array.
      *
-     * @param mixed $time PlainTime, null, string, or array.
+     * @param PlainTime|string|array<array-key, mixed>|object|null $time PlainTime, null, string, or array.
      * @psalm-api
      */
-    public function withPlainTime(mixed $time = null): self
+    public function withPlainTime(string|array|object|null $time = null): self
     {
         // When called with no arguments, default to midnight.
         // Explicit null is an invalid type (mirrors JS null vs undefined distinction).
@@ -667,21 +654,14 @@ final class ZonedDateTime implements Stringable
     /**
      * Returns true if this ZonedDateTime represents the same instant, timezone, and calendar.
      *
-     * @param mixed $other ZonedDateTime, string, or array.
+     * @param self|string|array<array-key, mixed>|object $other ZonedDateTime, string, or array.
      * @throws \TypeError for unsupported types.
      * @psalm-api
      */
-    public function equals(mixed $other): bool
+    public function equals(string|array|object $other): bool
     {
         if (!$other instanceof self) {
-            if (is_string($other) || is_array($other)) {
-                $other = self::from($other);
-            } else {
-                throw new \TypeError(sprintf(
-                    'ZonedDateTime::equals() requires a ZonedDateTime, string, or array; got %s.',
-                    get_debug_type($other),
-                ));
-            }
+            $other = self::from($other);
         }
         return (
             $this->epochNanoseconds === $other->epochNanoseconds
@@ -699,17 +679,15 @@ final class ZonedDateTime implements Stringable
      *   - timeZoneName: 'auto' (default, include name) | 'never' | 'critical'
      *   - calendarName: 'auto' (default, omit for iso8601) | 'always' | 'never' | 'critical'
      *
-     * @param mixed $options null, array, or object (treated as empty bag).
+     * @param array<array-key, mixed>|object|null $options null, array, or object (treated as empty bag).
      * @throws \TypeError              if option values have wrong types.
      * @throws InvalidArgumentException if option values are invalid strings.
      * @psalm-api
      */
-    public function toString(mixed $options = null): string
+    public function toString(array|object|null $options = null): string
     {
         if (is_object($options)) {
             $options = [];
-        } elseif ($options !== null && !is_array($options)) {
-            throw new \TypeError('ZonedDateTime::toString() options must be null, an array, or an object.');
         }
 
         $digits = -2; // -2 = 'auto'
@@ -933,11 +911,11 @@ final class ZonedDateTime implements Stringable
      *   - timeZone: IANA timezone string (defaults to this ZonedDateTime's timezone)
      *   - calendar: calendar identifier appended as u-ca locale extension
      *
-     * @param mixed $locales  BCP 47 locale string or array of strings.
-     * @param mixed $options  Intl.DateTimeFormat options array.
+     * @param string|array<array-key, mixed>|null $locales BCP 47 locale string or array of strings.
+     * @param array<array-key, mixed>|object|null $options Intl.DateTimeFormat options array.
      * @psalm-api
      */
-    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         $locale = self::resolveLocaleString($locales);
         $opts = is_array($options) ? $options : [];
@@ -999,8 +977,10 @@ final class ZonedDateTime implements Stringable
      * Resolves a BCP 47 locale from a string, array, or null.
      *
      * Falls back to the system default locale when input is null or empty.
+     *
+     * @param string|array<array-key, mixed>|null $locales
      */
-    private static function resolveLocaleString(mixed $locales): string
+    private static function resolveLocaleString(string|array|null $locales): string
     {
         if (is_string($locales) && $locales !== '') {
             return $locales;
@@ -1026,11 +1006,11 @@ final class ZonedDateTime implements Stringable
      * Calendar units (years/months) modify local date fields and re-resolve to ZDT.
      * Time units add nanoseconds directly to the epoch.
      *
-     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
-     * @param mixed $options  Options array; supports 'overflow' ('constrain'|'reject').
+     * @param Duration|string|array<array-key, mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param array<array-key, mixed>|object|null $options Options array; supports 'overflow' ('constrain'|'reject').
      * @psalm-api
      */
-    public function add(mixed $duration, mixed $options = null): self
+    public function add(string|array|object $duration, array|object|null $options = null): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDurationZdt(1, $dur, $options);
@@ -1039,11 +1019,11 @@ final class ZonedDateTime implements Stringable
     /**
      * Returns a new ZonedDateTime with the given duration subtracted.
      *
-     * @param mixed $duration Duration, ISO 8601 duration string, or property-bag array.
-     * @param mixed $options  Options array; supports 'overflow' ('constrain'|'reject').
+     * @param Duration|string|array<array-key,mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
+     * @param array<array-key, mixed>|object|null $options Options array; supports 'overflow' ('constrain'|'reject').
      * @psalm-api
      */
-    public function subtract(mixed $duration, mixed $options = null): self
+    public function subtract(string|array|object $duration, array|object|null $options = null): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDurationZdt(-1, $dur, $options);
@@ -1054,11 +1034,11 @@ final class ZonedDateTime implements Stringable
      *
      * Default largestUnit is 'hour' (per TC39 ZonedDateTime spec).
      *
-     * @param mixed $other   ZonedDateTime or ZDT string.
-     * @param mixed $options Options array with largestUnit, smallestUnit, roundingMode, roundingIncrement.
+     * @param self|string|array<array-key, mixed>|object $other   ZonedDateTime or ZDT string.
+     * @param array<array-key, mixed>|object|null $options Options array with largestUnit, smallestUnit, roundingMode, roundingIncrement.
      * @psalm-api
      */
-    public function since(mixed $other, mixed $options = null): Duration
+    public function since(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         return self::diffZdt($this, $o, $this, $options);
@@ -1069,11 +1049,11 @@ final class ZonedDateTime implements Stringable
      *
      * Default largestUnit is 'hour' (per TC39 ZonedDateTime spec).
      *
-     * @param mixed $other   ZonedDateTime or ZDT string.
-     * @param mixed $options Options array with largestUnit, smallestUnit, roundingMode, roundingIncrement.
+     * @param self|string|array<array-key, mixed>|object $other   ZonedDateTime or ZDT string.
+     * @param array<array-key, mixed>|object|null $options Options array with largestUnit, smallestUnit, roundingMode, roundingIncrement.
      * @psalm-api
      */
-    public function until(mixed $other, mixed $options = null): Duration
+    public function until(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         return self::diffZdt($o, $this, $this, $options);
@@ -1085,21 +1065,18 @@ final class ZonedDateTime implements Stringable
      * For 'day': rounds relative to local midnight in the timezone.
      * For sub-day units: rounds the epoch nanoseconds directly.
      *
-     * @param mixed $options string smallestUnit or array with keys:
+     * @param string|array<array-key, mixed>|object $options string smallestUnit or array with keys:
      *   - smallestUnit (required): 'day'|'hour'|'minute'|'second'|'millisecond'|'microsecond'|'nanosecond'
      *   - roundingMode (default 'halfExpand')
      *   - roundingIncrement (default 1)
      * @psalm-api
      */
-    public function round(mixed $options): self
+    public function round(string|array|object $options): self
     {
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
             $options = (array) $options;
-        }
-        if (!is_array($options)) {
-            throw new \TypeError('Temporal\\ZonedDateTime::round() options must be a string, array, or object.');
         }
 
         /** @psalm-suppress MixedAssignment */
@@ -1215,10 +1192,10 @@ final class ZonedDateTime implements Stringable
      * Returns a new ZonedDateTime with the specified fields overridden.
      *
      * @param array<array-key,mixed> $fields   Property bag with fields to override.
-     * @param mixed                  $options  Options bag: ['overflow' => ..., 'disambiguation' => ...]
+     * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => ..., 'disambiguation' => ...]
      * @psalm-api
      */
-    public function with(array $fields, mixed $options = null): self
+    public function with(array $fields, array|object|null $options = null): self
     {
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
             throw new \TypeError('ZonedDateTime::with() fields must not contain a calendar or timeZone property.');
@@ -1254,7 +1231,7 @@ final class ZonedDateTime implements Stringable
         // Validate the 'offset' option (how to use the offset field).
         // Full DST-aware offset resolution is not yet implemented; for UTC/fixed-offset
         // timezones the option has no effect beyond validation.
-        if ($options !== null && (is_array($options) || is_object($options))) {
+        if ($options !== null) {
             $optArr = is_array($options) ? $options : (array) $options;
             if (array_key_exists('offset', $optArr)) {
                 /** @var mixed $offOpt */
@@ -1473,10 +1450,10 @@ final class ZonedDateTime implements Stringable
      *
      * Returns null for fixed-offset timezones (UTC, ±HH:MM).
      *
-     * @param mixed $direction 'next' or 'previous', or an array with 'direction' key.
+     * @param string|array<array-key, mixed>|object $direction 'next' or 'previous', or an array with 'direction' key.
      * @psalm-api
      */
-    public function getTimeZoneTransition(mixed $direction): ?self
+    public function getTimeZoneTransition(string|array|object $direction): ?self
     {
         if (func_num_args() === 0) {
             throw new \TypeError('ZonedDateTime::getTimeZoneTransition() requires a direction argument.');
@@ -1827,10 +1804,10 @@ final class ZonedDateTime implements Stringable
     /**
      * Parses a ZonedDateTime ISO string (with required bracket timezone annotation).
      *
-     * @param mixed $options Options from from() (may contain 'offset' key).
+     * @param array<array-key, mixed>|object|null $options Options from from() (may contain 'offset' key).
      * @throws InvalidArgumentException if the string is invalid.
      */
-    private static function parseZdtString(string $text, mixed $options = null): self
+    private static function parseZdtString(string $text, array|object|null $options = null): self
     {
         // Resolve the 'offset' option (default: 'reject').
         $offsetOption = 'reject';
@@ -2599,8 +2576,10 @@ final class ZonedDateTime implements Stringable
      *
      * Calendar units are applied to local date fields and re-resolved;
      * time units are added as nanoseconds to the epoch.
+     *
+     * @param array<array-key, mixed>|object|null $options
      */
-    private function addDurationZdt(int $sign, Duration $dur, mixed $options): self
+    private function addDurationZdt(int $sign, Duration $dur, array|object|null $options): self
     {
         // Sentinel epoch values: if we don't have trueEpochSec for pure-time-unit
         // arithmetic on a sentinel, reject (calendar-unit path uses localComponents
@@ -2871,8 +2850,10 @@ final class ZonedDateTime implements Stringable
      *
      * Computes $later - $earlier. For calendar units, uses local date diffing.
      * For time-only units, uses epoch nanosecond difference.
+     *
+     * @param array<array-key, mixed>|object|null $options
      */
-    private static function diffZdt(self $later, self $earlier, self $receiver, mixed $options): Duration
+    private static function diffZdt(self $later, self $earlier, self $receiver, array|object|null $options): Duration
     {
         /** @var list<string> $validUnits */
         static $validUnits = [
@@ -2942,7 +2923,7 @@ final class ZonedDateTime implements Stringable
         $roundingMode = 'trunc';
         $roundingIncrement = 1;
 
-        if ($options !== null && (is_array($options) || is_object($options))) {
+        if ($options !== null) {
             $opts = is_array($options) ? $options : (array) $options;
 
             if (array_key_exists('largestUnit', $opts)) {
@@ -3491,17 +3472,16 @@ final class ZonedDateTime implements Stringable
      *
      * When the key is present, the value must be a string ('constrain'|'reject').
      * null/bool/other types throw.
+     *
+     * @param array<array-key, mixed>|object|null $options
      */
-    private static function extractOverflow(mixed $options): string
+    private static function extractOverflow(array|object|null $options): string
     {
         if ($options === null) {
             return 'constrain';
         }
         if (is_object($options)) {
             $options = (array) $options;
-        }
-        if (!is_array($options)) {
-            return 'constrain';
         }
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
@@ -3522,17 +3502,16 @@ final class ZonedDateTime implements Stringable
 
     /**
      * Extracts and validates the 'disambiguation' option.
+     *
+     * @param array<array-key, mixed>|object|null $options
      */
-    private static function extractDisambiguation(mixed $options): string
+    private static function extractDisambiguation(array|object|null $options): string
     {
         if ($options === null) {
             return 'compatible';
         }
         if (is_object($options)) {
             $options = (array) $options;
-        }
-        if (!is_array($options)) {
-            return 'compatible';
         }
         if (!array_key_exists('disambiguation', $options)) {
             return 'compatible';

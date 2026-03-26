@@ -156,33 +156,31 @@ final class PlainMonthDay implements Stringable
      * Creates a PlainMonthDay from another PlainMonthDay, an ISO 8601 string, or a
      * property-bag array with 'month'/'monthCode' and 'day' fields.
      *
-     * @param mixed $item     PlainMonthDay, ISO 8601 month-day string, or property-bag array.
-     * @param mixed $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @param self|string|array<array-key, mixed>|object $item PlainMonthDay, ISO 8601 month-day string, or property-bag array.
+     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws InvalidArgumentException if the string is invalid or overflow option is invalid.
      * @throws \TypeError if the type cannot be interpreted as a PlainMonthDay.
      * @psalm-api
      */
-    public static function from(mixed $item, mixed $options = null): self
+    public static function from(string|array|object $item, array|object|null $options = null): self
     {
         // Validate overflow option before processing item (per spec ordering).
         $overflow = 'constrain';
         if ($options !== null) {
             if (!is_array($options)) {
-                if (is_object($options)) {
-                    $opts = (array) $options;
-                    if (array_key_exists('overflow', $opts)) {
-                        /** @var mixed $ov */
-                        $ov = $opts['overflow'];
-                        if (!is_string($ov)) {
-                            throw new \TypeError('overflow option must be a string.');
-                        }
-                        if ($ov !== 'constrain' && $ov !== 'reject') {
-                            throw new InvalidArgumentException(
-                                "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                            );
-                        }
-                        $overflow = $ov;
+                $opts = (array) $options;
+                if (array_key_exists('overflow', $opts)) {
+                    /** @var mixed $ov */
+                    $ov = $opts['overflow'];
+                    if (!is_string($ov)) {
+                        throw new \TypeError('overflow option must be a string.');
                     }
+                    if ($ov !== 'constrain' && $ov !== 'reject') {
+                        throw new InvalidArgumentException(
+                            "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
+                        );
+                    }
+                    $overflow = $ov;
                 }
             } elseif (array_key_exists('overflow', $options)) {
                 /** @var mixed $ov */
@@ -225,22 +223,15 @@ final class PlainMonthDay implements Stringable
      * accepted but only used for overflow validation (not for a range check).
      * The 'calendar' and 'timeZone' keys must not be present.
      *
-     * @param mixed $fields   Property bag with fields to override (array or plain object).
-     * @param mixed $options  Options bag: ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object $fields Property bag with fields to override.
+     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
      * @throws \TypeError             if no recognized fields are present.
      * @throws InvalidArgumentException if the resulting month-day is invalid (overflow: reject).
      * @psalm-api
      */
-    public function with(mixed $fields, mixed $options = null): self
+    public function with(array|object $fields, array|object|null $options = null): self
     {
-        // IsPartialTemporalObject checks: reject non-objects, Temporal objects, calendar/timeZone keys.
-        if (!is_array($fields) && !is_object($fields)) {
-            throw new \TypeError(sprintf(
-                'PlainMonthDay::with() argument must be a plain object; got %s.',
-                get_debug_type($fields),
-            ));
-        }
 
         // Reject Temporal objects (IsPartialTemporalObject step 2).
         if (
@@ -407,10 +398,10 @@ final class PlainMonthDay implements Stringable
      *
      * Equality compares month, day, calendarId, AND referenceISOYear.
      *
-     * @param mixed $other A PlainMonthDay, ISO 8601 month-day string, or property-bag array.
+     * @param self|string|array<array-key, mixed>|object $other A PlainMonthDay, ISO 8601 month-day string, or property-bag array.
      * @psalm-api
      */
-    public function equals(mixed $other): bool
+    public function equals(string|array|object $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
         return (
@@ -428,11 +419,11 @@ final class PlainMonthDay implements Stringable
      *   always     → "YYYY-MM-DD[u-ca=iso8601]"
      *   critical   → "YYYY-MM-DD[!u-ca=iso8601]"
      *
-     * @param mixed $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
+     * @param array<array-key, mixed>|object|null $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
      * @throws InvalidArgumentException for invalid calendarName values.
      * @psalm-api
      */
-    public function toString(mixed $options = null): string
+    public function toString(array|object|null $options = null): string
     {
         $calendarName = 'auto';
         if ($options !== null && is_array($options) && array_key_exists('calendarName', $options)) {
@@ -464,12 +455,12 @@ final class PlainMonthDay implements Stringable
     }
 
     /**
-     * @param mixed $locales  BCP 47 locale string or array (ignored in PHP).
-     * @param mixed $options  Intl.DateTimeFormat options bag (ignored in PHP).
+     * @param string|array<array-key, mixed>|null $locales BCP 47 locale string or array (ignored in PHP).
+     * @param array<array-key, mixed>|object|null $options Intl.DateTimeFormat options bag (ignored in PHP).
      * @psalm-suppress UnusedParam
      * @psalm-api
      */
-    public function toLocaleString(mixed $locales = null, mixed $options = null): string
+    public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         return $this->toString();
     }
@@ -497,23 +488,18 @@ final class PlainMonthDay implements Stringable
      *
      * The day is constrained to the valid range for that year's month (default overflow behaviour).
      *
-     * @param array<array-key,mixed>|object|mixed $fields Must contain 'year' key.
+     * @param array<array-key, mixed>|object $fields Must contain 'year' key.
      * @throws \TypeError             if $fields is not an object/array or 'year' is missing.
      * @throws InvalidArgumentException if the resulting date is invalid.
      * @psalm-api
      */
-    public function toPlainDate(mixed $fields): PlainDate
+    public function toPlainDate(array|object $fields): PlainDate
     {
         if (is_array($fields)) {
             $bag = $fields;
-        } elseif (is_object($fields)) {
+        } else {
             /** @var array<array-key, mixed> $bag */
             $bag = get_object_vars($fields);
-        } else {
-            throw new \TypeError(sprintf(
-                'PlainMonthDay::toPlainDate() argument must be an object; got %s.',
-                get_debug_type($fields),
-            ));
         }
 
         if (!array_key_exists('year', $bag)) {

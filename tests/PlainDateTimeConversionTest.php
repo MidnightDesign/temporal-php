@@ -45,36 +45,12 @@ final class PlainDateTimeConversionTest extends TestCase
         }
     }
 
-    public function testToZonedDateTimeNullThrowsTypeError(): void
-    {
-        $dt = new PlainDateTime(2020, 1, 1);
-
-        $this->expectException(\TypeError::class);
-        $dt->toZonedDateTime(null);
-    }
-
-    public function testToZonedDateTimeNumberThrowsTypeError(): void
-    {
-        $dt = new PlainDateTime(2020, 1, 1);
-
-        $this->expectException(\TypeError::class);
-        $dt->toZonedDateTime(42);
-    }
-
     public function testToZonedDateTimeEmptyStringThrows(): void
     {
         $dt = new PlainDateTime(2020, 1, 1);
 
         $this->expectException(InvalidArgumentException::class);
         $dt->toZonedDateTime('');
-    }
-
-    public function testToZonedDateTimeBadOptionsTypeThrows(): void
-    {
-        $dt = new PlainDateTime(2020, 1, 1);
-
-        $this->expectException(\TypeError::class);
-        $dt->toZonedDateTime('UTC', 'some string');
     }
 
     public function testToZonedDateTimeBadDisambiguationThrows(): void
@@ -156,22 +132,6 @@ final class PlainDateTimeConversionTest extends TestCase
         $result = $pdt->withCalendar('2020-01-01[u-ca=iso8601]');
 
         static::assertSame('iso8601', $result->calendarId);
-    }
-
-    public function testWithCalendarNullThrowsTypeError(): void
-    {
-        $pdt = new PlainDateTime(2020, 3, 15);
-
-        $this->expectException(\TypeError::class);
-        $pdt->withCalendar(null);
-    }
-
-    public function testWithCalendarNumberThrowsTypeError(): void
-    {
-        $pdt = new PlainDateTime(2020, 3, 15);
-
-        $this->expectException(\TypeError::class);
-        $pdt->withCalendar(42);
     }
 
     public function testWithCalendarEmptyStringThrows(): void
