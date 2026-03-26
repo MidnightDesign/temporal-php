@@ -1483,8 +1483,12 @@ final class PlainDateTime implements Stringable
      *
      * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
-    private static function diffDateTime(self $later, self $earlier, self $receiver, array|object|null $options): Duration
-    {
+    private static function diffDateTime(
+        self $later,
+        self $earlier,
+        self $receiver,
+        array|object|null $options,
+    ): Duration {
         /** @var list<string> $validUnits */
         static $validUnits = [
             'auto',

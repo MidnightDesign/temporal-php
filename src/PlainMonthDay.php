@@ -236,7 +236,6 @@ final class PlainMonthDay implements Stringable
      */
     public function with(array|object $fields, array|object|null $options = null): self
     {
-
         // Reject Temporal objects (IsPartialTemporalObject step 2).
         if (
             $fields instanceof PlainDate

@@ -200,7 +200,6 @@ final class PlainDateConversionTest extends TestCase
         static::assertSame('iso8601', $result->calendarId);
     }
 
-
     public function testWithCalendarEmptyStringThrowsInvalidArgument(): void
     {
         $pd = new PlainDate(1976, 11, 18);

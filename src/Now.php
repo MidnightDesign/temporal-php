@@ -57,7 +57,7 @@ final class Now
      * @throws InvalidArgumentException if the string is not a valid time zone identifier.
      * @psalm-api
      */
-    public static function plainDateISO(string|null $timeZone = null): PlainDate
+    public static function plainDateISO(?string $timeZone = null): PlainDate
     {
         $tzId = self::resolveTimeZone($timeZone, func_num_args() > 0);
         /** @psalm-suppress ArgumentTypeCoercion */
@@ -73,7 +73,7 @@ final class Now
      * @throws InvalidArgumentException if the string is not a valid time zone identifier.
      * @psalm-api
      */
-    public static function plainTimeISO(string|null $timeZone = null): PlainTime
+    public static function plainTimeISO(?string $timeZone = null): PlainTime
     {
         $tzId = self::resolveTimeZone($timeZone, func_num_args() > 0);
         /** @psalm-suppress ArgumentTypeCoercion */
@@ -92,7 +92,7 @@ final class Now
      * @throws InvalidArgumentException if the string is not a valid time zone identifier.
      * @psalm-api
      */
-    public static function plainDateTimeISO(string|null $timeZone = null): PlainDateTime
+    public static function plainDateTimeISO(?string $timeZone = null): PlainDateTime
     {
         $tzId = self::resolveTimeZone($timeZone, func_num_args() > 0);
         /** @psalm-suppress ArgumentTypeCoercion */
@@ -118,7 +118,7 @@ final class Now
      * @throws InvalidArgumentException if the string is not a valid time zone identifier.
      * @psalm-api
      */
-    public static function zonedDateTimeISO(string|null $timeZone = null): ZonedDateTime
+    public static function zonedDateTimeISO(?string $timeZone = null): ZonedDateTime
     {
         $tzId = self::resolveTimeZone($timeZone, func_num_args() > 0);
         // Use microsecond-precision epoch nanoseconds (same as instant()).
@@ -143,7 +143,7 @@ final class Now
      * @throws \TypeError              for non-string arguments (including explicitly-passed null).
      * @throws InvalidArgumentException for empty strings or otherwise invalid strings.
      */
-    private static function resolveTimeZone(string|null $timeZone, bool $provided = false): string
+    private static function resolveTimeZone(?string $timeZone, bool $provided = false): string
     {
         if ($timeZone === null) {
             if ($provided) {

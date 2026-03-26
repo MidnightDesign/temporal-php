@@ -967,6 +967,9 @@ final class Duration implements Stringable
                         // Z inline offset: any bracket timezone is allowed (no matching required).
                     } else {
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
+                        /**
+                         * @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $iOffParts
+                         */
                         $iMin = ((int) $iOffParts[2] * 60) + (int) $iOffParts[3];
                         $iMin = $iOffParts[1] === '-' ? -$iMin : $iMin;
                         if ($bMin !== $iMin) {
@@ -980,6 +983,7 @@ final class Duration implements Stringable
                 if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
+                        /** @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $iOffParts */
                         $iMin = ((int) $iOffParts[2] * 60) + (int) $iOffParts[3];
                         if ($iMin !== 0) {
                             throw new InvalidArgumentException(
@@ -1033,6 +1037,7 @@ final class Duration implements Stringable
             if (preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                 if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
                     preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $offParts);
+                    /** @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $offParts */
                     $offsetSec = ((int) $offParts[2] * 3_600) + ((int) $offParts[3] * 60);
                     if ($offParts[1] === '-') {
                         $offsetSec = -$offsetSec;
@@ -1790,8 +1795,11 @@ final class Duration implements Stringable
      * @throws \Temporal\Exception\NotYetImplementedException when calendar arithmetic is needed.
      * @psalm-api
      */
-    public static function compare(string|array|object $one, string|array|object $two, array|object|null $options = null): int
-    {
+    public static function compare(
+        string|array|object $one,
+        string|array|object $two,
+        array|object|null $options = null,
+    ): int {
         $d1 = self::from($one);
         $d2 = self::from($two);
 
@@ -2981,9 +2989,7 @@ final class Duration implements Stringable
     {
         // Reject empty string.
         if ($tz === '') {
-            throw new InvalidArgumentException(
-                "Invalid timeZone \"\": empty string is not a valid timezone identifier.",
-            );
+            throw new InvalidArgumentException('Invalid timeZone "": empty string is not a valid timezone identifier.');
         }
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {

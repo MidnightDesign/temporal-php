@@ -325,9 +325,7 @@ final class Instant implements Stringable
         if (is_string($arg)) {
             return self::from($arg);
         }
-        throw new InvalidArgumentException(
-            'Temporal\\Instant argument must be a Temporal\\Instant or an ISO string.',
-        );
+        throw new InvalidArgumentException('Temporal\\Instant argument must be a Temporal\\Instant or an ISO string.');
     }
 
     // -------------------------------------------------------------------------
@@ -532,9 +530,7 @@ final class Instant implements Stringable
     {
         // Reject empty string.
         if ($tz === '') {
-            throw new InvalidArgumentException(
-                "Invalid timeZone \"\": empty string is not a valid timezone identifier.",
-            );
+            throw new InvalidArgumentException('Invalid timeZone "": empty string is not a valid timezone identifier.');
         }
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
@@ -611,6 +607,7 @@ final class Instant implements Stringable
             if ($om[1] === 'Z' || $om[1] === 'z') {
                 return 0;
             }
+            /** @var array{non-falsy-string, non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $om */
             $sign = $om[2] === '+' ? 1 : -1;
             return $sign * (((int) $om[3] * 60) + (int) $om[4]);
         }

@@ -672,9 +672,11 @@ final class PlainYearMonth implements Stringable
 
         // Validate month range before day validation.
         if ($month < 1 || $month > 12) {
-            throw new InvalidArgumentException(
-                sprintf('PlainYearMonth::from() cannot parse "%s": month %d out of range.', $s, $month),
-            );
+            throw new InvalidArgumentException(sprintf(
+                'PlainYearMonth::from() cannot parse "%s": month %d out of range.',
+                $s,
+                $month,
+            ));
         }
 
         // Validate that $refDay is a valid day for this month (day from string).
@@ -874,8 +876,12 @@ final class PlainYearMonth implements Stringable
      *
      * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
-    private static function diffYearMonth(self $later, self $earlier, self $receiver, array|object|null $options): Duration
-    {
+    private static function diffYearMonth(
+        self $later,
+        self $earlier,
+        self $receiver,
+        array|object|null $options,
+    ): Duration {
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'month', 'months', 'year', 'years'];
         /** @var list<string> $disallowedUnits */
