@@ -1010,6 +1010,12 @@ final class PlainTime implements Stringable
     /**
      * Validates all six time component values and throws if any are out of range.
      *
+     * @phpstan-assert int<0, 23> $h
+     * @phpstan-assert int<0, 59> $min
+     * @phpstan-assert int<0, 59> $sec
+     * @phpstan-assert int<0, 999> $ms
+     * @phpstan-assert int<0, 999> $us
+     * @phpstan-assert int<0, 999> $ns
      * @throws InvalidArgumentException if any field is out of its valid range.
      */
     private static function validateFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
@@ -1112,11 +1118,15 @@ final class PlainTime implements Stringable
     /**
      * Parses fractional-second string (".123" or ",123456789") into nanoseconds.
      * Pads or truncates to exactly 9 digits.
+     *
+     * @return int<0, 999999999>
      */
     private static function parseFraction(string $fractionRaw): int
     {
         $digits = substr(string: $fractionRaw, offset: 1); // strip leading '.' or ','
-        return (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
+        $ns = (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        return $ns;
     }
 
     /**

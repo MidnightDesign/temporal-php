@@ -87,26 +87,19 @@ final class PlainMonthDay implements Stringable
      *
      * @param int|float $isoMonth        Month 1–12 (required).
      * @param int|float $isoDay          Day 1–31 (calendar-aware; required).
-     * @param mixed     $calendar        Calendar ID string; only "iso8601" supported.
-     * @param int|float $referenceISOYear Reference ISO year; defaults to 1972.
+     * @param string|null $calendar        Calendar ID string; only "iso8601" supported.
+     * @param int|float   $referenceISOYear Reference ISO year; defaults to 1972.
      *
-     * @throws \TypeError             if calendar is not null/string.
      * @throws InvalidArgumentException if month/day/referenceISOYear are out of range, infinite,
      *                                  or the calendar is unsupported.
      */
     public function __construct(
         int|float $isoMonth,
         int|float $isoDay,
-        mixed $calendar = null,
+        ?string $calendar = null,
         int|float $referenceISOYear = 1972,
     ) {
         if ($calendar !== null) {
-            if (!is_string($calendar)) {
-                throw new \TypeError(sprintf(
-                    'PlainMonthDay calendar must be a string; got %s.',
-                    get_debug_type($calendar),
-                ));
-            }
             // Only bare calendar IDs (not ISO date strings) accepted in constructor.
             if (strtolower($calendar) !== 'iso8601') {
                 throw new InvalidArgumentException("Unsupported calendar \"{$calendar}\": only iso8601 is supported.");

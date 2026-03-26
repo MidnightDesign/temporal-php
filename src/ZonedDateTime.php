@@ -2548,16 +2548,19 @@ final class ZonedDateTime implements Stringable
     // Helpers copied from Instant.php
     // -------------------------------------------------------------------------
 
+    /** @return int<0, 999999999> */
     private static function parseFraction(string $fractionRaw): int
     {
         $digits = substr($fractionRaw, offset: 1);
-        return (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
+        $ns = (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        return $ns;
     }
 
     /**
      * Parses an offset string into [sign, absSec, fracNs].
      *
-     * @return array{int, int, int}  [sign (+1|-1), absSec, fracNs]
+     * @return array{-1|1, int<0, 86399>, int<0, 999999999>}  [sign (+1|-1), absSec, fracNs]
      * @throws InvalidArgumentException if the offset is out of range.
      */
     private static function parseOffset(string $offset, string $original): array
@@ -2605,6 +2608,7 @@ final class ZonedDateTime implements Stringable
                 "Invalid ZonedDateTime string \"{$original}\": UTC offset out of range.",
             );
         }
+        /** @var int<0, 86399> $absSec — range validated above */
 
         return [$sign, $absSec, $fracNs];
     }

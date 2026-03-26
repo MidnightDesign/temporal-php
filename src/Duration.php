@@ -1726,6 +1726,7 @@ final class Duration implements Stringable
      * @param string $mode        TC39 rounding mode.
      * @param int    $quotient    Truncated quotient (used by halfEven).
      * @param int    $sign        Duration sign (1 or -1).
+     * @return int<0, 1>
      */
     private static function applyRounding(int $remainder, int $unitNs, string $mode, int $quotient, int $sign): int
     {
@@ -1762,6 +1763,7 @@ final class Duration implements Stringable
      * @param int $remainder 0 ≤ remainder < $unitNs.
      * @param int $unitNs    Size of the rounding unit.
      * @param int $quotient  Truncated quotient (to check parity).
+     * @return int<0, 1>
      */
     private static function halfEvenRound(int $remainder, int $unitNs, int $quotient): int
     {

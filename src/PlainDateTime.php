@@ -2225,11 +2225,15 @@ final class PlainDateTime implements Stringable
     /**
      * Parses fractional-second string (".123456789" or ",123") into nanoseconds.
      * Pads or truncates to exactly 9 digits.
+     *
+     * @return int<0, 999999999>
      */
     private static function parseFraction(string $fractionRaw): int
     {
         $digits = substr(string: $fractionRaw, offset: 1); // strip leading '.' or ','
-        return (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
+        $ns = (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        return $ns;
     }
 
     /**

@@ -230,7 +230,6 @@ final class Instant implements Stringable
             $utcEpochSec < -$maxSec
             || $utcEpochSec > $maxSec
             || $utcEpochSec === $maxSec && $baseNs > 0
-            || $utcEpochSec === -$maxSec && $baseNs < 0 // always false, but for clarity
         ) {
             throw new InvalidArgumentException(
                 "Instant string \"{$text}\" is outside the representable nanosecond range.",
@@ -994,7 +993,7 @@ final class Instant implements Stringable
      *   ±HH:MM | ±HH:MM:SS[.,f]       → colon-separated
      *   ±HHMM  | ±HHMMSS[.,f]         → no separators
      *
-     * @return array{int, int, int}  [sign (+1|-1), absSec, fracNs]
+     * @return array{-1|1, int<0, 86399>, int<0, 999999999>}  [sign (+1|-1), absSec, fracNs]
      * @throws InvalidArgumentException if the offset is out of range
      */
     private static function parseOffset(string $offset, string $original): array
@@ -1042,6 +1041,7 @@ final class Instant implements Stringable
         if ((($absSec * self::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
             throw new InvalidArgumentException("Invalid Instant string \"{$original}\": UTC offset out of range.");
         }
+        /** @var int<0, 86399> $absSec — range validated above */
 
         return [$sign, $absSec, $fracNs];
     }
@@ -1171,11 +1171,15 @@ final class Instant implements Stringable
      *
      * The Temporal spec allows arbitrarily long fraction strings; digits beyond
      * the 9th are discarded (truncation, not rounding).
+     *
+     * @return int<0, 999999999>
      */
     private static function parseFraction(string $fractionRaw): int
     {
         $digits = substr($fractionRaw, offset: 1); // strip leading '.' or ','
-        return (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
+        $ns = (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
+        return $ns;
     }
 
     /**
