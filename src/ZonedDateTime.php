@@ -221,6 +221,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<1, 7>
      */
     public int $dayOfWeek {
         get => self::isoWeekday($this->year, $this->month, $this->day);
@@ -232,6 +233,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<1, 366>
      */
     public int $dayOfYear {
         get => self::calcDayOfYear($this->year, $this->month, $this->day);
@@ -243,6 +245,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<1, 53>
      */
     public int $weekOfYear {
         get => self::isoWeekInfo($this->year, $this->month, $this->day)['week'];
@@ -265,6 +268,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<28, 31>
      */
     public int $daysInMonth {
         get => self::calcDaysInMonth($this->year, $this->month);
@@ -276,6 +280,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<7, 7>
      */
     public int $daysInWeek {
         get => 7;
@@ -287,6 +292,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<365, 366>
      */
     public int $daysInYear {
         get => self::isLeapYear($this->year) ? 366 : 365;
@@ -298,6 +304,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<12, 12>
      */
     public int $monthsInYear {
         get => 12;
@@ -2431,6 +2438,7 @@ final class ZonedDateTime implements Stringable
         };
     }
 
+    /** @return int<1, 7> */
     private static function isoWeekday(int $year, int $month, int $day): int
     {
         /** @var array<int, int> $t */
@@ -2447,9 +2455,12 @@ final class ZonedDateTime implements Stringable
                 + $day
             )
             % 7;
-        return $dow === 0 ? 7 : $dow;
+        /** @var int<1, 7> Sakamoto maps 0→7, rest 1–6 unchanged */
+        $result = $dow === 0 ? 7 : $dow;
+        return $result;
     }
 
+    /** @return int<1, 366> */
     private static function calcDayOfYear(int $year, int $month, int $day): int
     {
         /** @var array<int, int> $cumDays */
@@ -2458,13 +2469,15 @@ final class ZonedDateTime implements Stringable
         if ($month > 2 && self::isLeapYear($year)) {
             $result++;
         }
-        return $result;
+        /** @var int<1, 366> $result — max 335 + 31 = 366 (Dec 31 in leap year) */
+        $ordinal = $result;
+        return $ordinal;
     }
 
     /**
      * Returns the ISO 8601 week number and week-year for the given date.
      *
-     * @return array{week: int, year: int}
+     * @return array{week: int<1, 53>, year: int}
      * @psalm-suppress UnusedMethod — called from weekOfYear and yearOfWeek property hooks
      */
     private static function isoWeekInfo(int $year, int $month, int $day): array
@@ -2478,6 +2491,7 @@ final class ZonedDateTime implements Stringable
             $prevYear = $year - 1;
             $dec31Dow = self::isoWeekday($prevYear, 12, 31);
             $dec31Ord = self::isLeapYear($prevYear) ? 366 : 365;
+            /** @var int<1, 53> ISO week of previous year's Dec 31 */
             $prevWeek = intdiv(num1: $dec31Ord + (4 - $dec31Dow) - 1, num2: 7) + 1;
             return ['week' => $prevWeek, 'year' => $prevYear];
         }
@@ -2487,6 +2501,7 @@ final class ZonedDateTime implements Stringable
             return ['week' => 1, 'year' => $year + 1];
         }
 
+        /** @var int<1, 53> thursdayOrdinal 1–366 maps to week 1–53 */
         $week = intdiv(num1: $thursdayOrdinal - 1, num2: 7) + 1;
         return ['week' => $week, 'year' => $year];
     }

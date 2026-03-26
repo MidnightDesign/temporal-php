@@ -85,9 +85,9 @@ final class ZonedDateTimeLocalComponentsTest extends TestCase
 
         static::assertSame('M02', $zdt->monthCode);
         static::assertSame(29, $zdt->daysInMonth); // Feb has 29 in leap year
-        static::assertSame(7, $zdt->daysInWeek);
+        static::assertSame(7, $zdt->daysInWeek); // @phpstan-ignore staticMethod.alreadyNarrowedType
         static::assertSame(366, $zdt->daysInYear);
-        static::assertSame(12, $zdt->monthsInYear);
+        static::assertSame(12, $zdt->monthsInYear); // @phpstan-ignore staticMethod.alreadyNarrowedType
         static::assertTrue($zdt->inLeapYear);
         static::assertNull($zdt->era);
         static::assertNull($zdt->eraYear);
