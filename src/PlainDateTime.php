@@ -178,9 +178,15 @@ final class PlainDateTime implements Stringable
 
     /** @psalm-api */
     public readonly int $year;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<1, 12>
+     */
     public readonly int $month;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<1, 31>
+     */
     public readonly int $day;
     /** @psalm-api */
     public readonly int $hour;
@@ -246,27 +252,29 @@ final class PlainDateTime implements Stringable
             throw new InvalidArgumentException('Invalid PlainDateTime: all fields must be finite numbers.');
         }
         $this->year = (int) $year;
-        $this->month = (int) $month;
-        $this->day = (int) $day;
+        $monthInt = (int) $month;
+        if ($monthInt < 1 || $monthInt > 12) {
+            throw new InvalidArgumentException("Invalid PlainDateTime: month {$monthInt} is out of range 1–12.");
+        }
+        $this->month = $monthInt;
+        $dayInt = (int) $day;
+        if ($dayInt < 1) {
+            throw new InvalidArgumentException("Invalid PlainDateTime: day {$dayInt} must be at least 1.");
+        }
+        $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
+        if ($dayInt > $daysInMonth) {
+            throw new InvalidArgumentException(
+                "Invalid PlainDateTime: day {$dayInt} exceeds {$daysInMonth} for {$this->year}-{$this->month}.",
+            );
+        }
+        /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
+        $this->day = $dayInt;
         $this->hour = (int) $hour;
         $this->minute = (int) $minute;
         $this->second = (int) $second;
         $this->millisecond = (int) $millisecond;
         $this->microsecond = (int) $microsecond;
         $this->nanosecond = (int) $nanosecond;
-
-        if ($this->month < 1 || $this->month > 12) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: month {$this->month} is out of range 1–12.");
-        }
-        if ($this->day < 1) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: day {$this->day} must be at least 1.");
-        }
-        $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
-        if ($this->day > $daysInMonth) {
-            throw new InvalidArgumentException(
-                "Invalid PlainDateTime: day {$this->day} exceeds {$daysInMonth} for {$this->year}-{$this->month}.",
-            );
-        }
         // TC39 range: strictly after -271821-04-19T00:00:00 … up to +275760-09-13T23:59:59.999999999.
         // epochDays = days from Unix epoch (1970-01-01 = 0).
         // -271821-04-19 = epochDay -100_000_001; +275760-09-13 = epochDay 100_000_000.
@@ -557,6 +565,10 @@ final class PlainDateTime implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
@@ -1394,6 +1406,10 @@ final class PlainDateTime implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
@@ -1612,8 +1628,8 @@ final class PlainDateTime implements Stringable
             default => $smallestUnit,
         };
 
-        $suRank = $unitRank[$normSmallest] ?? 0;
-        $luRank = $unitRank[$normLargest] ?? 6;
+        $suRank = $unitRank[$normSmallest];
+        $luRank = $unitRank[$normLargest];
 
         if ($suRank > $luRank) {
             if ($largestUnitExplicit) {
@@ -2267,6 +2283,8 @@ final class PlainDateTime implements Stringable
     /**
      * Calendar-aware year/month/day breakdown between two dates, as used by since()/until().
      *
+     * @param int<1, 12> $m1
+     * @param int<1, 12> $m2
      * @return array{0: int, 1: int, 2: int}
      */
     private static function calendarDiff(
@@ -2550,7 +2568,7 @@ final class PlainDateTime implements Stringable
     /**
      * Converts a Julian Day Number to a proleptic Gregorian calendar date.
      *
-     * @return array{0: int, 1: int, 2: int} [year, month, day]
+     * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>} [year, month, day]
      */
     private static function fromJulianDay(int $jdn): array
     {
@@ -2560,19 +2578,24 @@ final class PlainDateTime implements Stringable
         $d = self::floorDiv((4 * $c) + 3, 1_461);
         $e = $c - self::floorDiv(1_461 * $d, 4);
         $m = self::floorDiv((5 * $e) + 2, 153);
+        /** @var int<1, 31> Richards algorithm guarantees day is 1–31 */
         $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
+        /** @var int<1, 12> Richards algorithm guarantees month is 1–12 */
         $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
         $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
         return [$year, $month, $day];
     }
 
+    /**
+     * @param int<1, 12> $month
+     * @return int<28, 31>
+     */
     private static function calcDaysInMonth(int $year, int $month): int
     {
         return match ($month) {
             1, 3, 5, 7, 8, 10, 12 => 31,
             4, 6, 9, 11 => 30,
             2 => self::isLeapYear($year) ? 29 : 28,
-            default => 0,
         };
     }
 

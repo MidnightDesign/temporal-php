@@ -1147,6 +1147,9 @@ final class Instant implements Stringable
     /**
      * Returns the number of days in the given month of the given year,
      * applying the proleptic Gregorian calendar (including for BCE years).
+     *
+     * @param int<1, 12> $month
+     * @return int<28, 31>
      */
     private static function daysInMonth(int $year, int $month): int
     {
@@ -1154,7 +1157,6 @@ final class Instant implements Stringable
             1, 3, 5, 7, 8, 10, 12 => 31,
             4, 6, 9, 11 => 30,
             2 => self::isLeapYear($year) ? 29 : 28,
-            default => 0,
         };
     }
 

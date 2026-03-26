@@ -1297,8 +1297,8 @@ final class PlainTime implements Stringable
             'nanosecond' => 1,
         ];
 
-        $luRank = $unitRank[$largestUnit] ?? 6;
-        $suRank = $unitRank[$smallestUnit] ?? 1;
+        $luRank = $unitRank[$largestUnit];
+        $suRank = $unitRank[$smallestUnit];
 
         // largestUnit must be >= smallestUnit.
         if ($luRank < $suRank) {

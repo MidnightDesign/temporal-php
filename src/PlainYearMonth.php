@@ -114,7 +114,10 @@ final class PlainYearMonth implements Stringable
 
     /** @psalm-api */
     public readonly int $year;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<1, 12>
+     */
     public readonly int $month;
 
     /**
@@ -162,12 +165,12 @@ final class PlainYearMonth implements Stringable
         }
 
         $this->year = (int) $year;
-        $this->month = (int) $month;
-        $refDay = (int) $referenceISODay;
-
-        if ($this->month < 1 || $this->month > 12) {
-            throw new InvalidArgumentException("Invalid PlainYearMonth: month {$this->month} is out of range 1–12.");
+        $monthInt = (int) $month;
+        if ($monthInt < 1 || $monthInt > 12) {
+            throw new InvalidArgumentException("Invalid PlainYearMonth: month {$monthInt} is out of range 1–12.");
         }
+        $this->month = $monthInt;
+        $refDay = (int) $referenceISODay;
 
         // Validate referenceISODay is within the valid range for this year-month.
         $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
@@ -667,6 +670,13 @@ final class PlainYearMonth implements Stringable
         // PlainYearMonth always has referenceISODay = 1.
         // See: https://tc39.es/proposal-temporal/#sec-temporal-totemporalyearmonth step 5.d
 
+        // Validate month range before day validation.
+        if ($month < 1 || $month > 12) {
+            throw new InvalidArgumentException(
+                sprintf('PlainYearMonth::from() cannot parse "%s": month %d out of range.', $s, $month),
+            );
+        }
+
         // Validate that $refDay is a valid day for this month (day from string).
         $daysInMonth = self::calcDaysInMonth($year, $month);
         if ($refDay < 1 || $refDay > $daysInMonth) {
@@ -1006,8 +1016,8 @@ final class PlainYearMonth implements Stringable
         /** @var array<string, int> $unitRank */
         static $unitRank = ['year' => 2, 'years' => 2, 'month' => 1, 'months' => 1, 'auto' => 1];
 
-        $suRank = $unitRank[$smallestUnit] ?? 1;
-        $luRank = $unitRank[$largestUnit] ?? 1;
+        $suRank = $unitRank[$smallestUnit];
+        $luRank = $unitRank[$largestUnit];
 
         if ($suRank > $luRank) {
             if ($largestUnitExplicit) {
@@ -1505,13 +1515,16 @@ final class PlainYearMonth implements Stringable
         );
     }
 
+    /**
+     * @param int<1, 12> $month
+     * @return int<28, 31>
+     */
     private static function calcDaysInMonth(int $year, int $month): int
     {
         return match ($month) {
             1, 3, 5, 7, 8, 10, 12 => 31,
             4, 6, 9, 11 => 30,
             2 => self::isLeapYear($year) ? 29 : 28,
-            default => 0,
         };
     }
 

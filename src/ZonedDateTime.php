@@ -40,7 +40,7 @@ final class ZonedDateTime implements Stringable
      */
     public readonly string $calendarId;
 
-    /** @var array{year:int, month:int, day:int, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}|null $localCache */
+    /** @var array{year:int, month:int<1,12>, day:int<1,31>, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}|null $localCache */
     private ?array $localCache = null;
 
     /**
@@ -69,6 +69,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<1, 12>
      */
     public int $month {
         get => $this->localComponents()['month'];
@@ -78,6 +79,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
+     * @var int<1, 31>
      */
     public int $day {
         get => $this->localComponents()['day'];
@@ -1391,6 +1393,10 @@ final class ZonedDateTime implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
@@ -1718,7 +1724,7 @@ final class ZonedDateTime implements Stringable
     /**
      * Computes (and caches) all local date/time components for this instant in the stored timezone.
      *
-     * @return array{year:int, month:int, day:int, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}
+     * @return array{year:int, month:int<1,12>, day:int<1,31>, hour:int, minute:int, second:int, millisecond:int, microsecond:int, nanosecond:int, offsetSec:int, offset:string}
      * @psalm-suppress UnusedMethod — called from PHP 8.4 property hooks that Psalm does not track
      */
     private function localComponents(): array
@@ -1744,7 +1750,9 @@ final class ZonedDateTime implements Stringable
         $dt = new \DateTimeImmutable(sprintf('@%d', $localSec));
 
         $year = (int) $dt->format('Y');
+        /** @var int<1, 12> format('n') always returns 1–12 */
         $month = (int) $dt->format('n');
+        /** @var int<1, 31> format('j') always returns 1–31 */
         $day = (int) $dt->format('j');
         $hour = (int) $dt->format('G');
         $minute = (int) $dt->format('i');
@@ -2179,6 +2187,10 @@ final class ZonedDateTime implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
@@ -2394,13 +2406,16 @@ final class ZonedDateTime implements Stringable
         return ($year % 4) === 0 && ($year % 100) !== 0 || ($year % 400) === 0;
     }
 
+    /**
+     * @param int<1, 12> $month
+     * @return int<28, 31>
+     */
     private static function calcDaysInMonth(int $year, int $month): int
     {
         return match ($month) {
             1, 3, 5, 7, 8, 10, 12 => 31,
             4, 6, 9, 11 => 30,
             2 => self::isLeapYear($year) ? 29 : 28,
-            default => 0,
         };
     }
 
@@ -3367,6 +3382,8 @@ final class ZonedDateTime implements Stringable
     /**
      * Calendar-aware year/month/day breakdown between two dates.
      *
+     * @param int<1, 12> $m1
+     * @param int<1, 12> $m2
      * @return array{0: int, 1: int, 2: int} [years, months, days] — all non-negative.
      */
     private static function calendarDiff(
@@ -3742,7 +3759,7 @@ final class ZonedDateTime implements Stringable
     /**
      * Converts a Julian Day Number to a proleptic Gregorian calendar date.
      *
-     * @return array{0: int, 1: int, 2: int} [year, month, day]
+     * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>} [year, month, day]
      */
     private static function fromJulianDay(int $jdn): array
     {
@@ -3752,7 +3769,9 @@ final class ZonedDateTime implements Stringable
         $d = self::floorDiv((4 * $c) + 3, 1_461);
         $e = $c - self::floorDiv(1_461 * $d, 4);
         $m = self::floorDiv((5 * $e) + 2, 153);
+        /** @var int<1, 31> Richards algorithm guarantees day is 1–31 */
         $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
+        /** @var int<1, 12> Richards algorithm guarantees month is 1–12 */
         $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
         $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
         return [$year, $month, $day];

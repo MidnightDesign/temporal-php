@@ -7,7 +7,7 @@
         "php": ">=8.4"
     },
     "require-dev": {
-        "carthage-software/mago": "^1.13",
+        "carthage-software/mago": "^1.15.3",
         "infection/infection": "^0.32",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.0",

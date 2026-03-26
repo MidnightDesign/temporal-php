@@ -62,6 +62,7 @@ final class PlainMonthDay implements Stringable
      * The ISO month number 1–12.
      *
      * @psalm-api
+     * @var int<1, 12>
      */
     public readonly int $isoMonth;
 
@@ -69,6 +70,7 @@ final class PlainMonthDay implements Stringable
      * The ISO day number 1–31.
      *
      * @psalm-api
+     * @var int<1, 31>
      */
     public readonly int $day;
 
@@ -115,25 +117,27 @@ final class PlainMonthDay implements Stringable
                 'Invalid PlainMonthDay: isoMonth, isoDay, and referenceISOYear must be finite numbers.',
             );
         }
-        $this->isoMonth = (int) $isoMonth;
-        $this->day = (int) $isoDay;
+        $monthInt = (int) $isoMonth;
+        if ($monthInt < 1 || $monthInt > 12) {
+            throw new InvalidArgumentException("Invalid PlainMonthDay: month {$monthInt} is out of range 1–12.");
+        }
+        $this->isoMonth = $monthInt;
+        $dayInt = (int) $isoDay;
+        if ($dayInt < 1) {
+            throw new InvalidArgumentException("Invalid PlainMonthDay: day {$dayInt} must be at least 1.");
+        }
         $this->referenceISOYear = (int) $referenceISOYear;
-
-        if ($this->isoMonth < 1 || $this->isoMonth > 12) {
-            throw new InvalidArgumentException("Invalid PlainMonthDay: month {$this->isoMonth} is out of range 1–12.");
-        }
-        if ($this->day < 1) {
-            throw new InvalidArgumentException("Invalid PlainMonthDay: day {$this->day} must be at least 1.");
-        }
 
         // Validate day against the reference year's month.
         $daysInMonth = self::calcDaysInMonth($this->referenceISOYear, $this->isoMonth);
-        if ($this->day > $daysInMonth) {
+        if ($dayInt > $daysInMonth) {
             throw new InvalidArgumentException(
-                "Invalid PlainMonthDay: day {$this->day} exceeds {$daysInMonth} days in "
+                "Invalid PlainMonthDay: day {$dayInt} exceeds {$daysInMonth} days in "
                 . "{$this->referenceISOYear}-{$this->isoMonth}.",
             );
         }
+        /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
+        $this->day = $dayInt;
 
         // TC39 range: the resulting date (referenceISOYear-month-day) must be within the
         // representable PlainDate range (Apr 19 −271821 … Sep 13 +275760).
@@ -367,6 +371,10 @@ final class PlainMonthDay implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($refYear, $month);
             $day = min($maxDay, $day);
@@ -385,6 +393,10 @@ final class PlainMonthDay implements Stringable
 
         // Always use 1972 as the new referenceISOYear unless the day exceeds 1972's days for that month.
         $newRefYear = 1972;
+        /**
+         * @var int<1, 12> $month
+         * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
+         */
         $maxDayIn1972 = self::calcDaysInMonth(1972, $month);
         if ($day > $maxDayIn1972) {
             $newRefYear = $refYear;
@@ -842,6 +854,10 @@ final class PlainMonthDay implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
@@ -861,6 +877,10 @@ final class PlainMonthDay implements Stringable
         // For the stored referenceISOYear: use 1972 if the day is valid for 1972,
         // otherwise use the provided year (for cases like Feb 29 constrained to 28 in common year).
         $refYear = 1972;
+        /**
+         * @var int<1, 12> $month
+         * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
+         */
         $maxDayIn1972 = self::calcDaysInMonth(1972, $month);
         if ($day > $maxDayIn1972) {
             $refYear = $year;
@@ -944,15 +964,17 @@ final class PlainMonthDay implements Stringable
 
     /**
      * Returns the number of days in the given month of the given year.
+     *
+     * @param int<1, 12> $month
+     * @return int<28, 31>
      */
     private static function calcDaysInMonth(int $year, int $month): int
     {
-        /** @var array<int, int> $days */
-        static $days = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        if ($month === 2 && self::isLeapYear($year)) {
-            return 29;
-        }
-        return $days[$month];
+        return match ($month) {
+            1, 3, 5, 7, 8, 10, 12 => 31,
+            4, 6, 9, 11 => 30,
+            2 => self::isLeapYear($year) ? 29 : 28,
+        };
     }
 
     /**

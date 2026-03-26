@@ -170,9 +170,15 @@ final class PlainDate implements Stringable
 
     /** @psalm-api */
     public readonly int $year;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<1, 12>
+     */
     public readonly int $month;
-    /** @psalm-api */
+    /**
+     * @psalm-api
+     * @var int<1, 31>
+     */
     public readonly int $day;
 
     /**
@@ -192,20 +198,23 @@ final class PlainDate implements Stringable
             throw new InvalidArgumentException('Invalid PlainDate: year, month, and day must be finite numbers.');
         }
         $this->year = (int) $year;
-        $this->month = (int) $month;
-        $this->day = (int) $day;
-        if ($this->month < 1 || $this->month > 12) {
-            throw new InvalidArgumentException("Invalid PlainDate: month {$this->month} is out of range 1–12.");
+        $monthInt = (int) $month;
+        if ($monthInt < 1 || $monthInt > 12) {
+            throw new InvalidArgumentException("Invalid PlainDate: month {$monthInt} is out of range 1–12.");
         }
-        if ($this->day < 1) {
-            throw new InvalidArgumentException("Invalid PlainDate: day {$this->day} must be at least 1.");
+        $this->month = $monthInt;
+        $dayInt = (int) $day;
+        if ($dayInt < 1) {
+            throw new InvalidArgumentException("Invalid PlainDate: day {$dayInt} must be at least 1.");
         }
         $daysInMonth = self::calcDaysInMonth($this->year, $this->month);
-        if ($this->day > $daysInMonth) {
+        if ($dayInt > $daysInMonth) {
             throw new InvalidArgumentException(
-                "Invalid PlainDate: day {$this->day} exceeds {$daysInMonth} for {$this->year}-{$this->month}.",
+                "Invalid PlainDate: day {$dayInt} exceeds {$daysInMonth} for {$this->year}-{$this->month}.",
             );
         }
+        /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
+        $this->day = $dayInt;
         // TC39 range: Apr 19 −271821 … Sep 13 +275760.
         $epochDays = self::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
@@ -389,6 +398,10 @@ final class PlainDate implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
@@ -961,6 +974,10 @@ final class PlainDate implements Stringable
         }
 
         if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
             $month = min(12, $month);
             $maxDay = self::calcDaysInMonth($year, $month);
             $day = min($maxDay, $day);
@@ -1089,8 +1106,8 @@ final class PlainDate implements Stringable
             $smallestUnit = 'day';
         }
 
-        $suRank = $unitRank[$smallestUnit] ?? 1;
-        $luRank = $unitRank[$largestUnit] ?? 1;
+        $suRank = $unitRank[$smallestUnit];
+        $luRank = $unitRank[$largestUnit];
 
         if ($suRank > $luRank) {
             if ($largestUnitExplicit) {
@@ -1470,6 +1487,8 @@ final class PlainDate implements Stringable
      * for the day-remainder calculation is always derived from the RECEIVER's date so
      * that since() and until() produce receiver-relative results as required by the spec.
      *
+     * @param int<1, 12> $m1
+     * @param int<1, 12> $m2
      * @return array{0: int, 1: int, 2: int}
      */
     private static function calendarDiff(
@@ -1673,7 +1692,7 @@ final class PlainDate implements Stringable
     /**
      * Converts a Julian Day Number to a proleptic Gregorian calendar date.
      *
-     * @return array{0: int, 1: int, 2: int} [year, month, day]
+     * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>} [year, month, day]
      */
     private static function fromJulianDay(int $jdn): array
     {
@@ -1683,19 +1702,24 @@ final class PlainDate implements Stringable
         $d = self::floorDiv((4 * $c) + 3, 1_461);
         $e = $c - self::floorDiv(1_461 * $d, 4);
         $m = self::floorDiv((5 * $e) + 2, 153);
+        /** @var int<1, 31> Richards algorithm guarantees day is 1–31 */
         $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
+        /** @var int<1, 12> Richards algorithm guarantees month is 1–12 */
         $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
         $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
         return [$year, $month, $day];
     }
 
+    /**
+     * @param int<1, 12> $month
+     * @return int<28, 31>
+     */
     private static function calcDaysInMonth(int $year, int $month): int
     {
         return match ($month) {
             1, 3, 5, 7, 8, 10, 12 => 31,
             4, 6, 9, 11 => 30,
             2 => self::isLeapYear($year) ? 29 : 28,
-            default => 0,
         };
     }
 
