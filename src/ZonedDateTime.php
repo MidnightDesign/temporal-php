@@ -925,7 +925,7 @@ final class ZonedDateTime implements Stringable
      */
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
-        $locale = self::resolveLocaleString($locales);
+        $locale = CalendarMath::resolveLocale($locales);
         $opts = is_array($options) ? $options : [];
         /** @psalm-var array<string, mixed> $opts */
 
@@ -988,22 +988,6 @@ final class ZonedDateTime implements Stringable
      *
      * @param string|array<array-key, mixed>|null $locales
      */
-    private static function resolveLocaleString(string|array|null $locales): string
-    {
-        if (is_string($locales) && $locales !== '') {
-            return $locales;
-        }
-        if (is_array($locales)) {
-            /** @psalm-suppress MixedAssignment */
-            foreach ($locales as $candidate) {
-                if (is_string($candidate) && $candidate !== '') {
-                    return $candidate;
-                }
-            }
-        }
-        return \Locale::getDefault();
-    }
-
     // -------------------------------------------------------------------------
     // Arithmetic methods
     // -------------------------------------------------------------------------
@@ -1299,10 +1283,7 @@ final class ZonedDateTime implements Stringable
             $mc = $fields['monthCode'];
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
-            }
-            $month = (int) substr(string: $mcStr, offset: 1);
+            $month = CalendarMath::monthCodeToMonth($mcStr);
         }
         if ($hasMonth) {
             /** @var mixed $m */
@@ -2166,10 +2147,7 @@ final class ZonedDateTime implements Stringable
             if (!is_string($mc)) {
                 throw new \TypeError('ZonedDateTime monthCode must be a string.');
             }
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mc, $mcm) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode \"{$mc}\": must be M01–M12.");
-            }
-            $month = (int) $mcm[1];
+            $month = CalendarMath::monthCodeToMonth($mc);
         }
 
         if ($hasMonth) {
@@ -2887,20 +2865,7 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $ri */
                 $ri = $opts['roundingIncrement'];
                 if ($ri !== null) {
-                    if (!is_int($ri) && !is_float($ri) && !is_string($ri) && !is_bool($ri)) {
-                        throw new \TypeError('roundingIncrement must be numeric.');
-                    }
-                    $riFloat = (float) $ri;
-                    if (is_nan($riFloat) || !is_finite($riFloat)) {
-                        throw new InvalidArgumentException('roundingIncrement must be a finite number.');
-                    }
-                    $riInt = (int) $riFloat;
-                    if ($riInt < 1 || $riInt > 1_000_000_000) {
-                        throw new InvalidArgumentException(
-                            "roundingIncrement {$riInt} is out of range; must be 1–1000000000.",
-                        );
-                    }
-                    $roundingIncrement = $riInt;
+                    $roundingIncrement = CalendarMath::validateRoundingIncrement($ri);
                 }
             }
 

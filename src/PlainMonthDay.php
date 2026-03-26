@@ -314,10 +314,7 @@ final class PlainMonthDay implements Stringable
             $mc = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
-            }
-            $month = (int) substr(string: $mcStr, offset: 1);
+            $month = CalendarMath::monthCodeToMonth($mcStr);
         }
         if ($hasMonth) {
             /** @var mixed $m */
@@ -606,7 +603,7 @@ final class PlainMonthDay implements Stringable
                 }
             }
 
-            self::validateAnnotations($m[7], $s);
+            CalendarMath::validateAnnotations($m[7], $s);
 
             // Validate month and day.
             if ($month < 1 || $month > 12) {
@@ -709,7 +706,7 @@ final class PlainMonthDay implements Stringable
             }
         }
 
-        self::validateAnnotations($m[7], $s);
+        CalendarMath::validateAnnotations($m[7], $s);
 
         // For full date strings, the year is NOT stored as referenceISOYear.
         // TC39 spec: always use 1972 as referenceISOYear for strings, regardless of the year in the string.
@@ -772,10 +769,7 @@ final class PlainMonthDay implements Stringable
             $mc = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
-            }
-            $month = (int) substr(string: $mcStr, offset: 1);
+            $month = CalendarMath::monthCodeToMonth($mcStr);
         }
         if ($hasMonth) {
             /**
@@ -861,71 +855,6 @@ final class PlainMonthDay implements Stringable
         }
 
         return new self($month, $day, 'iso8601', $refYear);
-    }
-
-    /**
-     * Validates bracket annotations in a PlainMonthDay string.
-     *
-     * For PlainMonthDay, non-ISO calendars in the calendar annotation are always invalid.
-     * Time-zone annotations are accepted (but ignored).
-     */
-    private static function validateAnnotations(string $section, string $original): void
-    {
-        if ($section === '') {
-            return;
-        }
-
-        $tzCount = 0;
-        $calCount = 0;
-        $calHasCritical = false;
-
-        preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            [, $bang, $content] = $match;
-            $critical = $bang === '!';
-
-            if (str_contains($content, '=')) {
-                [$key] = explode(separator: '=', string: $content, limit: 2);
-
-                if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(
-                        "Invalid annotation key \"{$key}\" in \"{$original}\": annotation keys must be lowercase.",
-                    );
-                }
-
-                if ($key === 'u-ca') {
-                    if ($calCount === 0) {
-                        $calValue = substr(string: $content, offset: strlen($key) + 1);
-                        if (strtolower($calValue) !== 'iso8601') {
-                            throw new InvalidArgumentException(
-                                "Unsupported calendar \"{$calValue}\" in \"{$original}\": only iso8601 is supported.",
-                            );
-                        }
-                    }
-                    ++$calCount;
-                    if ($critical) {
-                        $calHasCritical = true;
-                    }
-                    if ($calCount > 1 && $calHasCritical) {
-                        throw new InvalidArgumentException(
-                            "Multiple calendar annotations with critical flag in \"{$original}\".",
-                        );
-                    }
-                } else {
-                    if ($critical) {
-                        throw new InvalidArgumentException(
-                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
-                        );
-                    }
-                }
-            } else {
-                ++$tzCount;
-                if ($tzCount > 1) {
-                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
-                }
-            }
-        }
     }
 
     /**

@@ -4,9 +4,222 @@ declare(strict_types=1);
 
 namespace Temporal\Internal;
 
+use InvalidArgumentException;
+
 /** @internal */
 final class CalendarMath
 {
+    /**
+     * Validates bracket annotations in a Temporal string (e.g. from `from()` or `fromISO()`).
+     *
+     * Rejects: uppercase annotation keys, critical unknown annotations, multiple time-zone
+     * annotations, and sub-minute UTC offsets inside time-zone annotations.
+     *
+     * When $checkCalendar is true (the default), also rejects any u-ca annotation whose value
+     * is not iso8601. Pass false for types that do not use a calendar (PlainTime, Instant) where
+     * the Temporal spec requires calendar annotations to be ignored regardless of value.
+     *
+     * @throws InvalidArgumentException on any violation.
+     */
+    public static function validateAnnotations(string $section, string $original, bool $checkCalendar = true): void
+    {
+        if ($section === '') {
+            return;
+        }
+
+        $tzCount = 0;
+        $calCount = 0;
+        $calHasCritical = false;
+
+        preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $match) {
+            [, $bang, $content] = $match;
+            $critical = $bang === '!';
+
+            if (str_contains($content, '=')) {
+                [$key] = explode(separator: '=', string: $content, limit: 2);
+
+                if ($key !== strtolower($key)) {
+                    throw new InvalidArgumentException(
+                        "Invalid annotation key \"{$key}\" in \"{$original}\": annotation keys must be lowercase.",
+                    );
+                }
+
+                if ($key === 'u-ca') {
+                    if ($checkCalendar && $calCount === 0) {
+                        $calValue = substr(string: $content, offset: strlen($key) + 1);
+                        if (strtolower($calValue) !== 'iso8601') {
+                            throw new InvalidArgumentException(
+                                "Unsupported calendar \"{$calValue}\" in \"{$original}\": only iso8601 is supported.",
+                            );
+                        }
+                    }
+                    ++$calCount;
+                    if ($critical) {
+                        $calHasCritical = true;
+                    }
+                    if ($calCount > 1 && $calHasCritical) {
+                        throw new InvalidArgumentException(
+                            "Multiple calendar annotations with critical flag in \"{$original}\".",
+                        );
+                    }
+                } else {
+                    if ($critical) {
+                        throw new InvalidArgumentException(
+                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
+                        );
+                    }
+                }
+            } else {
+                ++$tzCount;
+                if ($tzCount > 1) {
+                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
+                }
+                // Offset-style TZ annotation: reject sub-minute (seconds component).
+                if (preg_match('/^[+-]/', $content) === 1) {
+                    if (
+                        preg_match('/^[+-]\d{2}:\d{2}:\d{2}/', $content) === 1
+                        || preg_match('/^[+-]\d{2}:\d{2}[.,]/', $content) === 1
+                    ) {
+                        throw new InvalidArgumentException(
+                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
+                        );
+                    }
+                    if (preg_match('/^[+-]\d{2}(?!\d*:)\d{4,}/', $content) === 1) {
+                        throw new InvalidArgumentException(
+                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Resolves a locale value from a string, array, or null.
+     *
+     * Returns the first non-empty string from the input, or the system default locale.
+     *
+     * @param string|array<mixed>|null $locales
+     */
+    public static function resolveLocale(string|array|null $locales): string
+    {
+        if (is_string($locales) && $locales !== '') {
+            return $locales;
+        }
+        if (is_array($locales)) {
+            /** @psalm-suppress MixedAssignment */
+            foreach ($locales as $candidate) {
+                if (is_string($candidate) && $candidate !== '') {
+                    return $candidate;
+                }
+            }
+        }
+        return \Locale::getDefault();
+    }
+
+    /**
+     * Determines whether to round up based on fractional progress through the current unit.
+     *
+     * For negative diffs, floor and ceil are swapped so they retain their directional meaning.
+     */
+    public static function applyRoundingProgress(float $progress, string $mode, int $sign): bool
+    {
+        // For negative diffs, flip floor/ceil so they retain their directional meaning.
+        $effectiveMode = $mode;
+        if ($sign < 0) {
+            $effectiveMode = match ($mode) {
+                'floor' => 'ceil',
+                'ceil' => 'floor',
+                'halfFloor' => 'halfCeil',
+                'halfCeil' => 'halfFloor',
+                default => $mode,
+            };
+        }
+        return match ($effectiveMode) {
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $progress > 0.0,
+            'halfExpand', 'halfCeil' => $progress >= 0.5,
+            'halfTrunc', 'halfFloor' => $progress > 0.5,
+            'halfEven' => $progress > 0.5, // at exactly 0.5, leave at floor (calendar units differ from numeric even/odd)
+            default => false,
+        };
+    }
+
+    /**
+     * Validates all time fields and throws if any are out of their valid range.
+     *
+     * @phpstan-assert int<0, 23> $h
+     * @phpstan-assert int<0, 59> $min
+     * @phpstan-assert int<0, 59> $sec
+     * @phpstan-assert int<0, 999> $ms
+     * @phpstan-assert int<0, 999> $us
+     * @phpstan-assert int<0, 999> $ns
+     * @throws InvalidArgumentException if any field is out of its valid range.
+     */
+    public static function validateTimeFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
+    {
+        if ($h < 0 || $h > 23) {
+            throw new InvalidArgumentException("Invalid time: hour {$h} is out of range 0–23.");
+        }
+        if ($min < 0 || $min > 59) {
+            throw new InvalidArgumentException("Invalid time: minute {$min} is out of range 0–59.");
+        }
+        if ($sec < 0 || $sec > 59) {
+            throw new InvalidArgumentException("Invalid time: second {$sec} is out of range 0–59.");
+        }
+        if ($ms < 0 || $ms > 999) {
+            throw new InvalidArgumentException("Invalid time: millisecond {$ms} is out of range 0–999.");
+        }
+        if ($us < 0 || $us > 999) {
+            throw new InvalidArgumentException("Invalid time: microsecond {$us} is out of range 0–999.");
+        }
+        if ($ns < 0 || $ns > 999) {
+            throw new InvalidArgumentException("Invalid time: nanosecond {$ns} is out of range 0–999.");
+        }
+    }
+
+    /**
+     * Validates and returns the integer value of a `roundingIncrement` option.
+     *
+     * Accepts int, float, string, or bool. Returns the truncated integer value.
+     * Throws TypeError for non-numeric types, InvalidArgumentException for NaN, infinite, or out-of-range values.
+     *
+     * @throws \TypeError if the value is not numeric.
+     * @throws InvalidArgumentException if the value is NaN, infinite, or outside 1–1000000000.
+     */
+    public static function validateRoundingIncrement(mixed $value): int
+    {
+        if (!is_int($value) && !is_float($value) && !is_string($value) && !is_bool($value)) {
+            throw new \TypeError('roundingIncrement must be numeric.');
+        }
+        $riFloat = (float) $value;
+        if (is_nan($riFloat) || !is_finite($riFloat)) {
+            throw new InvalidArgumentException('roundingIncrement must be a finite number.');
+        }
+        $riInt = (int) $riFloat; // truncate toward zero per spec
+        if ($riInt < 1 || $riInt > 1_000_000_000) {
+            throw new InvalidArgumentException("roundingIncrement {$riInt} is out of range; must be 1–1000000000.");
+        }
+        return $riInt;
+    }
+
+    /**
+     * Validates an ISO month code and returns the month number 1–12.
+     *
+     * @return int<1, 12>
+     * @throws InvalidArgumentException if the month code is not M01–M12.
+     */
+    public static function monthCodeToMonth(string $monthCode): int
+    {
+        if (preg_match('/^M(0[1-9]|1[0-2])$/', $monthCode) !== 1) {
+            throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$monthCode}\".");
+        }
+        /** @var int<1, 12> */
+        return (int) substr($monthCode, offset: 1);
+    }
+
     /**
      * Floor division: rounds towards negative infinity (unlike intdiv which truncates towards zero).
      *

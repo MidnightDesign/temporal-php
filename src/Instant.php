@@ -184,7 +184,7 @@ final class Instant implements Stringable
         // manually so that sub-minute precision is handled correctly.
         [$offsetSign, $offsetAbsSec, $offsetFracNs] = self::parseOffset($offsetRaw, $text);
 
-        self::validateAnnotations($annotationSection, $text);
+        CalendarMath::validateAnnotations($annotationSection, $text, false);
 
         // Build a UTC-only DateTimeImmutable (always +00:00) so that PHP does
         // not apply any offset itself. Use validated numeric values to avoid
@@ -637,7 +637,7 @@ final class Instant implements Stringable
      */
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
-        $locale = self::resolveLocale($locales);
+        $locale = CalendarMath::resolveLocale($locales);
         $opts = is_array($options) ? $options : [];
         /** @psalm-var array<string, mixed> $opts */
 
@@ -691,29 +691,6 @@ final class Instant implements Stringable
         }
 
         return [$dateType, $timeType];
-    }
-
-    /**
-     * Resolves a BCP 47 locale from a string, array, or null.
-     *
-     * Falls back to the system default locale when input is null or empty.
-     *
-     * @param string|array<array-key, mixed>|null $locales
-     */
-    private static function resolveLocale(string|array|null $locales): string
-    {
-        if (is_string($locales) && $locales !== '') {
-            return $locales;
-        }
-        if (is_array($locales)) {
-            /** @psalm-suppress MixedAssignment */
-            foreach ($locales as $candidate) {
-                if (is_string($candidate) && $candidate !== '') {
-                    return $candidate;
-                }
-            }
-        }
-        return \Locale::getDefault();
     }
 
     /**
@@ -1057,87 +1034,6 @@ final class Instant implements Stringable
      *
      * @throws InvalidArgumentException on any violation.
      */
-    private static function validateAnnotations(string $section, string $original): void
-    {
-        if ($section === '') {
-            return;
-        }
-
-        $tzCount = 0;
-        $calCount = 0;
-        $calHasCritical = false;
-
-        preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            [, $bang, $content] = $match;
-            $critical = $bang === '!';
-
-            if (str_contains($content, '=')) {
-                // Key-value annotation.
-                [$key] = explode(separator: '=', string: $content, limit: 2);
-
-                // Key must be all-lowercase ASCII.
-                if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(sprintf(
-                        'Invalid annotation key "%s" in "%s": annotation keys must be lowercase.',
-                        $key,
-                        $original,
-                    ));
-                }
-
-                if ($key === 'u-ca') {
-                    ++$calCount;
-                    if ($critical) {
-                        $calHasCritical = true;
-                    }
-                    if ($calCount > 1 && $calHasCritical) {
-                        throw new InvalidArgumentException(
-                            "Multiple calendar annotations with critical flag in \"{$original}\".",
-                        );
-                    }
-                } else {
-                    // Unknown annotation type.
-                    if ($critical) {
-                        throw new InvalidArgumentException(
-                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
-                        );
-                    }
-
-                    // Non-critical unknown annotation: ignore.
-                }
-            } else {
-                // Time-zone annotation (no '=').
-                ++$tzCount;
-                if ($tzCount > 1) {
-                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
-                }
-
-                // An offset-style TZ annotation must use only ±HH:MM (no seconds).
-                // Pattern: starts with + or -, followed by digits and colons/dots.
-                if (preg_match('/^[+-]/', $content) === 1) {
-                    // It's an offset. It's invalid if it contains a seconds component:
-                    // ±HH:MM:SS or ±HH:MM:SS.frac  →  reject.
-                    if (
-                        preg_match('/^[+-]\d{2}:\d{2}:\d{2}/', $content) === 1
-                        || preg_match('/^[+-]\d{2}:\d{2}[.,]/', $content) === 1
-                    ) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
-                    }
-                    // Also reject bare-seconds forms like ±HHMMSS
-                    // (the spec only allows ±HH:MM in named-offset TZ annotations for Instant).
-                    if (preg_match('/^[+-]\d{2}(?!\d*:)\d{4,}/', $content) === 1) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
-                    }
-                }
-            }
-        }
-    }
-
     /**
      * Strips the leading separator and truncates/pads the fractional-second
      * string to exactly 9 digits, then returns the nanosecond count.

@@ -304,7 +304,7 @@ final class PlainDateTime implements Stringable
         $msInt = (int) $millisecond;
         $usInt = (int) $microsecond;
         $nsInt = (int) $nanosecond;
-        self::validateTimeFields($hInt, $minInt, $secInt, $msInt, $usInt, $nsInt);
+        CalendarMath::validateTimeFields($hInt, $minInt, $secInt, $msInt, $usInt, $nsInt);
         // TC39 range: strictly after -271821-04-19T00:00:00 … up to +275760-09-13T23:59:59.999999999.
         // epochDays = days from Unix epoch (1970-01-01 = 0).
         // -271821-04-19 = epochDay -100_000_001; +275760-09-13 = epochDay 100_000_000.
@@ -483,10 +483,7 @@ final class PlainDateTime implements Stringable
             $mc = $fields['monthCode'];
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
-            }
-            $month = (int) substr(string: $mcStr, offset: 1);
+            $month = CalendarMath::monthCodeToMonth($mcStr);
         }
         if ($hasMonth) {
             /** @var mixed $m */
@@ -1291,7 +1288,7 @@ final class PlainDateTime implements Stringable
         $year = (int) $yearRaw;
 
         // Validate bracket annotations.
-        self::validateAnnotations($annotations, $s);
+        CalendarMath::validateAnnotations($annotations, $s);
 
         // Decompose sub-second nanoseconds.
         $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
@@ -1358,10 +1355,7 @@ final class PlainDateTime implements Stringable
             $monthCodeRaw = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
             $mc = is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw;
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mc) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mc}\".");
-            }
-            $month = (int) substr(string: $mc, offset: 1);
+            $month = CalendarMath::monthCodeToMonth($mc);
         }
 
         if ($hasMonth) {
@@ -1560,20 +1554,7 @@ final class PlainDateTime implements Stringable
                 /** @var mixed $ri */
                 $ri = $opts['roundingIncrement'];
                 if ($ri !== null) {
-                    if (!is_int($ri) && !is_float($ri) && !is_string($ri) && !is_bool($ri)) {
-                        throw new \TypeError('roundingIncrement must be numeric.');
-                    }
-                    $riFloat = (float) $ri;
-                    if (is_nan($riFloat) || !is_finite($riFloat)) {
-                        throw new InvalidArgumentException('roundingIncrement must be a finite number.');
-                    }
-                    $riInt = (int) $riFloat;
-                    if ($riInt < 1 || $riInt > 1_000_000_000) {
-                        throw new InvalidArgumentException(
-                            "roundingIncrement {$riInt} is out of range; must be 1–1000000000.",
-                        );
-                    }
-                    $roundingIncrement = $riInt;
+                    $roundingIncrement = CalendarMath::validateRoundingIncrement($ri);
                 }
             }
 
@@ -2125,86 +2106,6 @@ final class PlainDateTime implements Stringable
     }
 
     /**
-     * Validates bracket annotations in a PlainDateTime string.
-     *
-     * Additionally validates that any calendar (u-ca) annotation has value 'iso8601'.
-     */
-    private static function validateAnnotations(string $section, string $original): void
-    {
-        if ($section === '') {
-            return;
-        }
-
-        $tzCount = 0;
-        $calCount = 0;
-        $calHasCritical = false;
-
-        preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            [, $bang, $content] = $match;
-            $critical = $bang === '!';
-
-            if (str_contains($content, '=')) {
-                [$key] = explode(separator: '=', string: $content, limit: 2);
-
-                if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(
-                        "Invalid annotation key \"{$key}\" in \"{$original}\": annotation keys must be lowercase.",
-                    );
-                }
-
-                if ($key === 'u-ca') {
-                    if ($calCount === 0) {
-                        $calValue = substr(string: $content, offset: strlen($key) + 1);
-                        if (strtolower($calValue) !== 'iso8601') {
-                            throw new InvalidArgumentException(
-                                "Unsupported calendar \"{$calValue}\" in \"{$original}\": only iso8601 is supported.",
-                            );
-                        }
-                    }
-                    ++$calCount;
-                    if ($critical) {
-                        $calHasCritical = true;
-                    }
-                    if ($calCount > 1 && $calHasCritical) {
-                        throw new InvalidArgumentException(
-                            "Multiple calendar annotations with critical flag in \"{$original}\".",
-                        );
-                    }
-                } else {
-                    if ($critical) {
-                        throw new InvalidArgumentException(
-                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
-                        );
-                    }
-                }
-            } else {
-                ++$tzCount;
-                if ($tzCount > 1) {
-                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
-                }
-                // Offset-style TZ annotation: reject sub-minute (seconds component).
-                if (preg_match('/^[+-]/', $content) === 1) {
-                    if (
-                        preg_match('/^[+-]\d{2}:\d{2}:\d{2}/', $content) === 1
-                        || preg_match('/^[+-]\d{2}:\d{2}[.,]/', $content) === 1
-                    ) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
-                    }
-                    if (preg_match('/^[+-]\d{2}(?!\d*:)\d{4,}/', $content) === 1) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Parses fractional-second string (".123456789" or ",123") into nanoseconds.
      * Pads or truncates to exactly 9 digits.
      *
@@ -2216,39 +2117,6 @@ final class PlainDateTime implements Stringable
         /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
         $ns = (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
         return $ns;
-    }
-
-    /**
-     * Validates all time fields and throws if any are out of range.
-     *
-     * @phpstan-assert int<0, 23> $h
-     * @phpstan-assert int<0, 59> $min
-     * @phpstan-assert int<0, 59> $sec
-     * @phpstan-assert int<0, 999> $ms
-     * @phpstan-assert int<0, 999> $us
-     * @phpstan-assert int<0, 999> $ns
-     * @throws InvalidArgumentException if any field is out of its valid range.
-     */
-    private static function validateTimeFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
-    {
-        if ($h < 0 || $h > 23) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: hour {$h} is out of range 0–23.");
-        }
-        if ($min < 0 || $min > 59) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: minute {$min} is out of range 0–59.");
-        }
-        if ($sec < 0 || $sec > 59) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: second {$sec} is out of range 0–59.");
-        }
-        if ($ms < 0 || $ms > 999) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: millisecond {$ms} is out of range 0–999.");
-        }
-        if ($us < 0 || $us > 999) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: microsecond {$us} is out of range 0–999.");
-        }
-        if ($ns < 0 || $ns > 999) {
-            throw new InvalidArgumentException("Invalid PlainDateTime: nanosecond {$ns} is out of range 0–999.");
-        }
     }
 
     /**

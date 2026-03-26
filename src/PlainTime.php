@@ -6,6 +6,7 @@ namespace Temporal;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Internal\CalendarMath;
 use Temporal\Internal\TemporalSerde;
 
 /**
@@ -130,7 +131,7 @@ final class PlainTime implements Stringable
         $us = (int) $microsecond;
         $ns = (int) $nanosecond;
 
-        self::validateFields($h, $min, $sec, $ms, $us, $ns);
+        CalendarMath::validateTimeFields($h, $min, $sec, $ms, $us, $ns);
 
         $this->ns =
             ($h * self::NS_PER_HOUR)
@@ -300,7 +301,7 @@ final class PlainTime implements Stringable
             $us = max(0, min(999, $us));
             $ns = max(0, min(999, $ns));
         } else {
-            self::validateFields($h, $min, $sec, $ms, $us, $ns);
+            CalendarMath::validateTimeFields($h, $min, $sec, $ms, $us, $ns);
         }
 
         return new self($h, $min, $sec, $ms, $us, $ns);
@@ -750,7 +751,7 @@ final class PlainTime implements Stringable
                     "PlainTime::from() cannot parse \"{$s}\": UTC designator 'Z' is not allowed.",
                 );
             }
-            self::validateAnnotations($annotationSection, $s);
+            CalendarMath::validateAnnotations($annotationSection, $s, false);
 
             $hourNum = (int) $m[3];
             $minNum = (int) $m[4];
@@ -762,7 +763,7 @@ final class PlainTime implements Stringable
             $fracRaw = $m[6] !== '' ? $m[6] : '';
             $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
 
-            self::validateFields($hourNum, $minNum, $secNum, 0, 0, 0);
+            CalendarMath::validateTimeFields($hourNum, $minNum, $secNum, 0, 0, 0);
 
             $totalNs =
                 ($hourNum * self::NS_PER_HOUR)
@@ -807,7 +808,7 @@ final class PlainTime implements Stringable
         $m2 = [];
         if (preg_match($colonTimePattern, $timeStr, $m2) === 1) {
             $annotationSection = $m2[5] !== '' ? $m2[5] : '';
-            self::validateAnnotations($annotationSection, $s);
+            CalendarMath::validateAnnotations($annotationSection, $s, false);
 
             $hourNum = (int) $m2[1];
             $minNum = (int) $m2[2];
@@ -818,7 +819,7 @@ final class PlainTime implements Stringable
             $fracRaw = $m2[4] !== '' ? $m2[4] : '';
             $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
 
-            self::validateFields($hourNum, $minNum, $secNum, 0, 0, 0);
+            CalendarMath::validateTimeFields($hourNum, $minNum, $secNum, 0, 0, 0);
 
             $totalNs =
                 ($hourNum * self::NS_PER_HOUR)
@@ -842,7 +843,7 @@ final class PlainTime implements Stringable
             $fracRaw = $m3[4] !== '' ? $m3[4] : '';
             $subNs = $fracRaw !== '' ? self::parseFraction($fracRaw) : 0;
             $annotationSection = $m3[5] !== '' ? $m3[5] : '';
-            self::validateAnnotations($annotationSection, $s);
+            CalendarMath::validateAnnotations($annotationSection, $s, false);
 
             // If MM was not provided (hours-only), minNum stays 0; that's fine.
             // Disallow fractional seconds without HHMMSS (e.g., HH.frac or HHMM.frac is invalid).
@@ -852,7 +853,7 @@ final class PlainTime implements Stringable
                 );
             }
 
-            self::validateFields($hourNum, $minNum, $secNum, 0, 0, 0);
+            CalendarMath::validateTimeFields($hourNum, $minNum, $secNum, 0, 0, 0);
 
             $totalNs =
                 ($hourNum * self::NS_PER_HOUR)
@@ -977,118 +978,10 @@ final class PlainTime implements Stringable
             $us = max(0, min(999, $us));
             $ns = max(0, min(999, $ns));
         } else {
-            self::validateFields($h, $min, $sec, $ms, $us, $ns);
+            CalendarMath::validateTimeFields($h, $min, $sec, $ms, $us, $ns);
         }
 
         return new self($h, $min, $sec, $ms, $us, $ns);
-    }
-
-    /**
-     * Validates all six time component values and throws if any are out of range.
-     *
-     * @phpstan-assert int<0, 23> $h
-     * @phpstan-assert int<0, 59> $min
-     * @phpstan-assert int<0, 59> $sec
-     * @phpstan-assert int<0, 999> $ms
-     * @phpstan-assert int<0, 999> $us
-     * @phpstan-assert int<0, 999> $ns
-     * @throws InvalidArgumentException if any field is out of its valid range.
-     */
-    private static function validateFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
-    {
-        if ($h < 0 || $h > 23) {
-            throw new InvalidArgumentException("Invalid PlainTime: hour {$h} is out of range 0–23.");
-        }
-        if ($min < 0 || $min > 59) {
-            throw new InvalidArgumentException("Invalid PlainTime: minute {$min} is out of range 0–59.");
-        }
-        if ($sec < 0 || $sec > 59) {
-            throw new InvalidArgumentException("Invalid PlainTime: second {$sec} is out of range 0–59.");
-        }
-        if ($ms < 0 || $ms > 999) {
-            throw new InvalidArgumentException("Invalid PlainTime: millisecond {$ms} is out of range 0–999.");
-        }
-        if ($us < 0 || $us > 999) {
-            throw new InvalidArgumentException("Invalid PlainTime: microsecond {$us} is out of range 0–999.");
-        }
-        if ($ns < 0 || $ns > 999) {
-            throw new InvalidArgumentException("Invalid PlainTime: nanosecond {$ns} is out of range 0–999.");
-        }
-    }
-
-    /**
-     * Validates bracket annotations in a time string.
-     *
-     * Rejects: uppercase keys, critical unknown annotations, multiple TZ annotations,
-     * and sub-minute offset inside TZ annotations.
-     *
-     * @throws InvalidArgumentException on any violation.
-     */
-    private static function validateAnnotations(string $section, string $original): void
-    {
-        if ($section === '') {
-            return;
-        }
-
-        $tzCount = 0;
-        $calCount = 0;
-        $calHasCritical = false;
-
-        preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            [, $bang, $content] = $match;
-            $critical = $bang === '!';
-
-            if (str_contains($content, '=')) {
-                [$key] = explode(separator: '=', string: $content, limit: 2);
-
-                if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(
-                        "Invalid annotation key \"{$key}\" in \"{$original}\": annotation keys must be lowercase.",
-                    );
-                }
-
-                if ($key === 'u-ca') {
-                    ++$calCount;
-                    if ($critical) {
-                        $calHasCritical = true;
-                    }
-                    if ($calCount > 1 && $calHasCritical) {
-                        throw new InvalidArgumentException(
-                            "Multiple calendar annotations with critical flag in \"{$original}\".",
-                        );
-                    }
-                } else {
-                    if ($critical) {
-                        throw new InvalidArgumentException(
-                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
-                        );
-                    }
-                }
-            } else {
-                ++$tzCount;
-                if ($tzCount > 1) {
-                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
-                }
-                // Offset-style TZ annotation: reject sub-minute (seconds component).
-                if (preg_match('/^[+-]/', $content) === 1) {
-                    if (
-                        preg_match('/^[+-]\d{2}:\d{2}:\d{2}/', $content) === 1
-                        || preg_match('/^[+-]\d{2}:\d{2}[.,]/', $content) === 1
-                    ) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
-                    }
-                    if (preg_match('/^[+-]\d{2}(?!\d*:)\d{4,}/', $content) === 1) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
-                    }
-                }
-            }
-        }
     }
 
     /**

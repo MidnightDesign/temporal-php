@@ -367,11 +367,7 @@ final class PlainDate implements Stringable
             $mc = $fields['monthCode'];
             /** @phpstan-ignore cast.string */
             $mcStr = (string) $mc;
-            // monthCode must be M01–M12 in the ISO calendar.
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mcStr) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mcStr}\".");
-            }
-            $month = (int) substr(string: $mcStr, offset: 1);
+            $month = CalendarMath::monthCodeToMonth($mcStr);
         }
         if ($hasMonth) {
             /** @var mixed $m */
@@ -784,74 +780,9 @@ final class PlainDate implements Stringable
 
         // Validate bracket annotations (rejects: uppercase keys, critical unknown, multiple TZ, etc.)
         $annotationSection = $m[7];
-        self::validateAnnotations($annotationSection, $s);
+        CalendarMath::validateAnnotations($annotationSection, $s);
 
         return new self($year, $month, $day);
-    }
-
-    /**
-     * Validates bracket annotations in a PlainDate string.
-     *
-     * Additionally validates that any calendar (u-ca) annotation has value 'iso8601'.
-     */
-    private static function validateAnnotations(string $section, string $original): void
-    {
-        if ($section === '') {
-            return;
-        }
-
-        $tzCount = 0;
-        $calCount = 0;
-        $calHasCritical = false;
-
-        preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
-
-        foreach ($matches as $match) {
-            [, $bang, $content] = $match;
-            $critical = $bang === '!';
-
-            if (str_contains($content, '=')) {
-                [$key] = explode(separator: '=', string: $content, limit: 2);
-
-                if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(
-                        "Invalid annotation key \"{$key}\" in \"{$original}\": annotation keys must be lowercase.",
-                    );
-                }
-
-                if ($key === 'u-ca') {
-                    // Validate calendar value on the first occurrence.
-                    if ($calCount === 0) {
-                        $calValue = substr(string: $content, offset: strlen($key) + 1);
-                        if (strtolower($calValue) !== 'iso8601') {
-                            throw new InvalidArgumentException(
-                                "Unsupported calendar \"{$calValue}\" in \"{$original}\": only iso8601 is supported.",
-                            );
-                        }
-                    }
-                    ++$calCount;
-                    if ($critical) {
-                        $calHasCritical = true;
-                    }
-                    if ($calCount > 1 && $calHasCritical) {
-                        throw new InvalidArgumentException(
-                            "Multiple calendar annotations with critical flag in \"{$original}\".",
-                        );
-                    }
-                } else {
-                    if ($critical) {
-                        throw new InvalidArgumentException(
-                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
-                        );
-                    }
-                }
-            } else {
-                ++$tzCount;
-                if ($tzCount > 1) {
-                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
-                }
-            }
-        }
     }
 
     /**
@@ -915,11 +846,7 @@ final class PlainDate implements Stringable
             $monthCodeRaw = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
             $mc = is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw;
-            // monthCode must match M01–M12 exactly (no suffix like L).
-            if (preg_match('/^M(0[1-9]|1[0-2])$/', $mc) !== 1) {
-                throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$mc}\".");
-            }
-            $month = (int) substr(string: $mc, offset: 1);
+            $month = CalendarMath::monthCodeToMonth($mc);
         }
 
         if ($hasMonth) {
@@ -1042,20 +969,7 @@ final class PlainDate implements Stringable
                 /** @var mixed $ri */
                 $ri = $opts['roundingIncrement'];
                 if ($ri !== null) {
-                    if (!is_int($ri) && !is_float($ri) && !is_string($ri) && !is_bool($ri)) {
-                        throw new \TypeError('roundingIncrement must be numeric.');
-                    }
-                    $riFloat = (float) $ri;
-                    if (is_nan($riFloat) || !is_finite($riFloat)) {
-                        throw new InvalidArgumentException('roundingIncrement must be a finite number.');
-                    }
-                    $riInt = (int) $riFloat; // truncate toward zero per spec
-                    if ($riInt < 1 || $riInt > 1_000_000_000) {
-                        throw new InvalidArgumentException(
-                            "roundingIncrement {$riInt} is out of range; must be 1–1000000000.",
-                        );
-                    }
-                    $roundingIncrement = $riInt;
+                    $roundingIncrement = CalendarMath::validateRoundingIncrement($ri);
                 }
             }
 
@@ -1322,7 +1236,7 @@ final class PlainDate implements Stringable
         $progress = $intervalDays > 0 ? $absRemDays / $intervalDays : 0.0;
 
         // Apply rounding (for negative diffs, flip floor/ceil per spec §11.5.12).
-        $roundUp = self::applyRoundingProgress($progress, $mode, $sign);
+        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign);
 
         $roundedAbsMonths = $roundUp ? $floorCount + $increment : $floorCount;
 
@@ -1373,7 +1287,7 @@ final class PlainDate implements Stringable
         $absRemDistance = abs($targetJdn - $anchorJdn);
 
         $progress = $intervalDays > 0 ? $absRemDistance / $intervalDays : 0.0;
-        $roundUp = self::applyRoundingProgress($progress, $mode, $sign);
+        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign);
 
         $roundedAbsYears = $roundUp ? $floorCount + $increment : $floorCount;
 
@@ -1381,35 +1295,6 @@ final class PlainDate implements Stringable
         self::addSignedYears($receiver, $dir * $roundedAbsYears); // throws if out of range
 
         return $sign * $roundedAbsYears;
-    }
-
-    /**
-     * Determines whether to round up based on progress (fraction in [0,1]) and rounding mode.
-     *
-     * For directed modes (floor/ceil, halfFloor/halfCeil), the sign is used to flip the mode
-     * so that floor always rounds toward -∞ and ceil always toward +∞.
-     */
-    private static function applyRoundingProgress(float $progress, string $mode, int $sign): bool
-    {
-        // For negative diffs, flip floor/ceil so they retain their directional meaning.
-        $effectiveMode = $mode;
-        if ($sign < 0) {
-            $effectiveMode = match ($mode) {
-                'floor' => 'ceil',
-                'ceil' => 'floor',
-                'halfFloor' => 'halfCeil',
-                'halfCeil' => 'halfFloor',
-                default => $mode,
-            };
-        }
-        return match ($effectiveMode) {
-            'trunc', 'floor' => false,
-            'ceil', 'expand' => $progress > 0.0,
-            'halfExpand', 'halfCeil' => $progress >= 0.5,
-            'halfTrunc', 'halfFloor' => $progress > 0.5,
-            'halfEven' => $progress > 0.5, // at exactly 0.5, leave at floor (calendar units differ from numeric even/odd)
-            default => false,
-        };
     }
 
     /**
