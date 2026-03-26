@@ -1,5 +1,5 @@
 {
-    "name": "temporal/temporal",
+    "name": "midnight/temporal-php",
     "description": "PHP implementation of the TC39 Temporal API",
     "type": "library",
     "license": "MIT",
