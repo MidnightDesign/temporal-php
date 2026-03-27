@@ -6,6 +6,7 @@ namespace Temporal\Spec;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Spec\Internal\Calendar\CalendarFactory;
 
 /**
  * A span of time expressed as 10 calendar and clock fields.
@@ -908,9 +909,9 @@ final class Duration implements Stringable
         }
         // Validate calendar annotation.
         if (preg_match('/\[u-ca=([^\]]+)\]/', $s, $calMatch) === 1) {
-            if (strtolower($calMatch[1]) !== 'iso8601') {
+            if (!CalendarFactory::isKnownCalendar($calMatch[1])) {
                 throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$calMatch[1]}\"; only iso8601 is supported.",
+                    "Unknown calendar \"{$calMatch[1]}\".",
                 );
             }
         }
@@ -2442,12 +2443,7 @@ final class Duration implements Stringable
             }
         }
         if (array_key_exists('calendar', $rt)) {
-            $cal = strtolower((string) $rt['calendar']);
-            if ($cal !== 'iso8601') {
-                throw new InvalidArgumentException(
-                    "Unsupported calendar \"{$rt['calendar']}\"; only iso8601 is supported.",
-                );
-            }
+            CalendarFactory::canonicalize((string) $rt['calendar']);
         }
         // timeZone: if present must be a string; null or non-string → TypeError.
         if (array_key_exists('timeZone', $rt)) {

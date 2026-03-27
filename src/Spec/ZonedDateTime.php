@@ -6,6 +6,7 @@ namespace Temporal\Spec;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TemporalSerde;
 
@@ -66,7 +67,12 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $year {
-        get => $this->localComponents()['year'];
+        get {
+            $c = $this->localComponents();
+            return $this->calendarId === 'iso8601'
+                ? $c['year']
+                : CalendarFactory::get($this->calendarId)->year($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -76,7 +82,12 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 12>
      */
     public int $month {
-        get => $this->localComponents()['month'];
+        get {
+            $c = $this->localComponents();
+            return $this->calendarId === 'iso8601'
+                ? $c['month']
+                : CalendarFactory::get($this->calendarId)->month($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -86,7 +97,12 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 31>
      */
     public int $day {
-        get => $this->localComponents()['day'];
+        get {
+            $c = $this->localComponents();
+            return $this->calendarId === 'iso8601'
+                ? $c['day']
+                : CalendarFactory::get($this->calendarId)->day($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -187,36 +203,39 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * Always undefined (null) for the ISO 8601 calendar.
-     *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public ?string $era {
-        get => null;
+        get {
+            $c = $this->localComponents();
+            return CalendarFactory::get($this->calendarId)->era($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
-     * Always undefined (null) for the ISO 8601 calendar.
-     *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public ?int $eraYear {
-        get => null;
+        get {
+            $c = $this->localComponents();
+            return CalendarFactory::get($this->calendarId)->eraYear($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
-     * Month code in "M01"–"M12" format.
-     *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public string $monthCode {
-        get => sprintf('M%02d', $this->month);
+        get {
+            $c = $this->localComponents();
+            return CalendarFactory::get($this->calendarId)->monthCode($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -228,7 +247,10 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 7>
      */
     public int $dayOfWeek {
-        get => CalendarMath::isoWeekday($this->year, $this->month, $this->day);
+        get {
+            $c = $this->localComponents();
+            return CalendarMath::isoWeekday($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -240,7 +262,10 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 366>
      */
     public int $dayOfYear {
-        get => CalendarMath::calcDayOfYear($this->year, $this->month, $this->day);
+        get {
+            $c = $this->localComponents();
+            return CalendarMath::calcDayOfYear($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -252,7 +277,10 @@ final class ZonedDateTime implements Stringable
      * @var int<1, 53>
      */
     public int $weekOfYear {
-        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['week'];
+        get {
+            $c = $this->localComponents();
+            return CalendarMath::isoWeekInfo($c['year'], $c['month'], $c['day'])['week'];
+        }
     }
 
     /**
@@ -263,7 +291,10 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $yearOfWeek {
-        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['year'];
+        get {
+            $c = $this->localComponents();
+            return CalendarMath::isoWeekInfo($c['year'], $c['month'], $c['day'])['year'];
+        }
     }
 
     /**
@@ -275,7 +306,10 @@ final class ZonedDateTime implements Stringable
      * @var int<28, 31>
      */
     public int $daysInMonth {
-        get => CalendarMath::calcDaysInMonth($this->year, $this->month);
+        get {
+            $c = $this->localComponents();
+            return CalendarFactory::get($this->calendarId)->daysInMonth($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -299,7 +333,10 @@ final class ZonedDateTime implements Stringable
      * @var int<365, 366>
      */
     public int $daysInYear {
-        get => CalendarMath::isLeapYear($this->year) ? 366 : 365;
+        get {
+            $c = $this->localComponents();
+            return CalendarFactory::get($this->calendarId)->daysInYear($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -311,7 +348,10 @@ final class ZonedDateTime implements Stringable
      * @var int<12, 12>
      */
     public int $monthsInYear {
-        get => 12;
+        get {
+            $c = $this->localComponents();
+            return CalendarFactory::get($this->calendarId)->monthsInYear($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -322,7 +362,10 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public bool $inLeapYear {
-        get => CalendarMath::isLeapYear($this->year);
+        get {
+            $c = $this->localComponents();
+            return CalendarFactory::get($this->calendarId)->inLeapYear($c['year'], $c['month'], $c['day']);
+        }
     }
 
     /**
@@ -376,22 +419,14 @@ final class ZonedDateTime implements Stringable
                 $this->trueEpochSec = $epochSec;
                 $this->trueSubNs = $subNs;
                 $this->timeZoneId = self::normalizeTimezoneId($timeZoneId, true);
-                if (strtolower($calendarId) !== 'iso8601') {
-                    throw new InvalidArgumentException(
-                        "Unsupported calendar \"{$calendarId}\": only iso8601 is supported.",
-                    );
-                }
-                $this->calendarId = 'iso8601';
+                $this->calendarId = CalendarFactory::canonicalize($calendarId);
                 return;
             }
             $epochNanoseconds = (int) $epochNanoseconds;
         }
         $this->epochNanoseconds = $epochNanoseconds;
         $this->timeZoneId = self::normalizeTimezoneId($timeZoneId, true);
-        if (strtolower($calendarId) !== 'iso8601') {
-            throw new InvalidArgumentException("Unsupported calendar \"{$calendarId}\": only iso8601 is supported.");
-        }
-        $this->calendarId = 'iso8601';
+        $this->calendarId = CalendarFactory::canonicalize($calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -515,7 +550,8 @@ final class ZonedDateTime implements Stringable
      */
     public function toPlainDate(): PlainDate
     {
-        return new PlainDate($this->year, $this->month, $this->day);
+        $c = $this->localComponents();
+        return new PlainDate($c['year'], $c['month'], $c['day'], $this->calendarId);
     }
 
     /**
@@ -542,16 +578,18 @@ final class ZonedDateTime implements Stringable
      */
     public function toPlainDateTime(): PlainDateTime
     {
+        $c = $this->localComponents();
         return new PlainDateTime(
-            $this->year,
-            $this->month,
-            $this->day,
-            $this->hour,
-            $this->minute,
-            $this->second,
-            $this->millisecond,
-            $this->microsecond,
-            $this->nanosecond,
+            $c['year'],
+            $c['month'],
+            $c['day'],
+            $c['hour'],
+            $c['minute'],
+            $c['second'],
+            $c['millisecond'],
+            $c['microsecond'],
+            $c['nanosecond'],
+            $this->calendarId,
         );
     }
 
@@ -582,8 +620,8 @@ final class ZonedDateTime implements Stringable
      */
     public function withCalendar(string $calendar): self
     {
-        self::extractCalendarFromString($calendar); // validates; throws if unsupported
-        return new self($this->epochNanoseconds, $this->timeZoneId, 'iso8601');
+        $calId = self::extractCalendarFromString($calendar);
+        return new self($this->epochNanoseconds, $this->timeZoneId, $calId);
     }
 
     /**
@@ -622,13 +660,14 @@ final class ZonedDateTime implements Stringable
             $ns = $pt->nanosecond;
         }
 
-        // Compute the local wall-clock seconds for the new datetime using the existing date.
+        // Compute the local wall-clock seconds for the new datetime using the existing ISO date.
+        $lc = $this->localComponents();
         try {
             $wallDt = new \DateTimeImmutable(sprintf(
                 '%04d-%02d-%02dT%02d:%02d:%02d+00:00',
-                $this->year,
-                $this->month,
-                $this->day,
+                $lc['year'],
+                $lc['month'],
+                $lc['day'],
                 $h,
                 $m,
                 $s,
@@ -1522,11 +1561,7 @@ final class ZonedDateTime implements Stringable
         }
         // Check for [u-ca=X] annotation.
         if (preg_match('/\[u-ca=([^\]]+)\]/', $s, $m) === 1) {
-            $calId = strtolower($m[1]);
-            if ($calId !== 'iso8601') {
-                throw new InvalidArgumentException("Unsupported calendar \"{$m[1]}\": only iso8601 is supported.");
-            }
-            return 'iso8601';
+            return CalendarFactory::canonicalize($m[1]);
         }
         // ISO date/datetime strings → iso8601 (check BEFORE time-only, to avoid ambiguity).
         // Match: date patterns (YYYY-MM, MM-DD, ±YYYYYY-) or datetime T-separator after digits.
@@ -1551,11 +1586,8 @@ final class ZonedDateTime implements Stringable
         if (preg_match('/^\d{4,6}(?:[.,]|\+|$)/', $s) === 1 || preg_match('/^\d{4,6}-(?!\d{2}-)/', $s) === 1) {
             return 'iso8601';
         }
-        // Plain calendar ID.
-        if (strtolower($s) === 'iso8601') {
-            return 'iso8601';
-        }
-        throw new InvalidArgumentException("Unsupported calendar \"{$s}\": only iso8601 is supported.");
+        // Plain calendar ID: validate through CalendarFactory.
+        return CalendarFactory::canonicalize($s);
     }
 
     /**
@@ -1885,8 +1917,8 @@ final class ZonedDateTime implements Stringable
             throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": second out of range.");
         }
 
-        // Extract the timezone from bracket annotations.
-        $tzId = self::extractTzFromAnnotations($annotationSection, $text);
+        // Extract the timezone and calendar from bracket annotations.
+        [$tzId, $calendarId] = self::extractTzFromAnnotations($annotationSection, $text);
 
         // Parse inline offset if present.
         $hasInlineOffset = $offsetRaw !== '';
@@ -1975,7 +2007,7 @@ final class ZonedDateTime implements Stringable
             );
         }
 
-        return self::fromEpochParts($epochSec, $subNs, $tzId);
+        return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId ?? 'iso8601');
     }
 
     /**
@@ -1990,13 +2022,14 @@ final class ZonedDateTime implements Stringable
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
         // Validate calendar first (spec validates calendar before required fields).
+        $calendarId = 'iso8601';
         if (array_key_exists('calendar', $bag)) {
             /** @var mixed $calRaw */
             $calRaw = $bag['calendar'];
             if (!is_string($calRaw)) {
                 throw new \TypeError('ZonedDateTime calendar must be a string.');
             }
-            self::extractCalendarFromString($calRaw); // throws for invalid calendars
+            $calendarId = self::extractCalendarFromString($calRaw);
         }
 
         // Must have a timeZone key.
@@ -2016,7 +2049,7 @@ final class ZonedDateTime implements Stringable
             if (!is_int($ensRaw) && !is_float($ensRaw)) {
                 throw new \TypeError('ZonedDateTime epochNanoseconds must be an integer or float.');
             }
-            return new self(is_int($ensRaw) ? $ensRaw : (int) $ensRaw, $tzRaw);
+            return new self(is_int($ensRaw) ? $ensRaw : (int) $ensRaw, $tzRaw, $calendarId);
         }
 
         // Otherwise expect year/month/day/hour/minute/second fields.
@@ -2188,18 +2221,19 @@ final class ZonedDateTime implements Stringable
             }
         }
 
-        return self::fromEpochParts($epochSec, $subNs, $normalTzId);
+        return self::fromEpochParts($epochSec, $subNs, $normalTzId, $calendarId);
     }
 
     /**
-     * Extracts the timezone identifier from the bracket annotation section.
+     * Extracts the timezone identifier and optional calendar ID from the bracket annotation section.
      *
      * The FIRST bracket without '=' is the timezone annotation. Key-value brackets
-     * (with '=') are metadata (e.g. [u-ca=iso8601]).
+     * (with '=') are metadata (e.g. [u-ca=hebrew]).
      *
-     * @throws InvalidArgumentException if no timezone annotation is found.
+     * @return array{0: string, 1: ?string} [timezoneId, calendarId]
+     * @throws InvalidArgumentException if no timezone annotation is found, or calendar is unknown.
      */
-    private static function extractTzFromAnnotations(string $section, string $original): string
+    private static function extractTzFromAnnotations(string $section, string $original): array
     {
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
 
@@ -2207,6 +2241,7 @@ final class ZonedDateTime implements Stringable
         $tzCount = 0;
         $calCount = 0;
         $calHasCritical = false;
+        $calendarId = null;
 
         foreach ($matches as $match) {
             [, $bang, $content] = $match;
@@ -2220,6 +2255,15 @@ final class ZonedDateTime implements Stringable
                     );
                 }
                 if ($key === 'u-ca') {
+                    if ($calCount === 0) {
+                        $calValue = substr(string: $content, offset: strlen($key) + 1);
+                        if (!CalendarFactory::isKnownCalendar($calValue)) {
+                            throw new InvalidArgumentException(
+                                "Unknown calendar \"{$calValue}\" in \"{$original}\".",
+                            );
+                        }
+                        $calendarId = CalendarFactory::canonicalize($calValue);
+                    }
                     ++$calCount;
                     if ($critical) {
                         $calHasCritical = true;
@@ -2268,7 +2312,7 @@ final class ZonedDateTime implements Stringable
             );
         }
 
-        return $tzId;
+        return [$tzId, $calendarId];
     }
 
     /**

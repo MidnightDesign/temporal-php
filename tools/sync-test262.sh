@@ -49,6 +49,7 @@ cd "$CLONE_DIR"
 SPARSE_PATHS=()
 for class in "${CLASSES[@]}"; do
     SPARSE_PATHS+=("test/built-ins/Temporal/$class")
+    SPARSE_PATHS+=("test/intl402/Temporal/$class")
 done
 
 git sparse-checkout set "${SPARSE_PATHS[@]}" 2>/dev/null
@@ -89,6 +90,58 @@ for class in "${CLASSES[@]}"; do
         echo "    $class: $after (up to date)"
     fi
 done
+
+# Sync intl402 tests into a separate directory
+INTL402_DIR="$DATA_DIR/intl402"
+
+echo ""
+echo "==> Syncing intl402 test files..."
+
+intl402_added=0
+intl402_removed=0
+
+for class in "${CLASSES[@]}"; do
+    src="$CLONE_DIR/test/intl402/Temporal/$class"
+    dst="$INTL402_DIR/$class"
+
+    if [[ ! -d "$src" ]]; then
+        # intl402 tests don't exist for all classes
+        continue
+    fi
+
+    # Skip if no .js files in source
+    src_count=$(find "$src" -name '*.js' 2>/dev/null | wc -l)
+    if [[ $src_count -eq 0 ]]; then
+        continue
+    fi
+
+    # Count files before
+    if [[ -d "$dst" ]]; then
+        before=$(find "$dst" -name '*.js' | wc -l)
+    else
+        before=0
+    fi
+
+    mkdir -p "$dst"
+    rsync -rl --no-group --no-owner --delete --include='*/' --include='*.js' --exclude='*' "$src/" "$dst/"
+
+    after=$(find "$dst" -name '*.js' | wc -l)
+
+    added=$((after - before))
+    if [[ $added -gt 0 ]]; then
+        echo "    intl402/$class: $before -> $after (+$added)"
+        intl402_added=$((intl402_added + added))
+    elif [[ $added -lt 0 ]]; then
+        removed=$((-added))
+        echo "    intl402/$class: $before -> $after (-$removed removed)"
+        intl402_removed=$((intl402_removed + removed))
+    else
+        echo "    intl402/$class: $after (up to date)"
+    fi
+done
+
+total_added=$((total_added + intl402_added))
+total_removed=$((total_removed + intl402_removed))
 
 echo ""
 echo "==> Done. Added: $total_added, Removed: $total_removed"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Temporal\Spec\Internal;
 
 use InvalidArgumentException;
+use Temporal\Spec\Internal\Calendar\CalendarFactory;
 
 /** @internal */
 final class CalendarMath
@@ -93,23 +94,27 @@ final class CalendarMath
      * Validates bracket annotations in a Temporal string (e.g. from `from()` or `fromISO()`).
      *
      * Rejects: uppercase annotation keys, critical unknown annotations, multiple time-zone
-     * annotations, and sub-minute UTC offsets inside time-zone annotations.
+     * annotations, sub-minute UTC offsets inside time-zone annotations, and unknown calendar IDs.
      *
-     * When $checkCalendar is true (the default), also rejects any u-ca annotation whose value
-     * is not iso8601. Pass false for types that do not use a calendar (PlainTime, Instant) where
-     * the Temporal spec requires calendar annotations to be ignored regardless of value.
+     * When $checkCalendar is true (the default), validates the first u-ca annotation value
+     * against the known calendar list and returns the canonicalized calendar ID (or null if
+     * no u-ca annotation is present). Pass false for types that do not use a calendar
+     * (PlainTime, Instant) where the Temporal spec requires calendar annotations to be
+     * ignored regardless of value; in that case null is always returned.
      *
+     * @return ?string Canonicalized calendar ID from the first u-ca annotation, or null.
      * @throws InvalidArgumentException on any violation.
      */
-    public static function validateAnnotations(string $section, string $original, bool $checkCalendar = true): void
+    public static function validateAnnotations(string $section, string $original, bool $checkCalendar = true): ?string
     {
         if ($section === '') {
-            return;
+            return null;
         }
 
         $tzCount = 0;
         $calCount = 0;
         $calHasCritical = false;
+        $calendarId = null;
 
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
 
@@ -129,11 +134,12 @@ final class CalendarMath
                 if ($key === 'u-ca') {
                     if ($checkCalendar && $calCount === 0) {
                         $calValue = substr(string: $content, offset: strlen($key) + 1);
-                        if (strtolower($calValue) !== 'iso8601') {
+                        if (!CalendarFactory::isKnownCalendar($calValue)) {
                             throw new InvalidArgumentException(
-                                "Unsupported calendar \"{$calValue}\" in \"{$original}\": only iso8601 is supported.",
+                                "Unknown calendar \"{$calValue}\" in \"{$original}\".",
                             );
                         }
+                        $calendarId = CalendarFactory::canonicalize($calValue);
                     }
                     ++$calCount;
                     if ($critical) {
@@ -174,6 +180,8 @@ final class CalendarMath
                 }
             }
         }
+
+        return $calendarId;
     }
 
     /**

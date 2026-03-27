@@ -6,6 +6,7 @@ namespace Temporal\Spec;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TemporalSerde;
 
@@ -26,41 +27,42 @@ final class PlainMonthDay implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * Always "iso8601" — the only supported calendar.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
-     * @psalm-api
-     */
-    public string $calendarId {
-        get => 'iso8601';
-    }
-
-    /**
-     * Month code in "M01"–"M12" format.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public string $monthCode {
-        get => sprintf('M%02d', $this->isoMonth);
+        get => CalendarFactory::get($this->calendarId)->monthCode($this->referenceISOYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
-     * Month number 1–12 (derived from monthCode).
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public int $month {
-        get => $this->isoMonth;
+        get => $this->calendarId === 'iso8601'
+            ? $this->isoMonth
+            : CalendarFactory::get($this->calendarId)->month($this->referenceISOYear, $this->isoMonth, $this->isoDay);
+    }
+
+    /**
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
+     * @psalm-suppress PossiblyUnusedProperty
+     * @psalm-api
+     */
+    public int $day {
+        get => $this->calendarId === 'iso8601'
+            ? $this->isoDay
+            : CalendarFactory::get($this->calendarId)->day($this->referenceISOYear, $this->isoMonth, $this->isoDay);
     }
 
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
+
+    /** @psalm-api */
+    public readonly string $calendarId;
 
     /**
      * The ISO month number 1–12.
@@ -76,7 +78,7 @@ final class PlainMonthDay implements Stringable
      * @psalm-api
      * @var int<1, 31>
      */
-    public readonly int $day;
+    public readonly int $isoDay;
 
     /**
      * The reference ISO year; defaults to 1972 (a leap year).
@@ -104,11 +106,9 @@ final class PlainMonthDay implements Stringable
         int|float $referenceISOYear = 1972,
     ) {
         if ($calendar !== null) {
-            // Only bare calendar IDs (not ISO date strings) accepted in constructor.
-            if (strtolower($calendar) !== 'iso8601') {
-                throw new InvalidArgumentException("Unsupported calendar \"{$calendar}\": only iso8601 is supported.");
-            }
+            $calendar = CalendarFactory::canonicalize($calendar);
         }
+        $this->calendarId = $calendar ?? 'iso8601';
         if (!is_finite((float) $isoMonth) || !is_finite((float) $isoDay) || !is_finite((float) $referenceISOYear)) {
             throw new InvalidArgumentException(
                 'Invalid PlainMonthDay: isoMonth, isoDay, and referenceISOYear must be finite numbers.',
@@ -134,17 +134,17 @@ final class PlainMonthDay implements Stringable
             );
         }
         /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
-        $this->day = $dayInt;
+        $this->isoDay = $dayInt;
 
         // TC39 range: the resulting date (referenceISOYear-month-day) must be within the
         // representable PlainDate range (Apr 19 −271821 … Sep 13 +275760).
-        $epochDays = CalendarMath::toJulianDay($this->referenceISOYear, $this->isoMonth, $this->day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($this->referenceISOYear, $this->isoMonth, $this->isoDay) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
             throw new InvalidArgumentException(sprintf(
                 'Invalid PlainMonthDay: %d-%d-%d is outside the representable range.',
                 $this->referenceISOYear,
                 $this->isoMonth,
-                $this->day,
+                $this->isoDay,
             ));
         }
     }
@@ -199,7 +199,7 @@ final class PlainMonthDay implements Stringable
         }
 
         if ($item instanceof self) {
-            return new self($item->isoMonth, $item->day, 'iso8601', $item->referenceISOYear);
+            return new self($item->isoMonth, $item->isoDay, $item->calendarId, $item->referenceISOYear);
         }
         if (is_string($item)) {
             return self::fromString($item);
@@ -331,7 +331,7 @@ final class PlainMonthDay implements Stringable
             $month = $newMonth;
         }
 
-        $day = $this->day;
+        $day = $this->isoDay;
         if ($hasDay) {
             /** @var mixed $d */
             $d = $bag['day'];
@@ -411,8 +411,9 @@ final class PlainMonthDay implements Stringable
         $o = $other instanceof self ? $other : self::from($other);
         return (
             $this->isoMonth === $o->isoMonth
-            && $this->day === $o->day
+            && $this->isoDay === $o->isoDay
             && $this->referenceISOYear === $o->referenceISOYear
+            && $this->calendarId === $o->calendarId
         );
     }
 
@@ -442,13 +443,17 @@ final class PlainMonthDay implements Stringable
         }
 
         return match ($calendarName) {
-            'auto', 'never' => sprintf('%02d-%02d', $this->isoMonth, $this->day),
-            'always' => sprintf('%04d-%02d-%02d[u-ca=iso8601]', $this->referenceISOYear, $this->isoMonth, $this->day),
+            'auto' => $this->calendarId !== 'iso8601'
+                ? sprintf('%04d-%02d-%02d[u-ca=%s]', $this->referenceISOYear, $this->isoMonth, $this->isoDay, $this->calendarId)
+                : sprintf('%02d-%02d', $this->isoMonth, $this->isoDay),
+            'never' => sprintf('%02d-%02d', $this->isoMonth, $this->isoDay),
+            'always' => sprintf('%04d-%02d-%02d[u-ca=%s]', $this->referenceISOYear, $this->isoMonth, $this->isoDay, $this->calendarId),
             'critical' => sprintf(
-                '%04d-%02d-%02d[!u-ca=iso8601]',
+                '%04d-%02d-%02d[!u-ca=%s]',
                 $this->referenceISOYear,
                 $this->isoMonth,
-                $this->day,
+                $this->isoDay,
+                $this->calendarId,
             ),
             default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
@@ -500,7 +505,7 @@ final class PlainMonthDay implements Stringable
 
         // Constrain day to valid range for this year-month (default overflow behaviour per spec).
         $maxDay = CalendarMath::calcDaysInMonth($year, $this->isoMonth);
-        $day = min($this->day, $maxDay);
+        $day = min($this->isoDay, $maxDay);
 
         return new PlainDate($year, $this->isoMonth, $day);
     }
@@ -603,7 +608,7 @@ final class PlainMonthDay implements Stringable
                 }
             }
 
-            CalendarMath::validateAnnotations($m[7], $s);
+            $calendarId = CalendarMath::validateAnnotations($m[7], $s);
 
             // Validate month and day.
             if ($month < 1 || $month > 12) {
@@ -624,7 +629,7 @@ final class PlainMonthDay implements Stringable
             }
 
             // --MM-DD or MM-DD form: referenceISOYear = 1972 (canonical default).
-            return new self($month, $day, 'iso8601', 1972);
+            return new self($month, $day, $calendarId, 1972);
         }
 
         // Try full date string formats: YYYY-MM-DD, ±YYYYYY-MM-DD, YYYYMMDD, ±YYYYYYMMDD
@@ -706,11 +711,11 @@ final class PlainMonthDay implements Stringable
             }
         }
 
-        CalendarMath::validateAnnotations($m[7], $s);
+        $calendarId = CalendarMath::validateAnnotations($m[7], $s);
 
         // For full date strings, the year is NOT stored as referenceISOYear.
         // TC39 spec: always use 1972 as referenceISOYear for strings, regardless of the year in the string.
-        return new self($month, $day, 'iso8601', 1972);
+        return new self($month, $day, $calendarId, 1972);
     }
 
     /**
@@ -726,6 +731,7 @@ final class PlainMonthDay implements Stringable
     private static function fromPropertyBag(array $bag, string $overflow): self
     {
         // Validate calendar if present.
+        $calendarId = null;
         if (array_key_exists('calendar', $bag)) {
             /** @var mixed $calRaw */
             $calRaw = $bag['calendar'];
@@ -741,10 +747,7 @@ final class PlainMonthDay implements Stringable
                     "Cannot use negative zero as extended year in calendar string \"{$calRaw}\".",
                 );
             }
-            $calId = self::extractCalendarId($calRaw);
-            if ($calId !== 'iso8601') {
-                throw new InvalidArgumentException("Unsupported calendar \"{$calRaw}\": only iso8601 is supported.");
-            }
+            $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($calRaw));
         }
 
         $hasMonth = array_key_exists('month', $bag) && $bag['month'] !== null;
@@ -854,7 +857,7 @@ final class PlainMonthDay implements Stringable
             $refYear = $year;
         }
 
-        return new self($month, $day, 'iso8601', $refYear);
+        return new self($month, $day, $calendarId, $refYear);
     }
 
     /**

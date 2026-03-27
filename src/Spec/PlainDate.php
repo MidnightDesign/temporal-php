@@ -6,6 +6,7 @@ namespace Temporal\Spec;
 
 use InvalidArgumentException;
 use Stringable;
+use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TemporalSerde;
 
@@ -26,47 +27,63 @@ final class PlainDate implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * Always "iso8601" — the only supported calendar.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
-     * @psalm-api
-     */
-    public string $calendarId {
-        get => 'iso8601';
-    }
-
-    /**
-     * Always undefined (null) for the ISO 8601 calendar.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public ?string $era {
-        get => null;
+        get => CalendarFactory::get($this->calendarId)->era($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
-     * Always undefined (null) for the ISO 8601 calendar.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public ?int $eraYear {
-        get => null;
+        get => CalendarFactory::get($this->calendarId)->eraYear($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
-     * Month code in "M01"–"M12" format.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public string $monthCode {
-        get => sprintf('M%02d', $this->month);
+        get => CalendarFactory::get($this->calendarId)->monthCode($this->isoYear, $this->isoMonth, $this->isoDay);
+    }
+
+    /**
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
+     * @psalm-suppress PossiblyUnusedProperty
+     * @psalm-api
+     */
+    public int $year {
+        get => $this->calendarId === 'iso8601'
+            ? $this->isoYear
+            : CalendarFactory::get($this->calendarId)->year($this->isoYear, $this->isoMonth, $this->isoDay);
+    }
+
+    /**
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
+     * @psalm-suppress PossiblyUnusedProperty
+     * @psalm-api
+     */
+    public int $month {
+        get => $this->calendarId === 'iso8601'
+            ? $this->isoMonth
+            : CalendarFactory::get($this->calendarId)->month($this->isoYear, $this->isoMonth, $this->isoDay);
+    }
+
+    /**
+     * @psalm-suppress PropertyNotSetInConstructor — virtual property
+     * @psalm-suppress PossiblyUnusedProperty
+     * @psalm-api
+     */
+    public int $day {
+        get => $this->calendarId === 'iso8601'
+            ? $this->isoDay
+            : CalendarFactory::get($this->calendarId)->day($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
@@ -78,7 +95,7 @@ final class PlainDate implements Stringable
      * @var int<1, 7>
      */
     public int $dayOfWeek {
-        get => CalendarMath::isoWeekday($this->year, $this->month, $this->day);
+        get => CalendarMath::isoWeekday($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
@@ -90,7 +107,7 @@ final class PlainDate implements Stringable
      * @var int<1, 366>
      */
     public int $dayOfYear {
-        get => CalendarMath::calcDayOfYear($this->year, $this->month, $this->day);
+        get => CalendarMath::calcDayOfYear($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
@@ -102,7 +119,7 @@ final class PlainDate implements Stringable
      * @var int<1, 53>
      */
     public int $weekOfYear {
-        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['week'];
+        get => CalendarMath::isoWeekInfo($this->isoYear, $this->isoMonth, $this->isoDay)['week'];
     }
 
     /**
@@ -113,7 +130,7 @@ final class PlainDate implements Stringable
      * @psalm-api
      */
     public int $yearOfWeek {
-        get => CalendarMath::isoWeekInfo($this->year, $this->month, $this->day)['year'];
+        get => CalendarMath::isoWeekInfo($this->isoYear, $this->isoMonth, $this->isoDay)['year'];
     }
 
     /**
@@ -125,7 +142,7 @@ final class PlainDate implements Stringable
      * @var int<28, 31>
      */
     public int $daysInMonth {
-        get => CalendarMath::calcDaysInMonth($this->year, $this->month);
+        get => CalendarFactory::get($this->calendarId)->daysInMonth($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
@@ -149,7 +166,7 @@ final class PlainDate implements Stringable
      * @var int<365, 366>
      */
     public int $daysInYear {
-        get => CalendarMath::isLeapYear($this->year) ? 366 : 365;
+        get => CalendarFactory::get($this->calendarId)->daysInYear($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
@@ -161,7 +178,7 @@ final class PlainDate implements Stringable
      * @var int<12, 12>
      */
     public int $monthsInYear {
-        get => 12;
+        get => CalendarFactory::get($this->calendarId)->monthsInYear($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     /**
@@ -172,7 +189,7 @@ final class PlainDate implements Stringable
      * @psalm-api
      */
     public bool $inLeapYear {
-        get => CalendarMath::isLeapYear($this->year);
+        get => CalendarFactory::get($this->calendarId)->inLeapYear($this->isoYear, $this->isoMonth, $this->isoDay);
     }
 
     // -------------------------------------------------------------------------
@@ -180,17 +197,19 @@ final class PlainDate implements Stringable
     // -------------------------------------------------------------------------
 
     /** @psalm-api */
-    public readonly int $year;
+    public readonly string $calendarId;
+    /** @psalm-api */
+    public readonly int $isoYear;
     /**
      * @psalm-api
      * @var int<1, 12>
      */
-    public readonly int $month;
+    public readonly int $isoMonth;
     /**
      * @psalm-api
      * @var int<1, 31>
      */
-    public readonly int $day;
+    public readonly int $isoDay;
 
     /**
      * @throws InvalidArgumentException if year/month/day form an invalid ISO date or are infinite.
@@ -199,38 +218,35 @@ final class PlainDate implements Stringable
     public function __construct(int|float $year, int|float $month, int|float $day, ?string $calendar = null)
     {
         if ($calendar !== null) {
-            // The constructor only accepts bare calendar IDs, not ISO date strings.
-            // Use ASCII-only lowercase to reject non-ASCII chars like U+0130 (İ).
-            if (strtolower($calendar) !== 'iso8601') {
-                throw new InvalidArgumentException("Unsupported calendar \"{$calendar}\": only iso8601 is supported.");
-            }
+            $calendar = CalendarFactory::canonicalize($calendar);
         }
+        $this->calendarId = $calendar ?? 'iso8601';
         if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $day)) {
             throw new InvalidArgumentException('Invalid PlainDate: year, month, and day must be finite numbers.');
         }
-        $this->year = (int) $year;
+        $this->isoYear = (int) $year;
         $monthInt = (int) $month;
         if ($monthInt < 1 || $monthInt > 12) {
             throw new InvalidArgumentException("Invalid PlainDate: month {$monthInt} is out of range 1–12.");
         }
-        $this->month = $monthInt;
+        $this->isoMonth = $monthInt;
         $dayInt = (int) $day;
         if ($dayInt < 1) {
             throw new InvalidArgumentException("Invalid PlainDate: day {$dayInt} must be at least 1.");
         }
-        $daysInMonth = CalendarMath::calcDaysInMonth($this->year, $this->month);
+        $daysInMonth = CalendarMath::calcDaysInMonth($this->isoYear, $this->isoMonth);
         if ($dayInt > $daysInMonth) {
             throw new InvalidArgumentException(
-                "Invalid PlainDate: day {$dayInt} exceeds {$daysInMonth} for {$this->year}-{$this->month}.",
+                "Invalid PlainDate: day {$dayInt} exceeds {$daysInMonth} for {$this->isoYear}-{$this->isoMonth}.",
             );
         }
         /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
-        $this->day = $dayInt;
+        $this->isoDay = $dayInt;
         // TC39 range: Apr 19 −271821 … Sep 13 +275760.
-        $epochDays = CalendarMath::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($this->isoYear, $this->isoMonth, $this->isoDay) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
             throw new InvalidArgumentException(
-                "Invalid PlainDate: {$this->year}-{$this->month}-{$this->day} is outside the representable range.",
+                "Invalid PlainDate: {$this->isoYear}-{$this->isoMonth}-{$this->isoDay} is outside the representable range.",
             );
         }
     }
@@ -270,7 +286,7 @@ final class PlainDate implements Stringable
         }
 
         if ($item instanceof self) {
-            return new self($item->year, $item->month, $item->day);
+            return new self($item->isoYear, $item->isoMonth, $item->isoDay, $item->calendarId);
         }
         if (is_string($item)) {
             return self::fromString($item);
@@ -298,13 +314,13 @@ final class PlainDate implements Stringable
         $a = $one instanceof self ? $one : self::from($one);
         $b = $two instanceof self ? $two : self::from($two);
 
-        if ($a->year !== $b->year) {
-            return $a->year <=> $b->year;
+        if ($a->isoYear !== $b->isoYear) {
+            return $a->isoYear <=> $b->isoYear;
         }
-        if ($a->month !== $b->month) {
-            return $a->month <=> $b->month;
+        if ($a->isoMonth !== $b->isoMonth) {
+            return $a->isoMonth <=> $b->isoMonth;
         }
-        return $a->day <=> $b->day;
+        return $a->isoDay <=> $b->isoDay;
     }
 
     // -------------------------------------------------------------------------
@@ -346,8 +362,8 @@ final class PlainDate implements Stringable
             $overflow = $ov;
         }
 
-        // Merge: start from current fields and override with provided ones.
-        $year = $this->year;
+        // Merge: start from current ISO fields and override with provided ones.
+        $year = $this->isoYear;
         if (array_key_exists('year', $fields)) {
             /** @var mixed $yr */
             $yr = $fields['year'];
@@ -359,7 +375,7 @@ final class PlainDate implements Stringable
             $year = (int) $yr;
         }
 
-        $month = $this->month;
+        $month = $this->isoMonth;
         $hasMonth = array_key_exists('month', $fields);
         $hasMonthCode = array_key_exists('monthCode', $fields);
         if ($hasMonthCode) {
@@ -384,7 +400,7 @@ final class PlainDate implements Stringable
             $month = $newMonth;
         }
 
-        $day = $this->day;
+        $day = $this->isoDay;
         if (array_key_exists('day', $fields)) {
             /** @var mixed $dy */
             $dy = $fields['day'];
@@ -414,7 +430,7 @@ final class PlainDate implements Stringable
             $day = min($maxDay, $day);
         }
 
-        return new self($year, $month, $day);
+        return new self($year, $month, $day, $this->calendarId);
     }
 
     /**
@@ -485,7 +501,10 @@ final class PlainDate implements Stringable
     public function equals(string|array|object $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
-        return $this->year === $o->year && $this->month === $o->month && $this->day === $o->day;
+        return $this->isoYear === $o->isoYear
+            && $this->isoMonth === $o->isoMonth
+            && $this->isoDay === $o->isoDay
+            && $this->calendarId === $o->calendarId;
     }
 
     /**
@@ -497,14 +516,14 @@ final class PlainDate implements Stringable
     public function toString(array|object|null $options = null): string
     {
         // TC39: years 0–9999 → 4 digits; years outside → ±YYYYYY (6 digits with sign prefix).
-        if ($this->year < 0) {
-            $yearStr = sprintf('-%06d', abs($this->year));
-        } elseif ($this->year > 9999) {
-            $yearStr = sprintf('+%06d', $this->year);
+        if ($this->isoYear < 0) {
+            $yearStr = sprintf('-%06d', abs($this->isoYear));
+        } elseif ($this->isoYear > 9999) {
+            $yearStr = sprintf('+%06d', $this->isoYear);
         } else {
-            $yearStr = sprintf('%04d', $this->year);
+            $yearStr = sprintf('%04d', $this->isoYear);
         }
-        $base = sprintf('%s-%02d-%02d', $yearStr, $this->month, $this->day);
+        $base = sprintf('%s-%02d-%02d', $yearStr, $this->isoMonth, $this->isoDay);
 
         $calendarName = 'auto';
         if ($options !== null && is_array($options) && array_key_exists('calendarName', $options)) {
@@ -517,9 +536,12 @@ final class PlainDate implements Stringable
         }
 
         return match ($calendarName) {
-            'auto', 'never' => $base,
-            'always' => sprintf('%s[u-ca=iso8601]', $base),
-            'critical' => sprintf('%s[!u-ca=iso8601]', $base),
+            'auto' => $this->calendarId !== 'iso8601'
+                ? sprintf('%s[u-ca=%s]', $base, $this->calendarId)
+                : $base,
+            'never' => $base,
+            'always' => sprintf('%s[u-ca=%s]', $base, $this->calendarId),
+            'critical' => sprintf('%s[!u-ca=%s]', $base, $this->calendarId),
             default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
@@ -538,7 +560,7 @@ final class PlainDate implements Stringable
     public function toPlainDateTime(string|array|object|null $time = null): PlainDateTime
     {
         if (func_num_args() === 0) {
-            return new PlainDateTime($this->year, $this->month, $this->day);
+            return new PlainDateTime($this->isoYear, $this->isoMonth, $this->isoDay, calendar: $this->calendarId);
         }
         if ($time === null) {
             throw new \TypeError(
@@ -547,15 +569,16 @@ final class PlainDate implements Stringable
         }
         $t = $time instanceof PlainTime ? $time : PlainTime::from($time);
         return new PlainDateTime(
-            $this->year,
-            $this->month,
-            $this->day,
+            $this->isoYear,
+            $this->isoMonth,
+            $this->isoDay,
             $t->hour,
             $t->minute,
             $t->second,
             $t->millisecond,
             $t->microsecond,
             $t->nanosecond,
+            $this->calendarId,
         );
     }
 
@@ -622,7 +645,7 @@ final class PlainDate implements Stringable
      */
     public function toPlainYearMonth(): PlainYearMonth
     {
-        return new PlainYearMonth($this->year, $this->month);
+        return new PlainYearMonth($this->isoYear, $this->isoMonth, $this->calendarId);
     }
 
     /**
@@ -632,7 +655,7 @@ final class PlainDate implements Stringable
      */
     public function toPlainMonthDay(): PlainMonthDay
     {
-        return new PlainMonthDay($this->month, $this->day);
+        return new PlainMonthDay($this->isoMonth, $this->isoDay, $this->calendarId);
     }
 
     /**
@@ -645,8 +668,8 @@ final class PlainDate implements Stringable
      */
     public function withCalendar(string $calendar): self
     {
-        ZonedDateTime::extractCalendarFromString($calendar);
-        return new self($this->year, $this->month, $this->day, 'iso8601');
+        $calId = ZonedDateTime::extractCalendarFromString($calendar);
+        return new self($this->isoYear, $this->isoMonth, $this->isoDay, $calId);
     }
 
     /**
@@ -679,7 +702,7 @@ final class PlainDate implements Stringable
     {
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
         // year-formatting issues with extended years > 9999 or negative years).
-        $epochDays = CalendarMath::toJulianDay($this->year, $this->month, $this->day) - 2_440_588;
+        $epochDays = CalendarMath::toJulianDay($this->isoYear, $this->isoMonth, $this->isoDay) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($m * 60) + $s;
         $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
 
@@ -778,11 +801,11 @@ final class PlainDate implements Stringable
             }
         }
 
-        // Validate bracket annotations (rejects: uppercase keys, critical unknown, multiple TZ, etc.)
+        // Validate bracket annotations and extract calendar ID.
         $annotationSection = $m[7];
-        CalendarMath::validateAnnotations($annotationSection, $s);
+        $calendarId = CalendarMath::validateAnnotations($annotationSection, $s);
 
-        return new self($year, $month, $day);
+        return new self($year, $month, $day, $calendarId);
     }
 
     /**
@@ -796,6 +819,7 @@ final class PlainDate implements Stringable
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
         // Validate calendar key if present.
+        $calendarId = null;
         if (array_key_exists('calendar', $bag)) {
             /** @var mixed $cal */
             $cal = $bag['calendar'];
@@ -808,10 +832,7 @@ final class PlainDate implements Stringable
                     "Cannot use negative zero as extended year in calendar string \"{$cal}\".",
                 );
             }
-            $calId = self::extractCalendarId($cal);
-            if ($calId !== 'iso8601') {
-                throw new InvalidArgumentException("Unsupported calendar \"{$cal}\": only iso8601 is supported.");
-            }
+            $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($cal));
         }
 
         if (!array_key_exists('year', $bag)) {
@@ -899,7 +920,7 @@ final class PlainDate implements Stringable
             $day = min($maxDay, $day);
         }
 
-        return new self($year, $month, $day);
+        return new self($year, $month, $day, $calendarId);
     }
 
     /**
@@ -1027,8 +1048,8 @@ final class PlainDate implements Stringable
             default => $smallestUnit,
         };
 
-        $laterJdn = CalendarMath::toJulianDay($later->year, $later->month, $later->day);
-        $earlierJdn = CalendarMath::toJulianDay($earlier->year, $earlier->month, $earlier->day);
+        $laterJdn = CalendarMath::toJulianDay($later->isoYear, $later->isoMonth, $later->isoDay);
+        $earlierJdn = CalendarMath::toJulianDay($earlier->isoYear, $earlier->isoMonth, $earlier->isoDay);
         $totalDays = $laterJdn - $earlierJdn;
 
         // ---- Compute raw diff and apply rounding ----
@@ -1060,14 +1081,14 @@ final class PlainDate implements Stringable
         // Pass whether the receiver corresponds to the y2 (later) argument so
         // calendarDiff knows from which end to anchor the day-remainder calculation.
         $receiverIsLater =
-            $receiver->year === $later->year && $receiver->month === $later->month && $receiver->day === $later->day;
+            $receiver->isoYear === $later->isoYear && $receiver->isoMonth === $later->isoMonth && $receiver->isoDay === $later->isoDay;
         [$years, $months, $days] = self::calendarDiff(
-            $earlier->year,
-            $earlier->month,
-            $earlier->day,
-            $later->year,
-            $later->month,
-            $later->day,
+            $earlier->isoYear,
+            $earlier->isoMonth,
+            $earlier->isoDay,
+            $later->isoYear,
+            $later->isoMonth,
+            $later->isoDay,
             $receiverIsLater,
         );
 
@@ -1294,9 +1315,9 @@ final class PlainDate implements Stringable
      */
     private static function addSignedMonths(self $date, int $signedMonths): int
     {
-        $y = $date->year;
-        $m = $date->month + $signedMonths;
-        $d = $date->day;
+        $y = $date->isoYear;
+        $m = $date->isoMonth + $signedMonths;
+        $d = $date->isoDay;
 
         if ($m > 12) {
             $y += intdiv(num1: $m - 1, num2: 12);
@@ -1497,8 +1518,8 @@ final class PlainDate implements Stringable
         $days += $hDays + $mDays + $sDays + $msDays + $usDays + $nsDays;
 
         // Add years/months calendrically.
-        $newYear = $this->year + $years;
-        $newMonth = $this->month + $months;
+        $newYear = $this->isoYear + $years;
+        $newMonth = $this->isoMonth + $months;
 
         // Normalize month into 1–12, carrying into year.
         if ($newMonth > 12) {
@@ -1510,7 +1531,7 @@ final class PlainDate implements Stringable
         }
 
         // Clamp or reject day within new month.
-        $newDay = $this->day;
+        $newDay = $this->isoDay;
         $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
         if ($newDay > $maxDay) {
             if ($overflow === 'constrain') {
@@ -1532,7 +1553,7 @@ final class PlainDate implements Stringable
 
         [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
 
-        return new self($newYear, $newMonth, $newDay);
+        return new self($newYear, $newMonth, $newDay, $this->calendarId);
     }
 
     /**
