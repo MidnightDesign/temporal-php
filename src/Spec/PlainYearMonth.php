@@ -1431,12 +1431,22 @@ final class PlainYearMonth implements Stringable
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
 
+        // Extract the actual overflow value for the calendar protocol.
+        $overflow = 'constrain';
+        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+            /** @var mixed $ovVal */
+            $ovVal = $options['overflow'];
+            if (is_string($ovVal) && ($ovVal === 'constrain' || $ovVal === 'reject')) {
+                $overflow = $ovVal;
+            }
+        }
+
         // Delegate to the calendar protocol for date arithmetic.
         $cal = CalendarFactory::get($this->calendarId);
         [$newIsoY, $newIsoM, $newIsoD] = $cal->dateAdd(
             $this->isoYear, $this->isoMonth, $this->referenceISODay,
             $years, $months, 0, 0,
-            'constrain',
+            $overflow,
         );
 
         // Range check using month-granular limit.
