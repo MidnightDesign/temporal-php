@@ -2192,8 +2192,19 @@ final class ZonedDateTime implements Stringable
         }
 
         // Otherwise expect year/month/day/hour/minute/second fields.
-        $hasEraAndEraYear = array_key_exists('era', $bag) && array_key_exists('eraYear', $bag);
-        if (!array_key_exists('year', $bag) && !$hasEraAndEraYear) {
+        $hasEra = array_key_exists('era', $bag);
+        $hasEraYear = array_key_exists('eraYear', $bag);
+        $hasEraAndEraYear = $hasEra && $hasEraYear;
+
+        // era and eraYear must come as a pair.
+        if ($hasEra !== $hasEraYear) {
+            throw new \TypeError('ZonedDateTime property bag must have both era and eraYear, or neither.');
+        }
+
+        $calendarSupportsEras = $calendarId !== null && $calendarId !== 'iso8601'
+            && !in_array($calendarId, ['chinese', 'dangi'], true);
+
+        if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError("ZonedDateTime property bag must have a year field.");
         }
         if (!array_key_exists('day', $bag)) {
