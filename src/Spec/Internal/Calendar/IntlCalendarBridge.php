@@ -431,18 +431,31 @@ final class IntlCalendarBridge implements CalendarProtocol
             $calYear = $this->calendarYear();
             $calMonth = $this->calendarMonth();
 
-            // For Chinese/Dangi, year addition must preserve the ICU month field
-            // (monthCode) rather than ordinal position, because leap months shift
-            // ordinals between years. Add years first using ICU month fields, then
-            // convert back to ordinal for month addition.
+            // For calendars with leap months, year addition must preserve monthCode
+            // (not ordinal position), because leap months shift ordinals between years.
             if ($years !== 0 && in_array($this->calendarId, ['chinese', 'dangi'], true)) {
                 $icuMonth = $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
                 $isLeap = $this->intlCal->get(self::FIELD_IS_LEAP_MONTH);
                 $calYear += $years;
-                // Resolve the ordinal month for the same ICU month in the new year.
-                // If the source was a leap month that doesn't exist in the target
-                // year, constrain to the non-leap version.
-                $calMonth = $this->chineseIcuMonthToOrdinal($calYear, $icuMonth, $isLeap);
+                $calMonth = $this->chineseIcuMonthToOrdinal($calYear, $icuMonth, $isLeap, $overflow);
+            } elseif ($years !== 0 && $this->calendarId === 'hebrew') {
+                // Hebrew: preserve monthCode across year addition.
+                // Read the current monthCode, add years, resolve monthCode in new year.
+                $mc = $this->hebrewMonthCode();
+                $calYear += $years;
+                // Use monthCodeToMonth for the new year. If M05L and new year isn't
+                // leap, constrain to M06 (Adar).
+                $isNewLeap = (7 * $calYear + 1) % 19 < 7;
+                if ($mc === 'M05L' && !$isNewLeap) {
+                    if ($overflow === 'reject') {
+                        throw new InvalidArgumentException(
+                            "monthCode \"M05L\" does not exist in Hebrew year {$calYear}.",
+                        );
+                    }
+                    $calMonth = $this->hebrewMonthCodeToMonth('M06', $calYear);
+                } else {
+                    $calMonth = $this->hebrewMonthCodeToMonth($mc, $calYear);
+                }
             } else {
                 $calYear += $years;
             }
@@ -511,94 +524,101 @@ final class IntlCalendarBridge implements CalendarProtocol
             return [0, 0, 0, $totalDays];
         }
 
-        // Year/month decomposition using calendar-specific fields.
-        $this->setIsoDate($isoY1, $isoM1, $isoD1);
-        $calY1 = $this->calendarYear();
-        $calM1 = $this->calendarMonth();
-        $calD1 = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+        // Year/month decomposition using TC39 DifferenceDate trial-and-increment
+        // algorithm: starting from an initial estimate, adjust years and months
+        // forward via dateAdd until adding one more would overshoot the end date.
 
-        $this->setIsoDate($isoY2, $isoM2, $isoD2);
-        $calY2 = $this->calendarYear();
-        $calM2 = $this->calendarMonth();
-        $calD2 = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
-
-        // Determine sign.
+        // Determine sign and normalize so start <= end.
         $jdn1 = CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
         $jdn2 = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2);
         $sign = $jdn2 >= $jdn1 ? 1 : -1;
 
         if ($sign < 0) {
-            [$calY1, $calM1, $calD1, $calY2, $calM2, $calD2] =
-                [$calY2, $calM2, $calD2, $calY1, $calM1, $calD1];
             [$isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2] =
                 [$isoY2, $isoM2, $isoD2, $isoY1, $isoM1, $isoD1];
             [$jdn1, $jdn2] = [$jdn2, $jdn1];
         }
 
-        // Initial estimate for year/month decomposition.
-        $years = $calY2 - $calY1;
-        $months = $calM2 - $calM1;
-        if ($months < 0) {
-            $years--;
-            $this->setIsoDate($isoY1, $isoM1, $isoD1);
-            $months += $this->calendarMonthsInYear();
-        }
-        if ($calD2 < $calD1) {
-            if ($months > 0) {
-                $months--;
-            } else {
-                $years--;
+        // Read calendar fields for initial estimates.
+        $this->setIsoDate($isoY1, $isoM1, $isoD1);
+        $calY1 = $this->calendarYear();
+        $calM1 = $this->calendarMonth();
+
+        $this->setIsoDate($isoY2, $isoM2, $isoD2);
+        $calY2 = $this->calendarYear();
+        $calM2 = $this->calendarMonth();
+
+        $years = 0;
+        $months = 0;
+
+        if ($largestUnit === 'year') {
+            // Initial guess for years, backed off by 1 to be safe.
+            $years = max(0, $calY2 - $calY1 - 1);
+
+            // Increment years until adding one more would overshoot.
+            while (true) {
+                [$tY, $tM, $tD] = $this->dateAdd(
+                    $isoY1, $isoM1, $isoD1,
+                    $years + 1, 0, 0, 0,
+                    'constrain',
+                );
+                if (CalendarMath::toJulianDay($tY, $tM, $tD) > $jdn2) {
+                    break;
+                }
+                $years++;
+            }
+
+            // Initial guess for months within the remaining partial year.
+            if ($calY2 > $calY1 + $years) {
+                // End is in a later calendar year than start+years.
                 $this->setIsoDate($isoY1, $isoM1, $isoD1);
-                $months = $this->calendarMonthsInYear() - 1;
+                $monthGuess = ($this->calendarMonthsInYear() - $calM1) + $calM2;
+            } else {
+                $monthGuess = $calM2 - $calM1;
+            }
+            $months = max(0, $monthGuess - 1);
+
+            // Increment months until adding one more would overshoot.
+            while (true) {
+                [$tY, $tM, $tD] = $this->dateAdd(
+                    $isoY1, $isoM1, $isoD1,
+                    $years, $months + 1, 0, 0,
+                    'constrain',
+                );
+                if (CalendarMath::toJulianDay($tY, $tM, $tD) > $jdn2) {
+                    break;
+                }
+                $months++;
             }
         }
 
         if ($largestUnit === 'month') {
-            $months += $this->totalMonthsInYears($calY1, $years, $isoY1, $isoM1, $isoD1);
-            $years = 0;
-        }
+            // Initial guess: total months difference, backed off by 1.
+            $totalMonthGuess = $this->totalMonthsInYears($calY1, $calY2 - $calY1, $isoY1, $isoM1, $isoD1)
+                + ($calM2 - $calM1);
+            $months = max(0, $totalMonthGuess - 1);
 
-        // Compute remaining days using the backward anchor: subtract years and
-        // months from date2, then measure the gap back to date1. This avoids
-        // misalignment caused by short intercalary months (e.g. Coptic M13 with
-        // 5-6 days) and leap month ordinal shifts (Chinese/Dangi/Hebrew) that
-        // occur when anchoring forward from date1.
-        [$anchorIsoY, $anchorIsoM, $anchorIsoD] = $this->dateAdd(
-            $isoY2, $isoM2, $isoD2,
-            -$years, -$months, 0, 0,
-            'constrain',
-        );
-        $anchorJdn = CalendarMath::toJulianDay($anchorIsoY, $anchorIsoM, $anchorIsoD);
-        $days = $anchorJdn - $jdn1;
-
-        // If days < 0, the backward anchor overshot past date1 (estimate was
-        // too large). Reduce months and recompute.
-        if ($days < 0) {
-            if ($months > 0) {
-                $months--;
-            } else {
-                $years--;
-                // Determine months-in-year for the intermediate year.
-                [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
-                    $isoY2, $isoM2, $isoD2,
-                    -$years, 0, 0, 0,
+            // Increment months until adding one more would overshoot.
+            while (true) {
+                [$tY, $tM, $tD] = $this->dateAdd(
+                    $isoY1, $isoM1, $isoD1,
+                    0, $months + 1, 0, 0,
                     'constrain',
                 );
-                $this->setIsoDate($intIsoY, $intIsoM, $intIsoD);
-                $months = $this->calendarMonthsInYear() - 1;
+                if (CalendarMath::toJulianDay($tY, $tM, $tD) > $jdn2) {
+                    break;
+                }
+                $months++;
             }
-            if ($largestUnit === 'month') {
-                $months += $this->totalMonthsInYears($calY1, $years, $isoY1, $isoM1, $isoD1);
-                $years = 0;
-            }
-            [$anchorIsoY, $anchorIsoM, $anchorIsoD] = $this->dateAdd(
-                $isoY2, $isoM2, $isoD2,
-                -$years, -$months, 0, 0,
-                'constrain',
-            );
-            $anchorJdn = CalendarMath::toJulianDay($anchorIsoY, $anchorIsoM, $anchorIsoD);
-            $days = $anchorJdn - $jdn1;
         }
+
+        // Compute remaining days from the intermediate date to end.
+        [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
+            $isoY1, $isoM1, $isoD1,
+            $years, $months, 0, 0,
+            'constrain',
+        );
+        $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
 
         return [$sign * $years, $sign * $months, 0, $sign * $days];
     }
@@ -838,15 +858,21 @@ final class IntlCalendarBridge implements CalendarProtocol
      * given Chinese/Dangi calendar year. If the source was a leap month that
      * does not exist in the target year, constrains to the non-leap version.
      */
-    private function chineseIcuMonthToOrdinal(int $calYear, int $icuMonth, int $isLeap): int
+    private function chineseIcuMonthToOrdinal(int $calYear, int $icuMonth, int $isLeap, string $overflow = 'constrain'): int
     {
         $leapIcuMonth = $this->findChineseLeapMonthInYear($calYear);
 
         if ($isLeap) {
             // Source was a leap month. If the target year has the same leap
-            // month, return its ordinal. Otherwise constrain to the regular month.
+            // month, return its ordinal. Otherwise constrain/reject.
             if ($leapIcuMonth === $icuMonth) {
                 return $icuMonth + 2; // leap month ordinal = ICU month + 2
+            }
+            if ($overflow === 'reject') {
+                $monthCode = sprintf('M%02dL', $icuMonth + 1);
+                throw new InvalidArgumentException(
+                    "monthCode \"{$monthCode}\" does not exist in this calendar year.",
+                );
             }
             // Constrain: use the non-leap version of the same ICU month.
             $isLeap = 0;
