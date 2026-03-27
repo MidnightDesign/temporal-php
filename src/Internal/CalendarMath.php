@@ -50,6 +50,46 @@ final class CalendarMath
     }
 
     /**
+     * Builds a configured IntlDateFormatter from a resolved locale, timezone, and options array.
+     *
+     * Reads `dateStyle` and `timeStyle` from $opts (each: "full"|"long"|"medium"|"short") and maps
+     * them to IntlDateFormatter constants. When neither style is provided, defaults to MEDIUM/SHORT.
+     * Appends a `@calendar=…` extension to $locale if $opts['calendar'] is set.
+     *
+     * @param array<string, mixed> $opts
+     */
+    public static function buildIntlFormatter(string $locale, string $timeZone, array $opts): \IntlDateFormatter
+    {
+        if (isset($opts['calendar']) && is_string($opts['calendar'])) {
+            $locale = sprintf('%s@calendar=%s', $locale, $opts['calendar']);
+        }
+
+        $styleMap = [
+            'full' => \IntlDateFormatter::FULL,
+            'long' => \IntlDateFormatter::LONG,
+            'medium' => \IntlDateFormatter::MEDIUM,
+            'short' => \IntlDateFormatter::SHORT,
+        ];
+
+        $dateStyle = isset($opts['dateStyle']) && is_string($opts['dateStyle']) ? $opts['dateStyle'] : null;
+        $timeStyle = isset($opts['timeStyle']) && is_string($opts['timeStyle']) ? $opts['timeStyle'] : null;
+
+        if ($dateStyle !== null || $timeStyle !== null) {
+            $dateType = $dateStyle !== null
+                ? $styleMap[$dateStyle] ?? \IntlDateFormatter::MEDIUM
+                : \IntlDateFormatter::NONE;
+            $timeType = $timeStyle !== null
+                ? $styleMap[$timeStyle] ?? \IntlDateFormatter::SHORT
+                : \IntlDateFormatter::NONE;
+        } else {
+            $dateType = \IntlDateFormatter::MEDIUM;
+            $timeType = \IntlDateFormatter::SHORT;
+        }
+
+        return new \IntlDateFormatter($locale, $dateType, $timeType, $timeZone);
+    }
+
+    /**
      * Validates bracket annotations in a Temporal string (e.g. from `from()` or `fromISO()`).
      *
      * Rejects: uppercase annotation keys, critical unknown annotations, multiple time-zone

@@ -931,63 +931,13 @@ final class ZonedDateTime implements Stringable
 
         $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone']) ? $opts['timeZone'] : $this->timeZoneId;
 
-        if (isset($opts['calendar']) && is_string($opts['calendar'])) {
-            $locale .= sprintf('@calendar=%s', $opts['calendar']);
-        }
-
-        [$dateType, $timeType] = self::resolveDateTimeStyleTypes($opts);
-
-        $formatter = new \IntlDateFormatter($locale, $dateType, $timeType, $timeZone);
+        $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
         $seconds = intdiv(num1: $this->epochNanoseconds, num2: self::NS_PER_SECOND);
         $result = $formatter->format($seconds);
 
         return $result !== false ? $result : $this->toString();
     }
 
-    /**
-     * Maps dateStyle/timeStyle option strings to IntlDateFormatter type constants.
-     *
-     * Returns [dateType, timeType]. When neither style is provided both default to
-     * medium/short so the result includes a human-readable date and time.
-     *
-     * @param array<string, mixed> $opts
-     * @return array{int, int}
-     */
-    private static function resolveDateTimeStyleTypes(array $opts): array
-    {
-        $styleMap = [
-            'full' => \IntlDateFormatter::FULL,
-            'long' => \IntlDateFormatter::LONG,
-            'medium' => \IntlDateFormatter::MEDIUM,
-            'short' => \IntlDateFormatter::SHORT,
-        ];
-
-        $dateStyle = isset($opts['dateStyle']) && is_string($opts['dateStyle']) ? $opts['dateStyle'] : null;
-        $timeStyle = isset($opts['timeStyle']) && is_string($opts['timeStyle']) ? $opts['timeStyle'] : null;
-
-        if ($dateStyle !== null || $timeStyle !== null) {
-            $dateType = $dateStyle !== null
-                ? $styleMap[$dateStyle] ?? \IntlDateFormatter::MEDIUM
-                : \IntlDateFormatter::NONE;
-            $timeType = $timeStyle !== null
-                ? $styleMap[$timeStyle] ?? \IntlDateFormatter::SHORT
-                : \IntlDateFormatter::NONE;
-        } else {
-            // Default: show both date and time.
-            $dateType = \IntlDateFormatter::MEDIUM;
-            $timeType = \IntlDateFormatter::SHORT;
-        }
-
-        return [$dateType, $timeType];
-    }
-
-    /**
-     * Resolves a BCP 47 locale from a string, array, or null.
-     *
-     * Falls back to the system default locale when input is null or empty.
-     *
-     * @param string|array<array-key, mixed>|null $locales
-     */
     // -------------------------------------------------------------------------
     // Arithmetic methods
     // -------------------------------------------------------------------------
