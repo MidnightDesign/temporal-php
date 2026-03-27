@@ -263,6 +263,20 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function calendarToIso(int $calYear, int $calMonth, int $calDay, string $overflow): array
     {
+        // Validate month range before setting fields (ICU silently wraps out-of-range months).
+        if ($overflow === 'reject') {
+            $this->setCalendarFields($calYear, 1, 1);
+            $maxMonths = match ($this->calendarId) {
+                'hebrew' => $this->isHebrewLeapYear() ? 13 : 12,
+                'chinese', 'dangi' => $this->hasChineseLeapMonth() ? 13 : 12,
+                default => $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_MONTH) + 1,
+            };
+            if ($calMonth > $maxMonths) {
+                throw new InvalidArgumentException(
+                    "Month {$calMonth} exceeds maximum {$maxMonths} for this calendar year.",
+                );
+            }
+        }
         $this->setCalendarFields($calYear, $calMonth, $calDay);
         return $this->resolveAndConstrain($calDay, $overflow);
     }
@@ -436,6 +450,35 @@ final class IntlCalendarBridge implements CalendarProtocol
         );
         $anchorJdn = CalendarMath::toJulianDay($anchorIsoY, $anchorIsoM, $anchorIsoD);
         $days = $jdn2 - $anchorJdn;
+
+        // If days < 0, the anchor overshot due to day constraining (e.g., moving from
+        // a 30-day month to a 29-day month). Borrow one more month and recompute.
+        if ($days < 0) {
+            if ($months > 0) {
+                $months--;
+            } else {
+                $years--;
+                // Recompute months-in-year for the adjusted intermediate year.
+                [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
+                    $isoY1, $isoM1, $isoD1,
+                    $years, 0, 0, 0,
+                    'constrain',
+                );
+                $this->setIsoDate($intIsoY, $intIsoM, $intIsoD);
+                $months = $this->calendarMonthsInYear() - 1;
+            }
+            if ($largestUnit === 'month') {
+                $months += $this->totalMonthsInYears($calY1, $years, $isoY1, $isoM1, $isoD1);
+                $years = 0;
+            }
+            [$anchorIsoY, $anchorIsoM, $anchorIsoD] = $this->dateAdd(
+                $isoY1, $isoM1, $isoD1,
+                $years, $months, 0, 0,
+                'constrain',
+            );
+            $anchorJdn = CalendarMath::toJulianDay($anchorIsoY, $anchorIsoM, $anchorIsoD);
+            $days = $jdn2 - $anchorJdn;
+        }
 
         return [$sign * $years, $sign * $months, 0, $sign * $days];
     }
