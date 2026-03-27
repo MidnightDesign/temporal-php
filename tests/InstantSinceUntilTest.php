@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Temporal\Tests;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
 use Temporal\Instant;
 use TypeError;
 
-final class InstantSinceUntilTest extends TestCase
+final class InstantSinceUntilTest extends TemporalTestCase
 {
     public function testSinceReturnsPositiveDurationWhenLater(): void
     {
@@ -18,9 +17,7 @@ final class InstantSinceUntilTest extends TestCase
 
         $d = $later->since($earlier);
 
-        static::assertSame(5, $d->seconds);
-        static::assertSame(0, $d->minutes);
-        static::assertSame(0, $d->hours);
+        $this->assertDurationIs(0, 0, 0, 0, 0, 0, 5, 0, 0, 0, $d);
     }
 
     public function testSinceReturnsNegativeDurationWhenEarlier(): void
@@ -50,9 +47,7 @@ final class InstantSinceUntilTest extends TestCase
 
         $d = $start->until($end, ['largestUnit' => 'hour']);
 
-        static::assertSame(1, $d->hours);
-        static::assertSame(0, $d->minutes);
-        static::assertSame(0, $d->seconds);
+        $this->assertDurationIs(0, 0, 0, 0, 1, 0, 0, 0, 0, 0, $d);
     }
 
     public function testSinceAcceptsStringArgument(): void

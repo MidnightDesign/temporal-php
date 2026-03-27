@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Temporal\Tests;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
 use Temporal\Duration;
 
-final class DurationFromFieldsTest extends TestCase
+final class DurationFromFieldsTest extends TemporalTestCase
 {
     public function testMonthsOnly(): void
     {
@@ -63,10 +62,7 @@ final class DurationFromFieldsTest extends TestCase
         // 7 fractional digits: str_pad must pad to 9, not 8
         $d = Duration::from('PT0.1234567S');
 
-        static::assertSame(0, $d->seconds);
-        static::assertSame(123, $d->milliseconds);
-        static::assertSame(456, $d->microseconds);
-        static::assertSame(700, $d->nanoseconds);
+        $this->assertDurationIs(0, 0, 0, 0, 0, 0, 0, 123, 456, 700, $d);
     }
 
     public function testFractionOneNano(): void
@@ -74,9 +70,7 @@ final class DurationFromFieldsTest extends TestCase
         // nanoseconds offset must be 6, not 7
         $d = Duration::from('PT0.0000001S');
 
-        static::assertSame(0, $d->milliseconds);
-        static::assertSame(0, $d->microseconds);
-        static::assertSame(100, $d->nanoseconds);
+        $this->assertDurationIs(0, 0, 0, 0, 0, 0, 0, 0, 0, 100, $d);
     }
 
     public function testFractionExactly9DigitsValid(): void

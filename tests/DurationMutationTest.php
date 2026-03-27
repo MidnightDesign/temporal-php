@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Temporal\Tests;
 
-use PHPUnit\Framework\TestCase;
 use Temporal\Duration;
 
-final class DurationMutationTest extends TestCase
+final class DurationMutationTest extends TemporalTestCase
 {
     public function testNegated(): void
     {
@@ -66,9 +65,7 @@ final class DurationMutationTest extends TestCase
 
         $updated = $d->with(['years' => 5, 'days' => 6]);
 
-        static::assertSame(5, $updated->years);
-        static::assertSame(2, $updated->months);
-        static::assertSame(6, $updated->days);
+        $this->assertDurationIs(5, 2, 0, 6, 0, 0, 0, 0, 0, 0, $updated);
     }
 
     public function testEquals(): void

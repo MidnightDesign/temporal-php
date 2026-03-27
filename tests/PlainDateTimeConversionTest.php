@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Temporal\Tests;
 
 use InvalidArgumentException;
-use PHPUnit\Framework\TestCase;
 use Temporal\PlainDateTime;
 use Temporal\ZonedDateTime;
 
-final class PlainDateTimeConversionTest extends TestCase
+final class PlainDateTimeConversionTest extends TemporalTestCase
 {
     // -------------------------------------------------------------------------
     // toZonedDateTime
@@ -105,12 +104,7 @@ final class PlainDateTimeConversionTest extends TestCase
         $result = $pdt->withCalendar('iso8601');
 
         static::assertNotSame($pdt, $result);
-        static::assertSame(1976, $result->year);
-        static::assertSame(11, $result->month);
-        static::assertSame(18, $result->day);
-        static::assertSame(14, $result->hour);
-        static::assertSame(30, $result->minute);
-        static::assertSame(0, $result->second);
+        $this->assertPlainDateTimeIs(1976, 11, 18, 14, 30, 0, 0, 0, 0, $result);
         static::assertSame('iso8601', $result->calendarId);
     }
 
@@ -120,9 +114,7 @@ final class PlainDateTimeConversionTest extends TestCase
 
         $result = $pdt->withCalendar('iso8601');
 
-        static::assertSame(100, $result->millisecond);
-        static::assertSame(200, $result->microsecond);
-        static::assertSame(300, $result->nanosecond);
+        $this->assertPlainDateTimeIs(2020, 3, 15, 10, 20, 30, 100, 200, 300, $result);
     }
 
     public function testWithCalendarAcceptsIsoString(): void
