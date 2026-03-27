@@ -97,6 +97,9 @@ final class IntlCalendarBridge implements CalendarProtocol
     /** Offset from ICU EXTENDED_YEAR to TC39 "related Gregorian year" for Dangi. */
     private const DANGI_YEAR_OFFSET = 2333;
 
+    /** Offset from ICU EXTENDED_YEAR to TC39 signed year for ROC. */
+    private const ROC_YEAR_OFFSET = 1911;
+
     public function year(int $isoYear, int $isoMonth, int $isoDay): int
     {
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
@@ -106,6 +109,10 @@ final class IntlCalendarBridge implements CalendarProtocol
         // Coptic/Ethiopic: signed year (negative before epoch).
         if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
             return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
+        }
+        // ROC: signed year where ROC 1 = 1912 CE = EXTENDED_YEAR 1912.
+        if ($this->calendarId === 'roc') {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::ROC_YEAR_OFFSET;
         }
         // Chinese/Dangi: "related Gregorian year" = EXTENDED_YEAR - epoch offset.
         if ($this->calendarId === 'chinese') {
@@ -412,6 +419,9 @@ final class IntlCalendarBridge implements CalendarProtocol
     {
         if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
             return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
+        }
+        if ($this->calendarId === 'roc') {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::ROC_YEAR_OFFSET;
         }
         if ($this->calendarId === 'chinese') {
             return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
@@ -735,6 +745,9 @@ final class IntlCalendarBridge implements CalendarProtocol
         if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
             $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear);
             $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $calMonth - 1);
+        } elseif ($this->calendarId === 'roc') {
+            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::ROC_YEAR_OFFSET);
+            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $calMonth - 1);
         } elseif ($this->calendarId === 'hebrew') {
             $this->intlCal->set(\IntlCalendar::FIELD_YEAR, $calYear);
             $isLeap = (7 * $calYear + 1) % 19 < 7;
@@ -763,6 +776,8 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
             $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear);
+        } elseif ($this->calendarId === 'roc') {
+            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::ROC_YEAR_OFFSET);
         } elseif ($this->calendarId === 'chinese') {
             $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::CHINESE_YEAR_OFFSET);
         } elseif ($this->calendarId === 'dangi') {
