@@ -92,14 +92,28 @@ final class IntlCalendarBridge implements CalendarProtocol
     // ISO -> Calendar field projection
     // -------------------------------------------------------------------------
 
+    /** Offset from ICU EXTENDED_YEAR to TC39 "related Gregorian year" for Chinese. */
+    private const CHINESE_YEAR_OFFSET = 2637;
+
+    /** Offset from ICU EXTENDED_YEAR to TC39 "related Gregorian year" for Dangi. */
+    private const DANGI_YEAR_OFFSET = 2333;
+
     public function year(int $isoYear, int $isoMonth, int $isoDay): int
     {
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
-        // Gregory uses signed year (EXTENDED_YEAR): negative for BCE.
-        // Chinese/Dangi use EXTENDED_YEAR as the "related Gregorian year" proxy.
-        if ($this->calendarId === 'gregory') {
+        // These calendars use EXTENDED_YEAR as the TC39 year:
+        // Gregory/Japanese: proleptic Gregorian year (signed).
+        // Coptic/Ethiopic: signed year (negative before epoch).
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
             return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
+        }
+        // Chinese/Dangi: "related Gregorian year" = EXTENDED_YEAR - epoch offset.
+        if ($this->calendarId === 'chinese') {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
+        }
+        if ($this->calendarId === 'dangi') {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::DANGI_YEAR_OFFSET;
         }
 
         return $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
@@ -131,9 +145,15 @@ final class IntlCalendarBridge implements CalendarProtocol
             'gregory' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'ce' : 'bce',
             'japanese' => $this->japaneseEra(),
             'buddhist' => 'be',
-            'roc' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'minguo' : 'before-roc',
-            'coptic', 'ethiopic' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'era1' : 'era0',
-            'ethioaa' => 'era0',
+            'roc' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'roc' : 'broc',
+            'coptic' => 'am',
+            'ethiopic' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'am' : 'aa',
+            'ethioaa' => 'aa',
+            'hebrew' => 'am',
+            'indian' => 'shaka',
+            'islamic', 'islamic-civil', 'islamic-rgsa', 'islamic-tbla', 'islamic-umalqura' =>
+                $this->intlCal->get(\IntlCalendar::FIELD_YEAR) >= 1 ? 'ah' : 'bh',
+            'persian' => 'ap',
             default => null,
         };
     }
@@ -142,10 +162,28 @@ final class IntlCalendarBridge implements CalendarProtocol
     {
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
+        if ($this->calendarId === 'japanese') {
+            // For known eras (Meiji+), eraYear = FIELD_YEAR.
+            // For pre-Meiji ('ce'/'bce' fallback), eraYear = EXTENDED_YEAR or abs(EXTENDED_YEAR)+1.
+            $icuEra = $this->intlCal->get(\IntlCalendar::FIELD_ERA);
+            if (isset(self::JAPANESE_ERAS[$icuEra])) {
+                return $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
+            }
+            $extYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
+            return $extYear >= 1 ? $extYear : 1 - $extYear;
+        }
         return match ($this->calendarId) {
-            'gregory' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
-            'japanese', 'buddhist', 'roc' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
-            'coptic', 'ethiopic', 'ethioaa' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
+            'gregory', 'buddhist', 'roc' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
+            'coptic' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR),
+            'ethiopic' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1
+                ? $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
+                : $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
+            'ethioaa' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
+            'hebrew', 'indian', 'persian' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
+            'islamic', 'islamic-civil', 'islamic-rgsa', 'islamic-tbla', 'islamic-umalqura' => (function () {
+                $year = $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
+                return $year >= 1 ? $year : 1 - $year;
+            })(),
             default => null,
         };
     }
@@ -219,14 +257,14 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function calendarToIso(int $calYear, int $calMonth, int $calDay, string $overflow): array
     {
-        // Stub — Phase 4 will implement.
-        throw new NotYetImplementedException('IntlCalendarBridge::calendarToIso()');
+        $this->setCalendarFields($calYear, $calMonth, $calDay);
+        return $this->resolveAndConstrain($calDay, $overflow);
     }
 
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
-        // Stub — Phase 4 will implement.
-        throw new NotYetImplementedException('IntlCalendarBridge::calendarToIsoFromMonthCode()');
+        $this->setCalendarFieldsFromMonthCode($calYear, $monthCode, $calDay);
+        return $this->resolveAndConstrain($calDay, $overflow);
     }
 
     // -------------------------------------------------------------------------
@@ -266,8 +304,419 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function monthCodeToMonth(string $monthCode, int $calYear): int
     {
-        // Stub — Phase 4 will implement.
-        throw new NotYetImplementedException('IntlCalendarBridge::monthCodeToMonth()');
+        return match ($this->calendarId) {
+            'hebrew' => $this->hebrewMonthCodeToMonth($monthCode, $calYear),
+            'chinese', 'dangi' => $this->chineseMonthCodeToMonth($monthCode, $calYear),
+            default => $this->defaultMonthCodeToMonth($monthCode),
+        };
+    }
+
+    /**
+     * monthCode → ordinal month for standard calendars.
+     * Coptic/Ethiopic/Ethioaa allow M01-M13; others M01-M12.
+     */
+    private function defaultMonthCodeToMonth(string $monthCode): int
+    {
+        $maxMonth = in_array($this->calendarId, ['coptic', 'ethiopic', 'ethioaa'], true) ? 13 : 12;
+        if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
+            throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
+        }
+        $month = (int) $m[1];
+        if ($month < 1 || $month > $maxMonth) {
+            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".");
+        }
+        return $month;
+    }
+
+    /**
+     * Hebrew monthCode → ordinal month.
+     *
+     * M01-M05 → 1-5, M05L → 6 (leap only), M06-M12 → 6-12 (non-leap) or 7-13 (leap).
+     */
+    private function hebrewMonthCodeToMonth(string $monthCode, int $calYear): int
+    {
+        $isLeap = (7 * $calYear + 1) % 19 < 7;
+        if ($monthCode === 'M05L') {
+            if (!$isLeap) {
+                throw new InvalidArgumentException("monthCode \"M05L\" is only valid in Hebrew leap years; year {$calYear} is not a leap year.");
+            }
+            return 6;
+        }
+        if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
+            throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for hebrew calendar.");
+        }
+        $num = (int) $m[1];
+        if ($num < 1 || $num > 12) {
+            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for hebrew calendar.");
+        }
+        if ($num <= 5) {
+            return $num;
+        }
+        // M06-M12: in non-leap year → ordinal 6-12; in leap year → ordinal 7-13
+        return $isLeap ? $num + 1 : $num;
+    }
+
+    /**
+     * Chinese/Dangi monthCode → ordinal month.
+     *
+     * "M01"-"M12" are regular months; "MxxL" is a leap month following month xx.
+     * The ordinal depends on which months precede it in the year (including any leap month).
+     */
+    private function chineseMonthCodeToMonth(string $monthCode, int $calYear): int
+    {
+        $isLeapCode = str_ends_with($monthCode, 'L');
+        $baseCode = $isLeapCode ? substr($monthCode, 0, -1) : $monthCode;
+
+        if (preg_match('/^M(\d{2})$/', $baseCode, $m) !== 1) {
+            throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
+        }
+        $baseNum = (int) $m[1]; // 1-12
+        if ($baseNum < 1 || $baseNum > 12) {
+            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".");
+        }
+
+        // Find the leap month in this year (if any) by scanning via ICU.
+        $leapIcuMonth = $this->findChineseLeapMonthInYear($calYear);
+
+        if ($isLeapCode) {
+            // Leap month after base month xx. ICU month = baseNum - 1, IS_LEAP_MONTH = 1.
+            // Ordinal = baseNum (for regular months before it) + 1 (for the leap month itself).
+            // But if a leap month occurred before baseNum, we must account for it.
+            // Actually for Chinese calendar, there is at most one leap month per year.
+            // The ordinal of a leap month MxxL = baseNum + 1 (the regular month xx has ordinal baseNum,
+            // then the leap month follows as baseNum+1).
+            // But if the leap month is before another regular month, that shifts ordinals too.
+            // Since this IS the leap month: ordinal = baseNum + 1.
+            return $baseNum + 1;
+        }
+
+        // Regular month Mxx: ordinal = baseNum unless a leap month precedes it.
+        // A leap month after ICU month $leapIcuMonth (0-indexed) means all regular months
+        // with ICU month > leapIcuMonth have their ordinal incremented by 1.
+        // baseNum maps to ICU month baseNum - 1.
+        $ordinal = $baseNum;
+        if ($leapIcuMonth >= 0 && ($baseNum - 1) > $leapIcuMonth) {
+            $ordinal = $baseNum + 1;
+        }
+        return $ordinal;
+    }
+
+    /**
+     * Finds the ICU month index (0-based) that has a leap month following it in the given
+     * Chinese/Dangi calendar year, or -1 if none.
+     */
+    private function findChineseLeapMonthInYear(int $calYear): int
+    {
+        $savedTime = $this->intlCal->getTime();
+        $icuYear = $calYear + ($this->calendarId === 'chinese' ? self::CHINESE_YEAR_OFFSET : self::DANGI_YEAR_OFFSET);
+
+        $result = -1;
+        for ($m = 0; $m <= 11; $m++) {
+            $this->intlCal->clear();
+            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $icuYear);
+            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $m);
+            $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, 15);
+            $this->intlCal->get(\IntlCalendar::FIELD_MONTH); // force resolution
+
+            $daysInMonth = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, $daysInMonth);
+            $this->intlCal->add(\IntlCalendar::FIELD_DAY_OF_MONTH, 1);
+
+            if ($this->intlCal->get(self::FIELD_IS_LEAP_MONTH) === 1) {
+                $result = $m;
+                break;
+            }
+        }
+
+        $this->intlCal->setTime($savedTime);
+        return $result;
+    }
+
+    // -------------------------------------------------------------------------
+    // Era resolution
+    // -------------------------------------------------------------------------
+
+    /** Japanese era TC39 names to ICU era indices and start years. */
+    private const JAPANESE_ERA_TO_START = [
+        'reiwa' => 2019,
+        'heisei' => 1989,
+        'showa' => 1926,
+        'taisho' => 1912,
+        'meiji' => 1868,
+    ];
+
+    /**
+     * Valid TC39 era strings per calendar.
+     *
+     * @var array<string, list<string>>
+     */
+    private const VALID_ERAS = [
+        'gregory' => ['ce', 'bce'],
+        'japanese' => ['reiwa', 'heisei', 'showa', 'taisho', 'meiji', 'ce', 'bce'],
+        'buddhist' => ['be'],
+        'roc' => ['minguo', 'roc', 'before-roc', 'broc'],
+        'coptic' => ['era0', 'era1', 'am'],
+        'ethiopic' => ['era0', 'era1', 'am', 'aa'],
+        'ethioaa' => ['era0', 'aa'],
+        'hebrew' => ['am'],
+        'indian' => ['shaka'],
+        'islamic' => ['ah', 'bh'],
+        'islamic-civil' => ['ah', 'bh'],
+        'islamic-rgsa' => ['ah', 'bh'],
+        'islamic-tbla' => ['ah', 'bh'],
+        'islamic-umalqura' => ['ah', 'bh'],
+        'persian' => ['ap'],
+    ];
+
+    public function resolveEra(string $era, int $eraYear): ?int
+    {
+        // Chinese/Dangi have no eras — signal to caller to ignore.
+        if ($this->calendarId === 'chinese' || $this->calendarId === 'dangi') {
+            return null;
+        }
+
+        $validEras = self::VALID_ERAS[$this->calendarId] ?? [];
+        if (!in_array($era, $validEras, true)) {
+            throw new InvalidArgumentException("Invalid era \"{$era}\" for calendar \"{$this->calendarId}\".");
+        }
+
+        return match ($this->calendarId) {
+            'gregory' => $era === 'bce' ? 1 - $eraYear : $eraYear,
+            'japanese' => $this->resolveJapaneseEra($era, $eraYear),
+            'buddhist' => $eraYear,
+            'roc' => ($era === 'before-roc' || $era === 'broc') ? 1 - $eraYear : $eraYear,
+            'coptic' => ($era === 'era0') ? 1 - $eraYear : $eraYear,
+            'ethiopic' => $this->resolveEthiopicEra($era, $eraYear),
+            'ethioaa' => $eraYear,
+            'hebrew' => $eraYear,
+            'indian' => $eraYear,
+            'persian' => $eraYear,
+            default => $this->resolveIslamicEra($era, $eraYear),
+        };
+    }
+
+    private function resolveJapaneseEra(string $era, int $eraYear): int
+    {
+        if ($era === 'bce') {
+            return 1 - $eraYear;
+        }
+        if ($era === 'ce') {
+            return $eraYear;
+        }
+        $startYear = self::JAPANESE_ERA_TO_START[$era]
+            ?? throw new InvalidArgumentException("Unknown Japanese era \"{$era}\".");
+        return $startYear + $eraYear - 1;
+    }
+
+    private function resolveEthiopicEra(string $era, int $eraYear): int
+    {
+        // 'aa' and 'era0' are the Amete Alem era; 'am' and 'era1' are Amete Mihret.
+        // For ethiopic calendar, year property = FIELD_YEAR in the current era.
+        // era0/aa: year = eraYear offset by 5500 from era1
+        // era1/am: year = eraYear
+        if ($era === 'era0' || $era === 'aa') {
+            // Amete Alem year to Amete Mihret: year = eraYear - 5500
+            return $eraYear - 5500;
+        }
+        return $eraYear;
+    }
+
+    private function resolveIslamicEra(string $era, int $eraYear): int
+    {
+        if ($era === 'bh') {
+            return 1 - $eraYear;
+        }
+        return $eraYear;
+    }
+
+    // -------------------------------------------------------------------------
+    // Internal: set the IntlCalendar from calendar-specific fields
+    // -------------------------------------------------------------------------
+
+    /**
+     * Sets the IntlCalendar from calendar-specific year, ordinal month, and day.
+     *
+     * Maps TC39 ordinal month to the appropriate ICU month slot, which differs
+     * for calendars with intercalary or leap months (Hebrew, Chinese/Dangi).
+     */
+    private function setCalendarFields(int $calYear, int $calMonth, int $calDay): void
+    {
+        $this->intlCal->clear();
+
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
+            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear);
+            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $calMonth - 1);
+        } elseif ($this->calendarId === 'hebrew') {
+            $this->intlCal->set(\IntlCalendar::FIELD_YEAR, $calYear);
+            $isLeap = (7 * $calYear + 1) % 19 < 7;
+            $icuMonth = $this->hebrewOrdinalToIcuMonth($calMonth, $isLeap);
+            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $icuMonth);
+        } elseif ($this->calendarId === 'chinese' || $this->calendarId === 'dangi') {
+            $this->setChineseCalendarFromOrdinal($calYear, $calMonth, $calDay);
+            return; // setChineseCalendarFromOrdinal sets DAY_OF_MONTH itself
+        } else {
+            $this->intlCal->set(\IntlCalendar::FIELD_YEAR, $calYear);
+            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $calMonth - 1);
+        }
+
+        $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, $calDay);
+    }
+
+    /**
+     * Sets the IntlCalendar from calendar-specific year, monthCode, and day.
+     *
+     * Converts the month code directly to ICU month slot, which avoids the
+     * ordinal-to-ICU mapping needed by setCalendarFields().
+     */
+    private function setCalendarFieldsFromMonthCode(int $calYear, string $monthCode, int $calDay): void
+    {
+        $this->intlCal->clear();
+
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
+            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear);
+        } elseif ($this->calendarId === 'chinese') {
+            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::CHINESE_YEAR_OFFSET);
+        } elseif ($this->calendarId === 'dangi') {
+            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::DANGI_YEAR_OFFSET);
+        } else {
+            $this->intlCal->set(\IntlCalendar::FIELD_YEAR, $calYear);
+        }
+
+        if ($this->calendarId === 'hebrew') {
+            // Hebrew: M01-M05 → ICU 0-4, M05L → ICU 5, M06-M12 → ICU 6-12
+            if ($monthCode === 'M05L') {
+                $isLeap = (7 * $calYear + 1) % 19 < 7;
+                if (!$isLeap) {
+                    throw new InvalidArgumentException("monthCode \"M05L\" is only valid in Hebrew leap years; year {$calYear} is not a leap year.");
+                }
+                $this->intlCal->set(\IntlCalendar::FIELD_MONTH, 5);
+            } else {
+                if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
+                    throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for hebrew calendar.");
+                }
+                $num = (int) $m[1];
+                if ($num < 1 || $num > 12) {
+                    throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for hebrew calendar.");
+                }
+                // M01-M05 → ICU 0-4, M06-M12 → ICU 6-12
+                $icuMonth = $num <= 5 ? $num - 1 : $num;
+                $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $icuMonth);
+            }
+        } elseif ($this->calendarId === 'chinese' || $this->calendarId === 'dangi') {
+            // Chinese/Dangi: MxxL → ICU month xx-1 with IS_LEAP_MONTH=1
+            $isLeapCode = str_ends_with($monthCode, 'L');
+            $baseCode = $isLeapCode ? substr($monthCode, 0, -1) : $monthCode;
+            if (preg_match('/^M(\d{2})$/', $baseCode, $m) !== 1) {
+                throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
+            }
+            $baseNum = (int) $m[1];
+            if ($baseNum < 1 || $baseNum > 12) {
+                throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".");
+            }
+            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $baseNum - 1);
+            $this->intlCal->set(self::FIELD_IS_LEAP_MONTH, $isLeapCode ? 1 : 0);
+        } else {
+            // Standard calendars: M01-M12 → ICU 0-11; M13 → ICU 12 (coptic/ethiopic/ethioaa)
+            $maxMonth = in_array($this->calendarId, ['coptic', 'ethiopic', 'ethioaa'], true) ? 13 : 12;
+            if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
+                throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
+            }
+            $num = (int) $m[1];
+            if ($num < 1 || $num > $maxMonth) {
+                throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".");
+            }
+            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $num - 1);
+        }
+
+        $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, $calDay);
+    }
+
+    /**
+     * Reads back epoch ms from IntlCalendar, converts to ISO, and applies overflow handling.
+     *
+     * @return array{0: int, 1: int, 2: int} [isoYear, isoMonth, isoDay]
+     */
+    private function resolveAndConstrain(int $calDay, string $overflow): array
+    {
+        if ($overflow === 'constrain') {
+            $maxDay = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            if ($calDay > $maxDay) {
+                $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, $maxDay);
+            }
+        } elseif ($overflow === 'reject') {
+            $maxDay = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            if ($calDay > $maxDay) {
+                throw new InvalidArgumentException("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
+            }
+        }
+
+        $epochMs = $this->intlCal->getTime();
+        $jdn = (int) floor($epochMs / self::MS_PER_DAY) + 2_440_588;
+        return CalendarMath::fromJulianDay($jdn);
+    }
+
+    /**
+     * Maps TC39 ordinal month → ICU month slot for Hebrew calendar.
+     *
+     * Non-leap: TC39 1-5 → ICU 0-4, TC39 6-12 → ICU 6-12
+     * Leap:     TC39 1-5 → ICU 0-4, TC39 6 → ICU 5, TC39 7-13 → ICU 6-12
+     */
+    private function hebrewOrdinalToIcuMonth(int $ordinal, bool $isLeap): int
+    {
+        if ($ordinal <= 5) {
+            return $ordinal - 1;
+        }
+        if ($isLeap) {
+            // ordinal 6 → ICU 5 (Adar I), ordinal 7-13 → ICU 6-12
+            return $ordinal - 1;
+        }
+        // Non-leap: ordinal 6-12 → ICU 6-12
+        return $ordinal;
+    }
+
+    /**
+     * Sets Chinese/Dangi calendar fields from TC39 ordinal month.
+     *
+     * Finds which ICU month + leap combination matches the given ordinal for the year.
+     */
+    private function setChineseCalendarFromOrdinal(int $calYear, int $calMonth, int $calDay): void
+    {
+        // Find the leap month in this year (if any).
+        $leapIcuMonth = $this->findChineseLeapMonthInYear($calYear);
+
+        // Determine the target ICU month and IS_LEAP_MONTH flag.
+        if ($leapIcuMonth < 0) {
+            // No leap month: ordinal n → ICU month n-1, not leap.
+            $icuMonth = $calMonth - 1;
+            $isLeap = 0;
+        } else {
+            // The leap month follows ICU month $leapIcuMonth.
+            // Regular months before and including the leap ICU month: ordinal = ICU month + 1.
+            // The leap month itself: ordinal = leapIcuMonth + 2.
+            // Regular months after the leap ICU month: ordinal = ICU month + 2.
+            $leapOrdinal = $leapIcuMonth + 2; // ordinal of the leap month
+            if ($calMonth <= $leapIcuMonth + 1) {
+                // Before or at the regular month that has a leap copy.
+                $icuMonth = $calMonth - 1;
+                $isLeap = 0;
+            } elseif ($calMonth === $leapOrdinal) {
+                // This IS the leap month.
+                $icuMonth = $leapIcuMonth;
+                $isLeap = 1;
+            } else {
+                // After the leap month.
+                $icuMonth = $calMonth - 2;
+                $isLeap = 0;
+            }
+        }
+
+        $icuYear = $calYear + ($this->calendarId === 'chinese' ? self::CHINESE_YEAR_OFFSET : self::DANGI_YEAR_OFFSET);
+
+        $this->intlCal->clear();
+        $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $icuYear);
+        $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $icuMonth);
+        $this->intlCal->set(self::FIELD_IS_LEAP_MONTH, $isLeap);
+        $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, $calDay);
     }
 
     // -------------------------------------------------------------------------
@@ -477,6 +926,11 @@ final class IntlCalendarBridge implements CalendarProtocol
     {
         $icuEra = $this->intlCal->get(\IntlCalendar::FIELD_ERA);
 
-        return self::JAPANESE_ERAS[$icuEra] ?? 'ce';
+        if (isset(self::JAPANESE_ERAS[$icuEra])) {
+            return self::JAPANESE_ERAS[$icuEra];
+        }
+        // Pre-Meiji: use 'ce' for positive extended years, 'bce' for negative.
+        $extYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
+        return $extYear >= 1 ? 'ce' : 'bce';
     }
 }

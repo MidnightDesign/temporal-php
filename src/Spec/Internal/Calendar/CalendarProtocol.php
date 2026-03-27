@@ -110,4 +110,19 @@ interface CalendarProtocol
      * Converts a month code (e.g. "M01", "M05L") to an ordinal month number for the given year.
      */
     public function monthCodeToMonth(string $monthCode, int $calYear): int;
+
+    // -------------------------------------------------------------------------
+    // Era resolution
+    // -------------------------------------------------------------------------
+
+    /**
+     * Resolves era + eraYear to the calendar's year value.
+     *
+     * For calendars without eras (Chinese/Dangi), returns null to signal that
+     * era should be ignored. Throws if the era is invalid for this calendar.
+     *
+     * @return int|null The resolved year, or null if era is not applicable.
+     * @throws \InvalidArgumentException if the era is not valid for this calendar.
+     */
+    public function resolveEra(string $era, int $eraYear): ?int;
 }

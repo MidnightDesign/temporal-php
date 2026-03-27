@@ -223,6 +223,12 @@ final class IsoCalendar implements CalendarProtocol
         return CalendarMath::monthCodeToMonth($monthCode);
     }
 
+    public function resolveEra(string $era, int $eraYear): ?int
+    {
+        // ISO calendar has no eras.
+        return null;
+    }
+
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------

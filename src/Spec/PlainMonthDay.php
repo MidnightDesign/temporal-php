@@ -307,14 +307,18 @@ final class PlainMonthDay implements Stringable
             }
         }
 
-        // Start from current fields and override.
-        $month = $this->isoMonth;
+        $calendar = $this->calendarId !== 'iso8601'
+            ? CalendarFactory::get($this->calendarId)
+            : null;
+
+        // Start from current fields (calendar-projected for non-ISO).
+        $month = $calendar !== null ? $this->month : $this->isoMonth;
+        $monthCode = null;
         if ($hasMonthCode) {
             /** @var mixed $mc */
             $mc = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
-            $mcStr = (string) $mc;
-            $month = CalendarMath::monthCodeToMonth($mcStr);
+            $monthCode = (string) $mc;
         }
         if ($hasMonth) {
             /** @var mixed $m */
@@ -324,14 +328,10 @@ final class PlainMonthDay implements Stringable
                 throw new InvalidArgumentException('PlainMonthDay::with() month must be finite.');
             }
             /** @phpstan-ignore cast.int */
-            $newMonth = (int) $m;
-            if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
-            }
-            $month = $newMonth;
+            $month = (int) $m;
         }
 
-        $day = $this->isoDay;
+        $day = $calendar !== null ? $this->day : $this->isoDay;
         if ($hasDay) {
             /** @var mixed $d */
             $d = $bag['day'];
@@ -354,6 +354,37 @@ final class PlainMonthDay implements Stringable
             }
             /** @phpstan-ignore cast.int */
             $refYear = (int) $yr;
+        }
+
+        // Non-ISO calendar: resolve back to ISO via calendar protocol.
+        if ($calendar !== null) {
+            if ($hasMonthCode && $monthCode !== null) {
+                $resolvedMonth = $calendar->monthCodeToMonth($monthCode, $refYear);
+                if ($hasMonth && $month !== $resolvedMonth) {
+                    throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                }
+            }
+            if ($day < 1) {
+                throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            }
+            if ($hasMonthCode && $monthCode !== null) {
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($refYear, $monthCode, $day, $overflow);
+            } else {
+                if ($month < 1) {
+                    throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+                }
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIso($refYear, $month, $day, $overflow);
+            }
+            return new self($isoM, $isoD, $this->calendarId, $isoY);
+        }
+
+        // ISO path: resolve monthCode.
+        if ($hasMonthCode && $monthCode !== null) {
+            $mcMonth = CalendarMath::monthCodeToMonth($monthCode);
+            if ($hasMonth && $month !== $mcMonth) {
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+            }
+            $month = $mcMonth;
         }
 
         if ($month < 1) {
@@ -395,7 +426,7 @@ final class PlainMonthDay implements Stringable
             $newRefYear = $refYear;
         }
 
-        return new self($month, $day, 'iso8601', $newRefYear);
+        return new self($month, $day, $this->calendarId, $newRefYear);
     }
 
     /**
@@ -767,12 +798,16 @@ final class PlainMonthDay implements Stringable
 
         // Parse month.
         $month = 0;
+        $monthCode = null;
+        $calendar = $calendarId !== null && $calendarId !== 'iso8601'
+            ? CalendarFactory::get($calendarId)
+            : null;
+
         if ($hasMonthCode) {
             /** @var mixed $mc */
             $mc = $bag['monthCode'];
             /** @phpstan-ignore cast.string */
-            $mcStr = (string) $mc;
-            $month = CalendarMath::monthCodeToMonth($mcStr);
+            $monthCode = (string) $mc;
         }
         if ($hasMonth) {
             /**
@@ -785,11 +820,7 @@ final class PlainMonthDay implements Stringable
                 throw new InvalidArgumentException('PlainMonthDay::from() month must be finite.');
             }
             /** @phpstan-ignore cast.int */
-            $newMonth = (int) $m;
-            if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
-            }
-            $month = $newMonth;
+            $month = (int) $m;
         }
 
         /** @var mixed $dayRaw */
@@ -813,6 +844,53 @@ final class PlainMonthDay implements Stringable
             }
             /** @phpstan-ignore cast.int */
             $year = (int) $yr;
+        }
+
+        // Resolve era + eraYear if present (overrides year for era-based calendars).
+        if ($calendar !== null && array_key_exists('era', $bag) && array_key_exists('eraYear', $bag)) {
+            /** @var mixed $eraRaw */
+            $eraRaw = $bag['era'];
+            /** @var mixed $eraYearRaw */
+            $eraYearRaw = $bag['eraYear'];
+            if (is_string($eraRaw) && $eraYearRaw !== null) {
+                /** @phpstan-ignore cast.int */
+                $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
+                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
+                if ($resolved !== null) {
+                    $year = $resolved;
+                }
+            }
+        }
+
+        // For non-ISO calendars, resolve monthCode to month ordinal and then to ISO.
+        if ($calendar !== null) {
+            if ($hasMonthCode && $monthCode !== null) {
+                $resolvedMonth = $calendar->monthCodeToMonth($monthCode, $year);
+                if ($hasMonth && $month !== $resolvedMonth) {
+                    throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                }
+            }
+            if ($month < 1 && !$hasMonthCode) {
+                throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+            }
+            if ($day < 1) {
+                throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            }
+            if ($hasMonthCode && $monthCode !== null) {
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
+            } else {
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
+            }
+            return new self($isoM, $isoD, $calendarId, $isoY);
+        }
+
+        // ISO path: resolve monthCode to month number.
+        if ($hasMonthCode && $monthCode !== null) {
+            $mcMonth = CalendarMath::monthCodeToMonth($monthCode);
+            if ($hasMonth && $month !== $mcMonth) {
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+            }
+            $month = $mcMonth;
         }
 
         // month < 1 is always invalid.
