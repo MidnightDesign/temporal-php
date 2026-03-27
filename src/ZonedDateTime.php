@@ -50,7 +50,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always "iso8601" -- the only supported calendar.
+     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
@@ -293,11 +293,12 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * @param int    $epochNanoseconds Nanoseconds since the Unix epoch.
      * @param string $timeZoneId       Timezone identifier: 'UTC', '+-HH:MM', or an IANA name.
+     * @param string $calendarId       Calendar identifier (default "iso8601").
      * @throws \InvalidArgumentException if the epoch nanoseconds or time zone are invalid.
      */
-    public function __construct(int $epochNanoseconds, string $timeZoneId)
+    public function __construct(int $epochNanoseconds, string $timeZoneId, string $calendarId = 'iso8601')
     {
-        $this->spec = new Spec\ZonedDateTime($epochNanoseconds, $timeZoneId);
+        $this->spec = new Spec\ZonedDateTime($epochNanoseconds, $timeZoneId, $calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -661,7 +662,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
      */
     public static function fromSpec(Spec\ZonedDateTime $spec): self
     {
-        return new self($spec->epochNanoseconds, $spec->timeZoneId);
+        return new self($spec->epochNanoseconds, $spec->timeZoneId, $spec->calendarId);
     }
 
     // -------------------------------------------------------------------------

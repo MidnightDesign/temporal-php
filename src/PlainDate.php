@@ -20,7 +20,34 @@ final class PlainDate implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Always "iso8601" — the only supported calendar.
+     * Calendar year (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $year {
+        get => $this->spec->year;
+    }
+
+    /**
+     * Month of the year (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $month {
+        get => $this->spec->month;
+    }
+
+    /**
+     * Day of the month (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $day {
+        get => $this->spec->day;
+    }
+
+    /**
+     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
@@ -29,7 +56,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Month code in "M01"–"M12" format.
+     * Month code in "M01"–"M12" format (or "M01L"–"M12L" for leap months).
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
@@ -77,9 +104,8 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Number of days in this date's month (28–31).
+     * Number of days in this date's month.
      *
-     * @var int<28, 31>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInMonth {
@@ -87,7 +113,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always 7 (ISO 8601 calendar).
+     * Days in a week (always 7).
      *
      * @var int<7, 7>
      * @psalm-suppress PropertyNotSetInConstructor
@@ -97,9 +123,8 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * 365 or 366, depending on whether this date's year is a leap year.
+     * Number of days in this date's year.
      *
-     * @var int<365, 366>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInYear {
@@ -107,9 +132,8 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always 12 (ISO 8601 calendar).
+     * Number of months in this date's year.
      *
-     * @var int<12, 12>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $monthsInYear {
@@ -132,19 +156,21 @@ final class PlainDate implements \Stringable, \JsonSerializable
     private readonly SpecPlainDate $spec;
 
     /**
-     * Creates a new PlainDate from year, month, and day.
+     * Creates a new PlainDate from ISO year, month, and day.
      *
-     * @param int          $year  ISO year.
-     * @param int<1, 12>  $month Month of the year (1–12).
-     * @param int<1, 31>  $day   Day of the month (1–31, depending on month/year).
+     * @param int          $isoYear    ISO year.
+     * @param int<1, 12>   $isoMonth   ISO month of the year (1–12).
+     * @param int<1, 31>   $isoDay     ISO day of the month (1–31, depending on month/year).
+     * @param string|null  $calendarId Calendar identifier, or null for "iso8601".
      * @throws \InvalidArgumentException if the date is invalid or out of range.
      */
     public function __construct(
-        public readonly int $year,
-        public readonly int $month,
-        public readonly int $day,
+        int $isoYear,
+        int $isoMonth,
+        int $isoDay,
+        ?string $calendarId = null,
     ) {
-        $this->spec = new SpecPlainDate($year, $month, $day);
+        $this->spec = new SpecPlainDate($isoYear, $isoMonth, $isoDay, $calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -426,7 +452,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
      */
     public static function fromSpec(SpecPlainDate $spec): self
     {
-        return new self($spec->year, $spec->month, $spec->day);
+        return new self($spec->isoYear, $spec->isoMonth, $spec->isoDay, $spec->calendarId);
     }
 
     // -------------------------------------------------------------------------

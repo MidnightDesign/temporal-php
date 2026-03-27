@@ -20,7 +20,94 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Always "iso8601" — the only supported calendar.
+     * Calendar year (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $year {
+        get => $this->spec->year;
+    }
+
+    /**
+     * Month of the year (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $month {
+        get => $this->spec->month;
+    }
+
+    /**
+     * Day of the month (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $day {
+        get => $this->spec->day;
+    }
+
+    /**
+     * Hour of the day (0–23).
+     *
+     * @var int<0, 23>
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $hour {
+        get => $this->spec->hour;
+    }
+
+    /**
+     * Minute of the hour (0–59).
+     *
+     * @var int<0, 59>
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $minute {
+        get => $this->spec->minute;
+    }
+
+    /**
+     * Second of the minute (0–59).
+     *
+     * @var int<0, 59>
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $second {
+        get => $this->spec->second;
+    }
+
+    /**
+     * Millisecond (0–999).
+     *
+     * @var int<0, 999>
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $millisecond {
+        get => $this->spec->millisecond;
+    }
+
+    /**
+     * Microsecond (0–999).
+     *
+     * @var int<0, 999>
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $microsecond {
+        get => $this->spec->microsecond;
+    }
+
+    /**
+     * Nanosecond (0–999).
+     *
+     * @var int<0, 999>
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $nanosecond {
+        get => $this->spec->nanosecond;
+    }
+
+    /**
+     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
@@ -29,7 +116,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Month code in "M01"–"M12" format.
+     * Month code in "M01"–"M12" format (or "M01L"–"M12L" for leap months).
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
@@ -77,9 +164,8 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Number of days in this date's month (28–31).
+     * Number of days in this date's month.
      *
-     * @var int<28, 31>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInMonth {
@@ -87,7 +173,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always 7 (ISO 8601 calendar).
+     * Days in a week (always 7).
      *
      * @var int<7, 7>
      * @psalm-suppress PropertyNotSetInConstructor
@@ -97,9 +183,8 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * 365 or 366, depending on whether this date's year is a leap year.
+     * Number of days in this date's year.
      *
-     * @var int<365, 366>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInYear {
@@ -107,9 +192,8 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always 12 (ISO 8601 calendar).
+     * Number of months in this date's year.
      *
-     * @var int<12, 12>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $monthsInYear {
@@ -132,40 +216,43 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     private readonly SpecPlainDateTime $spec;
 
     /**
-     * Creates a new PlainDateTime from date and time components.
+     * Creates a new PlainDateTime from ISO date and time components.
      *
-     * @param int          $year        ISO year.
-     * @param int<1, 12>  $month       Month of the year (1–12).
-     * @param int<1, 31>  $day         Day of the month (1–31, depending on month/year).
-     * @param int<0, 23>  $hour        Hour of the day (0–23).
-     * @param int<0, 59>  $minute      Minute of the hour (0–59).
-     * @param int<0, 59>  $second      Second of the minute (0–59).
-     * @param int<0, 999> $millisecond Millisecond (0–999).
-     * @param int<0, 999> $microsecond Microsecond (0–999).
-     * @param int<0, 999> $nanosecond  Nanosecond (0–999).
+     * @param int          $isoYear     ISO year.
+     * @param int<1, 12>   $isoMonth    ISO month of the year (1–12).
+     * @param int<1, 31>   $isoDay      ISO day of the month (1–31, depending on month/year).
+     * @param int<0, 23>   $hour        Hour of the day (0–23).
+     * @param int<0, 59>   $minute      Minute of the hour (0–59).
+     * @param int<0, 59>   $second      Second of the minute (0–59).
+     * @param int<0, 999>  $millisecond Millisecond (0–999).
+     * @param int<0, 999>  $microsecond Microsecond (0–999).
+     * @param int<0, 999>  $nanosecond  Nanosecond (0–999).
+     * @param string|null  $calendarId  Calendar identifier, or null for "iso8601".
      * @throws \InvalidArgumentException if any value is out of range.
      */
     public function __construct(
-        public readonly int $year,
-        public readonly int $month,
-        public readonly int $day,
-        public readonly int $hour = 0,
-        public readonly int $minute = 0,
-        public readonly int $second = 0,
-        public readonly int $millisecond = 0,
-        public readonly int $microsecond = 0,
-        public readonly int $nanosecond = 0,
+        int $isoYear,
+        int $isoMonth,
+        int $isoDay,
+        int $hour = 0,
+        int $minute = 0,
+        int $second = 0,
+        int $millisecond = 0,
+        int $microsecond = 0,
+        int $nanosecond = 0,
+        ?string $calendarId = null,
     ) {
         $this->spec = new SpecPlainDateTime(
-            $year,
-            $month,
-            $day,
+            $isoYear,
+            $isoMonth,
+            $isoDay,
             $hour,
             $minute,
             $second,
             $millisecond,
             $microsecond,
             $nanosecond,
+            $calendarId,
         );
     }
 
@@ -514,15 +601,16 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     public static function fromSpec(SpecPlainDateTime $spec): self
     {
         return new self(
-            $spec->year,
-            $spec->month,
-            $spec->day,
+            $spec->isoYear,
+            $spec->isoMonth,
+            $spec->isoDay,
             $spec->hour,
             $spec->minute,
             $spec->second,
             $spec->millisecond,
             $spec->microsecond,
             $spec->nanosecond,
+            $spec->calendarId,
         );
     }
 

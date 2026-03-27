@@ -748,7 +748,7 @@ final class Duration implements Stringable
             if ($rt instanceof \Temporal\Spec\ZonedDateTime) {
                 $rt = self::zdtToPlainDateBag($rt);
             } elseif ($rt instanceof \Temporal\Spec\PlainDate) {
-                $rt = ['year' => $rt->year, 'month' => $rt->month, 'day' => $rt->day];
+                $rt = ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
             } elseif (is_string($rt)) {
                 $rt = $this->parseRelativeToString($rt);
             } elseif (is_array($rt)) {
@@ -779,7 +779,7 @@ final class Duration implements Stringable
             if ($rt instanceof \Temporal\Spec\ZonedDateTime) {
                 $rt = self::zdtToPlainDateBag($rt);
             } elseif ($rt instanceof \Temporal\Spec\PlainDate) {
-                $rt = ['year' => $rt->year, 'month' => $rt->month, 'day' => $rt->day];
+                $rt = ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
             } elseif (is_string($rt)) {
                 $rt = $this->parseRelativeToString($rt);
             } elseif (is_array($rt)) {
@@ -2374,7 +2374,7 @@ final class Duration implements Stringable
             return self::zdtToPlainDateBag($rt);
         }
         if ($rt instanceof \Temporal\Spec\PlainDate) {
-            return ['year' => $rt->year, 'month' => $rt->month, 'day' => $rt->day];
+            return ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
         }
         if (is_string($rt)) {
             $parsed = $this->parseRelativeToString($rt);

@@ -1035,7 +1035,7 @@ final class PlainDateTime implements Stringable
      */
     public function toPlainDate(): PlainDate
     {
-        return new PlainDate($this->isoYear, $this->isoMonth, $this->isoDay);
+        return new PlainDate($this->isoYear, $this->isoMonth, $this->isoDay, $this->calendarId);
     }
 
     /**
@@ -1144,7 +1144,7 @@ final class PlainDateTime implements Stringable
             $epochNs = ($epochSec * self::NS_PER_SECOND) + $subNs;
         }
 
-        return new ZonedDateTime($epochNs, $normalTzId, 'iso8601');
+        return new ZonedDateTime($epochNs, $normalTzId, $this->calendarId);
     }
 
     /**

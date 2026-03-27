@@ -725,7 +725,7 @@ final class PlainDate implements Stringable
 
         $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
 
-        return ZonedDateTime::createFromEpochParts($epochSec, $subNs, $tzId);
+        return ZonedDateTime::createFromEpochParts($epochSec, $subNs, $tzId, $this->calendarId);
     }
 
     /**

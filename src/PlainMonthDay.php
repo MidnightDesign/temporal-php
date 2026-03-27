@@ -20,7 +20,25 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Always "iso8601" — the only supported calendar.
+     * Month of the year (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $month {
+        get => $this->spec->month;
+    }
+
+    /**
+     * Day of the month (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $day {
+        get => $this->spec->day;
+    }
+
+    /**
+     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
@@ -29,7 +47,7 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Month code in "M01"–"M12" format.
+     * Month code in "M01"–"M12" format (or "M01L"–"M12L" for leap months).
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
@@ -44,17 +62,21 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
     private readonly SpecPlainMonthDay $spec;
 
     /**
-     * Creates a new PlainMonthDay from month and day.
+     * Creates a new PlainMonthDay from ISO month and day.
      *
-     * @param int<1, 12> $month Month of the year (1–12).
-     * @param int<1, 31> $day   Day of the month (1–31, depending on month).
+     * @param int<1, 12>  $isoMonth        ISO month of the year (1–12).
+     * @param int<1, 31>  $isoDay          ISO day of the month (1–31, depending on month).
+     * @param string|null $calendarId      Calendar identifier, or null for "iso8601".
+     * @param int         $referenceISOYear Reference ISO year for round-trip fidelity (default 1972).
      * @throws \InvalidArgumentException if the month-day is invalid or out of range.
      */
     public function __construct(
-        public readonly int $month,
-        public readonly int $day,
+        int $isoMonth,
+        int $isoDay,
+        ?string $calendarId = null,
+        int $referenceISOYear = 1972,
     ) {
-        $this->spec = new SpecPlainMonthDay($month, $day);
+        $this->spec = new SpecPlainMonthDay($isoMonth, $isoDay, $calendarId, $referenceISOYear);
     }
 
     // -------------------------------------------------------------------------
@@ -185,15 +207,12 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
     /**
      * Creates a porcelain PlainMonthDay from a spec-layer PlainMonthDay.
      *
-     * The referenceISOYear from the spec is not preserved; the porcelain layer
-     * hides this implementation detail and uses the default (1972).
-     *
      * @param SpecPlainMonthDay $spec The spec-layer instance to wrap.
      * @return self
      */
     public static function fromSpec(SpecPlainMonthDay $spec): self
     {
-        return new self($spec->isoMonth, $spec->day);
+        return new self($spec->isoMonth, $spec->isoDay, $spec->calendarId, $spec->referenceISOYear);
     }
 
     // -------------------------------------------------------------------------
