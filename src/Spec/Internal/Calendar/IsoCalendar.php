@@ -203,8 +203,8 @@ final class IsoCalendar implements CalendarProtocol
         $anchorMonth = $isoM1 + $months;
         $anchorYear = $isoY1 + $years;
         if ($anchorMonth > 12) {
-            $anchorYear++;
-            $anchorMonth -= 12;
+            $anchorYear += intdiv($anchorMonth - 1, 12);
+            $anchorMonth = (($anchorMonth - 1) % 12) + 1;
         }
         $anchorMaxDay = CalendarMath::calcDaysInMonth($anchorYear, $anchorMonth);
         $anchorDay = min($isoD1, $anchorMaxDay);

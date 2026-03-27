@@ -1784,6 +1784,7 @@ final class PlainDateTime implements Stringable
             // The receiver is always $this. After a possible swap, determine whether
             // the receiver corresponds to the "later" date in the positive-direction diff.
             $receiverIsLater = $receiver === $later;
+            $calId = $earlier->calendarId;
 
             if ($normLargest === 'day') {
                 $days = $dateDiff;
@@ -1793,21 +1794,30 @@ final class PlainDateTime implements Stringable
                 $days = $dateDiff - ($weeks * 7);
                 [$years, $months] = [0, 0];
             } else {
-                [$years, $months, $days] = self::calendarDiff(
-                    $earlierY,
-                    $earlierM,
-                    $earlierD,
-                    $adjY2,
-                    $adjM2,
-                    $adjD2,
-                    $receiverIsLater,
-                );
-                $weeks = 0;
-                // Convert years to months when largestUnit is 'month'.
-                if ($normLargest === 'month') {
-                    $months = ($years * 12) + $months;
-                    $years = 0;
+                if ($calId !== 'iso8601') {
+                    $cal = CalendarFactory::get($calId);
+                    [$years, $months, , $days] = $cal->dateUntil(
+                        $earlierY, $earlierM, $earlierD,
+                        $adjY2, $adjM2, $adjD2,
+                        $normLargest,
+                    );
+                } else {
+                    [$years, $months, $days] = self::calendarDiff(
+                        $earlierY,
+                        $earlierM,
+                        $earlierD,
+                        $adjY2,
+                        $adjM2,
+                        $adjD2,
+                        $receiverIsLater,
+                    );
+                    // Convert years to months when largestUnit is 'month'.
+                    if ($normLargest === 'month') {
+                        $months = ($years * 12) + $months;
+                        $years = 0;
+                    }
                 }
+                $weeks = 0;
             }
 
             $isSmallestCalendar = in_array($normSmallest, ['year', 'month', 'week', 'day'], strict: true);
@@ -1907,18 +1917,26 @@ final class PlainDateTime implements Stringable
             if ($overflowDays > 0 && $normLargest !== 'day' && $normLargest !== 'week') {
                 $adjLaterJdn2 = $adjLaterJdn + $overflowDays;
                 [$adjY3, $adjM3, $adjD3] = CalendarMath::fromJulianDay($adjLaterJdn2);
-                [$years, $months, $days] = self::calendarDiff(
-                    $earlierY,
-                    $earlierM,
-                    $earlierD,
-                    $adjY3,
-                    $adjM3,
-                    $adjD3,
-                    $receiverIsLater,
-                );
-                if ($normLargest === 'month') {
-                    $months = ($years * 12) + $months;
-                    $years = 0;
+                if ($calId !== 'iso8601') {
+                    [$years, $months, , $days] = CalendarFactory::get($calId)->dateUntil(
+                        $earlierY, $earlierM, $earlierD,
+                        $adjY3, $adjM3, $adjD3,
+                        $normLargest,
+                    );
+                } else {
+                    [$years, $months, $days] = self::calendarDiff(
+                        $earlierY,
+                        $earlierM,
+                        $earlierD,
+                        $adjY3,
+                        $adjM3,
+                        $adjD3,
+                        $receiverIsLater,
+                    );
+                    if ($normLargest === 'month') {
+                        $months = ($years * 12) + $months;
+                        $years = 0;
+                    }
                 }
             } else {
                 $days += $overflowDays;
@@ -2110,40 +2128,20 @@ final class PlainDateTime implements Stringable
 
         $days += $overflowDays;
 
-        // Apply years and months calendrically.
-        $newYear = $this->isoYear + $years;
-        $newMonth = $this->isoMonth + $months;
-
-        // Normalize month into 1–12, carrying into year.
-        if ($newMonth > 12) {
-            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth = (($newMonth - 1) % 12) + 1;
-        } elseif ($newMonth < 1) {
-            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
-        }
-
-        // Clamp or reject day within new month.
-        $newDay = $this->isoDay;
-        $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
-        if ($newDay > $maxDay) {
-            if ($overflow === 'constrain') {
-                $newDay = $maxDay;
-            } else {
-                throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
-            }
-        }
-
-        // Add days via Julian Day Number.
-        $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $days;
+        // Delegate date arithmetic to the calendar protocol.
+        $cal = CalendarFactory::get($this->calendarId);
+        [$newYear, $newMonth, $newDay] = $cal->dateAdd(
+            $this->isoYear, $this->isoMonth, $this->isoDay,
+            $years, $months, 0, $days,
+            $overflow,
+        );
 
         $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
         $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
             throw new InvalidArgumentException('PlainDateTime arithmetic result is outside the representable range.');
         }
-
-        [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
 
         // Decompose new time.
         $h = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
@@ -2157,7 +2155,7 @@ final class PlainDateTime implements Stringable
         $usR = intdiv(num1: $rem, num2: self::NS_PER_US);
         $nsR = $rem % self::NS_PER_US;
 
-        return new self($newYear, $newMonth, $newDay, $h, $min, $sec, $msR, $usR, $nsR);
+        return new self($newYear, $newMonth, $newDay, $h, $min, $sec, $msR, $usR, $nsR, $this->calendarId);
     }
 
     /**
@@ -2450,21 +2448,14 @@ final class PlainDateTime implements Stringable
      */
     private static function addSignedMonths(self $receiver, int $signedMonths): int
     {
-        $newMonth = $receiver->isoMonth + $signedMonths;
-        $newYear = $receiver->isoYear;
+        $cal = CalendarFactory::get($receiver->calendarId);
+        [$y, $m, $d] = $cal->dateAdd(
+            $receiver->isoYear, $receiver->isoMonth, $receiver->isoDay,
+            0, $signedMonths, 0, 0,
+            'constrain',
+        );
 
-        if ($newMonth > 12) {
-            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth = (($newMonth - 1) % 12) + 1;
-        } elseif ($newMonth < 1) {
-            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
-        }
-
-        $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
-        $newDay = min($receiver->isoDay, $maxDay);
-
-        $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay);
+        $jdn = CalendarMath::toJulianDay($y, $m, $d);
         $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
         $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {

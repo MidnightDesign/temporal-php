@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Temporal\Spec\Internal\Calendar;
 
 use InvalidArgumentException;
-use Temporal\Exception\NotYetImplementedException;
 use Temporal\Spec\Internal\CalendarMath;
 
 /**
@@ -281,8 +280,41 @@ final class IntlCalendarBridge implements CalendarProtocol
         int $days,
         string $overflow,
     ): array {
-        // Stub — Phase 5 will implement.
-        throw new NotYetImplementedException('IntlCalendarBridge::dateAdd()');
+        $this->setIsoDate($isoYear, $isoMonth, $isoDay);
+
+        // Capture the original calendar day before year/month addition, for 'reject' overflow.
+        $originalCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+
+        if ($years !== 0) {
+            $this->intlCal->add(\IntlCalendar::FIELD_YEAR, $years);
+        }
+        if ($months !== 0) {
+            $this->intlCal->add(\IntlCalendar::FIELD_MONTH, $months);
+        }
+
+        // IntlCalendar::add() automatically constrains the day. For 'reject' overflow,
+        // check whether constraining changed the day (meaning the original day exceeded
+        // the new month's maximum).
+        if ($overflow === 'reject' && ($years !== 0 || $months !== 0)) {
+            $newMaxDay = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            if ($originalCalDay > $newMaxDay) {
+                throw new InvalidArgumentException(
+                    "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
+                );
+            }
+        }
+
+        // Add weeks and days via IntlCalendar to handle all calendar-specific boundaries.
+        $totalDays = ($weeks * 7) + $days;
+        if ($totalDays !== 0) {
+            $this->intlCal->add(\IntlCalendar::FIELD_DAY_OF_MONTH, $totalDays);
+        }
+
+        // Convert back to ISO via epoch ms -> JDN.
+        $epochMs = $this->intlCal->getTime();
+        $jdn = (int) floor($epochMs / self::MS_PER_DAY) + 2_440_588;
+
+        return CalendarMath::fromJulianDay($jdn);
     }
 
     public function dateUntil(
@@ -294,8 +326,153 @@ final class IntlCalendarBridge implements CalendarProtocol
         int $isoD2,
         string $largestUnit,
     ): array {
-        // Stub — Phase 5 will implement.
-        throw new NotYetImplementedException('IntlCalendarBridge::dateUntil()');
+        // Day/week: pure JDN subtraction, calendar doesn't matter.
+        if ($largestUnit === 'day' || $largestUnit === 'week') {
+            $totalDays = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2)
+                - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
+            if ($largestUnit === 'week') {
+                $weeks = intdiv($totalDays, 7);
+                $days = $totalDays - ($weeks * 7);
+                return [0, 0, $weeks, $days];
+            }
+            return [0, 0, 0, $totalDays];
+        }
+
+        // Year/month decomposition using calendar-specific fields.
+        $this->setIsoDate($isoY1, $isoM1, $isoD1);
+        $calY1 = $this->calendarYear();
+        $calM1 = $this->calendarMonth();
+        $calD1 = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+
+        $this->setIsoDate($isoY2, $isoM2, $isoD2);
+        $calY2 = $this->calendarYear();
+        $calM2 = $this->calendarMonth();
+        $calD2 = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+
+        // Determine sign.
+        $jdn1 = CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
+        $jdn2 = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2);
+        $sign = $jdn2 >= $jdn1 ? 1 : -1;
+
+        if ($sign < 0) {
+            [$calY1, $calM1, $calD1, $calY2, $calM2, $calD2] =
+                [$calY2, $calM2, $calD2, $calY1, $calM1, $calD1];
+            [$isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2] =
+                [$isoY2, $isoM2, $isoD2, $isoY1, $isoM1, $isoD1];
+            [$jdn1, $jdn2] = [$jdn2, $jdn1];
+        }
+
+        // Compute months-in-year for date1's year to handle month borrowing.
+        $this->setIsoDate($isoY1, $isoM1, $isoD1);
+        $monthsInY1 = $this->calendarMonthsInYear();
+
+        $years = $calY2 - $calY1;
+        $months = $calM2 - $calM1;
+
+        if ($months < 0) {
+            $years--;
+            $months += $monthsInY1;
+        }
+
+        if ($calD2 < $calD1) {
+            if ($months > 0) {
+                $months--;
+            } else {
+                $years--;
+                // Recompute monthsInYear for the adjusted year.
+                $months = $monthsInY1 - 1;
+            }
+        }
+
+        if ($largestUnit === 'month') {
+            // Compute months-in-year for intermediate years between date1 and date2,
+            // then collapse years into months properly.
+            $months += $this->totalMonthsInYears($calY1, $years, $isoY1, $isoM1, $isoD1);
+            $years = 0;
+        }
+
+        // Compute remaining days: construct anchor date (date1 + years + months) via dateAdd,
+        // then JDN difference to date2.
+        [$anchorIsoY, $anchorIsoM, $anchorIsoD] = $this->dateAdd(
+            $isoY1, $isoM1, $isoD1,
+            $years, $months, 0, 0,
+            'constrain',
+        );
+        $anchorJdn = CalendarMath::toJulianDay($anchorIsoY, $anchorIsoM, $anchorIsoD);
+        $days = $jdn2 - $anchorJdn;
+
+        return [$sign * $years, $sign * $months, 0, $sign * $days];
+    }
+
+    /**
+     * Returns the calendar year using the same logic as year() but without re-calling setIsoDate.
+     * Must call setIsoDate() first.
+     */
+    private function calendarYear(): int
+    {
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
+        }
+        if ($this->calendarId === 'chinese') {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
+        }
+        if ($this->calendarId === 'dangi') {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::DANGI_YEAR_OFFSET;
+        }
+        return $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
+    }
+
+    /**
+     * Returns the calendar ordinal month using the same logic as month().
+     * Must call setIsoDate() first.
+     */
+    private function calendarMonth(): int
+    {
+        return match ($this->calendarId) {
+            'hebrew' => $this->hebrewMonthOrdinal(),
+            'chinese', 'dangi' => $this->chineseMonthOrdinal(),
+            default => $this->intlCal->get(\IntlCalendar::FIELD_MONTH) + 1,
+        };
+    }
+
+    /**
+     * Returns the months-in-year for the current calendar date.
+     * Must call setIsoDate() first.
+     */
+    private function calendarMonthsInYear(): int
+    {
+        return match ($this->calendarId) {
+            'hebrew' => $this->isHebrewLeapYear() ? 13 : 12,
+            'chinese', 'dangi' => $this->hasChineseLeapMonth() ? 13 : 12,
+            default => $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_MONTH) + 1,
+        };
+    }
+
+    /**
+     * Sums months-in-year for $count consecutive years starting from calYear.
+     * Used to collapse years into months for largestUnit='month'.
+     */
+    private function totalMonthsInYears(int $calY1, int $years, int $isoY, int $isoM, int $isoD): int
+    {
+        if ($years === 0) {
+            return 0;
+        }
+        $total = 0;
+        // Walk forward one year at a time, accumulating months.
+        $curIsoY = $isoY;
+        $curIsoM = $isoM;
+        $curIsoD = $isoD;
+        for ($i = 0; $i < $years; $i++) {
+            $this->setIsoDate($curIsoY, $curIsoM, $curIsoD);
+            $total += $this->calendarMonthsInYear();
+            // Advance by one calendar year.
+            [$curIsoY, $curIsoM, $curIsoD] = $this->dateAdd(
+                $curIsoY, $curIsoM, $curIsoD,
+                1, 0, 0, 0,
+                'constrain',
+            );
+        }
+        return $total;
     }
 
     // -------------------------------------------------------------------------

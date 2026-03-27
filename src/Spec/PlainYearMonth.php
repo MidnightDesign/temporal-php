@@ -988,31 +988,21 @@ final class PlainYearMonth implements Stringable
         self::validateYearMonthForDiff($later);
         self::validateYearMonthForDiff($earlier);
 
-        // Compute raw year+month diff.
-        $sign =
-            $later->isoYear > $earlier->isoYear || $later->isoYear === $earlier->isoYear && $later->isoMonth >= $earlier->isoMonth
-                ? 1
-                : -1;
-
-        $y1 = $earlier->isoYear;
-        $m1 = $earlier->isoMonth;
-        $y2 = $later->isoYear;
-        $m2 = $later->isoMonth;
-
-        if ($sign < 0) {
-            [$y1, $m1, $y2, $m2] = [$y2, $m2, $y1, $m1];
-        }
-
-        $years = $y2 - $y1;
-        $months = $m2 - $m1;
-        if ($months < 0) {
-            $years--;
-            $months += 12;
-        }
-
-        $totalMonths = $sign * (($years * 12) + $months);
-        $rawYears = $sign * $years;
-        $rawMonths = $sign * $months;
+        // Compute raw year+month diff via the calendar protocol.
+        $calId = $earlier->calendarId;
+        $cal = CalendarFactory::get($calId);
+        [$rawYears, $rawMonths, , ] = $cal->dateUntil(
+            $earlier->isoYear, $earlier->isoMonth, $earlier->referenceISODay,
+            $later->isoYear, $later->isoMonth, $later->referenceISODay,
+            'year',
+        );
+        // For totalMonths, use dateUntil with largestUnit='month' for correct result
+        // in calendars with variable months-per-year (e.g. Hebrew 13-month years).
+        [, $totalMonths, , ] = $cal->dateUntil(
+            $earlier->isoYear, $earlier->isoMonth, $earlier->referenceISODay,
+            $later->isoYear, $later->isoMonth, $later->referenceISODay,
+            'month',
+        );
 
         // The receiver is "later" when since() is called (receiver is $this = later arg).
         $receiverIsLater = $receiver->isoYear === $later->isoYear && $receiver->isoMonth === $later->isoMonth;
@@ -1340,24 +1330,20 @@ final class PlainYearMonth implements Stringable
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
 
-        $newYear = $this->isoYear + $years;
-        $newMonth = $this->isoMonth + $months;
-
-        // Normalize month into 1–12, carrying into year.
-        if ($newMonth > 12) {
-            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth = (($newMonth - 1) % 12) + 1;
-        } elseif ($newMonth < 1) {
-            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
-        }
+        // Delegate to the calendar protocol for date arithmetic.
+        $cal = CalendarFactory::get($this->calendarId);
+        [$newIsoY, $newIsoM, $newIsoD] = $cal->dateAdd(
+            $this->isoYear, $this->isoMonth, $this->referenceISODay,
+            $years, $months, 0, 0,
+            'constrain',
+        );
 
         // Range check using month-granular limit.
-        if (!self::isoYearMonthWithinLimits($newYear, $newMonth)) {
+        if (!self::isoYearMonthWithinLimits($newIsoY, $newIsoM)) {
             throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
-        return new self($newYear, $newMonth, 'iso8601', 1);
+        return new self($newIsoY, $newIsoM, $this->calendarId, $newIsoD);
     }
 
     /**

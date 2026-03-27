@@ -1132,20 +1132,30 @@ final class PlainDate implements Stringable
             return new Duration(weeks: $rawWeeks, days: $roundedDays);
         }
 
-        // Calendar units (months/years): compute via calendarDiff.
+        // Calendar units (months/years): compute via calendar protocol.
         // Pass whether the receiver corresponds to the y2 (later) argument so
         // calendarDiff knows from which end to anchor the day-remainder calculation.
         $receiverIsLater =
             $receiver->isoYear === $later->isoYear && $receiver->isoMonth === $later->isoMonth && $receiver->isoDay === $later->isoDay;
-        [$years, $months, $days] = self::calendarDiff(
-            $earlier->isoYear,
-            $earlier->isoMonth,
-            $earlier->isoDay,
-            $later->isoYear,
-            $later->isoMonth,
-            $later->isoDay,
-            $receiverIsLater,
-        );
+        $calendarId = $earlier->calendarId;
+        if ($calendarId !== 'iso8601') {
+            $cal = CalendarFactory::get($calendarId);
+            [$years, $months, , $days] = $cal->dateUntil(
+                $earlier->isoYear, $earlier->isoMonth, $earlier->isoDay,
+                $later->isoYear, $later->isoMonth, $later->isoDay,
+                $normLargest,
+            );
+        } else {
+            [$years, $months, $days] = self::calendarDiff(
+                $earlier->isoYear,
+                $earlier->isoMonth,
+                $earlier->isoDay,
+                $later->isoYear,
+                $later->isoMonth,
+                $later->isoDay,
+                $receiverIsLater,
+            );
+        }
 
         if ($normLargest === 'month') {
             $totalMonths = ($years * 12) + $months;
@@ -1346,7 +1356,7 @@ final class PlainDate implements Stringable
         // Compute the target JDN: from anchor, go further in the same direction
         // (toward next boundary) by the remaining months+days.
         $absRemMonths = abs($totalMonths) - ($floorCount * 12);
-        $subAnchorJdn = self::addSignedMonths(self::fromJulianDayStatic($anchorJdn), $dir * $absRemMonths);
+        $subAnchorJdn = self::addSignedMonths(self::fromJulianDayStatic($anchorJdn, $receiver->calendarId), $dir * $absRemMonths);
         $targetJdn = $subAnchorJdn + ($dir * abs($remainingDays));
         $absRemDistance = abs($targetJdn - $anchorJdn);
 
@@ -1370,22 +1380,12 @@ final class PlainDate implements Stringable
      */
     private static function addSignedMonths(self $date, int $signedMonths): int
     {
-        $y = $date->isoYear;
-        $m = $date->isoMonth + $signedMonths;
-        $d = $date->isoDay;
-
-        if ($m > 12) {
-            $y += intdiv(num1: $m - 1, num2: 12);
-            $m = (($m - 1) % 12) + 1;
-        } elseif ($m < 1) {
-            $y += intdiv(num1: $m - 12, num2: 12);
-            $m = (((($m - 1) % 12) + 12) % 12) + 1;
-        }
-
-        $maxDay = CalendarMath::calcDaysInMonth($y, $m);
-        if ($d > $maxDay) {
-            $d = $maxDay; // constrain
-        }
+        $cal = CalendarFactory::get($date->calendarId);
+        [$y, $m, $d] = $cal->dateAdd(
+            $date->isoYear, $date->isoMonth, $date->isoDay,
+            0, $signedMonths, 0, 0,
+            'constrain',
+        );
 
         $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
         $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
@@ -1405,16 +1405,29 @@ final class PlainDate implements Stringable
      */
     private static function addSignedYears(self $date, int $signedYears): int
     {
-        return self::addSignedMonths($date, $signedYears * 12);
+        $cal = CalendarFactory::get($date->calendarId);
+        [$y, $m, $d] = $cal->dateAdd(
+            $date->isoYear, $date->isoMonth, $date->isoDay,
+            $signedYears, 0, 0, 0,
+            'constrain',
+        );
+
+        $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
+        $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $jdn = CalendarMath::toJulianDay($y, $m, $d);
+        if ($jdn < $minJdn || $jdn > $maxJdn) {
+            throw new InvalidArgumentException('PlainDate rounding result is outside the representable range.');
+        }
+        return $jdn;
     }
 
     /**
      * Constructs a PlainDate from a Julian Day Number (used internally for rounding).
      */
-    private static function fromJulianDayStatic(int $jdn): self
+    private static function fromJulianDayStatic(int $jdn, string $calendarId = 'iso8601'): self
     {
         [$y, $m, $d] = CalendarMath::fromJulianDay($jdn);
-        return new self($y, $m, $d);
+        return new self($y, $m, $d, $calendarId);
     }
 
     /**
@@ -1572,41 +1585,21 @@ final class PlainDate implements Stringable
 
         $days += $hDays + $mDays + $sDays + $msDays + $usDays + $nsDays;
 
-        // Add years/months calendrically.
-        $newYear = $this->isoYear + $years;
-        $newMonth = $this->isoMonth + $months;
-
-        // Normalize month into 1–12, carrying into year.
-        if ($newMonth > 12) {
-            $newYear += intdiv(num1: $newMonth - 1, num2: 12);
-            $newMonth = (($newMonth - 1) % 12) + 1;
-        } elseif ($newMonth < 1) {
-            $newYear += intdiv(num1: $newMonth - 12, num2: 12);
-            $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
-        }
-
-        // Clamp or reject day within new month.
-        $newDay = $this->isoDay;
-        $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
-        if ($newDay > $maxDay) {
-            if ($overflow === 'constrain') {
-                $newDay = $maxDay;
-            } else {
-                throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
-            }
-        }
-
-        // Add days via Julian Day Number to handle month/year boundaries.
-        $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $days;
+        // Delegate to the calendar protocol for date arithmetic.
+        $cal = CalendarFactory::get($this->calendarId);
+        [$newYear, $newMonth, $newDay] = $cal->dateAdd(
+            $this->isoYear, $this->isoMonth, $this->isoDay,
+            $years, $months, 0, $days,
+            $overflow,
+        );
 
         // Arithmetic that crosses the valid PlainDate range always throws, regardless of overflow.
         $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
         $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
             throw new InvalidArgumentException('PlainDate arithmetic result is outside the representable range.');
         }
-
-        [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
 
         return new self($newYear, $newMonth, $newDay, $this->calendarId);
     }
