@@ -339,6 +339,20 @@ final class CalendarMath
     }
 
     /**
+     * Day of year for a proleptic ISO date.
+     */
+    public static function isoDayOfYear(int $year, int $month, int $day): int
+    {
+        /** @var array<int, int> $cumDays */
+        static $cumDays = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+        $doy = $cumDays[$month - 1] + $day;
+        if ($month > 2 && self::isLeapYear($year)) {
+            $doy++;
+        }
+        return $doy;
+    }
+
+    /**
      * ISO 8601 day of week using Sakamoto's algorithm.
      *
      * Returns 1 = Monday … 7 = Sunday.

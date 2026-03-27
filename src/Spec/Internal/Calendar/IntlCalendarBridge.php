@@ -79,6 +79,12 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($cal === null) {
             throw new \RuntimeException("Failed to create IntlCalendar for \"{$icuType}\".");
         }
+        // TC39 requires proleptic Gregorian (no Julian cutover). ICU's Gregorian
+        // calendar defaults to a 1582-10-15 cutover; setting the change date to
+        // the minimum float value makes it fully proleptic.
+        if ($cal instanceof \IntlGregorianCalendar) {
+            $cal->setGregorianChange(PHP_FLOAT_MIN);
+        }
         $this->intlCal = $cal;
     }
 
@@ -102,19 +108,22 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function year(int $isoYear, int $isoMonth, int $isoDay): int
     {
+        // Gregorian-based calendars: compute directly from ISO year (proleptic, no ICU roundtrip).
+        return match ($this->calendarId) {
+            'gregory', 'japanese' => $isoYear,
+            'buddhist' => $isoYear + 543,
+            'roc' => $isoYear - self::ROC_YEAR_OFFSET,
+            default => $this->yearFromIcu($isoYear, $isoMonth, $isoDay),
+        };
+    }
+
+    private function yearFromIcu(int $isoYear, int $isoMonth, int $isoDay): int
+    {
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
-        // These calendars use EXTENDED_YEAR as the TC39 year:
-        // Gregory/Japanese: proleptic Gregorian year (signed).
-        // Coptic/Ethiopic: signed year (negative before epoch).
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
+        if (in_array($this->calendarId, ['coptic', 'ethiopic'], true)) {
             return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
         }
-        // ROC: signed year where ROC 1 = 1912 CE = EXTENDED_YEAR 1912.
-        if ($this->calendarId === 'roc') {
-            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::ROC_YEAR_OFFSET;
-        }
-        // Chinese/Dangi: "related Gregorian year" = EXTENDED_YEAR - epoch offset.
         if ($this->calendarId === 'chinese') {
             return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
         }
@@ -127,6 +136,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function month(int $isoYear, int $isoMonth, int $isoDay): int
     {
+        // Gregorian-based calendars share ISO month structure.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            return $isoMonth;
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return match ($this->calendarId) {
@@ -138,6 +152,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function day(int $isoYear, int $isoMonth, int $isoDay): int
     {
+        // Gregorian-based calendars share ISO day structure.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            return $isoDay;
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
@@ -145,13 +164,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function era(int $isoYear, int $isoMonth, int $isoDay): ?string
     {
-        $this->setIsoDate($isoYear, $isoMonth, $isoDay);
-
         return match ($this->calendarId) {
-            'gregory' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'ce' : 'bce',
-            'japanese' => $this->japaneseEra(),
+            'gregory' => $isoYear >= 1 ? 'ce' : 'bce',
+            'japanese' => $this->japaneseEraFromIso($isoYear, $isoMonth, $isoDay),
             'buddhist' => 'be',
-            'roc' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'roc' : 'broc',
+            'roc' => $isoYear >= 1912 ? 'roc' : 'broc',
             'coptic' => 'am',
             'ethiopic' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'am' : 'aa',
             'ethioaa' => 'aa',
@@ -166,20 +183,23 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function eraYear(int $isoYear, int $isoMonth, int $isoDay): ?int
     {
+        // Gregorian-based calendars: compute directly from ISO year.
+        if ($this->calendarId === 'gregory') {
+            return $isoYear >= 1 ? $isoYear : 1 - $isoYear;
+        }
+        if ($this->calendarId === 'buddhist') {
+            return $isoYear + 543;
+        }
+        if ($this->calendarId === 'roc') {
+            return $isoYear >= 1912 ? $isoYear - self::ROC_YEAR_OFFSET : 1912 - $isoYear;
+        }
+        if ($this->calendarId === 'japanese') {
+            return $this->japaneseEraYearFromIso($isoYear, $isoMonth, $isoDay);
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
-        if ($this->calendarId === 'japanese') {
-            // For known eras (Meiji+), eraYear = FIELD_YEAR.
-            // For pre-Meiji ('ce'/'bce' fallback), eraYear = EXTENDED_YEAR or abs(EXTENDED_YEAR)+1.
-            $icuEra = $this->intlCal->get(\IntlCalendar::FIELD_ERA);
-            if (isset(self::JAPANESE_ERAS[$icuEra])) {
-                return $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
-            }
-            $extYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
-            return $extYear >= 1 ? $extYear : 1 - $extYear;
-        }
         return match ($this->calendarId) {
-            'gregory', 'buddhist', 'roc' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
             'coptic' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR),
             'ethiopic' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1
                 ? $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
@@ -196,6 +216,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function monthCode(int $isoYear, int $isoMonth, int $isoDay): string
     {
+        // Gregorian-based calendars: month code matches ISO month.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            return sprintf('M%02d', $isoMonth);
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return match ($this->calendarId) {
@@ -207,6 +232,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function dayOfYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
+        // Gregorian-based calendars: compute directly.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            return CalendarMath::isoDayOfYear($isoYear, $isoMonth, $isoDay);
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_YEAR);
@@ -214,6 +244,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function daysInMonth(int $isoYear, int $isoMonth, int $isoDay): int
     {
+        // Gregorian-based calendars: compute directly.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            return CalendarMath::calcDaysInMonth($isoYear, $isoMonth);
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
@@ -221,6 +256,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function daysInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
+        // Gregorian-based calendars: compute directly.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            return CalendarMath::isLeapYear($isoYear) ? 366 : 365;
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_YEAR);
@@ -228,6 +268,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function monthsInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
+        // Gregorian-based calendars always have 12 months.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            return 12;
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return match ($this->calendarId) {
@@ -239,11 +284,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function inLeapYear(int $isoYear, int $isoMonth, int $isoDay): bool
     {
-        $this->setIsoDate($isoYear, $isoMonth, $isoDay);
-
         if (in_array($this->calendarId, self::GREGORIAN_BASED, true)) {
             return CalendarMath::isLeapYear($isoYear);
         }
+
+        $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         return match ($this->calendarId) {
             'hebrew' => $this->isHebrewLeapYear(),
@@ -335,34 +380,52 @@ final class IntlCalendarBridge implements CalendarProtocol
         // Capture the original calendar day before year/month addition, for 'reject' overflow.
         $originalCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
 
-        if ($years !== 0) {
-            $this->intlCal->add(\IntlCalendar::FIELD_YEAR, $years);
-        }
-        if ($months !== 0) {
-            $this->intlCal->add(\IntlCalendar::FIELD_MONTH, $months);
-        }
+        if ($years !== 0 || $months !== 0) {
+            // Use field-level arithmetic: read calendar fields, add to year/month,
+            // then resolve back. This avoids Julian cutover issues in ICU.
+            $calYear = $this->calendarYear();
+            $calMonth = $this->calendarMonth();
 
-        // IntlCalendar::add() automatically constrains the day. For 'reject' overflow,
-        // check whether constraining changed the day (meaning the original day exceeded
-        // the new month's maximum).
-        if ($overflow === 'reject' && ($years !== 0 || $months !== 0)) {
+            $calYear += $years;
+            $calMonth += $months;
+
+            // Handle month overflow/underflow.
+            while ($calMonth < 1) {
+                $calYear--;
+                // Compute months in the year we're borrowing from.
+                $this->setCalendarFields($calYear, 1, 1);
+                $calMonth += $this->calendarMonthsInYear();
+            }
+            while (true) {
+                $this->setCalendarFields($calYear, 1, 1);
+                $monthsInYear = $this->calendarMonthsInYear();
+                if ($calMonth <= $monthsInYear) {
+                    break;
+                }
+                $calMonth -= $monthsInYear;
+                $calYear++;
+            }
+
+            // Resolve new date with day constraining.
+            $this->setCalendarFields($calYear, $calMonth, $originalCalDay);
             $newMaxDay = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
-            if ($originalCalDay > $newMaxDay) {
+
+            if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
                 throw new InvalidArgumentException(
                     "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
                 );
             }
+
+            if ($originalCalDay > $newMaxDay) {
+                $this->setCalendarFields($calYear, $calMonth, $newMaxDay);
+            }
         }
 
-        // Add weeks and days via IntlCalendar to handle all calendar-specific boundaries.
-        $totalDays = ($weeks * 7) + $days;
-        if ($totalDays !== 0) {
-            $this->intlCal->add(\IntlCalendar::FIELD_DAY_OF_MONTH, $totalDays);
-        }
-
-        // Convert back to ISO via epoch ms -> JDN.
+        // Add weeks and days using JDN arithmetic (proleptic, no Julian cutover issue).
         $epochMs = $this->intlCal->getTime();
         $jdn = (int) floor($epochMs / self::MS_PER_DAY) + 2_440_588;
+        $totalDays = ($weeks * 7) + $days;
+        $jdn += $totalDays;
 
         return CalendarMath::fromJulianDay($jdn);
     }
@@ -487,13 +550,25 @@ final class IntlCalendarBridge implements CalendarProtocol
      * Returns the calendar year using the same logic as year() but without re-calling setIsoDate.
      * Must call setIsoDate() first.
      */
+    /**
+     * Returns the calendar year from the currently-set IntlCalendar state.
+     * For Gregorian-based calendars, convert via epoch to get the proleptic ISO year first.
+     */
     private function calendarYear(): int
     {
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
-            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
+        // For Gregorian-based calendars, derive from the epoch to avoid Julian cutover.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            $epochMs = $this->intlCal->getTime();
+            $jdn = (int) floor($epochMs / self::MS_PER_DAY) + 2_440_588;
+            [$isoY, , ] = CalendarMath::fromJulianDay($jdn);
+            return match ($this->calendarId) {
+                'gregory', 'japanese' => $isoY,
+                'buddhist' => $isoY + 543,
+                'roc' => $isoY - self::ROC_YEAR_OFFSET,
+            };
         }
-        if ($this->calendarId === 'roc') {
-            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::ROC_YEAR_OFFSET;
+        if (in_array($this->calendarId, ['coptic', 'ethiopic'], true)) {
+            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
         }
         if ($this->calendarId === 'chinese') {
             return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
@@ -508,8 +583,18 @@ final class IntlCalendarBridge implements CalendarProtocol
      * Returns the calendar ordinal month using the same logic as month().
      * Must call setIsoDate() first.
      */
+    /**
+     * Returns the calendar ordinal month from the currently-set IntlCalendar state.
+     */
     private function calendarMonth(): int
     {
+        // Gregorian-based calendars: derive from epoch.
+        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], true)) {
+            $epochMs = $this->intlCal->getTime();
+            $jdn = (int) floor($epochMs / self::MS_PER_DAY) + 2_440_588;
+            [, $isoM, ] = CalendarMath::fromJulianDay($jdn);
+            return $isoM;
+        }
         return match ($this->calendarId) {
             'hebrew' => $this->hebrewMonthOrdinal(),
             'chinese', 'dangi' => $this->chineseMonthOrdinal(),
@@ -812,13 +897,25 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function setCalendarFields(int $calYear, int $calMonth, int $calDay): void
     {
+        // For calendars using Gregorian months (same 1-12 months as ISO, just
+        // a year offset), compute ISO date directly to avoid ICU's Julian cutover.
+        $isoYear = match ($this->calendarId) {
+            'gregory', 'japanese' => $calYear,
+            'buddhist' => $calYear - 543,
+            'roc' => $calYear + self::ROC_YEAR_OFFSET,
+            default => null,
+        };
+        if ($isoYear !== null) {
+            $jdn = CalendarMath::toJulianDay($isoYear, $calMonth, $calDay);
+            $epochMs = ($jdn - 2_440_588) * self::MS_PER_DAY;
+            $this->intlCal->setTime((float) $epochMs);
+            return;
+        }
+
         $this->intlCal->clear();
 
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
+        if (in_array($this->calendarId, ['coptic', 'ethiopic'], true)) {
             $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear);
-            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $calMonth - 1);
-        } elseif ($this->calendarId === 'roc') {
-            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::ROC_YEAR_OFFSET);
             $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $calMonth - 1);
         } elseif ($this->calendarId === 'hebrew') {
             $this->intlCal->set(\IntlCalendar::FIELD_YEAR, $calYear);
@@ -844,12 +941,25 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function setCalendarFieldsFromMonthCode(int $calYear, string $monthCode, int $calDay): void
     {
+        // For Gregorian-based calendars, use direct ISO conversion to avoid Julian cutover.
+        $isoYear = match ($this->calendarId) {
+            'gregory', 'japanese' => $calYear,
+            'buddhist' => $calYear - 543,
+            'roc' => $calYear + self::ROC_YEAR_OFFSET,
+            default => null,
+        };
+        if ($isoYear !== null) {
+            $month = $this->defaultMonthCodeToMonth($monthCode);
+            $jdn = CalendarMath::toJulianDay($isoYear, $month, $calDay);
+            $epochMs = ($jdn - 2_440_588) * self::MS_PER_DAY;
+            $this->intlCal->setTime((float) $epochMs);
+            return;
+        }
+
         $this->intlCal->clear();
 
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'coptic', 'ethiopic'], true)) {
+        if (in_array($this->calendarId, ['coptic', 'ethiopic'], true)) {
             $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear);
-        } elseif ($this->calendarId === 'roc') {
-            $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::ROC_YEAR_OFFSET);
         } elseif ($this->calendarId === 'chinese') {
             $this->intlCal->set(self::FIELD_EXTENDED_YEAR, $calYear + self::CHINESE_YEAR_OFFSET);
         } elseif ($this->calendarId === 'dangi') {
@@ -1194,19 +1304,42 @@ final class IntlCalendarBridge implements CalendarProtocol
     // Japanese era helper
     // -------------------------------------------------------------------------
 
-    /**
-     * Returns the TC39 era string for the current Japanese calendar date.
-     * Must call setIsoDate() first.
-     */
-    private function japaneseEra(): string
-    {
-        $icuEra = $this->intlCal->get(\IntlCalendar::FIELD_ERA);
+    /** Japanese era start dates as [isoYear, isoMonth, isoDay]. */
+    private const JAPANESE_ERA_STARTS = [
+        'reiwa' => [2019, 5, 1],
+        'heisei' => [1989, 1, 8],
+        'showa' => [1926, 12, 25],
+        'taisho' => [1912, 7, 30],
+        'meiji' => [1868, 1, 25],
+    ];
 
-        if (isset(self::JAPANESE_ERAS[$icuEra])) {
-            return self::JAPANESE_ERAS[$icuEra];
+    /**
+     * Returns the TC39 era string for a Japanese date from ISO fields (proleptic).
+     */
+    private function japaneseEraFromIso(int $isoYear, int $isoMonth, int $isoDay): string
+    {
+        foreach (self::JAPANESE_ERA_STARTS as $era => [$startY, $startM, $startD]) {
+            if ($isoYear > $startY
+                || ($isoYear === $startY && $isoMonth > $startM)
+                || ($isoYear === $startY && $isoMonth === $startM && $isoDay >= $startD)) {
+                return $era;
+            }
         }
-        // Pre-Meiji: use 'ce' for positive extended years, 'bce' for negative.
-        $extYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
-        return $extYear >= 1 ? 'ce' : 'bce';
+        return $isoYear >= 1 ? 'ce' : 'bce';
+    }
+
+    /**
+     * Returns the TC39 eraYear for a Japanese date from ISO fields (proleptic).
+     */
+    private function japaneseEraYearFromIso(int $isoYear, int $isoMonth, int $isoDay): int
+    {
+        foreach (self::JAPANESE_ERA_STARTS as $era => [$startY, $startM, $startD]) {
+            if ($isoYear > $startY
+                || ($isoYear === $startY && $isoMonth > $startM)
+                || ($isoYear === $startY && $isoMonth === $startM && $isoDay >= $startD)) {
+                return $isoYear - $startY + 1;
+            }
+        }
+        return $isoYear >= 1 ? $isoYear : 1 - $isoYear;
     }
 }
