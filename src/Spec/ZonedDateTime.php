@@ -1194,6 +1194,8 @@ final class ZonedDateTime implements Stringable
             'microsecond',
             'nanosecond',
             'offset',
+            'era',
+            'eraYear',
         ];
         $hasField = false;
         foreach ($recognized as $f) {
@@ -1244,9 +1246,6 @@ final class ZonedDateTime implements Stringable
         }
 
         $lc = $this->localComponents();
-        $year = $lc['year'];
-        $month = $lc['month'];
-        $day = $lc['day'];
         $h = $lc['hour'];
         $min = $lc['minute'];
         $sec = $lc['second'];
@@ -1254,52 +1253,7 @@ final class ZonedDateTime implements Stringable
         $us = $lc['microsecond'];
         $ns = $lc['nanosecond'];
 
-        if (array_key_exists('year', $fields)) {
-            /** @var mixed $yr */
-            $yr = $fields['year'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yr)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $year = (int) $yr;
-        }
-
-        $hasMonth = array_key_exists('month', $fields);
-        $hasMonthCode = array_key_exists('monthCode', $fields);
-        if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $fields['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $mcStr = (string) $mc;
-            $month = CalendarMath::monthCodeToMonth($mcStr);
-        }
-        if ($hasMonth) {
-            /** @var mixed $m */
-            $m = $fields['month'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $m)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() month must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $newMonth = (int) $m;
-            if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
-            }
-            $month = $newMonth;
-        }
-
-        if (array_key_exists('day', $fields)) {
-            /** @var mixed $dy */
-            $dy = $fields['day'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $dy)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() day must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $day = (int) $dy;
-        }
-
+        // --- Resolve time fields (shared by ISO and non-ISO paths) ---
         if (array_key_exists('hour', $fields)) {
             /** @var mixed $v */
             $v = $fields['hour'];
@@ -1361,21 +1315,8 @@ final class ZonedDateTime implements Stringable
             $ns = (int) $v;
         }
 
-        if ($month < 1) {
-            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
-        }
-        if ($day < 1) {
-            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
-        }
-
+        // --- Constrain/reject time fields ---
         if ($overflow === 'constrain') {
-            /**
-             * @var int<1, 12>
-             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
-             */
-            $month = min(12, $month);
-            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
-            $day = min($maxDay, $day);
             $h = max(0, min(23, $h));
             $min = max(0, min(59, $min));
             $sec = max(0, min(59, $sec));
@@ -1383,14 +1324,6 @@ final class ZonedDateTime implements Stringable
             $us = max(0, min(999, $us));
             $ns = max(0, min(999, $ns));
         } else {
-            // overflow === 'reject'
-            if ($month > 12) {
-                throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
-            }
-            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
-            if ($day > $maxDay) {
-                throw new InvalidArgumentException("Day {$day} is out of range for {$year}-{$month} (max {$maxDay}).");
-            }
             if ($h < 0 || $h > 23) {
                 throw new InvalidArgumentException("Invalid hour {$h}: must be 0–23.");
             }
@@ -1408,6 +1341,212 @@ final class ZonedDateTime implements Stringable
             }
             if ($ns < 0 || $ns > 999) {
                 throw new InvalidArgumentException("Invalid nanosecond {$ns}: must be 0–999.");
+            }
+        }
+
+        $calendar = $this->calendarId !== 'iso8601'
+            ? CalendarFactory::get($this->calendarId)
+            : null;
+
+        // --- Non-ISO calendar date resolution ---
+        if ($calendar !== null) {
+            $hasYear = array_key_exists('year', $fields);
+            $hasEra = array_key_exists('era', $fields);
+            $hasEraYear = array_key_exists('eraYear', $fields);
+            $hasMonth = array_key_exists('month', $fields);
+            $hasMonthCode = array_key_exists('monthCode', $fields);
+
+            // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
+            if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], true)) {
+                throw new \TypeError('eraYear and era are invalid for this calendar.');
+            }
+
+            // TC39: era without eraYear (or vice versa) is TypeError when year is not also provided.
+            if ($hasEra && !$hasEraYear && !$hasYear) {
+                throw new \TypeError('era provided without eraYear in with() fields.');
+            }
+            if ($hasEraYear && !$hasEra && !$hasYear) {
+                throw new \TypeError('eraYear provided without era in with() fields.');
+            }
+
+            // Resolve year: era+eraYear takes precedence over the current year if both provided.
+            $year = $this->year;
+            if ($hasYear) {
+                /** @var mixed $yr */
+                $yr = $fields['year'];
+                /** @phpstan-ignore cast.double */
+                if (!is_finite((float) $yr)) {
+                    throw new InvalidArgumentException('ZonedDateTime::with() year must be finite.');
+                }
+                /** @phpstan-ignore cast.int */
+                $year = (int) $yr;
+            } elseif ($hasEra && $hasEraYear) {
+                /** @var mixed $eraRaw */
+                $eraRaw = $fields['era'];
+                /** @var mixed $eraYearRaw */
+                $eraYearRaw = $fields['eraYear'];
+                if (is_string($eraRaw) && $eraYearRaw !== null) {
+                    /** @phpstan-ignore cast.int */
+                    $resolved = $calendar->resolveEra($eraRaw, (int) $eraYearRaw);
+                    if ($resolved !== null) {
+                        $year = $resolved;
+                    }
+                }
+            }
+
+            // Resolve monthCode/month with mutual exclusion.
+            // When neither is provided, default to current monthCode (not ordinal month).
+            $monthCode = null;
+            $month = null;
+            $useMonthCode = false;
+
+            if ($hasMonthCode) {
+                /** @var mixed $mc */
+                $mc = $fields['monthCode'];
+                /** @phpstan-ignore cast.string */
+                $monthCode = (string) $mc;
+                $useMonthCode = true;
+            }
+            if ($hasMonth) {
+                /** @var mixed $m */
+                $m = $fields['month'];
+                /** @phpstan-ignore cast.double */
+                if (!is_finite((float) $m)) {
+                    throw new InvalidArgumentException('ZonedDateTime::with() month must be finite.');
+                }
+                /** @phpstan-ignore cast.int */
+                $month = (int) $m;
+                // Validate month/monthCode conflict.
+                if ($hasMonthCode && $monthCode !== null) {
+                    $monthFromCode = $calendar->monthCodeToMonth($monthCode, $year);
+                    if ($month !== $monthFromCode) {
+                        throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                    }
+                }
+                $useMonthCode = false; // explicit month takes precedence
+            }
+            if (!$hasMonth && !$hasMonthCode) {
+                // Default: preserve current monthCode.
+                $monthCode = $this->monthCode;
+                $useMonthCode = true;
+            }
+
+            $day = $this->day;
+            if (array_key_exists('day', $fields)) {
+                /** @var mixed $dy */
+                $dy = $fields['day'];
+                /** @phpstan-ignore cast.double */
+                if (!is_finite((float) $dy)) {
+                    throw new InvalidArgumentException('ZonedDateTime::with() day must be finite.');
+                }
+                /** @phpstan-ignore cast.int */
+                $day = (int) $dy;
+            }
+
+            if ($day < 1) {
+                throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            }
+
+            if ($useMonthCode && $monthCode !== null) {
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
+            } else {
+                /** @var int $month */
+                if ($month < 1) {
+                    throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+                }
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
+            }
+
+            return self::localToZdt(
+                $isoY,
+                $isoM,
+                $isoD,
+                $h,
+                $min,
+                $sec,
+                $ms,
+                $us,
+                $ns,
+                $this->timeZoneId,
+                $this->calendarId,
+                $disambiguation,
+            );
+        }
+
+        // --- ISO calendar date resolution ---
+        $year = $lc['year'];
+        $month = $lc['month'];
+        $day = $lc['day'];
+
+        if (array_key_exists('year', $fields)) {
+            /** @var mixed $yr */
+            $yr = $fields['year'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $yr)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() year must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $year = (int) $yr;
+        }
+
+        $hasMonth = array_key_exists('month', $fields);
+        $hasMonthCode = array_key_exists('monthCode', $fields);
+        if ($hasMonthCode) {
+            /** @var mixed $mc */
+            $mc = $fields['monthCode'];
+            /** @phpstan-ignore cast.string */
+            $mcStr = (string) $mc;
+            $month = CalendarMath::monthCodeToMonth($mcStr);
+        }
+        if ($hasMonth) {
+            /** @var mixed $m */
+            $m = $fields['month'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $m)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() month must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $newMonth = (int) $m;
+            if ($hasMonthCode && $newMonth !== $month) {
+                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+            }
+            $month = $newMonth;
+        }
+
+        if (array_key_exists('day', $fields)) {
+            /** @var mixed $dy */
+            $dy = $fields['day'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $dy)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() day must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $day = (int) $dy;
+        }
+
+        if ($month < 1) {
+            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+        }
+        if ($day < 1) {
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+        }
+
+        if ($overflow === 'constrain') {
+            /**
+             * @var int<1, 12>
+             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+             */
+            $month = min(12, $month);
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
+            $day = min($maxDay, $day);
+        } else {
+            // overflow === 'reject'
+            if ($month > 12) {
+                throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
+            }
+            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
+            if ($day > $maxDay) {
+                throw new InvalidArgumentException("Day {$day} is out of range for {$year}-{$month} (max {$maxDay}).");
             }
         }
 
@@ -2053,10 +2192,12 @@ final class ZonedDateTime implements Stringable
         }
 
         // Otherwise expect year/month/day/hour/minute/second fields.
-        foreach (['year', 'day'] as $field) {
-            if (!array_key_exists($field, $bag)) {
-                throw new \TypeError("ZonedDateTime property bag must have a {$field} field.");
-            }
+        $hasEraAndEraYear = array_key_exists('era', $bag) && array_key_exists('eraYear', $bag);
+        if (!array_key_exists('year', $bag) && !$hasEraAndEraYear) {
+            throw new \TypeError("ZonedDateTime property bag must have a year field.");
+        }
+        if (!array_key_exists('day', $bag)) {
+            throw new \TypeError("ZonedDateTime property bag must have a day field.");
         }
 
         // month can come from 'month' or 'monthCode'.
@@ -2065,7 +2206,7 @@ final class ZonedDateTime implements Stringable
         }
 
         /** @var mixed $yr */
-        $yr = $bag['year'];
+        $yr = $bag['year'] ?? null;
         /** @var mixed $dy */
         $dy = $bag['day'];
         /** @var mixed $hr */
@@ -2082,9 +2223,7 @@ final class ZonedDateTime implements Stringable
         $ns = $bag['nanosecond'] ?? 0;
 
         // Validate and cast numeric fields; reject INF/-INF.
-        /** @psalm-suppress MixedAssignment — array values are all typed as mixed via @var annotations above */
-        foreach ([
-            'year' => $yr,
+        $numericFields = [
             'day' => $dy,
             'hour' => $hr,
             'minute' => $mn,
@@ -2092,7 +2231,12 @@ final class ZonedDateTime implements Stringable
             'millisecond' => $ms,
             'microsecond' => $us,
             'nanosecond' => $ns,
-        ] as $fname => $fval) {
+        ];
+        if ($yr !== null) {
+            $numericFields['year'] = $yr;
+        }
+        /** @psalm-suppress MixedAssignment — array values are all typed as mixed via @var annotations above */
+        foreach ($numericFields as $fname => $fval) {
             if (is_float($fval) && is_infinite($fval)) {
                 throw new InvalidArgumentException(sprintf(
                     'ZonedDateTime %s must be finite; got %s.',
@@ -2103,7 +2247,7 @@ final class ZonedDateTime implements Stringable
         }
 
         /** @phpstan-ignore cast.int */
-        $year = is_int($yr) ? $yr : (int) $yr;
+        $year = $yr !== null ? (is_int($yr) ? $yr : (int) $yr) : 0;
         /** @phpstan-ignore cast.int */
         $day = is_int($dy) ? $dy : (int) $dy;
         /** @phpstan-ignore cast.int */
@@ -2119,8 +2263,29 @@ final class ZonedDateTime implements Stringable
         /** @phpstan-ignore cast.int */
         $nano = is_int($ns) ? $ns : (int) $ns;
 
+        $calendar = $calendarId !== 'iso8601'
+            ? CalendarFactory::get($calendarId)
+            : null;
+
+        // Resolve era + eraYear if present (overrides year for era-based calendars).
+        if ($calendar !== null && array_key_exists('era', $bag) && array_key_exists('eraYear', $bag)) {
+            /** @var mixed $eraRaw */
+            $eraRaw = $bag['era'];
+            /** @var mixed $eraYearRaw */
+            $eraYearRaw = $bag['eraYear'];
+            if (is_string($eraRaw) && $eraYearRaw !== null) {
+                /** @phpstan-ignore cast.int */
+                $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
+                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
+                if ($resolved !== null) {
+                    $year = $resolved;
+                }
+            }
+        }
+
         // Resolve month from 'month' and/or 'monthCode'.
         $month = null;
+        $monthCode = null;
         $hasMonth = array_key_exists('month', $bag);
         $hasMC = array_key_exists('monthCode', $bag);
 
@@ -2130,7 +2295,10 @@ final class ZonedDateTime implements Stringable
             if (!is_string($mc)) {
                 throw new \TypeError('ZonedDateTime monthCode must be a string.');
             }
-            $month = CalendarMath::monthCodeToMonth($mc);
+            $monthCode = $mc;
+            $month = $calendar !== null
+                ? $calendar->monthCodeToMonth($mc, $year)
+                : CalendarMath::monthCodeToMonth($mc);
         }
 
         if ($hasMonth) {
@@ -2159,29 +2327,45 @@ final class ZonedDateTime implements Stringable
             throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
         }
 
+        // Non-ISO calendar: resolve calendar fields to ISO via the calendar protocol.
+        if ($calendar !== null) {
+            if ($hasMC && $monthCode !== null) {
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
+            } else {
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
+            }
+            $year = $isoY;
+            $month = $isoM;
+            $day = $isoD;
+        } else {
+            if ($overflow === 'constrain') {
+                /**
+                 * @var int<1, 12>
+                 * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
+                 */
+                $month = min(12, $month);
+                $maxDay = CalendarMath::calcDaysInMonth($year, $month);
+                $day = min($maxDay, $day);
+            } else {
+                // overflow === 'reject'
+                if ($month > 12) {
+                    throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
+                }
+                $maxDay = CalendarMath::calcDaysInMonth($year, $month);
+                if ($day > $maxDay) {
+                    throw new InvalidArgumentException("Invalid day {$day}: exceeds {$maxDay} for {$year}-{$month}.");
+                }
+            }
+        }
+
+        // Constrain time fields.
         if ($overflow === 'constrain') {
-            /**
-             * @var int<1, 12>
-             * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
-             */
-            $month = min(12, $month);
-            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
-            $day = min($maxDay, $day);
             $hour = max(0, min(23, $hour));
             $minute = max(0, min(59, $minute));
             $second = max(0, min(59, $second));
             $milli = max(0, min(999, $milli));
             $micro = max(0, min(999, $micro));
             $nano = max(0, min(999, $nano));
-        } else {
-            // overflow === 'reject'
-            if ($month > 12) {
-                throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
-            }
-            $maxDay = CalendarMath::calcDaysInMonth($year, $month);
-            if ($day > $maxDay) {
-                throw new InvalidArgumentException("Invalid day {$day}: exceeds {$maxDay} for {$year}-{$month}.");
-            }
         }
 
         // Use JDN-based computation to handle extreme years (DateTimeImmutable
