@@ -269,7 +269,36 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
-        $this->setCalendarFieldsFromMonthCode($calYear, $monthCode, $calDay);
+        $isLeapCode = str_ends_with($monthCode, 'L');
+        try {
+            $this->setCalendarFieldsFromMonthCode($calYear, $monthCode, $calDay);
+
+            // For Chinese/Dangi leap month codes, verify the leap month actually exists
+            // in this year. ICU silently resolves invalid leap months, so we must check.
+            if ($isLeapCode && in_array($this->calendarId, ['chinese', 'dangi'], true)) {
+                // Force field resolution and check IS_LEAP_MONTH.
+                $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
+                if ($this->intlCal->get(self::FIELD_IS_LEAP_MONTH) !== 1) {
+                    throw new InvalidArgumentException(
+                        "monthCode \"{$monthCode}\" does not exist in this calendar year.",
+                    );
+                }
+            }
+        } catch (InvalidArgumentException $e) {
+            // Leap month code in a year without that leap month: constrain.
+            if ($overflow === 'constrain' && $isLeapCode) {
+                if ($this->calendarId === 'hebrew' && $monthCode === 'M05L') {
+                    // Hebrew M05L (Adar I) constrains to M06 (Adar), not M05 (Shevat).
+                    $this->setCalendarFieldsFromMonthCode($calYear, 'M06', $calDay);
+                } else {
+                    // Chinese/Dangi: MxxL → Mxx (the regular version of the same month).
+                    $baseCode = substr($monthCode, 0, -1);
+                    $this->setCalendarFieldsFromMonthCode($calYear, $baseCode, $calDay);
+                }
+            } else {
+                throw $e;
+            }
+        }
         return $this->resolveAndConstrain($calDay, $overflow);
     }
 

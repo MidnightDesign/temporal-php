@@ -366,8 +366,13 @@ final class PlainDate implements Stringable
             ? CalendarFactory::get($this->calendarId)
             : null;
 
-        // Merge: start from current fields (calendar-projected for non-ISO, ISO for ISO).
-        $year = $calendar !== null ? $this->year : $this->isoYear;
+        // --- Non-ISO calendar path ---
+        if ($calendar !== null) {
+            return $this->withNonIso($fields, $overflow, $calendar);
+        }
+
+        // --- ISO calendar path ---
+        $year = $this->isoYear;
         if (array_key_exists('year', $fields)) {
             /** @var mixed $yr */
             $yr = $fields['year'];
@@ -379,7 +384,7 @@ final class PlainDate implements Stringable
             $year = (int) $yr;
         }
 
-        $month = $calendar !== null ? $this->month : $this->isoMonth;
+        $month = $this->isoMonth;
         $monthCode = null;
         $hasMonth = array_key_exists('month', $fields);
         $hasMonthCode = array_key_exists('monthCode', $fields);
@@ -388,9 +393,7 @@ final class PlainDate implements Stringable
             $mc = $fields['monthCode'];
             /** @phpstan-ignore cast.string */
             $monthCode = (string) $mc;
-            $month = $calendar !== null
-                ? $calendar->monthCodeToMonth($monthCode, $year)
-                : CalendarMath::monthCodeToMonth($monthCode);
+            $month = CalendarMath::monthCodeToMonth($monthCode);
         }
         if ($hasMonth) {
             /** @var mixed $m */
@@ -407,7 +410,7 @@ final class PlainDate implements Stringable
             $month = $newMonth;
         }
 
-        $day = $calendar !== null ? $this->day : $this->isoDay;
+        $day = $this->isoDay;
         if (array_key_exists('day', $fields)) {
             /** @var mixed $dy */
             $dy = $fields['day'];
@@ -419,22 +422,11 @@ final class PlainDate implements Stringable
             $day = (int) $dy;
         }
 
-        // month < 1 and day < 1 are always invalid (cannot constrain below minimum).
         if ($month < 1) {
             throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
         }
         if ($day < 1) {
             throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
-        }
-
-        // Non-ISO calendar: resolve back to ISO via calendar protocol.
-        if ($calendar !== null) {
-            if ($hasMonthCode && $monthCode !== null) {
-                [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
-            } else {
-                [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
-            }
-            return new self($isoY, $isoM, $isoD, $this->calendarId);
         }
 
         if ($overflow === 'constrain') {
@@ -448,6 +440,127 @@ final class PlainDate implements Stringable
         }
 
         return new self($year, $month, $day, $this->calendarId);
+    }
+
+    /**
+     * Implements with() for non-ISO calendars following TC39 CalendarDateMergeFields.
+     *
+     * Handles mutually exclusive fields (year vs era+eraYear, month vs monthCode)
+     * and preserves monthCode as default when neither month nor monthCode is provided.
+     *
+     * @param array<array-key,mixed> $fields
+     * @param Internal\Calendar\CalendarProtocol $calendar
+     */
+    private function withNonIso(array $fields, string $overflow, Internal\Calendar\CalendarProtocol $calendar): self
+    {
+        $hasYear = array_key_exists('year', $fields);
+        $hasEra = array_key_exists('era', $fields);
+        $hasEraYear = array_key_exists('eraYear', $fields);
+        $hasMonth = array_key_exists('month', $fields);
+        $hasMonthCode = array_key_exists('monthCode', $fields);
+
+        // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
+        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], true)) {
+            throw new \TypeError('eraYear and era are invalid for this calendar.');
+        }
+
+        // TC39: era without eraYear (or vice versa) is TypeError when year is not also provided.
+        if ($hasEra && !$hasEraYear && !$hasYear) {
+            throw new \TypeError('era provided without eraYear in with() fields.');
+        }
+        if ($hasEraYear && !$hasEra && !$hasYear) {
+            throw new \TypeError('eraYear provided without era in with() fields.');
+        }
+
+        // Resolve year: era+eraYear takes precedence over the current year if both provided.
+        $year = $this->year;
+        if ($hasYear) {
+            /** @var mixed $yr */
+            $yr = $fields['year'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $yr)) {
+                throw new InvalidArgumentException('PlainDate::with() year must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $year = (int) $yr;
+        } elseif ($hasEra && $hasEraYear) {
+            /** @var mixed $eraRaw */
+            $eraRaw = $fields['era'];
+            /** @var mixed $eraYearRaw */
+            $eraYearRaw = $fields['eraYear'];
+            if (is_string($eraRaw) && $eraYearRaw !== null) {
+                /** @phpstan-ignore cast.int */
+                $resolved = $calendar->resolveEra($eraRaw, (int) $eraYearRaw);
+                if ($resolved !== null) {
+                    $year = $resolved;
+                }
+            }
+        }
+
+        // Resolve monthCode/month with mutual exclusion.
+        // When neither is provided, default to current monthCode (not ordinal month).
+        $monthCode = null;
+        $month = null;
+        $useMonthCode = false;
+
+        if ($hasMonthCode) {
+            /** @var mixed $mc */
+            $mc = $fields['monthCode'];
+            /** @phpstan-ignore cast.string */
+            $monthCode = (string) $mc;
+            $useMonthCode = true;
+        }
+        if ($hasMonth) {
+            /** @var mixed $m */
+            $m = $fields['month'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $m)) {
+                throw new InvalidArgumentException('PlainDate::with() month must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $month = (int) $m;
+            // Validate month/monthCode conflict.
+            if ($hasMonthCode && $monthCode !== null) {
+                $monthFromCode = $calendar->monthCodeToMonth($monthCode, $year);
+                if ($month !== $monthFromCode) {
+                    throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                }
+            }
+            $useMonthCode = false; // explicit month takes precedence
+        }
+        if (!$hasMonth && !$hasMonthCode) {
+            // Default: preserve current monthCode.
+            $monthCode = $this->monthCode;
+            $useMonthCode = true;
+        }
+
+        $day = $this->day;
+        if (array_key_exists('day', $fields)) {
+            /** @var mixed $dy */
+            $dy = $fields['day'];
+            /** @phpstan-ignore cast.double */
+            if (!is_finite((float) $dy)) {
+                throw new InvalidArgumentException('PlainDate::with() day must be finite.');
+            }
+            /** @phpstan-ignore cast.int */
+            $day = (int) $dy;
+        }
+
+        if ($day < 1) {
+            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+        }
+
+        if ($useMonthCode && $monthCode !== null) {
+            [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
+        } else {
+            /** @var int $month */
+            if ($month < 1) {
+                throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+            }
+            [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
+        }
+
+        return new self($isoY, $isoM, $isoD, $this->calendarId);
     }
 
     /**
