@@ -899,6 +899,8 @@ final class IntlCalendarBridge implements CalendarProtocol
     {
         // For calendars using Gregorian months (same 1-12 months as ISO, just
         // a year offset), compute ISO date directly to avoid ICU's Julian cutover.
+        // Set to day 1 of the target month, then set DAY_OF_MONTH to the requested day
+        // (which may overflow — resolveAndConstrain handles that).
         $isoYear = match ($this->calendarId) {
             'gregory', 'japanese' => $calYear,
             'buddhist' => $calYear - 543,
@@ -906,9 +908,13 @@ final class IntlCalendarBridge implements CalendarProtocol
             default => null,
         };
         if ($isoYear !== null) {
-            $jdn = CalendarMath::toJulianDay($isoYear, $calMonth, $calDay);
+            // Set to 1st of month, then adjust day via ICU to get correct field state.
+            $jdn = CalendarMath::toJulianDay($isoYear, $calMonth, 1);
             $epochMs = ($jdn - 2_440_588) * self::MS_PER_DAY;
             $this->intlCal->setTime((float) $epochMs);
+            // Set the actual day - this keeps the ICU field state correct for
+            // resolveAndConstrain to check getActualMaximum(DAY_OF_MONTH).
+            $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, $calDay);
             return;
         }
 
@@ -939,6 +945,12 @@ final class IntlCalendarBridge implements CalendarProtocol
      * Converts the month code directly to ICU month slot, which avoids the
      * ordinal-to-ICU mapping needed by setCalendarFields().
      */
+    /**
+     * When the Gregorian shortcut is used, stores the pre-computed max day
+     * for the target month (null for non-Gregorian calendars).
+     */
+    private ?int $gregorianMaxDay = null;
+
     private function setCalendarFieldsFromMonthCode(int $calYear, string $monthCode, int $calDay): void
     {
         // For Gregorian-based calendars, use direct ISO conversion to avoid Julian cutover.
@@ -950,11 +962,16 @@ final class IntlCalendarBridge implements CalendarProtocol
         };
         if ($isoYear !== null) {
             $month = $this->defaultMonthCodeToMonth($monthCode);
-            $jdn = CalendarMath::toJulianDay($isoYear, $month, $calDay);
+            // Pre-compute the max day for this month for overflow handling in resolveAndConstrain.
+            $this->gregorianMaxDay = CalendarMath::calcDaysInMonth($isoYear, $month);
+            // Clamp the day to avoid JDN overflow into the next month.
+            $clampedDay = min($calDay, $this->gregorianMaxDay);
+            $jdn = CalendarMath::toJulianDay($isoYear, $month, $clampedDay);
             $epochMs = ($jdn - 2_440_588) * self::MS_PER_DAY;
             $this->intlCal->setTime((float) $epochMs);
             return;
         }
+        $this->gregorianMaxDay = null;
 
         $this->intlCal->clear();
 
