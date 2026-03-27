@@ -37,7 +37,6 @@ final class CalendarFactory
         'indian',
         'islamic',
         'islamic-civil',
-        'islamic-rgsa',
         'islamic-tbla',
         'islamic-umalqura',
         'japanese',
@@ -52,6 +51,7 @@ final class CalendarFactory
      */
     private const ALIASES = [
         'islamicc' => 'islamic-civil',
+        'ethiopic-amete-alem' => 'ethioaa',
     ];
 
     /**

@@ -623,7 +623,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     ];
 
     /**
-     * Valid TC39 era strings per calendar.
+     * Valid TC39 era strings per calendar (canonical forms only).
      *
      * @var array<string, list<string>>
      */
@@ -639,10 +639,19 @@ final class IntlCalendarBridge implements CalendarProtocol
         'indian' => ['shaka'],
         'islamic' => ['ah', 'bh'],
         'islamic-civil' => ['ah', 'bh'],
-        'islamic-rgsa' => ['ah', 'bh'],
         'islamic-tbla' => ['ah', 'bh'],
         'islamic-umalqura' => ['ah', 'bh'],
         'persian' => ['ap'],
+    ];
+
+    /**
+     * Era alias map: alternate/deprecated era names → canonical era name.
+     *
+     * @var array<string, string>
+     */
+    private const ERA_ALIASES = [
+        'ad' => 'ce',
+        'bc' => 'bce',
     ];
 
     public function resolveEra(string $era, int $eraYear): ?int
@@ -651,6 +660,9 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->calendarId === 'chinese' || $this->calendarId === 'dangi') {
             return null;
         }
+
+        // Canonicalize era aliases (e.g. 'ad' → 'ce', 'bc' → 'bce').
+        $era = self::ERA_ALIASES[$era] ?? $era;
 
         $validEras = self::VALID_ERAS[$this->calendarId] ?? [];
         if (!in_array($era, $validEras, true)) {
