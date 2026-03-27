@@ -1391,12 +1391,12 @@ final class PlainDateTime implements Stringable
         $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
 
         // Time fields default to 0 when absent.
-        $h = self::extractIntField($bag, 'hour', 0, 'PlainDateTime');
-        $min = self::extractIntField($bag, 'minute', 0, 'PlainDateTime');
-        $sec = self::extractIntField($bag, 'second', 0, 'PlainDateTime');
-        $ms = self::extractIntField($bag, 'millisecond', 0, 'PlainDateTime');
-        $us = self::extractIntField($bag, 'microsecond', 0, 'PlainDateTime');
-        $ns = self::extractIntField($bag, 'nanosecond', 0, 'PlainDateTime');
+        $h = CalendarMath::extractIntField($bag, 'hour', 0, 'PlainDateTime');
+        $min = CalendarMath::extractIntField($bag, 'minute', 0, 'PlainDateTime');
+        $sec = CalendarMath::extractIntField($bag, 'second', 0, 'PlainDateTime');
+        $ms = CalendarMath::extractIntField($bag, 'millisecond', 0, 'PlainDateTime');
+        $us = CalendarMath::extractIntField($bag, 'microsecond', 0, 'PlainDateTime');
+        $ns = CalendarMath::extractIntField($bag, 'nanosecond', 0, 'PlainDateTime');
 
         if ($month < 1) {
             throw new InvalidArgumentException("Invalid PlainDateTime: month {$month} must be at least 1.");
@@ -1422,32 +1422,6 @@ final class PlainDateTime implements Stringable
         }
 
         return new self($year, $month, $day, $h, $min, $sec, $ms, $us, $ns);
-    }
-
-    /**
-     * Extracts an optional int field from a property bag, returning $default if absent.
-     *
-     * @param array<array-key,mixed> $bag
-     * @param non-empty-string $field
-     * @throws \TypeError if the field is present but null.
-     * @throws InvalidArgumentException if the value is non-finite.
-     */
-    private static function extractIntField(array $bag, string $field, int $default, string $className): int
-    {
-        if (!array_key_exists($field, $bag)) {
-            return $default;
-        }
-        /** @var mixed $raw */
-        $raw = $bag[$field];
-        if ($raw === null) {
-            throw new \TypeError("{$className} property bag {$field} field must not be undefined.");
-        }
-        /** @phpstan-ignore cast.double */
-        if (!is_finite((float) $raw)) {
-            throw new InvalidArgumentException("{$className} {$field} must be finite.");
-        }
-        /** @phpstan-ignore cast.int */
-        return is_int($raw) ? $raw : (int) $raw;
     }
 
     /**

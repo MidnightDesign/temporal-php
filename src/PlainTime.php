@@ -883,80 +883,11 @@ final class PlainTime implements Stringable
         /** @phpstan-ignore cast.int */
         $h = is_int($hourRaw) ? $hourRaw : (int) $hourRaw;
 
-        $min = 0;
-        if (array_key_exists('minute', $bag)) {
-            /** @var mixed $minRaw */
-            $minRaw = $bag['minute'];
-            if ($minRaw === null) {
-                throw new \TypeError('PlainTime property bag minute field must not be undefined.');
-            }
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $minRaw)) {
-                throw new InvalidArgumentException('PlainTime minute must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $min = is_int($minRaw) ? $minRaw : (int) $minRaw;
-        }
-
-        $sec = 0;
-        if (array_key_exists('second', $bag)) {
-            /** @var mixed $secRaw */
-            $secRaw = $bag['second'];
-            if ($secRaw === null) {
-                throw new \TypeError('PlainTime property bag second field must not be undefined.');
-            }
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $secRaw)) {
-                throw new InvalidArgumentException('PlainTime second must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $sec = is_int($secRaw) ? $secRaw : (int) $secRaw;
-        }
-
-        $ms = 0;
-        if (array_key_exists('millisecond', $bag)) {
-            /** @var mixed $msRaw */
-            $msRaw = $bag['millisecond'];
-            if ($msRaw === null) {
-                throw new \TypeError('PlainTime property bag millisecond field must not be undefined.');
-            }
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $msRaw)) {
-                throw new InvalidArgumentException('PlainTime millisecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $ms = is_int($msRaw) ? $msRaw : (int) $msRaw;
-        }
-
-        $us = 0;
-        if (array_key_exists('microsecond', $bag)) {
-            /** @var mixed $usRaw */
-            $usRaw = $bag['microsecond'];
-            if ($usRaw === null) {
-                throw new \TypeError('PlainTime property bag microsecond field must not be undefined.');
-            }
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $usRaw)) {
-                throw new InvalidArgumentException('PlainTime microsecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $us = is_int($usRaw) ? $usRaw : (int) $usRaw;
-        }
-
-        $ns = 0;
-        if (array_key_exists('nanosecond', $bag)) {
-            /** @var mixed $nsRaw */
-            $nsRaw = $bag['nanosecond'];
-            if ($nsRaw === null) {
-                throw new \TypeError('PlainTime property bag nanosecond field must not be undefined.');
-            }
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $nsRaw)) {
-                throw new InvalidArgumentException('PlainTime nanosecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $ns = is_int($nsRaw) ? $nsRaw : (int) $nsRaw;
-        }
+        $min = CalendarMath::extractIntField($bag, 'minute', 0, 'PlainTime');
+        $sec = CalendarMath::extractIntField($bag, 'second', 0, 'PlainTime');
+        $ms = CalendarMath::extractIntField($bag, 'millisecond', 0, 'PlainTime');
+        $us = CalendarMath::extractIntField($bag, 'microsecond', 0, 'PlainTime');
+        $ns = CalendarMath::extractIntField($bag, 'nanosecond', 0, 'PlainTime');
 
         if ($overflow === 'constrain') {
             $h = max(0, min(23, $h));

@@ -23,6 +23,33 @@ final class CalendarMath
     ];
 
     /**
+     * Extracts an optional int field from a property bag, returning $default if absent.
+     *
+     * @param array<array-key, mixed> $bag
+     * @param non-empty-string $field
+     * @param non-empty-string $className Used in error messages (e.g. "PlainDateTime").
+     * @throws \TypeError if the field is present but null.
+     * @throws InvalidArgumentException if the value is non-finite.
+     */
+    public static function extractIntField(array $bag, string $field, int $default, string $className): int
+    {
+        if (!array_key_exists($field, $bag)) {
+            return $default;
+        }
+        /** @var mixed $raw */
+        $raw = $bag[$field];
+        if ($raw === null) {
+            throw new \TypeError("{$className} property bag {$field} field must not be undefined.");
+        }
+        /** @phpstan-ignore cast.double */
+        if (!is_finite((float) $raw)) {
+            throw new InvalidArgumentException("{$className} {$field} must be finite.");
+        }
+        /** @phpstan-ignore cast.int */
+        return is_int($raw) ? $raw : (int) $raw;
+    }
+
+    /**
      * Validates bracket annotations in a Temporal string (e.g. from `from()` or `fromISO()`).
      *
      * Rejects: uppercase annotation keys, critical unknown annotations, multiple time-zone
