@@ -1944,6 +1944,7 @@ final class PlainDateTime implements Stringable
                         $earlierY, $earlierM, $earlierD,
                         $adjY2, $adjM2, $adjD2,
                         $normLargest,
+                        $receiverIsLater,
                     );
                 } else {
                     [$years, $months, $days] = self::calendarDiff(
@@ -2066,6 +2067,7 @@ final class PlainDateTime implements Stringable
                         $earlierY, $earlierM, $earlierD,
                         $adjY3, $adjM3, $adjD3,
                         $normLargest,
+                        $receiverIsLater,
                     );
                 } else {
                     [$years, $months, $days] = self::calendarDiff(

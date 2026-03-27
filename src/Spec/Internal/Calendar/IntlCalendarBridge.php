@@ -526,19 +526,25 @@ final class IntlCalendarBridge implements CalendarProtocol
         }
 
         // Year/month decomposition using TC39 DifferenceDate trial-and-increment
-        // algorithm. Normalize to the positive direction (start < end), find
-        // years/months by incrementing from start via dateAdd, then compute
-        // remaining days. This ensures dateUntil(A, B) = -dateUntil(B, A).
+        // algorithm. Normalize to the positive direction, find years/months by
+        // incrementing from start via dateAdd, then compute remaining days.
+        // The $receiverIsLater flag controls whether the day remainder is
+        // anchored forward from date1 or backward from date2, matching TC39's
+        // asymmetric since()/until() behavior.
 
         $jdn1 = CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
         $jdn2 = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2);
         $sign = $jdn2 >= $jdn1 ? 1 : -1;
 
-        // Normalize so startIso is chronologically earlier.
+        // Track which end the receiver sits on after a potential swap.
+        $anchorFromEnd = $receiverIsLater;
+
+        // Normalize so date1 is chronologically earlier.
         if ($sign < 0) {
             [$isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2] =
                 [$isoY2, $isoM2, $isoD2, $isoY1, $isoM1, $isoD1];
             [$jdn1, $jdn2] = [$jdn2, $jdn1];
+            $anchorFromEnd = !$anchorFromEnd;
         }
 
         // Read calendar fields for initial estimates.
@@ -614,13 +620,35 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
         }
 
-        // Compute remaining days from the intermediate date to end.
-        [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
-            $isoY1, $isoM1, $isoD1,
-            $years, $months, 0, 0,
-            'constrain',
-        );
-        $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
+        // Compute remaining days. The anchor direction determines whether we
+        // measure forward from date1 or backward from date2.
+        if ($anchorFromEnd) {
+            // Anchor backward from date2: dateAdd(date2, -years, -months).
+            // If the backward anchor overshoots past date1 (negative days), fall
+            // back to the forward anchor to avoid mixed-sign components.
+            [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
+                $isoY2, $isoM2, $isoD2,
+                -$years, -$months, 0, 0,
+                'constrain',
+            );
+            $days = CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD) - $jdn1;
+            if ($days < 0) {
+                [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
+                    $isoY1, $isoM1, $isoD1,
+                    $years, $months, 0, 0,
+                    'constrain',
+                );
+                $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
+            }
+        } else {
+            // Anchor forward from date1: dateAdd(date1, +years, +months).
+            [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
+                $isoY1, $isoM1, $isoD1,
+                $years, $months, 0, 0,
+                'constrain',
+            );
+            $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
+        }
 
         return [$sign * $years, $sign * $months, 0, $sign * $days];
     }

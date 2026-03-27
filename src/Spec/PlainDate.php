@@ -1270,6 +1270,7 @@ final class PlainDate implements Stringable
                 $earlier->isoYear, $earlier->isoMonth, $earlier->isoDay,
                 $later->isoYear, $later->isoMonth, $later->isoDay,
                 $normLargest,
+                $receiverIsLater,
             );
         } else {
             [$years, $months, $days] = self::calendarDiff(
