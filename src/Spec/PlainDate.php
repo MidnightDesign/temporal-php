@@ -965,8 +965,21 @@ final class PlainDate implements Stringable
             $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($cal));
         }
 
-        $hasEraAndEraYear = array_key_exists('era', $bag) && array_key_exists('eraYear', $bag);
-        if (!array_key_exists('year', $bag) && !$hasEraAndEraYear) {
+        $hasEra = array_key_exists('era', $bag);
+        $hasEraYear = array_key_exists('eraYear', $bag);
+        $hasEraAndEraYear = $hasEra && $hasEraYear;
+
+        // era and eraYear must come as a pair.
+        if ($hasEra !== $hasEraYear) {
+            throw new \TypeError('PlainDate property bag must have both era and eraYear, or neither.');
+        }
+
+        // Determine if this calendar supports eras.
+        $calendarSupportsEras = $calendarId !== null && $calendarId !== 'iso8601'
+            && !in_array($calendarId, ['chinese', 'dangi'], true);
+
+        // For calendars without eras (ISO, Chinese, Dangi), era+eraYear can't replace year.
+        if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('PlainDate property bag must have a year field.');
         }
         if (!array_key_exists('month', $bag) && !array_key_exists('monthCode', $bag)) {
