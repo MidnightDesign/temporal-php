@@ -2731,33 +2731,44 @@ final class ZonedDateTime implements Stringable
         if ($hasCalendarUnits) {
             // Get local date/time, apply calendar units, then re-resolve to ZDT.
             $lc = $this->localComponents();
-            $newYear = $lc['year'] + $years;
-            $newMonth = $lc['month'] + $months;
 
-            // Normalize month into 1-12, carrying into year.
-            if ($newMonth > 12) {
-                $newYear += intdiv(num1: $newMonth - 1, num2: 12);
-                $newMonth = (($newMonth - 1) % 12) + 1;
-            } elseif ($newMonth < 1) {
-                $newYear += intdiv(num1: $newMonth - 12, num2: 12);
-                $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
-            }
+            // Use calendar protocol for non-ISO calendars.
+            if ($this->calendarId !== 'iso8601') {
+                $cal = CalendarFactory::get($this->calendarId);
+                [$newYear, $newMonth, $newDay] = $cal->dateAdd(
+                    $lc['year'], $lc['month'], $lc['day'],
+                    $years, $months, $weeks, $days,
+                    $overflow,
+                );
+            } else {
+                $newYear = $lc['year'] + $years;
+                $newMonth = $lc['month'] + $months;
 
-            // Clamp or reject day.
-            $newDay = $lc['day'];
-            $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
-            if ($newDay > $maxDay) {
-                if ($overflow === 'constrain') {
-                    $newDay = $maxDay;
-                } else {
-                    throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
+                // Normalize month into 1-12, carrying into year.
+                if ($newMonth > 12) {
+                    $newYear += intdiv(num1: $newMonth - 1, num2: 12);
+                    $newMonth = (($newMonth - 1) % 12) + 1;
+                } elseif ($newMonth < 1) {
+                    $newYear += intdiv(num1: $newMonth - 12, num2: 12);
+                    $newMonth = (((($newMonth - 1) % 12) + 12) % 12) + 1;
                 }
-            }
 
-            // Add weeks and days via JDN.
-            $totalDays = ($weeks * 7) + $days;
-            $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $totalDays;
-            [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
+                // Clamp or reject day.
+                $newDay = $lc['day'];
+                $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
+                if ($newDay > $maxDay) {
+                    if ($overflow === 'constrain') {
+                        $newDay = $maxDay;
+                    } else {
+                        throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
+                    }
+                }
+
+                // Add weeks and days via JDN.
+                $totalDays = ($weeks * 7) + $days;
+                $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $totalDays;
+                [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
+            }
 
             // Balance time units to nanoseconds.
             $timeNs =
