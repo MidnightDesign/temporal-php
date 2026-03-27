@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$twoYears = new \Temporal\Duration(0, 11, 0, 396, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($twoYears->round(['largestUnit' => 'years', 'relativeTo' => new \Temporal\PlainDate(2017, 1, 1)]), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+$twoYears = new \Temporal\Spec\Duration(0, 11, 0, 396, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($twoYears->round(['largestUnit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2017, 1, 1)]), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);

@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'iso8601';
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
-$result = \Temporal\PlainDateTime::from($arg);
+$result = \Temporal\Spec\PlainDateTime::from($arg);
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 0, 0, 0, 0, 0, 0, "Calendar created from string \"{$calendar}\"");
 Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');

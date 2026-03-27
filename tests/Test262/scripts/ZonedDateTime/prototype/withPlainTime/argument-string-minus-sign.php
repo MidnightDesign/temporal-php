@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '−009999-11-18T15:23:30.12'];
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->withPlainTime($arg), "variant minus sign: {$arg}");
 }

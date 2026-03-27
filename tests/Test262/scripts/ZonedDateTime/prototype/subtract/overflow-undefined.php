@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(-1, 'UTC');
-$duration = new \Temporal\Duration(0, 1);
+$datetime = new \Temporal\Spec\ZonedDateTime(-1, 'UTC');
+$duration = new \Temporal\Spec\Duration(0, 1);
 $explicit = $datetime->subtract($duration, []);
 Assert::sameValue($explicit->epochNanoseconds, -2_678_400_000_000_001, 'default overflow is constrain');
 $implicit = $datetime->subtract($duration, new \stdClass());

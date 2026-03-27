@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = \Temporal\ZonedDateTime::from('1969-12-25T12:23:45.678901234+00:00[UTC]');
-TemporalHelpers::assertZonedDateTimesEqual($zdt->subtract('PT240H0.000000800S'), \Temporal\ZonedDateTime::from('1969-12-15T12:23:45.678900434+00:00[UTC]'));
+$zdt = \Temporal\Spec\ZonedDateTime::from('1969-12-25T12:23:45.678901234+00:00[UTC]');
+TemporalHelpers::assertZonedDateTimesEqual($zdt->subtract('PT240H0.000000800S'), \Temporal\Spec\ZonedDateTime::from('1969-12-15T12:23:45.678900434+00:00[UTC]'));

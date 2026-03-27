@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$tests = [[new \Temporal\ZonedDateTime(192_258_181_000_000_000, 'UTC'), '1976-02-04T05:03:01+00:00[UTC]'], [new \Temporal\ZonedDateTime(0, 'UTC'), '1970-01-01T00:00:00+00:00[UTC]'], [new \Temporal\ZonedDateTime(30_000_000_000, 'UTC'), '1970-01-01T00:00:30+00:00[UTC]'], [new \Temporal\ZonedDateTime(30_123_400_000, 'UTC'), '1970-01-01T00:00:30.1234+00:00[UTC]']];
+$tests = [[new \Temporal\Spec\ZonedDateTime(192_258_181_000_000_000, 'UTC'), '1976-02-04T05:03:01+00:00[UTC]'], [new \Temporal\Spec\ZonedDateTime(0, 'UTC'), '1970-01-01T00:00:00+00:00[UTC]'], [new \Temporal\Spec\ZonedDateTime(30_000_000_000, 'UTC'), '1970-01-01T00:00:30+00:00[UTC]'], [new \Temporal\Spec\ZonedDateTime(30_123_400_000, 'UTC'), '1970-01-01T00:00:30.1234+00:00[UTC]']];
 $options = null;
 foreach ($tests as $__entry__) {
 [$datetime, $expected] = array_pad($__entry__, 2, null);

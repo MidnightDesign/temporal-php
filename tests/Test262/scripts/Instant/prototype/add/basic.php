@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$inst = new \Temporal\Instant(50_000);
-$result = $inst->add(new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 3, 2, 1));
+$inst = new \Temporal\Spec\Instant(50_000);
+$result = $inst->add(new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 3, 2, 1));
 Assert::sameValue(3_052_001, $result->epochNanoseconds, 'add positive sub-seconds');
-$result = $inst->add(new \Temporal\Duration(0, 0, 0, 0, 0, 0, 4, 3, 2, 1));
+$result = $inst->add(new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 4, 3, 2, 1));
 Assert::incomplete('untranslatable: BigInt()');

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(0);
+$instance = new \Temporal\Spec\Instant(0);
 $maxCases = [['PT2400000000H', 'string with max hours'], [['hours' => 2_400_000_000], 'property bag with max hours'], ['PT144000000000M', 'string with max minutes'], [['minutes' => 144_000_000_000], 'property bag with max minutes'], ['PT8640000000000S', 'string with max seconds'], [['seconds' => 8_640_000_000_000], 'property bag with max seconds']];
 foreach ($maxCases as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);

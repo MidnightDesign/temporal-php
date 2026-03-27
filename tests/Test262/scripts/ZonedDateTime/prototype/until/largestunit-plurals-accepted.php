@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-$later = new \Temporal\ZonedDateTime(1_086_403_661_988_655_322, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(1_086_403_661_988_655_322, 'UTC');
 $validUnits = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($largestUnit) => $earlier->until($later, ['largestUnit' => $largestUnit]), $validUnits);

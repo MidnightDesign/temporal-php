@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainRelativeTo = new \Temporal\PlainDate(1970, 1, 1);
-$zonedRelativeTo = new \Temporal\ZonedDateTime(0, 'UTC');
-$duration = new \Temporal\Duration(0, 0, 0, 3, 12);
+$plainRelativeTo = new \Temporal\Spec\PlainDate(1970, 1, 1);
+$zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 3, 12);
 $commonOptions = ['smallestUnit' => 'hours', 'roundingIncrement' => 8, 'roundingMode' => 'halfEven'];
 TemporalHelpers::assertDuration($duration->round($commonOptions), 0, 0, 0, 3, 8, 0, 0, 0, 0, 0, 'halfEven rounding is downward with no relativeTo');
 TemporalHelpers::assertDuration($duration->round(array_merge($commonOptions, ['relativeTo' => $plainRelativeTo])), 0, 0, 0, 3, 8, 0, 0, 0, 0, 0, 'halfEven rounding is downward with PlainDate relativeTo');

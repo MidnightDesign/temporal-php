@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$t1 = new \Temporal\PlainDateTime(2021, 3, 14, 1, 2, 3, 4, 5, 6);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare($t1, 'invalid iso8601 string'), 'invalid string in second argument');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare('invalid iso8601 string', $t1), 'invalid string in first argument');
+$t1 = new \Temporal\Spec\PlainDateTime(2021, 3, 14, 1, 2, 3, 4, 5, 6);
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($t1, 'invalid iso8601 string'), 'invalid string in second argument');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare('invalid iso8601 string', $t1), 'invalid string in first argument');

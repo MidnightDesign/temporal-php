@@ -9,10 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $validStrings = ['1970-01-01T00Z', '1970-01-01T00Z[UTC]', '1970-01-01T00Z[!UTC]', '1970-01-01T00Z[Europe/Vienna]', '1970-01-01T00+00', '1970-01-01T00+00:00', '1970-01-01T00+00:00:00,0', '1970-01-01T00+00:00:00.000000000', '1970-01-01T00+0000', '1970-01-01T00+000000,0', '1970-01-01T00+000000.000000000', '1970-01-01T00+00:00[UTC]', '1970-01-01T00+00:00[!UTC]', '1969-12-31T16-08[America/Vancouver]', '1969-12-31T16-08:00[America/Vancouver]', '1969-12-31T16-08:00:00,0[America/Vancouver]', '1969-12-31T16-08:00:00.000000000[America/Vancouver]', '1969-12-31T16-0800[America/Vancouver]', '1969-12-31T16-080000,0[America/Vancouver]', '1969-12-31T16-080000.000000000[America/Vancouver]'];
 foreach ($validStrings as $arg) {
-$result = \Temporal\Instant::from($arg);
+$result = \Temporal\Spec\Instant::from($arg);
 Assert::sameValue($result->epochNanoseconds, 0, "\"{$arg}\" is a valid UTC offset with time for Instant");
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::from($arg), "\"{$arg}\" UTC offset without time is not valid for Instant");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::from($arg), "\"{$arg}\" UTC offset without time is not valid for Instant");
 }

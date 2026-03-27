@@ -8,14 +8,14 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2000, 5, 2);
-$duration = new \Temporal\Duration(0, 0, 0, 1, 24, 1440, 86_400, 86_400_000, 86_400_000_000, 86_400_000_000_000);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 1, 24, 1440, 86_400, 86_400_000, 86_400_000_000, 86_400_000_000_000);
 $result = $date->add($duration);
 TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 9, 'units smaller than days are balanced');
 $resultString = $date->add('P1DT24H1440M86400S');
 TemporalHelpers::assertPlainDate($resultString, 2000, 5, 'M05', 6, 'units smaller than days are balanced');
 $resultPropBag = $date->add(['days' => 1, 'hours' => 24, 'minutes' => 1440, 'seconds' => 86_400, 'milliseconds' => 86_400_000, 'microseconds' => 86_400_000_000, 'nanoseconds' => 86_400_000_000_000]);
 TemporalHelpers::assertPlainDate($resultPropBag, 2000, 5, 'M05', 9, 'units smaller than days are balanced');
-$negativeDuration = new \Temporal\Duration(0, 0, 0, -1, -24, -1440, -86_400, -86_400_000, -86_400_000_000, -86_400_000_000_000);
+$negativeDuration = new \Temporal\Spec\Duration(0, 0, 0, -1, -24, -1440, -86_400, -86_400_000, -86_400_000_000, -86_400_000_000_000);
 $resultNegative = $date->add($negativeDuration);
 TemporalHelpers::assertPlainDate($resultNegative, 2000, 4, 'M04', 25, 'units smaller than days are balanced');

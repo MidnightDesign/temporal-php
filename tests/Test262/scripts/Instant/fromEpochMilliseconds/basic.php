@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$afterEpoch = \Temporal\Instant::fromEpochMilliseconds(217_175_010_123);
+$afterEpoch = \Temporal\Spec\Instant::fromEpochMilliseconds(217_175_010_123);
 Assert::sameValue($afterEpoch->epochNanoseconds, 217_175_010_123_000_000, 'fromEpochMilliseconds post epoch');
-$beforeEpoch = \Temporal\Instant::fromEpochMilliseconds(-217_175_010_876);
+$beforeEpoch = \Temporal\Spec\Instant::fromEpochMilliseconds(-217_175_010_876);
 Assert::sameValue($beforeEpoch->epochNanoseconds, -217_175_010_876_000_000, 'fromEpochMilliseconds pre epoch');

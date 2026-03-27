@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $seconds = 8_692_288_669_465_520;
 $milliseconds = 513;
-$d = new \Temporal\Duration(0, 0, 0, 0, 0, 0, $seconds, $milliseconds);
+$d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, $seconds, $milliseconds);
 $result = $d->total(['unit' => 'milliseconds']);
 Assert::incomplete('untranslatable: Number()');

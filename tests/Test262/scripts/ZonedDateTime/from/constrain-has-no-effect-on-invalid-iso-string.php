@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from('2020-13-34T24:60[-08:00]', ['overflow' => 'constrain']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('2020-13-34T24:60[-08:00]', ['overflow' => 'constrain']), '');

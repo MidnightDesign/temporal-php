@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainYearMonth.prototype.until` is `function`');
-Assert::methodExists('\Temporal\PlainYearMonth', 'until');
+Assert::methodExists('\Temporal\Spec\PlainYearMonth', 'until');

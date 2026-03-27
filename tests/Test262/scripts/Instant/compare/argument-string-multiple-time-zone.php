@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00Z[UTC][UTC]', '1970-01-01T00:00Z[!UTC][UTC]', '1970-01-01T00:00Z[UTC][!UTC]', '1970-01-01T00:00Z[UTC][u-ca=iso8601][UTC]', '1970-01-01T00:00Z[UTC][foo=bar][UTC]'];
-$epoch = new \Temporal\Instant(0);
+$epoch = new \Temporal\Spec\Instant(0);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($arg, $epoch), "reject more than one time zone annotation: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($epoch, $arg), "reject more than one time zone annotation: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, $epoch), "reject more than one time zone annotation: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($epoch, $arg), "reject more than one time zone annotation: {$arg} (second argument)");
 }

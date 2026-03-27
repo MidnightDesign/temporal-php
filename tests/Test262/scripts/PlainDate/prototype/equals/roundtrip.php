@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dates = [new \Temporal\PlainDate(2000, 1, 1), new \Temporal\PlainDate(1976, 11, 18), new \Temporal\PlainDate(2024, 2, 29), new \Temporal\PlainDate(9999, 12, 31), new \Temporal\PlainDate(1, 1, 1)];
+$dates = [new \Temporal\Spec\PlainDate(2000, 1, 1), new \Temporal\Spec\PlainDate(1976, 11, 18), new \Temporal\Spec\PlainDate(2024, 2, 29), new \Temporal\Spec\PlainDate(9999, 12, 31), new \Temporal\Spec\PlainDate(1, 1, 1)];
 foreach ($dates as $d) {
 Assert::sameValue($d->equals($d), true, 'reflexive: date equals itself');
 Assert::sameValue($d->equals($d->toString()), true, 'date equals its ISO string');

@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(0, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $invalidStrings = ['-000000-10-31', '-000000-10-31T17:45', '-000000-10-31T17:45Z', '-000000-10-31T17:45+01:00', '-000000-10-31T17:45+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($arg, $datetime), 'reject minus zero as extended year (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($datetime, $arg), 'reject minus zero as extended year (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), 'reject minus zero as extended year (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), 'reject minus zero as extended year (second argument)');
 }

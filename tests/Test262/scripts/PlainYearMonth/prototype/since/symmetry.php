@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$nov94 = new \Temporal\PlainYearMonth(1994, 11);
-$jun13 = new \Temporal\PlainYearMonth(2013, 6);
+$nov94 = new \Temporal\Spec\PlainYearMonth(1994, 11);
+$jun13 = new \Temporal\Spec\PlainYearMonth(2013, 6);
 $diff = $jun13->since($nov94);
 TemporalHelpers::assertDurationsEqual($diff, $nov94->until($jun13), 'Since is inverse of until');

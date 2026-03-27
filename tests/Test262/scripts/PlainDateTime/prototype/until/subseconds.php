@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = new \Temporal\PlainDateTime(2020, 2, 1, 0, 0);
-$feb21 = new \Temporal\PlainDateTime(2020, 2, 2, 0, 0, 0, 250, 250, 250);
+$feb20 = new \Temporal\Spec\PlainDateTime(2020, 2, 1, 0, 0);
+$feb21 = new \Temporal\Spec\PlainDateTime(2020, 2, 2, 0, 0, 0, 250, 250, 250);
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'milliseconds']), 0, 0, 0, 0, 0, 0, 0, 86_400_250, 250, 250, 'can return subseconds (millisecond precision)');
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'microseconds']), 0, 0, 0, 0, 0, 0, 0, 0, 86_400_250_250, 250, 'can return subseconds (microsecond precision)');
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'nanoseconds']), 0, 0, 0, 0, 0, 0, 0, 0, 0, 86_400_250_250_250, 'can return subseconds (nanosecond precision)');

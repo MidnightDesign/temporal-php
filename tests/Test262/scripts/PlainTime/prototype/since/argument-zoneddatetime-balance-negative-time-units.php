@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(3_661_001_001_001, '-00:02');
-$diff = new \Temporal\PlainTime()->since($datetime);
+$datetime = new \Temporal\Spec\ZonedDateTime(3_661_001_001_001, '-00:02');
+$diff = new \Temporal\Spec\PlainTime()->since($datetime);
 TemporalHelpers::assertDuration($diff, 0, 0, 0, 0, 0, -59, -1, -1, -1, -1);

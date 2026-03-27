@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$from = new \Temporal\PlainDate(2021, 7, 16);
-$to = new \Temporal\PlainDate(2021, 7, 17);
+$from = new \Temporal\Spec\PlainDate(2021, 7, 16);
+$to = new \Temporal\Spec\PlainDate(2021, 7, 17);
 $units = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($units as $largestUnit) {
 foreach ($units as $smallestUnit) {

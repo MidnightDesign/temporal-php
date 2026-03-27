@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainTime = new \Temporal\PlainTime(15, 23, 30, 123, 456, 789);
+$plainTime = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789);
 TemporalHelpers::assertPlainTime($plainTime, 15, 23, 30, 123, 456, 789, 'initial');
 $hour = $plainTime->with(['hour' => 3]);
 TemporalHelpers::assertPlainTime($hour, 3, 23, 30, 123, 456, 789, 'hour');

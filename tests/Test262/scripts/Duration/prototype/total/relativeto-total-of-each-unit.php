@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-$plainRelativeTo = new \Temporal\PlainDate(2000, 1, 1);
-$zonedRelativeTo = new \Temporal\ZonedDateTime(63_072_000_000_000_000, 'UTC');
+$duration = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+$plainRelativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
+$zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(63_072_000_000_000_000, 'UTC');
 $dayMilliseconds = 24 * 3600 * 1000;
 $fullYears = 5;
 $fullMonths = $fullYears * 12 + 5 + 1;

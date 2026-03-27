@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration1 = \Temporal\Duration::from(['microseconds' => 9_007_199_254_740_991 + 1, 'nanoseconds' => 0]);
-$duration2 = \Temporal\Duration::from(['microseconds' => -1, 'nanoseconds' => -1000]);
+$duration1 = \Temporal\Spec\Duration::from(['microseconds' => 9_007_199_254_740_991 + 1, 'nanoseconds' => 0]);
+$duration2 = \Temporal\Spec\Duration::from(['microseconds' => -1, 'nanoseconds' => -1000]);
 TemporalHelpers::assertDuration($duration1->subtract($duration2), 0, 0, 0, 0, 0, 0, 0, 0, 9_007_199_254_740_994, 0, 'duration1.subtract(duration2)');

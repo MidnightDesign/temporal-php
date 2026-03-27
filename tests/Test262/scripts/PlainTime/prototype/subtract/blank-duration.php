@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$t = new \Temporal\PlainTime(14, 1);
-$blank = new \Temporal\Duration();
+$t = new \Temporal\Spec\PlainTime(14, 1);
+$blank = new \Temporal\Spec\Duration();
 $result = $t->subtract($blank);
 TemporalHelpers::assertPlainTime($result, 14, 1, 0, 0, 0, 0, 'result is unchanged');

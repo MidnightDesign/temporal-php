@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$ym1 = new \Temporal\PlainYearMonth(2000, 1, 'iso8601', 1);
-$ym2 = new \Temporal\PlainYearMonth(2000, 1, 'iso8601', 2);
-Assert::sameValue(\Temporal\PlainYearMonth::compare($ym1, $ym2), -1, '');
+$ym1 = new \Temporal\Spec\PlainYearMonth(2000, 1, 'iso8601', 1);
+$ym2 = new \Temporal\Spec\PlainYearMonth(2000, 1, 'iso8601', 2);
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($ym1, $ym2), -1, '');

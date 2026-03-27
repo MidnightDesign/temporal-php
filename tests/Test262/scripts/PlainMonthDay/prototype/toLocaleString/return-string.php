@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$pmd = new \Temporal\PlainMonthDay(1, 1);
+$pmd = new \Temporal\Spec\PlainMonthDay(1, 1);
 Assert::sameValue(is_string($pmd->toLocaleString(null, ['calendar' => 'iso8601'])), true, '');

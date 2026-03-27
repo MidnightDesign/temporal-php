@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration1 = new \Temporal\Duration(0, 0, 0, 1);
-$duration2 = new \Temporal\Duration(0, 0, 0, 0, 24);
+$duration1 = new \Temporal\Spec\Duration(0, 0, 0, 1);
+$duration2 = new \Temporal\Spec\Duration(0, 0, 0, 0, 24);
 $base = ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 15, 'minute' => 30, 'second' => 45, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => array_merge($base, [$prop => $inf])]), "{$prop} property cannot be {$inf} in relativeTo");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => array_merge($base, [$prop => $inf])]), "{$prop} property cannot be {$inf} in relativeTo");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

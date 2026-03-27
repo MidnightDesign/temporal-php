@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('+001976-11-18'), 1976, 11, 'M11', 18, 'positive extended year');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('+002020-01-01'), 2020, 1, 'M01', 1, 'positive extended year 2020');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('+001976-11-18'), 1976, 11, 'M11', 18, 'positive extended year');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('+002020-01-01'), 2020, 1, 'M01', 1, 'positive extended year 2020');

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$leapDay = new \Temporal\PlainMonthDay(2, 29);
+$leapDay = new \Temporal\Spec\PlainMonthDay(2, 29);
 $result = $leapDay->toPlainDate(['year' => 2023]);
 TemporalHelpers::assertPlainDate($result, 2023, 2, 'M02', 28, '2023 + 02-29 = 2023-02-28');

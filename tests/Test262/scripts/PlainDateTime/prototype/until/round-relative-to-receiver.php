@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt1 = new \Temporal\PlainDateTime(2019, 1, 1);
-$dt2 = new \Temporal\PlainDateTime(2020, 7, 2);
+$dt1 = new \Temporal\Spec\PlainDateTime(2019, 1, 1);
+$dt2 = new \Temporal\Spec\PlainDateTime(2020, 7, 2);
 $options = ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand'];
 TemporalHelpers::assertDuration($dt1->until($dt2, $options), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'rounds relative to the receiver (positive case)');
 TemporalHelpers::assertDuration($dt2->until($dt1, $options), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'rounds relative to the receiver (negative case)');

@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['1970-01-01T00:00+00:00[UTC]', 'uppercase T'], ['1970-01-01t00:00+00:00[UTC]', 'lowercase T'], ['1970-01-01 00:00+00:00[UTC]', 'space between date and time']];
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->until($arg);

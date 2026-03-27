@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
-$later = new \Temporal\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
 TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'microsecond', fn($smallestUnit) => $later->since($earlier, ['smallestUnit' => $smallestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 25, 1, 1, 987, 654, 0, $descr));

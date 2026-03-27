@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$orig = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 20, 123, 456, 789);
-$result = \Temporal\PlainDateTime::from($orig);
+$orig = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 20, 123, 456, 789);
+$result = \Temporal\Spec\PlainDateTime::from($orig);
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 15, 23, 20, 123, 456, 789, 'PlainDateTime is copied');
 Assert::sameValue($result->calendarId, $orig->calendarId, 'Calendar is copied');
 Assert::notSameValue($result, $orig, 'When a PlainDateTime is given, the returned value is not the original PlainDateTime');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = '+01:35';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 $result = $instance->equals($str);
 Assert::sameValue($result, false, 'ISO offset, sub-minute offset trailing-zeroes');

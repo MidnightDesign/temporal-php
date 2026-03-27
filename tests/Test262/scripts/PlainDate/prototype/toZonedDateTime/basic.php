@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainDate = \Temporal\PlainDate::from('2020-01-01');
+$plainDate = \Temporal\Spec\PlainDate::from('2020-01-01');
 $timeZone = 'UTC';
-$plainTime = \Temporal\PlainTime::from('12:00');
+$plainTime = \Temporal\Spec\PlainTime::from('12:00');
 $result = $plainDate->toZonedDateTime(['timeZone' => $timeZone, 'plainTime' => $plainTime]);
 Assert::sameValue($result->toString(), '2020-01-01T12:00:00+00:00[UTC]', 'objects passed');
 $result = $plainDate->toZonedDateTime($timeZone);

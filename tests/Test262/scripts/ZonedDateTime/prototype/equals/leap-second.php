@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(1_483_228_799_000_000_000, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(1_483_228_799_000_000_000, $timeZone);
 $arg = '2016-12-31T23:59:60+00:00[UTC]';
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'leap second is a valid ISO string for ZonedDateTime');

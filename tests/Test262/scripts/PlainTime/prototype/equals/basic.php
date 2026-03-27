@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$t1 = \Temporal\PlainTime::from('08:44:15.321');
-$t1bis = \Temporal\PlainTime::from('08:44:15.321');
-$t2 = \Temporal\PlainTime::from('14:23:30.123');
+$t1 = \Temporal\Spec\PlainTime::from('08:44:15.321');
+$t1bis = \Temporal\Spec\PlainTime::from('08:44:15.321');
+$t2 = \Temporal\Spec\PlainTime::from('14:23:30.123');
 Assert::sameValue($t1->equals($t1), true, 'same object');
 Assert::sameValue($t1->equals($t1bis), true, 'different object');
 Assert::sameValue($t1->equals($t2), false, 'different times');

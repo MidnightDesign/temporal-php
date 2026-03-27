@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '−009999-11-18T15:23:30.12'];
-$instance = new \Temporal\PlainYearMonth(2000, 5);
+$instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->since($arg), "variant minus sign: {$arg}");
 }

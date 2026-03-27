@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\PlainDate(2021, 6, 15)->daysInYear, 365, 'non-leap year 2021');
-Assert::sameValue(new \Temporal\PlainDate(2020, 6, 15)->daysInYear, 366, 'leap year 2020');
-Assert::sameValue(new \Temporal\PlainDate(1900, 6, 15)->daysInYear, 365, 'century year 1900 (non-leap)');
-Assert::sameValue(new \Temporal\PlainDate(2000, 6, 15)->daysInYear, 366, '400-year 2000 (leap)');
-Assert::sameValue(new \Temporal\PlainDate(2100, 6, 15)->daysInYear, 365, 'century year 2100 (non-leap)');
-Assert::sameValue(new \Temporal\PlainDate(2400, 6, 15)->daysInYear, 366, '400-year 2400 (leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2021, 6, 15)->daysInYear, 365, 'non-leap year 2021');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2020, 6, 15)->daysInYear, 366, 'leap year 2020');
+Assert::sameValue(new \Temporal\Spec\PlainDate(1900, 6, 15)->daysInYear, 365, 'century year 1900 (non-leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2000, 6, 15)->daysInYear, 366, '400-year 2000 (leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2100, 6, 15)->daysInYear, 365, 'century year 2100 (non-leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2400, 6, 15)->daysInYear, 366, '400-year 2400 (leap)');

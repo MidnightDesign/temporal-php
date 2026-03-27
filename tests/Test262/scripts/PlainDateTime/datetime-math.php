@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
-$later = new \Temporal\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
+$earlier = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$later = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
 $units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'];
 foreach ($units as $largestUnit) {
 $diff = $later->since($earlier, ['largestUnit' => $largestUnit]);

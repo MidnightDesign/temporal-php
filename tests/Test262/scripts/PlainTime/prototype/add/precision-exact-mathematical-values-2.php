@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = \Temporal\Duration::from(['seconds' => 9_007_199_254_740_991, 'nanoseconds' => 999_999_999]);
-$time = new \Temporal\PlainTime(0, 0, 0, 0, 0, 0);
+$duration = \Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991, 'nanoseconds' => 999_999_999]);
+$time = new \Temporal\Spec\PlainTime(0, 0, 0, 0, 0, 0);
 $result = $time->add($duration);
 TemporalHelpers::assertPlainTime($result, 7, 36, 31, 999, 999, 999);

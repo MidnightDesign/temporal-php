@@ -7,15 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$ms = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 488, 0, 0);
+$ms = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 488, 0, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $ms->round(['largestUnit' => 'nanoseconds', 'roundingIncrement' => 1]), 'nanoseconds component after balancing as a float64-representable integer is out of range (maximum milliseconds)');
-$us = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 0, 475_712, 0);
+$us = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 0, 475_712, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $ms->round(['largestUnit' => 'nanoseconds', 'roundingIncrement' => 1]), 'nanoseconds component after balancing as a float64-representable integer is out of range (maximum microseconds)');
-$ns = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 0, 0, 463_129_088);
+$ns = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 0, 0, 463_129_088);
 Assert::throws(\InvalidArgumentException::class, fn() => $ns->round(['largestUnit' => 'nanoseconds', 'roundingIncrement' => 1]), 'nanoseconds component after balancing as a float64-representable integer is out of range (maximum nanoseconds)');
-$msMin = new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -487, 0, 0);
+$msMin = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -487, 0, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $msMin->round(['largestUnit' => 'nanoseconds', 'roundingIncrement' => 1]), 'nanoseconds component after balancing as a float64-representable integer is out of range (minimum milliseconds)');
-$usMin = new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, 0, -475_711, 0);
+$usMin = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, 0, -475_711, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $usMin->round(['largestUnit' => 'nanoseconds', 'roundingIncrement' => 1]), 'nanoseconds component after balancing as a float64-representable integer is out of range (minimum microseconds)');
-$nsMin = new \Temporal\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, 0, 0, -463_129_088);
+$nsMin = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, 0, 0, -463_129_088);
 Assert::throws(\InvalidArgumentException::class, fn() => $nsMin->round(['largestUnit' => 'nanoseconds', 'roundingIncrement' => 1]), 'nanoseconds component after balancing as a float64-representable integer is out of range (minimum nanoseconds)');

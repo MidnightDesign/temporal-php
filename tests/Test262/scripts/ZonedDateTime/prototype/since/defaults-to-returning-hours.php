@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = new \Temporal\ZonedDateTime(1_580_511_600_000_000_000, '+01:00');
-$feb21 = new \Temporal\ZonedDateTime(1_612_134_000_000_000_000, '+01:00');
-$feb1_2021 = new \Temporal\ZonedDateTime(1_612_134_000_000_000_001, '+01:00');
-$feb1_2020 = new \Temporal\ZonedDateTime(1_580_511_600_000_000_001, '+01:00');
+$feb20 = new \Temporal\Spec\ZonedDateTime(1_580_511_600_000_000_000, '+01:00');
+$feb21 = new \Temporal\Spec\ZonedDateTime(1_612_134_000_000_000_000, '+01:00');
+$feb1_2021 = new \Temporal\Spec\ZonedDateTime(1_612_134_000_000_000_001, '+01:00');
+$feb1_2020 = new \Temporal\Spec\ZonedDateTime(1_580_511_600_000_000_001, '+01:00');
 TemporalHelpers::assertDuration($feb21->since($feb20), 0, 0, 0, 0, 8784, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($feb21->since($feb20, ['largestUnit' => 'auto']), 0, 0, 0, 0, 8784, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($feb21->since($feb20, ['largestUnit' => 'hours']), 0, 0, 0, 0, 8784, 0, 0, 0, 0, 0);

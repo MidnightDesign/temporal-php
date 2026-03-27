@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$midnight = new \Temporal\PlainTime();
+$midnight = new \Temporal\Spec\PlainTime();
 Assert::incomplete('untranslatable: TemporalHelpers chain call');

@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-$relativeToDate = new \Temporal\PlainDate(1970, 1, 1);
-$relativeToDateTime = new \Temporal\PlainDateTime(1970, 1, 1);
+$duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+$relativeToDate = new \Temporal\Spec\PlainDate(1970, 1, 1);
+$relativeToDateTime = new \Temporal\Spec\PlainDateTime(1970, 1, 1);
 foreach (['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $unit) {
 $expected = $duration->total(['unit' => $unit, 'relativeTo' => $relativeToDate]);
 $actual = $duration->total(['unit' => $unit, 'relativeTo' => $relativeToDateTime]);

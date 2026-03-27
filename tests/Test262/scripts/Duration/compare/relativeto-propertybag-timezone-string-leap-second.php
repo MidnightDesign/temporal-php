@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
-\Temporal\Duration::compare(new \Temporal\Duration(1), new \Temporal\Duration(), ['relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
+\Temporal\Spec\Duration::compare(new \Temporal\Spec\Duration(1), new \Temporal\Spec\Duration(), ['relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
 $timeZone = '2021-08-19T17:30:45.123456789+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare(new \Temporal\Duration(1), new \Temporal\Duration(), ['relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]), 'leap second in time zone name not valid');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare(new \Temporal\Spec\Duration(1), new \Temporal\Spec\Duration(), ['relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]), 'leap second in time zone name not valid');

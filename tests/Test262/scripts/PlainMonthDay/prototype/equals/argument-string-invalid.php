@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainMonthDay(11, 18);
+$instance = new \Temporal\Spec\PlainMonthDay(11, 18);
 Assert::incomplete('untranslatable: TemporalHelpers chain call');

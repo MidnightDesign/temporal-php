@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainDateTime(1938, 4, 24, 22, 13, 20);
-$roundedDown = new \Temporal\PlainDateTime(1938, 4, 24, 22, 0, 0);
-$roundedUp = new \Temporal\PlainDateTime(1938, 4, 24, 23, 0, 0);
+$instance = new \Temporal\Spec\PlainDateTime(1938, 4, 24, 22, 13, 20);
+$roundedDown = new \Temporal\Spec\PlainDateTime(1938, 4, 24, 22, 0, 0);
+$roundedUp = new \Temporal\Spec\PlainDateTime(1938, 4, 24, 23, 0, 0);
 TemporalHelpers::assertPlainDateTimesEqual($instance->round(['smallestUnit' => 'hour', 'roundingIncrement' => 1, 'roundingMode' => 'halfCeil']), $roundedDown, 'Rounding with halfCeil rounds to the closest hour');
 TemporalHelpers::assertPlainDateTimesEqual($instance->round(['smallestUnit' => 'hour', 'roundingIncrement' => 1, 'roundingMode' => 'halfFloor']), $roundedDown, 'Rounding with halfFloor rounds to the closest hour');
 TemporalHelpers::assertPlainDateTimesEqual($instance->round(['smallestUnit' => 'hour', 'roundingIncrement' => 1, 'roundingMode' => 'halfExpand']), $roundedDown, 'Rounding with halfExpand rounds to the closest hour');

@@ -9,9 +9,9 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $testRoundtrip = function ($year, $month, $monthCode, $day) use (&$options) {
-$dateFromYearMonth = \Temporal\PlainDateTime::from(['year' => $year, 'month' => $month, 'day' => $day, 'hour' => 12, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321], $options);
+$dateFromYearMonth = \Temporal\Spec\PlainDateTime::from(['year' => $year, 'month' => $month, 'day' => $day, 'hour' => 12, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321], $options);
 TemporalHelpers::assertPlainDateTime($dateFromYearMonth, $year, $month, $monthCode, $day, 12, 34, 56, 987, 654, 321, "{$dateFromYearMonth} - created from year and month");
-$dateFromYearMonthCode = \Temporal\PlainDateTime::from(['year' => $year, 'monthCode' => $monthCode, 'day' => $day, 'hour' => 12, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321], $options);
+$dateFromYearMonthCode = \Temporal\Spec\PlainDateTime::from(['year' => $year, 'monthCode' => $monthCode, 'day' => $day, 'hour' => 12, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321], $options);
 TemporalHelpers::assertPlainDateTime($dateFromYearMonthCode, $year, $month, $monthCode, $day, 12, 34, 56, 987, 654, 321, "{$dateFromYearMonthCode} - created from year and month code");
 };
 $options = ['overflow' => 'reject'];

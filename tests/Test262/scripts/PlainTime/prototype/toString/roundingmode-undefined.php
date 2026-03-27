@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$time = new \Temporal\PlainTime(12, 34, 56, 123, 987, 500);
+$time = new \Temporal\Spec\PlainTime(12, 34, 56, 123, 987, 500);
 $explicit1 = $time->toString(['smallestUnit' => 'microsecond']);
 Assert::sameValue($explicit1, '12:34:56.123987', 'default roundingMode is trunc');
 $implicit1 = $time->toString(['smallestUnit' => 'microsecond']);

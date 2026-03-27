@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\PlainDate() must be called with new');
+Assert::incomplete('\\Temporal\\Spec\\PlainDate() must be called with new');

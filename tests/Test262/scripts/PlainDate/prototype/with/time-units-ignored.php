@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d1 = new \Temporal\PlainDate(1911, 10, 10);
+$d1 = new \Temporal\Spec\PlainDate(1911, 10, 10);
 TemporalHelpers::assertPlainDate($d1->with(['year' => 2021, 'hour' => 30]), 2021, 10, 'M10', 10);
 TemporalHelpers::assertPlainDate($d1->with(['month' => 11, 'minute' => 71]), 1911, 11, 'M11', 10);
 TemporalHelpers::assertPlainDate($d1->with(['monthCode' => 'M05', 'second' => 90]), 1911, 5, 'M05', 10);

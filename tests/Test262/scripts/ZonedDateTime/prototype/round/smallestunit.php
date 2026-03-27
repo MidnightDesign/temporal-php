@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$bal = new \Temporal\ZonedDateTime(217_205_999_999_999_999, '+01:00');
-$expected = new \Temporal\ZonedDateTime(217_206_000_000_000_000, '+01:00');
+$bal = new \Temporal\Spec\ZonedDateTime(217_205_999_999_999_999, '+01:00');
+$expected = new \Temporal\Spec\ZonedDateTime(217_206_000_000_000_000, '+01:00');
 foreach (['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond'] as $smallestUnit) {
 TemporalHelpers::assertZonedDateTimesEqual($bal->round(['smallestUnit' => $smallestUnit]), $expected);
 }

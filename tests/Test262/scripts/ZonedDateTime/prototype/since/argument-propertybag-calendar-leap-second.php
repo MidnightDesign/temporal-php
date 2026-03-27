@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $calendar = '2016-12-31T23:59:60+00:00[UTC]';
 $arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => $calendar];
 $result = $instance->since($arg);

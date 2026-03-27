@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_000_000_005, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_005, 'UTC');
 $result = $datetime->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 2.5, 'roundingMode' => 'expand']);
 Assert::sameValue($result->epochNanoseconds, 1_000_000_000_000_000_006, 'roundingIncrement 2.5 truncates to 2');

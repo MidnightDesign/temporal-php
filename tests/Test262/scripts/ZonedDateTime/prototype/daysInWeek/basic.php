@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$tests = [new \Temporal\ZonedDateTime(189_357_810_123_456_789, 'UTC'), new \Temporal\ZonedDateTime(217_178_610_123_456_789, 'UTC'), new \Temporal\ZonedDateTime(220_893_810_123_456_789, 'UTC')];
+$tests = [new \Temporal\Spec\ZonedDateTime(189_357_810_123_456_789, 'UTC'), new \Temporal\Spec\ZonedDateTime(217_178_610_123_456_789, 'UTC'), new \Temporal\Spec\ZonedDateTime(220_893_810_123_456_789, 'UTC')];
 foreach ($tests as $zonedDateTime) {
 Assert::sameValue($zonedDateTime->daysInWeek, 7, "Seven days in the week of {$zonedDateTime}");
 }

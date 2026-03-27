@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2019, 2, 16, 23, 45);
+$instance = new \Temporal\Spec\PlainDateTime(2019, 2, 16, 23, 45);
 foreach (['earlier', 'later', 'compatible', 'reject'] as $disambiguation) {
 $result = $instance->toZonedDateTime('+03:30', ['disambiguation' => $disambiguation]);
 Assert::sameValue($result->epochNanoseconds, 1_550_348_100_000_000_000, 'Result is 2019-02-16T20:15Z regardless of disambiguation');

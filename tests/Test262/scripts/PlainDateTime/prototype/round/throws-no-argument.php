@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt = new \Temporal\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
+$dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
 Assert::throws(\TypeError::class, fn() => $dt->round(), 'throws without any parameters');

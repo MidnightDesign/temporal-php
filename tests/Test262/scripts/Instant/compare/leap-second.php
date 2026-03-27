@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$other = new \Temporal\Instant(1_483_228_799_000_000_000);
+$other = new \Temporal\Spec\Instant(1_483_228_799_000_000_000);
 $arg = '2016-12-31T23:59:60Z';
-$result1 = \Temporal\Instant::compare($arg, $other);
+$result1 = \Temporal\Spec\Instant::compare($arg, $other);
 Assert::sameValue($result1, 0, 'leap second is a valid ISO string for Instant (first argument)');
-$result2 = \Temporal\Instant::compare($other, $arg);
+$result2 = \Temporal\Spec\Instant::compare($other, $arg);
 Assert::sameValue($result2, 0, 'leap second is a valid ISO string for Instant (second argument)');

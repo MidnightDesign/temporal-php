@@ -13,9 +13,9 @@ foreach ($expectations as $__entry__) {
 Assert::sameValue($instance->toString(['smallestUnit' => $smallestUnit]), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
 }
 };
-$datetime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 123, 456, 789);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 123, 456, 789);
 $test($datetime, [['minute', '2000-05-02T12:34'], ['second', '2000-05-02T12:34:56'], ['millisecond', '2000-05-02T12:34:56.123'], ['microsecond', '2000-05-02T12:34:56.123456'], ['nanosecond', '2000-05-02T12:34:56.123456789']], 'subseconds toString');
-$test(new \Temporal\PlainDateTime(2000, 5, 2, 12, 34), [['minute', '2000-05-02T12:34'], ['second', '2000-05-02T12:34:00'], ['millisecond', '2000-05-02T12:34:00.000'], ['microsecond', '2000-05-02T12:34:00.000000'], ['nanosecond', '2000-05-02T12:34:00.000000000']], 'whole minutes toString');
+$test(new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34), [['minute', '2000-05-02T12:34'], ['second', '2000-05-02T12:34:00'], ['millisecond', '2000-05-02T12:34:00.000'], ['microsecond', '2000-05-02T12:34:00.000000'], ['nanosecond', '2000-05-02T12:34:00.000000000']], 'whole minutes toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour'];
 foreach ($notValid as $smallestUnit) {
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['smallestUnit' => $smallestUnit]), "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");

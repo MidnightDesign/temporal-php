@@ -8,13 +8,13 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $nsPerDay = 864 * (10 ** 11);
-$zdt = new \Temporal\ZonedDateTime(0, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::sameValue($zdt->yearOfWeek, 1970, '');
-$zdt = new \Temporal\ZonedDateTime(-3 * $nsPerDay, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(-3 * $nsPerDay, 'UTC');
 Assert::sameValue($zdt->yearOfWeek, 1970, '');
-$zdt = new \Temporal\ZonedDateTime(-4 * $nsPerDay, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(-4 * $nsPerDay, 'UTC');
 Assert::sameValue($zdt->yearOfWeek, 1969, '');
-$zdt = new \Temporal\ZonedDateTime(367 * $nsPerDay, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(367 * $nsPerDay, 'UTC');
 Assert::sameValue($zdt->yearOfWeek, 1970, '');
-$zdt = new \Temporal\ZonedDateTime(368 * $nsPerDay, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(368 * $nsPerDay, 'UTC');
 Assert::sameValue($zdt->yearOfWeek, 1971, '');

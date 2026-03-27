@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 2021, 'month' => 7, 'day' => 15]), 2021, 7, 'M07', 15, 'year/month/day');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 7, 'day' => 15]), 2021, 7, 'M07', 15, 'year/month/day');

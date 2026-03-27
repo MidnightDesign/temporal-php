@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\Instant(-13_849_764_999_999_999);
+$datetime = new \Temporal\Spec\Instant(-13_849_764_999_999_999);
 $result = $datetime->toString();
 Assert::sameValue($result, '1969-07-24T16:50:35.000000001Z', '');

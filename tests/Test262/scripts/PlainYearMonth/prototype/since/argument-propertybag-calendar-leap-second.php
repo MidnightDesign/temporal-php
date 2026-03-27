@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainYearMonth(2019, 6);
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 6);
 $calendar = '2016-12-31T23:59:60';
 $arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar];
 $result = $instance->since($arg);

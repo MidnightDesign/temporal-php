@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['15:23', '15:23:00'], ['15:23:30', '15:23:30'], ['15:23:30.1234', '15:23:30.1234']];
 foreach ($tests as $__entry__) {
 [$input, $expected] = array_pad($__entry__, 2, null);
-$time = \Temporal\PlainTime::from($input);
+$time = \Temporal\Spec\PlainTime::from($input);
 $explicit = $time->toString();
 Assert::sameValue($explicit, $expected, 'default precision is auto and no rounding');
 $implicit = $time->toString();

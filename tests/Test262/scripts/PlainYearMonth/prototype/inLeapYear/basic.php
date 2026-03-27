@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\PlainYearMonth(1976, 11)->inLeapYear, true, 'leap year');
-Assert::sameValue(new \Temporal\PlainYearMonth(1977, 11)->inLeapYear, false, 'non-leap year');
+Assert::sameValue(new \Temporal\Spec\PlainYearMonth(1976, 11)->inLeapYear, true, 'leap year');
+Assert::sameValue(new \Temporal\Spec\PlainYearMonth(1977, 11)->inLeapYear, false, 'non-leap year');

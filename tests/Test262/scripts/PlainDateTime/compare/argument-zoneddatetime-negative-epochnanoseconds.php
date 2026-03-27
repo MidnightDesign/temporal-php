@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zoned = new \Temporal\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
-$plain = new \Temporal\PlainDateTime(1969, 7, 24, 16, 50, 35, 0, 0, 1);
-$result1 = \Temporal\PlainDateTime::compare($plain, $zoned);
+$zoned = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
+$plain = new \Temporal\Spec\PlainDateTime(1969, 7, 24, 16, 50, 35, 0, 0, 1);
+$result1 = \Temporal\Spec\PlainDateTime::compare($plain, $zoned);
 Assert::sameValue($result1, 0, '');
-$result2 = \Temporal\PlainDateTime::compare($zoned, $plain);
+$result2 = \Temporal\Spec\PlainDateTime::compare($zoned, $plain);
 Assert::sameValue($result2, 0, '');

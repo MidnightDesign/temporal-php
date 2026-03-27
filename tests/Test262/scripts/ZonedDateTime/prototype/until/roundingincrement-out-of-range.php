@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
-$later = new \Temporal\ZonedDateTime(1_000_000_000_000_000_005, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_005, 'UTC');
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['roundingIncrement' => -INF]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['roundingIncrement' => -1]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['roundingIncrement' => 0]), '');

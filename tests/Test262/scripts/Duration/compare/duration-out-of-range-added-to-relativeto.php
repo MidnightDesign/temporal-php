@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$relativeTo = new \Temporal\PlainDate(2000, 1, 1);
-$zero = new \Temporal\Duration();
-$instance = new \Temporal\Duration(0, 0, 1, (int) (2 ** 53 / 86_400));
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($instance, $zero, ['relativeTo' => $relativeTo]), 'weeks + days out of range, positive, first argument');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($zero, $instance, ['relativeTo' => $relativeTo]), 'weeks + days out of range, positive, second argument');
-$negInstance = new \Temporal\Duration(0, 0, -1, -(int) (2 ** 53 / 86_400));
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($negInstance, $zero, ['relativeTo' => $relativeTo]), 'weeks + days out of range, negative, first argument');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($zero, $negInstance, ['relativeTo' => $relativeTo]), 'weeks + days out of range, negative, second argument');
+$relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
+$zero = new \Temporal\Spec\Duration();
+$instance = new \Temporal\Spec\Duration(0, 0, 1, (int) (2 ** 53 / 86_400));
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($instance, $zero, ['relativeTo' => $relativeTo]), 'weeks + days out of range, positive, first argument');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($zero, $instance, ['relativeTo' => $relativeTo]), 'weeks + days out of range, positive, second argument');
+$negInstance = new \Temporal\Spec\Duration(0, 0, -1, -(int) (2 ** 53 / 86_400));
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($negInstance, $zero, ['relativeTo' => $relativeTo]), 'weeks + days out of range, negative, first argument');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($zero, $negInstance, ['relativeTo' => $relativeTo]), 'weeks + days out of range, negative, second argument');

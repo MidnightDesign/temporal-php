@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 $invalidStrings = [['2025-04-03T05:07.123', 'Fractional minutes'], ['2025-04-03T12.5', 'Fractional hours']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);

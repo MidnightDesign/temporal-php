@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(1976, 11, 18);
+$date = new \Temporal\Spec\PlainDate(1976, 11, 18);
 Assert::throws(\InvalidArgumentException::class, fn() => $date->with(['year' => -300_000]), 'too-low year rejects even with overflow constrain');
 Assert::throws(\InvalidArgumentException::class, fn() => $date->with(['year' => 300_000]), 'too-high year rejects even with overflow constrain');
 Assert::throws(\InvalidArgumentException::class, fn() => $date->with(['month' => 0]), 'non-positive month rejects even with overflow constrain');

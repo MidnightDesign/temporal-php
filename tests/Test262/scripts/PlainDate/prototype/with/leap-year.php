@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$leapDay = new \Temporal\PlainDate(2016, 2, 29);
+$leapDay = new \Temporal\Spec\PlainDate(2016, 2, 29);
 $options = ['overflow' => 'reject'];
 TemporalHelpers::assertPlainDate($leapDay->with(['year' => 2012], $options), 2012, 2, 'M02', 29, 'day not constrained when moving to another leap year');
 TemporalHelpers::assertPlainDate($leapDay->with(['year' => 2018]), 2018, 2, 'M02', 28, 'day constrained when moving to a common year');

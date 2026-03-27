@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\Instant(1_000_000_000_000_000_000);
-$later = new \Temporal\Instant(1_000_090_061_987_654_321);
+$earlier = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
+$later = new \Temporal\Spec\Instant(1_000_090_061_987_654_321);
 TemporalHelpers::checkStringOptionWrongType('largestUnit', 'hour', fn($largestUnit) => $later->since($earlier, ['largestUnit' => $largestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 25, 1, 1, 987, 654, 321, $descr));

@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $calendar = 'iso8601';
 $timeZone = 'UTC';
 $arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => $calendar];
-$result = \Temporal\ZonedDateTime::from($arg);
+$result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->calendarId, 'iso8601', "Calendar created from string \"{$calendar}\"");
 Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');

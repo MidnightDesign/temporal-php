@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'second', 'roundingIncrement' => NAN]), '');

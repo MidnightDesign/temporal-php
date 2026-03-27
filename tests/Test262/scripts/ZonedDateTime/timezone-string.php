@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['UTC', '+01:30'] as $timeZone) {
-$result = new \Temporal\ZonedDateTime(0, $timeZone);
+$result = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 Assert::sameValue($result->timeZoneId, $timeZone, "time zone ID should be \"{$timeZone}\"");
 }

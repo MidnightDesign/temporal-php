@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$inst = new \Temporal\Instant(1_000_000_000_000_000_000);
+$inst = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
 $zdt = $inst->toZonedDateTimeISO('UTC');
 Assert::sameValue($inst->epochNanoseconds, $zdt->epochNanoseconds, '');
 Assert::sameValue($zdt->timeZoneId, 'UTC', '');

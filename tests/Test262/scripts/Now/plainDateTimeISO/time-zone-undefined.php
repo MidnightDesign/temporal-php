@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$resultExplicit = \Temporal\Now::plainDateTimeISO();
-Assert::assertTrue($resultExplicit instanceof \Temporal\PlainDateTime, 'The result of evaluating (resultExplicit instanceof Temporal.PlainDateTime) is expected to be true');
-$resultImplicit = \Temporal\Now::plainDateTimeISO();
-Assert::assertTrue($resultImplicit instanceof \Temporal\PlainDateTime, 'The result of evaluating (resultImplicit instanceof Temporal.PlainDateTime) is expected to be true');
+$resultExplicit = \Temporal\Spec\Now::plainDateTimeISO();
+Assert::assertTrue($resultExplicit instanceof \Temporal\Spec\PlainDateTime, 'The result of evaluating (resultExplicit instanceof Temporal.PlainDateTime) is expected to be true');
+$resultImplicit = \Temporal\Spec\Now::plainDateTimeISO();
+Assert::assertTrue($resultImplicit instanceof \Temporal\Spec\PlainDateTime, 'The result of evaluating (resultImplicit instanceof Temporal.PlainDateTime) is expected to be true');

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$nov94 = \Temporal\PlainYearMonth::from('1994-11');
-$diff = \Temporal\Duration::from('P18Y7M');
+$nov94 = \Temporal\Spec\PlainYearMonth::from('1994-11');
+$diff = \Temporal\Spec\Duration::from('P18Y7M');
 TemporalHelpers::assertPlainYearMonth($nov94->add($diff), 2013, 6, 'M06');

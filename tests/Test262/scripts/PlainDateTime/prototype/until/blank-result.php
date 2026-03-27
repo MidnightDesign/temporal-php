@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d1 = new \Temporal\PlainDateTime(2025, 8, 22, 13, 52);
-$d2 = new \Temporal\PlainDateTime(2025, 8, 22, 13, 52);
+$d1 = new \Temporal\Spec\PlainDateTime(2025, 8, 22, 13, 52);
+$d2 = new \Temporal\Spec\PlainDateTime(2025, 8, 22, 13, 52);
 $result = $d1->until($d2);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'blank result');

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(0);
+$instance = new \Temporal\Spec\Instant(0);
 foreach (['UTC', '+01:30'] as $timeZone) {
 $result = $instance->toZonedDateTimeISO($timeZone);
 Assert::sameValue($result->timeZoneId, $timeZone, "time zone slot should store string \"{$timeZone}\"");

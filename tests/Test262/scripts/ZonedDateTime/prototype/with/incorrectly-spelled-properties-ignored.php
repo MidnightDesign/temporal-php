@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
-TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['month' => 12, 'days' => 15]), \Temporal\ZonedDateTime::from('1976-12-18T15:23:30.123456789+00:00[UTC]'));
+$zdt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
+TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['month' => 12, 'days' => 15]), \Temporal\Spec\ZonedDateTime::from('1976-12-18T15:23:30.123456789+00:00[UTC]'));

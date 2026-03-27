@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration1 = new \Temporal\Duration(1);
-$duration2 = new \Temporal\Duration(0, 1);
+$duration1 = new \Temporal\Spec\Duration(1);
+$duration2 = new \Temporal\Spec\Duration(0, 1);
 $relativeTo = ['year' => 2021, 'month' => 10, 'day' => 28, 'timeZone' => 'UTC'];
-$resultWithout = \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]);
+$resultWithout = \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]);
 $relativeTo = ['year' => 2021, 'month' => 10, 'day' => 28, 'hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'offset' => '+00:00', 'timeZone' => 'UTC', 'calendar' => 'iso8601'];
-$resultWith = \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]);
+$resultWith = \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]);
 Assert::sameValue($resultWithout, $resultWith, 'results should be the same with and without optional properties');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(3_661_001_001_001, '-00:02');
-$date = new \Temporal\PlainDate(2000, 5, 2);
+$datetime = new \Temporal\Spec\ZonedDateTime(3_661_001_001_001, '-00:02');
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $pdt = $date->toPlainDateTime($datetime);
 TemporalHelpers::assertPlainDateTime($pdt, 2000, 5, 'M05', 2, 0, 59, 1, 1, 1, 1);

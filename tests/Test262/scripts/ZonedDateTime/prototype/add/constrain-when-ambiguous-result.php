@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$jan31 = new \Temporal\ZonedDateTime(1_580_511_600_000_000_000, '-08:00');
-$expected = new \Temporal\ZonedDateTime(1_583_017_200_000_000_000, '-08:00');
+$jan31 = new \Temporal\Spec\ZonedDateTime(1_580_511_600_000_000_000, '-08:00');
+$expected = new \Temporal\Spec\ZonedDateTime(1_583_017_200_000_000_000, '-08:00');
 TemporalHelpers::assertZonedDateTimesEqual($jan31->add(['months' => 1]), $expected);
 TemporalHelpers::assertZonedDateTimesEqual($jan31->add(['months' => 1], ['overflow' => 'constrain']), $expected);

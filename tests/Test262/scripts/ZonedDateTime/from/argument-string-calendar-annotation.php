@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00[UTC][u-ca=iso8601]', 'without !'], ['1970-01-01T00:00[UTC][!u-ca=iso8601]', 'with !'], ['1970-01-01T00:00[UTC][u-ca=iso8601][u-ca=discord]', 'second annotation ignored']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\ZonedDateTime::from($arg);
+$result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->calendarId, 'iso8601', "calendar annotation ({$description})");
 }

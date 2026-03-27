@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
-$later = new \Temporal\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
 $explicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 25, 1, 1, 987, 654, 321, 'default largestUnit is hour');
 $implicit = $later->since($earlier, new \stdClass());

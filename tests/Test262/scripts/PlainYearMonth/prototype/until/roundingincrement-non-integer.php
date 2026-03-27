@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainYearMonth(2000, 5);
-$later = new \Temporal\PlainYearMonth(2000, 10);
+$earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$later = new \Temporal\Spec\PlainYearMonth(2000, 10);
 $result = $earlier->until($later, ['roundingIncrement' => 2.5, 'roundingMode' => 'trunc']);
 TemporalHelpers::assertDuration($result, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 'roundingIncrement 2.5 truncates to 2');

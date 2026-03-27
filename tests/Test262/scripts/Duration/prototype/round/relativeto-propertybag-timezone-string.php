@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1);
+$instance = new \Temporal\Spec\Duration(1);
 foreach (['UTC', '+01:00'] as $timeZone) {
 $instance->round(['largestUnit' => 'months', 'relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
 }

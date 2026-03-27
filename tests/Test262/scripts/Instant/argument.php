@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\TypeError::class, fn() => new \Temporal\Instant(), 'undefined');
-Assert::throws(\TypeError::class, fn() => new \Temporal\Instant(), 'undefined');
-Assert::throws(\TypeError::class, fn() => new \Temporal\Instant(null), 'null');
+Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\Instant(), 'undefined');
+Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\Instant(), 'undefined');
+Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\Instant(null), 'null');
 Assert::incomplete('Number literal passed to new Temporal.Instant(); BigInt vs Number distinction not replicable in PHP');

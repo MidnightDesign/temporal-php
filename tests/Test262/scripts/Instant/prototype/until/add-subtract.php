@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = \Temporal\Instant::from('1969-07-24T16:50:35.123456789Z');
-$later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
+$earlier = \Temporal\Spec\Instant::from('1969-07-24T16:50:35.123456789Z');
+$later = \Temporal\Spec\Instant::from('2019-10-29T10:46:38.271986102Z');
 $diff = $earlier->until($later);
 TemporalHelpers::assertDurationsEqual($later->until($earlier), $diff->negated());
 TemporalHelpers::assertDurationsEqual($later->since($earlier), $diff);

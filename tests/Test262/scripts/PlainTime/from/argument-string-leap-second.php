@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach ([null, new \stdClass(), ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
-TemporalHelpers::assertPlainTime(\Temporal\PlainTime::from('23:59:60', $options), 23, 59, 59, 0, 0, 0);
-TemporalHelpers::assertPlainTime(\Temporal\PlainTime::from('12:30:60', $options), 12, 30, 59, 0, 0, 0);
-TemporalHelpers::assertPlainTime(\Temporal\PlainTime::from('23:59:60.170', $options), 23, 59, 59, 170, 0, 0);
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('23:59:60', $options), 23, 59, 59, 0, 0, 0);
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('12:30:60', $options), 12, 30, 59, 0, 0, 0);
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('23:59:60.170', $options), 23, 59, 59, 170, 0, 0);
 }

@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(1001, '-00:02');
+$datetime = new \Temporal\Spec\ZonedDateTime(1001, '-00:02');
 $isoString = $datetime->toString();
 Assert::sameValue($isoString, '1969-12-31T23:58:00.000001001-00:02[-00:02]', '');

@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\PlainDateTime(2021, 7, 15, 15, 30, 26, 123, 456, 789)->year, 2021, '');
-Assert::sameValue(\Temporal\PlainDateTime::from('2019-03-15T15:30:26')->year, 2019, '');
+Assert::sameValue(new \Temporal\Spec\PlainDateTime(2021, 7, 15, 15, 30, 26, 123, 456, 789)->year, 2021, '');
+Assert::sameValue(\Temporal\Spec\PlainDateTime::from('2019-03-15T15:30:26')->year, 2019, '');

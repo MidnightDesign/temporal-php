@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['1976-11-18T152330.1-08:00[-08:00]', '19761118T15:23:30.1-08:00[-08:00]', '1976-11-18T15:23:30.1-0800[-08:00]', '1976-11-18T152330.1-0800[-08:00]', '19761118T15:23:30.1-0800[-08:00]', '19761118T152330.1-08:00[-08:00]', '19761118T152330.1-0800[-08:00]', '+001976-11-18T152330.1-08:00[-08:00]', '+0019761118T15:23:30.1-08:00[-08:00]', '+001976-11-18T15:23:30.1-0800[-08:00]', '+001976-11-18T152330.1-0800[-08:00]', '+0019761118T15:23:30.1-0800[-08:00]', '+0019761118T152330.1-08:00[-08:00]', '+0019761118T152330.1-0800[-08:00]'] as $input) {
-TemporalHelpers::assertZonedDateTimesEqual(\Temporal\ZonedDateTime::from($input), new \Temporal\ZonedDateTime(217_207_410_100_000_000, '-08:00'));
+TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from($input), new \Temporal\Spec\ZonedDateTime(217_207_410_100_000_000, '-08:00'));
 }

@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
-$later = new \Temporal\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
 $units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {

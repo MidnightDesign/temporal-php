@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainYearMonth(1970, 1);
+$instance = new \Temporal\Spec\PlainYearMonth(1970, 1);
 $maxCases = [['P273790Y8M', 'string with max years'], [['years' => 273_790, 'months' => 8], 'property bag with max years'], ['P3285488M', 'string with max months'], [['months' => 3_285_488], 'property bag with max months']];
 foreach ($maxCases as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);

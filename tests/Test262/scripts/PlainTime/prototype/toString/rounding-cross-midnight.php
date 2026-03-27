@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainTime = new \Temporal\PlainTime(23, 59, 59, 999, 999, 999);
+$plainTime = new \Temporal\Spec\PlainTime(23, 59, 59, 999, 999, 999);
 foreach (['ceil', 'halfExpand'] as $roundingMode) {
 Assert::sameValue($plainTime->toString(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode]), '00:00:00.00000000', '');
 }

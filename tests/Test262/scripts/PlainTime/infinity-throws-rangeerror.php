@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainTime(INF), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainTime(0, INF), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainTime(0, 0, INF), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainTime(0, 0, 0, INF), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainTime(0, 0, 0, 0, INF), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainTime(0, 0, 0, 0, 0, INF), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainTime(INF), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainTime(0, INF), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainTime(0, 0, INF), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainTime(0, 0, 0, INF), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainTime(0, 0, 0, 0, INF), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainTime(0, 0, 0, 0, 0, INF), '');
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');

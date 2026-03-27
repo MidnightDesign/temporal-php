@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$nov94 = new \Temporal\PlainYearMonth(1994, 11);
-$jun13 = new \Temporal\PlainYearMonth(2013, 6);
+$nov94 = new \Temporal\Spec\PlainYearMonth(1994, 11);
+$jun13 = new \Temporal\Spec\PlainYearMonth(2013, 6);
 $diff = $nov94->until($jun13);
 TemporalHelpers::assertDurationsEqual($nov94->until(['year' => 2013, 'month' => 6]), $diff, 'Casts object argument');
 TemporalHelpers::assertDurationsEqual($nov94->until('2013-06'), $diff, 'Casts string argument');

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(1970, 1, 1);
+$instance = new \Temporal\Spec\PlainDateTime(1970, 1, 1);
 $oneProperty = ['hours' => 1];
 $allProperties = ['years' => 0, 'months' => 0, 'weeks' => 0, 'days' => 0, 'hours' => 1, 'minutes' => 0, 'seconds' => 0, 'milliseconds' => 0, 'microseconds' => 0, 'nanoseconds' => 0];
 $resultWithout = $instance->add($oneProperty);

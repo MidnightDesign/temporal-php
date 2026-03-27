@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt = new \Temporal\PlainDateTime(2020, 1, 1, 0, 0);
+$dt = new \Temporal\Spec\PlainDateTime(2020, 1, 1, 0, 0);
 $zdt = $dt->toZonedDateTime('UTC');
 Assert::sameValue($zdt->epochNanoseconds, 1_577_836_800_000_000_000, 'nanoseconds');
 Assert::sameValue($zdt->calendarId, 'iso8601', 'calendar');

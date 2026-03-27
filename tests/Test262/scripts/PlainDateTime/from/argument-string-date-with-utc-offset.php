@@ -10,10 +10,10 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validStrings = ['1976-11-18T15:23+00', '1976-11-18T15:23+00:00', '1976-11-18T15:23+00:00:00,0', '1976-11-18T15:23+00:00:00.000000000', '1976-11-18T15:23+0000', '1976-11-18T15:23+000000,0', '1976-11-18T15:23+000000.000000000', '1976-11-18T15:23+00:00[UTC]', '1976-11-18T15:23+00:00[!UTC]', '1976-11-18T15:23+01[Europe/Vienna]', '1976-11-18T15:23-02:30[America/St_Johns]', '1976-11-18T15:23-02:30:00,0[America/St_Johns]', '1976-11-18T15:23-02:30:00.000000000[America/St_Johns]', '1976-11-18T15:23-0230[America/St_Johns]', '1976-11-18T15:23-023000,0[America/St_Johns]', '1976-11-18T15:23-023000.000000000[America/St_Johns]'];
 foreach ($validStrings as $arg) {
-$result = \Temporal\PlainDateTime::from($arg);
+$result = \Temporal\Spec\PlainDateTime::from($arg);
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 15, 23, 0, 0, 0, 0, "\"{$arg}\" is a valid UTC offset with time for PlainDateTime");
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from($arg), "\"{$arg}\" UTC offset without time is not valid for PlainDateTime");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from($arg), "\"{$arg}\" UTC offset without time is not valid for PlainDateTime");
 }

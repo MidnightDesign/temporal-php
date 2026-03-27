@@ -7,12 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$i1 = \Temporal\Instant::from('1963-02-13T09:36:29.123456789Z');
-$i2 = \Temporal\Instant::from('1976-11-18T15:23:30.123456789Z');
-$i3 = \Temporal\Instant::from('1981-12-15T14:34:31.987654321Z');
-Assert::sameValue(\Temporal\Instant::compare($i1, $i1), 0, '');
-Assert::sameValue(\Temporal\Instant::compare($i2, $i2), 0, '');
-Assert::sameValue(\Temporal\Instant::compare($i1, $i2), -1, '');
-Assert::sameValue(\Temporal\Instant::compare($i2, $i1), 1, '');
-Assert::sameValue(\Temporal\Instant::compare($i2, $i3), -1, '');
-Assert::sameValue(\Temporal\Instant::compare($i3, $i2), 1, '');
+$i1 = \Temporal\Spec\Instant::from('1963-02-13T09:36:29.123456789Z');
+$i2 = \Temporal\Spec\Instant::from('1976-11-18T15:23:30.123456789Z');
+$i3 = \Temporal\Spec\Instant::from('1981-12-15T14:34:31.987654321Z');
+Assert::sameValue(\Temporal\Spec\Instant::compare($i1, $i1), 0, '');
+Assert::sameValue(\Temporal\Spec\Instant::compare($i2, $i2), 0, '');
+Assert::sameValue(\Temporal\Spec\Instant::compare($i1, $i2), -1, '');
+Assert::sameValue(\Temporal\Spec\Instant::compare($i2, $i1), 1, '');
+Assert::sameValue(\Temporal\Spec\Instant::compare($i2, $i3), -1, '');
+Assert::sameValue(\Temporal\Spec\Instant::compare($i3, $i2), 1, '');

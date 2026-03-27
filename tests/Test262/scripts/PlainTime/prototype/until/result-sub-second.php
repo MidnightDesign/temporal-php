@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$time1 = \Temporal\PlainTime::from('10:23:15');
-$time2 = \Temporal\PlainTime::from('17:15:57.250250250');
+$time1 = \Temporal\Spec\PlainTime::from('10:23:15');
+$time2 = \Temporal\Spec\PlainTime::from('17:15:57.250250250');
 TemporalHelpers::assertDuration($time1->until($time2, ['largestUnit' => 'milliseconds']), 0, 0, 0, 0, 0, 0, 0, 24_762_250, 250, 250, 'milliseconds');
 TemporalHelpers::assertDuration($time1->until($time2, ['largestUnit' => 'microseconds']), 0, 0, 0, 0, 0, 0, 0, 0, 24_762_250_250, 250, 'microseconds');
 TemporalHelpers::assertDuration($time1->until($time2, ['largestUnit' => 'nanoseconds']), 0, 0, 0, 0, 0, 0, 0, 0, 0, 24_762_250_250_250, 'nanoseconds');

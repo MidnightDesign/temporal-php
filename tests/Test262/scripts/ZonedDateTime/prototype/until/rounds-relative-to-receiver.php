@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt1 = \Temporal\ZonedDateTime::from('2019-01-01T00:00+00:00[UTC]');
-$dt2 = \Temporal\ZonedDateTime::from('2020-07-02T00:00+00:00[UTC]');
+$dt1 = \Temporal\Spec\ZonedDateTime::from('2019-01-01T00:00+00:00[UTC]');
+$dt2 = \Temporal\Spec\ZonedDateTime::from('2020-07-02T00:00+00:00[UTC]');
 TemporalHelpers::assertDuration($dt1->until($dt2, ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand']), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($dt2->until($dt1, ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand']), -1, 0, 0, 0, 0, 0, 0, 0, 0, 0);

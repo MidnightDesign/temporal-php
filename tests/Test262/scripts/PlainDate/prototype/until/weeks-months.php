@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(1969, 7, 24);
-$laterDate = new \Temporal\PlainDate(1969, 9, 4);
+$date = new \Temporal\Spec\PlainDate(1969, 7, 24);
+$laterDate = new \Temporal\Spec\PlainDate(1969, 9, 4);
 TemporalHelpers::assertDuration($date->until($laterDate, ['largestUnit' => 'weeks']), 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 'weeks');
 TemporalHelpers::assertDuration($date->until($laterDate, ['largestUnit' => 'months']), 0, 1, 0, 11, 0, 0, 0, 0, 0, 0, 'months');

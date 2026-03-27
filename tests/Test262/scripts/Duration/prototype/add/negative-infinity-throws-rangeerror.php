@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
-$instance = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
+$instance = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 foreach ($fields as $field) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->add([$field => -INF]), '');
 }

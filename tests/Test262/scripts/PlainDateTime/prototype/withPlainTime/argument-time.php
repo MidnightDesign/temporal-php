@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt = new \Temporal\PlainDateTime(2015, 12, 7, 3, 24, 30, 0, 3, 500);
+$dt = new \Temporal\Spec\PlainDateTime(2015, 12, 7, 3, 24, 30, 0, 3, 500);
 $hour = 11;
 $minute = 22;
-$time = new \Temporal\PlainTime($hour, $minute);
+$time = new \Temporal\Spec\PlainTime($hour, $minute);
 TemporalHelpers::assertPlainDateTime($dt->withPlainTime($time), 2015, 12, 'M12', 7, $hour, $minute, 0, 0, 0, 0, 'PlainTime argument works');

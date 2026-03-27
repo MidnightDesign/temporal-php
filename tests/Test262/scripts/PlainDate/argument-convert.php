@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2_020.6, 11.7, 24.1), 2020, 11, 'M11', 24, 'positive fractional');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(-2_020.6, 11.7, 24.1), -2020, 11, 'M11', 24, 'negative fractional');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(null, 11, 24), 0, 11, 'M11', 24, 'null');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(true, 11, 24), 1, 11, 'M11', 24, 'boolean');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate('2020.6', '11.7', '24.1'), 2020, 11, 'M11', 24, 'fractional strings');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(2_020.6, 11.7, 24.1), 2020, 11, 'M11', 24, 'positive fractional');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(-2_020.6, 11.7, 24.1), -2020, 11, 'M11', 24, 'negative fractional');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(null, 11, 24), 0, 11, 'M11', 24, 'null');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(true, 11, 24), 1, 11, 'M11', 24, 'boolean');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate('2020.6', '11.7', '24.1'), 2020, 11, 'M11', 24, 'fractional strings');
 Assert::incomplete('untranslatable: Symbol()');

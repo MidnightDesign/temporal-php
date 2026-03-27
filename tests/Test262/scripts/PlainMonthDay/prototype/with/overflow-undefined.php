@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$monthday = new \Temporal\PlainMonthDay(5, 2);
+$monthday = new \Temporal\Spec\PlainMonthDay(5, 2);
 $explicit = $monthday->with(['day' => 33], []);
 TemporalHelpers::assertPlainMonthDay($explicit, 'M05', 31, 'default overflow is constrain');
 $implicit = $monthday->with(['day' => 33], new \stdClass());

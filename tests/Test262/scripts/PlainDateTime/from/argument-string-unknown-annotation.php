@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['1976-11-18T15:23[foo=bar]', 'alone'], ['1976-11-18T15:23[UTC][foo=bar]', 'with time zone'], ['1976-11-18T15:23[u-ca=iso8601][foo=bar]', 'with calendar'], ['1976-11-18T15:23[UTC][foo=bar][u-ca=iso8601]', 'with time zone and calendar'], ['1976-11-18T15:23[foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\PlainDateTime::from($arg);
+$result = \Temporal\Spec\PlainDateTime::from($arg);
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 15, 23, 0, 0, 0, 0, "unknown annotation ({$description})");
 }

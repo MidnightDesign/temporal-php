@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof Instant.from` is `function`');
-Assert::methodExists('\Temporal\Instant', 'from');
+Assert::methodExists('\Temporal\Spec\Instant', 'from');

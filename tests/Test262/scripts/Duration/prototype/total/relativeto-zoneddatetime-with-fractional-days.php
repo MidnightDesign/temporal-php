@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = \Temporal\Duration::from(['weeks' => 1, 'days' => 0, 'hours' => 1]);
-$zdt = new \Temporal\ZonedDateTime(0, 'UTC', 'iso8601');
+$duration = \Temporal\Spec\Duration::from(['weeks' => 1, 'days' => 0, 'hours' => 1]);
+$zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
 $result = $duration->total(['relativeTo' => $zdt, 'unit' => 'days']);
 Assert::sameValue($result, 7 + (1 / 24), '');

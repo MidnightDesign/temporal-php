@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$time = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
+$time = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 $explicit = $time->round(['smallestUnit' => 'second']);
 TemporalHelpers::assertPlainTime($explicit, 12, 34, 57, 0, 0, 0, 'default roundingIncrement is 1');
 $implicit = $time->round(['smallestUnit' => 'second']);

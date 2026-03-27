@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['UTC', '1970-01-01T01:01:01.987654321+00:00[UTC]', 'built-in UTC'], ['+01:00', '1970-01-01T02:01:01.987654321+01:00[+01:00]', 'built-in offset']];
 foreach ($tests as $__entry__) {
 [$timeZone, $expected, $description] = array_pad($__entry__, 3, null);
-$date = new \Temporal\ZonedDateTime(3_661_987_654_321, $timeZone);
+$date = new \Temporal\Spec\ZonedDateTime(3_661_987_654_321, $timeZone);
 $result = $date->toString(['timeZoneName' => 'auto']);
 Assert::sameValue($result, $expected, "{$description} time zone for timeZoneName = auto");
 }

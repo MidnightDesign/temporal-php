@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\Instant(1_000_000_000_987_654_321);
-$later = new \Temporal\Instant(1_000_090_061_988_655_322);
+$earlier = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
+$later = new \Temporal\Spec\Instant(1_000_090_061_988_655_322);
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['roundingIncrement' => NAN]), '');

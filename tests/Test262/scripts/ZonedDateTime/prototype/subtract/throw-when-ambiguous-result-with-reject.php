@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$mar31 = \Temporal\ZonedDateTime::from('2020-03-31T15:00+00:00[UTC]');
+$mar31 = \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:00+00:00[UTC]');
 Assert::throws(\InvalidArgumentException::class, fn() => $mar31->subtract(['months' => 1], ['overflow' => 'reject']), '');

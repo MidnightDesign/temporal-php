@@ -7,18 +7,18 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
+$zdt = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
 $smallestUnit = 'hour';
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
-Assert::assertTrue($zdt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\ZonedDateTime, '');
+Assert::assertTrue($zdt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\Spec\ZonedDateTime, '');
 }
 foreach (['minute', 'second'] as $smallestUnit) {
 foreach ([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as $roundingIncrement) {
-Assert::assertTrue($zdt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\ZonedDateTime, '');
+Assert::assertTrue($zdt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\Spec\ZonedDateTime, '');
 }
 }
 foreach (['millisecond', 'microsecond', 'nanosecond'] as $smallestUnit) {
 foreach ([1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500] as $roundingIncrement) {
-Assert::assertTrue($zdt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\ZonedDateTime, '');
+Assert::assertTrue($zdt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\Spec\ZonedDateTime, '');
 }
 }

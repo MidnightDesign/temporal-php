@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d2 = new \Temporal\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
+$d2 = new \Temporal\Spec\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
 $d2Nanoseconds = $d2->days * 24 * 3_600_000_000_000 + ($d2->hours * 3_600_000_000_000) + ($d2->minutes * 60_000_000_000) + ($d2->seconds * 1_000_000_000) + ($d2->milliseconds * 1_000_000) + ($d2->microseconds * 1000) + $d2->nanoseconds;
 $totalD2 = ['days' => $d2Nanoseconds / (24 * 3_600_000_000_000), 'hours' => $d2Nanoseconds / 3_600_000_000_000, 'minutes' => $d2Nanoseconds / 60_000_000_000, 'seconds' => $d2Nanoseconds / 1_000_000_000, 'milliseconds' => $d2Nanoseconds / 1_000_000, 'microseconds' => $d2Nanoseconds / 1000, 'nanoseconds' => $d2Nanoseconds];
 Assert::assertTrue(abs($d2->total(['unit' => 'days']) - $totalD2['days']) < 2.220446049250313E-16, '');

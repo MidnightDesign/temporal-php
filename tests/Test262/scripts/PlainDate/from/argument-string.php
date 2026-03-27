@@ -12,6 +12,6 @@ $tests = [['1976-11-18', 1976, 11, 'M11', 18], ['2019-06-30', 2019, 6, 'M06', 30
 foreach ($tests as $__entry_expected__) {
 [$input] = array_pad($__entry_expected__, 1, null);
 $expected = array_slice($__entry_expected__, 1);
-$result = \Temporal\PlainDate::from($input);
+$result = \Temporal\Spec\PlainDate::from($input);
 TemporalHelpers::assertPlainDate($result, ...[...$expected, "from({$input})"]);
 }

@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = new \Temporal\PlainDateTime(2020, 2, 1, 0, 0);
-$feb21 = new \Temporal\PlainDateTime(2021, 2, 1, 0, 0);
+$feb20 = new \Temporal\Spec\PlainDateTime(2020, 2, 1, 0, 0);
+$feb21 = new \Temporal\Spec\PlainDateTime(2021, 2, 1, 0, 0);
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'years']), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'can return lower or higher units (years)');
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'months']), 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 'can return lower or higher units (months)');
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'weeks']), 0, 0, 52, 2, 0, 0, 0, 0, 0, 0, 'can return lower or higher units (weeks)');

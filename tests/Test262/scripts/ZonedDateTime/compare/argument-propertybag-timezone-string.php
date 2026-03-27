@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['UTC', '+01:30'] as $timeZone) {
-$epoch = new \Temporal\ZonedDateTime(0, $timeZone);
-\Temporal\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $epoch);
-\Temporal\ZonedDateTime::compare($epoch, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$epoch = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
+\Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $epoch);
+\Temporal\Spec\ZonedDateTime::compare($epoch, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
 }
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

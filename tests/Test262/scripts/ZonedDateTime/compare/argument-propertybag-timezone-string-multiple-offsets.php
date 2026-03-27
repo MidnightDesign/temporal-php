@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(1_588_371_240_000_000_000, '+01:46');
+$instance = new \Temporal\Spec\ZonedDateTime(1_588_371_240_000_000_000, '+01:46');
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
-$result1 = \Temporal\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance);
+$result1 = \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance);
 Assert::sameValue($result1, 0, 'Time zone string determined from bracket name (first argument)');
-$result2 = \Temporal\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$result2 = \Temporal\Spec\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
 Assert::sameValue($result2, 0, 'Time zone string determined from bracket name (second argument)');

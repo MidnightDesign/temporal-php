@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$thePast = new \Temporal\Instant(1_234_567_890_123_456_789);
-$theFuture = new \Temporal\Instant(2_345_678_901_234_567_890);
+$thePast = new \Temporal\Spec\Instant(1_234_567_890_123_456_789);
+$theFuture = new \Temporal\Spec\Instant(2_345_678_901_234_567_890);
 TemporalHelpers::assertDuration($theFuture->since($thePast), 0, 0, 0, 0, 0, 0, 1_111_111_011, 111, 111, 101, 'does not include higher units than necessary (largest unit unspecified)');
 TemporalHelpers::assertDuration($theFuture->since($thePast, ['largestUnit' => 'hours']), 0, 0, 0, 0, 308_641, 56, 51, 111, 111, 101, 'does not include higher units than necessary (largest unit is hours)');
 TemporalHelpers::assertDuration($theFuture->since($thePast, ['largestUnit' => 'minutes']), 0, 0, 0, 0, 0, 18_518_516, 51, 111, 111, 101, 'does not include higher units than necessary (largest unit is minutes)');

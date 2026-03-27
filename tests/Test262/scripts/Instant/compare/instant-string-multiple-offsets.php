@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$epoch = new \Temporal\Instant(0);
+$epoch = new \Temporal\Spec\Instant(0);
 $str = '1970-01-01T00:02:00.000000000+00:02[+01:30]';
-Assert::sameValue(\Temporal\Instant::compare($str, $epoch), 0, 'UTC offset determined from offset part of string (first argument)');
-Assert::sameValue(\Temporal\Instant::compare($epoch, $str), 0, 'UTC offset determined from offset part of string (second argument)');
+Assert::sameValue(\Temporal\Spec\Instant::compare($str, $epoch), 0, 'UTC offset determined from offset part of string (first argument)');
+Assert::sameValue(\Temporal\Spec\Instant::compare($epoch, $str), 0, 'UTC offset determined from offset part of string (second argument)');

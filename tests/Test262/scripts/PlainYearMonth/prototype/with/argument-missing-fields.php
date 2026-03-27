@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$ym = \Temporal\PlainYearMonth::from('2019-10');
+$ym = \Temporal\Spec\PlainYearMonth::from('2019-10');
 Assert::throws(\TypeError::class, fn() => $ym->with(new \stdClass()), 'No properties');
 Assert::throws(\TypeError::class, fn() => $ym->with(['months' => 12]), 'Only plural \'months\' property');

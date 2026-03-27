@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(-1_000_000_000_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(-1_000_000_000_000_000_000, 'UTC');
 $roundedDown = -1_000_000_800_000_000_000;
 $roundedUp = -999_997_200_000_000_000;
 Assert::sameValue($instance->round(['smallestUnit' => 'hour', 'roundingIncrement' => 1, 'roundingMode' => 'halfCeil'])->epochNanoseconds, $roundedDown, 'Rounding with halfCeil rounds to the closest hour');

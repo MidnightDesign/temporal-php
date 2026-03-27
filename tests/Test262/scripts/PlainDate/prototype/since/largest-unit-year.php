@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d1 = new \Temporal\PlainDate(2020, 3, 15);
-$d2 = new \Temporal\PlainDate(2022, 5, 20);
+$d1 = new \Temporal\Spec\PlainDate(2020, 3, 15);
+$d2 = new \Temporal\Spec\PlainDate(2022, 5, 20);
 $result = $d2->since($d1, ['largestUnit' => 'year']);
 Assert::sameValue($result->years, 2, '2 years');
 Assert::sameValue($result->months, 2, '2 months');

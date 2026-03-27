@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\PlainTime::class, 'from', ['12:34:56.987654321'], fn($result) => TemporalHelpers::assertPlainTime($result, 12, 34, 56, 987, 654, 321));
+TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Spec\PlainTime::class, 'from', ['12:34:56.987654321'], fn($result) => TemporalHelpers::assertPlainTime($result, 12, 34, 56, 987, 654, 321));

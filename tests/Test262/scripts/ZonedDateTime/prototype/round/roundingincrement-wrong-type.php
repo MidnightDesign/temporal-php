@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 TemporalHelpers::checkRoundingIncrementOptionWrongType(fn($roundingIncrement) => $datetime->round(['smallestUnit' => 'second', 'roundingIncrement' => $roundingIncrement]), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_001_000_000_000, $descr), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_000_000_000, $descr));

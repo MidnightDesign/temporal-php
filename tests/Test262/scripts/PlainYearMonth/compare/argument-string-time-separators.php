@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$yearMonth = new \Temporal\PlainYearMonth(2019, 12);
+$yearMonth = new \Temporal\Spec\PlainYearMonth(2019, 12);
 $tests = [['2019-12-15T15:23', 'uppercase T'], ['2019-12-15t15:23', 'lowercase T'], ['2019-12-15 15:23', 'space between date and time']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::sameValue(\Temporal\PlainYearMonth::compare($arg, $yearMonth), 0, "variant time separators ({$description}), first argument");
-Assert::sameValue(\Temporal\PlainYearMonth::compare($yearMonth, $arg), 0, "variant time separators ({$description}), second argument");
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($arg, $yearMonth), 0, "variant time separators ({$description}), first argument");
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($yearMonth, $arg), 0, "variant time separators ({$description}), second argument");
 }

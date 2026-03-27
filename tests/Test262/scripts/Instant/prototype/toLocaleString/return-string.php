@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instant = new \Temporal\Instant(957_270_896_987_650_000);
+$instant = new \Temporal\Spec\Instant(957_270_896_987_650_000);
 Assert::sameValue(is_string($instant->toLocaleString('en', ['dateStyle' => 'short'])), true, '');
 Assert::sameValue(is_string($instant->toLocaleString('en', ['timeStyle' => 'short'])), true, '');

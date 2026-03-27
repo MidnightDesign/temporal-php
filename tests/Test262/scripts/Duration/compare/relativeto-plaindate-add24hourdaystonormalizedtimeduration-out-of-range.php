@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration1 = \Temporal\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
-$duration2 = \Temporal\Duration::from(['years' => 2]);
-$relativeTo = new \Temporal\PlainDate(2000, 1, 1);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration2, $duration1, ['relativeTo' => $relativeTo]), '');
+$duration1 = \Temporal\Spec\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
+$duration2 = \Temporal\Spec\Duration::from(['years' => 2]);
+$relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($duration2, $duration1, ['relativeTo' => $relativeTo]), '');

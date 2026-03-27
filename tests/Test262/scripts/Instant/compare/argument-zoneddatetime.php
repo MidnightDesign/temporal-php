@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instant = new \Temporal\Instant(1_000_000_000_000_000_000);
+$instant = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
 Assert::incomplete('TemporalHelpers.checkToTemporalInstantFastPath() is not yet implemented');

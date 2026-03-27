@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $numbers = [1, 19_761_118, -19_761_118, 1_234_567_890];
 foreach ($numbers as $arg) {
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDateTime::from($arg), "A number ({$arg}) is not a valid ISO string for PlainDateTime");
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from($arg), "A number ({$arg}) is not a valid ISO string for PlainDateTime");
 }

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
 $dayMilliseconds = 24 * 3600 * 1000;
 $fullDays = 5;
 $fullMilliseconds = $fullDays * $dayMilliseconds + (5 * 3_600_000) + (5 * 60_000) + 5000 + 5;

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = new \Temporal\PlainDate(2024, 6, 15);
+$d = new \Temporal\Spec\PlainDate(2024, 6, 15);
 $zero = $d->until($d);
 Assert::sameValue($zero->years, 0, 'years is 0');
 Assert::sameValue($zero->months, 0, 'months is 0');

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
-$result = \Temporal\Now::zonedDateTimeISO($timeZone);
+$result = \Temporal\Spec\Now::zonedDateTimeISO($timeZone);
 Assert::sameValue($result->timeZoneId, '+01:46', 'Time zone string determined from bracket name');

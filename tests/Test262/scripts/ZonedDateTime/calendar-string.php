@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = 'iso8601';
-$result = new \Temporal\ZonedDateTime(0, 'UTC', $arg);
+$result = new \Temporal\Spec\ZonedDateTime(0, 'UTC', $arg);
 Assert::sameValue($result->calendarId, 'iso8601', "Calendar created from string \"{$arg}\"");

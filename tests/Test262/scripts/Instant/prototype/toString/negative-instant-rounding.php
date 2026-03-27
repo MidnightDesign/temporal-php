@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(-999_999_999_999_999_990);
+$instance = new \Temporal\Spec\Instant(-999_999_999_999_999_990);
 $roundedDown = '1938-04-24T22:13:20.000Z';
 $roundedUp = '1938-04-24T22:13:20.001Z';
 Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfCeil']), $roundedDown, 'Rounding with halfCeil rounds to the closest millisecond');

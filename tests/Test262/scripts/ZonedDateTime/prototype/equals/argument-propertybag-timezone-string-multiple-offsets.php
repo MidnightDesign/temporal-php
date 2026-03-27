@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $expectedTimeZone = '+01:46';
-$instance = new \Temporal\ZonedDateTime(0, $expectedTimeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
 $properties = ['year' => 1970, 'month' => 1, 'day' => 1, 'hour' => 1, 'minute' => 46];
 Assert::assertTrue($instance->equals(array_merge($properties, ['timeZone' => $timeZone])), 'time zone string should produce expected time zone');

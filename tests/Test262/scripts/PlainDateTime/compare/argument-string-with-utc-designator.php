@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]'];
-$dateTime = new \Temporal\PlainDateTime(2000, 5, 2);
+$dateTime = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare($arg, $dateTime), 'String with UTC designator should not be valid as a PlainDateTime (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare($arg, $dateTime), 'String with UTC designator should not be valid as a PlainDateTime (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($arg, $dateTime), 'String with UTC designator should not be valid as a PlainDateTime (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($arg, $dateTime), 'String with UTC designator should not be valid as a PlainDateTime (second argument)');
 }

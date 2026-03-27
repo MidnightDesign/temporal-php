@@ -7,22 +7,22 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$threeYears = new \Temporal\Duration(3);
+$threeYears = new \Temporal\Spec\Duration(3);
 Assert::sameValue($threeYears->toString(['fractionalSecondDigits' => 0]), 'P3YT0S', '');
 Assert::sameValue($threeYears->toString(['smallestUnit' => 'seconds']), 'P3YT0S', '');
 Assert::sameValue($threeYears->toString(['smallestUnit' => 'milliseconds']), 'P3YT0.000S', '');
 Assert::sameValue($threeYears->toString(['fractionalSecondDigits' => 5]), 'P3YT0.00000S', '');
-$halfHour = new \Temporal\Duration(0, 0, 0, 0, 0, 30);
+$halfHour = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 30);
 Assert::sameValue($halfHour->toString(['fractionalSecondDigits' => 0]), 'PT30M0S', '');
 Assert::sameValue($halfHour->toString(['smallestUnit' => 'seconds']), 'PT30M0S', '');
 Assert::sameValue($halfHour->toString(['smallestUnit' => 'milliseconds']), 'PT30M0.000S', '');
 Assert::sameValue($halfHour->toString(['fractionalSecondDigits' => 5]), 'PT30M0.00000S', '');
-$hundredMs = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 100);
+$hundredMs = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 100);
 Assert::sameValue($hundredMs->toString(['fractionalSecondDigits' => 0]), 'PT0S', '');
 Assert::sameValue($hundredMs->toString(['smallestUnit' => 'seconds']), 'PT0S', '');
 Assert::sameValue($hundredMs->toString(['smallestUnit' => 'milliseconds']), 'PT0.100S', '');
 Assert::sameValue($hundredMs->toString(['fractionalSecondDigits' => 5]), 'PT0.10000S', '');
-$zero = new \Temporal\Duration();
+$zero = new \Temporal\Spec\Duration();
 Assert::sameValue($zero->toString(['fractionalSecondDigits' => 0]), 'PT0S', '');
 Assert::sameValue($zero->toString(['smallestUnit' => 'seconds']), 'PT0S', '');
 Assert::sameValue($zero->toString(['smallestUnit' => 'milliseconds']), 'PT0.000S', '');

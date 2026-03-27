@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::from(['hour' => 26], ['overflow' => 'reject']), '');
-TemporalHelpers::assertPlainTime(\Temporal\PlainTime::from(['hour' => 22], ['overflow' => 'reject']), 22, 0, 0, 0, 0, 0);
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from(['hour' => 26], ['overflow' => 'reject']), '');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from(['hour' => 22], ['overflow' => 'reject']), 22, 0, 0, 0, 0, 0);

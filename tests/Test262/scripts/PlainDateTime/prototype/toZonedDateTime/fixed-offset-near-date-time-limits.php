@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $oneHour = 1 * 60 * 60 * (1000 ** 3);
-$minDt = new \Temporal\PlainDateTime(-271_821, 4, 19, 1, 0, 0, 0, 0, 0);
-$minValidDt = new \Temporal\PlainDateTime(-271_821, 4, 20, 0, 0, 0, 0, 0, 0);
-$maxDt = new \Temporal\PlainDateTime(275_760, 9, 13, 0, 0, 0, 0, 0, 0);
+$minDt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 1, 0, 0, 0, 0, 0);
+$minValidDt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 20, 0, 0, 0, 0, 0, 0);
+$maxDt = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 0, 0, 0, 0, 0, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $minDt->toZonedDateTime('+00'), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $minDt->toZonedDateTime('+01'), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $minDt->toZonedDateTime('-01'), '');

@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d1 = \Temporal\Duration::from('P3Y4W');
+$d1 = \Temporal\Spec\Duration::from('P3Y4W');
 TemporalHelpers::assertDuration($d1, 3, 0, 4, 0, 0, 0, 0, 0, 0, 0, 'years-weeks string');
-$d2 = \Temporal\Duration::from('P3Y4D');
+$d2 = \Temporal\Spec\Duration::from('P3Y4D');
 TemporalHelpers::assertDuration($d2, 3, 0, 0, 4, 0, 0, 0, 0, 0, 0, 'years-days string');
-$d3 = \Temporal\Duration::from('P3M4D');
+$d3 = \Temporal\Spec\Duration::from('P3M4D');
 TemporalHelpers::assertDuration($d3, 0, 3, 0, 4, 0, 0, 0, 0, 0, 0, 'months-days string');
-$d4 = \Temporal\Duration::from('PT3H4.123456789S');
+$d4 = \Temporal\Spec\Duration::from('PT3H4.123456789S');
 TemporalHelpers::assertDuration($d4, 0, 0, 0, 0, 3, 0, 4, 123, 456, 789, 'hours-seconds string');

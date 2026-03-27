@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$fortyDays = new \Temporal\Duration(0, 0, 0, 40, 0, 0, 0, 0, 0, 0);
-$negativeFortyDays = new \Temporal\Duration(0, 0, 0, -40, 0, 0, 0, 0, 0, 0);
-Assert::sameValue($fortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\PlainDate(2020, 2, 1)])->toPrecision(16), 1 + (11 / 31)->toPrecision(16), '');
-Assert::sameValue($fortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\PlainDate(2020, 1, 1)])->toPrecision(16), 1 + (9 / 29)->toPrecision(16), '');
-Assert::sameValue($negativeFortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\PlainDate(2020, 3, 1)])->toPrecision(16), -(1 + (11 / 31))->toPrecision(16), '');
-Assert::sameValue($negativeFortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\PlainDate(2020, 4, 1)])->toPrecision(16), -(1 + (9 / 29))->toPrecision(16), '');
+$fortyDays = new \Temporal\Spec\Duration(0, 0, 0, 40, 0, 0, 0, 0, 0, 0);
+$negativeFortyDays = new \Temporal\Spec\Duration(0, 0, 0, -40, 0, 0, 0, 0, 0, 0);
+Assert::sameValue($fortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 2, 1)])->toPrecision(16), 1 + (11 / 31)->toPrecision(16), '');
+Assert::sameValue($fortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)])->toPrecision(16), 1 + (9 / 29)->toPrecision(16), '');
+Assert::sameValue($negativeFortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 3, 1)])->toPrecision(16), -(1 + (11 / 31))->toPrecision(16), '');
+Assert::sameValue($negativeFortyDays->total(['unit' => 'months', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 4, 1)])->toPrecision(16), -(1 + (9 / 29))->toPrecision(16), '');

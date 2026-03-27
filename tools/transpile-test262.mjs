@@ -14,8 +14,8 @@
  * Translation rules (see project prompt for full table):
  *   const/let x = expr        → $x = expr;
  *   123n (BigInt)             → 123  (skipped if overflows int64)
- *   Temporal.X.y(arg)         → \Temporal\X::y($arg)
- *   new Temporal.X(...)       → new \Temporal\X(...)
+ *   Temporal.X.y(arg)         → \Temporal\Spec\X::y($arg)
+ *   new Temporal.X(...)       → new \Temporal\Spec\X(...)
  *   for (const x of arr)      → foreach ($arr as $x)
  *   for (const [a,b] of arr)  → foreach ($arr as [$a, $b])
  *   arr.forEach(x => {...})   → foreach ($arr as $x) {...}
@@ -29,7 +29,7 @@
  *   unrecognised node         → Assert::incomplete('untranslatable: ...')
  */
 
-import { parse } from '/usr/local/lib/node_modules/acorn/dist/acorn.mjs';
+import { parse } from 'acorn';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -421,7 +421,7 @@ class Emitter {
           for (const prop of decl.id.properties) {
             if (prop.type === 'Property' && !prop.computed && prop.key?.type === 'Identifier') {
               const methodName = prop.value?.name ?? prop.key.name;
-              this.emit(`$${methodName} = [\\Temporal\\${className}::class, '${methodName}'];`);
+              this.emit(`$${methodName} = [\\Temporal\\Spec\\${className}::class, '${methodName}'];`);
             }
           }
           continue; // handled
@@ -924,7 +924,7 @@ class Emitter {
             return 'new \\stdClass()';
           case 'staticMethod':
           case 'instanceMethod':
-            this.emitIncomplete(`\\Temporal\\${temporalTarget.class}::${temporalTarget.method} used as a value`);
+            this.emitIncomplete(`\\Temporal\\Spec\\${temporalTarget.class}::${temporalTarget.method} used as a value`);
             return null;
         }
       }
@@ -1096,12 +1096,12 @@ class Emitter {
       const method = callee.property.name;
       const key = `${className}::${method}`;
       if (!IMPLEMENTED.has(key)) {
-        this.emitIncomplete(`\\Temporal\\${className}::${method}() is not yet implemented`);
+        this.emitIncomplete(`\\Temporal\\Spec\\${className}::${method}() is not yet implemented`);
         return null;
       }
       const args = this.transpileArgs(node.arguments);
       if (args === null) return null;
-      return `\\Temporal\\${className}::${method}(${args})`;
+      return `\\Temporal\\Spec\\${className}::${method}(${args})`;
     }
 
     // Temporal.X() called without new (should be called with new in PHP)
@@ -1109,7 +1109,7 @@ class Emitter {
         && callee.object.type === 'Identifier' && callee.object.name === 'Temporal'
         && callee.property.type === 'Identifier') {
       // This is Temporal.X() — not Temporal.X.y()
-      this.emitIncomplete(`\\Temporal\\${callee.property.name}() must be called with new`);
+      this.emitIncomplete(`\\Temporal\\Spec\\${callee.property.name}() must be called with new`);
       return null;
     }
 
@@ -1224,7 +1224,7 @@ class Emitter {
       const { className, method } = temporal;
       const key = `${className}::${method}`;
       if (!IMPLEMENTED.has(key)) {
-        this.emitIncomplete(`\\Temporal\\${className}::${method}() is not yet implemented`);
+        this.emitIncomplete(`\\Temporal\\Spec\\${className}::${method}() is not yet implemented`);
         return null;
       }
       // JS auto-coerces objects to strings; PHP does not. If an objectVars variable
@@ -1241,7 +1241,7 @@ class Emitter {
       }
       const args = this.transpileArgs(node.arguments);
       if (args === null) return null;
-      return `\\Temporal\\${className}::${method}(${args})`;
+      return `\\Temporal\\Spec\\${className}::${method}(${args})`;
     }
 
     // Generic call (best-effort)
@@ -1308,7 +1308,7 @@ class Emitter {
 
       case 'class': {
         const cls = target.class;
-        const phpClass = `\\Temporal\\${cls}`;
+        const phpClass = `\\Temporal\\Spec\\${cls}`;
         if (propName === 'length') {
           const value = descNode ? this.getDescriptorValue(descNode) : null;
           if (value !== null) {
@@ -1322,33 +1322,33 @@ class Emitter {
         if (isPhpMethodImplemented(cls, propName)) {
           return `Assert::methodExists('${phpClass}', '${propName}')`;
         }
-        this.emitIncomplete(`\\Temporal\\${cls}::${propName}() is not yet implemented`);
+        this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${propName}() is not yet implemented`);
         return null;
       }
 
       case 'prototype': {
         const cls = target.class;
-        const phpClass = `\\Temporal\\${cls}`;
+        const phpClass = `\\Temporal\\Spec\\${cls}`;
         if (propName === 'length' || propName === 'name' || propName === 'constructor') {
           return 'Assert::assertTrue(true)';
         }
         if (isPhpMethodImplemented(cls, propName)) {
           return `Assert::methodExists('${phpClass}', '${propName}')`;
         }
-        this.emitIncomplete(`\\Temporal\\${cls}::${propName}() is not yet implemented`);
+        this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${propName}() is not yet implemented`);
         return null;
       }
 
       case 'staticMethod': {
         const { class: cls, method } = target;
-        const phpClass = `\\Temporal\\${cls}`;
+        const phpClass = `\\Temporal\\Spec\\${cls}`;
         if (propName === 'length') {
           const value = descNode ? this.getDescriptorValue(descNode) : null;
           if (value !== null) {
             if (isPhpMethodImplemented(cls, method)) {
               return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
             }
-            this.emitIncomplete(`\\Temporal\\${cls}::${method}() is not yet implemented`);
+            this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${method}() is not yet implemented`);
             return null;
           }
           return 'Assert::assertTrue(true)';
@@ -1358,14 +1358,14 @@ class Emitter {
 
       case 'instanceMethod': {
         const { class: cls, method } = target;
-        const phpClass = `\\Temporal\\${cls}`;
+        const phpClass = `\\Temporal\\Spec\\${cls}`;
         if (propName === 'length') {
           const value = descNode ? this.getDescriptorValue(descNode) : null;
           if (value !== null) {
             if (isPhpMethodImplemented(cls, method)) {
               return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
             }
-            this.emitIncomplete(`\\Temporal\\${cls}::${method}() is not yet implemented`);
+            this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${method}() is not yet implemented`);
             return null;
           }
           return 'Assert::assertTrue(true)';
@@ -1402,7 +1402,7 @@ class Emitter {
     if (callee.type === 'Identifier' && this.temporalClassAliases.has(callee.name)) {
       const cls = this.temporalClassAliases.get(callee.name);
       if (!IMPLEMENTED_CTORS.has(cls)) {
-        this.emitIncomplete(`\\Temporal\\${cls} is not yet implemented`);
+        this.emitIncomplete(`\\Temporal\\Spec\\${cls} is not yet implemented`);
         return null;
       }
       if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
@@ -1414,13 +1414,13 @@ class Emitter {
       }
       const args = this.transpileArgs(node.arguments);
       if (args === null) return null;
-      return `new \\Temporal\\${cls}(${args})`;
+      return `new \\Temporal\\Spec\\${cls}(${args})`;
     }
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.object.type === 'Identifier' && callee.object.name === 'Temporal') {
       const cls = callee.property.name;
       if (!IMPLEMENTED_CTORS.has(cls)) {
-        this.emitIncomplete(`\\Temporal\\${cls} is not yet implemented`);
+        this.emitIncomplete(`\\Temporal\\Spec\\${cls} is not yet implemented`);
         return null;
       }
       if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
@@ -1432,7 +1432,7 @@ class Emitter {
       }
       const args = this.transpileArgs(node.arguments);
       if (args === null) return null;
-      return `new \\Temporal\\${cls}(${args})`;
+      return `new \\Temporal\\Spec\\${cls}(${args})`;
     }
     // new Temporal.X.method() or new Temporal.X.prototype.method() → TypeError
     const deepTarget = parseVerifyPropertyTarget(callee);
@@ -1529,8 +1529,8 @@ class Emitter {
         if (phpCheck !== null) return negate ? `!(${phpCheck})` : phpCheck;
       }
     }
-    // `expr instanceof Temporal.X` → `$expr instanceof \Temporal\X`
-    // (transpileTemporalClassRef returns \Temporal\X::class; strip ::class for instanceof)
+    // `expr instanceof Temporal.X` → `$expr instanceof \Temporal\Spec\X`
+    // (transpileTemporalClassRef returns \Temporal\Spec\X::class; strip ::class for instanceof)
     if (node.operator === 'instanceof') {
       const classRef = this.transpileTemporalClassRef(node.right);
       if (classRef !== null) {
@@ -1617,7 +1617,7 @@ class Emitter {
     if (node.type === 'MemberExpression' && !node.computed
         && node.object.type === 'Identifier' && node.object.name === 'Temporal'
         && node.property.type === 'Identifier') {
-      return `\\Temporal\\${node.property.name}::class`;
+      return `\\Temporal\\Spec\\${node.property.name}::class`;
     }
     return null;
   }

@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = \Temporal\Instant::from('2020-02-01T00:00Z');
-$feb21 = \Temporal\Instant::from('2021-02-01T00:00Z');
+$feb20 = \Temporal\Spec\Instant::from('2020-02-01T00:00Z');
+$feb21 = \Temporal\Spec\Instant::from('2021-02-01T00:00Z');
 $latersub = $feb20->add(['hours' => 24, 'milliseconds' => 250, 'microseconds' => 250, 'nanoseconds' => 250]);
 $msDiff = $feb20->until($latersub, ['largestUnit' => 'milliseconds']);
 TemporalHelpers::assertDuration($msDiff, 0, 0, 0, 0, 0, 0, 0, 86_400_250, 250, 250);

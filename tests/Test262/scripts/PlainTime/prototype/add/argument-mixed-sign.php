@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainTime(15, 30, 45, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainTime(15, 30, 45, 987, 654, 321);
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->add(['hours' => 1, 'minutes' => -30]), "mixed positive and negative values always throw");

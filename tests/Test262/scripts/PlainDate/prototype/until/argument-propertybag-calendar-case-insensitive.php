@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainDate(1976, 11, 18);
+$instance = new \Temporal\Spec\PlainDate(1976, 11, 18);
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => 'IsO8601'];
 $result = $instance->until($arg);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Calendar is case-insensitive');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainMonthDay(5, 2);
+$instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ([INF, -INF] as $inf) {
 foreach (['constrain', 'reject'] as $overflow) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->with(['day' => $inf], ['overflow' => $overflow]), "day property cannot be {$inf} (overflow {$overflow}");

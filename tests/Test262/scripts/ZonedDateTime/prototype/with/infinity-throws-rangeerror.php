@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
 foreach (['constrain', 'reject'] as $overflow) {

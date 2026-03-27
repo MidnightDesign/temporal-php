@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instant = new \Temporal\Instant(1_000_000_000_987_650_000);
+$instant = new \Temporal\Spec\Instant(1_000_000_000_987_650_000);
 Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => null]), 'null is not a number and converts to the string \'null\' which is not valid for fractionalSecondDigits');
 Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => true]), 'true is not a number and converts to the string \'true\' which is not valid for fractionalSecondDigits');
 Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => false]), 'false is not a number and converts to the string \'false\' which is not valid for fractionalSecondDigits');

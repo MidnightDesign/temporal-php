@@ -7,12 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d1 = new \Temporal\PlainDate(2024, 1, 1);
-$d2 = new \Temporal\PlainDate(2024, 4, 15);
+$d1 = new \Temporal\Spec\PlainDate(2024, 1, 1);
+$d2 = new \Temporal\Spec\PlainDate(2024, 4, 15);
 $result = $d2->since($d1, ['largestUnit' => 'month']);
 Assert::sameValue($result->months, 3, '3 complete months');
 Assert::sameValue($result->days, 14, '14 remaining days');
-$d3 = new \Temporal\PlainDate(2024, 1, 15);
-$d4 = new \Temporal\PlainDate(2024, 4, 10);
+$d3 = new \Temporal\Spec\PlainDate(2024, 1, 15);
+$d4 = new \Temporal\Spec\PlainDate(2024, 4, 10);
 $result2 = $d4->since($d3, ['largestUnit' => 'month']);
 Assert::sameValue($result2->months, 2, '2 complete months (day hasn\'t been reached in April)');

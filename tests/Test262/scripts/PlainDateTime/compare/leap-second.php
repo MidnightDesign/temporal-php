@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '2016-12-31T23:59:60';
-$result1 = \Temporal\PlainDateTime::compare($arg, new \Temporal\PlainDateTime(2016, 12, 31, 23, 59, 59));
+$result1 = \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(2016, 12, 31, 23, 59, 59));
 Assert::sameValue($result1, 0, 'leap second is a valid ISO string for PlainDateTime (first argument)');
-$result2 = \Temporal\PlainDateTime::compare(new \Temporal\PlainDateTime(2016, 12, 31, 23, 59, 59), $arg);
+$result2 = \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(2016, 12, 31, 23, 59, 59), $arg);
 Assert::sameValue($result2, 0, 'leap second is a valid ISO string for PlainDateTime (second argument)');
 $arg = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
-$result3 = \Temporal\PlainDateTime::compare($arg, new \Temporal\PlainDateTime(2016, 12, 31, 23, 59, 59));
+$result3 = \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(2016, 12, 31, 23, 59, 59));
 Assert::sameValue($result3, 0, 'second: 60 is constrained in property bag for PlainDateTime (first argument)');
-$result4 = \Temporal\PlainDateTime::compare(new \Temporal\PlainDateTime(2016, 12, 31, 23, 59, 59), $arg);
+$result4 = \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(2016, 12, 31, 23, 59, 59), $arg);
 Assert::sameValue($result4, 0, 'second: 60 is constrained in property bag for PlainDateTime (second argument)');

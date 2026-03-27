@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_650_000, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_650_000, 'UTC');
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => NAN]), '');

@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainTime(8, 22, 36, 123, 456, 789);
-$later = new \Temporal\PlainTime(12, 39, 40, 987, 654, 289);
+$earlier = new \Temporal\Spec\PlainTime(8, 22, 36, 123, 456, 789);
+$later = new \Temporal\Spec\PlainTime(12, 39, 40, 987, 654, 289);
 $expected = [['hours', [0, 0, 0, 0, 4], [0, 0, 0, 0, -4]], ['minutes', [0, 0, 0, 0, 4, 17], [0, 0, 0, 0, -4, -17]], ['seconds', [0, 0, 0, 0, 4, 17, 4], [0, 0, 0, 0, -4, -17, -4]], ['milliseconds', [0, 0, 0, 0, 4, 17, 4, 864], [0, 0, 0, 0, -4, -17, -4, -864]], ['microseconds', [0, 0, 0, 0, 4, 17, 4, 864, 197], [0, 0, 0, 0, -4, -17, -4, -864, -197]], ['nanoseconds', [0, 0, 0, 0, 4, 17, 4, 864, 197, 500], [0, 0, 0, 0, -4, -17, -4, -864, -197, -500]]];
 $roundingMode = 'trunc';
 foreach ($expected as $__entry__) {

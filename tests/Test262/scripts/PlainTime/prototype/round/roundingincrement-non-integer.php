@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$time = new \Temporal\PlainTime(12, 34, 56, 0, 0, 5);
+$time = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 5);
 $result = $time->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 2.5, 'roundingMode' => 'expand']);
 TemporalHelpers::assertPlainTime($result, 12, 34, 56, 0, 0, 6, 'roundingIncrement 2.5 truncates to 2');

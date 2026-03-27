@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2023, 12, 31)->add(['days' => 1]), 2024, 1, 'M01', 1, 'Dec 31 + 1 day crosses year boundary');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2024, 1, 1)->add(['days' => 365]), 2024, 12, 'M12', 31, 'Jan 1 2024 + 365 days = Dec 31 2024 (leap year)');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2020, 1, 1)->add(['months' => 12]), 2021, 1, 'M01', 1, '12 months = 1 year');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(2023, 12, 31)->add(['days' => 1]), 2024, 1, 'M01', 1, 'Dec 31 + 1 day crosses year boundary');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(2024, 1, 1)->add(['days' => 365]), 2024, 12, 'M12', 31, 'Jan 1 2024 + 365 days = Dec 31 2024 (leap year)');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(2020, 1, 1)->add(['months' => 12]), 2021, 1, 'M01', 1, '12 months = 1 year');

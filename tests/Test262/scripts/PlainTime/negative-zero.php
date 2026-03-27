@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainTime = new \Temporal\PlainTime(-0, -0, -0, -0, -0, -0);
+$plainTime = new \Temporal\Spec\PlainTime(-0, -0, -0, -0, -0, -0);
 TemporalHelpers::assertPlainTime($plainTime, 0, 0, 0, 0, 0, 0);

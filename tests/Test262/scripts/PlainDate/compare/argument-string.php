@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d1 = \Temporal\PlainDate::from('1976-11-18');
-$d2 = \Temporal\PlainDate::from('2019-06-30');
-Assert::sameValue(\Temporal\PlainDate::compare('1976-11-18', $d2), -1, 'first argument');
-Assert::sameValue(\Temporal\PlainDate::compare('2019-06-30', $d2), 0, 'first argument');
-Assert::sameValue(\Temporal\PlainDate::compare('2024-01-12', $d2), 1, 'first argument');
-Assert::sameValue(\Temporal\PlainDate::compare($d1, '2019-06-30'), -1, 'second argument');
-Assert::sameValue(\Temporal\PlainDate::compare($d1, '1976-11-18'), 0, 'second argument');
-Assert::sameValue(\Temporal\PlainDate::compare($d1, '1926-07-07'), 1, 'second argument');
+$d1 = \Temporal\Spec\PlainDate::from('1976-11-18');
+$d2 = \Temporal\Spec\PlainDate::from('2019-06-30');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare('1976-11-18', $d2), -1, 'first argument');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare('2019-06-30', $d2), 0, 'first argument');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare('2024-01-12', $d2), 1, 'first argument');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, '2019-06-30'), -1, 'second argument');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, '1976-11-18'), 0, 'second argument');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, '1926-07-07'), 1, 'second argument');

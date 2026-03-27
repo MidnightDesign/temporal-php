@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$sameDate = new \Temporal\PlainDate(2000, 5, 2);
-$earlierDate = new \Temporal\PlainDate(1920, 7, 3);
-$laterDate = new \Temporal\PlainDate(2005, 1, 12);
+$sameDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
+$earlierDate = new \Temporal\Spec\PlainDate(1920, 7, 3);
+$laterDate = new \Temporal\Spec\PlainDate(2005, 1, 12);
 Assert::incomplete('TemporalHelpers.checkPlainDateTimeConversionFastPath() is not yet implemented');

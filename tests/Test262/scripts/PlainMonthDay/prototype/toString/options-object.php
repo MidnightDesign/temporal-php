@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainMonthDay(5, 2);
+$instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 $result1 = $instance->toString(new \stdClass());
 Assert::sameValue($result1, '05-02', 'options may be an empty plain object');
 $result2 = $instance->toString(function () {  });

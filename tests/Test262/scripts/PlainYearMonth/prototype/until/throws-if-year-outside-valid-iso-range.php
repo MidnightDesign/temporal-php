@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$minYearMonth = new \Temporal\PlainYearMonth(-271_821, 4);
-$maxYearMonth = new \Temporal\PlainYearMonth(275_760, 9);
-$epochYearMonth = new \Temporal\PlainYearMonth(1970, 1);
+$minYearMonth = new \Temporal\Spec\PlainYearMonth(-271_821, 4);
+$maxYearMonth = new \Temporal\Spec\PlainYearMonth(275_760, 9);
+$epochYearMonth = new \Temporal\Spec\PlainYearMonth(1970, 1);
 TemporalHelpers::assertDuration($minYearMonth->until($minYearMonth), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'minYearMonth.until(minYearMonth)');
 Assert::throws(\InvalidArgumentException::class, fn() => $minYearMonth->until($maxYearMonth), 'minYearMonth.until(maxYearMonth)');
 Assert::throws(\InvalidArgumentException::class, fn() => $minYearMonth->until($epochYearMonth), 'minYearMonth.until(epochYearMonth)');

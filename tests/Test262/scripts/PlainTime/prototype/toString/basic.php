@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\PlainTime(15, 23)->toString(), '15:23:00', '');
-Assert::sameValue(new \Temporal\PlainTime(15, 23, 30)->toString(), '15:23:30', '');
-Assert::sameValue(new \Temporal\PlainTime(15, 23, 30, 123)->toString(), '15:23:30.123', '');
-Assert::sameValue(new \Temporal\PlainTime(15, 23, 30, 123, 400)->toString(), '15:23:30.1234', '');
-Assert::sameValue(new \Temporal\PlainTime(15, 23, 30, 123, 456)->toString(), '15:23:30.123456', '');
-Assert::sameValue(new \Temporal\PlainTime(15, 23, 30, 123, 456, 789)->toString(), '15:23:30.123456789', '');
+Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23)->toString(), '15:23:00', '');
+Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30)->toString(), '15:23:30', '');
+Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123)->toString(), '15:23:30.123', '');
+Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123, 400)->toString(), '15:23:30.1234', '');
+Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456)->toString(), '15:23:30.123456', '');
+Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789)->toString(), '15:23:30.123456789', '');

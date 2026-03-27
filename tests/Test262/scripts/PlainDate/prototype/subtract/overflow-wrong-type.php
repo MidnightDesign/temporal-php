@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2000, 5, 2);
-$duration = new \Temporal\Duration(3, 3, 0, 3);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
+$duration = new \Temporal\Spec\Duration(3, 3, 0, 3);
 TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => $date->subtract($duration, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainDate($result, 1997, 1, 'M01', 30, $descr));

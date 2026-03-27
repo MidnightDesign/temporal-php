@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$minYear = new \Temporal\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
-$duration = new \Temporal\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
+$minYear = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
+$duration = new \Temporal\Spec\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $minYear->subtract($duration), '');
-$maxYear = new \Temporal\PlainDateTime(275_760, 1, 1);
+$maxYear = new \Temporal\Spec\PlainDateTime(275_760, 1, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $maxYear->subtract($duration->negated()), '');

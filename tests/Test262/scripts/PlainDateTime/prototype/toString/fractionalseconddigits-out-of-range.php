@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 650, 0);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 650, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => -INF]), '−∞ is out of range for fractionalSecondDigits');
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => -1]), '−1 is out of range for fractionalSecondDigits');
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => 10]), '10 is out of range for fractionalSecondDigits');

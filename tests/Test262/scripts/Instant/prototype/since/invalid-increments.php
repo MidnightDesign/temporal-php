@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\Instant(0);
-$later = new \Temporal\Instant(1_000_000_000_000_000_000);
+$earlier = new \Temporal\Spec\Instant(0);
+$later = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
 $largestUnit = 'hours';
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'hours', 'roundingIncrement' => 11]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'minutes', 'roundingIncrement' => 29]), '');

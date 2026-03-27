@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\TypeError::class, fn() => \Temporal\ZonedDateTime::from(['years' => 1976, 'months' => 11, 'days' => 18, 'timeZone' => '+01:00']), '');
-Assert::throws(\TypeError::class, fn() => \Temporal\ZonedDateTime::from(['years' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => '+01:00']), '');
-Assert::throws(\TypeError::class, fn() => \Temporal\ZonedDateTime::from(['year' => 1976, 'months' => 11, 'day' => 18, 'timeZone' => '+01:00']), '');
-Assert::throws(\TypeError::class, fn() => \Temporal\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'days' => 18, 'timeZone' => '+01:00']), '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from(['years' => 1976, 'months' => 11, 'days' => 18, 'timeZone' => '+01:00']), '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from(['years' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => '+01:00']), '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'months' => 11, 'day' => 18, 'timeZone' => '+01:00']), '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'days' => 18, 'timeZone' => '+01:00']), '');

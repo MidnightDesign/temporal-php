@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$min = \Temporal\PlainYearMonth::from('-271821-04');
+$min = \Temporal\Spec\PlainYearMonth::from('-271821-04');
 foreach (['reject', 'constrain'] as $overflow) {
 Assert::throws(\InvalidArgumentException::class, fn() => $min->subtract(['months' => 1], ['overflow' => $overflow]), $overflow);
 }

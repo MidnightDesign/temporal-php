@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $arg = '2016-12-31T23:59:60';
 $result1 = $instance->withPlainTime($arg);
 Assert::sameValue($result1->epochNanoseconds, 1_000_079_999_000_000_000, 'leap second is a valid ISO string for PlainTime');

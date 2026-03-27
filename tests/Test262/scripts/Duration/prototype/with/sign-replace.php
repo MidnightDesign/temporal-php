@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d = \Temporal\Duration::from(['years' => 5, 'days' => 1]);
+$d = \Temporal\Spec\Duration::from(['years' => 5, 'days' => 1]);
 Assert::sameValue($d->sign, 1, 'original sign');
 $d2 = $d->with(['years' => -1, 'days' => 0, 'minutes' => -1]);
 Assert::sameValue($d2->sign, -1, 'new sign');

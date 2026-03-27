@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $propertyBag = ['timeZone' => '-04:00', 'offset' => '+01:00', 'year' => 2020, 'month' => 2, 'day' => 16, 'hour' => 23, 'minute' => 45];
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($propertyBag, []), 'default offset is reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($propertyBag, []), 'default offset is reject');

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 TemporalHelpers::checkRoundingIncrementOptionWrongType(fn($roundingIncrement) => $datetime->round(['smallestUnit' => 'second', 'roundingIncrement' => $roundingIncrement]), fn($result, $descr) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 34, 57, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 34, 56, 0, 0, 0, $descr));

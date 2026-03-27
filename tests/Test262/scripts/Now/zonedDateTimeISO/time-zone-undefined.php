@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$systemTimeZone = \Temporal\Now::timeZoneId();
-$resultExplicit = \Temporal\Now::zonedDateTimeISO();
+$systemTimeZone = \Temporal\Spec\Now::timeZoneId();
+$resultExplicit = \Temporal\Spec\Now::zonedDateTimeISO();
 Assert::sameValue($resultExplicit->timeZoneId, $systemTimeZone, 'time zone string should be the system time zone');
-$resultImplicit = \Temporal\Now::zonedDateTimeISO();
+$resultImplicit = \Temporal\Spec\Now::zonedDateTimeISO();
 Assert::sameValue($resultImplicit->timeZoneId, $systemTimeZone, 'time zone string should be the system time zone');

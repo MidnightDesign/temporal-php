@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date = new \Temporal\ZonedDateTime(3_661_987_654_321, 'UTC');
+$date = new \Temporal\Spec\ZonedDateTime(3_661_987_654_321, 'UTC');
 $result = $date->toString(['calendarName' => 'auto']);
 Assert::sameValue($result, '1970-01-01T01:01:01.987654321+00:00[UTC]', "built-in ISO calendar for calendarName = auto");

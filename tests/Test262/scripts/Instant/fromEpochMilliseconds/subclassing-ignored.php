@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Instant::class, 'fromEpochMilliseconds', [10], function ($result) { Assert::sameValue($result->epochNanoseconds, 10_000_000, 'epochNanoseconds result'); });
+TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Spec\Instant::class, 'fromEpochMilliseconds', [10], function ($result) { Assert::sameValue($result->epochNanoseconds, 10_000_000, 'epochNanoseconds result'); });

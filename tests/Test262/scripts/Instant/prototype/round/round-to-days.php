@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$inst = \Temporal\Instant::from('1976-11-18T14:23:30.123456789Z');
-$expected = \Temporal\Instant::from('1976-11-19T00:00:00Z');
+$inst = \Temporal\Spec\Instant::from('1976-11-18T14:23:30.123456789Z');
+$expected = \Temporal\Spec\Instant::from('1976-11-19T00:00:00Z');
 TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'hour', 'roundingIncrement' => 24]), $expected);
 TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'minute', 'roundingIncrement' => 1440]), $expected);
 TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'second', 'roundingIncrement' => 86_400]), $expected);

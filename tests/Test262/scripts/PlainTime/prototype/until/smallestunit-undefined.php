@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainTime(12, 34, 56, 0, 0, 0);
-$later = new \Temporal\PlainTime(13, 35, 57, 987, 654, 321);
+$earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 0);
+$later = new \Temporal\Spec\PlainTime(13, 35, 57, 987, 654, 321);
 $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 1, 1, 1, 987, 654, 321, 'default smallestUnit is nanosecond');
 $implicit = $earlier->until($later, new \stdClass());

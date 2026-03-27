@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt = new \Temporal\PlainDateTime(2015, 12, 7, 3, 24, 30, 0, 3, 500);
+$dt = new \Temporal\Spec\PlainDateTime(2015, 12, 7, 3, 24, 30, 0, 3, 500);
 TemporalHelpers::assertPlainDateTime($dt->withPlainTime(), 2015, 12, 'M12', 7, 0, 0, 0, 0, 0, 0, 'no argument defaults to midnight');

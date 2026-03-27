@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainTime(new \Temporal\PlainTime(11.9, 12.8, 13.7, 14.6, 15.5, 1.999_999), 11, 12, 13, 14, 15, 1, 'positive fractional');
-TemporalHelpers::assertPlainTime(new \Temporal\PlainTime(null, 1, 2, 3, 4, 5), 0, 1, 2, 3, 4, 5, 'null defaults to zero');
-TemporalHelpers::assertPlainTime(new \Temporal\PlainTime(false, true), 0, 1, 0, 0, 0, 0, 'boolean defaults');
-TemporalHelpers::assertPlainTime(new \Temporal\PlainTime(11, 24), 11, 24, 0, 0, 0, 0, 'undefined defaults to 0');
-TemporalHelpers::assertPlainTime(new \Temporal\PlainTime('11.9', '12.8', '13.7', '14.6', '15.5', '1.999999'), 11, 12, 13, 14, 15, 1, 'fractional strings');
+TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(11.9, 12.8, 13.7, 14.6, 15.5, 1.999_999), 11, 12, 13, 14, 15, 1, 'positive fractional');
+TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(null, 1, 2, 3, 4, 5), 0, 1, 2, 3, 4, 5, 'null defaults to zero');
+TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(false, true), 0, 1, 0, 0, 0, 0, 'boolean defaults');
+TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(11, 24), 11, 24, 0, 0, 0, 0, 'undefined defaults to 0');
+TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime('11.9', '12.8', '13.7', '14.6', '15.5', '1.999999'), 11, 12, 13, 14, 15, 1, 'fractional strings');
 Assert::incomplete('untranslatable: Symbol()');

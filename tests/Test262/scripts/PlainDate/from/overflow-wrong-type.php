@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$validValues = [new \Temporal\PlainDate(2000, 5, 2), ['year' => 2000, 'month' => 5, 'day' => 2], '2000-05-02'];
+$validValues = [new \Temporal\Spec\PlainDate(2000, 5, 2), ['year' => 2000, 'month' => 5, 'day' => 2], '2000-05-02'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\PlainDate::from($value, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\Spec\PlainDate::from($value, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2, $descr));
 }

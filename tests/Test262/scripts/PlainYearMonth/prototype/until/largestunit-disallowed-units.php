@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\PlainYearMonth(2019, 1);
-$later = new \Temporal\PlainYearMonth(2021, 9);
+$earlier = new \Temporal\Spec\PlainYearMonth(2019, 1);
+$later = new \Temporal\Spec\PlainYearMonth(2021, 9);
 foreach (['weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $largestUnit) {
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['largestUnit' => $largestUnit]), "throws on disallowed or invalid largestUnit: {$largestUnit}");
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2024, 1, 1);
+$date = new \Temporal\Spec\PlainDate(2024, 1, 1);
 TemporalHelpers::assertPlainDate($date->add(['weeks' => 1]), 2024, 1, 'M01', 8, 'add 1 week = 7 days');
 TemporalHelpers::assertPlainDate($date->add(['weeks' => 4]), 2024, 1, 'M01', 29, 'add 4 weeks = 28 days');
 TemporalHelpers::assertPlainDate($date->add(['weeks' => 5]), 2024, 2, 'M02', 5, 'add 5 weeks = 35 days (crosses month boundary)');

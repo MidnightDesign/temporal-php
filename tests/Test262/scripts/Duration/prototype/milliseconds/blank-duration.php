@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$blank = new \Temporal\Duration();
+$blank = new \Temporal\Spec\Duration();
 Assert::sameValue($blank->milliseconds, 0, '');

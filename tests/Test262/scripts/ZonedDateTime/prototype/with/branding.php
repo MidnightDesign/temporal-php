@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::incomplete('\\Temporal\\ZonedDateTime::with used as a value');
+Assert::incomplete('\\Temporal\\Spec\\ZonedDateTime::with used as a value');

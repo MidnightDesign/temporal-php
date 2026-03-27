@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainDate = \Temporal\PlainDate::from('1976-11-18');
+$plainDate = \Temporal\Spec\PlainDate::from('1976-11-18');
 $calendar = 'iso8601';
 $stringResult = $plainDate->withCalendar('iso8601');
 Assert::notSameValue($stringResult, $plainDate, 'string: new object');

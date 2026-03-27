@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]'];
-$instance = new \Temporal\PlainYearMonth(2000, 5);
+$instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->until($arg), 'String with UTC designator should not be valid as a PlainYearMonth');
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$cases = ['year2000' => \Temporal\PlainDateTime::from(['year' => 2000, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34]), 'year1976' => \Temporal\PlainDateTime::from(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'hour' => 12, 'minute' => 34]), 'year1' => \Temporal\PlainDateTime::from(['year' => 1, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34])];
+$cases = ['year2000' => \Temporal\Spec\PlainDateTime::from(['year' => 2000, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34]), 'year1976' => \Temporal\Spec\PlainDateTime::from(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'hour' => 12, 'minute' => 34]), 'year1' => \Temporal\Spec\PlainDateTime::from(['year' => 1, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34])];
 foreach ($cases as $name => $inCal) {
 $afterWithDay = $inCal->with(['day' => 1]);
 TemporalHelpers::assertPlainDateTime($afterWithDay, $inCal->year, $inCal->month, $inCal->monthCode, 1, 12, 34, 0, 0, 0, 0, "{$name} after setting day to 1");

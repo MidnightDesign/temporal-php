@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\PlainDate::class, 'from', ['2000-05-02'], fn($result) => TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2));
+TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Spec\PlainDate::class, 'from', ['2000-05-02'], fn($result) => TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2));

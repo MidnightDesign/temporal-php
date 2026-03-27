@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['2020-01-01', '2020-01-01[u-ca=iso8601]', '2020-01-01T00:00:00.000000000', '2020-01-01T00:00:00.000000000[u-ca=iso8601]', '01-01', '01-01[u-ca=iso8601]', '2020-01', '2020-01[u-ca=iso8601]'] as $calendar) {
 $arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar];
-$result = \Temporal\PlainYearMonth::from($arg);
+$result = \Temporal\Spec\PlainYearMonth::from($arg);
 TemporalHelpers::assertPlainYearMonth($result, 2019, 6, 'M06', "Calendar created from string \"{$calendar}\"");
 Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');
 }

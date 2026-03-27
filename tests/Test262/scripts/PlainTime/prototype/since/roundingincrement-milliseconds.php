@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainTime(3, 12, 34, 123, 456, 789);
-$later = new \Temporal\PlainTime(13, 47, 57, 988, 655, 322);
+$earlier = new \Temporal\Spec\PlainTime(3, 12, 34, 123, 456, 789);
+$later = new \Temporal\Spec\PlainTime(13, 47, 57, 988, 655, 322);
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'milliseconds', 'roundingIncrement' => 1]), 0, 0, 0, 0, 10, 35, 23, 865, 0, 0, 'milliseconds');
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'milliseconds', 'roundingIncrement' => 2]), 0, 0, 0, 0, 10, 35, 23, 864, 0, 0, 'milliseconds');
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'milliseconds', 'roundingIncrement' => 4]), 0, 0, 0, 0, 10, 35, 23, 864, 0, 0, 'milliseconds');

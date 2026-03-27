@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(0, 10, 29, 10, 46, 38, 271, 986, 102);
+$instance = new \Temporal\Spec\PlainDateTime(0, 10, 29, 10, 46, 38, 271, 986, 102);
 foreach (['earlier', 'later', 'compatible', 'reject'] as $disambiguation) {
 $result = $instance->toZonedDateTime('+06:00', ['disambiguation' => $disambiguation]);
 }
-$instanceLeap = new \Temporal\PlainDateTime(0, 2, 29);
+$instanceLeap = new \Temporal\Spec\PlainDateTime(0, 2, 29);
 foreach (['earlier', 'later', 'compatible', 'reject'] as $disambiguation) {
 $result = $instanceLeap->toZonedDateTime('-00:01', ['disambiguation' => $disambiguation]);
 }

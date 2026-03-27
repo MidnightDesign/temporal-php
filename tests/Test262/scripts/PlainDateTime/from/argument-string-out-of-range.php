@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from('2020-13-34T24:60', new \stdClass()), 'constrain has no effect on invalid ISO string (empty options argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from('2020-13-34T24:60', function () {  }), 'constrain has no effect on invalid ISO string (nullary empty object function argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from('2020-13-34T24:60', ['overflow' => 'constrain']), 'overflow = constrain has no effect on invalid ISO string');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from('2020-13-34T24:60', ['overflow' => 'reject']), 'overflow = reject has no effect on invalid ISO string');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('2020-13-34T24:60', new \stdClass()), 'constrain has no effect on invalid ISO string (empty options argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('2020-13-34T24:60', function () {  }), 'constrain has no effect on invalid ISO string (nullary empty object function argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('2020-13-34T24:60', ['overflow' => 'constrain']), 'overflow = constrain has no effect on invalid ISO string');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('2020-13-34T24:60', ['overflow' => 'reject']), 'overflow = reject has no effect on invalid ISO string');

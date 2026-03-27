@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$monthAlmostWeek = new \Temporal\Duration(0, 1, 0, 6, 20, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($monthAlmostWeek->round(['smallestUnit' => 'days', 'relativeTo' => new \Temporal\PlainDate(2020, 1, 1)]), 0, 1, 0, 7, 0, 0, 0, 0, 0, 0);
+$monthAlmostWeek = new \Temporal\Spec\Duration(0, 1, 0, 6, 20, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($monthAlmostWeek->round(['smallestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)]), 0, 1, 0, 7, 0, 0, 0, 0, 0, 0);

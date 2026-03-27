@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = new \Temporal\Duration(1, 0, 0, 0, 1);
-$relativeTo = new \Temporal\PlainDate(2020, 2, 29);
+$d = new \Temporal\Spec\Duration(1, 0, 0, 0, 1);
+$relativeTo = new \Temporal\Spec\PlainDate(2020, 2, 29);
 Assert::sameValue($d->total(['unit' => 'years', 'relativeTo' => $relativeTo]), 1.0_001_141_552_511_414, '');
-$d = new \Temporal\Duration(0, 1, 0, 0, 10);
-$relativeTo = new \Temporal\PlainDate(2020, 1, 31);
+$d = new \Temporal\Spec\Duration(0, 1, 0, 0, 10);
+$relativeTo = new \Temporal\Spec\PlainDate(2020, 1, 31);
 Assert::sameValue($d->total(['unit' => 'months', 'relativeTo' => $relativeTo]), 1.0_134_408_602_150_538, '');

@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(3_661_001_001_001, '-00:02');
-Assert::assertTrue(new \Temporal\PlainTime(0, 59, 1, 1, 1, 1)->equals($datetime), '');
+$datetime = new \Temporal\Spec\ZonedDateTime(3_661_001_001_001, '-00:02');
+Assert::assertTrue(new \Temporal\Spec\PlainTime(0, 59, 1, 1, 1, 1)->equals($datetime), '');

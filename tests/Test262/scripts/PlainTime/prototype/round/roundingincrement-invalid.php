@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainTime = \Temporal\PlainTime::from('08:22:36.123456789');
+$plainTime = \Temporal\Spec\PlainTime::from('08:22:36.123456789');
 Assert::throws(\InvalidArgumentException::class, fn() => $plainTime->round(['smallestUnit' => 'hours', 'roundingIncrement' => 11]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $plainTime->round(['smallestUnit' => 'minutes', 'roundingIncrement' => 29]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $plainTime->round(['smallestUnit' => 'seconds', 'roundingIncrement' => 29]), '');

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(56_789_999_999, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(56_789_999_999, 'UTC');
 $tests = [['minute', '1970-01-01T00:00+00:00[UTC]'], ['second', '1970-01-01T00:00:56+00:00[UTC]'], ['millisecond', '1970-01-01T00:00:56.789+00:00[UTC]'], ['microsecond', '1970-01-01T00:00:56.789999+00:00[UTC]'], ['nanosecond', '1970-01-01T00:00:56.789999999+00:00[UTC]']];
 foreach ($tests as $__entry__) {
 [$smallestUnit, $expected] = array_pad($__entry__, 2, null);

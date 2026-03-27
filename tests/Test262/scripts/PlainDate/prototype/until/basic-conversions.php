@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainDate = new \Temporal\PlainDate(1969, 7, 24);
+$plainDate = new \Temporal\Spec\PlainDate(1969, 7, 24);
 TemporalHelpers::assertDuration($plainDate->until(['year' => 2019, 'month' => 7, 'day' => 24]), 0, 0, 0, 18_262, 0, 0, 0, 0, 0, 0, 'option bag');
 TemporalHelpers::assertDuration($plainDate->until('2019-07-24'), 0, 0, 0, 18_262, 0, 0, 0, 0, 0, 0, 'string');

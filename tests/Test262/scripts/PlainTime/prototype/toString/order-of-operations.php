@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.fractionalSecondDigits', 'get options.fractionalSecondDigits.toString', 'call options.fractionalSecondDigits.toString', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit'];
 $actual = [];
-$instance = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 $expectedForSmallestUnit = array_merge($expected, ['get options.smallestUnit.toString', 'call options.smallestUnit.toString']);
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

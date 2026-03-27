@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainTime(13, 46, 23, 123, 987, 500);
+$instance = new \Temporal\Spec\PlainTime(13, 46, 23, 123, 987, 500);
 $expected = [['hour', [14]], ['minute', [13, 47]], ['second', [13, 46, 24]], ['millisecond', [13, 46, 23, 124]], ['microsecond', [13, 46, 23, 123, 988]], ['nanosecond', [13, 46, 23, 123, 987, 500]]];
 $roundingMode = 'ceil';
 foreach ($expected as $__entry__) {

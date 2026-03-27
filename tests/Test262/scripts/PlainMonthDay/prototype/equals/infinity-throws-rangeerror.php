@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainMonthDay(5, 2);
+$instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 $base = ['year' => 2000, 'month' => 5, 'day' => 2];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day'] as $prop) {

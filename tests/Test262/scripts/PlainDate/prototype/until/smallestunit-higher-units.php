@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = \Temporal\PlainDate::from('2019-01-08');
-$later = \Temporal\PlainDate::from('2021-09-07');
+$earlier = \Temporal\Spec\PlainDate::from('2019-01-08');
+$later = \Temporal\Spec\PlainDate::from('2021-09-07');
 TemporalHelpers::assertDuration($earlier->until($later, ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand']), 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'years');
 TemporalHelpers::assertDuration($earlier->until($later, ['smallestUnit' => 'months', 'roundingMode' => 'halfExpand']), 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 'months');
 TemporalHelpers::assertDuration($earlier->until($later, ['smallestUnit' => 'weeks', 'roundingMode' => 'halfExpand']), 0, 0, 139, 0, 0, 0, 0, 0, 0, 0, 'weeks');

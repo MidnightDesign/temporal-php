@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(0, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['', 'EARLIER', 'balance'] as $disambiguation) {
 Assert::throws(\InvalidArgumentException::class, fn() => $zdt->with(['day' => 5], ['disambiguation' => $disambiguation]), '');
 }

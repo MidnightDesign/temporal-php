@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2024, 6, 15);
+$date = new \Temporal\Spec\PlainDate(2024, 6, 15);
 TemporalHelpers::assertPlainDate($date->subtract(['days' => -5]), 2024, 6, 'M06', 20, 'subtract negative days = add days');
 TemporalHelpers::assertPlainDate($date->subtract(['months' => -3]), 2024, 9, 'M09', 15, 'subtract negative months = add months');

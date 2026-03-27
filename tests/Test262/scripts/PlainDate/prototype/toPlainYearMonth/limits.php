@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$min = \Temporal\PlainDate::from('-271821-04-19');
+$min = \Temporal\Spec\PlainDate::from('-271821-04-19');
 TemporalHelpers::assertPlainYearMonth($min->toPlainYearMonth(), -271_821, 4, 'M04', 'min');
-$max = \Temporal\PlainDate::from('+275760-09-13');
+$max = \Temporal\Spec\PlainDate::from('+275760-09-13');
 TemporalHelpers::assertPlainYearMonth($max->toPlainYearMonth(), 275_760, 9, 'M09', 'max');

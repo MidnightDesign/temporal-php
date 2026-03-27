@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instant = new \Temporal\Instant(1_000_000_000_987_654_321);
+$instant = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
 $validUnits = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $instant->round(['smallestUnit' => $smallestUnit]), $validUnits);
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $instant->round($smallestUnit), $validUnits);

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
 $result = $instance->toZonedDateTime($timeZone);
 Assert::sameValue($result->timeZoneId, 'UTC', 'leap second is a valid ISO string for TimeZone');

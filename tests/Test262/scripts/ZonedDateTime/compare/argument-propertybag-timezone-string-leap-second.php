@@ -7,12 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(1_588_377_600_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(1_588_377_600_000_000_000, 'UTC');
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
-$result1 = \Temporal\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance);
+$result1 = \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance);
 Assert::sameValue($result1, 0, 'leap second is a valid ISO string for TimeZone (first argument)');
-$result2 = \Temporal\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$result2 = \Temporal\Spec\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
 Assert::sameValue($result2, 0, 'leap second is a valid ISO string for TimeZone (second argument)');
 $timeZone = '2021-08-19T17:30:45.123456789+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance), 'leap second in time zone name not valid (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]), 'leap second in time zone name not valid (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance), 'leap second in time zone name not valid (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]), 'leap second in time zone name not valid (second argument)');

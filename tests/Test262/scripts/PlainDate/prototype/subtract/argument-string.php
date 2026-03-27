@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = \Temporal\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
+$instance = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
 TemporalHelpers::assertPlainDate($instance->subtract('P3D'), 2000, 4, 'M04', 29);
 TemporalHelpers::assertPlainDate($instance->subtract('-P3D'), 2000, 5, 'M05', 5);

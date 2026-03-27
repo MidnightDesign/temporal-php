@@ -7,12 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date = new \Temporal\PlainDate(2000, 5, 2);
-Assert::sameValue($date->equals(new \Temporal\PlainDate(2000, 5, 2)), true, 'same date');
-Assert::sameValue($date->equals(new \Temporal\PlainDate(2000, 5, 3)), false, 'different day');
-Assert::sameValue($date->equals(new \Temporal\PlainDate(2000, 6, 2)), false, 'different month');
-Assert::sameValue($date->equals(new \Temporal\PlainDate(2001, 5, 2)), false, 'different year');
-$d1 = new \Temporal\PlainDate(2020, 1, 1);
-$d2 = new \Temporal\PlainDate(2021, 1, 1);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
+Assert::sameValue($date->equals(new \Temporal\Spec\PlainDate(2000, 5, 2)), true, 'same date');
+Assert::sameValue($date->equals(new \Temporal\Spec\PlainDate(2000, 5, 3)), false, 'different day');
+Assert::sameValue($date->equals(new \Temporal\Spec\PlainDate(2000, 6, 2)), false, 'different month');
+Assert::sameValue($date->equals(new \Temporal\Spec\PlainDate(2001, 5, 2)), false, 'different year');
+$d1 = new \Temporal\Spec\PlainDate(2020, 1, 1);
+$d2 = new \Temporal\Spec\PlainDate(2021, 1, 1);
 Assert::sameValue($d1->equals($d2), false, 'earlier not equal to later');
 Assert::sameValue($d2->equals($d1), false, 'later not equal to earlier');

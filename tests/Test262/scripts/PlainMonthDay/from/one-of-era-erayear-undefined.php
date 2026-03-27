@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $base = ['year' => 2000, 'month' => 5, 'day' => 2, 'era' => 'ce'];
-TemporalHelpers::assertPlainMonthDay(\Temporal\PlainMonthDay::from($base), 'M05', 2);
+TemporalHelpers::assertPlainMonthDay(\Temporal\Spec\PlainMonthDay::from($base), 'M05', 2);
 $base2 = ['year' => 2000, 'month' => 5, 'day' => 2, 'eraYear' => 1];
-TemporalHelpers::assertPlainMonthDay(\Temporal\PlainMonthDay::from($base2), 'M05', 2);
+TemporalHelpers::assertPlainMonthDay(\Temporal\Spec\PlainMonthDay::from($base2), 'M05', 2);

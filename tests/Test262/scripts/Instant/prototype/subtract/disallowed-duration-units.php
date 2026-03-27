@@ -7,12 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$i1 = new \Temporal\Instant(500_000);
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(1)), 'should throw RangeError when the duration has non-zero years (positive)');
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(0, 2)), 'should throw RangeError when the duration has non-zero months (positive)');
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(0, 0, 3)), 'should throw RangeError when the duration has non-zero weeks (positive)');
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(0, 0, 0, 4)), 'should throw RangeError when the duration has non-zero days (positive)');
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(-1)), 'should throw RangeError when the duration has non-zero years (negative)');
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(0, -2)), 'should throw RangeError when the duration has non-zero months (negative)');
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(0, 0, -3)), 'should throw RangeError when the duration has non-zero weeks (negative)');
-Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Duration(0, 0, 0, -4)), 'should throw RangeError when the duration has non-zero days (negative)');
+$i1 = new \Temporal\Spec\Instant(500_000);
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(1)), 'should throw RangeError when the duration has non-zero years (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(0, 2)), 'should throw RangeError when the duration has non-zero months (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(0, 0, 3)), 'should throw RangeError when the duration has non-zero weeks (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(0, 0, 0, 4)), 'should throw RangeError when the duration has non-zero days (positive)');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(-1)), 'should throw RangeError when the duration has non-zero years (negative)');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(0, -2)), 'should throw RangeError when the duration has non-zero months (negative)');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(0, 0, -3)), 'should throw RangeError when the duration has non-zero weeks (negative)');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->subtract(new \Temporal\Spec\Duration(0, 0, 0, -4)), 'should throw RangeError when the duration has non-zero days (negative)');

@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891Z[UTC]', '1970-01-01T00:00:00.1234567890Z[UTC]', '1970-01-01T00+00:00:00.0000000000Z[UTC]'];
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, function () use ($instance, $arg) { $instance->until($arg); }, 'no more than 9 decimal places are allowed');
 }

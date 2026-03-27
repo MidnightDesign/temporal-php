@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2000, 3, 6, 12, 34, 56, 345, 213, 751);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 3, 6, 12, 34, 56, 345, 213, 751);
 Assert::sameValue($instance->eraYear, null, '');

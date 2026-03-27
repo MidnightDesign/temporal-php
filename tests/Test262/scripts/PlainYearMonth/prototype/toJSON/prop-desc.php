@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainYearMonth.prototype.toJSON` is `function`');
-Assert::methodExists('\Temporal\PlainYearMonth', 'toJSON');
+Assert::methodExists('\Temporal\Spec\PlainYearMonth', 'toJSON');

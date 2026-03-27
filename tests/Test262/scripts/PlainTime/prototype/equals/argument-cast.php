@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$t1 = \Temporal\PlainTime::from('08:44:15.321');
+$t1 = \Temporal\Spec\PlainTime::from('08:44:15.321');
 Assert::sameValue($t1->equals(['hour' => 14, 'minute' => 23, 'second' => 30, 'millisecond' => 123]), false, 'object');
 Assert::sameValue($t1->equals(['hour' => 8, 'minute' => 44, 'second' => 15, 'millisecond' => 321]), true, 'object');
 Assert::sameValue($t1->equals('14:23:30.123'), false, 'string');

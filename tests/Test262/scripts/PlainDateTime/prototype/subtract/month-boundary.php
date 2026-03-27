@@ -9,10 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = ['overflow' => 'reject'];
-$months6 = new \Temporal\Duration(0, -6);
-$months6n = new \Temporal\Duration(0, 6);
+$months6 = new \Temporal\Spec\Duration(0, -6);
+$months6n = new \Temporal\Spec\Duration(0, 6);
 $durations = [$months6, $months6n];
-$date20001201 = \Temporal\PlainDateTime::from(['year' => 2000, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34], $options);
+$date20001201 = \Temporal\Spec\PlainDateTime::from(['year' => 2000, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34], $options);
 $dates = [$date20001201];
 foreach ($durations as $duration) {
 foreach ($dates as $start) {

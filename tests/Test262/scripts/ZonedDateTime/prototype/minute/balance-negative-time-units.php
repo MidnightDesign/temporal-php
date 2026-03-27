@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(60_000_000_001, '-00:02');
+$datetime = new \Temporal\Spec\ZonedDateTime(60_000_000_001, '-00:02');
 Assert::sameValue($datetime->minute, 59, '');
 Assert::sameValue($datetime->second, 0, '');
 Assert::sameValue($datetime->millisecond, 0, '');

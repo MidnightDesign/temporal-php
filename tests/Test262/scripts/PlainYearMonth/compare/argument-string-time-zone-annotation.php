@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['2019-12-15T15:23[Asia/Kolkata]', 'named, with no offset'], ['2019-12-15T15:23[!Europe/Vienna]', 'named, with ! and no offset'], ['2019-12-15T15:23[+00:00]', 'numeric, with no offset'], ['2019-12-15T15:23[!-02:30]', 'numeric, with ! and no offset'], ['2019-12-15T15:23+00:00[UTC]', 'named, with offset'], ['2019-12-15T15:23+00:00[!Africa/Abidjan]', 'named, with offset and !'], ['2019-12-15T15:23+00:00[+01:00]', 'numeric, with offset'], ['2019-12-15T15:23+00:00[!-08:00]', 'numeric, with offset and !']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\PlainYearMonth::compare($arg, $arg);
+$result = \Temporal\Spec\PlainYearMonth::compare($arg, $arg);
 Assert::sameValue($result, 0, "time zone annotation ({$description})");
 }

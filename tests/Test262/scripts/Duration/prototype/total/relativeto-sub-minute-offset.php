@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1, 0, 0, 0, 24);
+$instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $action = fn($relativeTo) => $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
 $relativeTo = '1970-01-01T00:00-00:45:00[-00:45]';
 $result = $action($relativeTo);

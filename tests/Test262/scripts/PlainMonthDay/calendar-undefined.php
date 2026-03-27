@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $args = [5, 2];
-$dateExplicit = new \Temporal\PlainMonthDay(...$args);
+$dateExplicit = new \Temporal\Spec\PlainMonthDay(...$args);
 Assert::sameValue($dateExplicit->calendarId, 'iso8601', '');
-$dateImplicit = new \Temporal\PlainMonthDay(...$args);
+$dateImplicit = new \Temporal\Spec\PlainMonthDay(...$args);
 Assert::sameValue($dateImplicit->calendarId, 'iso8601', '');

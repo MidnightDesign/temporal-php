@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC', 'iso8601');
+$instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC', 'iso8601');
 Assert::incomplete('untranslatable: Symbol()');

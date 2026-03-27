@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
+$zdt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
 $overflow = 'constrain';
-TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['month' => 29], ['overflow' => $overflow]), \Temporal\ZonedDateTime::from('1976-12-18T15:23:30.123456789+00:00[UTC]'));
-TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['day' => 31], ['overflow' => $overflow]), \Temporal\ZonedDateTime::from('1976-11-30T15:23:30.123456789+00:00[UTC]'));
-TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['hour' => 29], ['overflow' => $overflow]), \Temporal\ZonedDateTime::from('1976-11-18T23:23:30.123456789+00:00[UTC]'));
-TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['nanosecond' => 9000], ['overflow' => $overflow]), \Temporal\ZonedDateTime::from('1976-11-18T15:23:30.123456999+00:00[UTC]'));
+TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['month' => 29], ['overflow' => $overflow]), \Temporal\Spec\ZonedDateTime::from('1976-12-18T15:23:30.123456789+00:00[UTC]'));
+TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['day' => 31], ['overflow' => $overflow]), \Temporal\Spec\ZonedDateTime::from('1976-11-30T15:23:30.123456789+00:00[UTC]'));
+TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['hour' => 29], ['overflow' => $overflow]), \Temporal\Spec\ZonedDateTime::from('1976-11-18T23:23:30.123456789+00:00[UTC]'));
+TemporalHelpers::assertZonedDateTimesEqual($zdt->with(['nanosecond' => 9000], ['overflow' => $overflow]), \Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30.123456999+00:00[UTC]'));

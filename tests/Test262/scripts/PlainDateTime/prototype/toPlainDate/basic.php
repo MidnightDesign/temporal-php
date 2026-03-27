@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d1 = new \Temporal\PlainDateTime(2021, 12, 11, 1, 2, 3, 4, 5, 6);
+$d1 = new \Temporal\Spec\PlainDateTime(2021, 12, 11, 1, 2, 3, 4, 5, 6);
 TemporalHelpers::assertPlainDate($d1->toPlainDate(), 2021, 12, 'M12', 11);

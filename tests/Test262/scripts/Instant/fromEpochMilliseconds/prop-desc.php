@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof Instant.fromEpochMilliseconds` is `function`');
-Assert::methodExists('\Temporal\Instant', 'fromEpochMilliseconds');
+Assert::methodExists('\Temporal\Spec\Instant', 'fromEpochMilliseconds');

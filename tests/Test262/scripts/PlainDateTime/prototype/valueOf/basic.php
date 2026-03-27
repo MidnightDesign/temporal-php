@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt1 = new \Temporal\PlainDateTime(1963, 2, 13, 9, 36, 29, 123, 456, 789);
-$dt1again = new \Temporal\PlainDateTime(1963, 2, 13, 9, 36, 29, 123, 456, 789);
-$dt2 = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$dt1 = new \Temporal\Spec\PlainDateTime(1963, 2, 13, 9, 36, 29, 123, 456, 789);
+$dt1again = new \Temporal\Spec\PlainDateTime(1963, 2, 13, 9, 36, 29, 123, 456, 789);
+$dt2 = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 Assert::throws(\TypeError::class, fn() => $dt1->valueOf(), 'always throws');
 Assert::sameValue($dt1 === $dt1, true, 'object equality implies ===');
 Assert::sameValue($dt1 !== $dt1again, true, 'object non-equality, even if all data is the same, implies !==');

@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '2016-12-31T23:59:60';
-$result1 = \Temporal\PlainYearMonth::compare($arg, new \Temporal\PlainYearMonth(2016, 12));
+$result1 = \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2016, 12));
 Assert::sameValue($result1, 0, 'leap second is a valid ISO string for PlainYearMonth (first argument)');
-$result2 = \Temporal\PlainYearMonth::compare(new \Temporal\PlainYearMonth(2016, 12), $arg);
+$result2 = \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2016, 12), $arg);
 Assert::sameValue($result2, 0, 'leap second is a valid ISO string for PlainYearMonth (second argument)');
 $arg = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
-$result3 = \Temporal\PlainYearMonth::compare($arg, new \Temporal\PlainYearMonth(2016, 12));
+$result3 = \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2016, 12));
 Assert::sameValue($result3, 0, 'second: 60 is ignored in property bag for PlainYearMonth (first argument)');
-$result4 = \Temporal\PlainYearMonth::compare(new \Temporal\PlainYearMonth(2016, 12), $arg);
+$result4 = \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2016, 12), $arg);
 Assert::sameValue($result4, 0, 'second: 60 is ignored in property bag for PlainYearMonth (second argument)');

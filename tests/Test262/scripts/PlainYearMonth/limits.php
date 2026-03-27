@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainYearMonth(-271_821, 3), 'min');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainYearMonth(275_760, 10), 'max');
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(-271_821, 4), -271_821, 4, 'M04', 'min');
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(-271_821, 4, 'iso8601', 18), -271_821, 4, 'M04', 'min with referenceISODay', null, null, 18);
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(275_760, 9), 275_760, 9, 'M09', 'max');
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(275_760, 9, 'iso8601', 14), 275_760, 9, 'M09', 'max with referenceISODay', null, null, 14);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(-271_821, 3), 'min');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(275_760, 10), 'max');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(-271_821, 4), -271_821, 4, 'M04', 'min');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(-271_821, 4, 'iso8601', 18), -271_821, 4, 'M04', 'min with referenceISODay', null, null, 18);
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(275_760, 9), 275_760, 9, 'M09', 'max');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(275_760, 9, 'iso8601', 14), 275_760, 9, 'M09', 'max with referenceISODay', null, null, 14);

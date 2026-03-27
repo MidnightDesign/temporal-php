@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainTime = new \Temporal\PlainTime(15, 23, 30, 123, 456, 789);
-$values = [new \Temporal\Duration(0, 0, 0, 1), new \Temporal\Duration(0, 0, 1), new \Temporal\Duration(0, 1), new \Temporal\Duration(1), ['days' => 1], ['weeks' => 1], ['months' => 1], ['years' => 1], 'P1D', 'P1W', 'P1M', 'P1Y'];
+$plainTime = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789);
+$values = [new \Temporal\Spec\Duration(0, 0, 0, 1), new \Temporal\Spec\Duration(0, 0, 1), new \Temporal\Spec\Duration(0, 1), new \Temporal\Spec\Duration(1), ['days' => 1], ['weeks' => 1], ['months' => 1], ['years' => 1], 'P1D', 'P1W', 'P1M', 'P1Y'];
 foreach ($values as $value) {
 TemporalHelpers::assertPlainTime($plainTime->subtract($value), 15, 23, 30, 123, 456, 789);
 }

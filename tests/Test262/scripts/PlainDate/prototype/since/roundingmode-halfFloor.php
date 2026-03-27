@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDate(2019, 1, 8);
-$later = new \Temporal\PlainDate(2021, 9, 7);
+$earlier = new \Temporal\Spec\PlainDate(2019, 1, 8);
+$later = new \Temporal\Spec\PlainDate(2021, 9, 7);
 $expected = [['years', [3], [-3]], ['months', [0, 32], [0, -32]], ['weeks', [0, 0, 139], [0, 0, -139]], ['days', [0, 0, 0, 973], [0, 0, 0, -973]]];
 $roundingMode = 'halfFloor';
 foreach ($expected as $__entry__) {

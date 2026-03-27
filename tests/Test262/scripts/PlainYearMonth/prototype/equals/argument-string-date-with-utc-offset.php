@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainYearMonth(2019, 12);
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 12);
 $validStrings = ['2019-12[Africa/Abidjan]', '2019-12[!Africa/Abidjan]', '2019-12[u-ca=iso8601]', '2019-12[Africa/Abidjan][u-ca=iso8601]', '2019-12-15T00+00', '2019-12-15T00+00:00', '2019-12-15T00+00:00:00,0', '2019-12-15T00+00:00:00.000000000', '2019-12-15T00+0000', '2019-12-15T00+000000,0', '2019-12-15T00+000000.000000000', '2019-12-15T00+00:00[UTC]', '2019-12-15T00+00:00[!UTC]', '2019-12-15T00+01[Europe/Vienna]', '2019-12-15T00-02:30[America/St_Johns]', '2019-12-15T00-02:30:00,0[America/St_Johns]', '2019-12-15T00-02:30:00.000000000[America/St_Johns]', '2019-12-15T00-023000,0[America/St_Johns]', '2019-12-15T00-023000.000000000[America/St_Johns]'];
 foreach ($validStrings as $arg) {
 $result = $instance->equals($arg);

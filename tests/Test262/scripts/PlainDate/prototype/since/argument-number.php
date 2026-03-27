@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDate(1976, 11, 18);
+$instance = new \Temporal\Spec\PlainDate(1976, 11, 18);
 $numbers = [1, 19_761_118, -19_761_118, 1_234_567_890];
 foreach ($numbers as $arg) {
 Assert::throws(\TypeError::class, fn() => $instance->since($arg), 'Numbers cannot be used in place of an ISO string for PlainDate');

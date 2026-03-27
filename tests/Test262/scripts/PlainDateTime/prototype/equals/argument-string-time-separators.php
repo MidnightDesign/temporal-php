@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['1976-11-18T15:23', 'uppercase T'], ['1976-11-18t15:23', 'lowercase T'], ['1976-11-18 15:23', 'space between date and time']];
-$instance = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23);
+$instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23);
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->equals($arg);

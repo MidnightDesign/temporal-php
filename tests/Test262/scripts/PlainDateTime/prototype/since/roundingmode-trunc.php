@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
-$later = new \Temporal\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 289);
+$earlier = new \Temporal\Spec\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
+$later = new \Temporal\Spec\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 289);
 $expected = [['years', [2], [-2]], ['months', [0, 31], [0, -31]], ['weeks', [0, 0, 139], [0, 0, -139]], ['days', [0, 0, 0, 973], [0, 0, 0, -973]], ['hours', [0, 0, 0, 973, 4], [0, 0, 0, -973, -4]], ['minutes', [0, 0, 0, 973, 4, 17], [0, 0, 0, -973, -4, -17]], ['seconds', [0, 0, 0, 973, 4, 17, 4], [0, 0, 0, -973, -4, -17, -4]], ['milliseconds', [0, 0, 0, 973, 4, 17, 4, 864], [0, 0, 0, -973, -4, -17, -4, -864]], ['microseconds', [0, 0, 0, 973, 4, 17, 4, 864, 197], [0, 0, 0, -973, -4, -17, -4, -864, -197]], ['nanoseconds', [0, 0, 0, 973, 4, 17, 4, 864, 197, 500], [0, 0, 0, -973, -4, -17, -4, -864, -197, -500]]];
 $roundingMode = 'trunc';
 foreach ($expected as $__entry__) {

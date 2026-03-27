@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['2000-05-02[Asia/Kolkata]', 'named, with no time'], ['2000-05-02[!Europe/Vienna]', 'named, with ! and no time'], ['2000-05-02[+00:00]', 'numeric, with no time'], ['2000-05-02[!-02:30]', 'numeric, with ! and no time'], ['2000-05-02T15:23[America/Sao_Paulo]', 'named, with no offset'], ['2000-05-02T15:23[!Asia/Tokyo]', 'named, with ! and no offset'], ['2000-05-02T15:23[-02:30]', 'numeric, with no offset'], ['2000-05-02T15:23[!+00:00]', 'numeric, with ! and no offset'], ['2000-05-02T15:23+00:00[America/New_York]', 'named, with offset'], ['2000-05-02T15:23+00:00[!UTC]', 'named, with offset and !'], ['2000-05-02T15:23+00:00[+01:00]', 'numeric, with offset'], ['2000-05-02T15:23+00:00[!-08:00]', 'numeric, with offset and !']];
-$instance = new \Temporal\PlainDate(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->equals($arg);

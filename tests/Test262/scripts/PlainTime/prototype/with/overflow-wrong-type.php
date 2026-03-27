@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$time = new \Temporal\PlainTime(12);
+$time = new \Temporal\Spec\PlainTime(12);
 TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => $time->with(['minute' => 45], ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 45, 0, 0, 0, 0, $descr));

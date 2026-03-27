@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $args = [957_270_896_987_654_321, 'UTC'];
-$explicit = new \Temporal\ZonedDateTime(...$args);
+$explicit = new \Temporal\Spec\ZonedDateTime(...$args);
 Assert::sameValue($explicit->calendarId, 'iso8601', 'calendar string should be iso8601');
-$implicit = new \Temporal\ZonedDateTime(...$args);
+$implicit = new \Temporal\Spec\ZonedDateTime(...$args);
 Assert::sameValue($implicit->calendarId, 'iso8601', 'calendar string should be iso8601');

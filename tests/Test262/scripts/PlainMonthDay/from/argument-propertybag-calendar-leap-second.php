@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = '2016-12-31T23:59:60';
 $arg = ['monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
-$result = \Temporal\PlainMonthDay::from($arg);
+$result = \Temporal\Spec\PlainMonthDay::from($arg);
 TemporalHelpers::assertPlainMonthDay($result, 'M11', 18, 'leap second is a valid ISO string for calendar');

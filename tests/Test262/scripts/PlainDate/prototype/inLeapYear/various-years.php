@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\PlainDate(2020, 1, 1)->inLeapYear, true, '2020 (divisible by 4)');
-Assert::sameValue(new \Temporal\PlainDate(2021, 1, 1)->inLeapYear, false, '2021 (not divisible by 4)');
-Assert::sameValue(new \Temporal\PlainDate(1900, 1, 1)->inLeapYear, false, '1900 (century, not leap)');
-Assert::sameValue(new \Temporal\PlainDate(2000, 1, 1)->inLeapYear, true, '2000 (400-year, leap)');
-Assert::sameValue(new \Temporal\PlainDate(2100, 1, 1)->inLeapYear, false, '2100 (century, not leap)');
-Assert::sameValue(new \Temporal\PlainDate(2400, 1, 1)->inLeapYear, true, '2400 (400-year, leap)');
-Assert::sameValue(new \Temporal\PlainDate(1976, 1, 1)->inLeapYear, true, '1976 (leap)');
-Assert::sameValue(new \Temporal\PlainDate(1977, 1, 1)->inLeapYear, false, '1977 (non-leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2020, 1, 1)->inLeapYear, true, '2020 (divisible by 4)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2021, 1, 1)->inLeapYear, false, '2021 (not divisible by 4)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(1900, 1, 1)->inLeapYear, false, '1900 (century, not leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2000, 1, 1)->inLeapYear, true, '2000 (400-year, leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2100, 1, 1)->inLeapYear, false, '2100 (century, not leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2400, 1, 1)->inLeapYear, true, '2400 (400-year, leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(1976, 1, 1)->inLeapYear, true, '1976 (leap)');
+Assert::sameValue(new \Temporal\Spec\PlainDate(1977, 1, 1)->inLeapYear, false, '1977 (non-leap)');

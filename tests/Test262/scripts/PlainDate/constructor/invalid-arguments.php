@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2020, 0, 1), 'month 0');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2020, 13, 1), 'month 13');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2020, 1, 0), 'day 0');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2020, 1, 32), 'day 32 in January');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2020, 4, 31), 'day 31 in April');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2021, 2, 29), 'day 29 in non-leap Feb');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2020, 2, 30), 'day 30 in leap Feb');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2020, 0, 1), 'month 0');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2020, 13, 1), 'month 13');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2020, 1, 0), 'day 0');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2020, 1, 32), 'day 32 in January');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2020, 4, 31), 'day 31 in April');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2021, 2, 29), 'day 29 in non-leap Feb');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2020, 2, 30), 'day 30 in leap Feb');

@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\ZonedDateTime(0, 'UTC')->month, 1, '');
+Assert::sameValue(new \Temporal\Spec\ZonedDateTime(0, 'UTC')->month, 1, '');

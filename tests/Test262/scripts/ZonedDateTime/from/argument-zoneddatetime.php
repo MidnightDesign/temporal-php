@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$orig = new \Temporal\ZonedDateTime(946_684_800_000_000_010, 'UTC');
-$result = \Temporal\ZonedDateTime::from($orig);
+$orig = new \Temporal\Spec\ZonedDateTime(946_684_800_000_000_010, 'UTC');
+$result = \Temporal\Spec\ZonedDateTime::from($orig);
 Assert::sameValue($result->epochNanoseconds, 946_684_800_000_000_010, 'ZonedDateTime is copied');
 Assert::sameValue($result->timeZoneId, $orig->timeZoneId, 'time zone is the same');
 Assert::sameValue($result->calendarId, $orig->calendarId, 'calendar is the same');

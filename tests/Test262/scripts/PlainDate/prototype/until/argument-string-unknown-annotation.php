@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['2000-05-02[foo=bar]', 'without time'], ['2000-05-02T15:23[foo=bar]', 'alone'], ['2000-05-02T15:23[UTC][foo=bar]', 'with time zone'], ['2000-05-02T15:23[u-ca=iso8601][foo=bar]', 'with calendar'], ['2000-05-02T15:23[UTC][foo=bar][u-ca=iso8601]', 'with time zone and calendar'], ['2000-05-02T15:23[foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
-$instance = new \Temporal\PlainDate(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->until($arg);

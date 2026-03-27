@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt = new \Temporal\PlainDateTime(2015, 12, 7, 3, 24, 30, 0, 3, 500);
+$dt = new \Temporal\Spec\PlainDateTime(2015, 12, 7, 3, 24, 30, 0, 3, 500);
 Assert::throws(\TypeError::class, fn() => $dt->withPlainTime(new \stdClass()), 'empty object not an acceptable argument');
 TemporalHelpers::assertPlainDateTime($dt->withPlainTime(['hour' => 10]), 2015, 12, 'M12', 7, 10, 0, 0, 0, 0, 0, 'plain object (hour) works');
 Assert::throws(\TypeError::class, fn() => $dt->withPlainTime(['hours' => 9]), 'plain object with a single unrecognized property fails');

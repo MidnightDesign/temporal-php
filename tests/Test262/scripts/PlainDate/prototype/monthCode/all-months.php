@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $year = 2021;
 $expected = ['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07', 'M08', 'M09', 'M10', 'M11', 'M12'];
 for ($month = 1; $month <= 12; $month++) {
-Assert::sameValue(new \Temporal\PlainDate($year, $month, 1)->monthCode, $expected[$month - 1], "month {$month}");
+Assert::sameValue(new \Temporal\Spec\PlainDate($year, $month, 1)->monthCode, $expected[$month - 1], "month {$month}");
 }

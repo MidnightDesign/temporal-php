@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt = new \Temporal\PlainDateTime(1976, 11, 18, 23, 59, 59, 999, 999, 999);
+$dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 23, 59, 59, 999, 999, 999);
 foreach (['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond'] as $smallestUnit) {
 TemporalHelpers::assertPlainDateTime($dt->round(['smallestUnit' => $smallestUnit]), 1976, 11, 'M11', 19, 0, 0, 0, 0, 0, 0, "balances to next {$smallestUnit}");
 }

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$tests = [[new \Temporal\PlainYearMonth(1976, 2), 29], [new \Temporal\PlainYearMonth(1976, 11), 30], [new \Temporal\PlainYearMonth(1976, 12), 31], [new \Temporal\PlainYearMonth(1977, 2), 28]];
+$tests = [[new \Temporal\Spec\PlainYearMonth(1976, 2), 29], [new \Temporal\Spec\PlainYearMonth(1976, 11), 30], [new \Temporal\Spec\PlainYearMonth(1976, 12), 31], [new \Temporal\Spec\PlainYearMonth(1977, 2), 28]];
 foreach ($tests as $__entry__) {
 [$plainYearMonth, $expected] = array_pad($__entry__, 2, null);
 Assert::sameValue($plainYearMonth->daysInMonth, $expected, "{$expected} days in the month of {$plainYearMonth}");

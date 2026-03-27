@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$minDateTime = new \Temporal\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
+$minDateTime = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
 $zeroNanoseconds = ['nanosecond' => 0];
 Assert::throws(\InvalidArgumentException::class, fn() => $minDateTime->with($zeroNanoseconds), '');

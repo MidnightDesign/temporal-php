@@ -8,20 +8,20 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 for ($i = 1; $i <= 7; ++$i) {
-$plainDate = new \Temporal\PlainDate(1976, 11, 14 + $i);
+$plainDate = new \Temporal\Spec\PlainDate(1976, 11, 14 + $i);
 Assert::sameValue($plainDate->dayOfYear, 319 + $i, "{$plainDate} should be on day {319 + $i}");
 }
-Assert::sameValue(new \Temporal\PlainDate(1970, 1, 1)->dayOfYear, 1, '');
-Assert::sameValue(new \Temporal\PlainDate(2000, 1, 1)->dayOfYear, 1, '');
-Assert::sameValue(new \Temporal\PlainDate(2021, 1, 15)->dayOfYear, 15, '');
-Assert::sameValue(new \Temporal\PlainDate(2020, 2, 15)->dayOfYear, 46, '');
-Assert::sameValue(new \Temporal\PlainDate(2000, 2, 15)->dayOfYear, 46, '');
-Assert::sameValue(new \Temporal\PlainDate(2020, 3, 15)->dayOfYear, 75, '');
-Assert::sameValue(new \Temporal\PlainDate(2000, 3, 15)->dayOfYear, 75, '');
-Assert::sameValue(new \Temporal\PlainDate(2001, 3, 15)->dayOfYear, 74, '');
-Assert::sameValue(new \Temporal\PlainDate(2000, 12, 31)->dayOfYear, 366, '');
-Assert::sameValue(new \Temporal\PlainDate(2001, 12, 31)->dayOfYear, 365, '');
-Assert::sameValue(\Temporal\PlainDate::from('2019-01-18')->dayOfYear, 18, '');
-Assert::sameValue(\Temporal\PlainDate::from('2020-02-18')->dayOfYear, 49, '');
-Assert::sameValue(\Temporal\PlainDate::from('2019-12-31')->dayOfYear, 365, '');
-Assert::sameValue(\Temporal\PlainDate::from('2000-12-31')->dayOfYear, 366, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(1970, 1, 1)->dayOfYear, 1, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2000, 1, 1)->dayOfYear, 1, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2021, 1, 15)->dayOfYear, 15, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2020, 2, 15)->dayOfYear, 46, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2000, 2, 15)->dayOfYear, 46, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2020, 3, 15)->dayOfYear, 75, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2000, 3, 15)->dayOfYear, 75, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2001, 3, 15)->dayOfYear, 74, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2000, 12, 31)->dayOfYear, 366, '');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2001, 12, 31)->dayOfYear, 365, '');
+Assert::sameValue(\Temporal\Spec\PlainDate::from('2019-01-18')->dayOfYear, 18, '');
+Assert::sameValue(\Temporal\Spec\PlainDate::from('2020-02-18')->dayOfYear, 49, '');
+Assert::sameValue(\Temporal\Spec\PlainDate::from('2019-12-31')->dayOfYear, 365, '');
+Assert::sameValue(\Temporal\Spec\PlainDate::from('2000-12-31')->dayOfYear, 366, '');

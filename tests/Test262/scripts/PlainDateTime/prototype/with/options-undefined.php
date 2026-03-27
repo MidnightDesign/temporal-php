@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\PlainDateTime(2000, 2, 2, 12, 34, 56, 987, 654, 321);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 2, 2, 12, 34, 56, 987, 654, 321);
 $fields = ['day' => 31];
 $explicit = $datetime->with($fields);
 Assert::sameValue($explicit->month, 2, 'default overflow is constrain');

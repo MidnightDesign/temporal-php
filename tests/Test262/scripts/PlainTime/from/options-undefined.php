@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $fields = ['hour' => 12, 'minute' => 60];
-$explicit = \Temporal\PlainTime::from($fields);
+$explicit = \Temporal\Spec\PlainTime::from($fields);
 Assert::sameValue($explicit->minute, 59, 'default overflow is constrain');
-$implicit = \Temporal\PlainTime::from($fields);
+$implicit = \Temporal\Spec\PlainTime::from($fields);
 Assert::sameValue($implicit->minute, 59, 'default overflow is constrain');
-$lambda = \Temporal\PlainTime::from($fields, function () {  });
+$lambda = \Temporal\Spec\PlainTime::from($fields, function () {  });
 Assert::sameValue($lambda->minute, 59, 'default overflow is constrain');

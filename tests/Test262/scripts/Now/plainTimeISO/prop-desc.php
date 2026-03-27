@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', 'typeof is function');
-Assert::methodExists('\Temporal\Now', 'plainTimeISO');
+Assert::methodExists('\Temporal\Spec\Now', 'plainTimeISO');

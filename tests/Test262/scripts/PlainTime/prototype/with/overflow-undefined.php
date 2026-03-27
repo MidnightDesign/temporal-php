@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$time = new \Temporal\PlainTime(12);
+$time = new \Temporal\Spec\PlainTime(12);
 $explicit = $time->with(['minute' => 67], []);
 TemporalHelpers::assertPlainTime($explicit, 12, 59, 0, 0, 0, 0, 'default overflow is constrain');
 $implicit = $time->with(['minute' => 67], new \stdClass());

@@ -8,13 +8,13 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDate(2000, 1, 1);
-$later1 = new \Temporal\PlainDate(2005, 2, 20);
+$earlier = new \Temporal\Spec\PlainDate(2000, 1, 1);
+$later1 = new \Temporal\Spec\PlainDate(2005, 2, 20);
 $explicit1 = $earlier->until($later1, ['smallestUnit' => 'year']);
 TemporalHelpers::assertDuration($explicit1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingMode is trunc');
 $implicit1 = $earlier->until($later1, ['smallestUnit' => 'year']);
 TemporalHelpers::assertDuration($implicit1, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingMode is trunc');
-$later2 = new \Temporal\PlainDate(2005, 12, 15);
+$later2 = new \Temporal\Spec\PlainDate(2005, 12, 15);
 $explicit2 = $earlier->until($later2, ['smallestUnit' => 'year']);
 TemporalHelpers::assertDuration($explicit2, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingMode is trunc');
 $implicit2 = $earlier->until($later2, ['smallestUnit' => 'year']);

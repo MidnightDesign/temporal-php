@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$yearInstance = new \Temporal\Duration(1999);
-$monthInstance = new \Temporal\Duration(0, 49);
-$weekInstance = new \Temporal\Duration(0, 0, 1);
-$dayInstance = new \Temporal\Duration(0, 0, 0, 42);
-$relativeTo = new \Temporal\PlainDate(2021, 12, 15);
+$yearInstance = new \Temporal\Spec\Duration(1999);
+$monthInstance = new \Temporal\Spec\Duration(0, 49);
+$weekInstance = new \Temporal\Spec\Duration(0, 0, 1);
+$dayInstance = new \Temporal\Spec\Duration(0, 0, 0, 42);
+$relativeTo = new \Temporal\Spec\PlainDate(2021, 12, 15);
 Assert::throws(\InvalidArgumentException::class, function () use ($yearInstance) { $yearInstance->total(['unit' => 'days']); }, 'total a Duration with non-zero years fails without largest/smallest unit');
 $yearResult = $yearInstance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
 Assert::sameValue($yearResult, 730_120, 'year duration contains proper days');

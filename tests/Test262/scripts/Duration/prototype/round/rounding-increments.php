@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dCalendar = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-$dNoCalendar = new \Temporal\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
-$plainRelativeTo = new \Temporal\PlainDate(2020, 1, 1);
-$zonedRelativeTo = new \Temporal\ZonedDateTime(0, 'UTC');
+$dCalendar = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+$dNoCalendar = new \Temporal\Spec\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
+$plainRelativeTo = new \Temporal\Spec\PlainDate(2020, 1, 1);
+$zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ([$plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
 TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'hours', 'roundingIncrement' => 3, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 6, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 5, 0, 0, 0, 0, 0);

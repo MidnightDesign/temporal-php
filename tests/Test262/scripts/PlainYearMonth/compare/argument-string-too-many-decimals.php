@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891', '1970-01-01T00:00:00.1234567890', '1970-01-01T00+00:00:00.1234567891', '1970-01-01T00+00:00:00.1234567890'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use ($arg) { \Temporal\PlainYearMonth::compare($arg, new \Temporal\PlainYearMonth(2019, 6)); }, 'no more than 9 decimal places are allowed (first arg)');
-Assert::throws(\InvalidArgumentException::class, function () use ($arg) { \Temporal\PlainYearMonth::compare(new \Temporal\PlainYearMonth(2019, 6), $arg); }, 'no more than 9 decimal places are allowed (second arg)');
+Assert::throws(\InvalidArgumentException::class, function () use ($arg) { \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)); }, 'no more than 9 decimal places are allowed (first arg)');
+Assert::throws(\InvalidArgumentException::class, function () use ($arg) { \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg); }, 'no more than 9 decimal places are allowed (second arg)');
 }

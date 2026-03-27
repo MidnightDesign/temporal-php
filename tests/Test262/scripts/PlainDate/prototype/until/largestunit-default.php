@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = \Temporal\PlainDate::from('2020-02-01');
-$feb21 = \Temporal\PlainDate::from('2021-02-01');
+$feb20 = \Temporal\Spec\PlainDate::from('2020-02-01');
+$feb21 = \Temporal\Spec\PlainDate::from('2021-02-01');
 TemporalHelpers::assertDuration($feb20->until($feb21), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0, 'no options');
 TemporalHelpers::assertDuration($feb20->until($feb21), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0, 'undefined options');
 TemporalHelpers::assertDuration($feb20->until($feb21, new \stdClass()), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0, 'no largestUnit');

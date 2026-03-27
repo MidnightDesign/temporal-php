@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891', '1970-01-01T00:00:00.1234567890', '1970-01-01T00+00:00:00.1234567891', '1970-01-01T00+00:00:00.1234567890'];
-$instance = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, function () use ($instance, $arg) { $instance->since($arg); }, 'no more than 9 decimal places are allowed');
 }

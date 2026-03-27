@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2024, 6, 15);
+$date = new \Temporal\Spec\PlainDate(2024, 6, 15);
 TemporalHelpers::assertPlainDate($date->with(['year' => 2025]), 2025, 6, 'M06', 15, 'only year changed');
 TemporalHelpers::assertPlainDate($date->with(['month' => 3]), 2024, 3, 'M03', 15, 'only month changed');
 TemporalHelpers::assertPlainDate($date->with(['day' => 1]), 2024, 6, 'M06', 1, 'only day changed');

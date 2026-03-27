@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $minimumProperties = ['hour' => 0];
 $allProperties = ['hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0];
-$resultWithout = \Temporal\PlainTime::from($minimumProperties);
-$resultWith = \Temporal\PlainTime::from($allProperties);
+$resultWithout = \Temporal\Spec\PlainTime::from($minimumProperties);
+$resultWith = \Temporal\Spec\PlainTime::from($allProperties);
 Assert::assertTrue($resultWithout->equals($resultWith), 'results should be the same with and without optional properties');

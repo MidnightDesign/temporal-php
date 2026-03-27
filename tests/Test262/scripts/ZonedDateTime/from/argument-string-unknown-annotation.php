@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00[UTC][foo=bar]', 'with time zone'], ['1970-01-01T00:00[UTC][foo=bar][u-ca=iso8601]', 'before calendar'], ['1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar]', 'after calendar'], ['1970-01-01T00:00[UTC][foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\ZonedDateTime::from($arg);
+$result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->epochNanoseconds, 0, "unknown annotation ({$description})");
 }

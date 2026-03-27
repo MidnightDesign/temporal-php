@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(1_572_757_201_000_000_000, '-03:30');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_572_757_201_000_000_000, '-03:30');
 $explicit = $datetime->with(['minute' => 31], []);
 Assert::sameValue($explicit->epochNanoseconds, 1_572_757_261_000_000_000, 'default offset is prefer');
 $implicit = $datetime->with(['minute' => 31], new \stdClass());

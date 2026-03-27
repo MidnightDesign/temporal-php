@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $minimumProperties = ['hour' => 0];
 $allProperties = ['hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0];
 $resultWithout = $instance->withPlainTime($minimumProperties);

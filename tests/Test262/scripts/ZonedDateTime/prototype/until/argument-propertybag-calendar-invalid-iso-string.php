@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as $__entry__) {
 [$cal, $description] = array_pad($__entry__, 2, null);

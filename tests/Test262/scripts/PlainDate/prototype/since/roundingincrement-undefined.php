@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDate(2000, 5, 2);
-$later = new \Temporal\PlainDate(2000, 5, 7);
+$earlier = new \Temporal\Spec\PlainDate(2000, 5, 2);
+$later = new \Temporal\Spec\PlainDate(2000, 5, 7);
 $explicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');

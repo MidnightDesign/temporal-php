@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$minDate = new \Temporal\PlainDate(-271_821, 4, 19);
-$midnight = new \Temporal\PlainTime();
+$minDate = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
+$midnight = new \Temporal\Spec\PlainTime();
 $item = ['timeZone' => '+00', 'plainTime' => $midnight];
 Assert::throws(\InvalidArgumentException::class, fn() => $minDate->toZonedDateTime($item), '');

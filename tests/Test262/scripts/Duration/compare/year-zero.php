@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration1 = new \Temporal\Duration(1);
-$duration2 = new \Temporal\Duration(2);
+$duration1 = new \Temporal\Spec\Duration(1);
+$duration2 = new \Temporal\Spec\Duration(2);
 $bad = '-000000-11-01';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => $bad]), 'Cannot use negative zero as extended year');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => $bad]), 'Cannot use negative zero as extended year');

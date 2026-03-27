@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\TypeError::class, fn() => \Temporal\Instant::fromEpochNanoseconds(), 'undefined');
-Assert::throws(\TypeError::class, fn() => \Temporal\Instant::fromEpochNanoseconds(), 'undefined');
-Assert::throws(\TypeError::class, fn() => \Temporal\Instant::fromEpochNanoseconds(null), 'null');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::fromEpochNanoseconds(), 'undefined');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::fromEpochNanoseconds(), 'undefined');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::fromEpochNanoseconds(null), 'null');
 Assert::incomplete('Number passed to fromEpochNanoseconds; BigInt vs Number distinction not replicable in PHP');

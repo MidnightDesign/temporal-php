@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = \Temporal\PlainTime::from('08:22:36.123456789');
-$later = \Temporal\PlainTime::from('12:39:40.987654321');
+$earlier = \Temporal\Spec\PlainTime::from('08:22:36.123456789');
+$later = \Temporal\Spec\PlainTime::from('12:39:40.987654321');
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['smallestUnit' => 'hours', 'roundingIncrement' => 11]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['smallestUnit' => 'minutes', 'roundingIncrement' => 29]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['smallestUnit' => 'seconds', 'roundingIncrement' => 29]), '');

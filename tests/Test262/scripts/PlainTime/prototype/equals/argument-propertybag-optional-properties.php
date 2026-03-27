@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 $minimumProperties = ['hour' => 0];
 $allProperties = ['hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0];
 $resultWithout = $instance->equals($minimumProperties);

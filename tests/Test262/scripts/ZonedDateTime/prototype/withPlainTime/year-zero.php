@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['-000000-12-07T03:24:30', '-000000-12-07T03:24:30+01:00', '-000000-12-07T03:24:30+00:00[UTC]'];
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->withPlainTime($arg), 'reject minus zero as extended year');
 }

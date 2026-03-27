@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
-\Temporal\Now::plainTimeISO($timeZone);
+\Temporal\Spec\Now::plainTimeISO($timeZone);
 $timeZone = '2021-08-19T17:30:45.123456789+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Now::plainTimeISO($timeZone), 'leap second in time zone name not valid');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Now::plainTimeISO($timeZone), 'leap second in time zone name not valid');

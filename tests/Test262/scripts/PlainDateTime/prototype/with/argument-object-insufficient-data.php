@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 Assert::throws(\TypeError::class, fn() => $instance->with(new \stdClass()), 'empty object not acceptable');
 $units = ['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($units as $unit) {

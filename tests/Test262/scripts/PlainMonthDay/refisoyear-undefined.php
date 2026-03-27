@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $args = [5, 2, 'iso8601'];
-$dateExplicit = new \Temporal\PlainMonthDay(...$args);
+$dateExplicit = new \Temporal\Spec\PlainMonthDay(...$args);
 Assert::incomplete('untranslatable: Number()');

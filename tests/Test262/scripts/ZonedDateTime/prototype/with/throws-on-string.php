@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(0, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::throws(\TypeError::class, fn() => $zdt->with('1976-11-18T12:00+00:00[UTC]'), '');
 Assert::throws(\TypeError::class, fn() => $zdt->with('1976-11-18'), '');
 Assert::throws(\TypeError::class, fn() => $zdt->with('12:00'), '');

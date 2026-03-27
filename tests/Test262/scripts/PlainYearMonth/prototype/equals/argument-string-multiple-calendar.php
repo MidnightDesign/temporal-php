@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01[u-ca=iso8601][!u-ca=iso8601]', '1970-01-01[!u-ca=iso8601][u-ca=iso8601]', '1970-01-01[UTC][u-ca=iso8601][!u-ca=iso8601]', '1970-01-01[u-ca=iso8601][foo=bar][!u-ca=iso8601]', '1970-01-01T00:00[u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00[!u-ca=iso8601][u-ca=iso8601]', '1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00[u-ca=iso8601][foo=bar][!u-ca=iso8601]'];
-$instance = new \Temporal\PlainYearMonth(2000, 5);
+$instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "reject more than one calendar annotation if any critical: {$arg}");
 }

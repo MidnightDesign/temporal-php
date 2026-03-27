@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$yearmonth = new \Temporal\PlainYearMonth(2000, 5);
-$duration = new \Temporal\Duration(1, 1);
+$yearmonth = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$duration = new \Temporal\Spec\Duration(1, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $yearmonth->subtract($duration, ['overflow' => null]), 'null');
 Assert::throws(\InvalidArgumentException::class, fn() => $yearmonth->subtract($duration, ['overflow' => true]), 'true');
 Assert::throws(\InvalidArgumentException::class, fn() => $yearmonth->subtract($duration, ['overflow' => false]), 'false');

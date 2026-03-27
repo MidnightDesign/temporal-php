@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-$relativeTo = \Temporal\PlainDate::from('2020-01-01');
+$d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+$relativeTo = \Temporal\Spec\PlainDate::from('2020-01-01');
 Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'hours', 'roundingIncrement' => 11]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'minutes', 'roundingIncrement' => 29]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'seconds', 'roundingIncrement' => 29]), '');

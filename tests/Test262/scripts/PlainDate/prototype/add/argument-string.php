@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = \Temporal\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
+$instance = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
 $result = $instance->add('P3D');
 TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 5);
 TemporalHelpers::assertPlainDate($instance->add('P1M1W'), 2000, 6, 'M06', 9, 'calendar units');

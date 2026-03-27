@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from(['year' => 1976, 'month' => 11, 'monthCode' => 'M12', 'day' => 18]), 'month and monthCode must agree');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDateTime::from(['year' => 1976, 'day' => 18]), 'required prop undefined throws');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDateTime::from(['year' => 1976, 'day' => 18, 'hour' => 15, 'minute' => 23, 'second' => 30, 'millisecond' => 123]), 'required prop missing throws');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDateTime::from(['year' => 1976, 'months' => 11, 'day' => 18]), 'plural "months" is not acceptable');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 1976, 'month' => 11, 'monthCode' => 'M12', 'day' => 18]), 'month and monthCode must agree');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 1976, 'day' => 18]), 'required prop undefined throws');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 1976, 'day' => 18, 'hour' => 15, 'minute' => 23, 'second' => 30, 'millisecond' => 123]), 'required prop missing throws');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 1976, 'months' => 11, 'day' => 18]), 'plural "months" is not acceptable');

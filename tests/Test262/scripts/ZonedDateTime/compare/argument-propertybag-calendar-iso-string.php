@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(0, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['2020-01-01', '2020-01-01[u-ca=iso8601]', '2020-01-01T00:00:00.000000000', '2020-01-01T00:00:00.000000000[u-ca=iso8601]', '01-01', '01-01[u-ca=iso8601]', '2020-01', '2020-01[u-ca=iso8601]'] as $calendar) {
 $arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar];
-$result1 = \Temporal\ZonedDateTime::compare($arg, $datetime);
+$result1 = \Temporal\Spec\ZonedDateTime::compare($arg, $datetime);
 Assert::sameValue($result1, 0, "Calendar created from string \"{$calendar}\" (first argument)");
-$result2 = \Temporal\ZonedDateTime::compare($datetime, $arg);
+$result2 = \Temporal\Spec\ZonedDateTime::compare($datetime, $arg);
 Assert::sameValue($result2, 0, "Calendar created from string \"{$calendar}\" (second argument)");
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
-$later = new \Temporal\PlainTime(13, 35, 57, 988, 655, 322);
+$earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
+$later = new \Temporal\Spec\PlainTime(13, 35, 57, 988, 655, 322);
 $validUnits = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $later->since($earlier, ['smallestUnit' => $smallestUnit]), $validUnits);

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt = new \Temporal\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
+$dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
 $units = ['day' => [1976, 11, 'M11', 19, 0, 0, 0, 0, 0, 0], 'hour' => [1976, 11, 'M11', 18, 14, 0, 0, 0, 0, 0], 'minute' => [1976, 11, 'M11', 18, 14, 24, 0, 0, 0, 0], 'second' => [1976, 11, 'M11', 18, 14, 23, 30, 0, 0, 0], 'millisecond' => [1976, 11, 'M11', 18, 14, 23, 30, 123, 0, 0], 'microsecond' => [1976, 11, 'M11', 18, 14, 23, 30, 123, 457, 0], 'nanosecond' => [1976, 11, 'M11', 18, 14, 23, 30, 123, 456, 789]];
 $expected = [1976, 11, 'M11', 18, 0, 0, 0, 0, 0, 0];
 foreach ($units as $unit => $expected) {

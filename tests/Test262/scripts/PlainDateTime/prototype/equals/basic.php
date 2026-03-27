@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt1 = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
-$dt2 = new \Temporal\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
-$dt3 = new \Temporal\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
-$dt4 = new \Temporal\PlainDateTime(2019, 10, 29, 15, 23, 30, 123, 456, 789);
-$dt5 = new \Temporal\PlainDateTime(1976, 11, 18, 10, 46, 38, 271, 986, 102);
+$dt1 = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$dt2 = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
+$dt3 = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
+$dt4 = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 15, 23, 30, 123, 456, 789);
+$dt5 = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 10, 46, 38, 271, 986, 102);
 Assert::sameValue($dt1->equals($dt1), true, 'equal');
 Assert::sameValue($dt1->equals($dt2), false, 'unequal');
 Assert::sameValue($dt2->equals($dt3), true, 'equal with different objects');

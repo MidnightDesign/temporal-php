@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnored(\Temporal\Instant::class, [10], 'subtract', [['nanoseconds' => 5]], function ($result) { Assert::sameValue($result->epochNanoseconds, 5, 'epochNanoseconds result'); });
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\Instant::class, [10], 'subtract', [['nanoseconds' => 5]], function ($result) { Assert::sameValue($result->epochNanoseconds, 5, 'epochNanoseconds result'); });

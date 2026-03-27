@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\Instant(1_000_000_000_987_654_321);
-$later = new \Temporal\Instant(1_000_090_061_988_655_322);
+$earlier = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
+$later = new \Temporal\Spec\Instant(1_000_090_061_988_655_322);
 TemporalHelpers::checkRoundingIncrementOptionWrongType(fn($roundingIncrement) => $later->since($earlier, ['roundingIncrement' => $roundingIncrement]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 90_061, 1, 1, 1, $descr), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 90_061, 1, 1, 0, $descr));

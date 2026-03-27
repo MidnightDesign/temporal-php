@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instant = new \Temporal\Instant(1_000_000_000_123_987_500);
+$instant = new \Temporal\Spec\Instant(1_000_000_000_123_987_500);
 $explicit1 = $instant->round(['smallestUnit' => 'microsecond']);
 Assert::sameValue($explicit1->epochNanoseconds, 1_000_000_000_123_988_000, 'default roundingMode is halfExpand');
 $implicit1 = $instant->round(['smallestUnit' => 'microsecond']);

@@ -10,10 +10,10 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validStrings = ['2000-05-02T00+00', '2000-05-02T00+00:00', '2000-05-02T00+00:00:00,0', '2000-05-02T00+00:00:00.000000000', '2000-05-02T00+0000', '2000-05-02T00+000000,0', '2000-05-02T00+000000.000000000', '2000-05-02T00+00:00[UTC]', '2000-05-02T00+00:00[!UTC]', '2000-05-02T00+01[Europe/Vienna]', '2000-05-02T00-02:30[America/St_Johns]', '2000-05-02T00-02:30:00,0[America/St_Johns]', '2000-05-02T00-02:30:00.000000000[America/St_Johns]', '2000-05-02T00-0230[America/St_Johns]', '2000-05-02T00-023000,0[America/St_Johns]', '2000-05-02T00-023000.000000000[America/St_Johns]'];
 foreach ($validStrings as $arg) {
-$result = \Temporal\PlainDate::from($arg);
+$result = \Temporal\Spec\PlainDate::from($arg);
 TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2, "\"{$arg}\" is a valid UTC offset with time for PlainDate");
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from($arg), "\"{$arg}\" UTC offset without time is not valid for PlainDate");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from($arg), "\"{$arg}\" UTC offset without time is not valid for PlainDate");
 }

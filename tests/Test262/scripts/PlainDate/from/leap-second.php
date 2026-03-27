@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('1976-11-18T23:59:60'), 1976, 11, 'M11', 18, 'string with leap second (second :60) maps to valid date');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('2016-12-31T23:59:60+00:00'), 2016, 12, 'M12', 31, 'string with leap second and UTC offset');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-11-18T23:59:60'), 1976, 11, 'M11', 18, 'string with leap second (second :60) maps to valid date');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2016-12-31T23:59:60+00:00'), 2016, 12, 'M12', 31, 'string with leap second and UTC offset');

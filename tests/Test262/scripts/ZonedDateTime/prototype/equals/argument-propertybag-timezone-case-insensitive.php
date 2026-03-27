@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $bag = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => 'utC'];
 $result1 = $instance->equals($bag);
 Assert::sameValue($result1, true, 'Time zone is case-insensitive with property bag argument');

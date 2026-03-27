@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainDateTime = \Temporal\PlainDateTime::from('1976-11-18T14:00:00');
+$plainDateTime = \Temporal\Spec\PlainDateTime::from('1976-11-18T14:00:00');
 Assert::throws(\TypeError::class, fn() => $plainDateTime->withCalendar(), 'missing argument');
 Assert::throws(\TypeError::class, fn() => $plainDateTime->withCalendar(), 'undefined argument');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainYearMonth(2000, 5);
-$later = new \Temporal\PlainYearMonth(2001, 6);
+$earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $validUnits = ['year', 'month'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($largestUnit) => $earlier->until($later, ['largestUnit' => $largestUnit]), $validUnits);

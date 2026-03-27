@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\PlainYearMonth(2000, 5);
-$later = new \Temporal\PlainYearMonth(2001, 6);
+$earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $units = ['years', 'months'];
 for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {

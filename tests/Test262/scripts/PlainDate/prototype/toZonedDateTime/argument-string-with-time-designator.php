@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDate(2000, 1, 1);
+$instance = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $validStrings = ['T00:30', 't00:30', 'T0030', 't0030', 'T00:30:00', 't00:30:00', 'T003000', 't003000', 'T00:30:00.000000000', 't00:30:00.000000000', 'T003000.000000000', 't003000.000000000'];
 foreach ($validStrings as $arg) {
 $result = $instance->toZonedDateTime(['plainTime' => $arg, 'timeZone' => 'UTC']);

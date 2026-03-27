@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$yearmonth = new \Temporal\PlainYearMonth(2000, 5);
+$yearmonth = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $result = $yearmonth->toString([]);
 Assert::sameValue($result, '2000-05', "default calendarName option is auto with built-in ISO calendar");

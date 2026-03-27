@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = \Temporal\ZonedDateTime::from('2020-02-01T00:00+01:00[+01:00]');
-$feb21 = \Temporal\ZonedDateTime::from('2021-02-01T00:00+01:00[+01:00]');
+$feb20 = \Temporal\Spec\ZonedDateTime::from('2020-02-01T00:00+01:00[+01:00]');
+$feb21 = \Temporal\Spec\ZonedDateTime::from('2021-02-01T00:00+01:00[+01:00]');
 $later = $feb20->add(['days' => 1, 'milliseconds' => 250, 'microseconds' => 250, 'nanoseconds' => 250]);
 $msDiff = $feb20->until($later, ['largestUnit' => 'milliseconds']);
 TemporalHelpers::assertDuration($msDiff, 0, 0, 0, 0, 0, 0, 0, 86_400_250, 250, 250);

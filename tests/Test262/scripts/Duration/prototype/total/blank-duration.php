@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$blank = new \Temporal\Duration();
-$plainRelativeTo = new \Temporal\PlainDate(2025, 8, 22);
-$zonedRelativeTo = new \Temporal\ZonedDateTime(1, 'UTC');
+$blank = new \Temporal\Spec\Duration();
+$plainRelativeTo = new \Temporal\Spec\PlainDate(2025, 8, 22);
+$zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(1, 'UTC');
 foreach (['days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $unit) {
 $result = $blank->total($unit);
 Assert::sameValue($result, 0, "total of {$unit} without relativeTo");

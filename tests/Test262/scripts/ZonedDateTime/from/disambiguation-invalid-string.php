@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($datetime, ['disambiguation' => 'other string']), '');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($datetime, ['disambiguation' => 'other string']), '');
 $propertyBag = ['timeZone' => 'UTC', 'year' => 2001, 'month' => 9, 'day' => 9, 'hour' => 1, 'minute' => 46, 'second' => 40, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
 foreach (['', 'EARLIER', 'balance', 'other string', 3, null] as $disambiguation) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from($propertyBag, ['disambiguation' => $disambiguation]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($propertyBag, ['disambiguation' => $disambiguation]), '');
 }

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$monthday = new \Temporal\PlainMonthDay(5, 2, 'iso8601');
+$monthday = new \Temporal\Spec\PlainMonthDay(5, 2, 'iso8601');
 TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', fn($calendarName) => $monthday->toString(['calendarName' => $calendarName]), fn($result, $descr) => Assert::sameValue($result, '05-02', $descr));

@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instant = \Temporal\Now::instant();
-Assert::assertTrue($instant instanceof \Temporal\Instant, '');
+$instant = \Temporal\Spec\Now::instant();
+Assert::assertTrue($instant instanceof \Temporal\Spec\Instant, '');

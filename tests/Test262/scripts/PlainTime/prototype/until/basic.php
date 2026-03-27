@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$one = new \Temporal\PlainTime(15, 23, 30, 123, 456, 789);
-$two = new \Temporal\PlainTime(16, 23, 30, 123, 456, 789);
-$three = new \Temporal\PlainTime(17, 0, 30, 123, 456, 789);
+$one = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789);
+$two = new \Temporal\Spec\PlainTime(16, 23, 30, 123, 456, 789);
+$three = new \Temporal\Spec\PlainTime(17, 0, 30, 123, 456, 789);
 TemporalHelpers::assertDuration($one->until($two), 0, 0, 0, 0, 1, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($two->until($one), 0, 0, 0, 0, -1, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($one->until($three), 0, 0, 0, 0, 1, 37, 0, 0, 0, 0);

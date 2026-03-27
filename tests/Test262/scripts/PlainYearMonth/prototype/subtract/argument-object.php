@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$ym = \Temporal\PlainYearMonth::from('2019-11');
+$ym = \Temporal\Spec\PlainYearMonth::from('2019-11');
 $tests = [[['months' => 2], 2019, 9, 'M09'], [['years' => 1], 2018, 11, 'M11'], [['months' => -2], 2020, 1, 'M01'], [['years' => -1], 2020, 11, 'M11']];
 foreach ($tests as $__entry_expected__) {
 [$argument] = array_pad($__entry_expected__, 1, null);

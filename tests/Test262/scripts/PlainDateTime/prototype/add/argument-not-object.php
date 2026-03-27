@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2000, 5, 2, 15, 30, 45, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 15, 30, 45, 987, 654, 321);
 Assert::throws(\TypeError::class, fn() => $instance->add(), 'undefined');
 Assert::throws(\TypeError::class, fn() => $instance->add(null), 'null');
 Assert::throws(\TypeError::class, fn() => $instance->add(true), 'boolean');

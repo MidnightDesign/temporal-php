@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $args = [2000, 5];
-$dateExplicit = new \Temporal\PlainYearMonth(...$args);
+$dateExplicit = new \Temporal\Spec\PlainYearMonth(...$args);
 Assert::incomplete('untranslatable: Number()');

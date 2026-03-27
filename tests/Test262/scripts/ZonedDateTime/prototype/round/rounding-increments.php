@@ -8,14 +8,14 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
-$expectedHours = new \Temporal\ZonedDateTime(217_177_200_000_000_000, '+01:00');
-$expectedMinutes = new \Temporal\ZonedDateTime(217_175_400_000_000_000, '+01:00');
-$expectedSeconds = new \Temporal\ZonedDateTime(217_175_010_000_000_000, '+01:00');
-$expectedMilliseconds = new \Temporal\ZonedDateTime(217_175_010_120_000_000, '+01:00');
-$expectedMicroseconds = new \Temporal\ZonedDateTime(217_175_010_123_460_000, '+01:00');
-$expectedNanoseconds = new \Temporal\ZonedDateTime(217_175_010_123_456_790, '+01:00');
-$expected1Day = new \Temporal\ZonedDateTime(217_206_000_000_000_000, '+01:00');
+$zdt = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
+$expectedHours = new \Temporal\Spec\ZonedDateTime(217_177_200_000_000_000, '+01:00');
+$expectedMinutes = new \Temporal\Spec\ZonedDateTime(217_175_400_000_000_000, '+01:00');
+$expectedSeconds = new \Temporal\Spec\ZonedDateTime(217_175_010_000_000_000, '+01:00');
+$expectedMilliseconds = new \Temporal\Spec\ZonedDateTime(217_175_010_120_000_000, '+01:00');
+$expectedMicroseconds = new \Temporal\Spec\ZonedDateTime(217_175_010_123_460_000, '+01:00');
+$expectedNanoseconds = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_790, '+01:00');
+$expected1Day = new \Temporal\Spec\ZonedDateTime(217_206_000_000_000_000, '+01:00');
 TemporalHelpers::assertZonedDateTimesEqual($zdt->round(['smallestUnit' => 'hour', 'roundingIncrement' => 4]), $expectedHours);
 TemporalHelpers::assertZonedDateTimesEqual($zdt->round(['smallestUnit' => 'minute', 'roundingIncrement' => 15]), $expectedMinutes);
 TemporalHelpers::assertZonedDateTimesEqual($zdt->round(['smallestUnit' => 'second', 'roundingIncrement' => 30]), $expectedSeconds);
@@ -27,6 +27,6 @@ $unitsAndIncrements = ['hour' => [1, 2, 4, 6, 8, 12], 'minute' => [1, 3, 5, 6, 1
 foreach ($unitsAndIncrements as $unit => $increments) {
 foreach ($increments as $increment) {
 $result = $zdt->round(['smallestUnit' => $unit, 'roundingMode' => 'ceil', 'roundingIncrement' => $increment]);
-Assert::sameValue($result instanceof \Temporal\ZonedDateTime, true, "{$unit} {$increment}");
+Assert::sameValue($result instanceof \Temporal\Spec\ZonedDateTime, true, "{$unit} {$increment}");
 }
 }

@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = [['2025-04-03T05:07.123[UTC]', 'Fractional minutes'], ['2025-04-03T12.5[UTC]', 'Fractional hours']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($arg, new \Temporal\Instant(0)), "{$description} not allowed in time string (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare(new \Temporal\Instant(0), $arg), "{$description} not allowed in time string (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, new \Temporal\Spec\Instant(0)), "{$description} not allowed in time string (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare(new \Temporal\Spec\Instant(0), $arg), "{$description} not allowed in time string (second argument)");
 }

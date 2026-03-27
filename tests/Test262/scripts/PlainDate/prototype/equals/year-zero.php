@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['-000000-10-31', '-000000-10-31T00:45', '-000000-10-31T00:45+01:00', '-000000-10-31T00:45+00:00[UTC]'];
-$instance = new \Temporal\PlainDate(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), 'reject minus zero as extended year');
 }

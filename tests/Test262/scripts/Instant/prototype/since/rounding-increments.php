@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = \Temporal\Instant::from('1976-11-18T15:23:30.123456789Z');
-$later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
+$earlier = \Temporal\Spec\Instant::from('1976-11-18T15:23:30.123456789Z');
+$later = \Temporal\Spec\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';
 TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'hours', 'roundingIncrement' => 3, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_434, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_435, 30, 0, 0, 0, 0);

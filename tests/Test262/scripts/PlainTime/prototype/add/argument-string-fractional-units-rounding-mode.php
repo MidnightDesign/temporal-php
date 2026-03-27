@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$midnight = new \Temporal\PlainTime();
+$midnight = new \Temporal\Spec\PlainTime();
 TemporalHelpers::assertPlainTime($midnight->add('PT1.03125H'), 1, 1, 52, 500, 0, 0, 'positive fractional units rounded with correct rounding mode');
 TemporalHelpers::assertPlainTime($midnight->add('-PT1.03125H'), 22, 58, 7, 500, 0, 0, 'negative fractional units rounded with correct rounding mode');

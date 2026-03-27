@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$fourFortyEight = new \Temporal\PlainTime(4, 48, 55);
-$elevenFiftyNine = new \Temporal\PlainTime(11, 59, 58);
+$fourFortyEight = new \Temporal\Spec\PlainTime(4, 48, 55);
+$elevenFiftyNine = new \Temporal\Spec\PlainTime(11, 59, 58);
 TemporalHelpers::assertDuration($elevenFiftyNine->since($fourFortyEight), 0, 0, 0, 0, 7, 11, 3, 0, 0, 0, 'does not include higher units than necessary (largest unit unspecified)');
 TemporalHelpers::assertDuration($elevenFiftyNine->since($fourFortyEight, ['largestUnit' => 'auto']), 0, 0, 0, 0, 7, 11, 3, 0, 0, 0, 'does not include higher units than necessary (largest unit is auto)');
 TemporalHelpers::assertDuration($elevenFiftyNine->since($fourFortyEight, ['largestUnit' => 'hours']), 0, 0, 0, 0, 7, 11, 3, 0, 0, 0, 'does not include higher units than necessary (largest unit is hours)');

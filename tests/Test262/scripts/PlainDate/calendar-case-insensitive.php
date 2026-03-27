@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = 'iSo8601';
-$result = new \Temporal\PlainDate(2000, 5, 2, $arg);
+$result = new \Temporal\Spec\PlainDate(2000, 5, 2, $arg);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');
 $arg = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2000, 5, 2, $arg), 'calendar ID is capital dotted I is not lowercased');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2000, 5, 2, $arg), 'calendar ID is capital dotted I is not lowercased');

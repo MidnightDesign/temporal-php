@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDate(2000, 5, 2);
-$later = new \Temporal\PlainDate(2001, 6, 3);
+$earlier = new \Temporal\Spec\PlainDate(2000, 5, 2);
+$later = new \Temporal\Spec\PlainDate(2001, 6, 3);
 TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'year', fn($smallestUnit) => $earlier->until($later, ['smallestUnit' => $smallestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, $descr));

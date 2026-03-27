@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validStrings = ['T00:30', 't00:30', 'T0030', 't0030', 'T00:30:00', 't00:30:00', 'T003000', 't003000', 'T00:30:00.000000000', 't00:30:00.000000000', 'T003000.000000000', 't003000.000000000'];
 foreach ($validStrings as $arg) {
-$result = \Temporal\PlainTime::from($arg);
+$result = \Temporal\Spec\PlainTime::from($arg);
 TemporalHelpers::assertPlainTime($result, 0, 30, 0, 0, 0, 0, "T prefix is accepted: {$arg}");
 }

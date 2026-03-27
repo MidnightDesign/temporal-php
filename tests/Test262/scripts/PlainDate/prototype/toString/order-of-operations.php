@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.calendarName', 'get options.calendarName.toString', 'call options.calendarName.toString'];
 $actual = [];
-$instance = new \Temporal\PlainDate(2000, 5, 2, 'iso8601');
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2, 'iso8601');
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

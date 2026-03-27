@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $validsEqual = [['+0330', '+03:30'], ['-0650', '-06:50'], ['-08', '-08:00'], ['1994-11-05T08:15:30-05:00', '-05:00'], ['1994-11-05T13:15:30Z', 'UTC']];
 foreach ($validsEqual as $__entry__) {
 [$valid, $canonical] = array_pad($__entry__, 2, null);

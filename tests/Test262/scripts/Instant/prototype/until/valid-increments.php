@@ -7,22 +7,22 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = \Temporal\Instant::from('1969-07-24T16:50:35.123456789Z');
-$later = \Temporal\Instant::from('2019-10-29T10:46:38.271986102Z');
+$earlier = \Temporal\Spec\Instant::from('1969-07-24T16:50:35.123456789Z');
+$later = \Temporal\Spec\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
 $options = ['largestUnit' => $largestUnit, 'smallestUnit' => 'hours', 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, '');
 }
 foreach (['minutes', 'seconds'] as $smallestUnit) {
 foreach ([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as $roundingIncrement) {
 $options = ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, '');
 }
 }
 foreach (['milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
 foreach ([1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500] as $roundingIncrement) {
 $options = ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, '');
 }
 }

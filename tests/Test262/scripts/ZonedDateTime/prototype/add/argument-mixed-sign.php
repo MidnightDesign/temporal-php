@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach (['constrain', 'reject'] as $overflow) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->add(['hours' => 1, 'minutes' => -30], ['overflow' => $overflow]), "mixed positive and negative values always throw (overflow = \"{$overflow}\")");
 }

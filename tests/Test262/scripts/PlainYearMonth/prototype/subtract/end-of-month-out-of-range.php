@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(0, 0, 0, 1);
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainYearMonth(275_760, 9)->subtract($duration), 'Addition of 1 month to receiver out of range');
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(275_760, 9)->subtract($duration), 'Addition of 1 month to receiver out of range');

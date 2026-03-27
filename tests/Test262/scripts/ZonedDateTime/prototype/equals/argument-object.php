@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $idsEqual0000 = ['+00:00', '+0000', '+00'];
 foreach ($idsEqual0000 as $arg) {
 foreach ($idsEqual0000 as $receiver) {

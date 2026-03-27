@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC', 'iso8601');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC', 'iso8601');
 TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', fn($calendarName) => $datetime->toString(['calendarName' => $calendarName]), fn($result, $descr) => Assert::sameValue($result, '2001-09-09T01:46:40.987654321+00:00[UTC]', $descr));

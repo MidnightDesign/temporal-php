@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
-$result = $datetime->since(new \Temporal\ZonedDateTime(0, 'UTC'), ['largestUnit' => 'month']);
+$datetime = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
+$result = $datetime->since(new \Temporal\Spec\ZonedDateTime(0, 'UTC'), ['largestUnit' => 'month']);
 TemporalHelpers::assertDuration($result, 0, -5, 0, -7, -7, -9, -24, -999, -999, -999);

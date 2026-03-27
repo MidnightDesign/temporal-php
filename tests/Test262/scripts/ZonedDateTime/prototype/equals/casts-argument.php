@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC', 'iso8601');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
 Assert::assertTrue($instance->equals('1970-01-01T00:00+00:00[UTC][u-ca=iso8601]'), '');
 Assert::assertTrue($instance->equals(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => 'UTC', 'calendar' => 'iso8601']), '');

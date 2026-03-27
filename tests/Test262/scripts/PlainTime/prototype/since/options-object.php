@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainTime();
-$result1 = $instance->since(new \Temporal\PlainTime(12, 34, 56), new \stdClass());
+$instance = new \Temporal\Spec\PlainTime();
+$result1 = $instance->since(new \Temporal\Spec\PlainTime(12, 34, 56), new \stdClass());
 TemporalHelpers::assertDuration($result1, 0, 0, 0, 0, -12, -34, -56, 0, 0, 0, 'options may be an empty plain object');
-$result2 = $instance->since(new \Temporal\PlainTime(12, 34, 56), function () {  });
+$result2 = $instance->since(new \Temporal\Spec\PlainTime(12, 34, 56), function () {  });
 TemporalHelpers::assertDuration($result2, 0, 0, 0, 0, -12, -34, -56, 0, 0, 0, 'options may be a function object');

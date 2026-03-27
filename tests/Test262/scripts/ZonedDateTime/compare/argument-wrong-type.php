@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
-$other = new \Temporal\ZonedDateTime(0, $timeZone);
+$other = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::compare($arg, $other), "{$description} does not convert to a valid ISO string (first argument)");
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::compare($other, $arg), "{$description} does not convert to a valid ISO string (second argument)");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $other), "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::compare($other, $arg), "{$description} does not convert to a valid ISO string (second argument)");
 }
 Assert::incomplete('untranslatable: Symbol()');

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof ZonedDateTime.prototype.toLocaleString` is `function`');
-Assert::methodExists('\Temporal\ZonedDateTime', 'toLocaleString');
+Assert::methodExists('\Temporal\Spec\ZonedDateTime', 'toLocaleString');

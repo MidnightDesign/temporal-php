@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = [['1970-01-01[U-CA=iso8601]', 'invalid capitalized key'], ['1970-01-01[u-CA=iso8601]', 'invalid partially-capitalized key'], ['1970-01-01[FOO=bar]', 'invalid capitalized unrecognized key']];
-$instance = new \Temporal\PlainDate(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "annotation keys must be lowercase: {$arg} - {$descr}");

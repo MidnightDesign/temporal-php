@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['', 'invalid iso8601', '00:00Z', 'Z', '25:00:00Z', '01:60:00Z', '01:60:61Z', '00:00Zjunk', '00:00:00Zjunk', '00:00:00.000000000Zjunk', '00:00:00+00:00junk', '00:00:00+00:00[UTC]junk', '00:00:00+00:00[UTC][u-ca=iso8601]junk', '001Z', '01:001Z', '01:01:001Z', '00:00-24:00', '00:00+24:00', '00:00:00+00:0000', '0000:00', '00:0000', '00:00:00+0000:00'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::from($arg), "\"{$arg}\" should not be a valid ISO string for a PlainTime");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from($arg), "\"{$arg}\" should not be a valid ISO string for a PlainTime");
 }

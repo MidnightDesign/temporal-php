@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDateTime(2020, 5, 31, 23, 12, 38, 271, 986, 102);
+$earlier = new \Temporal\Spec\PlainDateTime(2020, 5, 31, 23, 12, 38, 271, 986, 102);
 TemporalHelpers::assertPlainDateTime($earlier->add(['hours' => 2]), 2020, 6, 'M06', 1, 1, 12, 38, 271, 986, 102, 'hours overflow (push to next day)');
-$later = new \Temporal\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
+$later = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
 TemporalHelpers::assertPlainDateTime($later->add(['hours' => -12]), 2019, 10, 'M10', 28, 22, 46, 38, 271, 986, 102, 'hours overflow (push to previous day)');

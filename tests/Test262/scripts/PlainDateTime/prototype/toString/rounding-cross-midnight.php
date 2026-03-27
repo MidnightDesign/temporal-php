@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainDateTime = new \Temporal\PlainDateTime(1999, 12, 31, 23, 59, 59, 999, 999, 999);
+$plainDateTime = new \Temporal\Spec\PlainDateTime(1999, 12, 31, 23, 59, 59, 999, 999, 999);
 foreach (['ceil', 'halfExpand'] as $roundingMode) {
 Assert::sameValue($plainDateTime->toString(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode]), '2000-01-01T00:00:00.00000000', '');
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $fields = ['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
-$instance = \Temporal\Instant::fromEpochMilliseconds(10_000);
+$instance = \Temporal\Spec\Instant::fromEpochMilliseconds(10_000);
 foreach ($fields as $field) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract([$field => INF]), '');
 }

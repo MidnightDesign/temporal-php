@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainMonthDay(new \Temporal\PlainMonthDay(11.7, 24.1), 'M11', 24, 'positive fractional');
-TemporalHelpers::assertPlainMonthDay(new \Temporal\PlainMonthDay('11.7', '24.1'), 'M11', 24, 'fractional strings');
+TemporalHelpers::assertPlainMonthDay(new \Temporal\Spec\PlainMonthDay(11.7, 24.1), 'M11', 24, 'positive fractional');
+TemporalHelpers::assertPlainMonthDay(new \Temporal\Spec\PlainMonthDay('11.7', '24.1'), 'M11', 24, 'fractional strings');
 Assert::incomplete('untranslatable: Symbol()');

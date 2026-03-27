@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainYearMonth(\Temporal\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M01'], new \stdClass()), 2021, 1, 'M01', 'options may be an empty plain object');
-TemporalHelpers::assertPlainYearMonth(\Temporal\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M01'], function () {  }), 2021, 1, 'M01', 'options may be an empty function object');
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M01'], new \stdClass()), 2021, 1, 'M01', 'options may be an empty plain object');
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M01'], function () {  }), 2021, 1, 'M01', 'options may be an empty function object');

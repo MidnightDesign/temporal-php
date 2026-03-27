@@ -8,19 +8,19 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$validValues = [new \Temporal\PlainTime(12), '12:00'];
+$validValues = [new \Temporal\Spec\PlainTime(12), '12:00'];
 foreach ($validValues as $value) {
-$explicit = \Temporal\PlainTime::from($value, []);
+$explicit = \Temporal\Spec\PlainTime::from($value, []);
 TemporalHelpers::assertPlainTime($explicit, 12, 0, 0, 0, 0, 0, 'overflow is ignored');
-$implicit = \Temporal\PlainTime::from($value, new \stdClass());
+$implicit = \Temporal\Spec\PlainTime::from($value, new \stdClass());
 TemporalHelpers::assertPlainTime($implicit, 12, 0, 0, 0, 0, 0, 'overflow is ignored');
-$lambda = \Temporal\PlainTime::from($value, function () {  });
+$lambda = \Temporal\Spec\PlainTime::from($value, function () {  });
 TemporalHelpers::assertPlainTime($lambda, 12, 0, 0, 0, 0, 0, 'overflow is ignored');
 }
 $propertyBag = ['hour' => 26];
-$explicit = \Temporal\PlainTime::from($propertyBag, []);
+$explicit = \Temporal\Spec\PlainTime::from($propertyBag, []);
 TemporalHelpers::assertPlainTime($explicit, 23, 0, 0, 0, 0, 0, 'default overflow is constrain');
-$implicit = \Temporal\PlainTime::from($propertyBag, new \stdClass());
+$implicit = \Temporal\Spec\PlainTime::from($propertyBag, new \stdClass());
 TemporalHelpers::assertPlainTime($implicit, 23, 0, 0, 0, 0, 0, 'default overflow is constrain');
-$lambda = \Temporal\PlainTime::from($propertyBag, function () {  });
+$lambda = \Temporal\Spec\PlainTime::from($propertyBag, function () {  });
 TemporalHelpers::assertPlainTime($lambda, 23, 0, 0, 0, 0, 0, 'default overflow is constrain');

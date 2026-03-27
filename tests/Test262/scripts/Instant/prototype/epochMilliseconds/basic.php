@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$afterEpoch = new \Temporal\Instant(217_175_010_123_456_789);
+$afterEpoch = new \Temporal\Spec\Instant(217_175_010_123_456_789);
 Assert::sameValue($afterEpoch->epochMilliseconds, 217_175_010_123, 'epochMilliseconds post epoch');
 Assert::sameValue((is_int($afterEpoch->epochMilliseconds) || is_float($afterEpoch->epochMilliseconds)), true, 'epochMilliseconds value is a number');
-$beforeEpoch = new \Temporal\Instant(-217_175_010_876_543_211);
+$beforeEpoch = new \Temporal\Spec\Instant(-217_175_010_876_543_211);
 Assert::sameValue($beforeEpoch->epochMilliseconds, -217_175_010_877, 'epochMilliseconds pre epoch');
 Assert::sameValue((is_int($beforeEpoch->epochMilliseconds) || is_float($beforeEpoch->epochMilliseconds)), true, 'epochMilliseconds value is a number');

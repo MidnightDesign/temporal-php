@@ -12,7 +12,7 @@ $base = ['hour' => 15, 'minute' => 30, 'second' => 45, 'millisecond' => 987, 'mi
 foreach ([INF, -INF] as $inf) {
 foreach (['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::from(array_merge($base, [$prop => $inf]), ['overflow' => $overflow]), "{$prop} property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from(array_merge($base, [$prop => $inf]), ['overflow' => $overflow]), "{$prop} property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

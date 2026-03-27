@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = new \Temporal\ZonedDateTime(1_580_511_600_000_000_000, '+01:00');
+$feb20 = new \Temporal\Spec\ZonedDateTime(1_580_511_600_000_000_000, '+01:00');
 $later = $feb20->add(['days' => 1, 'milliseconds' => 250, 'microseconds' => 250, 'nanoseconds' => 250]);
 $msDiff = $later->since($feb20, ['largestUnit' => 'milliseconds']);
 TemporalHelpers::assertDuration($msDiff, 0, 0, 0, 0, 0, 0, 0, 86_400_250, 250, 250);

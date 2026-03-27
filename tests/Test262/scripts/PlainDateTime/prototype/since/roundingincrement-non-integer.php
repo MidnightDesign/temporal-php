@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 0);
-$later = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 5);
+$earlier = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 0);
+$later = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 5);
 $result = $later->since($earlier, ['roundingIncrement' => 2.5, 'roundingMode' => 'trunc']);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 'roundingIncrement 2.5 truncates to 2');
 $result2 = $later->since($earlier, ['smallestUnit' => 'days', 'roundingIncrement' => 1_000_000_000 + 0.5, 'roundingMode' => 'expand']);

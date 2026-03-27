@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\Instant(1_000_000_000_000_000_000);
-$later = new \Temporal\Instant(1_000_090_061_123_987_500);
+$earlier = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
+$later = new \Temporal\Spec\Instant(1_000_090_061_123_987_500);
 TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', fn($roundingMode) => $earlier->until($later, ['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 90_061, 123, 987, 0, $descr));

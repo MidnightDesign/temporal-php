@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 50], ['overflow' => 'constrain']), 2021, 1, 'M01', 31, 'day 50 in January constrained to 31');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 2021, 'month' => 2, 'day' => 30], ['overflow' => 'constrain']), 2021, 2, 'M02', 28, 'day 30 in February 2021 constrained to 28');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from(['year' => 2020, 'month' => 2, 'day' => 30], ['overflow' => 'constrain']), 2020, 2, 'M02', 29, 'day 30 in February 2020 (leap year) constrained to 29');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 32], ['overflow' => 'reject']), 'overflow: reject throws for day 32');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 50], ['overflow' => 'constrain']), 2021, 1, 'M01', 31, 'day 50 in January constrained to 31');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 2, 'day' => 30], ['overflow' => 'constrain']), 2021, 2, 'M02', 28, 'day 30 in February 2021 constrained to 28');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 2020, 'month' => 2, 'day' => 30], ['overflow' => 'constrain']), 2020, 2, 'M02', 29, 'day 30 in February 2020 (leap year) constrained to 29');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 32], ['overflow' => 'reject']), 'overflow: reject throws for day 32');

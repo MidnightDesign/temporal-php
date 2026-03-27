@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$oneMonth = new \Temporal\Duration(0, 0, 0, 31, 0, 0, 0, 0, 0, 0);
+$oneMonth = new \Temporal\Spec\Duration(0, 0, 0, 31, 0, 0, 0, 0, 0, 0);
 Assert::sameValue($oneMonth->total(['unit' => 'months', 'relativeTo' => ['year' => 2020, 'month' => 1, 'day' => 1, 'months' => 2]]), 1, '');

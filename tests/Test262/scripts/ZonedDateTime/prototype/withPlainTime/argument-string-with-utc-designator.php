@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]', '09:00:00Z[UTC]', '09:00:00Z'];
-$instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->withPlainTime($arg), 'String with UTC designator should not be valid as a PlainTime');
 }

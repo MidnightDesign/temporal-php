@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(0, 'UTC');
-$later = new \Temporal\ZonedDateTime(5, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(5, 'UTC');
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 + 1]), 'ending bound of 1e8 + 1 days is out of range when added to 1970-01-01');
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->since($later, ['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 + 1]), 'ending bound of -1e8 - 1 days is out of range when added to 1970-01-01');
 $result = $later->since($earlier, ['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000, 'roundingMode' => 'expand']);

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = '+01:00';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $str = '1970-01-01T00:00';
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($str), 'bare date-time string is not a ZonedDateTime');
 $str = '1970-01-01T00:00Z';

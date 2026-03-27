@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnored(\Temporal\PlainDateTime::class, [2000, 5, 2, 12, 34, 56, 987, 654, 321], 'add', [['nanoseconds' => 1]], fn($result) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 34, 56, 987, 654, 322));
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\PlainDateTime::class, [2000, 5, 2, 12, 34, 56, 987, 654, 321], 'add', [['nanoseconds' => 1]], fn($result) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 34, 56, 987, 654, 322));

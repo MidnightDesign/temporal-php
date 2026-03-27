@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$common0131 = new \Temporal\PlainDate(2019, 1, 31);
-$leap0131 = new \Temporal\PlainDate(2016, 1, 31);
+$common0131 = new \Temporal\Spec\PlainDate(2019, 1, 31);
+$leap0131 = new \Temporal\Spec\PlainDate(2016, 1, 31);
 TemporalHelpers::assertPlainDate($common0131->with(['monthCode' => 'M02']), 2019, 2, 'M02', 28, 'common-year Feb constrains to 28');
 Assert::throws(\InvalidArgumentException::class, function () use ($common0131) { $common0131->with(['monthCode' => 'M02'], ['overflow' => 'reject']); }, 'common-year Feb rejects with 31');
 TemporalHelpers::assertPlainDate($common0131->with(['monthCode' => 'M03'], ['overflow' => 'reject']), 2019, 3, 'M03', 31, 'common-year Mar does not reject 31');

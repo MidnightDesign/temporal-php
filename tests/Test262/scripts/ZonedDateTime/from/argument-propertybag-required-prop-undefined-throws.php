@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\TypeError::class, fn() => \Temporal\ZonedDateTime::from(['year' => 1976, 'day' => 18, 'timeZone' => '+01:00']), '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'day' => 18, 'timeZone' => '+01:00']), '');

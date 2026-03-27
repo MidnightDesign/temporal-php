@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$tests = [new \Temporal\PlainDate(1976, 1, 1), new \Temporal\PlainDate(1976, 11, 18), new \Temporal\PlainDate(1976, 12, 31)];
+$tests = [new \Temporal\Spec\PlainDate(1976, 1, 1), new \Temporal\Spec\PlainDate(1976, 11, 18), new \Temporal\Spec\PlainDate(1976, 12, 31)];
 foreach ($tests as $plainDate) {
 Assert::sameValue($plainDate->daysInWeek, 7, "Seven days in the week of {$plainDate}");
 }

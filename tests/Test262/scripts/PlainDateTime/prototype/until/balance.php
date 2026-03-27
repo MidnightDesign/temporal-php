@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$a = \Temporal\PlainDateTime::from('2017-10-05T08:07:14+00:00[UTC]');
-$b = \Temporal\PlainDateTime::from('2021-03-05T03:32:45+00:00[UTC]');
-$c = \Temporal\PlainDateTime::from('2021-03-05T09:32:45+00:00[UTC]');
+$a = \Temporal\Spec\PlainDateTime::from('2017-10-05T08:07:14+00:00[UTC]');
+$b = \Temporal\Spec\PlainDateTime::from('2021-03-05T03:32:45+00:00[UTC]');
+$c = \Temporal\Spec\PlainDateTime::from('2021-03-05T09:32:45+00:00[UTC]');
 $r1 = $a->until($b, ['largestUnit' => 'months']);
 TemporalHelpers::assertDuration($r1, 0, 40, 0, 27, 19, 25, 31, 0, 0, 0, 'r1');
 Assert::sameValue($a->add($r1)->toString(), $b->toString(), 'a.add(r1)');

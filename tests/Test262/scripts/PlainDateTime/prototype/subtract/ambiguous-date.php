@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$mar31 = new \Temporal\PlainDateTime(2020, 3, 31, 15, 0);
+$mar31 = new \Temporal\Spec\PlainDateTime(2020, 3, 31, 15, 0);
 TemporalHelpers::assertPlainDateTime($mar31->subtract(['months' => 1]), 2020, 2, 'M02', 29, 15, 0, 0, 0, 0, 0, 'constrain when ambiguous result (overflow options not supplied)');
 TemporalHelpers::assertPlainDateTime($mar31->subtract(['months' => 1], ['overflow' => 'constrain']), 2020, 2, 'M02', 29, 15, 0, 0, 0, 0, 0, 'constrain when ambiguous result (overflow options supplied)');
 Assert::throws(\InvalidArgumentException::class, fn() => $mar31->subtract(['months' => 1], ['overflow' => 'reject']), 'throw when ambiguous result with reject');

@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainDate = new \Temporal\PlainDate(2000, 5, 2);
+$plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::throws(\TypeError::class, fn() => $plainDate->toPlainDateTime(new \stdClass()), 'empty object');
 Assert::throws(\TypeError::class, fn() => $plainDate->toPlainDateTime(['minutes' => 30]), 'plural property');

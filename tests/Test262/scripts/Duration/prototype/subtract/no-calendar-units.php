@@ -7,14 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$blank = new \Temporal\Duration();
-$withYears = new \Temporal\Duration(1);
+$blank = new \Temporal\Spec\Duration();
+$withYears = new \Temporal\Spec\Duration(1);
 Assert::throws(\InvalidArgumentException::class, fn() => $withYears->subtract($blank), 'should not subtract from receiver with years');
-$withMonths = new \Temporal\Duration(0, 1);
+$withMonths = new \Temporal\Spec\Duration(0, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $withMonths->subtract($blank), 'should not subtract from receiver with months');
-$withWeeks = new \Temporal\Duration(0, 0, 1);
+$withWeeks = new \Temporal\Spec\Duration(0, 0, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $withWeeks->subtract($blank), 'should not subtract from receiver with weeks');
-$ok = new \Temporal\Duration(0, 0, 0, 1);
+$ok = new \Temporal\Spec\Duration(0, 0, 0, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $ok->subtract($withYears), 'should not subtract duration with years');
 Assert::throws(\InvalidArgumentException::class, fn() => $ok->subtract($withMonths), 'should not subtract duration with months');
 Assert::throws(\InvalidArgumentException::class, fn() => $ok->subtract($withWeeks), 'should not subtract duration with weeks');

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $str = '1970-01-01T00:02:00.000000000+00:02[+01:30]';
-$result = \Temporal\Instant::from($str);
+$result = \Temporal\Spec\Instant::from($str);
 Assert::sameValue($result->epochNanoseconds, 0, 'UTC offset determined from offset part of string');

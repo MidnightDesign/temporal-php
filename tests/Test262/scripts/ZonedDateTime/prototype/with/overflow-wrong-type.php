@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->with(['second' => 41], ['overflow' => null]), 'null');
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->with(['second' => 41], ['overflow' => true]), 'true');
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->with(['second' => 41], ['overflow' => false]), 'false');

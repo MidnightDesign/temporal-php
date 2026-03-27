@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach (['2020-01-01', '2020-01-01[u-ca=iso8601]', '2020-01-01T00:00:00.000000000', '2020-01-01T00:00:00.000000000[u-ca=iso8601]', '01-01', '01-01[u-ca=iso8601]', '2020-01', '2020-01[u-ca=iso8601]'] as $calendar) {
 $arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => $calendar];
 $result = $instance->since($arg);

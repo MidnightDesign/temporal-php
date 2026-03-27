@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnored(\Temporal\Duration::class, [0, 0, 0, 4, 5, 6, 7, 987, 654, 321], 'negated', [], fn($result) => TemporalHelpers::assertDuration($result, 0, 0, 0, -4, -5, -6, -7, -987, -654, -321));
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\Duration::class, [0, 0, 0, 4, 5, 6, 7, 987, 654, 321], 'negated', [], fn($result) => TemporalHelpers::assertDuration($result, 0, 0, 0, -4, -5, -6, -7, -987, -654, -321));

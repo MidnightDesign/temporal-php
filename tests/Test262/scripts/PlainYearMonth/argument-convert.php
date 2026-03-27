@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(2_020.6, 11.7), 2020, 11, 'M11', 'positive fractional');
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(-2_020.6, 11.7), -2020, 11, 'M11', 'negative fractional');
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(null, 11), 0, 11, 'M11', 'null defaults to zero');
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth(false, true), 0, 1, 'M01', 'boolean defaults');
-TemporalHelpers::assertPlainYearMonth(new \Temporal\PlainYearMonth('2020.6', '11.7'), 2020, 11, 'M11', 'fractional strings');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(2_020.6, 11.7), 2020, 11, 'M11', 'positive fractional');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(-2_020.6, 11.7), -2020, 11, 'M11', 'negative fractional');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(null, 11), 0, 11, 'M11', 'null defaults to zero');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(false, true), 0, 1, 'M01', 'boolean defaults');
+TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth('2020.6', '11.7'), 2020, 11, 'M11', 'fractional strings');
 Assert::incomplete('untranslatable: Symbol()');

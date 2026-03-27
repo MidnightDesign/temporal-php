@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$blank = new \Temporal\Duration();
+$blank = new \Temporal\Spec\Duration();
 foreach ([-1, 0, 1] as $val) {
 $result = $blank->with(['years' => $val]);
 TemporalHelpers::assertDuration($result, $val, 0, 0, 0, 0, 0, 0, 0, 0, 0, "with years {$val}");

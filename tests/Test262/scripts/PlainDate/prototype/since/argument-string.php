@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = new \Temporal\PlainDate(2024, 1, 15);
+$d = new \Temporal\Spec\PlainDate(2024, 1, 15);
 Assert::sameValue($d->since('2024-01-01')->days, 14, 'since ISO string');
 Assert::sameValue($d->since('2024-02-01')->days, -17, 'since future ISO string (negative)');

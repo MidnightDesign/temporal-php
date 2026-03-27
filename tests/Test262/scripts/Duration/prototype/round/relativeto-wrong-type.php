@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
-$instance = new \Temporal\Duration(1, 0, 0, 0, 24);
+$instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$relativeTo, $description] = array_pad($__entry__, 2, null);

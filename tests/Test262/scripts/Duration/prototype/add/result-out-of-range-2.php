@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = \Temporal\Duration::from(['days' => 104_249_991_374]);
+$duration = \Temporal\Spec\Duration::from(['days' => 104_249_991_374]);
 Assert::throws(\InvalidArgumentException::class, fn() => $duration->add($duration), '');

@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach ([['overflow' => 'constrain'], ['overflow' => 'reject']] as $validOptions) {
-$d = new \Temporal\PlainDate(1, 2, 3);
-$d2 = \Temporal\PlainDate::from($d, $validOptions);
+$d = new \Temporal\Spec\PlainDate(1, 2, 3);
+$d2 = \Temporal\Spec\PlainDate::from($d, $validOptions);
 Assert::sameValue($d2->year, 1, '');
 Assert::sameValue($d2->month, 2, '');
 Assert::sameValue($d2->day, 3, '');

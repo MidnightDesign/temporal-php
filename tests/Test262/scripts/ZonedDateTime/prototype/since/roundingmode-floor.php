@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(1_546_935_756_123_456_789, 'UTC');
-$later = new \Temporal\ZonedDateTime(1_631_018_380_987_654_289, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_546_935_756_123_456_789, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(1_631_018_380_987_654_289, 'UTC');
 $expected = [['years', [2], [-3]], ['months', [0, 31], [0, -32]], ['weeks', [0, 0, 139], [0, 0, -140]], ['days', [0, 0, 0, 973], [0, 0, 0, -974]], ['hours', [0, 0, 0, 0, 23_356], [0, 0, 0, 0, -23_357]], ['minutes', [0, 0, 0, 0, 23_356, 17], [0, 0, 0, 0, -23_356, -18]], ['seconds', [0, 0, 0, 0, 23_356, 17, 4], [0, 0, 0, 0, -23_356, -17, -5]], ['milliseconds', [0, 0, 0, 0, 23_356, 17, 4, 864], [0, 0, 0, 0, -23_356, -17, -4, -865]], ['microseconds', [0, 0, 0, 0, 23_356, 17, 4, 864, 197], [0, 0, 0, 0, -23_356, -17, -4, -864, -198]], ['nanoseconds', [0, 0, 0, 0, 23_356, 17, 4, 864, 197, 500], [0, 0, 0, 0, -23_356, -17, -4, -864, -197, -500]]];
 $roundingMode = 'floor';
 foreach ($expected as $__entry__) {

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainDate = new \Temporal\PlainDate(2000, 5, 2);
+$plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::incomplete('untranslatable object property');

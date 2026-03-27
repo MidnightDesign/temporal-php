@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $fields = ['year' => 2000, 'month' => 13, 'day' => 2];
-$explicit = \Temporal\PlainDate::from($fields);
+$explicit = \Temporal\Spec\PlainDate::from($fields);
 Assert::sameValue($explicit->month, 12, 'default overflow is constrain');
-$implicit = \Temporal\PlainDate::from($fields);
+$implicit = \Temporal\Spec\PlainDate::from($fields);
 Assert::sameValue($implicit->month, 12, 'default overflow is constrain');
-$implicitEmpty = \Temporal\PlainDate::from($fields, new \stdClass());
+$implicitEmpty = \Temporal\Spec\PlainDate::from($fields, new \stdClass());
 Assert::sameValue($implicitEmpty->month, 12, 'default overflow is constrain');
-$lambda = \Temporal\PlainDate::from($fields, function () {  });
+$lambda = \Temporal\Spec\PlainDate::from($fields, function () {  });
 Assert::sameValue($lambda->month, 12, 'default overflow is constrain');

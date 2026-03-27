@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$leapDay = new \Temporal\PlainMonthDay(2, 29);
+$leapDay = new \Temporal\Spec\PlainMonthDay(2, 29);
 TemporalHelpers::assertPlainMonthDay($leapDay, 'M02', 29, 'leap day is supported');
 Assert::sameValue($leapDay->calendarId, 'iso8601', 'leap day calendar');
-$beforeEpoch = new \Temporal\PlainMonthDay(12, 2, 'iso8601', 1920);
+$beforeEpoch = new \Temporal\Spec\PlainMonthDay(12, 2, 'iso8601', 1920);
 TemporalHelpers::assertPlainMonthDay($beforeEpoch, 'M12', 2, 'reference year before epoch', 1920);
 Assert::sameValue($beforeEpoch->calendarId, 'iso8601', 'reference year before epoch calendar');
-$afterEpoch = new \Temporal\PlainMonthDay(1, 7, 'iso8601', 1980);
+$afterEpoch = new \Temporal\Spec\PlainMonthDay(1, 7, 'iso8601', 1980);
 TemporalHelpers::assertPlainMonthDay($afterEpoch, 'M01', 7, 'reference year after epoch', 1980);
 Assert::sameValue($afterEpoch->calendarId, 'iso8601', 'reference year after epoch calendar');

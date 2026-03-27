@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$from = new \Temporal\PlainDateTime(1970, 1, 1);
-$to = new \Temporal\PlainDateTime(1971, 1, 1);
+$from = new \Temporal\Spec\PlainDateTime(1970, 1, 1);
+$to = new \Temporal\Spec\PlainDateTime(1971, 1, 1);
 $options = ['roundingIncrement' => 100_000_000, 'smallestUnit' => 'months'];
 Assert::throws(\InvalidArgumentException::class, fn() => $from->since($to, $options), '');

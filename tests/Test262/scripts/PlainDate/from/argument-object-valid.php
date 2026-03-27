@@ -12,6 +12,6 @@ $valid = [[['year' => 2019, 'month' => 10, 'monthCode' => 'M10', 'day' => 1, 'ho
 foreach ($valid as $__entry_expected__) {
 [$dateTimeFields] = array_pad($__entry_expected__, 1, null);
 $expected = array_slice($__entry_expected__, 1);
-$plainDate = \Temporal\PlainDate::from($dateTimeFields);
+$plainDate = \Temporal\Spec\PlainDate::from($dateTimeFields);
 Assert::incomplete('untranslatable: JSON.stringify');
 }

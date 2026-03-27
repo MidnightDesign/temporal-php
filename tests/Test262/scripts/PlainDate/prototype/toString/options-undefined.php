@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = new \Temporal\PlainDate(2000, 5, 2);
+$d = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::sameValue($d->toString(null), '2000-05-02', '');
 Assert::sameValue($d->toString(new \stdClass()), '2000-05-02', '');

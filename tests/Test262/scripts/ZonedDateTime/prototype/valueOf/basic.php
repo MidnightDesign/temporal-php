@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zonedDateTime = new \Temporal\ZonedDateTime(100, 'UTC');
-$zonedDateTime2 = new \Temporal\ZonedDateTime(987_654_321, 'UTC');
+$zonedDateTime = new \Temporal\Spec\ZonedDateTime(100, 'UTC');
+$zonedDateTime2 = new \Temporal\Spec\ZonedDateTime(987_654_321, 'UTC');
 Assert::throws(\TypeError::class, fn() => $zonedDateTime->valueOf(), 'valueOf');
 Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');

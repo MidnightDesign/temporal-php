@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$mar31 = \Temporal\ZonedDateTime::from('2020-03-31T15:00+00:00[UTC]');
-$expected = \Temporal\ZonedDateTime::from('2020-02-29T15:00:00+00:00[UTC]');
+$mar31 = \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:00+00:00[UTC]');
+$expected = \Temporal\Spec\ZonedDateTime::from('2020-02-29T15:00:00+00:00[UTC]');
 TemporalHelpers::assertZonedDateTimesEqual($mar31->subtract(['months' => 1]), $expected);
 TemporalHelpers::assertZonedDateTimesEqual($mar31->subtract(['months' => 1], ['overflow' => 'constrain']), $expected);

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
+$duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 $validUnits = ['second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $duration->toString(['smallestUnit' => $smallestUnit]), $validUnits);

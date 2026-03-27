@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00[UTC][UTC]', '1970-01-01T00:00[!UTC][UTC]', '1970-01-01T00:00[UTC][!UTC]', '1970-01-01T00:00[UTC][u-ca=iso8601][UTC]', '1970-01-01T00:00[UTC][foo=bar][UTC]'];
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "reject more than one time zone annotation: {$arg}");
 }

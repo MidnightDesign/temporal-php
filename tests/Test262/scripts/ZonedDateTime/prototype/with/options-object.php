@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $result1 = $instance->with(['day' => 5], new \stdClass());
 Assert::sameValue($result1->epochNanoseconds, 345_600_000_000_000, 'UTC');
 $result2 = $instance->with(['day' => 5], function () {  });

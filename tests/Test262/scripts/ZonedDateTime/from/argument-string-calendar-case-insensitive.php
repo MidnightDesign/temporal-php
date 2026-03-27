@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '1976-11-18T00:00[UTC][u-ca=ISO8601]';
-$result = \Temporal\ZonedDateTime::from($arg);
+$result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');

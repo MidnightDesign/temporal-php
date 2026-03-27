@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(957_270_896_987_650_000, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(957_270_896_987_650_000, 'UTC');
 Assert::sameValue(is_string($datetime->toLocaleString('en', ['dateStyle' => 'short'])), true, '');
 Assert::sameValue(is_string($datetime->toLocaleString('en', ['timeStyle' => 'short'])), true, '');

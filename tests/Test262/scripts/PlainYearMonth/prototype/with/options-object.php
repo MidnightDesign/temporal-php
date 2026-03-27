@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainYearMonth(2019, 10);
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 10);
 $result1 = $instance->with(['year' => 2020], new \stdClass());
 TemporalHelpers::assertPlainYearMonth($result1, 2020, 10, 'M10', 'options may be an empty plain object');
 $result2 = $instance->with(['year' => 2020], function () {  });

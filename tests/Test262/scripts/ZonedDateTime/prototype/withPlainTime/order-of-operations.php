@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $actual = [];
 $expected = ['get plainTimeLike.hour', 'get plainTimeLike.hour.valueOf', 'call plainTimeLike.hour.valueOf', 'get plainTimeLike.microsecond', 'get plainTimeLike.microsecond.valueOf', 'call plainTimeLike.microsecond.valueOf', 'get plainTimeLike.millisecond', 'get plainTimeLike.millisecond.valueOf', 'call plainTimeLike.millisecond.valueOf', 'get plainTimeLike.minute', 'get plainTimeLike.minute.valueOf', 'call plainTimeLike.minute.valueOf', 'get plainTimeLike.nanosecond', 'get plainTimeLike.nanosecond.valueOf', 'call plainTimeLike.nanosecond.valueOf', 'get plainTimeLike.second', 'get plainTimeLike.second.valueOf', 'call plainTimeLike.second.valueOf'];
-$instance = new \Temporal\ZonedDateTime(946_713_600_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(946_713_600_000_000_000, 'UTC');
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

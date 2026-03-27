@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date1 = new \Temporal\PlainDate(1914, 2, 23);
-$date2 = new \Temporal\PlainDate(1914, 2, 23);
-Assert::sameValue(\Temporal\PlainDate::compare($date1, $date1), 0, 'same object');
-Assert::sameValue(\Temporal\PlainDate::compare($date1, $date2), 0, 'same date');
+$date1 = new \Temporal\Spec\PlainDate(1914, 2, 23);
+$date2 = new \Temporal\Spec\PlainDate(1914, 2, 23);
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($date1, $date1), 0, 'same object');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($date1, $date2), 0, 'same date');

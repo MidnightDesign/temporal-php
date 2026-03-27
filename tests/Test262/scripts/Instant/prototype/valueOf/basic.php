@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instant = new \Temporal\Instant(100);
-$instant2 = new \Temporal\Instant(987_654_321);
+$instant = new \Temporal\Spec\Instant(100);
+$instant2 = new \Temporal\Spec\Instant(987_654_321);
 Assert::throws(\TypeError::class, fn() => $instant->valueOf(), 'valueOf');
 Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');

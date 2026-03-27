@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.calendarName', 'get options.calendarName.toString', 'call options.calendarName.toString', 'get options.fractionalSecondDigits', 'get options.fractionalSecondDigits.toString', 'call options.fractionalSecondDigits.toString', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString'];
 $actual = [];
-$instance = new \Temporal\PlainDateTime(1990, 11, 3, 15, 54, 37, 123, 456, 789, 'iso8601');
+$instance = new \Temporal\Spec\PlainDateTime(1990, 11, 3, 15, 54, 37, 123, 456, 789, 'iso8601');
 $actual->splice(0);
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

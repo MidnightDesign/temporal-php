@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => 'IsO8601'];
-$result1 = \Temporal\PlainDateTime::compare($arg, new \Temporal\PlainDateTime(1976, 11, 18));
+$result1 = \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(1976, 11, 18));
 Assert::sameValue($result1, 0, 'Calendar is case-insensitive (first argument)');
-$result2 = \Temporal\PlainDateTime::compare(new \Temporal\PlainDateTime(1976, 11, 18), $arg);
+$result2 = \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg);
 Assert::sameValue($result2, 0, 'Calendar is case-insensitive (second argument)');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare($arg, new \Temporal\PlainDateTime(1976, 11, 18)), 'calendar ID is capital dotted I is not lowercased (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare(new \Temporal\PlainDateTime(1976, 11, 18), $arg), 'calendar ID is capital dotted I is not lowercased (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(1976, 11, 18)), 'calendar ID is capital dotted I is not lowercased (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg), 'calendar ID is capital dotted I is not lowercased (second argument)');

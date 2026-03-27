@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+$instance = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 Assert::sameValue($instance->sign, 1, '');
-$smallInstance = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+$smallInstance = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 Assert::sameValue($smallInstance->sign, 1, '');
-$negInstance = new \Temporal\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
+$negInstance = new \Temporal\Spec\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
 Assert::sameValue($negInstance->sign, -1, '');
-$smallNegInstance = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, -1);
+$smallNegInstance = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, -1);
 Assert::sameValue($smallNegInstance->sign, -1, '');

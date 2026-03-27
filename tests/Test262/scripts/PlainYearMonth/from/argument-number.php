@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $numbers = [1, 201_906, -201_906, 1_234_567];
 foreach ($numbers as $arg) {
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainYearMonth::from($arg), "A number ({$arg}) is not a valid ISO string for PlainYearMonth");
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from($arg), "A number ({$arg}) is not a valid ISO string for PlainYearMonth");
 }

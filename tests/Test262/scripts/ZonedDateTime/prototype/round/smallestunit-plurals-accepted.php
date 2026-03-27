@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $validUnits = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $datetime->round(['smallestUnit' => $smallestUnit]), $validUnits);
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $datetime->round($smallestUnit), $validUnits);

@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00Z[foo=bar]', 'alone'], ['1970-01-01T00:00Z[UTC][foo=bar]', 'with time zone'], ['1970-01-01T00:00Z[u-ca=iso8601][foo=bar]', 'with calendar'], ['1970-01-01T00:00Z[UTC][foo=bar][u-ca=iso8601]', 'with time zone and calendar'], ['1970-01-01T00:00Z[foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\Instant::compare($arg, $arg);
+$result = \Temporal\Spec\Instant::compare($arg, $arg);
 Assert::sameValue($result, 0, "unknown annotation ({$description})");
 }

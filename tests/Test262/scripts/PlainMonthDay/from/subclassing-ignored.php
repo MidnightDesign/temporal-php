@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\PlainMonthDay::class, 'from', ['05-02'], fn($result) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 2));
+TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Spec\PlainMonthDay::class, 'from', ['05-02'], fn($result) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 2));

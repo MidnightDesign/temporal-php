@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(-INF, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(1970, -INF, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(1970, 1, -INF), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(-INF, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(1970, -INF, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(1970, 1, -INF), '');
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');

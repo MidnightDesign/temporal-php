@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(0, '-05:00', 'iso8601');
-$zdt2 = \Temporal\ZonedDateTime::from(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 19, 'timeZone' => '-05:00', 'calendar' => 'iso8601']);
+$zdt = new \Temporal\Spec\ZonedDateTime(0, '-05:00', 'iso8601');
+$zdt2 = \Temporal\Spec\ZonedDateTime::from(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 19, 'timeZone' => '-05:00', 'calendar' => 'iso8601']);
 Assert::assertTrue($zdt->equals($zdt2), '');
 Assert::assertTrue($zdt2->equals($zdt), '');

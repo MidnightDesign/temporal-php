@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$oneYear = new \Temporal\Duration(1);
-$days365 = new \Temporal\Duration(0, 0, 0, 365);
-Assert::sameValue(\Temporal\Duration::compare($oneYear, $days365, ['relativeTo' => \Temporal\PlainDate::from('2017-01-01')]), 0, '');
-Assert::sameValue(\Temporal\Duration::compare($oneYear, $days365, ['relativeTo' => \Temporal\PlainDate::from('2016-01-01')]), 1, '');
+$oneYear = new \Temporal\Spec\Duration(1);
+$days365 = new \Temporal\Spec\Duration(0, 0, 0, 365);
+Assert::sameValue(\Temporal\Spec\Duration::compare($oneYear, $days365, ['relativeTo' => \Temporal\Spec\PlainDate::from('2017-01-01')]), 0, '');
+Assert::sameValue(\Temporal\Spec\Duration::compare($oneYear, $days365, ['relativeTo' => \Temporal\Spec\PlainDate::from('2016-01-01')]), 1, '');

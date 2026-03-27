@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$t1 = \Temporal\PlainTime::from('08:44:15.321');
-$t1bis = \Temporal\PlainTime::from('08:44:15.321');
-$t2 = \Temporal\PlainTime::from('14:23:30.123');
-Assert::sameValue(\Temporal\PlainTime::compare($t1, $t1), 0, 'same object');
-Assert::sameValue(\Temporal\PlainTime::compare($t1, $t1bis), 0, 'different object');
-Assert::sameValue(\Temporal\PlainTime::compare($t1, $t2), -1, 'before');
-Assert::sameValue(\Temporal\PlainTime::compare($t2, $t1), 1, 'after');
+$t1 = \Temporal\Spec\PlainTime::from('08:44:15.321');
+$t1bis = \Temporal\Spec\PlainTime::from('08:44:15.321');
+$t2 = \Temporal\Spec\PlainTime::from('14:23:30.123');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($t1, $t1), 0, 'same object');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($t1, $t1bis), 0, 'different object');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($t1, $t2), -1, 'before');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($t2, $t1), 1, 'after');

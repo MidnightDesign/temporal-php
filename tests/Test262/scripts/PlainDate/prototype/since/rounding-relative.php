@@ -8,13 +8,13 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date1 = \Temporal\PlainDate::from('2019-01-01');
-$date2 = \Temporal\PlainDate::from('2019-02-15');
+$date1 = \Temporal\Spec\PlainDate::from('2019-01-01');
+$date2 = \Temporal\Spec\PlainDate::from('2019-02-15');
 TemporalHelpers::assertDuration($date2->since($date1, ['smallestUnit' => 'months', 'roundingMode' => 'halfExpand']), 0, 1, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($date1->since($date2, ['smallestUnit' => 'months', 'roundingMode' => 'halfExpand']), 0, -2, 0, 0, 0, 0, 0, 0, 0, 0);
 $cases = [['2019-03-01', '2019-01-29', 1, 3], ['2019-01-29', '2019-03-01', -1, -1], ['2019-03-29', '2019-01-30', 1, 29], ['2019-01-30', '2019-03-29', -1, -29], ['2019-03-30', '2019-01-31', 1, 28], ['2019-01-31', '2019-03-30', -1, -30], ['2019-03-31', '2019-01-31', 2, 0], ['2019-01-31', '2019-03-31', -2, 0]];
 foreach ($cases as $__entry__) {
 [$end, $start, $months, $days] = array_pad($__entry__, 4, null);
-$result = \Temporal\PlainDate::from($end)->since($start, ['largestUnit' => 'months']);
+$result = \Temporal\Spec\PlainDate::from($end)->since($start, ['largestUnit' => 'months']);
 TemporalHelpers::assertDuration($result, 0, $months, 0, $days, 0, 0, 0, 0, 0, 0, "{$end} - {$start}");
 }

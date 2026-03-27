@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
-$values = [\Temporal\PlainDate::from('2022-04-12'), \Temporal\PlainDateTime::from('2022-04-12T15:19:45'), \Temporal\PlainMonthDay::from('04-12'), \Temporal\PlainTime::from('15:19:45'), \Temporal\PlainYearMonth::from('2022-04'), \Temporal\ZonedDateTime::from('2022-04-12T15:19:45[UTC]'), \Temporal\Now::plainDateTimeISO(), \Temporal\Now::plainDateISO(), \Temporal\Now::plainTimeISO()];
+$datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$values = [\Temporal\Spec\PlainDate::from('2022-04-12'), \Temporal\Spec\PlainDateTime::from('2022-04-12T15:19:45'), \Temporal\Spec\PlainMonthDay::from('04-12'), \Temporal\Spec\PlainTime::from('15:19:45'), \Temporal\Spec\PlainYearMonth::from('2022-04'), \Temporal\Spec\ZonedDateTime::from('2022-04-12T15:19:45[UTC]'), \Temporal\Spec\Now::plainDateTimeISO(), \Temporal\Spec\Now::plainDateISO(), \Temporal\Spec\Now::plainTimeISO()];
 foreach ($values as $value) {
 Assert::incomplete('untranslatable: Object.defineProperty');
 }

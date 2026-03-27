@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertZonedDateTimesEqual(\Temporal\ZonedDateTime::from('1976-11-18T15:23:30,12-08:00[-08:00]'), new \Temporal\ZonedDateTime(217_207_410_120_000_000, '-08:00'));
+TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30,12-08:00[-08:00]'), new \Temporal\Spec\ZonedDateTime(217_207_410_120_000_000, '-08:00'));

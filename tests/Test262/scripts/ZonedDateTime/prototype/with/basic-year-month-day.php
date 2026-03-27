@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$cases = ['year2000' => \Temporal\ZonedDateTime::from(['year' => 2000, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']), 'year1976' => \Temporal\ZonedDateTime::from(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']), 'year1' => \Temporal\ZonedDateTime::from(['year' => 1, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC'])];
+$cases = ['year2000' => \Temporal\Spec\ZonedDateTime::from(['year' => 2000, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']), 'year1976' => \Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']), 'year1' => \Temporal\Spec\ZonedDateTime::from(['year' => 1, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC'])];
 foreach ($cases as $name => $inCal) {
 $afterWithDay = $inCal->with(['day' => 1]);
 TemporalHelpers::assertPlainDateTime($afterWithDay->toPlainDateTime(), $inCal->year, $inCal->month, $inCal->monthCode, 1, 12, 34, 0, 0, 0, 0, "{$name} after setting day to 1");

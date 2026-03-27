@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainYearMonth(2019, 6);
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 6);
 $calendar = 'iso8601';
 $arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar];
 $result = $instance->equals($arg);

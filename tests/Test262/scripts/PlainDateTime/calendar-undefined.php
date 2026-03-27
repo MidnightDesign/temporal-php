@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $dateTimeArgs = [2020, 12, 24, 12, 34, 56, 123, 456, 789];
-$dateTimeExplicit = new \Temporal\PlainDateTime(...$dateTimeArgs);
+$dateTimeExplicit = new \Temporal\Spec\PlainDateTime(...$dateTimeArgs);
 Assert::sameValue($dateTimeExplicit->calendarId, 'iso8601', '');
-$dateTimeImplicit = new \Temporal\PlainDateTime(...$dateTimeArgs);
+$dateTimeImplicit = new \Temporal\Spec\PlainDateTime(...$dateTimeArgs);
 Assert::sameValue($dateTimeImplicit->calendarId, 'iso8601', '');

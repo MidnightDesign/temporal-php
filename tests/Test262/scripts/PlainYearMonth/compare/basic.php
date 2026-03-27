@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$nov94 = \Temporal\PlainYearMonth::from('1994-11');
-$nov94bis = \Temporal\PlainYearMonth::from('1994-11');
-$jun13 = \Temporal\PlainYearMonth::from('2013-06');
-Assert::sameValue(\Temporal\PlainYearMonth::compare($nov94, $nov94), 0, 'same object');
-Assert::sameValue(\Temporal\PlainYearMonth::compare($nov94, $nov94bis), 0, 'different object');
-Assert::sameValue(\Temporal\PlainYearMonth::compare($nov94, $jun13), -1, 'before');
-Assert::sameValue(\Temporal\PlainYearMonth::compare($jun13, $nov94), 1, 'after');
+$nov94 = \Temporal\Spec\PlainYearMonth::from('1994-11');
+$nov94bis = \Temporal\Spec\PlainYearMonth::from('1994-11');
+$jun13 = \Temporal\Spec\PlainYearMonth::from('2013-06');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($nov94, $nov94), 0, 'same object');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($nov94, $nov94bis), 0, 'different object');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($nov94, $jun13), -1, 'before');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($jun13, $nov94), 1, 'after');

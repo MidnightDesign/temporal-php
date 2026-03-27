@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = new \Temporal\ZonedDateTime(-560_174_321_098_766, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(-560_174_321_098_766, 'UTC');
 $one = $zdt->subtract(['hours' => 240, 'nanoseconds' => 800]);
 $two = $zdt->add(['hours' => 240, 'nanoseconds' => 800]);
 $three = $two->subtract(['hours' => 480, 'nanoseconds' => 1600]);
 $four = $one->add(['hours' => 480, 'nanoseconds' => 1600]);
-TemporalHelpers::assertZonedDateTimesEqual($one, new \Temporal\ZonedDateTime(-1_424_174_321_099_566, 'UTC'));
-TemporalHelpers::assertZonedDateTimesEqual($two, new \Temporal\ZonedDateTime(303_825_678_902_034, 'UTC'));
+TemporalHelpers::assertZonedDateTimesEqual($one, new \Temporal\Spec\ZonedDateTime(-1_424_174_321_099_566, 'UTC'));
+TemporalHelpers::assertZonedDateTimesEqual($two, new \Temporal\Spec\ZonedDateTime(303_825_678_902_034, 'UTC'));
 TemporalHelpers::assertZonedDateTimesEqual($three, $one);
 TemporalHelpers::assertZonedDateTimesEqual($four, $two);

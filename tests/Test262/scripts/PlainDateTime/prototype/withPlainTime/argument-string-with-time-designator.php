@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainDateTime(2000, 1, 1, 12, 30, 45, 123, 456, 789);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 1, 1, 12, 30, 45, 123, 456, 789);
 $validStrings = ['T00:30', 't00:30', 'T0030', 't0030', 'T00:30:00', 't00:30:00', 'T003000', 't003000', 'T00:30:00.000000000', 't00:30:00.000000000', 'T003000.000000000', 't003000.000000000'];
 foreach ($validStrings as $arg) {
 $result = $instance->withPlainTime($arg);

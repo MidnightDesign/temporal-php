@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$ok = new \Temporal\PlainYearMonth(2000, 5);
+$ok = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $invalidStrings = ['-000000-06', '-000000-06-24', '-000000-06-24T15:43:27', '-000000-06-24T15:43:27+01:00', '-000000-06-24T15:43:27+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($arg, $ok), 'Cannot use minus zero as extended year (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($ok, $arg), 'Cannot use minus zero as extended year (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($arg, $ok), 'Cannot use minus zero as extended year (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($ok, $arg), 'Cannot use minus zero as extended year (second argument)');
 }

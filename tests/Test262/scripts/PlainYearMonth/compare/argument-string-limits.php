@@ -7,14 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainYearMonth(2019, 6);
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 6);
 $validStrings = ['-271821-04', '-271821-04-01', '-271821-04-01T00:00', '+275760-09', '+275760-09-30', '+275760-09-30T23:59:59.999999999'];
 foreach ($validStrings as $arg) {
-\Temporal\PlainYearMonth::compare($arg, $instance);
-\Temporal\PlainYearMonth::compare($instance, $arg);
+\Temporal\Spec\PlainYearMonth::compare($arg, $instance);
+\Temporal\Spec\PlainYearMonth::compare($instance, $arg);
 }
 $invalidStrings = ['-271821-03-31', '-271821-03-31T23:59:59.999999999', '+275760-10', '+275760-10-01', '+275760-10-01T00:00'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($arg, $instance), "\"{$arg}\" is outside the representable range of PlainYearMonth (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($instance, $arg), "\"{$arg}\" is outside the representable range of PlainYearMonth (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($arg, $instance), "\"{$arg}\" is outside the representable range of PlainYearMonth (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($instance, $arg), "\"{$arg}\" is outside the representable range of PlainYearMonth (second argument)");
 }

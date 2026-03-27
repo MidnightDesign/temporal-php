@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertDuration(new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 0), 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 'positive');
-TemporalHelpers::assertDuration(new \Temporal\Duration(-5, -5, -5, -5, -5, -5, -5, -5, -5, 0), -5, -5, -5, -5, -5, -5, -5, -5, -5, 0, 'negative');
-TemporalHelpers::assertDuration(new \Temporal\Duration(-0, -0, -0, -0, -0, -0, -0, -0, -0, -0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'negative zero');
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 0), 5, 5, 5, 5, 5, 5, 5, 5, 5, 0, 'positive');
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(-5, -5, -5, -5, -5, -5, -5, -5, -5, 0), -5, -5, -5, -5, -5, -5, -5, -5, -5, 0, 'negative');
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(-0, -0, -0, -0, -0, -0, -0, -0, -0, -0), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'negative zero');

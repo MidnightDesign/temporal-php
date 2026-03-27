@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
 $explicit1 = $duration->toString(['fractionalSecondDigits' => 6]);
 Assert::sameValue($explicit1, 'PT12H34M56.123987S', 'default smallestUnit defers to fractionalSecondDigits');
 $implicit1 = $duration->toString(['fractionalSecondDigits' => 6]);

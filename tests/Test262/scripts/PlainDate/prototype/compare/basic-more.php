@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\PlainDate(2020, 1, 1);
-$later = new \Temporal\PlainDate(2020, 12, 31);
-$same = new \Temporal\PlainDate(2020, 1, 1);
-Assert::sameValue(\Temporal\PlainDate::compare($earlier, $later), -1, 'earlier < later');
-Assert::sameValue(\Temporal\PlainDate::compare($later, $earlier), 1, 'later > earlier');
-Assert::sameValue(\Temporal\PlainDate::compare($earlier, $same), 0, 'equal dates');
-Assert::sameValue(\Temporal\PlainDate::compare(new \Temporal\PlainDate(2019, 12, 31), new \Temporal\PlainDate(2020, 1, 1)), -1, 'year comparison');
-Assert::sameValue(\Temporal\PlainDate::compare(new \Temporal\PlainDate(2020, 6, 30), new \Temporal\PlainDate(2020, 7, 1)), -1, 'month comparison');
+$earlier = new \Temporal\Spec\PlainDate(2020, 1, 1);
+$later = new \Temporal\Spec\PlainDate(2020, 12, 31);
+$same = new \Temporal\Spec\PlainDate(2020, 1, 1);
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($earlier, $later), -1, 'earlier < later');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($later, $earlier), 1, 'later > earlier');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($earlier, $same), 0, 'equal dates');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare(new \Temporal\Spec\PlainDate(2019, 12, 31), new \Temporal\Spec\PlainDate(2020, 1, 1)), -1, 'year comparison');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare(new \Temporal\Spec\PlainDate(2020, 6, 30), new \Temporal\Spec\PlainDate(2020, 7, 1)), -1, 'month comparison');

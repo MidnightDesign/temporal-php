@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = \Temporal\PlainYearMonth::from(['year' => 2000, 'month' => 5]);
+$instance = \Temporal\Spec\PlainYearMonth::from(['year' => 2000, 'month' => 5]);
 $result = $instance->add('P3M');
 TemporalHelpers::assertPlainYearMonth($result, 2000, 8, 'M08');

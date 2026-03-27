@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar'], ['1997-12-04[u-ca=11111111]', 'compact ISO date used as calendar name'], ['1997-12-04[u-ca=1111-11-11]', 'extended ISO date used as calendar name']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);

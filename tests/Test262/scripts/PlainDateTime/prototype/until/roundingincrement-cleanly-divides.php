@@ -7,21 +7,21 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
-$later = new \Temporal\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 321);
+$earlier = new \Temporal\Spec\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
+$later = new \Temporal\Spec\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 321);
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
 $options = ['smallestUnit' => 'hours', 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, "valid hour increments divide 24 (rounding increment = {$roundingIncrement})");
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, "valid hour increments divide 24 (rounding increment = {$roundingIncrement})");
 }
 foreach (['minutes', 'seconds'] as $smallestUnit) {
 foreach ([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as $roundingIncrement) {
 $options = ['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, "valid {$smallestUnit} increments divide 60 (rounding increment = {$roundingIncrement})");
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, "valid {$smallestUnit} increments divide 60 (rounding increment = {$roundingIncrement})");
 }
 }
 foreach (['milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
 foreach ([1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500] as $roundingIncrement) {
 $options = ['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, "valid {$smallestUnit} increments divide 1000 (rounding increment = {$roundingIncrement}");
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, "valid {$smallestUnit} increments divide 1000 (rounding increment = {$roundingIncrement}");
 }
 }

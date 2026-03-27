@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(1_546_935_756_123_456_789, '+01:00');
-$later = new \Temporal\ZonedDateTime(1_631_018_380_987_654_321, '+01:00');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_546_935_756_123_456_789, '+01:00');
+$later = new \Temporal\Spec\ZonedDateTime(1_631_018_380_987_654_321, '+01:00');
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'hours', 'roundingIncrement' => 3, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 23_355, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 23_356, 30, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'seconds', 'roundingIncrement' => 15, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 23_356, 17, 0, 0, 0, 0);

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2016, 12, 31, 23, 59, 59);
+$instance = new \Temporal\Spec\PlainDateTime(2016, 12, 31, 23, 59, 59);
 $arg = '2016-12-31T23:59:60';
 $result1 = $instance->equals($arg);
 Assert::sameValue($result1, true, 'leap second is a valid ISO string for PlainDateTime');

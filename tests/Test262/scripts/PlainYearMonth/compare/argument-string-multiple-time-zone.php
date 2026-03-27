@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00[UTC][UTC]', '1970-01-01T00:00[!UTC][UTC]', '1970-01-01T00:00[UTC][!UTC]', '1970-01-01T00:00[UTC][u-ca=iso8601][UTC]', '1970-01-01T00:00[UTC][foo=bar][UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($arg, new \Temporal\PlainYearMonth(2019, 6)), "reject more than one time zone annotation: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare(new \Temporal\PlainYearMonth(2019, 6), $arg), "reject more than one time zone annotation: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)), "reject more than one time zone annotation: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg), "reject more than one time zone annotation: {$arg} (second argument)");
 }

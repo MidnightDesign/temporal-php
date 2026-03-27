@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$oneYear = new \Temporal\Duration(1);
-$oneMonth = new \Temporal\Duration(0, 1);
-$oneWeek = new \Temporal\Duration(0, 0, 1);
-$oneDay = new \Temporal\Duration(0, 0, 0, 1);
+$oneYear = new \Temporal\Spec\Duration(1);
+$oneMonth = new \Temporal\Spec\Duration(0, 1);
+$oneWeek = new \Temporal\Spec\Duration(0, 0, 1);
+$oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $options = ['unit' => 'days'];
 Assert::sameValue($oneDay->total($options), 1, 'days do not require relativeTo');
 Assert::sameValue($oneDay->total('days'), 1, 'days do not require relativeTo (string shorthand)');

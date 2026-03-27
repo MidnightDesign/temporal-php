@@ -9,8 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 foreach (['2020-01-01', '2020-01-01[u-ca=iso8601]', '2020-01-01T00:00:00.000000000', '2020-01-01T00:00:00.000000000[u-ca=iso8601]', '01-01', '01-01[u-ca=iso8601]', '2020-01', '2020-01[u-ca=iso8601]'] as $calendar) {
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
-$result1 = \Temporal\PlainDateTime::compare($arg, new \Temporal\PlainDateTime(1976, 11, 18));
+$result1 = \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(1976, 11, 18));
 Assert::sameValue($result1, 0, "Calendar created from string \"{$calendar}\" (first argument)");
-$result2 = \Temporal\PlainDateTime::compare(new \Temporal\PlainDateTime(1976, 11, 18), $arg);
+$result2 = \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg);
 Assert::sameValue($result2, 0, "Calendar created from string \"{$calendar}\" (second argument)");
 }

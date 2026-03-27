@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier1 = new \Temporal\PlainDateTime(2000, 5, 2, 9);
-$later1 = new \Temporal\PlainDateTime(2000, 5, 5, 10);
+$earlier1 = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 9);
+$later1 = new \Temporal\Spec\PlainDateTime(2000, 5, 5, 10);
 $result1 = $later1->since($earlier1, ['largestUnit' => 'day']);
 TemporalHelpers::assertDuration($result1, 0, 0, 0, 3, 1, 0, 0, 0, 0, 0, 'date sign == time sign');
-$earlier2 = new \Temporal\PlainDateTime(2000, 5, 2, 10);
-$later2 = new \Temporal\PlainDateTime(2000, 5, 5, 9);
+$earlier2 = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 10);
+$later2 = new \Temporal\Spec\PlainDateTime(2000, 5, 5, 9);
 $result2 = $later2->since($earlier2, ['largestUnit' => 'day']);
 TemporalHelpers::assertDuration($result2, 0, 0, 0, 2, 23, 0, 0, 0, 0, 0, 'date sign != time sign');

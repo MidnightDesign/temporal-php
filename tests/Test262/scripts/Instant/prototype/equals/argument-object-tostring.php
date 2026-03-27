@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(0);
+$instance = new \Temporal\Spec\Instant(0);
 $arg = new \stdClass();
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), '[object Object] is not a valid ISO string');
 $arg['toString'] = function () { return '1970-01-01T00:00Z'; };

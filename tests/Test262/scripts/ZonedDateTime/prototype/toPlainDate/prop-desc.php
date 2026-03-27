@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof ZonedDateTime.prototype.toPlainDate` is `function`');
-Assert::methodExists('\Temporal\ZonedDateTime', 'toPlainDate');
+Assert::methodExists('\Temporal\Spec\ZonedDateTime', 'toPlainDate');

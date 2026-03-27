@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2021, 1, 31)->add(['months' => 1]), 2021, 2, 'M02', 28, 'Jan 31 + 1 month constrained to Feb 28 (non-leap)');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2020, 1, 31)->add(['months' => 1]), 2020, 2, 'M02', 29, 'Jan 31 + 1 month constrained to Feb 29 (leap)');
-TemporalHelpers::assertPlainDate(new \Temporal\PlainDate(2021, 1, 31)->add(['months' => 1], ['overflow' => 'constrain']), 2021, 2, 'M02', 28, 'explicit overflow: constrain');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(2021, 1, 31)->add(['months' => 1]), 2021, 2, 'M02', 28, 'Jan 31 + 1 month constrained to Feb 28 (non-leap)');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(2020, 1, 31)->add(['months' => 1]), 2020, 2, 'M02', 29, 'Jan 31 + 1 month constrained to Feb 29 (leap)');
+TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(2021, 1, 31)->add(['months' => 1], ['overflow' => 'constrain']), 2021, 2, 'M02', 28, 'explicit overflow: constrain');

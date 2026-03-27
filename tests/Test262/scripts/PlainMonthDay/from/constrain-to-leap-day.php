@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$md = \Temporal\PlainMonthDay::from(['monthCode' => 'M02', 'day' => 30], ['overflow' => 'constrain']);
+$md = \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M02', 'day' => 30], ['overflow' => 'constrain']);
 Assert::sameValue($md->day, 29, 'M02-30 should constrain to 29, not 28');

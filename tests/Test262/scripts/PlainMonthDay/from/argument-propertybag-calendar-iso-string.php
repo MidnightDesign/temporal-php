@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['2020-01-01', '2020-01-01[u-ca=iso8601]', '2020-01-01T00:00:00.000000000', '2020-01-01T00:00:00.000000000[u-ca=iso8601]', '01-01', '01-01[u-ca=iso8601]', '2020-01', '2020-01[u-ca=iso8601]'] as $calendar) {
 $arg = ['monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
-$result = \Temporal\PlainMonthDay::from($arg);
+$result = \Temporal\Spec\PlainMonthDay::from($arg);
 TemporalHelpers::assertPlainMonthDay($result, 'M11', 18, "Calendar created from string \"{$calendar}\"");
 Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');
 }

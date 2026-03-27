@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 TemporalHelpers::assertPlainDateTime($datetime->with(['year' => 2019]), 2019, 11, 'M11', 18, 15, 23, 30, 123, 456, 789, 'with year works');
 TemporalHelpers::assertPlainDateTime($datetime->with(['month' => 5]), 1976, 5, 'M05', 18, 15, 23, 30, 123, 456, 789, 'with month works');
 TemporalHelpers::assertPlainDateTime($datetime->with(['monthCode' => 'M05']), 1976, 5, 'M05', 18, 15, 23, 30, 123, 456, 789, 'with month code works');

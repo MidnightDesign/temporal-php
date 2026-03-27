@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainYearMonth(2000, 5);
+$instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 foreach ([INF, -INF] as $inf) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->toPlainDate(['day' => $inf]), "day property cannot be {$inf}");
 $calls = [];

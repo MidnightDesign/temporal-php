@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainRelativeTo = new \Temporal\PlainDate(2000, 1, 1, 'iso8601');
-$zonedRelativeTo = new \Temporal\ZonedDateTime(0, 'UTC', 'iso8601');
-$d = new \Temporal\Duration(0, 0, 0, 0, 23, 59, 59, 999, 999, 997);
-$noopRoundingOperations = [[$d, ['smallestUnit' => 'nanoseconds'], 'smallestUnit ns'], [$d, ['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo], 'smallestUnit ns and plain relativeTo'], [$d, ['smallestUnit' => 'nanoseconds', 'relativeTo' => $zonedRelativeTo], 'smallestUnit ns and zoned relativeTo'], [$d, ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1], 'round to 1 ns'], [$d, ['largestUnit' => 'hours'], 'largestUnit hours'], [new \Temporal\Duration(0, 0, 0, 1), ['smallestUnit' => 'nanoseconds'], 'days>0 and smallestUnit ns'], [new \Temporal\Duration(0, 0, 0, 1), ['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo], 'days>0, smallestUnit ns, and plain relativeTo']];
+$plainRelativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1, 'iso8601');
+$zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
+$d = new \Temporal\Spec\Duration(0, 0, 0, 0, 23, 59, 59, 999, 999, 997);
+$noopRoundingOperations = [[$d, ['smallestUnit' => 'nanoseconds'], 'smallestUnit ns'], [$d, ['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo], 'smallestUnit ns and plain relativeTo'], [$d, ['smallestUnit' => 'nanoseconds', 'relativeTo' => $zonedRelativeTo], 'smallestUnit ns and zoned relativeTo'], [$d, ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1], 'round to 1 ns'], [$d, ['largestUnit' => 'hours'], 'largestUnit hours'], [new \Temporal\Spec\Duration(0, 0, 0, 1), ['smallestUnit' => 'nanoseconds'], 'days>0 and smallestUnit ns'], [new \Temporal\Spec\Duration(0, 0, 0, 1), ['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo], 'days>0, smallestUnit ns, and plain relativeTo']];
 foreach ($noopRoundingOperations as $__entry__) {
 [$duration, $options, $descr] = array_pad($__entry__, 3, null);
 $result = $duration->round($options);

@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from('-271821-04-20[+01]'), 'From \'-271821-04-20[+01]\'');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from('+275760-09-13[-01]'), 'From \'+275760-09-13[-01]\'');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('-271821-04-20[+01]'), 'From \'-271821-04-20[+01]\'');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('+275760-09-13[-01]'), 'From \'+275760-09-13[-01]\'');

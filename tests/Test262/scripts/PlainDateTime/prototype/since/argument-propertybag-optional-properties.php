@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 $minimumProperties = ['year' => 2021, 'month' => 10, 'day' => 28];
 $allProperties = ['year' => 2021, 'month' => 10, 'day' => 28, 'hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'calendar' => 'iso8601'];
 $resultWithout = $instance->since($minimumProperties);

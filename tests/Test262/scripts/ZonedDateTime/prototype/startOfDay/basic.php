@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(10_000 * 86_400_000_000_000 + 7_272_123_456_789, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(10_000 * 86_400_000_000_000 + 7_272_123_456_789, 'UTC');
 $result = $instance->startOfDay();
 Assert::sameValue($result->epochNanoseconds, 10_000 * 86_400_000_000_000, '');

@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date = new \Temporal\PlainDate(2000, 5, 2);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $result = $date->toString([]);
 Assert::sameValue($result, '2000-05-02', "default calendarName option is auto with built-in ISO calendar");

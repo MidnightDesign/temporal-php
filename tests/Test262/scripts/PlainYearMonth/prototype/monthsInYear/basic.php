@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$ym = new \Temporal\PlainYearMonth(1976, 11);
+$ym = new \Temporal\Spec\PlainYearMonth(1976, 11);
 Assert::sameValue($ym->monthsInYear, 12, '');

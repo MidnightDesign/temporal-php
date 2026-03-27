@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+$instance = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 Assert::sameValue($instance->seconds, 7, '');
-$negInstance = new \Temporal\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
+$negInstance = new \Temporal\Spec\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
 Assert::sameValue($negInstance->seconds, -7, '');

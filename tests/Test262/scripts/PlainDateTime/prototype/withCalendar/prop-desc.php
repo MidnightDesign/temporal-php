@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainDateTime.prototype.withCalendar` is `function`');
-Assert::methodExists('\Temporal\PlainDateTime', 'withCalendar');
+Assert::methodExists('\Temporal\Spec\PlainDateTime', 'withCalendar');

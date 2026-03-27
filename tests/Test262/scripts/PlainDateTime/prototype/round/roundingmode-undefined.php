@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 123, 987, 500);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 123, 987, 500);
 $explicit1 = $datetime->round(['smallestUnit' => 'microsecond']);
 TemporalHelpers::assertPlainDateTime($explicit1, 2000, 5, 'M05', 2, 12, 34, 56, 123, 988, 0, 'default roundingMode is halfExpand');
 $implicit1 = $datetime->round(['smallestUnit' => 'microsecond']);

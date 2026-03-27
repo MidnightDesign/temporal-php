@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
 $timeZone = 'uTc';
 $result = $instance->toZonedDateTime($timeZone);
 Assert::sameValue($result->timeZoneId, 'UTC', "Time zone created from string \"{$timeZone}\"");

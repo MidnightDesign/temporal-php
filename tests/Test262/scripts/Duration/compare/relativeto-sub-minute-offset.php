@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration1 = new \Temporal\Duration(0, 0, 0, 31);
-$duration2 = new \Temporal\Duration(0, 1);
-$action = fn($relativeTo) => \Temporal\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]);
+$duration1 = new \Temporal\Spec\Duration(0, 0, 0, 31);
+$duration2 = new \Temporal\Spec\Duration(0, 1);
+$action = fn($relativeTo) => \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]);
 $relativeTo = '1970-01-01T00:00-00:45:00[-00:45]';
 $result = $action($relativeTo);
 Assert::sameValue($result, 0, 'ISO string offset accepted with zero seconds (string)');

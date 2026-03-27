@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainYearMonth(\Temporal\PlainYearMonth::from(['year' => 2019, 'monthCode' => 'M11']), 2019, 11, 'M11', 'Only monthCode');
-TemporalHelpers::assertPlainYearMonth(\Temporal\PlainYearMonth::from(['year' => 2019, 'month' => 11]), 2019, 11, 'M11', 'Only month');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::from(['year' => 2019, 'month' => 11, 'monthCode' => 'M12']), 'Mismatch between month and monthCode');
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 2019, 'monthCode' => 'M11']), 2019, 11, 'M11', 'Only monthCode');
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 2019, 'month' => 11]), 2019, 11, 'M11', 'Only month');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(['year' => 2019, 'month' => 11, 'monthCode' => 'M12']), 'Mismatch between month and monthCode');
 Assert::incomplete('untranslatable object property');

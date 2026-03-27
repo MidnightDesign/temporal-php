@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$pmd = new \Temporal\PlainMonthDay(10, 31, 'iso8601', 2019);
+$pmd = new \Temporal\Spec\PlainMonthDay(10, 31, 'iso8601', 2019);
 Assert::sameValue($pmd->toString(['calendarName' => 'always']), '2019-10-31[u-ca=iso8601]', 'emit year-month-day if calendarName = \'always\' (four-argument constructor)');
-$anotherPMD = \Temporal\PlainMonthDay::from('2019-10-31');
+$anotherPMD = \Temporal\Spec\PlainMonthDay::from('2019-10-31');
 Assert::sameValue($anotherPMD->toString(['calendarName' => 'always']), '1972-10-31[u-ca=iso8601]', 'emit fallback year if calendarName = \'always\' (static from)');

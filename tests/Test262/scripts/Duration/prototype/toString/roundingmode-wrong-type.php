@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = new \Temporal\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
 TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', fn($roundingMode) => $duration->toString(['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]), fn($result, $descr) => Assert::sameValue($result, 'PT12H34M56.123987S', $descr));

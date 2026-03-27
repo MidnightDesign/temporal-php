@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$useResult = \Temporal\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', ['offset' => 'use']);
+$useResult = \Temporal\Spec\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', ['offset' => 'use']);
 Assert::sameValue($useResult->epochNanoseconds, 1_665_193_020_000_000_000, 'exact time is unchanged with offset = use, despite critical flag');
-$ignoreResult = \Temporal\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', ['offset' => 'ignore']);
+$ignoreResult = \Temporal\Spec\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', ['offset' => 'ignore']);
 Assert::sameValue($ignoreResult->epochNanoseconds, 1_665_167_820_000_000_000, 'wall time is unchanged with offset = ignore, despite critical flag');
-$preferResult = \Temporal\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', ['offset' => 'prefer']);
+$preferResult = \Temporal\Spec\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', ['offset' => 'prefer']);
 Assert::sameValue($useResult->epochNanoseconds, 1_665_193_020_000_000_000, 'offset is recalculated with offset = prefer, despite critical flag');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2001, 6, 3);
+$date = new \Temporal\Spec\PlainDate(2001, 6, 3);
 foreach (['year', 'month', 'week', 'day'] as $largestUnit) {
 $result = $date->until($date, ['largestUnit' => $largestUnit]);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'The duration from a date to itself is zero');

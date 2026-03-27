@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$expected = new \Temporal\ZonedDateTime(217_119_600_000_000_000, '+01:00');
-TemporalHelpers::assertZonedDateTimesEqual(\Temporal\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => '+01:00'], function () {  }), $expected);
+$expected = new \Temporal\Spec\ZonedDateTime(217_119_600_000_000_000, '+01:00');
+TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => '+01:00'], function () {  }), $expected);

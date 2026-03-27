@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$tests = [[new \Temporal\PlainDate(1976, 2, 4), '1976-02-04'], [new \Temporal\PlainDate(1976, 11, 18), '1976-11-18']];
+$tests = [[new \Temporal\Spec\PlainDate(1976, 2, 4), '1976-02-04'], [new \Temporal\Spec\PlainDate(1976, 11, 18), '1976-11-18']];
 $options = null;
 foreach ($tests as $__entry__) {
 [$datetime, $expected] = array_pad($__entry__, 2, null);

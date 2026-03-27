@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $args = [2020, 12, 24];
-$dateExplicit = new \Temporal\PlainDate(...$args);
+$dateExplicit = new \Temporal\Spec\PlainDate(...$args);
 Assert::sameValue($dateExplicit->calendarId, 'iso8601', 'calendar string is iso8601');
-$dateImplicit = new \Temporal\PlainDate(...$args);
+$dateImplicit = new \Temporal\Spec\PlainDate(...$args);
 Assert::sameValue($dateImplicit->calendarId, 'iso8601', 'calendar string is iso8601');

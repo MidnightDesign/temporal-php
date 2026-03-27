@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '2019-10-01';
-$instance = new \Temporal\PlainDate(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->toPlainDateTime($arg), 'Date-only string throws, does not implicitly convert to midnight');

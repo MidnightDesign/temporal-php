@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$ym = \Temporal\PlainYearMonth::from('2019-10');
+$ym = \Temporal\Spec\PlainYearMonth::from('2019-10');
 TemporalHelpers::assertPlainYearMonth($ym->with(['year' => 2020]), 2020, 10, 'M10', 'year');
 TemporalHelpers::assertPlainYearMonth($ym->with(['month' => 9]), 2019, 9, 'M09', 'month');
 TemporalHelpers::assertPlainYearMonth($ym->with(['monthCode' => 'M09']), 2019, 9, 'M09', 'monthCode');

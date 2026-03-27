@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainDate = new \Temporal\PlainDate(2000, 5, 2);
-$plainDateTime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
-$plainMonthDay = new \Temporal\PlainMonthDay(5, 2);
-$plainYearMonth = new \Temporal\PlainYearMonth(2000, 5);
-$zonedDateTime = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
+$plainDateTime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+$plainMonthDay = new \Temporal\Spec\PlainMonthDay(5, 2);
+$plainYearMonth = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$zonedDateTime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ([$plainDate, $plainDateTime, $plainMonthDay, $plainYearMonth, $zonedDateTime] as $arg) {
 $actual = [];
 $expected = [];

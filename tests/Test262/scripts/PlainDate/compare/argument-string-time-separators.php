@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date = new \Temporal\PlainDate(2000, 5, 2);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $tests = [['2000-05-02T15:23', 'uppercase T'], ['2000-05-02t15:23', 'lowercase T'], ['2000-05-02 15:23', 'space between date and time']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::sameValue(\Temporal\PlainDate::compare($arg, $date), 0, "variant time separators ({$description}), first argument");
-Assert::sameValue(\Temporal\PlainDate::compare($date, $arg), 0, "variant time separators ({$description}), second argument");
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($arg, $date), 0, "variant time separators ({$description}), first argument");
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($date, $arg), 0, "variant time separators ({$description}), second argument");
 }

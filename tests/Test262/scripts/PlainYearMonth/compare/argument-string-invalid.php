@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$arg2 = new \Temporal\PlainYearMonth(1976, 11);
+$arg2 = new \Temporal\Spec\PlainYearMonth(1976, 11);
 Assert::incomplete('untranslatable: TemporalHelpers chain call');

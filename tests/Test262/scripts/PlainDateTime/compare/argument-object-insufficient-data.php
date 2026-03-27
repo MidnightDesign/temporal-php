@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt1 = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
-$dt2 = new \Temporal\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDateTime::compare(['year' => 1976], $dt2), 'object must contain at least the required properties (first arg)');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDateTime::compare($dt1, ['year' => 2019]), 'object must contain at least the required properties (second arg)');
+$dt1 = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$dt2 = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::compare(['year' => 1976], $dt2), 'object must contain at least the required properties (first arg)');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::compare($dt1, ['year' => 2019]), 'object must contain at least the required properties (second arg)');

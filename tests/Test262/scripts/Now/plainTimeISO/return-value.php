@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$t = \Temporal\Now::plainTimeISO();
-Assert::assertTrue($t instanceof \Temporal\PlainTime, '');
+$t = \Temporal\Spec\Now::plainTimeISO();
+Assert::assertTrue($t instanceof \Temporal\Spec\PlainTime, '');

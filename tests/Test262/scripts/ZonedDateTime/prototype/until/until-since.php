@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = \Temporal\ZonedDateTime::from('1976-11-18T15:23:30.123456789+01:00[+01:00]');
-$later = \Temporal\ZonedDateTime::from(['year' => 2016, 'month' => 3, 'day' => 3, 'hour' => 18, 'timeZone' => '+01:00']);
+$zdt = \Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30.123456789+01:00[+01:00]');
+$later = \Temporal\Spec\ZonedDateTime::from(['year' => 2016, 'month' => 3, 'day' => 3, 'hour' => 18, 'timeZone' => '+01:00']);
 TemporalHelpers::assertDurationsEqual($zdt->until($later), $later->since($zdt));

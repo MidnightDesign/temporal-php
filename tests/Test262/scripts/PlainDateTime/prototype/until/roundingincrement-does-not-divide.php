@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
-$later = new \Temporal\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 321);
+$earlier = new \Temporal\Spec\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
+$later = new \Temporal\Spec\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 321);
 $nondivisibleUnits = ['hours' => 11, 'minutes' => 29, 'seconds' => 29, 'milliseconds' => 29, 'microseconds' => 29, 'nanoseconds' => 29];
 foreach ($nondivisibleUnits as $unit => $increment) {
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['smallestUnit' => $unit, 'roundingIncrement' => $increment]), "throws on increments that do not divide evenly into the next highest (unit = {$unit}, increment = {$increment})");

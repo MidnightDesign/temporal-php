@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\Duration(0);
+$instance = new \Temporal\Spec\Duration(0);
 $relativeTo = '-271821-04-19';
 $result1 = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
 TemporalHelpers::assertDuration($result1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'minimum date is a valid ISO string for PlainDate relativeTo');

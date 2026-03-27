@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$validValues = [new \Temporal\PlainDateTime(2000, 5, 2, 12), '2000-05-02T12:00'];
+$validValues = [new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12), '2000-05-02T12:00'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\PlainDateTime::from($value, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\Spec\PlainDateTime::from($value, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, $descr));
 }
 $propertyBag = ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 12];
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from($propertyBag, ['overflow' => null]), 'null');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from($propertyBag, ['overflow' => true]), 'true');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from($propertyBag, ['overflow' => false]), 'false');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from($propertyBag, ['overflow' => null]), 'null');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from($propertyBag, ['overflow' => true]), 'true');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from($propertyBag, ['overflow' => false]), 'false');
 Assert::incomplete('untranslatable: Symbol()');

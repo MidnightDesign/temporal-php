@@ -11,7 +11,7 @@ $maxSec = 9_007_199_254_740_991;
 $maxMs = 9_007_199_254_740_990_976;
 $maxUs = 9.007_199_254_740_991e+21;
 $maxNs = 9.007_199_254_740_991e+24;
-$durations = [\Temporal\Duration::from(['seconds' => $maxSec]), \Temporal\Duration::from(['milliseconds' => $maxMs]), \Temporal\Duration::from(['microseconds' => $maxUs]), \Temporal\Duration::from(['nanoseconds' => $maxNs]), \Temporal\Duration::from(['seconds' => -$maxSec]), \Temporal\Duration::from(['milliseconds' => -$maxMs]), \Temporal\Duration::from(['microseconds' => -$maxUs]), \Temporal\Duration::from(['nanoseconds' => -$maxNs])];
+$durations = [\Temporal\Spec\Duration::from(['seconds' => $maxSec]), \Temporal\Spec\Duration::from(['milliseconds' => $maxMs]), \Temporal\Spec\Duration::from(['microseconds' => $maxUs]), \Temporal\Spec\Duration::from(['nanoseconds' => $maxNs]), \Temporal\Spec\Duration::from(['seconds' => -$maxSec]), \Temporal\Spec\Duration::from(['milliseconds' => -$maxMs]), \Temporal\Spec\Duration::from(['microseconds' => -$maxUs]), \Temporal\Spec\Duration::from(['nanoseconds' => -$maxNs])];
 foreach ($durations as $duration) {
 Assert::throws(\InvalidArgumentException::class, function () use ($duration) { $duration->subtract($duration->negated()); }, "subtracting the negation of a large duration from the duration is out of bounds: {$duration}");
 }

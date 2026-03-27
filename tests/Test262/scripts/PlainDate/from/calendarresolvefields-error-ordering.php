@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(['monthCode' => 'M99L', 'day' => 1]), 'Missing year throws TypeError before invalid monthCode throws RangeError');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(['year' => 2021, 'day' => 32], ['overflow' => 'reject']), 'Missing month throws TypeError before out-of-range day throws RangeError');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainDate::from(['year' => 2021, 'monthCode' => 'M99L']), 'Missing day throws TypeError before invalid monthCode throws RangeError');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from(['year' => 2021, 'monthCode' => 'M99L', 'day' => 1]), 'Invalid monthCode throws RangeError when all types are valid');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from(['year' => 2021, 'month' => 11, 'monthCode' => 'M12', 'day' => 18]), 'Conflicting month/monthCode throws RangeError when all types are valid');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 32], ['overflow' => 'reject']), 'Out-of-range day throws RangeError when all types are valid');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(['monthCode' => 'M99L', 'day' => 1]), 'Missing year throws TypeError before invalid monthCode throws RangeError');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'day' => 32], ['overflow' => 'reject']), 'Missing month throws TypeError before out-of-range day throws RangeError');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'monthCode' => 'M99L']), 'Missing day throws TypeError before invalid monthCode throws RangeError');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'monthCode' => 'M99L', 'day' => 1]), 'Invalid monthCode throws RangeError when all types are valid');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 11, 'monthCode' => 'M12', 'day' => 18]), 'Conflicting month/monthCode throws RangeError when all types are valid');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 32], ['overflow' => 'reject']), 'Out-of-range day throws RangeError when all types are valid');

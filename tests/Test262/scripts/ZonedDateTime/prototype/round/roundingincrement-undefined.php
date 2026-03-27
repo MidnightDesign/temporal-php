@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $explicit = $datetime->round(['smallestUnit' => 'second']);
 Assert::sameValue($explicit->epochNanoseconds, 1_000_000_001_000_000_000, 'default roundingIncrement is 1');
 $implicit = $datetime->round(['smallestUnit' => 'second']);

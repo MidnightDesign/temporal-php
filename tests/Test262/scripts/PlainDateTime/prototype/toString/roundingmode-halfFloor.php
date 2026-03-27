@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 123, 987, 500);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 123, 987, 500);
 $result1 = $datetime->toString(['smallestUnit' => 'microsecond', 'roundingMode' => 'halfFloor']);
 Assert::sameValue($result1, '2000-05-02T12:34:56.123987', 'roundingMode is halfFloor (with 6 digits from smallestUnit)');
 $result2 = $datetime->toString(['fractionalSecondDigits' => 6, 'roundingMode' => 'halfFloor']);

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainDate(2000, 5, 2);
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $result1 = $instance->with(['day' => 5], new \stdClass());
 TemporalHelpers::assertPlainDate($result1, 2000, 5, 'M05', 5, 'options may be an empty plain object');
 $result2 = $instance->with(['day' => 5], function () {  });

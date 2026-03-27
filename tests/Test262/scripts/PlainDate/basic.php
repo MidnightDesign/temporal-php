@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainDate = new \Temporal\PlainDate(2020, 12, 24, 'iso8601');
+$plainDate = new \Temporal\Spec\PlainDate(2020, 12, 24, 'iso8601');
 TemporalHelpers::assertPlainDate($plainDate, 2020, 12, 'M12', 24, 'with string');
 Assert::sameValue($plainDate->calendarId, 'iso8601', 'calendar string is iso8601');

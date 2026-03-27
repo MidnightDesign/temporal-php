@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(3_661_001_001_001, '-00:02');
-$zdt = new \Temporal\ZonedDateTime(86_400_000_000_000, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(3_661_001_001_001, '-00:02');
+$zdt = new \Temporal\Spec\ZonedDateTime(86_400_000_000_000, 'UTC');
 $newzdt = $zdt->withPlainTime($datetime);
 Assert::sameValue($newzdt->hour, 0, '');
 Assert::sameValue($newzdt->minute, 59, '');

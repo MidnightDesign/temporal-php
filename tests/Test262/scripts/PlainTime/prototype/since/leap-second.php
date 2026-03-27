@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainTime(23, 59, 59);
+$instance = new \Temporal\Spec\PlainTime(23, 59, 59);
 $arg = '2016-12-31T23:59:60';
 $result1 = $instance->since($arg);
 TemporalHelpers::assertDuration($result1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'leap second is a valid ISO string for PlainTime');

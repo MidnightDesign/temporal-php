@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$relativeTo = new \Temporal\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
-$duration = new \Temporal\Duration(0, 0, 0, 1);
+$relativeTo = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $result = $duration->round(['relativeTo' => $relativeTo, 'largestUnit' => 'days']);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\Instant(0);
+$instance = new \Temporal\Spec\Instant(0);
 $validStrings = ['1970-01-01T00Z', '1970-01-01T00Z[UTC]', '1970-01-01T00Z[!UTC]', '1970-01-01T00Z[Europe/Vienna]', '1970-01-01T00+00', '1970-01-01T00+00:00', '1970-01-01T00+00:00:00,0', '1970-01-01T00+00:00:00.000000000', '1970-01-01T00+0000', '1970-01-01T00+000000,0', '1970-01-01T00+000000.000000000', '1970-01-01T00+00:00[UTC]', '1970-01-01T00+00:00[!UTC]', '1969-12-31T16-08[America/Vancouver]', '1969-12-31T16-08:00[America/Vancouver]', '1969-12-31T16-08:00:00,0[America/Vancouver]', '1969-12-31T16-08:00:00.000000000[America/Vancouver]', '1969-12-31T16-0800[America/Vancouver]', '1969-12-31T16-080000,0[America/Vancouver]', '1969-12-31T16-080000.000000000[America/Vancouver]'];
 foreach ($validStrings as $arg) {
 $result = $instance->until($arg);

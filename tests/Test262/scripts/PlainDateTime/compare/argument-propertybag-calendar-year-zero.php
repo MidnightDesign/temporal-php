@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['-000000-10-31', '-000000-10-31T17:45', '-000000-10-31T17:45Z', '-000000-10-31T17:45+01:00', '-000000-10-31T17:45+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare($arg, new \Temporal\PlainDateTime(1976, 11, 18)), 'reject minus zero as extended year (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::compare(new \Temporal\PlainDateTime(1976, 11, 18), $arg), 'reject minus zero as extended year (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(1976, 11, 18)), 'reject minus zero as extended year (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg), 'reject minus zero as extended year (second argument)');
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$orig = new \Temporal\PlainTime(11, 42, 0, 0, 0, 0);
-$result = \Temporal\PlainTime::from($orig);
+$orig = new \Temporal\Spec\PlainTime(11, 42, 0, 0, 0, 0);
+$result = \Temporal\Spec\PlainTime::from($orig);
 TemporalHelpers::assertPlainTime($result, 11, 42, 0, 0, 0, 0, 'PlainTime is copied');
 Assert::notSameValue($result, $orig, 'When a PlainTime is given, the returned value is not the original PlainTime');

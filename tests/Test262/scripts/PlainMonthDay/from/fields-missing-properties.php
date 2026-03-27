@@ -7,12 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(new \stdClass()), 'No properties');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['day' => 15]), 'Only day');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['month' => 12]), 'day is required with month');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['monthCode' => 'M12']), 'Only monthCode');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['day' => 15]), 'monthCode undefined');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['months' => 12, 'day' => 31]), 'months plural');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, 'month' => 12]), 'day is required with year and month');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, 'monthCode' => 'M12']), 'day is required with year and monthCode');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, 'day' => 17]), 'either month or monthCode is required');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(new \stdClass()), 'No properties');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['day' => 15]), 'Only day');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['month' => 12]), 'day is required with month');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M12']), 'Only monthCode');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['day' => 15]), 'monthCode undefined');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['months' => 12, 'day' => 31]), 'months plural');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => 12]), 'day is required with year and month');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'monthCode' => 'M12']), 'day is required with year and monthCode');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'day' => 17]), 'either month or monthCode is required');

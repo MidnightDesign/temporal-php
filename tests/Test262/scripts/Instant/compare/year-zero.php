@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(0);
+$instance = new \Temporal\Spec\Instant(0);
 $invalidStrings = ['-000000-03-30T00:45Z', '-000000-03-30T01:45+01:00', '-000000-03-30T01:45:00+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($arg, $instance), 'minus zero is invalid extended year (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($instance, $arg), 'minus zero is invalid extended year (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, $instance), 'minus zero is invalid extended year (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($instance, $arg), 'minus zero is invalid extended year (second argument)');
 }

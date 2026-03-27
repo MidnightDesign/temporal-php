@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainTime = new \Temporal\PlainTime(9, 45, 55);
+$plainTime = new \Temporal\Spec\PlainTime(9, 45, 55);
 TemporalHelpers::assertPlainTime($plainTime->with(['hour' => 8]), 8, 45, 55, 0, 0, 0, 'only the properties that are present and defined in the plain object are copied');

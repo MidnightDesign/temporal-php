@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$pd = new \Temporal\PlainDate(1970, 12, 24, 'iso8601');
+$pd = new \Temporal\Spec\PlainDate(1970, 12, 24, 'iso8601');
 $pmd = $pd->toPlainMonthDay();
 TemporalHelpers::assertPlainMonthDay($pmd, 'M12', 24);
 Assert::sameValue($pmd->calendarId, 'iso8601', '');

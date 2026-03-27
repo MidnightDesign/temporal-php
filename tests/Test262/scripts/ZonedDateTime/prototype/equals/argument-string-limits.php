@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $validStrings = ['-271821-04-20T00:00Z[UTC]', '+275760-09-13T00:00Z[UTC]', '+275760-09-13T01:00+01:00[+01:00]', '+275760-09-13T23:59+23:59[+23:59]'];
 foreach ($validStrings as $arg) {
 $instance->equals($arg);

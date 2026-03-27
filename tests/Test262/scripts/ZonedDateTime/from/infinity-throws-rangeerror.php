@@ -12,7 +12,7 @@ $base = ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 15, 'minute' => 30,
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\ZonedDateTime::from(array_merge($base, [$prop => $inf]), ['overflow' => $overflow]), "{$prop} property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from(array_merge($base, [$prop => $inf]), ['overflow' => $overflow]), "{$prop} property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

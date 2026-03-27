@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainYearMonth(2000, 5);
-$later = new \Temporal\PlainYearMonth(2001, 6);
+$earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');
 $implicit = $earlier->until($later, new \stdClass());

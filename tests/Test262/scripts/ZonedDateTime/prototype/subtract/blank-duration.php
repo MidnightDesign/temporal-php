@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt = new \Temporal\ZonedDateTime(1, 'UTC');
-$blank = new \Temporal\Duration();
+$dt = new \Temporal\Spec\ZonedDateTime(1, 'UTC');
+$blank = new \Temporal\Spec\Duration();
 $result = $dt->subtract($blank);
 Assert::sameValue($result->epochNanoseconds, 1, 'result is unchanged');

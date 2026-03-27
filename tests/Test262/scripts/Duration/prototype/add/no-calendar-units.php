@@ -7,14 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$blank = new \Temporal\Duration();
-$withYears = new \Temporal\Duration(1);
+$blank = new \Temporal\Spec\Duration();
+$withYears = new \Temporal\Spec\Duration(1);
 Assert::throws(\InvalidArgumentException::class, fn() => $withYears->add($blank), 'should not add to receiver with years');
-$withMonths = new \Temporal\Duration(0, 1);
+$withMonths = new \Temporal\Spec\Duration(0, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $withMonths->add($blank), 'should not add to receiver with months');
-$withWeeks = new \Temporal\Duration(0, 0, 1);
+$withWeeks = new \Temporal\Spec\Duration(0, 0, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $withWeeks->add($blank), 'should not add to receiver with weeks');
-$ok = new \Temporal\Duration(0, 0, 0, 1);
+$ok = new \Temporal\Spec\Duration(0, 0, 0, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $ok->add($withYears), 'should not add duration with years');
 Assert::throws(\InvalidArgumentException::class, fn() => $ok->add($withMonths), 'should not add duration with months');
 Assert::throws(\InvalidArgumentException::class, fn() => $ok->add($withWeeks), 'should not add duration with weeks');

@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$oneYear = new \Temporal\Duration(1);
-$oneMonth = new \Temporal\Duration(0, 1);
-$oneWeek = new \Temporal\Duration(0, 0, 1);
-$oneDay = new \Temporal\Duration(0, 0, 0, 1);
+$oneYear = new \Temporal\Spec\Duration(1);
+$oneMonth = new \Temporal\Spec\Duration(0, 1);
+$oneWeek = new \Temporal\Spec\Duration(0, 0, 1);
+$oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $options = ['largestUnit' => 'days'];
 TemporalHelpers::assertDuration($oneDay->round($options), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'days do not require relativeTo');
 Assert::throws(\InvalidArgumentException::class, fn() => $oneWeek->round($options), 'balancing weeks to days requires relativeTo');

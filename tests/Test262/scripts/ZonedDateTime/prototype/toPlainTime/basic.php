@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = \Temporal\ZonedDateTime::from('2019-10-29T09:46:38.271986102Z[-07:00]');
+$zdt = \Temporal\Spec\ZonedDateTime::from('2019-10-29T09:46:38.271986102Z[-07:00]');
 TemporalHelpers::assertPlainTime($zdt->toPlainTime(), 2, 46, 38, 271, 986, 102);

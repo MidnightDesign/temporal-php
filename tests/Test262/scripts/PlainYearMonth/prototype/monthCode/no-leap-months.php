@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 for ($year = 1970; $year < 1975; $year++) {
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\PlainYearMonth::from(['year' => $year, 'month' => $month]);
+$date = \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'month' => $month]);
 Assert::sameValue($date->monthCode->endsWith('L'), false, '');
 }
 }

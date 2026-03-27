@@ -7,18 +7,18 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt = new \Temporal\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
+$dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
-Assert::sameValue($dt->round(['smallestUnit' => 'hour', 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\PlainDateTime, true, "valid hour increments divide into 24 (rounding increment = {$roundingIncrement})");
+Assert::sameValue($dt->round(['smallestUnit' => 'hour', 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\Spec\PlainDateTime, true, "valid hour increments divide into 24 (rounding increment = {$roundingIncrement})");
 }
 foreach (['minute', 'second'] as $smallestUnit) {
 foreach ([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as $roundingIncrement) {
-Assert::sameValue($dt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\PlainDateTime, true, "valid {$smallestUnit} increments divide into 60 (rounding increment = {$roundingIncrement})");
+Assert::sameValue($dt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\Spec\PlainDateTime, true, "valid {$smallestUnit} increments divide into 60 (rounding increment = {$roundingIncrement})");
 }
 }
 foreach (['millisecond', 'microsecond', 'nanosecond'] as $smallestUnit) {
 foreach ([1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500] as $roundingIncrement) {
-Assert::sameValue($dt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\PlainDateTime, true, "valid {$smallestUnit} increments divide into 1000 (rounding increment = {$roundingIncrement})");
+Assert::sameValue($dt->round(['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement]) instanceof \Temporal\Spec\PlainDateTime, true, "valid {$smallestUnit} increments divide into 1000 (rounding increment = {$roundingIncrement})");
 }
 }
 $nextIncrements = ['hour' => 24, 'minute' => 60, 'second' => 60, 'millisecond' => 1000, 'microsecond' => 1000, 'nanosecond' => 1000];

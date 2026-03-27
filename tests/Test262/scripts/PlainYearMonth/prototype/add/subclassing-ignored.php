@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnored(\Temporal\PlainYearMonth::class, [2000, 5], 'add', [['months' => 1]], fn($result) => TemporalHelpers::assertPlainYearMonth($result, 2000, 6, 'M06'));
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\PlainYearMonth::class, [2000, 5], 'add', [['months' => 1]], fn($result) => TemporalHelpers::assertPlainYearMonth($result, 2000, 6, 'M06'));

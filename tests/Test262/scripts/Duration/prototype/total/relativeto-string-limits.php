@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(0, 0, 0, 0, 0, 5);
-$blankInstance = new \Temporal\Duration();
+$instance = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 5);
+$blankInstance = new \Temporal\Spec\Duration();
 $validStrings = ['-271821-04-20T00:00Z[UTC]', '+275760-09-13', '+275760-09-13T23:00'];
 foreach ($validStrings as $relativeTo) {
 $instance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]);
@@ -24,6 +24,6 @@ foreach ($invalidStrings as $relativeTo) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
 Assert::throws(\InvalidArgumentException::class, fn() => $blankInstance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
 }
-$duration = \Temporal\Duration::from(['nanoseconds' => 0]);
+$duration = \Temporal\Spec\Duration::from(['nanoseconds' => 0]);
 $options = ['unit' => 'nanoseconds', 'relativeTo' => '+999999-01-01'];
 Assert::throws(\InvalidArgumentException::class, fn() => $duration->total($options), '');

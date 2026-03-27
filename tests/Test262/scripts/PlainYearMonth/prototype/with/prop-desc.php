@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainYearMonth.prototype.with` is `function`');
-Assert::methodExists('\Temporal\PlainYearMonth', 'with');
+Assert::methodExists('\Temporal\Spec\PlainYearMonth', 'with');

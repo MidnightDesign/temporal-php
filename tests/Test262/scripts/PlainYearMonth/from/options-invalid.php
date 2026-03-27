@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$items = [['year' => 2000, 'month' => 11], '2000-11', new \Temporal\PlainYearMonth(2000, 11)];
+$items = [['year' => 2000, 'month' => 11], '2000-11', new \Temporal\Spec\PlainYearMonth(2000, 11)];
 Assert::incomplete('untranslatable: Symbol()');

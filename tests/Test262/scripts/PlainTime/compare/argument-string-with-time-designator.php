@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$halfPast = new \Temporal\PlainTime(0, 30);
+$halfPast = new \Temporal\Spec\PlainTime(0, 30);
 $validStrings = ['T00:30', 't00:30', 'T0030', 't0030', 'T00:30:00', 't00:30:00', 'T003000', 't003000', 'T00:30:00.000000000', 't00:30:00.000000000', 'T003000.000000000', 't003000.000000000'];
 foreach ($validStrings as $arg) {
-Assert::sameValue(\Temporal\PlainTime::compare($arg, $halfPast), 0, "T prefix is accepted: {$arg} (first argument)");
-Assert::sameValue(\Temporal\PlainTime::compare($halfPast, $arg), 0, "T prefix is accepted: {$arg} (second argument)");
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($arg, $halfPast), 0, "T prefix is accepted: {$arg} (first argument)");
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($halfPast, $arg), 0, "T prefix is accepted: {$arg} (second argument)");
 }

@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\ZonedDateTime(false, 'UTC')->epochNanoseconds, 0, 'boolean defaults');
-Assert::sameValue(new \Temporal\ZonedDateTime(true, 'UTC')->epochNanoseconds, 1, 'boolean defaults');
+Assert::sameValue(new \Temporal\Spec\ZonedDateTime(false, 'UTC')->epochNanoseconds, 0, 'boolean defaults');
+Assert::sameValue(new \Temporal\Spec\ZonedDateTime(true, 'UTC')->epochNanoseconds, 1, 'boolean defaults');
 Assert::incomplete('untranslatable: Symbol()');

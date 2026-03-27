@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\PlainDate(2024, 1, 8)->dayOfWeek, 1, 'Monday');
-Assert::sameValue(new \Temporal\PlainDate(2024, 1, 9)->dayOfWeek, 2, 'Tuesday');
-Assert::sameValue(new \Temporal\PlainDate(2024, 1, 10)->dayOfWeek, 3, 'Wednesday');
-Assert::sameValue(new \Temporal\PlainDate(2024, 1, 11)->dayOfWeek, 4, 'Thursday');
-Assert::sameValue(new \Temporal\PlainDate(2024, 1, 12)->dayOfWeek, 5, 'Friday');
-Assert::sameValue(new \Temporal\PlainDate(2024, 1, 13)->dayOfWeek, 6, 'Saturday');
-Assert::sameValue(new \Temporal\PlainDate(2024, 1, 14)->dayOfWeek, 7, 'Sunday');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 8)->dayOfWeek, 1, 'Monday');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 9)->dayOfWeek, 2, 'Tuesday');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 10)->dayOfWeek, 3, 'Wednesday');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 11)->dayOfWeek, 4, 'Thursday');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 12)->dayOfWeek, 5, 'Friday');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 13)->dayOfWeek, 6, 'Saturday');
+Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 14)->dayOfWeek, 7, 'Sunday');

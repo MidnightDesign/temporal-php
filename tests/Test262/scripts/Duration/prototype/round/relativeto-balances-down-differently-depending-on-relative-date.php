@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$oneYear = new \Temporal\Duration(1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($oneYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\PlainDate(2019, 1, 1)]), 0, 0, 0, 365, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($oneYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\PlainDate(2019, 7, 1)]), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0);
-$minusYear = new \Temporal\Duration(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($minusYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\PlainDate(2020, 1, 1)]), 0, 0, 0, -365, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($minusYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\PlainDate(2020, 7, 1)]), 0, 0, 0, -366, 0, 0, 0, 0, 0, 0);
+$oneYear = new \Temporal\Spec\Duration(1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2019, 1, 1)]), 0, 0, 0, 365, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2019, 7, 1)]), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0);
+$minusYear = new \Temporal\Spec\Duration(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($minusYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)]), 0, 0, 0, -365, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($minusYear->round(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 7, 1)]), 0, 0, 0, -366, 0, 0, 0, 0, 0, 0);

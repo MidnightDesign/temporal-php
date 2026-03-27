@@ -13,8 +13,8 @@ $timeZones = ['UTC', '+00', '+01', '-01'];
 $units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($timeZones as $timeZone) {
 foreach ($epochNanoseconds as $epochNs) {
-$zdt = new \Temporal\ZonedDateTime($epochNs, $timeZone);
-$other = new \Temporal\ZonedDateTime($epochNs, $timeZone);
+$zdt = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
+$other = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
 for ($i = 0; $i < count($units); ++$i) {
 for ($j = $i; $j < count($units); ++$j) {
 $options = ['largestUnit' => $units[$i], 'smallestUnit' => $units[$j]];

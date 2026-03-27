@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000];
 foreach ($badOffsets as $offset) {
 $arg = ['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => $timeZone];

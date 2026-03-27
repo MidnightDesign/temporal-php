@@ -10,11 +10,11 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $testRoundtrip = function ($year, $month, $monthCode, $day) use (&$options) {
 foreach ($options as $opt) {
-$dateFromYearMonth = \Temporal\PlainDate::from(['year' => $year, 'month' => $month, 'day' => $day], $opt);
+$dateFromYearMonth = \Temporal\Spec\PlainDate::from(['year' => $year, 'month' => $month, 'day' => $day], $opt);
 TemporalHelpers::assertPlainDate($dateFromYearMonth, $year, $month, $monthCode, $day, "{$dateFromYearMonth} - created from year and month");
 }
 foreach ($options as $opt) {
-$dateFromYearMonthCode = \Temporal\PlainDate::from(['year' => $year, 'monthCode' => $monthCode, 'day' => $day], $opt);
+$dateFromYearMonthCode = \Temporal\Spec\PlainDate::from(['year' => $year, 'monthCode' => $monthCode, 'day' => $day], $opt);
 TemporalHelpers::assertPlainDate($dateFromYearMonthCode, $year, $month, $monthCode, $day, "{$dateFromYearMonthCode} - created from year and month code");
 }
 };

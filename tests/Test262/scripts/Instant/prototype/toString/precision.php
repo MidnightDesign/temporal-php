@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $isoString = '2020-01-01T23:58:57.012034Z';
-$instant = \Temporal\Instant::from($isoString);
+$instant = \Temporal\Spec\Instant::from($isoString);
 $instantIsoStrMicros = $instant->toString(['smallestUnit' => 'microseconds']);
 Assert::sameValue($instantIsoStrMicros, $isoString, '');

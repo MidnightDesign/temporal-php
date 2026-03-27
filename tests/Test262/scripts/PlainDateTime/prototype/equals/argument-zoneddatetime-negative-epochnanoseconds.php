@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
-$instance = new \Temporal\PlainDateTime(1969, 7, 24, 16, 50, 35, 0, 0, 1);
+$datetime = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
+$instance = new \Temporal\Spec\PlainDateTime(1969, 7, 24, 16, 50, 35, 0, 0, 1);
 $result = $instance->equals($datetime);
 Assert::sameValue($result, true, '');

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_123_987_500, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_123_987_500, 'UTC');
 TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'microsecond', fn($smallestUnit) => $datetime->round(['smallestUnit' => $smallestUnit]), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_123_988_000, $descr));

@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date1 = new \Temporal\PlainDate(1976, 11, 18);
-$date2 = new \Temporal\PlainDate(1914, 2, 23);
-$date3 = new \Temporal\PlainDate(1914, 2, 23);
+$date1 = new \Temporal\Spec\PlainDate(1976, 11, 18);
+$date2 = new \Temporal\Spec\PlainDate(1914, 2, 23);
+$date3 = new \Temporal\Spec\PlainDate(1914, 2, 23);
 Assert::sameValue($date1->equals($date2), false, 'different dates');
 Assert::sameValue($date2->equals($date3), true, 'same dates');
 Assert::sameValue($date2->equals($date2), true, 'same objects');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['1970-01-01T00:00[UTC][foo=bar]', 'with time zone'], ['1970-01-01T00:00[UTC][foo=bar][u-ca=iso8601]', 'before calendar'], ['1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar]', 'after calendar'], ['1970-01-01T00:00[UTC][foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->equals($arg);

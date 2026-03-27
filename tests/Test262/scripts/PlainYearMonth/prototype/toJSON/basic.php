@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$tests = [[new \Temporal\PlainYearMonth(1972, 1), '1972-01'], [new \Temporal\PlainYearMonth(1972, 12), '1972-12']];
+$tests = [[new \Temporal\Spec\PlainYearMonth(1972, 1), '1972-01'], [new \Temporal\Spec\PlainYearMonth(1972, 12), '1972-12']];
 $options = null;
 foreach ($tests as $__entry__) {
 [$yearMonth, $expected] = array_pad($__entry__, 2, null);

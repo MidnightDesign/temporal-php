@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDateTime(\Temporal\PlainDateTime::from('1976-11-18T15:23:30,12'), 1976, 11, 'M11', 18, 15, 23, 30, 120, 0, 0, 'comma decimal separator');
+TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from('1976-11-18T15:23:30,12'), 1976, 11, 'M11', 18, 15, 23, 30, 120, 0, 0, 'comma decimal separator');

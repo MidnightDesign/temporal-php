@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $minimumProperties = ['year' => 2021, 'month' => 10, 'day' => 28, 'timeZone' => $timeZone];
 $allProperties = ['year' => 2021, 'month' => 10, 'day' => 28, 'hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'offset' => '+00:00', 'timeZone' => $timeZone, 'calendar' => 'iso8601'];
 $resultWithout = $instance->equals($minimumProperties);

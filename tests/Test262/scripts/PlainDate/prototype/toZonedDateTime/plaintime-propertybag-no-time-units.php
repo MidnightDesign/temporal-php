@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDate(2000, 1, 1);
+$instance = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $props = new \stdClass();
 Assert::throws(\TypeError::class, fn() => $instance->toZonedDateTime(['plainTime' => $props, 'timeZone' => 'UTC']), 'TypeError if no properties are present');
 $props['minute'] = 30;

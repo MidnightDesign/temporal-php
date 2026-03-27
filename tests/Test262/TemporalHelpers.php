@@ -22,7 +22,7 @@ final class TemporalHelpers
      * Argument order matches JS TemporalHelpers.assertDuration(d, y,m,w,d,h,min,s,ms,us,ns,msg).
      */
     public static function assertDuration(
-        \Temporal\Duration $duration,
+        \Temporal\Spec\Duration $duration,
         int|float $years,
         int|float $months,
         int|float $weeks,
@@ -54,8 +54,8 @@ final class TemporalHelpers
      * Argument order matches JS TemporalHelpers.assertDurationsEqual(a, b, msg).
      */
     public static function assertDurationsEqual(
-        \Temporal\Duration $one,
-        \Temporal\Duration $two,
+        \Temporal\Spec\Duration $one,
+        \Temporal\Spec\Duration $two,
         string $description = '',
     ): void {
         self::assertDuration(
@@ -82,7 +82,7 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainDate(
-        \Temporal\PlainDate $date,
+        \Temporal\Spec\PlainDate $date,
         int $year,
         int $month,
         string $monthCode,
@@ -110,8 +110,8 @@ final class TemporalHelpers
      * Argument order matches JS TemporalHelpers.assertInstantsEqual(a, b, msg).
      */
     public static function assertInstantsEqual(
-        \Temporal\Instant $one,
-        \Temporal\Instant $two,
+        \Temporal\Spec\Instant $one,
+        \Temporal\Spec\Instant $two,
         string $description = '',
     ): void {
         PHPUnitAssert::assertSame(
@@ -129,7 +129,7 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainTime(
-        \Temporal\PlainTime $time,
+        \Temporal\Spec\PlainTime $time,
         int $hour,
         int $minute,
         int $second,
@@ -155,8 +155,8 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainTimesEqual(
-        \Temporal\PlainTime $one,
-        \Temporal\PlainTime $two,
+        \Temporal\Spec\PlainTime $one,
+        \Temporal\Spec\PlainTime $two,
         string $description = '',
     ): void {
         self::assertPlainTime(
@@ -179,8 +179,8 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainDatesEqual(
-        \Temporal\PlainDate $one,
-        \Temporal\PlainDate $two,
+        \Temporal\Spec\PlainDate $one,
+        \Temporal\Spec\PlainDate $two,
         string $description = '',
     ): void {
         self::assertPlainDate($one, $two->year, $two->month, $two->monthCode, $two->day, $description);
@@ -194,7 +194,7 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainDateTime(
-        \Temporal\PlainDateTime $dt,
+        \Temporal\Spec\PlainDateTime $dt,
         int $year,
         int $month,
         string $monthCode,
@@ -228,8 +228,8 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainDateTimesEqual(
-        \Temporal\PlainDateTime $one,
-        \Temporal\PlainDateTime $two,
+        \Temporal\Spec\PlainDateTime $one,
+        \Temporal\Spec\PlainDateTime $two,
         string $description = '',
     ): void {
         self::assertPlainDateTime(
@@ -254,7 +254,7 @@ final class TemporalHelpers
      * Argument order matches JS TemporalHelpers.assertDateDuration(d, y, m, w, days, msg).
      */
     public static function assertDateDuration(
-        \Temporal\Duration $duration,
+        \Temporal\Spec\Duration $duration,
         int|float $years,
         int|float $months,
         int|float $weeks,
@@ -301,29 +301,29 @@ final class TemporalHelpers
             /** @var mixed $plural */
             $plural = $func($plurals[$unit] ?? sprintf('%ss', $unit));
             $desc = "Plural {$plurals[$unit]} produces the same result as singular {$unit}";
-            if ($singular instanceof \Temporal\Duration) {
+            if ($singular instanceof \Temporal\Spec\Duration) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
                 // @phpstan-ignore argument.type
                 self::assertDurationsEqual($plural, $singular, $desc);
-            } elseif ($singular instanceof \Temporal\Instant) {
+            } elseif ($singular instanceof \Temporal\Spec\Instant) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
                 // @phpstan-ignore argument.type
                 self::assertInstantsEqual($plural, $singular, $desc);
-            } elseif ($singular instanceof \Temporal\PlainTime) {
+            } elseif ($singular instanceof \Temporal\Spec\PlainTime) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
                 PHPUnitAssert::assertTrue($singular->equals($plural), $desc); // @phpstan-ignore argument.type
-            } elseif ($singular instanceof \Temporal\PlainDateTime) {
+            } elseif ($singular instanceof \Temporal\Spec\PlainDateTime) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
                 PHPUnitAssert::assertTrue($singular->equals($plural), $desc); // @phpstan-ignore argument.type
-            } elseif ($singular instanceof \Temporal\PlainDate) {
+            } elseif ($singular instanceof \Temporal\Spec\PlainDate) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
                 PHPUnitAssert::assertTrue($singular->equals($plural), $desc); // @phpstan-ignore argument.type
-            } elseif ($singular instanceof \Temporal\ZonedDateTime) {
+            } elseif ($singular instanceof \Temporal\Spec\ZonedDateTime) {
                 /** @psalm-suppress MixedArgument */
                 // @mago-ignore analysis:mixed-argument
                 // @phpstan-ignore argument.type
@@ -517,7 +517,7 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainYearMonth(
-        \Temporal\PlainYearMonth $ym,
+        \Temporal\Spec\PlainYearMonth $ym,
         int $year,
         int $month,
         string $monthCode,
@@ -537,8 +537,8 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainYearMonthsEqual(
-        \Temporal\PlainYearMonth $one,
-        \Temporal\PlainYearMonth $two,
+        \Temporal\Spec\PlainYearMonth $one,
+        \Temporal\Spec\PlainYearMonth $two,
         string $description = '',
     ): void {
         self::assertPlainYearMonth($one, $two->year, $two->month, $two->monthCode, $description);
@@ -552,7 +552,7 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertPlainMonthDay(
-        \Temporal\PlainMonthDay $md,
+        \Temporal\Spec\PlainMonthDay $md,
         string $monthCode,
         int $day,
         string $description = '',
@@ -572,8 +572,8 @@ final class TemporalHelpers
      * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
      */
     public static function assertZonedDateTimesEqual(
-        \Temporal\ZonedDateTime $actual,
-        \Temporal\ZonedDateTime $expected,
+        \Temporal\Spec\ZonedDateTime $actual,
+        \Temporal\Spec\ZonedDateTime $expected,
         string $description = '',
     ): void {
         $prefix = $description !== '' ? "{$description}: " : '';

@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\Instant(1_000_000_000_000_000_000);
-$later = new \Temporal\Instant(1_000_090_061_123_987_500);
+$earlier = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
+$later = new \Temporal\Spec\Instant(1_000_090_061_123_987_500);
 $explicit1 = $later->since($earlier, ['smallestUnit' => 'microsecond']);
 TemporalHelpers::assertDuration($explicit1, 0, 0, 0, 0, 0, 0, 90_061, 123, 987, 0, 'default roundingMode is trunc');
 $implicit1 = $later->since($earlier, ['smallestUnit' => 'microsecond']);

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainMonthDay.prototype.toPlainDate` is `function`');
-Assert::methodExists('\Temporal\PlainMonthDay', 'toPlainDate');
+Assert::methodExists('\Temporal\Spec\PlainMonthDay', 'toPlainDate');

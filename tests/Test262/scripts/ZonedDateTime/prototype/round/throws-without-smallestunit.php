@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
+$zdt = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
 Assert::throws(\InvalidArgumentException::class, fn() => $zdt->round(new \stdClass()), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $zdt->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']), '');

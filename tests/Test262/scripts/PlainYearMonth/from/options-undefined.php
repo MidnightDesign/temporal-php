@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $fields = ['year' => 2000, 'month' => 13];
-$explicit = \Temporal\PlainYearMonth::from($fields);
+$explicit = \Temporal\Spec\PlainYearMonth::from($fields);
 Assert::sameValue($explicit->month, 12, 'default overflow is constrain');
-$implicit = \Temporal\PlainYearMonth::from($fields);
+$implicit = \Temporal\Spec\PlainYearMonth::from($fields);
 Assert::sameValue($implicit->month, 12, 'default overflow is constrain');
-$lambda = \Temporal\PlainYearMonth::from($fields, function () {  });
+$lambda = \Temporal\Spec\PlainYearMonth::from($fields, function () {  });
 Assert::sameValue($lambda->month, 12, 'default overflow is constrain');

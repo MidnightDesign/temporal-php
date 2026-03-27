@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
+$zdt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
 $overflow = 'reject';
 Assert::throws(\InvalidArgumentException::class, fn() => $zdt->with(['month' => 29], ['overflow' => $overflow]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $zdt->with(['day' => 31], ['overflow' => $overflow]), '');

@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date = new \Temporal\PlainDate(2000, 5, 2);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::throws(\TypeError::class, fn() => $date->with(['year' => 2020, 'calendar' => 'iso8601']), 'calendar key throws TypeError');
 Assert::throws(\TypeError::class, fn() => $date->with(['year' => 2020, 'timeZone' => 'UTC']), 'timeZone key throws TypeError');

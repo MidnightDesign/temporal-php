@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$explicit = new \Temporal\PlainTime();
+$explicit = new \Temporal\Spec\PlainTime();
 TemporalHelpers::assertPlainTime($explicit, 0, 0, 0, 0, 0, 0, 'explicit');
-$implicit = new \Temporal\PlainTime();
+$implicit = new \Temporal\Spec\PlainTime();
 TemporalHelpers::assertPlainTime($implicit, 0, 0, 0, 0, 0, 0, 'implicit');

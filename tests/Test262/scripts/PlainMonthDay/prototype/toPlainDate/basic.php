@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$md = \Temporal\PlainMonthDay::from('01-22');
+$md = \Temporal\Spec\PlainMonthDay::from('01-22');
 $d = $md->toPlainDate(['year' => 2002]);
 TemporalHelpers::assertPlainDate($d, 2002, 1, 'M01', 22);
 Assert::throws(\TypeError::class, fn() => $md->toPlainDate(['something' => 'nothing']), 'missing fields');
-$leapDay = \Temporal\PlainMonthDay::from('02-29');
+$leapDay = \Temporal\Spec\PlainMonthDay::from('02-29');
 TemporalHelpers::assertPlainDate($leapDay->toPlainDate(['year' => 2020]), 2020, 2, 'M02', 29);
 Assert::incomplete('untranslatable object property');

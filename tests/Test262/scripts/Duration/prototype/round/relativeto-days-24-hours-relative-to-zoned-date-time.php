@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$hours25 = new \Temporal\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
-$relativeTo = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, '+04:30');
+$hours25 = new \Temporal\Spec\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
+$relativeTo = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, '+04:30');
 TemporalHelpers::assertDuration($hours25->round(['largestUnit' => 'days', 'relativeTo' => $relativeTo]), 0, 0, 0, 1, 1, 0, 0, 0, 0, 0);

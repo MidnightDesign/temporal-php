@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = \Temporal\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
-$relativeTo = new \Temporal\PlainDate(2000, 1, 1);
+$duration = \Temporal\Spec\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
+$relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $duration->total(['relativeTo' => $relativeTo, 'unit' => 'days']), '');

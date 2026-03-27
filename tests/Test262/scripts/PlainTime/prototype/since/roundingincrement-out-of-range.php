@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\PlainTime(12, 34, 56, 0, 0, 0);
-$later = new \Temporal\PlainTime(12, 34, 56, 0, 0, 5);
+$earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 0);
+$later = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 5);
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['roundingIncrement' => -INF]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['roundingIncrement' => -1]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['roundingIncrement' => 0]), '');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainDate(1976, 11, 18);
+$instance = new \Temporal\Spec\PlainDate(1976, 11, 18);
 $calendar = '2016-12-31T23:59:60';
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
 $result = $instance->since($arg);

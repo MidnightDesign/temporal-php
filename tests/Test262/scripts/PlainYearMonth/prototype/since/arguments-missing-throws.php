@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$jun13 = new \Temporal\PlainYearMonth(2013, 6);
+$jun13 = new \Temporal\Spec\PlainYearMonth(2013, 6);
 Assert::throws(\TypeError::class, fn() => $jun13->since(['year' => 1994]), 'Throws when missing required month');
 Assert::throws(\TypeError::class, fn() => $jun13->since(['month' => 11]), 'Throws when missing required year');

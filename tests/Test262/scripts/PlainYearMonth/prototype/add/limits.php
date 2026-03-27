@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$max = \Temporal\PlainYearMonth::from('+275760-09');
+$max = \Temporal\Spec\PlainYearMonth::from('+275760-09');
 foreach (['reject', 'constrain'] as $overflow) {
 Assert::throws(\InvalidArgumentException::class, fn() => $max->add(['months' => 1], ['overflow' => $overflow]), $overflow);
 }

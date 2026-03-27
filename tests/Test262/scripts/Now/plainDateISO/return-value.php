@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d = \Temporal\Now::plainDateISO();
-Assert::assertTrue($d instanceof \Temporal\PlainDate, '');
+$d = \Temporal\Spec\Now::plainDateISO();
+Assert::assertTrue($d instanceof \Temporal\Spec\PlainDate, '');
 Assert::sameValue($d->calendarId, 'iso8601', 'calendar string should be iso8601');

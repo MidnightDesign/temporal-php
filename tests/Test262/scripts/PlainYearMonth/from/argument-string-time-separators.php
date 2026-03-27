@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['2019-12-15T15:23', 'uppercase T'], ['2019-12-15t15:23', 'lowercase T'], ['2019-12-15 15:23', 'space between date and time']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\PlainYearMonth::from($arg);
+$result = \Temporal\Spec\PlainYearMonth::from($arg);
 TemporalHelpers::assertPlainYearMonth($result, 2019, 12, 'M12', "variant time separators ({$description})");
 }

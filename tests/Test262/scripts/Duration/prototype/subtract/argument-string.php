@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = \Temporal\Duration::from(['days' => 3, 'hours' => 1, 'minutes' => 10]);
+$duration = \Temporal\Spec\Duration::from(['days' => 3, 'hours' => 1, 'minutes' => 10]);
 $result = $duration->subtract('P1DT5M');
 TemporalHelpers::assertDuration($result, 0, 0, 0, 2, 1, 5, 0, 0, 0, 0, 'String argument should be supported');
 Assert::throws(\InvalidArgumentException::class, fn() => $duration->subtract('2DT5M'), 'Invalid string argument should throw');

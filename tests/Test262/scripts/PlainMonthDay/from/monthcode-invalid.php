@@ -8,11 +8,11 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['m1', 'M1', 'm01'] as $monthCode) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not well-formed (without numeric month)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['month' => 1, 'monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not well-formed (with numeric month)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not well-formed (without numeric month)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['month' => 1, 'monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not well-formed (with numeric month)");
 }
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['year' => 2021, 'month' => 12, 'monthCode' => 'M11', 'day' => 17]), 'monthCode and month conflict');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => 12, 'monthCode' => 'M11', 'day' => 17]), 'monthCode and month conflict');
 foreach (['M00', 'M19', 'M99', 'M13', 'M00L', 'M05L', 'M13L'] as $monthCode) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not valid for ISO 8601 calendar (without numeric month)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not valid for ISO 8601 calendar (without numeric month)");
 Assert::incomplete('untranslatable: Number()');
 }

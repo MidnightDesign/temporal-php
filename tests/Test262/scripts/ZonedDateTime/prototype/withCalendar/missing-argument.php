@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zonedDateTime = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+$zonedDateTime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 Assert::throws(\TypeError::class, fn() => $zonedDateTime->withCalendar(), 'missing argument');
 Assert::throws(\TypeError::class, fn() => $zonedDateTime->withCalendar(), 'undefined argument');

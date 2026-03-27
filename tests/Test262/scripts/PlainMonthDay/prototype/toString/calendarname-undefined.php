@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$monthday = new \Temporal\PlainMonthDay(5, 2);
+$monthday = new \Temporal\Spec\PlainMonthDay(5, 2);
 $result = $monthday->toString([]);
 Assert::sameValue($result, '05-02', "default calendarName option is auto with built-in ISO calendar");

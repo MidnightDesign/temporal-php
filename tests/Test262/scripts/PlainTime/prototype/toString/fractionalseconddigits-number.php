@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$fewSeconds = new \Temporal\PlainTime(5, 3, 1);
-$zeroSeconds = new \Temporal\PlainTime(15, 23);
-$wholeSeconds = new \Temporal\PlainTime(15, 23, 30);
-$subSeconds = new \Temporal\PlainTime(15, 23, 30, 123, 400);
+$fewSeconds = new \Temporal\Spec\PlainTime(5, 3, 1);
+$zeroSeconds = new \Temporal\Spec\PlainTime(15, 23);
+$wholeSeconds = new \Temporal\Spec\PlainTime(15, 23, 30);
+$subSeconds = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 400);
 Assert::sameValue($fewSeconds->toString(['fractionalSecondDigits' => 0]), '05:03:01', 'pads parts with 0');
 Assert::sameValue($subSeconds->toString(['fractionalSecondDigits' => 0]), '15:23:30', 'truncates 4 decimal places to 0');
 Assert::sameValue($zeroSeconds->toString(['fractionalSecondDigits' => 2]), '15:23:00.00', 'pads zero seconds to 2 decimal places');

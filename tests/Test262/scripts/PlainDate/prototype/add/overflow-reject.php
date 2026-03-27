@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2021, 1, 31)->add(['months' => 1], ['overflow' => 'reject']), 'Jan 31 + 1 month = Feb 31 with reject throws');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\PlainDate(2021, 10, 31)->add(['months' => 1], ['overflow' => 'reject']), 'Oct 31 + 1 month = Nov 31 with reject throws');
-$result = new \Temporal\PlainDate(2021, 1, 28)->add(['months' => 1], ['overflow' => 'reject']);
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2021, 1, 31)->add(['months' => 1], ['overflow' => 'reject']), 'Jan 31 + 1 month = Feb 31 with reject throws');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDate(2021, 10, 31)->add(['months' => 1], ['overflow' => 'reject']), 'Oct 31 + 1 month = Nov 31 with reject throws');
+$result = new \Temporal\Spec\PlainDate(2021, 1, 28)->add(['months' => 1], ['overflow' => 'reject']);
 Assert::sameValue($result->toString(), '2021-02-28', 'Jan 28 + 1 month = Feb 28');

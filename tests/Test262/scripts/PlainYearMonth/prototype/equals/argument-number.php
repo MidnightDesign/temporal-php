@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainYearMonth(2019, 6);
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 6);
 $numbers = [1, 201_906, -201_906, 1_234_567];
 foreach ($numbers as $arg) {
 Assert::throws(\TypeError::class, fn() => $instance->equals($arg), "A number ({$arg}) is not a valid ISO string for PlainYearMonth");

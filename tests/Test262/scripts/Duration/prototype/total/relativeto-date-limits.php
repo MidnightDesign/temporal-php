@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(0);
+$instance = new \Temporal\Spec\Duration(0);
 $relativeTo = '-271821-04-19';
 $result1 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
 Assert::sameValue($result1, 0, 'minimum date is a valid ISO string for PlainDate relativeTo');

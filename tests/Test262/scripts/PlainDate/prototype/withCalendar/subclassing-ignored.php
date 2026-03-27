@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnored(\Temporal\PlainDate::class, [2000, 5, 2], 'withCalendar', ['iso8601'], function ($result) { TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2); Assert::sameValue($result->calendarId, 'iso8601', 'calendar result'); });
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\PlainDate::class, [2000, 5, 2], 'withCalendar', ['iso8601'], function ($result) { TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2); Assert::sameValue($result->calendarId, 'iso8601', 'calendar result'); });

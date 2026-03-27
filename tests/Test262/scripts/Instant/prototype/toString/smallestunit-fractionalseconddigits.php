@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instant = new \Temporal\Instant(56_789_999_999);
+$instant = new \Temporal\Spec\Instant(56_789_999_999);
 $tests = [['minute', '1970-01-01T00:00Z'], ['second', '1970-01-01T00:00:56Z'], ['millisecond', '1970-01-01T00:00:56.789Z'], ['microsecond', '1970-01-01T00:00:56.789999Z'], ['nanosecond', '1970-01-01T00:00:56.789999999Z']];
 foreach ($tests as $__entry__) {
 [$smallestUnit, $expected] = array_pad($__entry__, 2, null);

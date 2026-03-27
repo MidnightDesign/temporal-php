@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\Duration();
+$instance = new \Temporal\Spec\Duration();
 $oneProperty = ['hours' => 1];
 $allProperties = ['years' => 0, 'months' => 0, 'weeks' => 0, 'days' => 0, 'hours' => 1, 'minutes' => 0, 'seconds' => 0, 'milliseconds' => 0, 'microseconds' => 0, 'nanoseconds' => 0];
 $resultWithout = $instance->subtract($oneProperty);

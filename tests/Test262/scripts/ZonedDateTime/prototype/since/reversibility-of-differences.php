@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(217_189_410_123_456_789, '-03:00');
-$later = new \Temporal\ZonedDateTime(1_572_356_798_271_986_102, '-03:00');
+$earlier = new \Temporal\Spec\ZonedDateTime(217_189_410_123_456_789, '-03:00');
+$later = new \Temporal\Spec\ZonedDateTime(1_572_356_798_271_986_102, '-03:00');
 foreach (['hours', 'minutes', 'seconds'] as $largestUnit) {
 $diff = $later->since($earlier, ['largestUnit' => $largestUnit]);
 TemporalHelpers::assertDurationsEqual($earlier->since($later, ['largestUnit' => $largestUnit]), $diff->negated());

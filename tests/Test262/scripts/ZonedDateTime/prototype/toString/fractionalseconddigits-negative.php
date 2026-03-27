@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(-1_000_000_000_000_001_000, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(-1_000_000_000_000_001_000, 'UTC');
 Assert::sameValue($zdt->toString(), '1938-04-24T22:13:19.999999+00:00[UTC]', 'epoch milliseconds should be rounded down to compute seconds');

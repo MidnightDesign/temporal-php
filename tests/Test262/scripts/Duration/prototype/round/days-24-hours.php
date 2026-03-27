@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$hours25 = new \Temporal\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
+$hours25 = new \Temporal\Spec\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($hours25->round(['largestUnit' => 'days']), 0, 0, 0, 1, 1, 0, 0, 0, 0, 0);

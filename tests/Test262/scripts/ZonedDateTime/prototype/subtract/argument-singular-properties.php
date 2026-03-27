@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ([['year' => 1], ['month' => 2], ['week' => 3], ['day' => 4], ['hour' => 5], ['minute' => 6], ['second' => 7], ['millisecond' => 8], ['microsecond' => 9], ['nanosecond' => 10]] as $badObject) {
 Assert::throws(\TypeError::class, fn() => $instance->subtract($badObject), 'Throw TypeError if temporalDurationLike is not valid');
 }

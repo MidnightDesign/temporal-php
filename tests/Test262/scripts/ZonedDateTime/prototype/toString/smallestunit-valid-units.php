@@ -13,9 +13,9 @@ foreach ($expectations as $__entry__) {
 Assert::sameValue($instance->toString(['smallestUnit' => $smallestUnit]), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
 }
 };
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_123_456_789, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_123_456_789, 'UTC');
 $test($datetime, [['minute', '2001-09-09T01:46+00:00[UTC]'], ['second', '2001-09-09T01:46:40+00:00[UTC]'], ['millisecond', '2001-09-09T01:46:40.123+00:00[UTC]'], ['microsecond', '2001-09-09T01:46:40.123456+00:00[UTC]'], ['nanosecond', '2001-09-09T01:46:40.123456789+00:00[UTC]']], 'subseconds toString');
-$test(new \Temporal\ZonedDateTime(999_999_960_000_000_000, 'UTC'), [['minute', '2001-09-09T01:46+00:00[UTC]'], ['second', '2001-09-09T01:46:00+00:00[UTC]'], ['millisecond', '2001-09-09T01:46:00.000+00:00[UTC]'], ['microsecond', '2001-09-09T01:46:00.000000+00:00[UTC]'], ['nanosecond', '2001-09-09T01:46:00.000000000+00:00[UTC]']], 'whole minutes toString');
+$test(new \Temporal\Spec\ZonedDateTime(999_999_960_000_000_000, 'UTC'), [['minute', '2001-09-09T01:46+00:00[UTC]'], ['second', '2001-09-09T01:46:00+00:00[UTC]'], ['millisecond', '2001-09-09T01:46:00.000+00:00[UTC]'], ['microsecond', '2001-09-09T01:46:00.000000+00:00[UTC]'], ['nanosecond', '2001-09-09T01:46:00.000000000+00:00[UTC]']], 'whole minutes toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour'];
 foreach ($notValid as $smallestUnit) {
 Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['smallestUnit' => $smallestUnit]), "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => 'IsO8601'];
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'Calendar is case-insensitive');

@@ -12,7 +12,7 @@ $epochNanoseconds = [0, $nsPerDay, -$nsPerDay];
 $timeZones = ['UTC', '+00', '+01', '-01'];
 foreach ($timeZones as $timeZone) {
 foreach ($epochNanoseconds as $epochNs) {
-$zdt = new \Temporal\ZonedDateTime($epochNs, $timeZone);
+$zdt = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
 Assert::sameValue($zdt->hoursInDay, 24, "epochNs = {$epochNs}, timeZone = {$timeZone}");
 }
 }

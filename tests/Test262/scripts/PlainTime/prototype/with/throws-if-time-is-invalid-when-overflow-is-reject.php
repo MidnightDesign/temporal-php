@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainTime();
+$instance = new \Temporal\Spec\PlainTime();
 $temporalTimeLikes = [['hour' => -1], ['hour' => 24], ['minute' => -1], ['minute' => 60], ['second' => -1], ['second' => 60], ['millisecond' => -1], ['millisecond' => 1000], ['microsecond' => -1], ['microsecond' => 1000], ['nanosecond' => -1], ['nanosecond' => 1000]];
 $options = ['overflow' => 'reject'];
 foreach ($temporalTimeLikes as $temporalTimeLike) {

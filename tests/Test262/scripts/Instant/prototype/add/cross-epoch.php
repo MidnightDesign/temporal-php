@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$inst = \Temporal\Instant::from('1969-12-25T12:23:45.678901234Z');
+$inst = \Temporal\Spec\Instant::from('1969-12-25T12:23:45.678901234Z');
 $one = $inst->subtract(['hours' => 240, 'nanoseconds' => 800]);
 $two = $inst->add(['hours' => 240, 'nanoseconds' => 800]);
 $three = $two->subtract(['hours' => 480, 'nanoseconds' => 1600]);
 $four = $one->add(['hours' => 480, 'nanoseconds' => 1600]);
-TemporalHelpers::assertInstantsEqual($one, \Temporal\Instant::from('1969-12-15T12:23:45.678900434Z'), "({$inst}).subtract({ hours: 240, nanoseconds: 800 }) = {$one}");
-TemporalHelpers::assertInstantsEqual($two, \Temporal\Instant::from('1970-01-04T12:23:45.678902034Z'), "({$inst}).add({ hours: 240, nanoseconds: 800 }) = {$two}");
+TemporalHelpers::assertInstantsEqual($one, \Temporal\Spec\Instant::from('1969-12-15T12:23:45.678900434Z'), "({$inst}).subtract({ hours: 240, nanoseconds: 800 }) = {$one}");
+TemporalHelpers::assertInstantsEqual($two, \Temporal\Spec\Instant::from('1970-01-04T12:23:45.678902034Z'), "({$inst}).add({ hours: 240, nanoseconds: 800 }) = {$two}");
 TemporalHelpers::assertInstantsEqual($three, $one, "({$two}).subtract({ hours: 480, nanoseconds: 1600 }) = {$one}");
 TemporalHelpers::assertInstantsEqual($four, $two, "({$one}).add({ hours: 480, nanoseconds: 1600 }) = {$two}");

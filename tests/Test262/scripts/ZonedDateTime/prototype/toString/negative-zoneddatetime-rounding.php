@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(-999_999_999_999_999_990, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(-999_999_999_999_999_990, 'UTC');
 $roundedDown = '1938-04-24T22:13:20.000+00:00[UTC]';
 $roundedUp = '1938-04-24T22:13:20.001+00:00[UTC]';
 Assert::sameValue($instance->toString(['smallestUnit' => 'millisecond', 'roundingMode' => 'halfCeil']), $roundedDown, 'Rounding with halfCeil rounds to the closest millisecond');

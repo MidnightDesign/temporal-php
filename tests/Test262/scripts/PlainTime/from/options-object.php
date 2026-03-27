@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainTime(\Temporal\PlainTime::from(['hour' => 12, 'minute' => 34], new \stdClass()), 12, 34, 0, 0, 0, 0, 'options may be an empty plain object');
-TemporalHelpers::assertPlainTime(\Temporal\PlainTime::from(['hour' => 12, 'minute' => 34], function () {  }), 12, 34, 0, 0, 0, 0, 'options may be an empty function object');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from(['hour' => 12, 'minute' => 34], new \stdClass()), 12, 34, 0, 0, 0, 0, 'options may be an empty plain object');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from(['hour' => 12, 'minute' => 34], function () {  }), 12, 34, 0, 0, 0, 0, 'options may be an empty function object');

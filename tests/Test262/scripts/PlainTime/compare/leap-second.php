@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '2016-12-31T23:59:60';
-$result1 = \Temporal\PlainTime::compare($arg, new \Temporal\PlainTime(23, 59, 59));
+$result1 = \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(23, 59, 59));
 Assert::sameValue($result1, 0, 'leap second is a valid ISO string for PlainTime (first argument)');
-$result2 = \Temporal\PlainTime::compare(new \Temporal\PlainTime(23, 59, 59), $arg);
+$result2 = \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(23, 59, 59), $arg);
 Assert::sameValue($result2, 0, 'leap second is a valid ISO string for PlainTime (first argument)');
 $arg = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
-$result3 = \Temporal\PlainTime::compare($arg, new \Temporal\PlainTime(23, 59, 59));
+$result3 = \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(23, 59, 59));
 Assert::sameValue($result3, 0, 'second: 60 is ignored in property bag for PlainTime (first argument)');
-$result4 = \Temporal\PlainTime::compare(new \Temporal\PlainTime(23, 59, 59), $arg);
+$result4 = \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(23, 59, 59), $arg);
 Assert::sameValue($result4, 0, 'second: 60 is ignored in property bag for PlainTime (second argument)');

@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\ZonedDateTime(1_590_981_158_271_986_102, '-04:00');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_590_981_158_271_986_102, '-04:00');
 $later = $earlier->add(['hours' => 2]);
-TemporalHelpers::assertZonedDateTimesEqual($later, new \Temporal\ZonedDateTime(1_590_988_358_271_986_102, '-04:00'));
-$later = new \Temporal\ZonedDateTime(1_572_356_798_271_986_102, '-03:00');
-$earlier = new \Temporal\ZonedDateTime(1_572_313_598_271_986_102, '-03:00');
+TemporalHelpers::assertZonedDateTimesEqual($later, new \Temporal\Spec\ZonedDateTime(1_590_988_358_271_986_102, '-04:00'));
+$later = new \Temporal\Spec\ZonedDateTime(1_572_356_798_271_986_102, '-03:00');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_572_313_598_271_986_102, '-03:00');
 TemporalHelpers::assertZonedDateTimesEqual($later->add(['hours' => -12]), $earlier);

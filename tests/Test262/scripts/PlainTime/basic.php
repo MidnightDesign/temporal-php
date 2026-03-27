@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $args = [15, 23, 30, 123, 456, 789];
-$plainTime = new \Temporal\PlainTime(...$args);
+$plainTime = new \Temporal\Spec\PlainTime(...$args);
 TemporalHelpers::assertPlainTime($plainTime, ...$args);

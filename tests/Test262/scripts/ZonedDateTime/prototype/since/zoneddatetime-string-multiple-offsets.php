@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $timeZone = '+01:35';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 $result = $instance->since($str);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, -30, 0, 0, 0, 'ISO offset, sub-minute offset trailing-zeroes');

@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(), 'undefined');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(), 'undefined');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(INF), 'Infinity');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(-INF), '-Infinity');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(NAN), 'NaN');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(1.3), '1.3');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::fromEpochMilliseconds(-0.5), '-0.5');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(INF), 'Infinity');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(-INF), '-Infinity');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(NAN), 'NaN');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(1.3), '1.3');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(-0.5), '-0.5');

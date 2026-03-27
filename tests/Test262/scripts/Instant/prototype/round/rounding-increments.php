@@ -8,17 +8,17 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$inst = \Temporal\Instant::from('1976-11-18T14:23:30.123456789Z');
-TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'hour', 'roundingIncrement' => 4]), \Temporal\Instant::from('1976-11-18T16:00:00Z'));
-TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'minute', 'roundingIncrement' => 15]), \Temporal\Instant::from('1976-11-18T14:30:00Z'));
-TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'second', 'roundingIncrement' => 30]), \Temporal\Instant::from('1976-11-18T14:23:30Z'));
-TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'millisecond', 'roundingIncrement' => 10]), \Temporal\Instant::from('1976-11-18T14:23:30.12Z'));
-TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'microsecond', 'roundingIncrement' => 10]), \Temporal\Instant::from('1976-11-18T14:23:30.12346Z'));
-TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 10]), \Temporal\Instant::from('1976-11-18T14:23:30.12345679Z'));
+$inst = \Temporal\Spec\Instant::from('1976-11-18T14:23:30.123456789Z');
+TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'hour', 'roundingIncrement' => 4]), \Temporal\Spec\Instant::from('1976-11-18T16:00:00Z'));
+TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'minute', 'roundingIncrement' => 15]), \Temporal\Spec\Instant::from('1976-11-18T14:30:00Z'));
+TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'second', 'roundingIncrement' => 30]), \Temporal\Spec\Instant::from('1976-11-18T14:23:30Z'));
+TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'millisecond', 'roundingIncrement' => 10]), \Temporal\Spec\Instant::from('1976-11-18T14:23:30.12Z'));
+TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'microsecond', 'roundingIncrement' => 10]), \Temporal\Spec\Instant::from('1976-11-18T14:23:30.12346Z'));
+TemporalHelpers::assertInstantsEqual($inst->round(['smallestUnit' => 'nanosecond', 'roundingIncrement' => 10]), \Temporal\Spec\Instant::from('1976-11-18T14:23:30.12345679Z'));
 $unitsAndIncrements = ['hour' => [1, 2, 4, 6, 8, 12, 24], 'minute' => [1, 5, 10, 20, 30, 40, 80, 120, 720, 1440], 'second' => [1, 5, 10, 20, 25, 30, 50, 100, 400, 86_400], 'millisecond' => [1, 5, 10, 20, 25, 30, 50, 100, 86_400_000], 'microsecond' => [1, 5, 10, 20, 25, 30, 50, 100], 'nanosecond' => [1, 5, 10, 20, 25, 30, 50, 100]];
 foreach ($unitsAndIncrements as $unit => $increments) {
 foreach ($increments as $increment) {
 $result = $inst->round(['smallestUnit' => $unit, 'roundingMode' => 'ceil', 'roundingIncrement' => $increment]);
-Assert::sameValue($result instanceof \Temporal\Instant, true, "{$unit} {$increment}");
+Assert::sameValue($result instanceof \Temporal\Spec\Instant, true, "{$unit} {$increment}");
 }
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = new \Temporal\ZonedDateTime(-560_174_321_098_766, 'UTC');
-$d = new \Temporal\Duration(0, 0, 0, 0, 240, 0, 0, 0, 0, 800);
-$expected = new \Temporal\ZonedDateTime(303_825_678_902_034, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(-560_174_321_098_766, 'UTC');
+$d = new \Temporal\Spec\Duration(0, 0, 0, 0, 240, 0, 0, 0, 0, 800);
+$expected = new \Temporal\Spec\ZonedDateTime(303_825_678_902_034, 'UTC');
 TemporalHelpers::assertZonedDateTimesEqual($zdt->add($d), $expected);

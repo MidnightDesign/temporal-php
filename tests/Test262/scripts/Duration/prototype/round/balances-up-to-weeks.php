@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$oneMonthOneDay = new \Temporal\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
-$oneYearOneMonthOneDay = new \Temporal\Duration(1, 1, 0, 1, 0, 0, 0, 0, 0, 0);
-$severalWeeksInDays = new \Temporal\Duration(0, 0, 0, 29, 0, 0, 0, 0, 0, 0);
-$relativeTo = new \Temporal\PlainDate(2024, 1, 1);
+$oneMonthOneDay = new \Temporal\Spec\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
+$oneYearOneMonthOneDay = new \Temporal\Spec\Duration(1, 1, 0, 1, 0, 0, 0, 0, 0, 0);
+$severalWeeksInDays = new \Temporal\Spec\Duration(0, 0, 0, 29, 0, 0, 0, 0, 0, 0);
+$relativeTo = new \Temporal\Spec\PlainDate(2024, 1, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $oneMonthOneDay->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil']), '');
 TemporalHelpers::assertDuration($oneMonthOneDay->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil']), 0, 0, 99, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($oneMonthOneDay->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 6, 'roundingMode' => 'ceil']), 0, 0, 6, 0, 0, 0, 0, 0, 0, 0);

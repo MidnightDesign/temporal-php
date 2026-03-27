@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 for ($year = 1970; $year < 1975; $year++) {
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\ZonedDateTime::from(['year' => $year, 'month' => $month, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
+$date = \Temporal\Spec\ZonedDateTime::from(['year' => $year, 'month' => $month, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
 Assert::sameValue($date->monthCode->endsWith('L'), false, '');
 }
 }

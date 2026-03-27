@@ -8,12 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$other = new \Temporal\PlainYearMonth(2000, 5);
+$other = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $base = ['year' => 2000, 'month' => 5];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month'] as $prop) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare(array_merge($base, [$prop => $inf]), $other), "{$prop} property cannot be {$inf}");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($other, array_merge($base, [$prop => $inf])), "{$prop} property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare(array_merge($base, [$prop => $inf]), $other), "{$prop} property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($other, array_merge($base, [$prop => $inf])), "{$prop} property cannot be {$inf}");
 $calls1 = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

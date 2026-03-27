@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dtm = new \Temporal\PlainDateTime(2000, 10, 29, 1, 45);
+$dtm = new \Temporal\Spec\PlainDateTime(2000, 10, 29, 1, 45);
 foreach (['compatible', 'earlier', 'later', 'reject'] as $disambiguation) {
 $result = $dtm->toZonedDateTime('UTC', ['disambiguation' => $disambiguation]);
 Assert::sameValue($result->epochNanoseconds, 972_783_900_000_000_000, 'epoch nanoseconds remains constant');

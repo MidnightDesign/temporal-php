@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainTime(12, 34, 56, 987, 654, 321);
+$instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 $expected = ['get fields.calendar', 'get fields.timeZone', 'get fields.hour', 'get fields.hour.valueOf', 'call fields.hour.valueOf', 'get fields.microsecond', 'get fields.microsecond.valueOf', 'call fields.microsecond.valueOf', 'get fields.millisecond', 'get fields.millisecond.valueOf', 'call fields.millisecond.valueOf', 'get fields.minute', 'get fields.minute.valueOf', 'call fields.minute.valueOf', 'get fields.nanosecond', 'get fields.nanosecond.valueOf', 'call fields.nanosecond.valueOf', 'get fields.second', 'get fields.second.valueOf', 'call fields.second.valueOf', 'get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
 $actual = [];
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

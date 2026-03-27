@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $overflows = ['constrain', 'reject'];
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
-$instance = \Temporal\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
+$instance = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
 foreach ($overflows as $overflow) {
 foreach ($fields as $field) {
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract([$field => INF], ['overflow' => $overflow]), '');

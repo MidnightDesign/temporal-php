@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dt1 = new \Temporal\PlainDateTime(1970, 1, 1);
-$dt2 = new \Temporal\PlainDateTime(2554, 7, 21, 23, 34, 33, 709, 551, 616);
+$dt1 = new \Temporal\Spec\PlainDateTime(1970, 1, 1);
+$dt2 = new \Temporal\Spec\PlainDateTime(2554, 7, 21, 23, 34, 33, 709, 551, 616);
 $result = $dt1->until($dt2, ['largestUnit' => 'microseconds']);
 Assert::sameValue($result->microseconds, 18_446_744_073_709_552, 'microseconds result should have FP precision loss');
 Assert::sameValue($result->toString(), 'PT18446744073.709552616S', 'Duration.p.toString() should not use more precise internal representation than the spec prescribes');
-Assert::sameValue(\Temporal\Duration::compare($result->add(['microseconds' => 1]), $result), 0, 'subsequent ops on duration should not use more precise internal representation than the spec prescribes');
+Assert::sameValue(\Temporal\Spec\Duration::compare($result->add(['microseconds' => 1]), $result), 0, 'subsequent ops on duration should not use more precise internal representation than the spec prescribes');

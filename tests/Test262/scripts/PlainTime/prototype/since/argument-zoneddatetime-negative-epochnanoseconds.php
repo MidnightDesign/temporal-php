@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
-$instance = new \Temporal\PlainTime(15);
+$datetime = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
+$instance = new \Temporal\Spec\PlainTime(15);
 $result = $instance->since($datetime);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, -1, -50, -35, 0, 0, -1);

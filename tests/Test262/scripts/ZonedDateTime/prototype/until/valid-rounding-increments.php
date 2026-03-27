@@ -7,21 +7,21 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\ZonedDateTime(0, '+01:00');
-$later = new \Temporal\ZonedDateTime(1_000_000_000_000_000_000, '+01:00');
+$earlier = new \Temporal\Spec\ZonedDateTime(0, '+01:00');
+$later = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, '+01:00');
 foreach ([1, 2, 3, 4, 6, 8, 12] as $roundingIncrement) {
 $options = ['smallestUnit' => 'hours', 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, '');
 }
 foreach (['minutes', 'seconds'] as $smallestUnit) {
 foreach ([1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30] as $roundingIncrement) {
 $options = ['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, '');
 }
 }
 foreach (['milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
 foreach ([1, 2, 4, 5, 8, 10, 20, 25, 40, 50, 100, 125, 200, 250, 500] as $roundingIncrement) {
 $options = ['smallestUnit' => $smallestUnit, 'roundingIncrement' => $roundingIncrement];
-Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Duration, '');
+Assert::assertTrue($earlier->until($later, $options) instanceof \Temporal\Spec\Duration, '');
 }
 }

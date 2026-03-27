@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$jan31 = new \Temporal\ZonedDateTime(1_580_511_600_000_000_000, '-08:00');
-$expected1 = new \Temporal\ZonedDateTime(1_580_509_800_000_000_000, '-08:00');
-$expected2 = new \Temporal\ZonedDateTime(1_580_511_570_000_000_000, '-08:00');
+$jan31 = new \Temporal\Spec\ZonedDateTime(1_580_511_600_000_000_000, '-08:00');
+$expected1 = new \Temporal\Spec\ZonedDateTime(1_580_509_800_000_000_000, '-08:00');
+$expected2 = new \Temporal\Spec\ZonedDateTime(1_580_511_570_000_000_000, '-08:00');
 TemporalHelpers::assertZonedDateTimesEqual($jan31->add(['minutes' => -30]), $expected1);
 TemporalHelpers::assertZonedDateTimesEqual($jan31->add(['seconds' => -30]), $expected2);

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dateTime = \Temporal\PlainDateTime::from('2020-01-01T00:00:00+01:00[Custom]');
+$dateTime = \Temporal\Spec\PlainDateTime::from('2020-01-01T00:00:00+01:00[Custom]');
 TemporalHelpers::assertPlainDateTime($dateTime, 2020, 1, 'M01', 1, 0, 0, 0, 0, 0, 0);

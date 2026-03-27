@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$result1 = \Temporal\PlainYearMonth::from(['year' => 2023, 'monthCode' => 'M01', 'day' => 13]);
+$result1 = \Temporal\Spec\PlainYearMonth::from(['year' => 2023, 'monthCode' => 'M01', 'day' => 13]);
 TemporalHelpers::assertPlainYearMonth($result1, 2023, 1, 'M01', 'reference day is 1 even if day is given', null, null, 1);
-$result2 = \Temporal\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M02', 'day' => 50], ['overflow' => 'constrain']);
+$result2 = \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M02', 'day' => 50], ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainYearMonth($result2, 2021, 2, 'M02', 'reference day is 1 even if day is out of range (overflow constrain)', null, null, 1);
-$result3 = \Temporal\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M02', 'day' => 50], ['overflow' => 'reject']);
+$result3 = \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'monthCode' => 'M02', 'day' => 50], ['overflow' => 'reject']);
 TemporalHelpers::assertPlainYearMonth($result3, 2021, 2, 'M02', 'reference day is 1 even if day is out of range (overflow reject)', null, null, 1);

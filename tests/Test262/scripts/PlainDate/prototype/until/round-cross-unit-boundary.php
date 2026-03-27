@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDate(2022, 1, 1);
-$later = new \Temporal\PlainDate(2023, 12, 25);
+$earlier = new \Temporal\Spec\PlainDate(2022, 1, 1);
+$later = new \Temporal\Spec\PlainDate(2023, 12, 25);
 $duration = $earlier->until($later, ['largestUnit' => 'years', 'smallestUnit' => 'months', 'roundingMode' => 'expand']);
 TemporalHelpers::assertDuration($duration, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, '1 year 11 months balances to 2 years');

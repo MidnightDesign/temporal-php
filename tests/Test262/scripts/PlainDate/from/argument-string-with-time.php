@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('1976-11-18T00:00:00'), 1976, 11, 'M11', 18, 'string with midnight time');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('1976-11-18T23:59:59'), 1976, 11, 'M11', 18, 'string with late time');
-TemporalHelpers::assertPlainDate(\Temporal\PlainDate::from('1976-11-18T12:30:00+05:30'), 1976, 11, 'M11', 18, 'string with time and UTC offset');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-11-18T00:00:00'), 1976, 11, 'M11', 18, 'string with midnight time');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-11-18T23:59:59'), 1976, 11, 'M11', 18, 'string with late time');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-11-18T12:30:00+05:30'), 1976, 11, 'M11', 18, 'string with time and UTC offset');

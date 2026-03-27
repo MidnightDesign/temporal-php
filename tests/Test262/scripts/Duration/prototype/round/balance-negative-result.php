@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = new \Temporal\Duration(0, 0, 0, 0, -60);
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 0, -60);
 $result = $duration->round(['largestUnit' => 'days']);
 TemporalHelpers::assertDuration($result, 0, 0, 0, -2, -12, 0, 0, 0, 0, 0);

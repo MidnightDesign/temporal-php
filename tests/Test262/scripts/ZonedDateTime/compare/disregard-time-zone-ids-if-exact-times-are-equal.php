@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt1 = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
-Assert::sameValue(\Temporal\ZonedDateTime::compare($zdt1, $zdt1->withTimeZone('+05:30')), 0, '');
+$zdt1 = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
+Assert::sameValue(\Temporal\Spec\ZonedDateTime::compare($zdt1, $zdt1->withTimeZone('+05:30')), 0, '');

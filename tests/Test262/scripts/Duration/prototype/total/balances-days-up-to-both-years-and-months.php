@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$twoYears = new \Temporal\Duration(0, 11, 0, 396, 0, 0, 0, 0, 0, 0);
-Assert::sameValue($twoYears->total(['unit' => 'years', 'relativeTo' => new \Temporal\PlainDate(2017, 1, 1)]), 2, '');
-$twoYearsNegative = new \Temporal\Duration(0, -11, 0, -396, 0, 0, 0, 0, 0, 0);
-Assert::sameValue($twoYearsNegative->total(['unit' => 'years', 'relativeTo' => new \Temporal\PlainDate(2017, 1, 1)]), -2, '');
+$twoYears = new \Temporal\Spec\Duration(0, 11, 0, 396, 0, 0, 0, 0, 0, 0);
+Assert::sameValue($twoYears->total(['unit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2017, 1, 1)]), 2, '');
+$twoYearsNegative = new \Temporal\Spec\Duration(0, -11, 0, -396, 0, 0, 0, 0, 0, 0);
+Assert::sameValue($twoYearsNegative->total(['unit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2017, 1, 1)]), -2, '');

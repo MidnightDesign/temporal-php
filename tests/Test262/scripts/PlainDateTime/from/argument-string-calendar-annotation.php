@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['1976-11-18T15:23[u-ca=iso8601]', 'without time zone'], ['1976-11-18T15:23[UTC][u-ca=iso8601]', 'with time zone'], ['1976-11-18T15:23[!u-ca=iso8601]', 'with ! and no time zone'], ['1976-11-18T15:23[UTC][!u-ca=iso8601]', 'with ! and time zone'], ['1976-11-18T15:23[u-ca=iso8601][u-ca=discord]', 'second annotation ignored']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\PlainDateTime::from($arg);
+$result = \Temporal\Spec\PlainDateTime::from($arg);
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 15, 23, 0, 0, 0, 0, "calendar annotation ({$description})");
 }

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainDate1 = new \Temporal\PlainDate(2000, 1, 1, 'iso8601');
-$plainDate2 = \Temporal\PlainDate::from(['year' => 2000, 'month' => 1, 'day' => 2, 'calendar' => '2024-05-16[u-ca=iso8601]']);
+$plainDate1 = new \Temporal\Spec\PlainDate(2000, 1, 1, 'iso8601');
+$plainDate2 = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 1, 'day' => 2, 'calendar' => '2024-05-16[u-ca=iso8601]']);
 TemporalHelpers::assertDuration($plainDate2->since($plainDate1), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);

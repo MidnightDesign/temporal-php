@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnored(\Temporal\PlainDate::class, [2000, 5, 2], 'with', [['day' => 20]], fn($result) => TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 20));
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\PlainDate::class, [2000, 5, 2], 'with', [['day' => 20]], fn($result) => TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 20));

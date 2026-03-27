@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['00:00[!foo=bar]', 'T00:00[!foo=bar]', '1970-01-01T00:00[!foo=bar]', '1970-01-01T00:00[UTC][!foo=bar]', '1970-01-01T00:00[u-ca=iso8601][!foo=bar]', '1970-01-01T00:00[UTC][!foo=bar][u-ca=iso8601]', '1970-01-01T00:00[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare($arg, new \Temporal\PlainTime(12, 34, 56, 987, 654, 321)), "reject unknown annotation with critical flag: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare(new \Temporal\PlainTime(12, 34, 56, 987, 654, 321), $arg), "reject unknown annotation with critical flag: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)), "reject unknown annotation with critical flag: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321), $arg), "reject unknown annotation with critical flag: {$arg} (second argument)");
 }

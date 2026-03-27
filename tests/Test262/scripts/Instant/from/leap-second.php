@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '2016-12-31T23:59:60Z';
-$result = \Temporal\Instant::from($arg);
+$result = \Temporal\Spec\Instant::from($arg);
 Assert::sameValue($result->epochNanoseconds, 1_483_228_799_000_000_000, 'leap second is a valid ISO string for Instant');

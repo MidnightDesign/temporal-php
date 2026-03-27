@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$z1 = new \Temporal\ZonedDateTime(0, 'UTC');
+$z1 = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');

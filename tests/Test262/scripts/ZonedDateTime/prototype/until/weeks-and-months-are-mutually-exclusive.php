@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = \Temporal\ZonedDateTime::from('1976-11-18T15:23:30.123456789+01:00[+01:00]');
+$zdt = \Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30.123456789+01:00[+01:00]');
 $laterDateTime = $zdt->add(['days' => 42, 'hours' => 3]);
 $weeksDifference = $zdt->until($laterDateTime, ['largestUnit' => 'weeks']);
 Assert::notSameValue($weeksDifference->weeks, 0, '');

@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
-$result = $datetime->add(new \Temporal\Duration(0, 0, 0, 1));
+$datetime = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
+$result = $datetime->add(new \Temporal\Spec\Duration(0, 0, 0, 1));
 Assert::sameValue($result->epochNanoseconds, -13_763_364_999_999_999, '');

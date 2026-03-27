@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1);
-$options = ['smallestUnit' => 'years', 'relativeTo' => new \Temporal\PlainDate(2000, 1, 1)];
+$instance = new \Temporal\Spec\Duration(1);
+$options = ['smallestUnit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2000, 1, 1)];
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(array_merge($options, ['roundingIncrement' => -INF])), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(array_merge($options, ['roundingIncrement' => -1])), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(array_merge($options, ['roundingIncrement' => 0])), '');

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$start = new \Temporal\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 1);
+$start = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 1);
 Assert::throws(\InvalidArgumentException::class, fn() => $start->toString(['smallestUnit' => 'second']), 'Rounding down can go out of range');
-$end = new \Temporal\PlainDateTime(275_760, 9, 13, 23, 59, 59, 999);
+$end = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 23, 59, 59, 999);
 Assert::throws(\InvalidArgumentException::class, fn() => $end->toString(['smallestUnit' => 'second', 'roundingMode' => 'halfExpand']), 'Rounding up can go out of range');

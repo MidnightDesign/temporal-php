@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainYearMonth(2000, 5);
-$later = new \Temporal\PlainYearMonth(2001, 6);
+$earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 TemporalHelpers::assertDuration($earlier->until($later, ['largestUnit' => 'auto']), 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'auto largestUnit is year (pos)');
 TemporalHelpers::assertDuration($later->until($earlier, ['largestUnit' => 'auto']), -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 'auto largestUnit is year (neg)');

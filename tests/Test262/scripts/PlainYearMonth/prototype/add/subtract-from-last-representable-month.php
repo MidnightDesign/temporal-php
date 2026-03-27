@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$lastMonth = new \Temporal\PlainYearMonth(275_760, 9);
+$lastMonth = new \Temporal\Spec\PlainYearMonth(275_760, 9);
 TemporalHelpers::assertPlainYearMonth($lastMonth->add(['months' => -1]), 275_760, 8, 'M08', '-1 month');
 TemporalHelpers::assertPlainYearMonth($lastMonth->add(['years' => -1]), 275_759, 9, 'M09', '-1 year');

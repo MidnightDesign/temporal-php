@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $tests = [['12:34:56.987654321[u-ca=iso8601]', 'without time zone'], ['12:34:56.987654321[UTC][u-ca=iso8601]', 'with time zone'], ['12:34:56.987654321[!u-ca=iso8601]', 'with ! and no time zone'], ['12:34:56.987654321[UTC][!u-ca=iso8601]', 'with ! and time zone'], ['T12:34:56.987654321[u-ca=iso8601]', 'with T and no time zone'], ['T12:34:56.987654321[UTC][u-ca=iso8601]', 'with T and time zone'], ['T12:34:56.987654321[!u-ca=iso8601]', 'with T, !, and no time zone'], ['T12:34:56.987654321[UTC][!u-ca=iso8601]', 'with T, !, and time zone'], ['1970-01-01T12:34:56.987654321[u-ca=iso8601]', 'with date and no time zone'], ['1970-01-01T12:34:56.987654321[UTC][u-ca=iso8601]', 'with date and time zone'], ['1970-01-01T12:34:56.987654321[!u-ca=iso8601]', 'with !, date, and no time zone'], ['1970-01-01T12:34:56.987654321[UTC][!u-ca=iso8601]', 'with !, date, and time zone'], ['1970-01-01T12:34:56.987654321[u-ca=iso8601][u-ca=discord]', 'second annotation ignored']];
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-$result = \Temporal\PlainTime::compare($arg, $arg);
+$result = \Temporal\Spec\PlainTime::compare($arg, $arg);
 Assert::sameValue($result, 0, "calendar annotation ({$description})");
 }

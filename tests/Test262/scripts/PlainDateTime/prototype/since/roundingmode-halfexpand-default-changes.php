@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
-$later = new \Temporal\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 321);
+$earlier = new \Temporal\Spec\PlainDateTime(2019, 1, 8, 8, 22, 36, 123, 456, 789);
+$later = new \Temporal\Spec\PlainDateTime(2021, 9, 7, 12, 39, 40, 987, 654, 321);
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand']), 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'assumes a different default for largestUnit if smallestUnit is larger than days (smallest unit = years)');
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'months', 'roundingMode' => 'halfExpand']), 0, 32, 0, 0, 0, 0, 0, 0, 0, 0, 'assumes a different default for largestUnit if smallestUnit is larger than days (smallest unit = months)');
 TemporalHelpers::assertDuration($later->since($earlier, ['smallestUnit' => 'weeks', 'roundingMode' => 'halfExpand']), 0, 0, 139, 0, 0, 0, 0, 0, 0, 0, 'assumes a different default for largestUnit if smallestUnit is larger than days (smallest unit = weeks)');

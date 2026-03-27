@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $offsetOptions = ['use', 'prefer', 'ignore', 'reject'];
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000];
 foreach ($offsetOptions as $offsetOption) {

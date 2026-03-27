@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$blank1 = new \Temporal\Duration();
-$blank2 = new \Temporal\Duration();
+$blank1 = new \Temporal\Spec\Duration();
+$blank2 = new \Temporal\Spec\Duration();
 $result = $blank1->subtract($blank2);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'result is also blank');

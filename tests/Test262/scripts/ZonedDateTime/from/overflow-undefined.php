@@ -7,15 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$validValues = [new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC'), '2001-09-09T01:46:40.987654321+00:00[UTC]'];
+$validValues = [new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC'), '2001-09-09T01:46:40.987654321+00:00[UTC]'];
 foreach ($validValues as $value) {
-$explicit = \Temporal\ZonedDateTime::from($value, []);
+$explicit = \Temporal\Spec\ZonedDateTime::from($value, []);
 Assert::sameValue($explicit->epochNanoseconds, 1_000_000_000_987_654_321, 'overflow is ignored');
-$implicit = \Temporal\ZonedDateTime::from($value, new \stdClass());
+$implicit = \Temporal\Spec\ZonedDateTime::from($value, new \stdClass());
 Assert::sameValue($implicit->epochNanoseconds, 1_000_000_000_987_654_321, 'overflow is ignored');
-$lambda = \Temporal\ZonedDateTime::from($value, function () {  });
+$lambda = \Temporal\Spec\ZonedDateTime::from($value, function () {  });
 Assert::sameValue($lambda->epochNanoseconds, 1_000_000_000_987_654_321, 'overflow is ignored');
 }
 $propertyBag = ['year' => 2000, 'month' => 15, 'day' => 34, 'hour' => 12, 'timeZone' => 'UTC'];
-$explicit = \Temporal\ZonedDateTime::from($propertyBag, []);
+$explicit = \Temporal\Spec\ZonedDateTime::from($propertyBag, []);
 Assert::sameValue($explicit->epochNanoseconds, 978_264_000_000_000_000, 'default overflow is constrain');

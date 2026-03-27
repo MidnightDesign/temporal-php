@@ -10,10 +10,10 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validStrings = ['05-02[Asia/Katmandu]', '05-02[!Asia/Katmandu]', '05-02[u-ca=iso8601]', '05-02[Asia/Tokyo][u-ca=iso8601]', '--05-02[Asia/Katmandu]', '--05-02[!Asia/Katmandu]', '--05-02[u-ca=iso8601]', '--05-02[Asia/Tokyo][u-ca=iso8601]', '2000-05-02T00+00', '2000-05-02T00+00:00', '2000-05-02T00+00:00:00,0', '2000-05-02T00+00:00:00.000000000', '2000-05-02T00+0000', '2000-05-02T00+000000,0', '2000-05-02T00+000000.000000000', '2000-05-02T00+00:00[UTC]', '2000-05-02T00+01[Europe/Vienna]', '2000-05-02T00-02:30[America/St_Johns]', '2000-05-02T00-02:30:00,0[America/St_Johns]', '2000-05-02T00-02:30:00.000000000[America/St_Johns]', '2000-05-02T00-0230[America/St_Johns]', '2000-05-02T00-023000,0[America/St_Johns]', '2000-05-02T00-023000.000000000[America/St_Johns]'];
 foreach ($validStrings as $arg) {
-$result = \Temporal\PlainMonthDay::from($arg);
+$result = \Temporal\Spec\PlainMonthDay::from($arg);
 TemporalHelpers::assertPlainMonthDay($result, 'M05', 2, "\"{$arg}\" is a valid UTC offset with time for PlainMonthDay");
 }
 $invalidStrings = ['09-15Z', '09-15Z[UTC]', '09-15+01:00', '09-15+01:00[Europe/Vienna]', '--09-15Z', '--09-15Z[UTC]', '--09-15+01:00', '--09-15+01:00[Europe/Vienna]', '2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]', '09-15[u-ca=chinese]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainMonthDay::from($arg), "\"{$arg}\" UTC offset without time is not valid for PlainMonthDay");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from($arg), "\"{$arg}\" UTC offset without time is not valid for PlainMonthDay");
 }

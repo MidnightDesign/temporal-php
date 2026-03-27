@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainTime();
-$later = new \Temporal\PlainTime(1, 59, 59);
+$earlier = new \Temporal\Spec\PlainTime();
+$later = new \Temporal\Spec\PlainTime(1, 59, 59);
 $duration = $earlier->until($later, ['largestUnit' => 'hours', 'smallestUnit' => 'minutes', 'roundingMode' => 'expand']);
 TemporalHelpers::assertDuration($duration, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, '1:60 balances to 2 hours');

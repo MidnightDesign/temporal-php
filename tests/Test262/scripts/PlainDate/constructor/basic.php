@@ -7,22 +7,22 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d1 = new \Temporal\PlainDate(1976, 11, 18);
+$d1 = new \Temporal\Spec\PlainDate(1976, 11, 18);
 Assert::sameValue($d1->year, 1976, '');
 Assert::sameValue($d1->month, 11, '');
 Assert::sameValue($d1->day, 18, '');
 Assert::sameValue($d1->toString(), '1976-11-18', '');
-$d2 = new \Temporal\PlainDate(1914, 2, 23);
+$d2 = new \Temporal\Spec\PlainDate(1914, 2, 23);
 Assert::sameValue($d2->year, 1914, '');
 Assert::sameValue($d2->month, 2, '');
 Assert::sameValue($d2->day, 23, '');
 Assert::sameValue($d2->toString(), '1914-02-23', '');
-$d3 = new \Temporal\PlainDate(2000, 1, 1);
+$d3 = new \Temporal\Spec\PlainDate(2000, 1, 1);
 Assert::sameValue($d3->year, 2000, '');
 Assert::sameValue($d3->month, 1, '');
 Assert::sameValue($d3->day, 1, '');
 Assert::sameValue($d3->toString(), '2000-01-01', '');
-$d4 = new \Temporal\PlainDate(1996, 2, 29);
+$d4 = new \Temporal\Spec\PlainDate(1996, 2, 29);
 Assert::sameValue($d4->year, 1996, '');
 Assert::sameValue($d4->month, 2, '');
 Assert::sameValue($d4->day, 29, '');

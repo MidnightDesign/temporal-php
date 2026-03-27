@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650, 0);
+$duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650, 0);
 Assert::throws(\InvalidArgumentException::class, fn() => $duration->toString(['fractionalSecondDigits' => NAN]), '');

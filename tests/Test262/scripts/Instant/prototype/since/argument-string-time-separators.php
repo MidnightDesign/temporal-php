@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['1970-01-01T00:00Z', 'uppercase T'], ['1970-01-01t00:00Z', 'lowercase T'], ['1970-01-01 00:00Z', 'space between date and time']];
-$instance = new \Temporal\Instant(0);
+$instance = new \Temporal\Spec\Instant(0);
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->since($arg);

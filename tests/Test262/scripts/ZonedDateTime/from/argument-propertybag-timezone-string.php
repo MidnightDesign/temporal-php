@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['UTC', '+01:30'] as $timeZone) {
-$result = \Temporal\ZonedDateTime::from(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$result = \Temporal\Spec\ZonedDateTime::from(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
 Assert::sameValue($result->timeZoneId, $timeZone, "Time zone created from string \"{$timeZone}\"");
 }

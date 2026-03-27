@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zero = new \Temporal\Duration();
-$relativeToDates = [new \Temporal\ZonedDateTime(0, 'UTC'), new \Temporal\PlainDateTime(1970, 1, 1)];
+$zero = new \Temporal\Spec\Duration();
+$relativeToDates = [new \Temporal\Spec\ZonedDateTime(0, 'UTC'), new \Temporal\Spec\PlainDateTime(1970, 1, 1)];
 $units = ['days', 'weeks', 'months', 'years'];
 foreach ($relativeToDates as $relativeTo) {
 foreach ($units as $unit) {

@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(0, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::throws(\TypeError::class, fn() => $zdt->getTimeZoneTransition(), '');
 Assert::throws(\TypeError::class, fn() => $zdt->getTimeZoneTransition(), '');

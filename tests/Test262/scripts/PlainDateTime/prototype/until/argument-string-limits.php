@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23);
+$instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23);
 $validStrings = ['-271821-04-19T00:00:00.000000001', '-271821-04-20', '+275760-09-13', '+275760-09-13T23:59:59.999999999'];
 foreach ($validStrings as $arg) {
 $instance->until($arg);

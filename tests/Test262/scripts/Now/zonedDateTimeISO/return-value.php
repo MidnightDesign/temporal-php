@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = \Temporal\Now::zonedDateTimeISO();
-Assert::assertTrue($zdt instanceof \Temporal\ZonedDateTime, '');
+$zdt = \Temporal\Spec\Now::zonedDateTimeISO();
+Assert::assertTrue($zdt instanceof \Temporal\Spec\ZonedDateTime, '');
 Assert::sameValue($zdt->calendarId, 'iso8601', 'calendar string should be iso8601');
-Assert::sameValue($zdt->timeZoneId, \Temporal\Now::timeZoneId(), 'time zone string should be the same as from Now');
+Assert::sameValue($zdt->timeZoneId, \Temporal\Spec\Now::timeZoneId(), 'time zone string should be the same as from Now');

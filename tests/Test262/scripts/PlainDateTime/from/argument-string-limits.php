@@ -9,9 +9,9 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $validStrings = ['-271821-04-19T00:00:00.000000001', '-271821-04-20', '+275760-09-13', '+275760-09-13T23:59:59.999999999'];
 foreach ($validStrings as $arg) {
-\Temporal\PlainDateTime::from($arg);
+\Temporal\Spec\PlainDateTime::from($arg);
 }
 $invalidStrings = ['-271821-04-19', '-271821-04-19T00:00', '+275760-09-14', '+275760-09-14T00:00'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from($arg), "\"{$arg}\" is outside the representable range of PlainDateTime");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from($arg), "\"{$arg}\" is outside the representable range of PlainDateTime");
 }

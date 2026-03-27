@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainYearMonth(2019, 1);
-$later = new \Temporal\PlainYearMonth(2021, 9);
+$earlier = new \Temporal\Spec\PlainYearMonth(2019, 1);
+$later = new \Temporal\Spec\PlainYearMonth(2021, 9);
 $expected = [['years', [3], [-3]], ['months', [2, 8], [-2, -8]]];
 $roundingMode = 'halfExpand';
 foreach ($expected as $__entry__) {

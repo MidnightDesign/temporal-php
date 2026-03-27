@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1, 0, 0, 0, 24);
+$instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2000-01-01T00:00+05:30[UTC]';
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]), 'round should throw RangeError on a string with UTC offset mismatch');
-$instance2 = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+$instance2 = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 Assert::throws(\InvalidArgumentException::class, fn() => $instance2->round(['smallestUnit' => 'seconds', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44]']), '');

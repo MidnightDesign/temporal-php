@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt1 = new \Temporal\PlainDateTime(2019, 1, 1);
-$dt2 = new \Temporal\PlainDateTime(2020, 7, 2);
+$dt1 = new \Temporal\Spec\PlainDateTime(2019, 1, 1);
+$dt2 = new \Temporal\Spec\PlainDateTime(2020, 7, 2);
 TemporalHelpers::assertDuration($dt2->since($dt1, ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand']), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'rounds relative to the receiver (positive case)');
 TemporalHelpers::assertDuration($dt1->since($dt2, ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand']), -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'rounds relative to the receiver (negative case)');

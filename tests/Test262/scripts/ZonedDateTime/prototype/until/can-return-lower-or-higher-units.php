@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$feb20 = \Temporal\ZonedDateTime::from('2020-02-01T00:00+01:00[+01:00]');
-$feb21 = \Temporal\ZonedDateTime::from('2021-02-01T00:00+01:00[+01:00]');
+$feb20 = \Temporal\Spec\ZonedDateTime::from('2020-02-01T00:00+01:00[+01:00]');
+$feb21 = \Temporal\Spec\ZonedDateTime::from('2021-02-01T00:00+01:00[+01:00]');
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'years']), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'months']), 0, 12, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($feb20->until($feb21, ['largestUnit' => 'weeks']), 0, 0, 52, 2, 0, 0, 0, 0, 0, 0);

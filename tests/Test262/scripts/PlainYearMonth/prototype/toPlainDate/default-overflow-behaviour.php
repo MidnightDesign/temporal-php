@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$febCommonYear = new \Temporal\PlainYearMonth(2023, 2);
+$febCommonYear = new \Temporal\Spec\PlainYearMonth(2023, 2);
 $result = $febCommonYear->toPlainDate(['day' => 29]);
 TemporalHelpers::assertPlainDate($result, 2023, 2, 'M02', 28, '2023-02 + 29 = 2023-02-28');
-$juneAnyYear = new \Temporal\PlainYearMonth(1998, 6);
+$juneAnyYear = new \Temporal\Spec\PlainYearMonth(1998, 6);
 $result2 = $juneAnyYear->toPlainDate(['day' => 31]);
 TemporalHelpers::assertPlainDate($result2, 1998, 6, 'M06', 30, '1998-06 + 31 = 1998-06-31');

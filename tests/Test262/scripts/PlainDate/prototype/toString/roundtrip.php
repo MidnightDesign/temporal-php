@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dates = [new \Temporal\PlainDate(1976, 11, 18), new \Temporal\PlainDate(2000, 1, 1), new \Temporal\PlainDate(2024, 2, 29), new \Temporal\PlainDate(9999, 12, 31)];
+$dates = [new \Temporal\Spec\PlainDate(1976, 11, 18), new \Temporal\Spec\PlainDate(2000, 1, 1), new \Temporal\Spec\PlainDate(2024, 2, 29), new \Temporal\Spec\PlainDate(9999, 12, 31)];
 foreach ($dates as $original) {
-$roundtrip = \Temporal\PlainDate::from($original->toString());
+$roundtrip = \Temporal\Spec\PlainDate::from($original->toString());
 TemporalHelpers::assertPlainDate($roundtrip, $original->year, $original->month, $original->monthCode, $original->day, 'roundtrip via toString/from');
 }

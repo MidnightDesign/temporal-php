@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 0);
-$later = new \Temporal\PlainDateTime(2000, 5, 3, 13, 35, 57, 123, 987, 500);
+$earlier = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 0);
+$later = new \Temporal\Spec\PlainDateTime(2000, 5, 3, 13, 35, 57, 123, 987, 500);
 $explicit1 = $later->since($earlier, ['smallestUnit' => 'microsecond']);
 TemporalHelpers::assertDuration($explicit1, 0, 0, 0, 1, 1, 1, 1, 123, 987, 0, 'default roundingMode is trunc');
 $implicit1 = $later->since($earlier, ['smallestUnit' => 'microsecond']);

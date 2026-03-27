@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['2019-12-15T15:23', 'uppercase T'], ['2019-12-15t15:23', 'lowercase T'], ['2019-12-15 15:23', 'space between date and time']];
-$instance = new \Temporal\PlainYearMonth(2019, 12);
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 12);
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->equals($arg);

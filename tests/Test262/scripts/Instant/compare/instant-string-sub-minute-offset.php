@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$epoch = new \Temporal\Instant(0);
+$epoch = new \Temporal\Spec\Instant(0);
 $str = '1970-01-01T00:19:32.37+00:19:32.37';
-$result1 = \Temporal\Instant::compare($str, $epoch);
+$result1 = \Temporal\Spec\Instant::compare($str, $epoch);
 Assert::sameValue($result1, 0, 'if present, sub-minute offset is accepted exactly (first argument)');
-$result2 = \Temporal\Instant::compare($epoch, $str);
+$result2 = \Temporal\Spec\Instant::compare($epoch, $str);
 Assert::sameValue($result2, 0, 'if present, sub-minute offset is accepted exactly (second argument)');

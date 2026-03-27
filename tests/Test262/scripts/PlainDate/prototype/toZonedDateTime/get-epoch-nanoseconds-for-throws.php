@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$minDate = new \Temporal\PlainDate(-271_821, 4, 19);
-$minDateTime = new \Temporal\PlainDate(-271_821, 4, 20);
-$maxDate = new \Temporal\PlainDate(275_760, 9, 13);
-$midnight = new \Temporal\PlainTime();
-$oneHourPastMidnight = new \Temporal\PlainTime(1);
+$minDate = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
+$minDateTime = new \Temporal\Spec\PlainDate(-271_821, 4, 20);
+$maxDate = new \Temporal\Spec\PlainDate(275_760, 9, 13);
+$midnight = new \Temporal\Spec\PlainTime();
+$oneHourPastMidnight = new \Temporal\Spec\PlainTime(1);
 Assert::throws(\InvalidArgumentException::class, fn() => $minDate->toZonedDateTime(['timeZone' => 'UTC', 'plainTime' => $oneHourPastMidnight]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $minDate->toZonedDateTime(['timeZone' => '+00', 'plainTime' => $oneHourPastMidnight]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $minDateTime->toZonedDateTime(['timeZone' => '+01', 'temporalTime' => $midnight]), '');

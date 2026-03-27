@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $timeZone = 'UTC';
-$instance = new \Temporal\ZonedDateTime(0, $timeZone);
+$instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $validStrings = ['1970-01-01T00Z[UTC]', '1970-01-01T00Z[!UTC]', '1970-01-01T00+00[UTC]', '1970-01-01T00+00:00[UTC]', '1970-01-01T00+00:00:00,0[UTC]', '1970-01-01T00+00:00:00.000000000[UTC]', '1970-01-01T00+0000[UTC]', '1970-01-01T00+000000,0[UTC]', '1970-01-01T00+000000.000000000[UTC]', '1970-01-01T00+00:00[!UTC]', '1970-01-01T00-00[UTC]', '1970-01-01T00-00:00[UTC]', '1970-01-01T00-00:00:00,0[UTC]', '1970-01-01T00-00:00:00.000000000[UTC]', '1970-01-01T00-0000[UTC]', '1970-01-01T00-000000,0[UTC]', '1970-01-01T00-000000.000000000[UTC]'];
 foreach ($validStrings as $arg) {
 $result = $instance->until($arg);

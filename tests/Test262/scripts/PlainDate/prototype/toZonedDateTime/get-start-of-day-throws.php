@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$minDate = new \Temporal\PlainDate(-271_821, 4, 19);
-$minDateTime = new \Temporal\PlainDate(-271_821, 4, 20);
-$maxDate = new \Temporal\PlainDate(275_760, 9, 13);
+$minDate = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
+$minDateTime = new \Temporal\Spec\PlainDate(-271_821, 4, 20);
+$maxDate = new \Temporal\Spec\PlainDate(275_760, 9, 13);
 Assert::throws(\InvalidArgumentException::class, fn() => $minDate->toZonedDateTime('UTC'), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $minDate->toZonedDateTime('+00'), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $minDateTime->toZonedDateTime('+01'), '');

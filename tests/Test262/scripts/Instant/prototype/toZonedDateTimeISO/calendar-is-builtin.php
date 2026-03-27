@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(0);
+$instance = new \Temporal\Spec\Instant(0);
 $result = $instance->toZonedDateTimeISO('UTC');
 Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');

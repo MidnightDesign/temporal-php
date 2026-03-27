@@ -10,8 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($units as $unit) {
-TemporalHelpers::assertDuration(\Temporal\Duration::from([$unit => 0]), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from([$unit => 0]), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }
 foreach (['P0Y', 'P0M', 'P0W', 'P0D', 'PT0H', 'PT0M', 'PT0S'] as $str) {
-TemporalHelpers::assertDuration(\Temporal\Duration::from($str), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from($str), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

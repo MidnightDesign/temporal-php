@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '11-18[+01:00][u-ca=ISO8601]';
-$result = \Temporal\PlainMonthDay::from($arg);
+$result = \Temporal\Spec\PlainMonthDay::from($arg);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');

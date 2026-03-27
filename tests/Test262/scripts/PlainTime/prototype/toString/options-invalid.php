@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = \Temporal\PlainTime::from('12:56:32');
+$instance = \Temporal\Spec\PlainTime::from('12:56:32');
 Assert::incomplete('untranslatable: Symbol()');

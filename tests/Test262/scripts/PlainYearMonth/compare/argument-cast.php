@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$nov94 = \Temporal\PlainYearMonth::from('1994-11');
-$jun13 = \Temporal\PlainYearMonth::from('2013-06');
-Assert::sameValue(\Temporal\PlainYearMonth::compare(['year' => 1994, 'month' => 11], $jun13), -1, 'one object');
-Assert::sameValue(\Temporal\PlainYearMonth::compare('1994-11', $jun13), -1, 'one string');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainYearMonth::compare(['year' => 1994], $jun13), 'one missing property');
-Assert::sameValue(\Temporal\PlainYearMonth::compare($nov94, ['year' => 2013, 'month' => 6]), -1, 'two object');
-Assert::sameValue(\Temporal\PlainYearMonth::compare($nov94, '2013-06'), -1, 'two string');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainYearMonth::compare($nov94, ['year' => 2013]), 'two missing property');
+$nov94 = \Temporal\Spec\PlainYearMonth::from('1994-11');
+$jun13 = \Temporal\Spec\PlainYearMonth::from('2013-06');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare(['year' => 1994, 'month' => 11], $jun13), -1, 'one object');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare('1994-11', $jun13), -1, 'one string');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::compare(['year' => 1994], $jun13), 'one missing property');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($nov94, ['year' => 2013, 'month' => 6]), -1, 'two object');
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($nov94, '2013-06'), -1, 'two string');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::compare($nov94, ['year' => 2013]), 'two missing property');

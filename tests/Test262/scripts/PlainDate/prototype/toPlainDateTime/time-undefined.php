@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2000, 5, 2);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $explicit = $date->toPlainDateTime();
 TemporalHelpers::assertPlainDateTime($explicit, 2000, 5, 'M05', 2, 0, 0, 0, 0, 0, 0, 'default time is midnight - explicit');
 $implicit = $date->toPlainDateTime();

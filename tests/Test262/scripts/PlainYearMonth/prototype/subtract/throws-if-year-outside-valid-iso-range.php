@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$minYearMonth = new \Temporal\PlainYearMonth(-271_821, 4);
-$blank = new \Temporal\Duration();
+$minYearMonth = new \Temporal\Spec\PlainYearMonth(-271_821, 4);
+$blank = new \Temporal\Spec\Duration();
 Assert::throws(\InvalidArgumentException::class, fn() => $minYearMonth->subtract($blank), '');

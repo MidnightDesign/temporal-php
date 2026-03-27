@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1);
+$instance = new \Temporal\Spec\Duration(1);
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
 $instance->round(['largestUnit' => 'months', 'relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
 $timeZone = '2021-08-19T17:30:45.123456789+23:59[+23:59:60]';

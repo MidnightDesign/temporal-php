@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\Duration(1, 0, 0, 0, 24);
+$instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2016-12-31T23:59:60';
 $result1 = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
 TemporalHelpers::assertDuration($result1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'leap second is a valid ISO string for PlainDate relativeTo');

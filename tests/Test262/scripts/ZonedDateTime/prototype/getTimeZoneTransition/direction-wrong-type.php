@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$zdt = new \Temporal\ZonedDateTime(0, 'UTC');
+$zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $rangeErrorValues = [false, 42, 55, null];
 foreach ($rangeErrorValues as $badValue) {
 Assert::throws(\InvalidArgumentException::class, fn() => $zdt->getTimeZoneTransition(['direction' => $badValue]), 'Non-Symbol throws a RangeError');

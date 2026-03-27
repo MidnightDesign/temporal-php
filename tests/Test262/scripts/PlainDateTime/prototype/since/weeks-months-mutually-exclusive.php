@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 $laterDateTime = $dt->add(['days' => 42, 'hours' => 3]);
 TemporalHelpers::assertDuration($laterDateTime->since($dt, ['largestUnit' => 'weeks']), 0, 0, 6, 0, 3, 0, 0, 0, 0, 0, 'weeks and months are mutually exclusive (prefer weeks)');
 TemporalHelpers::assertDuration($laterDateTime->since($dt, ['largestUnit' => 'months']), 0, 1, 0, 12, 3, 0, 0, 0, 0, 0, 'weeks and months are mutually exclusive (prefer months)');

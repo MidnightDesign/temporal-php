@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$yearmonth = new \Temporal\PlainYearMonth(2000, 5);
+$yearmonth = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $explicit = $yearmonth->with(['month' => 15], []);
 TemporalHelpers::assertPlainYearMonth($explicit, 2000, 12, 'M12', 'default overflow is constrain');
 $implicit = $yearmonth->with(['month' => 15], new \stdClass());

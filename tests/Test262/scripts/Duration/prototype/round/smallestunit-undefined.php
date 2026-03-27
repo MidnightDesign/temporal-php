@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = new \Temporal\Duration(0, 0, 0, 0, 1, 2, 3, 123, 456, 789);
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 1, 2, 3, 123, 456, 789);
 $explicit1 = $duration->round(['largestUnit' => 'day']);
 TemporalHelpers::assertDuration($explicit1, 0, 0, 0, 0, 1, 2, 3, 123, 456, 789, 'default smallestUnit is nanosecond');
 $implicit1 = $duration->round(['largestUnit' => 'day']);

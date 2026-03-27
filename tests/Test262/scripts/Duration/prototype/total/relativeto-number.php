@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1, 0, 0, 0, 24);
+$instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $numbers = [1, 20_191_101, -20_191_101, 1_234_567_890];
 foreach ($numbers as $relativeTo) {
 Assert::throws(\TypeError::class, fn() => $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]), "A number ({$relativeTo}) is not a valid ISO string for relativeTo");

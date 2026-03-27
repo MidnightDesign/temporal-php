@@ -7,13 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainMonthDay::from(), 'no argument');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(), 'no argument');
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainMonthDay::from($arg), "{$description} does not convert to a valid ISO string");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\PlainMonthDay::from($arg), "{$description} does not convert to a valid ISO string");
 foreach ([null, ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\PlainMonthDay::from($arg, $options), "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\PlainMonthDay::from($arg, $options), "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
 }
 }
 Assert::incomplete('untranslatable: Symbol()');

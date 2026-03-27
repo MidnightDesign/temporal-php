@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainTime();
+$instance = new \Temporal\Spec\PlainTime();
 $result1 = $instance->toString(new \stdClass());
 Assert::sameValue($result1, '00:00:00', 'options may be an empty plain object');
 $result2 = $instance->toString(function () {  });

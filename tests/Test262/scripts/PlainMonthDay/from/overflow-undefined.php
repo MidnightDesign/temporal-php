@@ -8,19 +8,19 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$validValues = [new \Temporal\PlainMonthDay(5, 2), '05-02'];
+$validValues = [new \Temporal\Spec\PlainMonthDay(5, 2), '05-02'];
 foreach ($validValues as $value) {
-$explicit = \Temporal\PlainMonthDay::from($value, []);
+$explicit = \Temporal\Spec\PlainMonthDay::from($value, []);
 TemporalHelpers::assertPlainMonthDay($explicit, 'M05', 2, 'overflow is ignored');
-$implicit = \Temporal\PlainMonthDay::from($value, new \stdClass());
+$implicit = \Temporal\Spec\PlainMonthDay::from($value, new \stdClass());
 TemporalHelpers::assertPlainMonthDay($implicit, 'M05', 2, 'overflow is ignored');
-$lambda = \Temporal\PlainMonthDay::from($value, function () {  });
+$lambda = \Temporal\Spec\PlainMonthDay::from($value, function () {  });
 TemporalHelpers::assertPlainMonthDay($lambda, 'M05', 2, 'overflow is ignored');
 }
 $propertyBag = ['year' => 2000, 'month' => 13, 'day' => 34];
-$explicit = \Temporal\PlainMonthDay::from($propertyBag, []);
+$explicit = \Temporal\Spec\PlainMonthDay::from($propertyBag, []);
 TemporalHelpers::assertPlainMonthDay($explicit, 'M12', 31, 'default overflow is constrain');
-$implicit = \Temporal\PlainMonthDay::from($propertyBag, new \stdClass());
+$implicit = \Temporal\Spec\PlainMonthDay::from($propertyBag, new \stdClass());
 TemporalHelpers::assertPlainMonthDay($implicit, 'M12', 31, 'default overflow is constrain');
-$lambda = \Temporal\PlainMonthDay::from($propertyBag, function () {  });
+$lambda = \Temporal\Spec\PlainMonthDay::from($propertyBag, function () {  });
 TemporalHelpers::assertPlainMonthDay($lambda, 'M12', 31, 'default overflow is constrain');

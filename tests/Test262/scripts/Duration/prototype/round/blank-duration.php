@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$blank = new \Temporal\Duration();
-$plainRelativeTo = new \Temporal\PlainDate(2025, 8, 22);
-$zonedRelativeTo = new \Temporal\ZonedDateTime(1, 'UTC');
+$blank = new \Temporal\Spec\Duration();
+$plainRelativeTo = new \Temporal\Spec\PlainDate(2025, 8, 22);
+$zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(1, 'UTC');
 foreach (['days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
 $result = $blank->round($smallestUnit);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} without relativeTo");

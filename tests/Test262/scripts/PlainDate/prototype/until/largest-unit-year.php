@@ -7,14 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d1 = new \Temporal\PlainDate(2020, 3, 15);
-$d2 = new \Temporal\PlainDate(2022, 5, 20);
+$d1 = new \Temporal\Spec\PlainDate(2020, 3, 15);
+$d2 = new \Temporal\Spec\PlainDate(2022, 5, 20);
 $result = $d1->until($d2, ['largestUnit' => 'year']);
 Assert::sameValue($result->years, 2, '2 years');
 Assert::sameValue($result->months, 2, '2 months');
 Assert::sameValue($result->days, 5, '5 remaining days');
-$d3 = new \Temporal\PlainDate(2020, 3, 15);
-$d4 = new \Temporal\PlainDate(2021, 3, 10);
+$d3 = new \Temporal\Spec\PlainDate(2020, 3, 15);
+$d4 = new \Temporal\Spec\PlainDate(2021, 3, 10);
 $result2 = $d3->until($d4, ['largestUnit' => 'year']);
 Assert::sameValue($result2->years, 0, '0 full years (day hasn\'t been reached)');
 Assert::sameValue($result2->months, 11, '11 months');

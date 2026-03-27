@@ -7,13 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(-1, 1, 1, 1, 1, 1, 1, 1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, -1, 1, 1, 1, 1, 1, 1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, -1, 1, 1, 1, 1, 1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, 1, -1, 1, 1, 1, 1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, 1, 1, -1, 1, 1, 1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, 1, 1, 1, -1, 1, 1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, 1, 1, 1, 1, -1, 1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, 1, 1, 1, 1, 1, -1, 1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, 1, 1, 1, 1, 1, 1, -1, 1), '');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Duration(1, 1, 1, 1, 1, 1, 1, 1, 1, -1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(-1, 1, 1, 1, 1, 1, 1, 1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, -1, 1, 1, 1, 1, 1, 1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, -1, 1, 1, 1, 1, 1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, 1, -1, 1, 1, 1, 1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, 1, 1, -1, 1, 1, 1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, 1, 1, 1, -1, 1, 1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, 1, 1, 1, 1, -1, 1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, 1, 1, 1, 1, 1, -1, 1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, 1, 1, 1, 1, 1, 1, -1, 1), '');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1, 1, 1, 1, 1, 1, 1, 1, 1, -1), '');

@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\ZonedDateTime(0, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$timeZone, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $datetime), "{$description} does not convert to a valid ISO string (first argument)");
-Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\ZonedDateTime::compare($datetime, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]), "{$description} does not convert to a valid ISO string (second argument)");
+Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $datetime), "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]), "{$description} does not convert to a valid ISO string (second argument)");
 }
 Assert::incomplete('untranslatable: Symbol()');

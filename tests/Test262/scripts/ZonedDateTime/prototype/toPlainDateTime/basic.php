@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdtEpoch = new \Temporal\ZonedDateTime(0, 'UTC');
+$zdtEpoch = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 TemporalHelpers::assertPlainDateTime($zdtEpoch->toPlainDateTime(), 1970, 1, 'M01', 1, 0, 0, 0, 0, 0, 0, 'epoch result');
-$zdtPostEpoch = \Temporal\ZonedDateTime::from('2014-11-21T14:32:27.234567891[+01:00]');
+$zdtPostEpoch = \Temporal\Spec\ZonedDateTime::from('2014-11-21T14:32:27.234567891[+01:00]');
 TemporalHelpers::assertPlainDateTime($zdtPostEpoch->toPlainDateTime(), 2014, 11, 'M11', 21, 14, 32, 27, 234, 567, 891, 'post-epoch result');
-$zdtPreEpoch = \Temporal\ZonedDateTime::from('1969-07-16T13:32:01.234567891Z[-04:00]');
+$zdtPreEpoch = \Temporal\Spec\ZonedDateTime::from('1969-07-16T13:32:01.234567891Z[-04:00]');
 TemporalHelpers::assertPlainDateTime($zdtPreEpoch->toPlainDateTime(), 1969, 7, 'M07', 16, 9, 32, 1, 234, 567, 891, 'pre-epoch result');

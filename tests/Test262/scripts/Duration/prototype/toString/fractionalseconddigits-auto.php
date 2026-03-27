@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$wholeSeconds = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7);
-$subSeconds = new \Temporal\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650);
+$wholeSeconds = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7);
+$subSeconds = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650);
 $tests = [[$wholeSeconds, 'P1Y2M3W4DT5H6M7S'], [$subSeconds, 'P1Y2M3W4DT5H6M7.98765S']];
 foreach ($tests as $__entry__) {
 [$duration, $expected] = array_pad($__entry__, 2, null);

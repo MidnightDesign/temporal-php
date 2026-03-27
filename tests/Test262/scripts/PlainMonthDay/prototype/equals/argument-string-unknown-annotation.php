@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $tests = [['1976-05-02T15:23[foo=bar]', 'alone'], ['1976-05-02T15:23[UTC][foo=bar]', 'with time zone'], ['1976-05-02T15:23[u-ca=iso8601][foo=bar]', 'with calendar'], ['1976-05-02T15:23[UTC][foo=bar][u-ca=iso8601]', 'with time zone and calendar'], ['1976-05-02T15:23[foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
-$instance = new \Temporal\PlainMonthDay(5, 2);
+$instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ($tests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 $result = $instance->equals($arg);

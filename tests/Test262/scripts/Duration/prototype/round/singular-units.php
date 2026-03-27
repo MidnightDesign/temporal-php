@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d = new \Temporal\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-$relativeTo = new \Temporal\PlainDate(2020, 1, 1);
+$d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
+$relativeTo = new \Temporal\Spec\PlainDate(2020, 1, 1);
 TemporalHelpers::assertDurationsEqual($d->round(['largestUnit' => 'year', 'relativeTo' => $relativeTo]), $d->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDurationsEqual($d->round(['smallestUnit' => 'year', 'relativeTo' => $relativeTo]), $d->round(['smallestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDurationsEqual($d->round(['largestUnit' => 'month', 'relativeTo' => $relativeTo]), $d->round(['largestUnit' => 'months', 'relativeTo' => $relativeTo]));

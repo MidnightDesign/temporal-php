@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$inst = \Temporal\Instant::from('1976-11-18T14:23:30.123456789Z');
-Assert::assertTrue($inst->round(['smallestUnit' => 'second', 'roundingIncrement' => 864]) instanceof \Temporal\Instant, '');
+$inst = \Temporal\Spec\Instant::from('1976-11-18T14:23:30.123456789Z');
+Assert::assertTrue($inst->round(['smallestUnit' => 'second', 'roundingIncrement' => 864]) instanceof \Temporal\Spec\Instant, '');

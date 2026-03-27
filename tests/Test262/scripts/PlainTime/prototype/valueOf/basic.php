@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainTime = \Temporal\PlainTime::from('09:36:29.123456789');
-$plainTime2 = \Temporal\PlainTime::from('09:36:29.123456789');
+$plainTime = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
+$plainTime2 = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
 Assert::throws(\TypeError::class, fn() => $plainTime->valueOf(), 'valueOf');
 Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');

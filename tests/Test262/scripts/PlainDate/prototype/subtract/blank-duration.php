@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d = new \Temporal\PlainDate(2025, 8, 22);
-$blank = new \Temporal\Duration();
+$d = new \Temporal\Spec\PlainDate(2025, 8, 22);
+$blank = new \Temporal\Spec\Duration();
 $result = $d->subtract($blank);
 TemporalHelpers::assertPlainDate($result, 2025, 8, 'M08', 22, 'result is unchanged');

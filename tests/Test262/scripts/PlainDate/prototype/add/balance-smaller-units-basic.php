@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(1976, 11, 18);
+$date = new \Temporal\Spec\PlainDate(1976, 11, 18);
 TemporalHelpers::assertPlainDate($date->add(['hours' => 1]), 1976, 11, 'M11', 18);
 TemporalHelpers::assertPlainDate($date->add(['minutes' => 1]), 1976, 11, 'M11', 18);
 TemporalHelpers::assertPlainDate($date->add(['seconds' => 1]), 1976, 11, 'M11', 18);

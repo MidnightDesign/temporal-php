@@ -9,12 +9,12 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $testRoundtrip = function ($date) {
-$dateFromYearMonth = \Temporal\PlainDate::from(['year' => $date->year, 'month' => $date->month, 'day' => $date->day]);
+$dateFromYearMonth = \Temporal\Spec\PlainDate::from(['year' => $date->year, 'month' => $date->month, 'day' => $date->day]);
 TemporalHelpers::assertPlainDate($dateFromYearMonth, $date->year, $date->month, $date->monthCode, $date->day, "{$date} - created from year and month");
-$dateFromYearMonthCode = \Temporal\PlainDate::from(['year' => $date->year, 'monthCode' => $date->monthCode, 'day' => $date->day]);
+$dateFromYearMonthCode = \Temporal\Spec\PlainDate::from(['year' => $date->year, 'monthCode' => $date->monthCode, 'day' => $date->day]);
 TemporalHelpers::assertPlainDate($dateFromYearMonthCode, $date->year, $date->month, $date->monthCode, $date->day, "{$date} - created from year and month code");
 };
-$year2000 = new \Temporal\PlainDate(2000, 1, 1);
+$year2000 = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $testRoundtrip($year2000);
-$year1 = new \Temporal\PlainDate(1, 1, 1);
+$year1 = new \Temporal\Spec\PlainDate(1, 1, 1);
 $testRoundtrip($year1);

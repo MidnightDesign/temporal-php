@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\PlainDateTime(1976, 11, 18);
+$instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18);
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => 'IsO8601'];
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'Calendar is case-insensitive');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $expectedTimeZone = 'UTC';
-$instance1 = new \Temporal\ZonedDateTime(0, $expectedTimeZone);
+$instance1 = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-02-19T17:30';
 Assert::throws(\InvalidArgumentException::class, fn() => $instance1->equals(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => $timeZone]), 'bare date-time string is not a time zone');
 foreach (['2021-08-19T17:30-07:00:01', '2021-08-19T17:30-07:00:00', '2021-08-19T17:30-07:00:00.1', '2021-08-19T17:30-07:00:00.0', '2021-08-19T17:30-07:00:00.01', '2021-08-19T17:30-07:00:00.00', '2021-08-19T17:30-07:00:00.001', '2021-08-19T17:30-07:00:00.000', '2021-08-19T17:30-07:00:00.0001', '2021-08-19T17:30-07:00:00.0000', '2021-08-19T17:30-07:00:00.00001', '2021-08-19T17:30-07:00:00.00000', '2021-08-19T17:30-07:00:00.000001', '2021-08-19T17:30-07:00:00.000000', '2021-08-19T17:30-07:00:00.0000001', '2021-08-19T17:30-07:00:00.0000000', '2021-08-19T17:30-07:00:00.00000001', '2021-08-19T17:30-07:00:00.00000000', '2021-08-19T17:30-07:00:00.000000001', '2021-08-19T17:30-07:00:00.000000000'] as $timeZone) {
@@ -17,10 +17,10 @@ Assert::throws(\InvalidArgumentException::class, fn() => $instance1->equals(['ye
 $timeZone = '2021-02-19T17:30Z';
 Assert::assertTrue($instance1->equals(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => $timeZone]), 'date-time + Z is UTC time zone');
 $expectedTimeZone = '-08:00';
-$instance2 = new \Temporal\ZonedDateTime(0, $expectedTimeZone);
+$instance2 = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-02-19T17:30-08:00';
 Assert::assertTrue($instance2->equals(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone]), 'date-time + offset is the offset time zone');
-$instance3 = new \Temporal\ZonedDateTime(0, $expectedTimeZone);
+$instance3 = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-02-19T17:30[-08:00]';
 Assert::assertTrue($instance3->equals(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone]), 'date-time + IANA annotation is the IANA time zone');
 $timeZone = '2021-02-19T17:30Z[-08:00]';

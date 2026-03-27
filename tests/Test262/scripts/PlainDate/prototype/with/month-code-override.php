@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2024, 6, 15);
+$date = new \Temporal\Spec\PlainDate(2024, 6, 15);
 TemporalHelpers::assertPlainDate($date->with(['monthCode' => 'M01']), 2024, 1, 'M01', 15, 'monthCode M01 sets month to January');
 TemporalHelpers::assertPlainDate($date->with(['monthCode' => 'M12']), 2024, 12, 'M12', 15, 'monthCode M12 sets month to December');
 TemporalHelpers::assertPlainDate($date->with(['month' => 3, 'monthCode' => 'M03']), 2024, 3, 'M03', 15, 'consistent month and monthCode');

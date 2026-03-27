@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.calendarName', 'get options.calendarName.toString', 'call options.calendarName.toString', 'get options.fractionalSecondDigits', 'get options.fractionalSecondDigits.toString', 'call options.fractionalSecondDigits.toString', 'get options.offset', 'get options.offset.toString', 'call options.offset.toString', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString', 'get options.timeZoneName', 'get options.timeZoneName.toString', 'call options.timeZoneName.toString'];
 $actual = [];
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

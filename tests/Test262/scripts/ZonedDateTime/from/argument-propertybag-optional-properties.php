@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $minimumProperties = ['year' => 2021, 'month' => 10, 'day' => 28, 'timeZone' => 'UTC'];
 $allProperties = ['year' => 2021, 'month' => 10, 'day' => 28, 'hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'offset' => '+00:00', 'timeZone' => 'UTC', 'calendar' => 'iso8601'];
-$resultWithout = \Temporal\ZonedDateTime::from($minimumProperties);
-$resultWith = \Temporal\ZonedDateTime::from($allProperties);
+$resultWithout = \Temporal\Spec\ZonedDateTime::from($minimumProperties);
+$resultWith = \Temporal\Spec\ZonedDateTime::from($allProperties);
 Assert::assertTrue($resultWithout->equals($resultWith), 'results should be the same with and without optional properties');

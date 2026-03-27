@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = \Temporal\Duration::from(['hours' => 100_000, 'nanoseconds' => 5]);
+$duration = \Temporal\Spec\Duration::from(['hours' => 100_000, 'nanoseconds' => 5]);
 $rounded = $duration->round(['smallestUnit' => 'hours', 'roundingMode' => 'ceil']);
 TemporalHelpers::assertDuration($rounded, 0, 0, 0, 0, 100_001, 0, 0, 0, 0, 0);
-$duration = \Temporal\Duration::from(['days' => 1000, 'nanoseconds' => 5]);
+$duration = \Temporal\Spec\Duration::from(['days' => 1000, 'nanoseconds' => 5]);
 $rounded = $duration->round(['smallestUnit' => 'days', 'roundingMode' => 'ceil']);
 TemporalHelpers::assertDuration($rounded, 0, 0, 0, 1001, 0, 0, 0, 0, 0, 0);

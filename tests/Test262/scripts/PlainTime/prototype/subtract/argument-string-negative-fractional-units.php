@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\PlainTime();
+$instance = new \Temporal\Spec\PlainTime();
 $resultHours = $instance->subtract('-PT24.567890123H');
 TemporalHelpers::assertPlainTime($resultHours, 0, 34, 4, 404, 442, 800, 'negative fractional hours');
 $resultMinutes = $instance->subtract('-PT1440.567890123M');

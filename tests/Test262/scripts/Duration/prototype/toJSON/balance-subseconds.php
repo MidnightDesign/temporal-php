@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$pos = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, 999, 999_999, 999_999_999);
+$pos = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 999, 999_999, 999_999_999);
 Assert::sameValue($pos->toJSON(), 'PT2.998998999S', '');
-$neg = new \Temporal\Duration(0, 0, 0, 0, 0, 0, 0, -999, -999_999, -999_999_999);
+$neg = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, -999, -999_999, -999_999_999);
 Assert::sameValue($neg->toJSON(), '-PT2.998998999S', '');

@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from(['year' => 2000, 'day' => 1, 'month' => -1]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainDateTime::from(['year' => 2000, 'month' => 1, 'day' => -1]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 2000, 'day' => 1, 'month' => -1]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 2000, 'month' => 1, 'day' => -1]), '');

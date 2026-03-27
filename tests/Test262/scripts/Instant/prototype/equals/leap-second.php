@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(1_483_228_799_000_000_000);
+$instance = new \Temporal\Spec\Instant(1_483_228_799_000_000_000);
 $arg = '2016-12-31T23:59:60Z';
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'leap second is a valid ISO string for Instant');

@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 650, 0);
+$datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 650, 0);
 $string = $datetime->toString(['fractionalSecondDigits' => 2.5]);
 Assert::sameValue($string, '2000-05-02T12:34:56.98', 'fractionalSecondDigits 2.5 floors to 2');
 $string = $datetime->toString(['fractionalSecondDigits' => 9.7]);

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d1 = new \Temporal\PlainYearMonth(2025, 8);
-$d2 = new \Temporal\PlainYearMonth(2025, 8);
+$d1 = new \Temporal\Spec\PlainYearMonth(2025, 8);
+$d2 = new \Temporal\Spec\PlainYearMonth(2025, 8);
 $result = $d1->since($d2);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'blank result');

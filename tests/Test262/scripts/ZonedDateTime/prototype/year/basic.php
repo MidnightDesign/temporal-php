@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(new \Temporal\ZonedDateTime(0, 'UTC')->year, 1970, '');
-Assert::sameValue(\Temporal\ZonedDateTime::from('2019-03-15T15:30:26+00:00[UTC]')->year, 2019, '');
+Assert::sameValue(new \Temporal\Spec\ZonedDateTime(0, 'UTC')->year, 1970, '');
+Assert::sameValue(\Temporal\Spec\ZonedDateTime::from('2019-03-15T15:30:26+00:00[UTC]')->year, 2019, '');

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = \Temporal\PlainTime::from(['hour' => 12, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321]);
+$instance = \Temporal\Spec\PlainTime::from(['hour' => 12, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321]);
 $result = $instance->add('PT3M');
 TemporalHelpers::assertPlainTime($result, 12, 37, 56, 987, 654, 321);

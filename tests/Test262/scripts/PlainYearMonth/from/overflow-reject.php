@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $bad = ['year' => 2019, 'month' => 13];
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::from($bad, ['overflow' => 'reject']), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from($bad, ['overflow' => 'reject']), '');
 foreach ([-1, 0, 13, 9995] as $month) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::from(['year' => 2021, 'month' => $month, 'day' => 5], ['overflow' => 'reject']), "Month {$month} is out of range for 2021 with overflow: reject");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => $month, 'day' => 5], ['overflow' => 'reject']), "Month {$month} is out of range for 2021 with overflow: reject");
 }

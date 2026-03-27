@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(3_661_001_001_001, '-00:02');
-$time = \Temporal\PlainTime::from($datetime);
+$datetime = new \Temporal\Spec\ZonedDateTime(3_661_001_001_001, '-00:02');
+$time = \Temporal\Spec\PlainTime::from($datetime);
 TemporalHelpers::assertPlainTime($time, 0, 59, 1, 1, 1, 1);

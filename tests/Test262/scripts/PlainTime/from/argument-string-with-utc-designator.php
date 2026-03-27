@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]', '09:00:00Z[UTC]', '09:00:00Z'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::from($arg), 'String with UTC designator should not be valid as a PlainTime');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from($arg), 'String with UTC designator should not be valid as a PlainTime');
 }

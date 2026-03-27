@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$date = new \Temporal\PlainDate(2000, 5, 31);
-$duration = new \Temporal\Duration(3, 1);
+$date = new \Temporal\Spec\PlainDate(2000, 5, 31);
+$duration = new \Temporal\Spec\Duration(3, 1);
 $explicit = $date->subtract($duration, []);
 TemporalHelpers::assertPlainDate($explicit, 1997, 4, 'M04', 30, 'default overflow is constrain');
 $implicit = $date->subtract($duration, new \stdClass());

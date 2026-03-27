@@ -7,10 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$d1 = \Temporal\PlainDate::from('1976-11-18');
-$d2 = \Temporal\PlainDate::from('2019-06-30');
-$d3 = \Temporal\PlainDate::from('2019-06-30');
-Assert::sameValue(\Temporal\PlainDate::compare($d1, $d1), 0, 'same object');
-Assert::sameValue(\Temporal\PlainDate::compare($d1, $d2), -1, 'earlier');
-Assert::sameValue(\Temporal\PlainDate::compare($d2, $d1), 1, 'later');
-Assert::sameValue(\Temporal\PlainDate::compare($d2, $d3), 0, 'same date');
+$d1 = \Temporal\Spec\PlainDate::from('1976-11-18');
+$d2 = \Temporal\Spec\PlainDate::from('2019-06-30');
+$d3 = \Temporal\Spec\PlainDate::from('2019-06-30');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, $d1), 0, 'same object');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, $d2), -1, 'earlier');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($d2, $d1), 1, 'later');
+Assert::sameValue(\Temporal\Spec\PlainDate::compare($d2, $d3), 0, 'same date');

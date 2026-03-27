@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$md = new \Temporal\PlainMonthDay(1, 15);
+$md = new \Temporal\Spec\PlainMonthDay(1, 15);
 Assert::sameValue($md->monthCode, 'M01', '');

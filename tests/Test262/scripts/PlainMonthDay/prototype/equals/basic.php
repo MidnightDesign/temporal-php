@@ -7,8 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$md1 = \Temporal\PlainMonthDay::from('01-22');
-$md2 = \Temporal\PlainMonthDay::from('12-15');
+$md1 = \Temporal\Spec\PlainMonthDay::from('01-22');
+$md2 = \Temporal\Spec\PlainMonthDay::from('12-15');
 Assert::assertTrue($md1->equals($md1), 'same object');
 Assert::sameValue($md1->equals($md2), false, 'different object');
 Assert::assertTrue($md1->equals('01-22'), 'same string');
@@ -16,6 +16,6 @@ Assert::sameValue($md2->equals('01-22'), false, 'different string');
 Assert::assertTrue($md1->equals(['month' => 1, 'day' => 22]), 'same property bag');
 Assert::sameValue($md2->equals(['month' => 1, 'day' => 22]), false, 'different property bag');
 Assert::throws(\TypeError::class, fn() => $md1->equals(['month' => 1]), 'missing field in property bag');
-$mdYear1 = new \Temporal\PlainMonthDay(1, 1, null, 1972);
-$mdYear2 = new \Temporal\PlainMonthDay(1, 1, null, 2000);
+$mdYear1 = new \Temporal\Spec\PlainMonthDay(1, 1, null, 1972);
+$mdYear2 = new \Temporal\Spec\PlainMonthDay(1, 1, null, 2000);
 Assert::sameValue($mdYear1->equals($mdYear2), false, 'different reference years');

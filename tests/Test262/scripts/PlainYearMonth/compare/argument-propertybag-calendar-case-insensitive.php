@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => 'IsO8601'];
-$result1 = \Temporal\PlainYearMonth::compare($arg, new \Temporal\PlainYearMonth(2019, 6));
+$result1 = \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6));
 Assert::sameValue($result1, 0, 'Calendar is case-insensitive (first argument)');
-$result2 = \Temporal\PlainYearMonth::compare(new \Temporal\PlainYearMonth(2019, 6), $arg);
+$result2 = \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg);
 Assert::sameValue($result2, 0, 'Calendar is case-insensitive (second argument)');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare($arg, new \Temporal\PlainYearMonth(2019, 6)), 'calendar ID is capital dotted I is not lowercased (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainYearMonth::compare(new \Temporal\PlainYearMonth(2019, 6), $arg), 'calendar ID is capital dotted I is not lowercased (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)), 'calendar ID is capital dotted I is not lowercased (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg), 'calendar ID is capital dotted I is not lowercased (second argument)');

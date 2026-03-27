@@ -7,9 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$date1 = new \Temporal\PlainDate(1976, 11, 18);
+$date1 = new \Temporal\Spec\PlainDate(1976, 11, 18);
 Assert::sameValue($date1->toString(), '1976-11-18', '');
-$date2 = new \Temporal\PlainDate(1914, 2, 23);
+$date2 = new \Temporal\Spec\PlainDate(1914, 2, 23);
 Assert::sameValue($date2->toString(), '1914-02-23', '');
-$date3 = new \Temporal\PlainDate(1996, 2, 29);
+$date3 = new \Temporal\Spec\PlainDate(1996, 2, 29);
 Assert::sameValue($date3->toString(), '1996-02-29', '');

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $durationString = 'PT0.084000159S';
-$duration = \Temporal\Duration::from($durationString);
+$duration = \Temporal\Spec\Duration::from($durationString);
 $precisionString = $duration->toString(['smallestUnit' => 'milliseconds']);
 Assert::sameValue($durationString, $duration->toString(), '');
 Assert::sameValue($precisionString, 'PT0.084S', '');

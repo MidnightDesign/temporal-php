@@ -7,12 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$epoch = new \Temporal\Instant(0);
+$epoch = new \Temporal\Spec\Instant(0);
 $arg = new \stdClass();
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($arg, $epoch), '[object Object] is not a valid ISO string (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Instant::compare($epoch, $arg), '[object Object] is not a valid ISO string (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, $epoch), '[object Object] is not a valid ISO string (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($epoch, $arg), '[object Object] is not a valid ISO string (second argument)');
 $arg['toString'] = function () { return '1970-01-01T00:00Z'; };
-$result1 = \Temporal\Instant::compare($arg, $epoch);
+$result1 = \Temporal\Spec\Instant::compare($arg, $epoch);
 Assert::sameValue($result1, 0, 'result of toString is interpreted as ISO string (first argument)');
-$result2 = \Temporal\Instant::compare($epoch, $arg);
+$result2 = \Temporal\Spec\Instant::compare($epoch, $arg);
 Assert::sameValue($result2, 0, 'result of toString is interpreted as ISO string (second argument)');

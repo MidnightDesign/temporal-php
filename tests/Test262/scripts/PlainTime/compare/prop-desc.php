@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainTime.compare` is `function`');
-Assert::methodExists('\Temporal\PlainTime', 'compare');
+Assert::methodExists('\Temporal\Spec\PlainTime', 'compare');

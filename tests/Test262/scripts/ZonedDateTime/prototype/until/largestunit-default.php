@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = \Temporal\ZonedDateTime::from('2019-01-08T09:22:36.123456789+01:00[+01:00]');
-$later = \Temporal\ZonedDateTime::from('2021-09-07T13:39:40.987654321+01:00[+01:00]');
+$earlier = \Temporal\Spec\ZonedDateTime::from('2019-01-08T09:22:36.123456789+01:00[+01:00]');
+$later = \Temporal\Spec\ZonedDateTime::from('2021-09-07T13:39:40.987654321+01:00[+01:00]');
 TemporalHelpers::assertDuration($earlier->until($later, ['smallestUnit' => 'years', 'roundingMode' => 'halfExpand']), 3, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($earlier->until($later, ['smallestUnit' => 'months', 'roundingMode' => 'halfExpand']), 0, 32, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($earlier->until($later, ['smallestUnit' => 'weeks', 'roundingMode' => 'halfExpand']), 0, 0, 139, 0, 0, 0, 0, 0, 0, 0);

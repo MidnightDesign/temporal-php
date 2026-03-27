@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$validValues = [new \Temporal\PlainTime(12), ['hour' => 12], '12:00'];
+$validValues = [new \Temporal\Spec\PlainTime(12), ['hour' => 12], '12:00'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\PlainTime::from($value, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\Spec\PlainTime::from($value, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 0, 0, 0, 0, 0, $descr));
 }

@@ -7,11 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$t1 = \Temporal\PlainTime::from('08:44:15.321');
-$t2 = \Temporal\PlainTime::from('14:23:30.123');
-Assert::sameValue(\Temporal\PlainTime::compare(['hour' => 16, 'minute' => 34], $t2), 1, 'one object');
-Assert::sameValue(\Temporal\PlainTime::compare('16:34', $t2), 1, 'one string');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainTime::compare(['hours' => 16], $t2), 'one missing property');
-Assert::sameValue(\Temporal\PlainTime::compare($t1, ['hour' => 16, 'minute' => 34]), -1, 'two object');
-Assert::sameValue(\Temporal\PlainTime::compare($t1, '16:34'), -1, 'two string');
-Assert::throws(\TypeError::class, fn() => \Temporal\PlainTime::compare($t1, ['hours' => 16]), 'two missing property');
+$t1 = \Temporal\Spec\PlainTime::from('08:44:15.321');
+$t2 = \Temporal\Spec\PlainTime::from('14:23:30.123');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare(['hour' => 16, 'minute' => 34], $t2), 1, 'one object');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare('16:34', $t2), 1, 'one string');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainTime::compare(['hours' => 16], $t2), 'one missing property');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($t1, ['hour' => 16, 'minute' => 34]), -1, 'two object');
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($t1, '16:34'), -1, 'two string');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainTime::compare($t1, ['hours' => 16]), 'two missing property');

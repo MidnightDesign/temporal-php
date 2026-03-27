@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$earlier = new \Temporal\PlainYearMonth(2019, 1);
-$later = new \Temporal\PlainYearMonth(2021, 9);
+$earlier = new \Temporal\Spec\PlainYearMonth(2019, 1);
+$later = new \Temporal\Spec\PlainYearMonth(2021, 9);
 $laterSinceYear = $earlier->until($later, ['smallestUnit' => 'years', 'roundingIncrement' => 4, 'roundingMode' => 'halfExpand']);
 TemporalHelpers::assertDuration($laterSinceYear, 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'rounds to an increment of years');
 $laterSinceMixed = $earlier->until($later, ['smallestUnit' => 'months', 'roundingIncrement' => 5]);

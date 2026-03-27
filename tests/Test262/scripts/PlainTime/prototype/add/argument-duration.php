@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainTime = new \Temporal\PlainTime(15, 23, 30, 123, 456, 789);
-$duration = \Temporal\Duration::from('PT16H');
+$plainTime = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789);
+$duration = \Temporal\Spec\Duration::from('PT16H');
 TemporalHelpers::assertPlainTime($plainTime->add($duration), 7, 23, 30, 123, 456, 789);

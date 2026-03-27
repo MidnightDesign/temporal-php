@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$zdt = new \Temporal\ZonedDateTime(217_175_010_123_456_789, '+01:00');
-$earlier = new \Temporal\ZonedDateTime(-120_898_800_000_000_000, '+01:00');
+$zdt = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
+$earlier = new \Temporal\Spec\ZonedDateTime(-120_898_800_000_000_000, '+01:00');
 TemporalHelpers::assertDurationsEqual($zdt->since($earlier), $earlier->until($zdt));

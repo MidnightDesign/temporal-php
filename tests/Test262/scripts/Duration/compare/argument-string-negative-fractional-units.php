@@ -7,13 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$expectedHours = new \Temporal\Duration(0, 0, 0, 0, -24, -34, -4, -404, -442, -800);
-$resultHours1 = \Temporal\Duration::compare('-PT24.567890123H', $expectedHours);
+$expectedHours = new \Temporal\Spec\Duration(0, 0, 0, 0, -24, -34, -4, -404, -442, -800);
+$resultHours1 = \Temporal\Spec\Duration::compare('-PT24.567890123H', $expectedHours);
 Assert::sameValue($resultHours1, 0, 'negative fractional hours (first argument)');
-$resultHours2 = \Temporal\Duration::compare($expectedHours, '-PT24.567890123H');
+$resultHours2 = \Temporal\Spec\Duration::compare($expectedHours, '-PT24.567890123H');
 Assert::sameValue($resultHours2, 0, 'negative fractional hours (second argument)');
-$expectedMinutes = new \Temporal\Duration(0, 0, 0, 0, 0, -1440, -34, -73, -407, -380);
-$resultMinutes1 = \Temporal\Duration::compare('-PT1440.567890123M', $expectedMinutes);
+$expectedMinutes = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, -1440, -34, -73, -407, -380);
+$resultMinutes1 = \Temporal\Spec\Duration::compare('-PT1440.567890123M', $expectedMinutes);
 Assert::sameValue($resultMinutes1, 0, 'negative fractional minutes (first argument)');
-$resultMinutes2 = \Temporal\Duration::compare('-PT1440.567890123M', $expectedMinutes);
+$resultMinutes2 = \Temporal\Spec\Duration::compare('-PT1440.567890123M', $expectedMinutes);
 Assert::sameValue($resultMinutes2, 0, 'negative fractional minutes (second argument)');

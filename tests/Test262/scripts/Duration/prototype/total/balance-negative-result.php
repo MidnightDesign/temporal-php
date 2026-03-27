@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = new \Temporal\Duration(0, 0, 0, 0, -60);
+$duration = new \Temporal\Spec\Duration(0, 0, 0, 0, -60);
 $result = $duration->total(['unit' => 'days']);
 Assert::sameValue($result, -2.5, '');

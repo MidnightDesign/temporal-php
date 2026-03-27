@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Instant(217_175_010_123_987_500);
+$instance = new \Temporal\Spec\Instant(217_175_010_123_987_500);
 $expected = [['hour', 217_173_600_000_000_000], ['minute', 217_174_980_000_000_000], ['second', 217_175_010_000_000_000], ['millisecond', 217_175_010_123_000_000], ['microsecond', 217_175_010_123_987_000], ['nanosecond', 217_175_010_123_987_500]];
 $roundingMode = 'trunc';
 foreach ($expected as $__entry__) {

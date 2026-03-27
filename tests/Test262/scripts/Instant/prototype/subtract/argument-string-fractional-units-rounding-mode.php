@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$epoch = new \Temporal\Instant(0);
+$epoch = new \Temporal\Spec\Instant(0);
 Assert::sameValue($epoch->subtract('PT1.03125H')->epochNanoseconds, -3_712_500_000_000, 'positive fractional units rounded with correct rounding mode');
 Assert::sameValue($epoch->subtract('-PT1.03125H')->epochNanoseconds, 3_712_500_000_000, 'negative fractional units rounded with correct rounding mode');

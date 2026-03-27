@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$time = new \Temporal\PlainTime(12, 34, 56, 0, 0, 5);
+$time = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 5);
 Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -INF]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -1]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0]), '');

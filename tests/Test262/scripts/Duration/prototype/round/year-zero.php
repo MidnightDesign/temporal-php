@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\Duration(1, 0, 0, 0, 24);
+$instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '-000000-11-04T00:00';
 Assert::throws(\InvalidArgumentException::class, function () use ($instance, $relativeTo) { $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]); }, 'reject minus zero as extended year');

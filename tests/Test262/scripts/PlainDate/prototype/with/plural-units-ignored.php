@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainDate = new \Temporal\PlainDate(1976, 11, 18);
+$plainDate = new \Temporal\Spec\PlainDate(1976, 11, 18);
 $withPlural = $plainDate->with(['months' => 12, 'day' => 15]);
 TemporalHelpers::assertPlainDate($withPlural, 1976, 11, 'M11', 15, 'Plural units in the property bag should ignored');

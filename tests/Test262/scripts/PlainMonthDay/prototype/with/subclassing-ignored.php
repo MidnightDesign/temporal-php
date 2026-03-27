@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::checkSubclassingIgnored(\Temporal\PlainMonthDay::class, [5, 2], 'with', [['day' => 20]], fn($result) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 20));
+TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\PlainMonthDay::class, [5, 2], 'with', [['day' => 20]], fn($result) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 20));

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = 'iso8601';
-$result = new \Temporal\PlainMonthDay(12, 15, $arg, 1972);
+$result = new \Temporal\Spec\PlainMonthDay(12, 15, $arg, 1972);
 Assert::sameValue($result->calendarId, 'iso8601', "Calendar created from string \"{$arg}\"");

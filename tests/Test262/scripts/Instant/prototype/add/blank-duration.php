@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instant = new \Temporal\Instant(1);
-$blank = new \Temporal\Duration();
+$instant = new \Temporal\Spec\Instant(1);
+$blank = new \Temporal\Spec\Duration();
 $result = $instant->add($blank);
 Assert::sameValue($result->epochNanoseconds, 1, 'result is unchanged');

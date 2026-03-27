@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['UTC', '+01:00'] as $timeZone) {
-\Temporal\Duration::compare(new \Temporal\Duration(1), new \Temporal\Duration(), ['relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
+\Temporal\Spec\Duration::compare(new \Temporal\Spec\Duration(1), new \Temporal\Spec\Duration(), ['relativeTo' => ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
 }
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

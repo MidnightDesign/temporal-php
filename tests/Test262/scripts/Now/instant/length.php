@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::methodLength('\Temporal\Now', 'instant', 0);
+Assert::methodLength('\Temporal\Spec\Now', 'instant', 0);

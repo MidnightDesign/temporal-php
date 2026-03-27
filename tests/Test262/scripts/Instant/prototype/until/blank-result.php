@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$i1 = new \Temporal\Instant(1);
-$i2 = new \Temporal\Instant(1);
+$i1 = new \Temporal\Spec\Instant(1);
+$i2 = new \Temporal\Spec\Instant(1);
 $result = $i1->until($i2);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'blank result');

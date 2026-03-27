@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.disambiguation', 'get options.disambiguation.toString', 'call options.disambiguation.toString'];
 $actual = [];
-$instance = new \Temporal\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321, 'iso8601');
+$instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321, 'iso8601');
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');

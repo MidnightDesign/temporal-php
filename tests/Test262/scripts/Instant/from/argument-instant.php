@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$orig = new \Temporal\Instant(217_175_010_123_456_789);
-$result = \Temporal\Instant::from($orig);
+$orig = new \Temporal\Spec\Instant(217_175_010_123_456_789);
+$result = \Temporal\Spec\Instant::from($orig);
 Assert::sameValue($result->epochNanoseconds, 217_175_010_123_456_789, 'Instant is copied');
 Assert::notSameValue($result, $orig, 'When an Instant is given, the returned value is not the original Instant');

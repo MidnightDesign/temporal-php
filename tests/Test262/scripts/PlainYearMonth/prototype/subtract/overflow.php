@@ -7,13 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$year1 = new \Temporal\Duration(1);
-$year1n = new \Temporal\Duration(-1);
-$month1 = new \Temporal\Duration(0, 1);
-$month1n = new \Temporal\Duration(0, -1);
+$year1 = new \Temporal\Spec\Duration(1);
+$year1n = new \Temporal\Spec\Duration(-1);
+$month1 = new \Temporal\Spec\Duration(0, 1);
+$month1n = new \Temporal\Spec\Duration(0, -1);
 foreach ([2023, 2024] as $year) {
 foreach ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as $month) {
-$yearmonth = new \Temporal\PlainYearMonth($year, $month);
+$yearmonth = new \Temporal\Spec\PlainYearMonth($year, $month);
 foreach ([$year1, $year1n, $month1, $month1n] as $duration) {
 $resultConstrain = $yearmonth->subtract($duration, ['overflow' => 'constrain']);
 $resultReject = $yearmonth->subtract($duration, ['overflow' => 'reject']);

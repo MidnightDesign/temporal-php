@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$earlier = new \Temporal\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-$later = new \Temporal\ZonedDateTime(1_000_090_061_988_655_322, 'UTC');
+$earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+$later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_988_655_322, 'UTC');
 Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['roundingIncrement' => NAN]), '');

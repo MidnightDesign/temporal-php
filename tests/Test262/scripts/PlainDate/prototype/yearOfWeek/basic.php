@@ -8,18 +8,18 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 for ($i = 29; $i <= 31; ++$i) {
-$plainDate = new \Temporal\PlainDate(1975, 12, $i);
+$plainDate = new \Temporal\Spec\PlainDate(1975, 12, $i);
 Assert::sameValue($plainDate->yearOfWeek, 1976, "{$plainDate} should be in yearOfWeek 1976");
 }
 for ($i = 1; $i <= 11; ++$i) {
-$plainDate = new \Temporal\PlainDate(1976, 1, $i);
+$plainDate = new \Temporal\Spec\PlainDate(1976, 1, $i);
 Assert::sameValue($plainDate->yearOfWeek, 1976, "{$plainDate} should be in yearOfWeek 1976");
 }
 for ($i = 20; $i <= 31; ++$i) {
-$plainDate = new \Temporal\PlainDate(1976, 12, $i);
+$plainDate = new \Temporal\Spec\PlainDate(1976, 12, $i);
 Assert::sameValue($plainDate->yearOfWeek, 1976, "{$plainDate} should be in yearOfWeek 1976");
 }
 for ($i = 1; $i <= 2; ++$i) {
-$plainDate = new \Temporal\PlainDate(1977, 1, $i);
+$plainDate = new \Temporal\Spec\PlainDate(1977, 1, $i);
 Assert::sameValue($plainDate->yearOfWeek, 1976, "{$plainDate} should be in yearOfWeek 1976");
 }

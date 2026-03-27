@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$instance = new \Temporal\ZonedDateTime(0, 'UTC');
+$instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $str = '2021-08-19T17:30:45.123456789-12:12:59.9[-12:12:59.9]';
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($str), "{$str} is not a valid ISO string");

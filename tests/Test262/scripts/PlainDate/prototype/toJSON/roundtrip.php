@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$dates = [new \Temporal\PlainDate(1976, 11, 18), new \Temporal\PlainDate(2000, 1, 1), new \Temporal\PlainDate(2024, 2, 29)];
+$dates = [new \Temporal\Spec\PlainDate(1976, 11, 18), new \Temporal\Spec\PlainDate(2000, 1, 1), new \Temporal\Spec\PlainDate(2024, 2, 29)];
 foreach ($dates as $d) {
 Assert::sameValue($d->toJSON(), $d->toString(), 'toJSON equals toString');
 }

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$datetime = new \Temporal\ZonedDateTime(1_000_000_000_123_456_789, 'UTC');
+$datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_123_456_789, 'UTC');
 $validUnits = ['minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $datetime->toString(['smallestUnit' => $smallestUnit]), $validUnits);

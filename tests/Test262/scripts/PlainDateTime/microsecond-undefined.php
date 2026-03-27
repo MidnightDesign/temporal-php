@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $args = [2000, 5, 2, 12, 34, 56, 123];
-TemporalHelpers::assertPlainDateTime(new \Temporal\PlainDateTime(...$args), 2000, 5, 'M05', 2, 12, 34, 56, 123, 0, 0, 'microsecond default argument (argument present)');
-TemporalHelpers::assertPlainDateTime(new \Temporal\PlainDateTime(...$args), 2000, 5, 'M05', 2, 12, 34, 56, 123, 0, 0, 'microsecond default argument (argument missing)');
+TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(...$args), 2000, 5, 'M05', 2, 12, 34, 56, 123, 0, 0, 'microsecond default argument (argument present)');
+TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(...$args), 2000, 5, 'M05', 2, 12, 34, 56, 123, 0, 0, 'microsecond default argument (argument missing)');

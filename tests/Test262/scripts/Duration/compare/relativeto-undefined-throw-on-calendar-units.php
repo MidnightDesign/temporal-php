@@ -7,15 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$oneYear = new \Temporal\Duration(1);
-$oneMonth = new \Temporal\Duration(0, 1);
-$oneWeek = new \Temporal\Duration(0, 0, 1);
-$oneDay = new \Temporal\Duration(0, 0, 0, 1);
-$twoDays = new \Temporal\Duration(0, 0, 0, 2);
-Assert::sameValue(\Temporal\Duration::compare($oneDay, $twoDays), -1, 'days do not require relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($oneWeek, $oneDay), 'weeks in left operand require relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($oneDay, $oneWeek), 'weeks in right operand require relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($oneMonth, $oneDay), 'months in left operand require relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($oneDay, $oneMonth), 'months in right operand require relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($oneYear, $oneDay), 'years in left operand require relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Duration::compare($oneDay, $oneYear), 'years in right operand require relativeTo');
+$oneYear = new \Temporal\Spec\Duration(1);
+$oneMonth = new \Temporal\Spec\Duration(0, 1);
+$oneWeek = new \Temporal\Spec\Duration(0, 0, 1);
+$oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
+$twoDays = new \Temporal\Spec\Duration(0, 0, 0, 2);
+Assert::sameValue(\Temporal\Spec\Duration::compare($oneDay, $twoDays), -1, 'days do not require relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($oneWeek, $oneDay), 'weeks in left operand require relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($oneDay, $oneWeek), 'weeks in right operand require relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($oneMonth, $oneDay), 'months in left operand require relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($oneDay, $oneMonth), 'months in right operand require relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($oneYear, $oneDay), 'years in left operand require relativeTo');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($oneDay, $oneYear), 'years in right operand require relativeTo');

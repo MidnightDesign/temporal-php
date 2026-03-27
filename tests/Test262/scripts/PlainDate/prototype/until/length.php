@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::methodLength('\Temporal\PlainDate', 'until', 1);
+Assert::methodLength('\Temporal\Spec\PlainDate', 'until', 1);

@@ -9,11 +9,11 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $validStrings = ['12:34:56.987654321+00', '12:34:56.987654321+00:00', '12:34:56.987654321+00:00:00,0', '12:34:56.987654321+00:00:00.000000000', '12:34:56.987654321+0000', '12:34:56.987654321+000000,0', '12:34:56.987654321+000000.000000000', '12:34:56.987654321+00:00[UTC]', '12:34:56.987654321+00:00[!UTC]', '12:34:56.987654321+01[Europe/Vienna]', '12:34:56.987654321-02:30[America/St_Johns]', '12:34:56.987654321-02:30:00,0[America/St_Johns]', '12:34:56.987654321-02:30:00.000000000[America/St_Johns]', '12:34:56.987654321-0230[America/St_Johns]', '12:34:56.987654321-023000,0[America/St_Johns]', '12:34:56.987654321-023000.000000000[America/St_Johns]', '1976-11-18T12:34:56.987654321+00:00', '1976-11-18T12:34:56.987654321+00:00[UTC]', '1976-11-18T12:34:56.987654321+00:00[!UTC]', '1976-11-18T12:34:56.987654321-02:30[America/St_Johns]'];
 foreach ($validStrings as $arg) {
-$result = \Temporal\PlainTime::compare($arg, $arg);
+$result = \Temporal\Spec\PlainTime::compare($arg, $arg);
 Assert::sameValue($result, 0, "\"{$arg}\" is a valid UTC offset with time for PlainTime");
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare($arg, new \Temporal\PlainTime(12, 34, 56, 987, 654, 321)), "\"{$arg}\" UTC offset without time is not valid for PlainTime (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\PlainTime::compare(new \Temporal\PlainTime(12, 34, 56, 987, 654, 321), $arg), "\"{$arg}\" UTC offset without time is not valid for PlainTime (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)), "\"{$arg}\" UTC offset without time is not valid for PlainTime (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321), $arg), "\"{$arg}\" UTC offset without time is not valid for PlainTime (second argument)");
 }

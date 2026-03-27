@@ -7,16 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$relativeTo = new \Temporal\PlainDate(2000, 1, 1);
-$instance = new \Temporal\Duration(0, 0, 0, 500_000_000);
+$relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
+$instance = new \Temporal\Spec\Duration(0, 0, 0, 500_000_000);
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'years']), 'days out of range, positive, smallestUnit years');
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'months']), 'days out of range, positive, smallestUnit months');
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'weeks']), 'days out of range, positive, smallestUnit weeks');
-$negInstance = new \Temporal\Duration(0, 0, 0, -500_000_000);
+$negInstance = new \Temporal\Spec\Duration(0, 0, 0, -500_000_000);
 Assert::throws(\InvalidArgumentException::class, fn() => $negInstance->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'years']), 'days out of range, negative, smallestUnit years');
 Assert::throws(\InvalidArgumentException::class, fn() => $negInstance->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'months']), 'days out of range, negative, smallestUnit months');
 Assert::throws(\InvalidArgumentException::class, fn() => $negInstance->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'weeks']), 'days out of range, negative, smallestUnit weeks');
-$instance = new \Temporal\Duration(0, 0, 1, (int) (2 ** 53 / 86_400));
+$instance = new \Temporal\Spec\Duration(0, 0, 1, (int) (2 ** 53 / 86_400));
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['relativeTo' => $relativeTo, 'largestUnit' => 'days']), 'weeks + days out of range, positive');
-$negInstance = new \Temporal\Duration(0, 0, -1, -(int) (2 ** 53 / 86_400));
+$negInstance = new \Temporal\Spec\Duration(0, 0, -1, -(int) (2 ** 53 / 86_400));
 Assert::throws(\InvalidArgumentException::class, fn() => $instance->round(['relativeTo' => $relativeTo, 'largestUnit' => 'days']), 'weeks + days out of range, negative');

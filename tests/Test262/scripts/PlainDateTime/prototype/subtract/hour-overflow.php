@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$dt = new \Temporal\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
-$later = new \Temporal\PlainDateTime(2020, 5, 31, 23, 12, 38, 271, 986, 102);
+$dt = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
+$later = new \Temporal\Spec\PlainDateTime(2020, 5, 31, 23, 12, 38, 271, 986, 102);
 TemporalHelpers::assertPlainDateTime($dt->subtract(['hours' => 12]), 2019, 10, 'M10', 28, 22, 46, 38, 271, 986, 102, 'subtract result');
 TemporalHelpers::assertPlainDateTime($dt->add(['hours' => -12]), 2019, 10, 'M10', 28, 22, 46, 38, 271, 986, 102, 'hour overflow (pushes to previous day)');
 TemporalHelpers::assertPlainDateTime($later->subtract(['hours' => -2]), 2020, 6, 'M06', 1, 1, 12, 38, 271, 986, 102, 'subtracting a negative amount of hours is equivalent to adding hours');

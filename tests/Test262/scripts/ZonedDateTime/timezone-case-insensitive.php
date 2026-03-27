@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $timeZone = 'uTc';
-$result = new \Temporal\ZonedDateTime(0, $timeZone);
+$result = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 Assert::sameValue($result->timeZoneId, 'UTC', "Time zone created from string \"{$timeZone}\"");

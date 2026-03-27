@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$ym = new \Temporal\PlainYearMonth(2025, 8);
-$blank = new \Temporal\Duration();
+$ym = new \Temporal\Spec\PlainYearMonth(2025, 8);
+$blank = new \Temporal\Spec\Duration();
 $result = $ym->subtract($blank);
 TemporalHelpers::assertPlainYearMonth($result, 2025, 8, 'M08', 'result is unchanged');

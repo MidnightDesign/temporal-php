@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::sameValue(\Temporal\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => 'UTC'], new \stdClass())->epochNanoseconds, 217_123_200_000_000_000, 'UTC');
-Assert::sameValue(\Temporal\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => 'UTC'], function () {  })->epochNanoseconds, 217_123_200_000_000_000, 'UTC');
+Assert::sameValue(\Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => 'UTC'], new \stdClass())->epochNanoseconds, 217_123_200_000_000_000, 'UTC');
+Assert::sameValue(\Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => 'UTC'], function () {  })->epochNanoseconds, 217_123_200_000_000_000, 'UTC');

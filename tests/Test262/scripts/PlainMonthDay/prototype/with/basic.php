@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$md = \Temporal\PlainMonthDay::from('01-15');
+$md = \Temporal\Spec\PlainMonthDay::from('01-15');
 TemporalHelpers::assertPlainMonthDay($md->with(['day' => 22]), 'M01', 22, 'with({day})');
 TemporalHelpers::assertPlainMonthDay($md->with(['month' => 12]), 'M12', 15, 'with({month})');
 TemporalHelpers::assertPlainMonthDay($md->with(['monthCode' => 'M12']), 'M12', 15, 'with({monthCode})');

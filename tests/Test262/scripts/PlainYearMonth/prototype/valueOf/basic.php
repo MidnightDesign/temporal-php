@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainYearMonth = \Temporal\PlainYearMonth::from('1963-02');
-$plainYearMonth2 = \Temporal\PlainYearMonth::from('1963-02');
+$plainYearMonth = \Temporal\Spec\PlainYearMonth::from('1963-02');
+$plainYearMonth2 = \Temporal\Spec\PlainYearMonth::from('1963-02');
 Assert::throws(\TypeError::class, fn() => $plainYearMonth->valueOf(), 'valueOf');
 Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');

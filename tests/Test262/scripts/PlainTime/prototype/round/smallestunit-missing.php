@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$plainTime = new \Temporal\PlainTime(12, 34, 56, 123, 987, 500);
+$plainTime = new \Temporal\Spec\PlainTime(12, 34, 56, 123, 987, 500);
 Assert::throws(\TypeError::class, fn() => $plainTime->round(), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $plainTime->round(new \stdClass()), '');
 Assert::throws(\InvalidArgumentException::class, fn() => $plainTime->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']), '');

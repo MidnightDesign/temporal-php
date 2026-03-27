@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$datetime = new \Temporal\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+$datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 Assert::throws(\TypeError::class, fn() => $datetime->with(['year' => 2021, 'timeZone' => 'UTC']), 'throws with timezone property');

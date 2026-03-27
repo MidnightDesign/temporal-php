@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$plainYearMonth = new \Temporal\PlainYearMonth(2001, 9);
+$plainYearMonth = new \Temporal\Spec\PlainYearMonth(2001, 9);
 TemporalHelpers::assertPlainYearMonth($plainYearMonth->with(['month' => 11]), 2001, 11, 'M11', 'only the properties that are present and defined in the plain object are copied');
