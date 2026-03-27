@@ -2090,6 +2090,11 @@ final class PlainDateTime implements Stringable
      * @throws \TypeError if the overflow value is not a string.
      * @throws InvalidArgumentException if the overflow value is unrecognized.
      */
+    // TODO: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
+    // PlainDateTime: null/bool → InvalidArgumentException; other non-string → TypeError.
+    // PlainTime:     null → 'constrain' (treated as default); non-string → TypeError.
+    // ZonedDateTime: null or any non-string → InvalidArgumentException (with get_debug_type).
+    // Unification is unsafe until the spec-correct behavior for each case is confirmed.
     private static function extractOverflow(array|object|null $options): string
     {
         if ($options === null) {

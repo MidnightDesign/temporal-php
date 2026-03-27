@@ -3331,6 +3331,11 @@ final class ZonedDateTime implements Stringable
      *
      * @param array<array-key, mixed>|object|null $options
      */
+    // TODO: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
+    // ZonedDateTime: any non-string (including null/bool) → InvalidArgumentException with get_debug_type.
+    // PlainDateTime: null/bool → InvalidArgumentException; other non-string → TypeError.
+    // PlainTime:     null → 'constrain' (default); non-string → TypeError.
+    // Unification is unsafe until the spec-correct behavior for each case is confirmed.
     private static function extractOverflow(array|object|null $options): string
     {
         if ($options === null) {
