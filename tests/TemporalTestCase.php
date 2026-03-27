@@ -25,8 +25,16 @@ abstract class TemporalTestCase extends TestCase
         static::assertSame($day, $date->day, "{$prefix}day");
     }
 
-    protected function assertPlainTimeIs(int $h, int $min, int $sec, int $ms, int $us, int $ns, PlainTime $time, string $message = ''): void
-    {
+    protected function assertPlainTimeIs(
+        int $h,
+        int $min,
+        int $sec,
+        int $ms,
+        int $us,
+        int $ns,
+        PlainTime $time,
+        string $message = '',
+    ): void {
         $prefix = $message !== '' ? "$message: " : '';
         static::assertSame($h, $time->hour, "{$prefix}hour");
         static::assertSame($min, $time->minute, "{$prefix}minute");
@@ -36,8 +44,19 @@ abstract class TemporalTestCase extends TestCase
         static::assertSame($ns, $time->nanosecond, "{$prefix}nanosecond");
     }
 
-    protected function assertPlainDateTimeIs(int $year, int $month, int $day, int $h, int $min, int $sec, int $ms, int $us, int $ns, PlainDateTime $dt, string $message = ''): void
-    {
+    protected function assertPlainDateTimeIs(
+        int $year,
+        int $month,
+        int $day,
+        int $h,
+        int $min,
+        int $sec,
+        int $ms,
+        int $us,
+        int $ns,
+        PlainDateTime $dt,
+        string $message = '',
+    ): void {
         $prefix = $message !== '' ? "$message: " : '';
         static::assertSame($year, $dt->year, "{$prefix}year");
         static::assertSame($month, $dt->month, "{$prefix}month");
@@ -50,8 +69,20 @@ abstract class TemporalTestCase extends TestCase
         static::assertSame($ns, $dt->nanosecond, "{$prefix}nanosecond");
     }
 
-    protected function assertDurationIs(int $years, int $months, int $weeks, int $days, int $hours, int $minutes, int $seconds, int $ms, int $us, int $ns, Duration $d, string $message = ''): void
-    {
+    protected function assertDurationIs(
+        int $years,
+        int $months,
+        int $weeks,
+        int $days,
+        int $hours,
+        int $minutes,
+        int $seconds,
+        int $ms,
+        int $us,
+        int $ns,
+        Duration $d,
+        string $message = '',
+    ): void {
         $prefix = $message !== '' ? "$message: " : '';
         static::assertSame($years, $d->years, "{$prefix}years");
         static::assertSame($months, $d->months, "{$prefix}months");

@@ -1513,18 +1513,6 @@ final class PlainDateTime implements Stringable
             'nanosecond' => 0,
             'nanoseconds' => 0,
         ];
-        /** @var list<string> $validModes */
-        static $validModes = [
-            'ceil',
-            'floor',
-            'expand',
-            'trunc',
-            'halfCeil',
-            'halfFloor',
-            'halfExpand',
-            'halfTrunc',
-            'halfEven',
-        ];
 
         $largestUnit = 'day'; // default per TC39 PlainDateTime spec
         $largestUnitExplicit = false;
@@ -1565,7 +1553,7 @@ final class PlainDateTime implements Stringable
                     throw new \TypeError('roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, $validModes, strict: true)) {
+                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
                         throw new InvalidArgumentException("Invalid roundingMode value: \"{$rm}\".");
                     }
                     $roundingMode = $rm;

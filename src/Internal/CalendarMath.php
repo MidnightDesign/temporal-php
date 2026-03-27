@@ -9,6 +9,19 @@ use InvalidArgumentException;
 /** @internal */
 final class CalendarMath
 {
+    /** @var list<string> */
+    public const ROUNDING_MODES = [
+        'ceil',
+        'floor',
+        'expand',
+        'trunc',
+        'halfCeil',
+        'halfFloor',
+        'halfExpand',
+        'halfTrunc',
+        'halfEven',
+    ];
+
     /**
      * Validates bracket annotations in a Temporal string (e.g. from `from()` or `fromISO()`).
      *
