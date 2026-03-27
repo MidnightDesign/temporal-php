@@ -90,6 +90,10 @@ interface CalendarProtocol
     /**
      * Computes the difference between two ISO dates in calendar-specific units.
      *
+     * When $receiverIsLater is true, the day remainder is computed by anchoring
+     * backward from isoDate2 (the later date) rather than forward from isoDate1.
+     * This matches TC39's asymmetric behavior for since() vs until().
+     *
      * @return array{0: int, 1: int, 2: int, 3: int} [years, months, weeks, days]
      */
     public function dateUntil(
@@ -100,6 +104,7 @@ interface CalendarProtocol
         int $isoM2,
         int $isoD2,
         string $largestUnit,
+        bool $receiverIsLater = false,
     ): array;
 
     // -------------------------------------------------------------------------

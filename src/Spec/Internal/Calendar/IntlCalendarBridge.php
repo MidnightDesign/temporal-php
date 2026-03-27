@@ -511,6 +511,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         int $isoM2,
         int $isoD2,
         string $largestUnit,
+        bool $receiverIsLater = false,
     ): array {
         // Day/week: pure JDN subtraction, calendar doesn't matter.
         if ($largestUnit === 'day' || $largestUnit === 'week') {
@@ -525,14 +526,15 @@ final class IntlCalendarBridge implements CalendarProtocol
         }
 
         // Year/month decomposition using TC39 DifferenceDate trial-and-increment
-        // algorithm: starting from an initial estimate, adjust years and months
-        // forward via dateAdd until adding one more would overshoot the end date.
+        // algorithm. Normalize to the positive direction (start < end), find
+        // years/months by incrementing from start via dateAdd, then compute
+        // remaining days. This ensures dateUntil(A, B) = -dateUntil(B, A).
 
-        // Determine sign and normalize so start <= end.
         $jdn1 = CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
         $jdn2 = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2);
         $sign = $jdn2 >= $jdn1 ? 1 : -1;
 
+        // Normalize so startIso is chronologically earlier.
         if ($sign < 0) {
             [$isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2] =
                 [$isoY2, $isoM2, $isoD2, $isoY1, $isoM1, $isoD1];
@@ -570,7 +572,6 @@ final class IntlCalendarBridge implements CalendarProtocol
 
             // Initial guess for months within the remaining partial year.
             if ($calY2 > $calY1 + $years) {
-                // End is in a later calendar year than start+years.
                 $this->setIsoDate($isoY1, $isoM1, $isoD1);
                 $monthGuess = ($this->calendarMonthsInYear() - $calM1) + $calM2;
             } else {
@@ -594,8 +595,9 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         if ($largestUnit === 'month') {
             // Initial guess: total months difference, backed off by 1.
-            $totalMonthGuess = $this->totalMonthsInYears($calY1, $calY2 - $calY1, $isoY1, $isoM1, $isoD1)
-                + ($calM2 - $calM1);
+            $totalMonthGuess = $this->totalMonthsInYears(
+                    $calY1, $calY2 - $calY1, $isoY1, $isoM1, $isoD1,
+                ) + ($calM2 - $calM1);
             $months = max(0, $totalMonthGuess - 1);
 
             // Increment months until adding one more would overshoot.

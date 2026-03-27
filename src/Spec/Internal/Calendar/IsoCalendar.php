@@ -153,6 +153,7 @@ final class IsoCalendar implements CalendarProtocol
         int $isoM2,
         int $isoD2,
         string $largestUnit,
+        bool $receiverIsLater = false,
     ): array {
         if ($largestUnit === 'day' || $largestUnit === 'week') {
             $totalDays = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2)
