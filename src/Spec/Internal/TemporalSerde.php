@@ -29,6 +29,26 @@ trait TemporalSerde
      */
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
+        // Validate that timeStyle is not provided for date-only types, and
+        // dateStyle is not provided for time-only types.
+        if ($options !== null) {
+            $opts = is_array($options) ? $options : (array) $options;
+            $hasTimeStyle = array_key_exists('timeStyle', $opts) && $opts['timeStyle'] !== null;
+            $hasDateStyle = array_key_exists('dateStyle', $opts) && $opts['dateStyle'] !== null;
+
+            // PlainDate, PlainYearMonth, PlainMonthDay: timeStyle is forbidden.
+            if ($hasTimeStyle && ($this instanceof \Temporal\Spec\PlainDate
+                || $this instanceof \Temporal\Spec\PlainYearMonth
+                || $this instanceof \Temporal\Spec\PlainMonthDay)) {
+                throw new \TypeError('toLocaleString(): timeStyle option is not allowed for this type.');
+            }
+            // PlainTime: dateStyle is forbidden.
+            if ($hasDateStyle && $this instanceof \Temporal\Spec\PlainTime) {
+                throw new \TypeError('toLocaleString(): dateStyle option is not allowed for this type.');
+            }
+            // Instant: dateStyle without timeZone is forbidden (handled elsewhere).
+        }
+
         return $this->toString();
     }
 }
