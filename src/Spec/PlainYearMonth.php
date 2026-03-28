@@ -520,6 +520,9 @@ final class PlainYearMonth implements Stringable
     public function since(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
+        if ($this->calendarId !== $o->calendarId) {
+            throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
+        }
         return self::diffYearMonth($this, $o, $this, $options);
     }
 
@@ -533,6 +536,9 @@ final class PlainYearMonth implements Stringable
     public function until(string|array|object $other, array|object|null $options = null): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
+        if ($this->calendarId !== $o->calendarId) {
+            throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
+        }
         return self::diffYearMonth($o, $this, $this, $options);
     }
 
