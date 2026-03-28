@@ -2567,20 +2567,49 @@ final class ZonedDateTime implements Stringable
         /** @psalm-suppress ArgumentTypeCoercion — $tzId is validated non-empty before this call */
         $tz = new \DateTimeZone($tzId);
 
-        // Get offsets at two candidate epochs to detect gaps/overlaps.
+        // Get the standard resolution.
         $approxOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $wallSec)));
         $epoch1 = $wallSec - $approxOffset;
         $offset1 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch1)));
 
-        // Check if offset1 gives back the original wall time.
-        if ($epoch1 + $offset1 === $wallSec) {
-            // Exact match. But could be an overlap (fall-back) — check for an alternate.
-            $epoch2 = $wallSec - $offset1;
-            $offset2 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch2)));
-            if ($epoch2 + $offset2 === $wallSec && $epoch2 !== $epoch1) {
-                // Overlap: two valid epochs. offset1 may be the earlier or later.
-                $earlierEpoch = min($epoch1, $epoch2);
-                $laterEpoch = max($epoch1, $epoch2);
+        // Check for gap/overlap by looking at timezone transitions near this epoch.
+        $transitions = $tz->getTransitions($epoch1 - 86400, $epoch1 + 86400);
+        $transitionEpoch = null;
+        $preOffset = null;
+        $postOffset = null;
+        if (count($transitions) >= 2) {
+            for ($i = 1; $i < count($transitions); $i++) {
+                $tEpoch = $transitions[$i]['ts'];
+                $pre = $transitions[$i - 1]['offset'];
+                $post = $transitions[$i]['offset'];
+                // Check if the wall time falls in a gap or overlap around this transition.
+                $wallAtPre = $tEpoch + $pre;
+                $wallAtPost = $tEpoch + $post;
+                if ($pre > $post) {
+                    // Fall-back (overlap): wallAtPost < wallAtPre, wall times in [wallAtPost, wallAtPre) are ambiguous.
+                    if ($wallSec >= $wallAtPost && $wallSec < $wallAtPre) {
+                        $transitionEpoch = $tEpoch;
+                        $preOffset = $pre;
+                        $postOffset = $post;
+                        break;
+                    }
+                } elseif ($post > $pre) {
+                    // Spring-forward (gap): wallAtPre < wallAtPost, wall times in [wallAtPre, wallAtPost) don't exist.
+                    if ($wallSec >= $wallAtPre && $wallSec < $wallAtPost) {
+                        $transitionEpoch = $tEpoch;
+                        $preOffset = $pre;
+                        $postOffset = $post;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($transitionEpoch !== null && $preOffset !== null && $postOffset !== null) {
+            if ($preOffset > $postOffset) {
+                // Overlap (fall-back): two valid epochs.
+                $earlierEpoch = $wallSec - $preOffset;  // Earlier occurrence (before transition, higher offset)
+                $laterEpoch = $wallSec - $postOffset;    // Later occurrence (after transition, lower offset)
                 return match ($disambiguation) {
                     'earlier', 'compatible' => $earlierEpoch,
                     'later' => $laterEpoch,
@@ -2590,31 +2619,25 @@ final class ZonedDateTime implements Stringable
                     default => $earlierEpoch,
                 };
             }
-            return $epoch1;
+            // Gap (spring-forward): wall time doesn't exist.
+            // wallAtPre = the wall clock at the transition in the old offset.
+            $wallAtPre = $transitionEpoch + $preOffset;
+            // 'earlier': the epoch just before the gap (as if clocks hadn't changed).
+            $beforeGapEpoch = $wallSec - $preOffset;
+            // 'later/compatible': the epoch that maps to the shifted-forward time.
+            $afterGapEpoch = $transitionEpoch + ($wallSec - $wallAtPre);
+            return match ($disambiguation) {
+                'compatible', 'later' => $afterGapEpoch,
+                'earlier' => $beforeGapEpoch,
+                'reject' => throw new InvalidArgumentException(
+                    "Non-existent wall clock time in timezone {$tzId}.",
+                ),
+                default => $afterGapEpoch,
+            };
         }
 
-        // Gap (spring forward): wall time doesn't exist.
-        // Try the other offset.
-        $epoch2 = $wallSec - $offset1;
-        $offset2 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch2)));
-
-        // In a gap, neither epoch maps back to wallSec exactly.
-        // The "earlier" interpretation gives the epoch just before the gap,
-        // the "later" interpretation gives the epoch just after.
-        // For 'compatible', use 'later' for gaps.
-        $beforeGapEpoch = $wallSec - $approxOffset;
-        $afterGapEpoch = $wallSec - $offset1;
-        $earlierEpoch = min($beforeGapEpoch, $afterGapEpoch);
-        $laterEpoch = max($beforeGapEpoch, $afterGapEpoch);
-
-        return match ($disambiguation) {
-            'compatible', 'later' => $laterEpoch,
-            'earlier' => $earlierEpoch,
-            'reject' => throw new InvalidArgumentException(
-                "Non-existent wall clock time in timezone {$tzId}.",
-            ),
-            default => $laterEpoch,
-        };
+        // No gap/overlap: simple resolution.
+        return $wallSec - $offset1;
     }
 
     /**
