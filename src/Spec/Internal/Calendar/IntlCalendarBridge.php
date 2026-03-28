@@ -1471,13 +1471,17 @@ final class IntlCalendarBridge implements CalendarProtocol
     // Japanese era helper
     // -------------------------------------------------------------------------
 
-    /** Japanese era start dates as [isoYear, isoMonth, isoDay]. */
+    /**
+     * Japanese era start dates as [isoYear, isoMonth, isoDay].
+     * Note: Meiji uses 1873-01-01 (when Japan adopted the Gregorian calendar),
+     * not the traditional 1868 date, because TC39 maps pre-1873 dates to 'ce'.
+     */
     private const JAPANESE_ERA_STARTS = [
         'reiwa' => [2019, 5, 1],
         'heisei' => [1989, 1, 8],
         'showa' => [1926, 12, 25],
         'taisho' => [1912, 7, 30],
-        'meiji' => [1868, 1, 25],
+        'meiji' => [1873, 1, 1],
     ];
 
     /**
@@ -1497,16 +1501,23 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     /**
      * Returns the TC39 eraYear for a Japanese date from ISO fields (proleptic).
+     * eraYear uses the actual era start year (not the display cutover).
      */
     private function japaneseEraYearFromIso(int $isoYear, int $isoMonth, int $isoDay): int
     {
-        foreach (self::JAPANESE_ERA_STARTS as $era => [$startY, $startM, $startD]) {
-            if ($isoYear > $startY
-                || ($isoYear === $startY && $isoMonth > $startM)
-                || ($isoYear === $startY && $isoMonth === $startM && $isoDay >= $startD)) {
-                return $isoYear - $startY + 1;
-            }
+        /** @var array<string, int> Actual start years for eraYear computation */
+        static $eraStartYears = [
+            'reiwa' => 2019,
+            'heisei' => 1989,
+            'showa' => 1926,
+            'taisho' => 1912,
+            'meiji' => 1868,
+        ];
+        $era = $this->japaneseEraFromIso($isoYear, $isoMonth, $isoDay);
+        if (isset($eraStartYears[$era])) {
+            return $isoYear - $eraStartYears[$era] + 1;
         }
+        // ce/bce fallback
         return $isoYear >= 1 ? $isoYear : 1 - $isoYear;
     }
 }
