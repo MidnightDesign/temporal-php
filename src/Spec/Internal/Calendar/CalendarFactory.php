@@ -35,7 +35,6 @@ final class CalendarFactory
         'gregory',
         'hebrew',
         'indian',
-        'islamic',
         'islamic-civil',
         'islamic-tbla',
         'islamic-umalqura',
