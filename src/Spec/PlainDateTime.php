@@ -1211,7 +1211,7 @@ final class PlainDateTime implements Stringable
         // PHP_INT_MIN sentinel distinguishes no-argument from explicit null.
         if ($time === PHP_INT_MIN) {
             // No argument provided: default to midnight.
-            return new self($this->isoYear, $this->isoMonth, $this->isoDay);
+            return new self($this->isoYear, $this->isoMonth, $this->isoDay, 0, 0, 0, 0, 0, 0, $this->calendarId);
         }
         if (is_int($time)) {
             throw new \TypeError(sprintf(
@@ -1230,6 +1230,7 @@ final class PlainDateTime implements Stringable
             $t->millisecond,
             $t->microsecond,
             $t->nanosecond,
+            $this->calendarId,
         );
     }
 
