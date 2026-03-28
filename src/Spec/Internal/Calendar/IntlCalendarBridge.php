@@ -563,14 +563,9 @@ final class IntlCalendarBridge implements CalendarProtocol
             // Initial guess for years, backed off by 1 to be safe.
             $years = max(0, $calY2 - $calY1 - 1);
 
-            // Increment years until adding one more would overshoot.
+            // Increment years until adding one more would overshoot or constrain the day.
             while (true) {
-                [$tY, $tM, $tD] = $this->dateAdd(
-                    $isoY1, $isoM1, $isoD1,
-                    $years + 1, 0, 0, 0,
-                    'constrain',
-                );
-                if (CalendarMath::toJulianDay($tY, $tM, $tD) > $jdn2) {
+                if (!$this->trialDateAddSucceeds($isoY1, $isoM1, $isoD1, $years + 1, 0, $jdn2)) {
                     break;
                 }
                 $years++;
@@ -585,14 +580,9 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
             $months = max(0, $monthGuess - 1);
 
-            // Increment months until adding one more would overshoot.
+            // Increment months until adding one more would overshoot or constrain the day.
             while (true) {
-                [$tY, $tM, $tD] = $this->dateAdd(
-                    $isoY1, $isoM1, $isoD1,
-                    $years, $months + 1, 0, 0,
-                    'constrain',
-                );
-                if (CalendarMath::toJulianDay($tY, $tM, $tD) > $jdn2) {
+                if (!$this->trialDateAddSucceeds($isoY1, $isoM1, $isoD1, $years, $months + 1, $jdn2)) {
                     break;
                 }
                 $months++;
@@ -606,14 +596,9 @@ final class IntlCalendarBridge implements CalendarProtocol
                 ) + ($calM2 - $calM1);
             $months = max(0, $totalMonthGuess - 1);
 
-            // Increment months until adding one more would overshoot.
+            // Increment months until adding one more would overshoot or constrain the day.
             while (true) {
-                [$tY, $tM, $tD] = $this->dateAdd(
-                    $isoY1, $isoM1, $isoD1,
-                    0, $months + 1, 0, 0,
-                    'constrain',
-                );
-                if (CalendarMath::toJulianDay($tY, $tM, $tD) > $jdn2) {
+                if (!$this->trialDateAddSucceeds($isoY1, $isoM1, $isoD1, 0, $months + 1, $jdn2)) {
                     break;
                 }
                 $months++;
@@ -654,9 +639,28 @@ final class IntlCalendarBridge implements CalendarProtocol
     }
 
     /**
-     * Returns the calendar year using the same logic as year() but without re-calling setIsoDate.
-     * Must call setIsoDate() first.
+     * Tests whether dateAdd(start, years, months) produces a result that is <= endJdn
+     * WITHOUT constraining the day. A month only counts as "complete" when the
+     * calendar day is preserved (not clamped to a shorter month's maximum).
      */
+    private function trialDateAddSucceeds(
+        int $isoY1, int $isoM1, int $isoD1,
+        int $years, int $months,
+        int $endJdn,
+    ): bool {
+        try {
+            [$tY, $tM, $tD] = $this->dateAdd(
+                $isoY1, $isoM1, $isoD1,
+                $years, $months, 0, 0,
+                'reject',
+            );
+        } catch (InvalidArgumentException) {
+            // Day was constrained → month doesn't count.
+            return false;
+        }
+        return CalendarMath::toJulianDay($tY, $tM, $tD) <= $endJdn;
+    }
+
     /**
      * Returns the calendar year from the currently-set IntlCalendar state.
      * For Gregorian-based calendars, convert via epoch to get the proleptic ISO year first.
