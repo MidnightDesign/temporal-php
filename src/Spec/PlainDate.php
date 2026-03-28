@@ -1022,6 +1022,10 @@ final class PlainDate implements Stringable
             /** @var mixed $eraYearRaw */
             $eraYearRaw = $bag['eraYear'];
             if (is_string($eraRaw) && $eraYearRaw !== null) {
+                /** @phpstan-ignore cast.double */
+                if (!is_finite((float) $eraYearRaw)) {
+                    throw new InvalidArgumentException('PlainDate eraYear must be finite.');
+                }
                 /** @phpstan-ignore cast.int */
                 $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
                 $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
