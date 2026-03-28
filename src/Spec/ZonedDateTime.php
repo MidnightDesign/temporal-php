@@ -517,8 +517,12 @@ final class ZonedDateTime implements Stringable
         if (is_string($item)) {
             return self::parseZdtString($item, $options);
         }
+        $disambiguation = 'compatible';
+        if ($opts !== null && array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
+            $disambiguation = $opts['disambiguation'];
+        }
         $bag = is_array($item) ? $item : (array) $item;
-        return self::fromPropertyBag($bag, $overflow);
+        return self::fromPropertyBag($bag, $overflow, $disambiguation);
     }
 
     /**
@@ -2171,7 +2175,7 @@ final class ZonedDateTime implements Stringable
      * @throws \TypeError              if required fields are missing or wrong type.
      * @throws InvalidArgumentException if values are invalid.
      */
-    private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
+    private static function fromPropertyBag(array $bag, string $overflow = 'constrain', string $disambiguation = 'compatible'): self
     {
         // Validate calendar first (spec validates calendar before required fields).
         $calendarId = 'iso8601';
@@ -2404,7 +2408,7 @@ final class ZonedDateTime implements Stringable
         }
 
         $normalTzId = self::normalizeTimezoneId($tzRaw);
-        $epochSec = self::wallSecToEpochSec($wallSec, $normalTzId);
+        $epochSec = self::wallSecToEpochSec($wallSec, $normalTzId, $disambiguation);
         $subNs = ($milli * self::NS_PER_MILLISECOND) + ($micro * self::NS_PER_MICROSECOND) + $nano;
 
         // Validate 'offset' field if provided.
@@ -2548,7 +2552,7 @@ final class ZonedDateTime implements Stringable
      * @internal Used by PlainDate/PlainDateTime for timezone resolution.
      * @psalm-api
      */
-    public static function wallSecToEpochSec(int $wallSec, string $tzId): int
+    public static function wallSecToEpochSec(int $wallSec, string $tzId, string $disambiguation = 'compatible'): int
     {
         if ($tzId === 'UTC') {
             return $wallSec;
@@ -2559,16 +2563,58 @@ final class ZonedDateTime implements Stringable
             $offsetSec = $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
             return $wallSec - $offsetSec;
         }
-        // IANA: approximate by getting the offset at the presumed UTC time, then adjust.
-        // Use a two-pass approach to handle DST transitions accurately.
+        // IANA: use PHP's DateTimeZone to resolve wall clock to epoch.
         /** @psalm-suppress ArgumentTypeCoercion — $tzId is validated non-empty before this call */
         $tz = new \DateTimeZone($tzId);
-        // First approximation: use wallSec as UTC.
+
+        // Get offsets at two candidate epochs to detect gaps/overlaps.
         $approxOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $wallSec)));
-        $approxEpoch = $wallSec - $approxOffset;
-        // Second pass: refine with the actual offset at the approximation.
-        $finalOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $approxEpoch)));
-        return $wallSec - $finalOffset;
+        $epoch1 = $wallSec - $approxOffset;
+        $offset1 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch1)));
+
+        // Check if offset1 gives back the original wall time.
+        if ($epoch1 + $offset1 === $wallSec) {
+            // Exact match. But could be an overlap (fall-back) — check for an alternate.
+            $epoch2 = $wallSec - $offset1;
+            $offset2 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch2)));
+            if ($epoch2 + $offset2 === $wallSec && $epoch2 !== $epoch1) {
+                // Overlap: two valid epochs. offset1 may be the earlier or later.
+                $earlierEpoch = min($epoch1, $epoch2);
+                $laterEpoch = max($epoch1, $epoch2);
+                return match ($disambiguation) {
+                    'earlier', 'compatible' => $earlierEpoch,
+                    'later' => $laterEpoch,
+                    'reject' => throw new InvalidArgumentException(
+                        "Ambiguous wall clock time in timezone {$tzId}.",
+                    ),
+                    default => $earlierEpoch,
+                };
+            }
+            return $epoch1;
+        }
+
+        // Gap (spring forward): wall time doesn't exist.
+        // Try the other offset.
+        $epoch2 = $wallSec - $offset1;
+        $offset2 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch2)));
+
+        // In a gap, neither epoch maps back to wallSec exactly.
+        // The "earlier" interpretation gives the epoch just before the gap,
+        // the "later" interpretation gives the epoch just after.
+        // For 'compatible', use 'later' for gaps.
+        $beforeGapEpoch = $wallSec - $approxOffset;
+        $afterGapEpoch = $wallSec - $offset1;
+        $earlierEpoch = min($beforeGapEpoch, $afterGapEpoch);
+        $laterEpoch = max($beforeGapEpoch, $afterGapEpoch);
+
+        return match ($disambiguation) {
+            'compatible', 'later' => $laterEpoch,
+            'earlier' => $earlierEpoch,
+            'reject' => throw new InvalidArgumentException(
+                "Non-existent wall clock time in timezone {$tzId}.",
+            ),
+            default => $laterEpoch,
+        };
     }
 
     /**
