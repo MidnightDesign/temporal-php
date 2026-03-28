@@ -583,13 +583,17 @@ final class PlainYearMonth implements Stringable
             $calendarName = $cn;
         }
 
+        // When calendar annotation is shown, always include the referenceDay.
+        $isNonIso = $this->calendarId !== 'iso8601';
+        $baseWithDay = sprintf('%s-%02d', $base, $this->referenceISODay);
+
         return match ($calendarName) {
-            'auto' => $this->calendarId !== 'iso8601'
-                ? sprintf('%s-%02d[u-ca=%s]', $base, $this->referenceISODay, $this->calendarId)
+            'auto' => $isNonIso
+                ? sprintf('%s[u-ca=%s]', $baseWithDay, $this->calendarId)
                 : $base,
-            'never' => $base,
-            'always' => sprintf('%s-%02d[u-ca=%s]', $base, $this->referenceISODay, $this->calendarId),
-            'critical' => sprintf('%s-%02d[!u-ca=%s]', $base, $this->referenceISODay, $this->calendarId),
+            'never' => $isNonIso ? $baseWithDay : $base,
+            'always' => sprintf('%s[u-ca=%s]', $baseWithDay, $this->calendarId),
+            'critical' => sprintf('%s[!u-ca=%s]', $baseWithDay, $this->calendarId),
             default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
