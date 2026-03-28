@@ -264,34 +264,41 @@ final class ZonedDateTime implements Stringable
     public int $dayOfYear {
         get {
             $c = $this->localComponents();
-            return CalendarMath::calcDayOfYear($c['year'], $c['month'], $c['day']);
+            return $this->calendarId === 'iso8601'
+                ? CalendarMath::calcDayOfYear($c['year'], $c['month'], $c['day'])
+                : CalendarFactory::get($this->calendarId)->dayOfYear($c['year'], $c['month'], $c['day']);
         }
     }
 
     /**
-     * ISO 8601 week number: 1–53.
+     * ISO 8601 week number: 1–53, or null for non-ISO calendars.
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
-     * @var int<1, 53>
      */
-    public int $weekOfYear {
+    public ?int $weekOfYear {
         get {
+            if ($this->calendarId !== 'iso8601') {
+                return null;
+            }
             $c = $this->localComponents();
             return CalendarMath::isoWeekInfo($c['year'], $c['month'], $c['day'])['week'];
         }
     }
 
     /**
-     * ISO 8601 week-year (may differ from calendar year near year boundaries).
+     * ISO 8601 week-year, or null for non-ISO calendars.
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $yearOfWeek {
+    public ?int $yearOfWeek {
         get {
+            if ($this->calendarId !== 'iso8601') {
+                return null;
+            }
             $c = $this->localComponents();
             return CalendarMath::isoWeekInfo($c['year'], $c['month'], $c['day'])['year'];
         }
