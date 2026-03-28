@@ -3251,6 +3251,16 @@ final class ZonedDateTime implements Stringable
                 $weeks = intdiv(num1: $dateDiff, num2: 7);
                 $days = $dateDiff - ($weeks * 7);
                 [$years, $months] = [0, 0];
+            } elseif ($this->calendarId !== 'iso8601') {
+                // Non-ISO calendar: delegate to calendar protocol.
+                $cal = CalendarFactory::get($this->calendarId);
+                [$years, $months, , $days] = $cal->dateUntil(
+                    $earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day'],
+                    $adjY2, $adjM2, $adjD2,
+                    $normLargest,
+                    $receiverIsLater,
+                );
+                $weeks = 0;
             } else {
                 [$years, $months, $days] = self::calendarDiff(
                     $earlierLocal['year'],
@@ -3376,15 +3386,25 @@ final class ZonedDateTime implements Stringable
                 $anchorJdn = $earlierJdn + $dateDiff + $overflowDays;
                 [$anchorY, $anchorM, $anchorD] = CalendarMath::fromJulianDay($anchorJdn);
                 $receiverIsLater2 = $receiver === $later ? !$swapped : $swapped;
-                [$years, $months, $days] = self::calendarDiff(
-                    $earlierLocal['year'],
-                    $earlierLocal['month'],
-                    $earlierLocal['day'],
-                    $anchorY,
-                    $anchorM,
-                    $anchorD,
-                    $receiverIsLater2,
-                );
+                if ($this->calendarId !== 'iso8601') {
+                    $cal2 = CalendarFactory::get($this->calendarId);
+                    [$years, $months, , $days] = $cal2->dateUntil(
+                        $earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day'],
+                        $anchorY, $anchorM, $anchorD,
+                        $normLargest,
+                        $receiverIsLater2,
+                    );
+                } else {
+                    [$years, $months, $days] = self::calendarDiff(
+                        $earlierLocal['year'],
+                        $earlierLocal['month'],
+                        $earlierLocal['day'],
+                        $anchorY,
+                        $anchorM,
+                        $anchorD,
+                        $receiverIsLater2,
+                    );
+                }
                 if ($normLargest === 'month') {
                     $months = ($years * 12) + $months;
                     $years = 0;
