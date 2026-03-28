@@ -781,8 +781,10 @@ final class PlainYearMonth implements Stringable
             );
         }
 
-        // Always use referenceISODay = 1 for ISO calendar from() (per spec §9.5.2 step 5.d).
-        return new self($year, $month, $calendarId, 1);
+        // For ISO calendar: referenceISODay = 1 (per spec §9.5.2 step 5.d).
+        // For non-ISO calendars: preserve the referenceISODay from the string.
+        $effectiveRefDay = ($calendarId !== null && $calendarId !== 'iso8601') ? $refDay : 1;
+        return new self($year, $month, $calendarId, $effectiveRefDay);
     }
 
     /**
