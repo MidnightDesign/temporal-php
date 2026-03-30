@@ -828,7 +828,7 @@ final class PlainDateTime implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffDateTime($this, $o, $this, $options);
+        return self::diffDateTime($this, $o, 'since', $options);
     }
 
     /**
@@ -844,7 +844,7 @@ final class PlainDateTime implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffDateTime($o, $this, $this, $options);
+        return self::diffDateTime($this, $o, 'until', $options);
     }
 
     /**
@@ -1676,16 +1676,16 @@ final class PlainDateTime implements Stringable
     /**
      * Core implementation for since() and until().
      *
-     * Computes $later − $earlier as a Duration.
-     * since($other) passes (later=$this, earlier=$other).
-     * until($other) passes (later=$other, earlier=$this).
+     * TC39 CalendarDateUntil is always called as (temporalDate, other). For
+     * "since", the final result is negated.
      *
+     * @param string $operation 'since' or 'until'
      * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
     private static function diffDateTime(
-        self $later,
-        self $earlier,
-        self $receiver,
+        self $temporalDate,
+        self $other,
+        string $operation,
         array|object|null $options,
     ): Duration {
         /** @var list<string> $validUnits */
@@ -1862,32 +1862,31 @@ final class PlainDateTime implements Stringable
             }
         }
 
-        // Compute the raw date and time differences.
-        $laterJdn = CalendarMath::toJulianDay($later->isoYear, $later->isoMonth, $later->isoDay);
-        $earlierJdn = CalendarMath::toJulianDay($earlier->isoYear, $earlier->isoMonth, $earlier->isoDay);
-        $laterNs = self::timeToNs(
-            $later->hour,
-            $later->minute,
-            $later->second,
-            $later->millisecond,
-            $later->microsecond,
-            $later->nanosecond,
+        // Compute the raw date and time differences: other − temporalDate.
+        // Positive when other > temporalDate (the "until" direction).
+        $tdJdn = CalendarMath::toJulianDay($temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->isoDay);
+        $otherJdn = CalendarMath::toJulianDay($other->isoYear, $other->isoMonth, $other->isoDay);
+        $tdNs = self::timeToNs(
+            $temporalDate->hour,
+            $temporalDate->minute,
+            $temporalDate->second,
+            $temporalDate->millisecond,
+            $temporalDate->microsecond,
+            $temporalDate->nanosecond,
         );
-        $earlierNs = self::timeToNs(
-            $earlier->hour,
-            $earlier->minute,
-            $earlier->second,
-            $earlier->millisecond,
-            $earlier->microsecond,
-            $earlier->nanosecond,
+        $otherNs = self::timeToNs(
+            $other->hour,
+            $other->minute,
+            $other->second,
+            $other->millisecond,
+            $other->microsecond,
+            $other->nanosecond,
         );
 
-        $dateDiff = $laterJdn - $earlierJdn; // signed: positive if later > earlier (date-wise)
-        $timeDiffNs = $laterNs - $earlierNs; // signed: may be negative
+        $dateDiff = $otherJdn - $tdJdn;
+        $timeDiffNs = $otherNs - $tdNs;
 
         // The overall sign is determined by the combined date+time diff.
-        // To get a consistent sign: compute total ns from both components.
-        // A positive diff means later > earlier.
         $sign = 0;
         if ($dateDiff > 0 || $dateDiff === 0 && $timeDiffNs > 0) {
             $sign = 1;
@@ -1895,34 +1894,28 @@ final class PlainDateTime implements Stringable
             $sign = -1;
         }
 
-        // Work in the positive direction; negate all output at the end.
-        // Swap so that we always compute (positive later) - (positive earlier).
-        if ($sign < 0) {
-            [$later, $earlier] = [$earlier, $later];
-            $laterJdn = CalendarMath::toJulianDay($later->isoYear, $later->isoMonth, $later->isoDay);
-            $earlierJdn = CalendarMath::toJulianDay($earlier->isoYear, $earlier->isoMonth, $earlier->isoDay);
-            $laterNs = self::timeToNs(
-                $later->hour,
-                $later->minute,
-                $later->second,
-                $later->millisecond,
-                $later->microsecond,
-                $later->nanosecond,
-            );
-            $earlierNs = self::timeToNs(
-                $earlier->hour,
-                $earlier->minute,
-                $earlier->second,
-                $earlier->millisecond,
-                $earlier->microsecond,
-                $earlier->nanosecond,
-            );
-            $dateDiff = $laterJdn - $earlierJdn;
-            $timeDiffNs = $laterNs - $earlierNs;
+        // For "since", negate the output sign per TC39 spec.
+        $outputSign = $operation === 'since' ? -$sign : $sign;
+
+        // Work in the positive direction; assign earlier/later.
+        if ($sign >= 0) {
+            $earlier = $temporalDate;
+            $later = $other;
+        } else {
+            $earlier = $other;
+            $later = $temporalDate;
         }
+        $earlierJdn = CalendarMath::toJulianDay($earlier->isoYear, $earlier->isoMonth, $earlier->isoDay);
+        $dateDiff = CalendarMath::toJulianDay($later->isoYear, $later->isoMonth, $later->isoDay) - $earlierJdn;
+        $timeDiffNs = self::timeToNs(
+            $later->hour, $later->minute, $later->second,
+            $later->millisecond, $later->microsecond, $later->nanosecond,
+        ) - self::timeToNs(
+            $earlier->hour, $earlier->minute, $earlier->second,
+            $earlier->millisecond, $earlier->microsecond, $earlier->nanosecond,
+        );
 
         // Borrow one day from the date component when the time part is negative.
-        // After this, $timeDiffNs >= 0 and $dateDiff >= 0.
         if ($timeDiffNs < 0) {
             $dateDiff--;
             $timeDiffNs += self::NS_PER_DAY;
@@ -1932,15 +1925,10 @@ final class PlainDateTime implements Stringable
         $isCalendarLargest = $luRank >= 6; // day or above
 
         if ($isCalendarLargest) {
-            $adjLaterJdn = $earlierJdn + $dateDiff;
-            [$adjY2, $adjM2, $adjD2] = CalendarMath::fromJulianDay($adjLaterJdn);
-            $earlierY = $earlier->isoYear;
-            $earlierM = $earlier->isoMonth;
-            $earlierD = $earlier->isoDay;
-            // The receiver is always $this. After a possible swap, determine whether
-            // the receiver corresponds to the "later" date in the positive-direction diff.
-            $receiverIsLater = $receiver === $later;
-            $calId = $earlier->calendarId;
+            // The adjusted other date after borrowing: earlierJdn + dateDiff.
+            $adjOtherJdn = $earlierJdn + $dateDiff;
+            [$adjY2, $adjM2, $adjD2] = CalendarMath::fromJulianDay($adjOtherJdn);
+            $calId = $temporalDate->calendarId;
 
             if ($normLargest === 'day') {
                 $days = $dateDiff;
@@ -1951,21 +1939,34 @@ final class PlainDateTime implements Stringable
                 [$years, $months] = [0, 0];
             } else {
                 if ($calId !== 'iso8601') {
+                    // TC39 CalendarDateUntil(temporalDate, adjustedOther) — always
+                    // in (this, other) order. Compute adjustedOther per TC39
+                    // DifferenceISODateTime: only borrow a day when time and date
+                    // signs conflict (different from the swap+borrow above).
+                    $rawTD = $otherNs - $tdNs;
+                    $tS = $rawTD > 0 ? 1 : ($rawTD < 0 ? -1 : 0);
+                    $dS = $tdJdn > $otherJdn ? 1 : ($tdJdn < $otherJdn ? -1 : 0);
+                    $tc39AdjJdn = $otherJdn;
+                    if ($tS !== 0 && $tS === -$dS) {
+                        $tc39AdjJdn = $otherJdn - $tS;
+                    }
+                    [$tc39Y, $tc39M, $tc39D] = CalendarMath::fromJulianDay($tc39AdjJdn);
                     $cal = CalendarFactory::get($calId);
                     [$years, $months, , $days] = $cal->dateUntil(
-                        $earlierY, $earlierM, $earlierD,
-                        $adjY2, $adjM2, $adjD2,
+                        $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->isoDay,
+                        $tc39Y, $tc39M, $tc39D,
                         $normLargest,
-                        $receiverIsLater,
                     );
+                    // Take absolute values — the output sign is applied later.
+                    $years = abs($years);
+                    $months = abs($months);
+                    $days = abs($days);
                 } else {
+                    // ISO calendar: calendarDiff expects (smaller, larger).
+                    $receiverIsLater = $sign < 0;
                     [$years, $months, $days] = self::calendarDiff(
-                        $earlierY,
-                        $earlierM,
-                        $earlierD,
-                        $adjY2,
-                        $adjM2,
-                        $adjD2,
+                        $earlier->isoYear, $earlier->isoMonth, $earlier->isoDay,
+                        $adjY2, $adjM2, $adjD2,
                         $receiverIsLater,
                     );
                     // Convert years to months when largestUnit is 'month'.
@@ -1979,6 +1980,9 @@ final class PlainDateTime implements Stringable
 
             $isSmallestCalendar = in_array($normSmallest, ['year', 'month', 'week', 'day'], strict: true);
 
+            // The receiver (temporalDate) is the later date when sign < 0.
+            $receiverIsLater = $sign < 0;
+
             if ($isSmallestCalendar) {
                 // Calendar-unit rounding: zero out time and round the calendar part.
                 if ($normSmallest === 'year') {
@@ -1988,13 +1992,13 @@ final class PlainDateTime implements Stringable
                         $totalMonths,
                         $days,
                         $timeDiffNs,
-                        $later,
+                        $temporalDate,
                         $roundingIncrement,
                         $roundingMode,
                         $receiverIsLater,
-                        $sign,
+                        $outputSign,
                     );
-                    return new Duration(years: $sign * $roundedYears);
+                    return new Duration(years: $outputSign * $roundedYears);
                 }
                 if ($normSmallest === 'month') {
                     $totalMonths = ($years * 12) + $months;
@@ -2002,18 +2006,18 @@ final class PlainDateTime implements Stringable
                         $totalMonths,
                         $days,
                         $timeDiffNs,
-                        $later,
+                        $temporalDate,
                         $roundingIncrement,
                         $roundingMode,
                         $receiverIsLater,
-                        $sign,
+                        $outputSign,
                     );
                     if ($normLargest === 'year') {
                         $roundedYears = intdiv(num1: $roundedMonths, num2: 12);
                         $roundedMonths = $roundedMonths - ($roundedYears * 12);
-                        return new Duration(years: $sign * $roundedYears, months: $sign * $roundedMonths);
+                        return new Duration(years: $outputSign * $roundedYears, months: $outputSign * $roundedMonths);
                     }
-                    return new Duration(months: $sign * $roundedMonths);
+                    return new Duration(months: $outputSign * $roundedMonths);
                 }
                 if ($normSmallest === 'week') {
                     $totalDays = ($weeks * 7) + $days;
@@ -2023,22 +2027,22 @@ final class PlainDateTime implements Stringable
                         $timeDiffNs,
                         $weekIncrement,
                         $roundingMode,
-                        $sign,
+                        $outputSign,
                     );
-                    return new Duration(weeks: $sign * intdiv(num1: $roundedDays, num2: 7));
+                    return new Duration(weeks: $outputSign * intdiv(num1: $roundedDays, num2: 7));
                 }
                 // normSmallest === 'day'
-                $roundedDays = self::roundDaysWithTime($days, $timeDiffNs, $roundingIncrement, $roundingMode, $sign);
+                $roundedDays = self::roundDaysWithTime($days, $timeDiffNs, $roundingIncrement, $roundingMode, $outputSign);
                 if ($normLargest === 'day') {
-                    return new Duration(days: $sign * $roundedDays);
+                    return new Duration(days: $outputSign * $roundedDays);
                 }
                 if ($normLargest === 'week') {
                     $totalDays = ($weeks * 7) + $roundedDays;
                     $roundedWeeks = intdiv(num1: $totalDays, num2: 7);
                     $remDays = $totalDays - ($roundedWeeks * 7);
-                    return new Duration(weeks: $sign * $roundedWeeks, days: $sign * $remDays);
+                    return new Duration(weeks: $outputSign * $roundedWeeks, days: $outputSign * $remDays);
                 }
-                return new Duration(years: $sign * $years, months: $sign * $months, days: $sign * $roundedDays);
+                return new Duration(years: $outputSign * $years, months: $outputSign * $months, days: $outputSign * $roundedDays);
             }
 
             // smallestUnit is a time unit but largestUnit is a calendar unit.
@@ -2052,9 +2056,9 @@ final class PlainDateTime implements Stringable
             };
             /** @psalm-var int<1, 1000> $roundingIncrement */
             $nsIncrement = $nsPerSmallest * $roundingIncrement;
-            // For negative diffs, flip floor/ceil.
+            // For negative output diffs, flip floor/ceil.
             $effTimeMode = $roundingMode;
-            if ($sign < 0) {
+            if ($outputSign < 0) {
                 $effTimeMode = match ($roundingMode) {
                     'floor' => 'ceil',
                     'ceil' => 'floor',
@@ -2072,24 +2076,27 @@ final class PlainDateTime implements Stringable
             // When time overflow produces extra days, recompute the calendar diff
             // from the updated position to properly rebalance months/years.
             if ($overflowDays > 0 && $normLargest !== 'day' && $normLargest !== 'week') {
-                $adjLaterJdn2 = $adjLaterJdn + $overflowDays;
-                [$adjY3, $adjM3, $adjD3] = CalendarMath::fromJulianDay($adjLaterJdn2);
+                // Overflow from time rounding: recompute calendar diff.
                 if ($calId !== 'iso8601') {
+                    // Non-ISO: shift tc39AdjJdn by overflow in the diff direction.
+                    $tc39Jdn2 = $tc39AdjJdn + ($sign >= 0 ? $overflowDays : -$overflowDays);
+                    [$adjY3, $adjM3, $adjD3] = CalendarMath::fromJulianDay($tc39Jdn2);
                     [$years, $months, , $days] = CalendarFactory::get($calId)->dateUntil(
-                        $earlierY, $earlierM, $earlierD,
+                        $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->isoDay,
                         $adjY3, $adjM3, $adjD3,
                         $normLargest,
-                        $receiverIsLater,
                     );
+                    $years = abs($years);
+                    $months = abs($months);
+                    $days = abs($days);
                 } else {
+                    // ISO: add overflow to the swap-based adjOtherJdn.
+                    $isoAdjJdn2 = $adjOtherJdn + $overflowDays;
+                    [$adjY3, $adjM3, $adjD3] = CalendarMath::fromJulianDay($isoAdjJdn2);
                     [$years, $months, $days] = self::calendarDiff(
-                        $earlierY,
-                        $earlierM,
-                        $earlierD,
-                        $adjY3,
-                        $adjM3,
-                        $adjD3,
-                        $receiverIsLater,
+                        $earlier->isoYear, $earlier->isoMonth, $earlier->isoDay,
+                        $adjY3, $adjM3, $adjD3,
+                        $sign < 0,
                     );
                     if ($normLargest === 'month') {
                         $months = ($years * 12) + $months;
@@ -2112,16 +2119,16 @@ final class PlainDateTime implements Stringable
             $ns = $rem % self::NS_PER_US;
 
             return new Duration(
-                years: $sign * $years,
-                months: $sign * $months,
-                weeks: $sign * $weeks,
-                days: $sign * $days,
-                hours: $sign * $h,
-                minutes: $sign * $min,
-                seconds: $sign * $sec,
-                milliseconds: $sign * $ms,
-                microseconds: $sign * $us,
-                nanoseconds: $sign * $ns,
+                years: $outputSign * $years,
+                months: $outputSign * $months,
+                weeks: $outputSign * $weeks,
+                days: $outputSign * $days,
+                hours: $outputSign * $h,
+                minutes: $outputSign * $min,
+                seconds: $outputSign * $sec,
+                milliseconds: $outputSign * $ms,
+                microseconds: $outputSign * $us,
+                nanoseconds: $outputSign * $ns,
             );
         }
 
@@ -2138,9 +2145,9 @@ final class PlainDateTime implements Stringable
         };
         /** @psalm-var int<1, 1000> $roundingIncrement */
         $nsIncrement = $nsPerSmallest * $roundingIncrement;
-        // For negative diffs, flip floor/ceil so they retain their directional meaning.
+        // For negative output diffs, flip floor/ceil so they retain their directional meaning.
         $effectiveRoundMode = $roundingMode;
-        if ($sign < 0) {
+        if ($outputSign < 0) {
             $effectiveRoundMode = match ($roundingMode) {
                 'floor' => 'ceil',
                 'ceil' => 'floor',
@@ -2194,12 +2201,12 @@ final class PlainDateTime implements Stringable
         }
 
         return new Duration(
-            hours: $sign * $h,
-            minutes: $sign * $min,
-            seconds: $sign * $sec,
-            milliseconds: $sign * $ms,
-            microseconds: $sign * $us,
-            nanoseconds: $sign * $ns,
+            hours: $outputSign * $h,
+            minutes: $outputSign * $min,
+            seconds: $outputSign * $sec,
+            milliseconds: $outputSign * $ms,
+            microseconds: $outputSign * $us,
+            nanoseconds: $outputSign * $ns,
         );
     }
 

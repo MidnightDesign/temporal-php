@@ -523,7 +523,7 @@ final class PlainYearMonth implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffYearMonth($this, $o, $this, $options);
+        return self::diffYearMonth($this, $o, 'since', $options);
     }
 
     /**
@@ -539,7 +539,7 @@ final class PlainYearMonth implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffYearMonth($o, $this, $this, $options);
+        return self::diffYearMonth($this, $o, 'until', $options);
     }
 
     /**
@@ -954,14 +954,16 @@ final class PlainYearMonth implements Stringable
     /**
      * Core implementation for since() and until().
      *
-     * $later and $earlier define the raw difference; $receiver is $this.
+     * TC39 CalendarDateUntil is always called as (temporalDate, other). For
+     * "since", the final result is negated.
      *
+     * @param string $operation 'since' or 'until'
      * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
     private static function diffYearMonth(
-        self $later,
-        self $earlier,
-        self $receiver,
+        self $temporalDate,
+        self $other,
+        string $operation,
         array|object|null $options,
     ): Duration {
         /** @var list<string> $validUnits */
@@ -1093,85 +1095,81 @@ final class PlainYearMonth implements Stringable
 
         // Short-circuit when both year-months are equal: diff is always zero.
         // This avoids the PlainDate range check for boundary year-months that would otherwise fail.
-        if ($later->isoYear === $earlier->isoYear && $later->isoMonth === $earlier->isoMonth) {
+        if ($temporalDate->isoYear === $other->isoYear && $temporalDate->isoMonth === $other->isoMonth) {
             return new Duration();
         }
 
         // Validate that day=1 of each year-month is a valid PlainDate (TC39 §DifferenceTemporalPlainYearMonth step 8).
-        self::validateYearMonthForDiff($later);
-        self::validateYearMonthForDiff($earlier);
+        self::validateYearMonthForDiff($temporalDate);
+        self::validateYearMonthForDiff($other);
 
-        // Compute raw year+month diff via the calendar protocol.
-        $calId = $earlier->calendarId;
+        // TC39 CalendarDateUntil(temporalDate, other) — always in (this, other) order.
+        // The sign and leap-month asymmetry are handled inside dateUntil.
+        $calId = $temporalDate->calendarId;
         $cal = CalendarFactory::get($calId);
         [$rawYears, $rawMonths, , ] = $cal->dateUntil(
-            $earlier->isoYear, $earlier->isoMonth, $earlier->referenceISODay,
-            $later->isoYear, $later->isoMonth, $later->referenceISODay,
+            $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->referenceISODay,
+            $other->isoYear, $other->isoMonth, $other->referenceISODay,
             'year',
         );
         // For totalMonths, use dateUntil with largestUnit='month' for correct result
         // in calendars with variable months-per-year (e.g. Hebrew 13-month years).
         [, $totalMonths, , ] = $cal->dateUntil(
-            $earlier->isoYear, $earlier->isoMonth, $earlier->referenceISODay,
-            $later->isoYear, $later->isoMonth, $later->referenceISODay,
+            $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->referenceISODay,
+            $other->isoYear, $other->isoMonth, $other->referenceISODay,
             'month',
         );
 
-        // The receiver is "later" when since() is called (receiver is $this = later arg).
-        $receiverIsLater = $receiver->isoYear === $later->isoYear && $receiver->isoMonth === $later->isoMonth;
+        // Rounding works on the raw signed values from dateUntil.
+        // Since negation is applied at the return statements only.
+        $sinceSign = $operation === 'since' ? -1 : 1;
 
         if ($normLargest === 'month') {
-            // All months; no years in output.
             if ($normSmallest === 'month') {
                 if ($roundingIncrement === 1 && $roundingMode === 'trunc') {
-                    return new Duration(months: $totalMonths);
+                    return new Duration(months: $sinceSign * $totalMonths);
                 }
-                // Round totalMonths by increment.
                 $rounded = self::roundCalendarYearMonths(
                     $totalMonths,
-                    $receiver,
+                    $temporalDate,
                     $roundingIncrement,
                     $roundingMode,
-                    $receiverIsLater,
+                    false,
                 );
-                return new Duration(months: $rounded);
+                return new Duration(months: $sinceSign * $rounded);
             }
-            // smallestUnit=year but largestUnit=month: impossible (year > month rank), should have been caught above.
-            return new Duration(months: $totalMonths);
+            return new Duration(months: $sinceSign * $totalMonths);
         }
 
         // normLargest === 'year'
         if ($normSmallest === 'year') {
-            // Round years; discard months.
             if ($roundingIncrement === 1 && $roundingMode === 'trunc') {
-                return new Duration(years: $rawYears);
+                return new Duration(years: $sinceSign * $rawYears);
             }
             $roundedYears = self::roundCalendarYearsYM(
                 $rawYears,
                 $rawMonths,
-                $receiver,
+                $temporalDate,
                 $roundingIncrement,
                 $roundingMode,
-                $receiverIsLater,
+                false,
             );
-            return new Duration(years: $roundedYears);
+            return new Duration(years: $sinceSign * $roundedYears);
         }
 
-        // normSmallest === 'month', normLargest === 'year': round the months component (not totalMonths).
-        // The years component is kept; only the months sub-component is rounded.
-        // TC39 NudgeToCalendarUnit: anchor = receiver moved by rawYears years, round rawMonths within that year.
+        // normSmallest === 'month', normLargest === 'year'
         if ($roundingIncrement === 1 && $roundingMode === 'trunc') {
-            return new Duration(years: $rawYears, months: $rawMonths);
+            return new Duration(years: $sinceSign * $rawYears, months: $sinceSign * $rawMonths);
         }
         [$ry, $rm] = self::roundCalendarMonthsWithinYear(
             $rawYears,
             $rawMonths,
-            $receiver,
+            $temporalDate,
             $roundingIncrement,
             $roundingMode,
-            $receiverIsLater,
+            false,
         );
-        return new Duration(years: $ry, months: $rm);
+        return new Duration(years: $sinceSign * $ry, months: $sinceSign * $rm);
     }
 
     /**

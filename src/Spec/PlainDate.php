@@ -614,7 +614,7 @@ final class PlainDate implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffDate($this, $o, $this, $options);
+        return self::diffDate($this, $o, 'since', $options);
     }
 
     /**
@@ -630,7 +630,7 @@ final class PlainDate implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffDate($o, $this, $this, $options);
+        return self::diffDate($this, $o, 'until', $options);
     }
 
     /**
@@ -1127,7 +1127,7 @@ final class PlainDate implements Stringable
      *
      * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
-    private static function diffDate(self $later, self $earlier, self $receiver, array|object|null $options): Duration
+    private static function diffDate(self $temporalDate, self $other, string $operation, array|object|null $options): Duration
     {
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'day', 'days', 'week', 'weeks', 'month', 'months', 'year', 'years'];
@@ -1244,112 +1244,115 @@ final class PlainDate implements Stringable
             default => $smallestUnit,
         };
 
-        $laterJdn = CalendarMath::toJulianDay($later->isoYear, $later->isoMonth, $later->isoDay);
-        $earlierJdn = CalendarMath::toJulianDay($earlier->isoYear, $earlier->isoMonth, $earlier->isoDay);
-        $totalDays = $laterJdn - $earlierJdn;
-
-        // ---- Compute raw diff and apply rounding ----
+        // TC39 step 6: CalendarDateUntil(temporalDate, other) — always in
+        // (this, other) order, NOT (smaller, larger). The sign and leap-month
+        // asymmetry are handled inside dateUntil.
         //
-        // The structure follows: determine the raw diff (using largest unit to decompose),
-        // then round at the smallest unit level.
+        // For day/week units the calendar doesn't matter, so we just use JDN.
+        $tdJdn = CalendarMath::toJulianDay($temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->isoDay);
+        $otherJdn = CalendarMath::toJulianDay($other->isoYear, $other->isoMonth, $other->isoDay);
+        $totalDays = $otherJdn - $tdJdn; // positive when other > temporalDate
 
         // Weeks and days: purely mathematical (no calendar-awareness for months/years).
         if ($normLargest === 'day') {
-            // Both smallest and largest are 'day': round days directly.
-            return new Duration(days: self::roundDays($totalDays, $roundingIncrement, $roundingMode));
+            $d = self::roundDays($totalDays, $roundingIncrement, $roundingMode);
+            return $operation === 'since' ? new Duration(days: -$d) : new Duration(days: $d);
         }
 
         if ($normLargest === 'week') {
-            // Decompose totalDays into weeks + remaining days, then round at $normSmallest.
             if ($normSmallest === 'week') {
                 $weekIncrement = $roundingIncrement * 7;
                 $roundedDays = self::roundDays($totalDays, $weekIncrement, $roundingMode);
-                return new Duration(weeks: intdiv(num1: $roundedDays, num2: 7));
+                $w = intdiv(num1: $roundedDays, num2: 7);
+                return $operation === 'since' ? new Duration(weeks: -$w) : new Duration(weeks: $w);
             }
-            // smallestUnit=day: round days within the week decomposition.
             $rawWeeks = intdiv(num1: $totalDays, num2: 7);
             $rawDays = $totalDays - ($rawWeeks * 7);
             $roundedDays = self::roundDays($rawDays, $roundingIncrement, $roundingMode);
-            return new Duration(weeks: $rawWeeks, days: $roundedDays);
+            return $operation === 'since'
+                ? new Duration(weeks: -$rawWeeks, days: -$roundedDays)
+                : new Duration(weeks: $rawWeeks, days: $roundedDays);
         }
 
         // Calendar units (months/years): compute via calendar protocol.
-        // Pass whether the receiver corresponds to the y2 (later) argument so
-        // calendarDiff knows from which end to anchor the day-remainder calculation.
-        $receiverIsLater =
-            $receiver->isoYear === $later->isoYear && $receiver->isoMonth === $later->isoMonth && $receiver->isoDay === $later->isoDay;
-        $calendarId = $earlier->calendarId;
+        // TC39 calls CalendarDateUntil(temporalDate, other) — preserving order.
+        $calendarId = $temporalDate->calendarId;
         if ($calendarId !== 'iso8601') {
             $cal = CalendarFactory::get($calendarId);
             [$years, $months, , $days] = $cal->dateUntil(
-                $earlier->isoYear, $earlier->isoMonth, $earlier->isoDay,
-                $later->isoYear, $later->isoMonth, $later->isoDay,
+                $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->isoDay,
+                $other->isoYear, $other->isoMonth, $other->isoDay,
                 $normLargest,
-                $receiverIsLater,
             );
         } else {
-            [$years, $months, $days] = self::calendarDiff(
-                $earlier->isoYear,
-                $earlier->isoMonth,
-                $earlier->isoDay,
-                $later->isoYear,
-                $later->isoMonth,
-                $later->isoDay,
-                $receiverIsLater,
-            );
+            // ISO calendar: symmetric, so order doesn't matter for magnitudes.
+            // Keep the (earlier, later) convention for the existing calendarDiff.
+            $jdn1 = $tdJdn;
+            $jdn2 = $otherJdn;
+            $iY1 = $temporalDate->isoYear;
+            $iM1 = $temporalDate->isoMonth;
+            $iD1 = $temporalDate->isoDay;
+            $iY2 = $other->isoYear;
+            $iM2 = $other->isoMonth;
+            $iD2 = $other->isoDay;
+            $receiverIsLater = $jdn1 > $jdn2;
+            if ($receiverIsLater) {
+                [$iY1, $iM1, $iD1, $iY2, $iM2, $iD2] = [$iY2, $iM2, $iD2, $iY1, $iM1, $iD1];
+            }
+            [$years, $months, $days] = self::calendarDiff($iY1, $iM1, $iD1, $iY2, $iM2, $iD2, $receiverIsLater);
+            if ($jdn1 > $jdn2) {
+                // Going backward: negate to match the (temporalDate→other) direction
+                $years = -$years;
+                $months = -$months;
+                $days = -$days;
+            }
         }
+
+        // TC39 spec: round BEFORE since negation (steps 8-10).
+        // The rounding functions receive the raw dateUntil result (signed).
+        // The sign is used internally for direction-aware rounding.
+        // After rounding, apply since negation.
+        $sinceSign = $operation === 'since' ? -1 : 1;
+
+        // For ISO backward diffs, the calendarDiff always returns positive values
+        // with $receiverIsLater controlling the anchor. The dateUntil values we
+        // have now are already signed correctly (negative when going backward).
+        // The rounding functions handle sign via $receiverIsLater for the anchor.
+        $sign = $totalDays > 0 ? 1 : ($totalDays < 0 ? -1 : 0);
+        $receiverIsLater = $sign < 0;
 
         if ($normLargest === 'month') {
             $totalMonths = ($years * 12) + $months;
             if ($normSmallest === 'month') {
-                // Round months; discard remaining days.
-                return new Duration(months: self::roundCalendarMonths(
-                    $totalMonths,
-                    $days,
-                    $receiver,
-                    $roundingIncrement,
-                    $roundingMode,
-                    $receiverIsLater,
-                ));
+                $rounded = self::roundCalendarMonths(
+                    $totalMonths, $days, $temporalDate, $roundingIncrement, $roundingMode, $receiverIsLater,
+                );
+                return new Duration(months: $sinceSign * $rounded);
             }
-            // smallestUnit=day: round remaining days (usually increment=1 = no-op).
             $roundedDays = self::roundDays($days, $roundingIncrement, $roundingMode);
-            return new Duration(months: $totalMonths, days: $roundedDays);
+            return new Duration(months: $sinceSign * $totalMonths, days: $sinceSign * $roundedDays);
         }
 
         // normLargest === 'year'
         if ($normSmallest === 'year') {
-            // Round years; discard months and remaining days.
             $totalMonths = ($years * 12) + $months;
-            return new Duration(years: self::roundCalendarYears(
-                $years,
-                $totalMonths,
-                $days,
-                $receiver,
-                $roundingIncrement,
-                $roundingMode,
-                $receiverIsLater,
-            ));
+            $rounded = self::roundCalendarYears(
+                $years, $totalMonths, $days, $temporalDate, $roundingIncrement, $roundingMode, $receiverIsLater,
+            );
+            return new Duration(years: $sinceSign * $rounded);
         }
         if ($normSmallest === 'month') {
-            // Round months (collapse years into months), then reconvert to years+months.
             $totalMonths = ($years * 12) + $months;
             $roundedMonths = self::roundCalendarMonths(
-                $totalMonths,
-                $days,
-                $receiver,
-                $roundingIncrement,
-                $roundingMode,
-                $receiverIsLater,
+                $totalMonths, $days, $temporalDate, $roundingIncrement, $roundingMode, $receiverIsLater,
             );
             $roundedYears = intdiv(num1: $roundedMonths, num2: 12);
             $roundedMonths = $roundedMonths - ($roundedYears * 12);
-            return new Duration(years: $roundedYears, months: $roundedMonths);
+            return new Duration(years: $sinceSign * $roundedYears, months: $sinceSign * $roundedMonths);
         }
-        // smallestUnit=day (or week, but week < month so that would have been caught earlier):
-        // Return years + months + rounded days.
+        // smallestUnit=day: return years + months + rounded days.
         $roundedDays = self::roundDays($days, $roundingIncrement, $roundingMode);
-        return new Duration(years: $years, months: $months, days: $roundedDays);
+        return new Duration(years: $sinceSign * $years, months: $sinceSign * $months, days: $sinceSign * $roundedDays);
     }
 
     /**

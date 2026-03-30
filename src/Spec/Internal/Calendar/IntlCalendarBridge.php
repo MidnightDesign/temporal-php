@@ -524,140 +524,147 @@ final class IntlCalendarBridge implements CalendarProtocol
             return [0, 0, 0, $totalDays];
         }
 
-        // Year/month decomposition using TC39 DifferenceDate trial-and-increment
-        // algorithm. Normalize to the positive direction, find years/months by
-        // incrementing from start via dateAdd, then compute remaining days.
-        // The $receiverIsLater flag controls whether the day remainder is
-        // anchored forward from date1 or backward from date2, matching TC39's
-        // asymmetric since()/until() behavior.
+        // TC39 CalendarDateUntil: iterate from date1 toward date2 WITHOUT
+        // swapping. The direction (sign) determines whether we add positive or
+        // negative year/month increments. This is essential for leap-month
+        // calendars where forward and backward traversal cross different months.
 
         $jdn1 = CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
         $jdn2 = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2);
-        $sign = $jdn2 >= $jdn1 ? 1 : -1;
 
-        // Track which end the receiver sits on after a potential swap.
-        $anchorFromEnd = $receiverIsLater;
-
-        // Normalize so date1 is chronologically earlier.
-        if ($sign < 0) {
-            [$isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2] =
-                [$isoY2, $isoM2, $isoD2, $isoY1, $isoM1, $isoD1];
-            [$jdn1, $jdn2] = [$jdn2, $jdn1];
-            $anchorFromEnd = !$anchorFromEnd;
+        if ($jdn1 === $jdn2) {
+            return [0, 0, 0, 0];
         }
 
-        // Read calendar fields for initial estimates.
+        $sign = $jdn2 > $jdn1 ? 1 : -1;
+
+        // Read calendar fields.
         $this->setIsoDate($isoY1, $isoM1, $isoD1);
         $calY1 = $this->calendarYear();
         $calM1 = $this->calendarMonth();
 
         $this->setIsoDate($isoY2, $isoM2, $isoD2);
         $calY2 = $this->calendarYear();
-        $calM2 = $this->calendarMonth();
 
         $years = 0;
         $months = 0;
 
         if ($largestUnit === 'year') {
-            // Initial guess for years, backed off by 1 to be safe.
-            $years = max(0, $calY2 - $calY1 - 1);
+            // Find years: start from a conservative estimate and increment in
+            // the sign direction until one more would overshoot.
+            $yearDiff = abs($calY2 - $calY1);
+            $years = max(0, $yearDiff - 1);
 
-            // Increment years until adding one more would overshoot or constrain the day.
-            while (true) {
-                if (!$this->trialDateAddSucceeds($isoY1, $isoM1, $isoD1, $years + 1, 0, $jdn2)) {
-                    break;
-                }
+            while ($this->trialDateAddDoesNotSurpass(
+                $isoY1, $isoM1, $isoD1, $sign * ($years + 1), 0, $jdn2, $sign,
+            )) {
                 $years++;
             }
 
-            // Initial guess for months within the remaining partial year.
-            if ($calY2 > $calY1 + $years) {
-                $this->setIsoDate($isoY1, $isoM1, $isoD1);
-                $monthGuess = ($this->calendarMonthsInYear() - $calM1) + $calM2;
-            } else {
-                $monthGuess = $calM2 - $calM1;
-            }
-            $months = max(0, $monthGuess - 1);
-
-            // Increment months until adding one more would overshoot or constrain the day.
-            while (true) {
-                if (!$this->trialDateAddSucceeds($isoY1, $isoM1, $isoD1, $years, $months + 1, $jdn2)) {
-                    break;
-                }
+            // Find months within remaining partial year, starting from 0.
+            while ($this->trialDateAddDoesNotSurpass(
+                $isoY1, $isoM1, $isoD1, $sign * $years, $sign * ($months + 1), $jdn2, $sign,
+            )) {
                 $months++;
             }
         }
 
         if ($largestUnit === 'month') {
-            // Initial guess: total months difference, backed off by 1.
-            $totalMonthGuess = $this->totalMonthsInYears(
-                    $calY1, $calY2 - $calY1, $isoY1, $isoM1, $isoD1,
-                ) + ($calM2 - $calM1);
-            $months = max(0, $totalMonthGuess - 1);
+            // Find total months: use a conservative estimate, then increment.
+            $yearDiff = abs($calY2 - $calY1);
+            if ($yearDiff > 1) {
+                // For large spans, estimate conservatively: sum months across
+                // intermediate years (excluding start and end partial years),
+                // then back off generously to ensure we don't overshoot.
+                $monthEstimate = $this->totalMonthsInYearsDirectional(
+                    $isoY1, $isoM1, $isoD1, max(0, $yearDiff - 1), $sign,
+                );
+                $months = max(0, $monthEstimate - 14);
+            }
 
-            // Increment months until adding one more would overshoot or constrain the day.
-            while (true) {
-                if (!$this->trialDateAddSucceeds($isoY1, $isoM1, $isoD1, 0, $months + 1, $jdn2)) {
-                    break;
-                }
+            while ($this->trialDateAddDoesNotSurpass(
+                $isoY1, $isoM1, $isoD1, 0, $sign * ($months + 1), $jdn2, $sign,
+            )) {
                 $months++;
             }
         }
 
-        // Compute remaining days. The anchor direction determines whether we
-        // measure forward from date1 or backward from date2.
-        if ($anchorFromEnd) {
-            // Anchor backward from date2: dateAdd(date2, -years, -months).
-            // If the backward anchor overshoots past date1 (negative days), fall
-            // back to the forward anchor to avoid mixed-sign components.
-            [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
-                $isoY2, $isoM2, $isoD2,
-                -$years, -$months, 0, 0,
-                'constrain',
-            );
-            $days = CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD) - $jdn1;
-            if ($days < 0) {
-                [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
-                    $isoY1, $isoM1, $isoD1,
-                    $years, $months, 0, 0,
-                    'constrain',
-                );
-                $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
-            }
-        } else {
-            // Anchor forward from date1: dateAdd(date1, +years, +months).
-            [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
-                $isoY1, $isoM1, $isoD1,
-                $years, $months, 0, 0,
-                'constrain',
-            );
-            $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
-        }
+        // Remaining days: add the found years+months from date1, measure JDN to date2.
+        [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
+            $isoY1, $isoM1, $isoD1,
+            $sign * $years, $sign * $months, 0, 0,
+            'constrain',
+        );
+        $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
 
-        return [$sign * $years, $sign * $months, 0, $sign * $days];
+        return [$sign * $years, $sign * $months, 0, $days];
     }
 
     /**
-     * Tests whether dateAdd(start, years, months) produces a result that is <= endJdn
-     * WITHOUT constraining the day. A month only counts as "complete" when the
-     * calendar day is preserved (not clamped to a shorter month's maximum).
+     * Tests whether dateAdd(start, years, months) does not surpass the target JDN.
+     * "Surpass" means overshoot in the given direction: for sign=+1, result <= target;
+     * for sign=-1, result >= target.
+     *
+     * Uses 'constrain' overflow. When the day is constrained (e.g., Jan 30 → Feb 28),
+     * the trial still passes since we're counting months, not exact days.  The day
+     * remainder will be computed separately. Only when the trial lands in the same
+     * month as the target do we need to check the day: we compare using the
+     * ORIGINAL day (pre-constraining) to avoid undercounting months.
      */
-    private function trialDateAddSucceeds(
+    private function trialDateAddDoesNotSurpass(
         int $isoY1, int $isoM1, int $isoD1,
         int $years, int $months,
-        int $endJdn,
+        int $targetJdn, int $sign,
     ): bool {
-        try {
-            [$tY, $tM, $tD] = $this->dateAdd(
-                $isoY1, $isoM1, $isoD1,
-                $years, $months, 0, 0,
-                'reject',
-            );
-        } catch (InvalidArgumentException) {
-            // Day was constrained → month doesn't count.
-            return false;
+        [$tY, $tM, $tD] = $this->dateAdd(
+            $isoY1, $isoM1, $isoD1,
+            $years, $months, 0, 0,
+            'constrain',
+        );
+        $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
+
+        // Read the original calendar day from date1.
+        $this->setIsoDate($isoY1, $isoM1, $isoD1);
+        $origCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+
+        // Read the constrained calendar day from the trial result.
+        $this->setIsoDate($tY, $tM, $tD);
+        $trialCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+
+        if ($trialCalDay < $origCalDay) {
+            // Day was constrained. Adjust the JDN upward to pretend the original
+            // day was preserved. This ensures that when we land in the same month
+            // as the target, we don't count a month as complete when the original
+            // day would have surpassed the target.
+            $trialJdn += ($origCalDay - $trialCalDay);
         }
-        return CalendarMath::toJulianDay($tY, $tM, $tD) <= $endJdn;
+
+        return $sign > 0
+            ? $trialJdn <= $targetJdn
+            : $trialJdn >= $targetJdn;
+    }
+
+    /**
+     * Estimates total months between two points by summing months-in-year
+     * across intermediate years, walking in the given direction.
+     */
+    private function totalMonthsInYearsDirectional(
+        int $isoY, int $isoM, int $isoD, int $yearCount, int $sign,
+    ): int {
+        $total = 0;
+        $curIsoY = $isoY;
+        $curIsoM = $isoM;
+        $curIsoD = $isoD;
+        for ($i = 0; $i < $yearCount; $i++) {
+            $this->setIsoDate($curIsoY, $curIsoM, $curIsoD);
+            $total += $this->calendarMonthsInYear();
+            [$curIsoY, $curIsoM, $curIsoD] = $this->dateAdd(
+                $curIsoY, $curIsoM, $curIsoD,
+                $sign, 0, 0, 0,
+                'constrain',
+            );
+        }
+        return $total;
     }
 
     /**
@@ -729,29 +736,6 @@ final class IntlCalendarBridge implements CalendarProtocol
      * Sums months-in-year for $count consecutive years starting from calYear.
      * Used to collapse years into months for largestUnit='month'.
      */
-    private function totalMonthsInYears(int $calY1, int $years, int $isoY, int $isoM, int $isoD): int
-    {
-        if ($years === 0) {
-            return 0;
-        }
-        $total = 0;
-        // Walk forward one year at a time, accumulating months.
-        $curIsoY = $isoY;
-        $curIsoM = $isoM;
-        $curIsoD = $isoD;
-        for ($i = 0; $i < $years; $i++) {
-            $this->setIsoDate($curIsoY, $curIsoM, $curIsoD);
-            $total += $this->calendarMonthsInYear();
-            // Advance by one calendar year.
-            [$curIsoY, $curIsoM, $curIsoD] = $this->dateAdd(
-                $curIsoY, $curIsoM, $curIsoD,
-                1, 0, 0, 0,
-                'constrain',
-            );
-        }
-        return $total;
-    }
-
     // -------------------------------------------------------------------------
     // Month code utilities
     // -------------------------------------------------------------------------

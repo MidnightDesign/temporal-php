@@ -1036,7 +1036,7 @@ final class ZonedDateTime implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffZdt($this, $o, $this, $options);
+        return self::diffZdt($this, $o, 'since', $options);
     }
 
     /**
@@ -1054,7 +1054,7 @@ final class ZonedDateTime implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        return self::diffZdt($o, $this, $this, $options);
+        return self::diffZdt($this, $o, 'until', $options);
     }
 
     /**
@@ -3050,12 +3050,13 @@ final class ZonedDateTime implements Stringable
     /**
      * Core diff implementation for ZonedDateTime since() and until().
      *
-     * Computes $later - $earlier. For calendar units, uses local date diffing.
-     * For time-only units, uses epoch nanosecond difference.
+     * TC39 CalendarDateUntil is always called as (temporalDate, other). For
+     * "since", the final result is negated.
      *
+     * @param string $operation 'since' or 'until'
      * @param array<array-key, mixed>|object|null $options
      */
-    private static function diffZdt(self $later, self $earlier, self $receiver, array|object|null $options): Duration
+    private static function diffZdt(self $temporalDate, self $other, string $operation, array|object|null $options): Duration
     {
         /** @var list<string> $validUnits */
         static $validUnits = [
@@ -3253,7 +3254,7 @@ final class ZonedDateTime implements Stringable
             $incDays = $normSmallest === 'week' ? $roundingIncrement * 7 : $roundingIncrement;
             $maxEpochDays = 100_000_000;
             // Check both directions from the earlier/later endpoints.
-            $recLocal = $receiver->localComponents();
+            $recLocal = $temporalDate->localComponents();
             $recEpochDays =
                 CalendarMath::toJulianDay($recLocal['year'], $recLocal['month'], $recLocal['day']) - 2_440_588;
             if ((abs($recEpochDays) + $incDays) > $maxEpochDays) {
@@ -3265,26 +3266,32 @@ final class ZonedDateTime implements Stringable
 
         $isCalendarLargest = in_array($normLargest, ['year', 'month', 'week', 'day'], strict: true);
 
-        // Epoch ns difference.
-        $diffNs = $later->epochNanoseconds - $earlier->epochNanoseconds;
+        // Epoch ns difference: other − temporalDate.
+        // Positive when other > temporalDate (the "until" direction).
+        $diffNs = $other->epochNanoseconds - $temporalDate->epochNanoseconds;
 
         // Overall sign.
         $sign = $diffNs > 0 ? 1 : ($diffNs < 0 ? -1 : 0);
 
-        // Negate directional rounding modes for negative durations so that
+        // For "since", negate the output sign per TC39 spec.
+        $outputSign = $operation === 'since' ? -$sign : $sign;
+
+        // Negate directional rounding modes for negative output durations so that
         // floor/ceil behave correctly toward -infinity/+infinity.
-        $effectiveMode = $sign < 0 ? self::negateRoundingMode($roundingMode) : $roundingMode;
+        $effectiveMode = $outputSign < 0 ? self::negateRoundingMode($roundingMode) : $roundingMode;
 
         if ($isCalendarLargest) {
             // Use local date/time fields for calendar-aware diff.
-            $laterLocal = $later->localComponents();
-            $earlierLocal = $earlier->localComponents();
+            $tdLocal = $temporalDate->localComponents();
+            $otherLocal = $other->localComponents();
 
-            // Swap if negative to always diff in the positive direction.
-            $swapped = false;
-            if ($sign < 0) {
-                [$laterLocal, $earlierLocal] = [$earlierLocal, $laterLocal];
-                $swapped = true;
+            // Assign earlier/later so we always diff in the positive direction.
+            if ($sign >= 0) {
+                $earlierLocal = $tdLocal;
+                $laterLocal = $otherLocal;
+            } else {
+                $earlierLocal = $otherLocal;
+                $laterLocal = $tdLocal;
             }
 
             // Date diff in JDN.
@@ -3318,13 +3325,10 @@ final class ZonedDateTime implements Stringable
                 $timeDiffNs += 86_400_000_000_000;
             }
 
-            // Calendar diff.
-            $adjLaterJdn = $earlierJdn + $dateDiff;
-            [$adjY2, $adjM2, $adjD2] = CalendarMath::fromJulianDay($adjLaterJdn);
-            // Determine whether the receiver corresponds to the later local date.
-            // For since(): receiver=$this=$later, so receiverIsLater=!swapped.
-            // For until(): receiver=$this=$earlier, so receiverIsLater=swapped.
-            $receiverIsLater = $receiver === $later ? !$swapped : $swapped;
+            // Calendar diff. adjOtherJdn is the adjusted other date after borrow.
+            $adjOtherJdn = $earlierJdn + $dateDiff;
+            [$adjY2, $adjM2, $adjD2] = CalendarMath::fromJulianDay($adjOtherJdn);
+            $calId = $temporalDate->calendarId;
 
             if ($normLargest === 'day') {
                 $days = $dateDiff;
@@ -3333,17 +3337,41 @@ final class ZonedDateTime implements Stringable
                 $weeks = intdiv(num1: $dateDiff, num2: 7);
                 $days = $dateDiff - ($weeks * 7);
                 [$years, $months] = [0, 0];
-            } elseif ($this->calendarId !== 'iso8601') {
-                // Non-ISO calendar: delegate to calendar protocol.
-                $cal = CalendarFactory::get($this->calendarId);
+            } elseif ($calId !== 'iso8601') {
+                // TC39 CalendarDateUntil(temporalDate, adjustedOther) — always
+                // in (this, other) order. Compute adjustedOther per TC39
+                // DifferenceISODateTime: only borrow when signs conflict.
+                $tdJdn = CalendarMath::toJulianDay($tdLocal['year'], $tdLocal['month'], $tdLocal['day']);
+                $otherJdn2 = CalendarMath::toJulianDay($otherLocal['year'], $otherLocal['month'], $otherLocal['day']);
+                $rawTdTimeNs =
+                    ($tdLocal['hour'] * 3_600_000_000_000) + ($tdLocal['minute'] * 60_000_000_000)
+                    + ($tdLocal['second'] * self::NS_PER_SECOND) + ($tdLocal['millisecond'] * self::NS_PER_MILLISECOND)
+                    + ($tdLocal['microsecond'] * self::NS_PER_MICROSECOND) + $tdLocal['nanosecond'];
+                $rawOtherTimeNs =
+                    ($otherLocal['hour'] * 3_600_000_000_000) + ($otherLocal['minute'] * 60_000_000_000)
+                    + ($otherLocal['second'] * self::NS_PER_SECOND) + ($otherLocal['millisecond'] * self::NS_PER_MILLISECOND)
+                    + ($otherLocal['microsecond'] * self::NS_PER_MICROSECOND) + $otherLocal['nanosecond'];
+                $rawTD = $rawOtherTimeNs - $rawTdTimeNs;
+                $tS = $rawTD > 0 ? 1 : ($rawTD < 0 ? -1 : 0);
+                $dS = $tdJdn > $otherJdn2 ? 1 : ($tdJdn < $otherJdn2 ? -1 : 0);
+                $tc39AdjJdn = $otherJdn2;
+                if ($tS !== 0 && $tS === -$dS) {
+                    $tc39AdjJdn = $otherJdn2 - $tS;
+                }
+                [$tc39Y, $tc39M, $tc39D] = CalendarMath::fromJulianDay($tc39AdjJdn);
+                $cal = CalendarFactory::get($calId);
                 [$years, $months, , $days] = $cal->dateUntil(
-                    $earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day'],
-                    $adjY2, $adjM2, $adjD2,
+                    $tdLocal['year'], $tdLocal['month'], $tdLocal['day'],
+                    $tc39Y, $tc39M, $tc39D,
                     $normLargest,
-                    $receiverIsLater,
                 );
+                $years = abs($years);
+                $months = abs($months);
+                $days = abs($days);
                 $weeks = 0;
             } else {
+                // ISO calendar: calendarDiff expects (smaller, larger).
+                $receiverIsLater = $sign < 0;
                 [$years, $months, $days] = self::calendarDiff(
                     $earlierLocal['year'],
                     $earlierLocal['month'],
@@ -3364,18 +3392,28 @@ final class ZonedDateTime implements Stringable
 
             $isSmallestCalendar = in_array($normSmallest, ['year', 'month', 'week', 'day'], strict: true);
 
+            // The receiver (temporalDate) is the later date when sign < 0.
+            $receiverIsLater = $sign < 0;
+
+            // For rounding, determine earlier/later local components.
+            if ($sign >= 0) {
+                $earlierLocal = $tdLocal;
+                $laterLocal = $otherLocal;
+            } else {
+                $earlierLocal = $otherLocal;
+                $laterLocal = $tdLocal;
+            }
+
             if ($isSmallestCalendar) {
                 // Calendar-unit rounding: zero out time and round the calendar part.
                 $nsPerDayF = 86_400_000_000_000.0;
 
                 // Receiver's local components for calendar-aware rounding.
-                $recLocal = $receiverIsLater ? $laterLocal : $earlierLocal;
+                $recLocal = $tdLocal;
 
                 if ($normSmallest === 'year') {
                     $floorCount = intdiv(num1: $years, num2: $roundingIncrement) * $roundingIncrement;
 
-                    // Compute actual interval by adding floor and floor+increment years
-                    // to the receiver and measuring the true day difference.
                     $progress = self::calcYearProgress(
                         $recLocal,
                         $earlierLocal,
@@ -3388,14 +3426,12 @@ final class ZonedDateTime implements Stringable
                     );
                     $roundUp = self::applyRoundingProgress($years, $progress, $roundingIncrement, $effectiveMode);
                     $roundedYears = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
-                    return new Duration(years: $sign * $roundedYears);
+                    return new Duration(years: $outputSign * $roundedYears);
                 }
                 if ($normSmallest === 'month') {
                     $totalMonths = ($years * 12) + $months;
                     $floorCount = intdiv(num1: $totalMonths, num2: $roundingIncrement) * $roundingIncrement;
 
-                    // Compute actual interval by adding floor and floor+increment months
-                    // to the receiver and measuring the true day difference.
                     $progress = self::calcMonthProgress(
                         $recLocal,
                         $earlierLocal,
@@ -3411,9 +3447,9 @@ final class ZonedDateTime implements Stringable
                     if ($normLargest === 'year') {
                         $ry = intdiv(num1: $roundedMonths, num2: 12);
                         $rm = $roundedMonths - ($ry * 12);
-                        return new Duration(years: $sign * $ry, months: $sign * $rm);
+                        return new Duration(years: $outputSign * $ry, months: $outputSign * $rm);
                     }
-                    return new Duration(months: $sign * $roundedMonths);
+                    return new Duration(months: $outputSign * $roundedMonths);
                 }
                 if ($normSmallest === 'week') {
                     $totalDays = ($weeks * 7) + $days;
@@ -3423,7 +3459,7 @@ final class ZonedDateTime implements Stringable
                     $roundUp = self::applyRoundingProgress($weekDays, $progress, $weekIncrement, $effectiveMode);
                     $q = intdiv(num1: $weekDays, num2: $weekIncrement);
                     $roundedDays = $roundUp ? ($q + 1) * $weekIncrement : $q * $weekIncrement;
-                    return new Duration(weeks: $sign * intdiv(num1: $roundedDays, num2: 7));
+                    return new Duration(weeks: $outputSign * intdiv(num1: $roundedDays, num2: 7));
                 }
                 // normSmallest === 'day'
                 $progress = $timeDiffNs > 0 ? (float) $timeDiffNs / $nsPerDayF : 0.0;
@@ -3431,15 +3467,15 @@ final class ZonedDateTime implements Stringable
                 $q = intdiv(num1: $days, num2: $roundingIncrement);
                 $roundedDays = $roundUp ? ($q + 1) * $roundingIncrement : $q * $roundingIncrement;
                 if ($normLargest === 'day') {
-                    return new Duration(days: $sign * $roundedDays);
+                    return new Duration(days: $outputSign * $roundedDays);
                 }
                 if ($normLargest === 'week') {
                     $totalDays = ($weeks * 7) + $roundedDays;
                     $roundedWeeks = intdiv(num1: $totalDays, num2: 7);
                     $remDays = $totalDays - ($roundedWeeks * 7);
-                    return new Duration(weeks: $sign * $roundedWeeks, days: $sign * $remDays);
+                    return new Duration(weeks: $outputSign * $roundedWeeks, days: $outputSign * $remDays);
                 }
-                return new Duration(years: $sign * $years, months: $sign * $months, days: $sign * $roundedDays);
+                return new Duration(years: $outputSign * $years, months: $outputSign * $months, days: $outputSign * $roundedDays);
             }
 
             // smallestUnit is a time unit but largestUnit is a calendar unit.
@@ -3463,20 +3499,23 @@ final class ZonedDateTime implements Stringable
 
             // Re-balance calendar units when day overflow pushes past month boundaries.
             if ($overflowDays > 0 && in_array($normLargest, ['year', 'month'], strict: true)) {
-                // Recompute from the anchor: add the total days to the earlier date,
-                // then re-diff to get the correct year/month/day breakdown.
-                $anchorJdn = $earlierJdn + $dateDiff + $overflowDays;
-                [$anchorY, $anchorM, $anchorD] = CalendarMath::fromJulianDay($anchorJdn);
-                $receiverIsLater2 = $receiver === $later ? !$swapped : $swapped;
-                if ($this->calendarId !== 'iso8601') {
-                    $cal2 = CalendarFactory::get($this->calendarId);
+                if ($calId !== 'iso8601') {
+                    // Non-ISO: shift tc39AdjJdn by overflow in the diff direction.
+                    $tc39Jdn2 = $tc39AdjJdn + ($sign >= 0 ? $overflowDays : -$overflowDays);
+                    [$anchorY, $anchorM, $anchorD] = CalendarMath::fromJulianDay($tc39Jdn2);
+                    $cal2 = CalendarFactory::get($calId);
                     [$years, $months, , $days] = $cal2->dateUntil(
-                        $earlierLocal['year'], $earlierLocal['month'], $earlierLocal['day'],
+                        $tdLocal['year'], $tdLocal['month'], $tdLocal['day'],
                         $anchorY, $anchorM, $anchorD,
                         $normLargest,
-                        $receiverIsLater2,
                     );
+                    $years = abs($years);
+                    $months = abs($months);
+                    $days = abs($days);
                 } else {
+                    // ISO: use swap-based adjOtherJdn + overflow.
+                    $isoAdjJdn2 = $adjOtherJdn + $overflowDays;
+                    [$anchorY, $anchorM, $anchorD] = CalendarMath::fromJulianDay($isoAdjJdn2);
                     [$years, $months, $days] = self::calendarDiff(
                         $earlierLocal['year'],
                         $earlierLocal['month'],
@@ -3484,7 +3523,7 @@ final class ZonedDateTime implements Stringable
                         $anchorY,
                         $anchorM,
                         $anchorD,
-                        $receiverIsLater2,
+                        $sign < 0,
                     );
                 }
                 if ($normLargest === 'month') {
@@ -3506,16 +3545,16 @@ final class ZonedDateTime implements Stringable
             $nsR = $rem % self::NS_PER_MICROSECOND;
 
             return new Duration(
-                years: $sign * $years,
-                months: $sign * $months,
-                weeks: $sign * $weeks,
-                days: $sign * $days,
-                hours: $sign * $h,
-                minutes: $sign * $min,
-                seconds: $sign * $sec,
-                milliseconds: $sign * $msR,
-                microseconds: $sign * $usR,
-                nanoseconds: $sign * $nsR,
+                years: $outputSign * $years,
+                months: $outputSign * $months,
+                weeks: $outputSign * $weeks,
+                days: $outputSign * $days,
+                hours: $outputSign * $h,
+                minutes: $outputSign * $min,
+                seconds: $outputSign * $sec,
+                milliseconds: $outputSign * $msR,
+                microseconds: $outputSign * $usR,
+                nanoseconds: $outputSign * $nsR,
             );
         }
 
@@ -3557,12 +3596,12 @@ final class ZonedDateTime implements Stringable
         $nsR = $luTimeRank >= 2 ? $rem % self::NS_PER_MICROSECOND : $rem;
 
         return new Duration(
-            hours: $sign * $h,
-            minutes: $sign * $min,
-            seconds: $sign * $sec,
-            milliseconds: $sign * $msR,
-            microseconds: $sign * $usR,
-            nanoseconds: $sign * $nsR,
+            hours: $outputSign * $h,
+            minutes: $outputSign * $min,
+            seconds: $outputSign * $sec,
+            milliseconds: $outputSign * $msR,
+            microseconds: $outputSign * $usR,
+            nanoseconds: $outputSign * $nsR,
         );
     }
 
