@@ -865,6 +865,10 @@ final class PlainYearMonth implements Stringable
             /** @var mixed $eraYearRaw */
             $eraYearRaw = $bag['eraYear'];
             if (is_string($eraRaw) && $eraYearRaw !== null) {
+                /** @phpstan-ignore cast.double */
+                if (!is_finite((float) $eraYearRaw)) {
+                    throw new InvalidArgumentException('PlainYearMonth eraYear must be finite.');
+                }
                 /** @phpstan-ignore cast.int */
                 $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
                 $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
@@ -1093,9 +1097,12 @@ final class PlainYearMonth implements Stringable
             $normLargest = $normSmallest;
         }
 
-        // Short-circuit when both year-months are equal: diff is always zero.
-        // This avoids the PlainDate range check for boundary year-months that would otherwise fail.
-        if ($temporalDate->isoYear === $other->isoYear && $temporalDate->isoMonth === $other->isoMonth) {
+        // Short-circuit when both year-months represent the same calendar month.
+        // Compare all three ISO fields because non-ISO calendars can map different
+        // calendar months to the same ISO year/month (distinguished by referenceISODay).
+        if ($temporalDate->isoYear === $other->isoYear
+            && $temporalDate->isoMonth === $other->isoMonth
+            && $temporalDate->referenceISODay === $other->referenceISODay) {
             return new Duration();
         }
 

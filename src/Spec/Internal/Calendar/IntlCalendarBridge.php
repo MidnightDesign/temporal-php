@@ -443,7 +443,8 @@ final class IntlCalendarBridge implements CalendarProtocol
                 $mc = $this->hebrewMonthCode();
                 $calYear += $years;
                 // Use monthCodeToMonth for the new year. If M05L and new year isn't
-                // leap, constrain to M06 (Adar).
+                // leap, constrain to M06 (Adar) — the corresponding regular month,
+                // since Hebrew Adar I (M05L) maps to Adar (M06) in non-leap years.
                 $isNewLeap = (7 * $calYear + 1) % 19 < 7;
                 if ($mc === 'M05L' && !$isNewLeap) {
                     if ($overflow === 'reject') {
@@ -605,50 +606,15 @@ final class IntlCalendarBridge implements CalendarProtocol
      * "Surpass" means overshoot in the given direction: for sign=+1, result <= target;
      * for sign=-1, result >= target.
      *
-     * For year-only trials (months=0): uses 'reject' overflow so that leap-month
-     * changes (M04L→M04) correctly fail the trial. This matches TC39's behavior
-     * of preserving the monthCode across year additions.
-     *
-     * For month trials: uses 'constrain' overflow so that day constraining
-     * (e.g., Jan 30 → Feb 28) still counts as a valid month.
+     * Uses 'constrain' overflow for all trials, matching TC39's CalendarDateUntil
+     * algorithm (Step 11.f: CalendarDateAdd with "constrain"). For day constraining
+     * (e.g., Jan 30 -> Feb 28), the original day is restored for comparison purposes.
      */
     private function trialDateAddDoesNotSurpass(
         int $isoY1, int $isoM1, int $isoD1,
         int $years, int $months,
         int $targetJdn, int $sign,
     ): bool {
-        // Year-only trials: the direction matters for leap-month calendars.
-        // Forward: if monthCode changes (M04L→M04), the year position shifted
-        // backward (lower ordinal), so the trial should fail (reject).
-        // Backward: if monthCode changes, the position shifted backward, meaning
-        // we went further back than a year, which still counts (constrain).
-        if ($months === 0) {
-            if ($sign > 0) {
-                // Forward: use reject so monthCode changes fail.
-                try {
-                    [$tY, $tM, $tD] = $this->dateAdd(
-                        $isoY1, $isoM1, $isoD1,
-                        $years, 0, 0, 0,
-                        'reject',
-                    );
-                } catch (InvalidArgumentException) {
-                    return false;
-                }
-            } else {
-                // Backward: use constrain, allowing leap month fallback.
-                [$tY, $tM, $tD] = $this->dateAdd(
-                    $isoY1, $isoM1, $isoD1,
-                    $years, 0, 0, 0,
-                    'constrain',
-                );
-            }
-            $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
-            return $sign > 0
-                ? $trialJdn <= $targetJdn
-                : $trialJdn >= $targetJdn;
-        }
-
-        // Month trials use 'constrain' to allow day constraining.
         [$tY, $tM, $tD] = $this->dateAdd(
             $isoY1, $isoM1, $isoD1,
             $years, $months, 0, 0,
@@ -656,11 +622,63 @@ final class IntlCalendarBridge implements CalendarProtocol
         );
         $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
 
-        // Read the original calendar day from date1.
+        if ($months === 0) {
+            // Year-only trial: check if the calendar day was constrained
+            // (e.g. day 30 -> day 29 in a shorter month). If so, the trial
+            // didn't preserve the exact date, so use strict inequality.
+            $this->setIsoDate($isoY1, $isoM1, $isoD1);
+            $origCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            $this->setIsoDate($tY, $tM, $tD);
+            $trialCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            $dayConstrained = $trialCalDay < $origCalDay;
+
+            // For leap-month calendars, also check monthCode constraining.
+            $monthConstrained = false;
+            $constrainedOrdEarlier = false;
+            if (in_array($this->calendarId, ['chinese', 'dangi', 'hebrew'], true)) {
+                $origMonthCode = $this->monthCode($isoY1, $isoM1, $isoD1);
+                $trialMonthCode = $this->monthCode($tY, $tM, $tD);
+                if ($origMonthCode !== $trialMonthCode) {
+                    $monthConstrained = true;
+                    $this->setIsoDate($isoY1, $isoM1, $isoD1);
+                    $origOrd = $this->calendarMonth();
+                    $this->setIsoDate($tY, $tM, $tD);
+                    $trialOrd = $this->calendarMonth();
+                    $constrainedOrdEarlier = $trialOrd < $origOrd;
+                }
+            }
+
+            if ($monthConstrained) {
+                if ($sign > 0) {
+                    // Forward: ordinal decreased -> use strict <.
+                    // Ordinal same/increased (Hebrew M05L->M06) -> use <=.
+                    return $constrainedOrdEarlier
+                        ? $trialJdn < $targetJdn
+                        : $trialJdn <= $targetJdn;
+                }
+                // Backward: ordinal increased/same -> use strict >.
+                // Ordinal decreased -> use >=.
+                return $constrainedOrdEarlier
+                    ? $trialJdn >= $targetJdn
+                    : $trialJdn > $targetJdn;
+            }
+
+            if ($dayConstrained) {
+                // Day was constrained, use strict inequality.
+                return $sign > 0
+                    ? $trialJdn < $targetJdn
+                    : $trialJdn > $targetJdn;
+            }
+
+            return $sign > 0
+                ? $trialJdn <= $targetJdn
+                : $trialJdn >= $targetJdn;
+        }
+
+        // Month trials: check if day was constrained and adjust.
         $this->setIsoDate($isoY1, $isoM1, $isoD1);
         $origCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
 
-        // Read the constrained calendar day from the trial result.
         $this->setIsoDate($tY, $tM, $tD);
         $trialCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
 
