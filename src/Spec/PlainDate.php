@@ -1309,15 +1309,13 @@ final class PlainDate implements Stringable
         }
 
         // TC39 spec: round BEFORE since negation (steps 8-10).
-        // The rounding functions receive the raw dateUntil result (signed).
-        // The sign is used internally for direction-aware rounding.
-        // After rounding, apply since negation.
+        // For "since", GetDifferenceSettings negates the rounding mode so that
+        // ceil/floor behave correctly in the output direction.
         $sinceSign = $operation === 'since' ? -1 : 1;
+        if ($operation === 'since') {
+            $roundingMode = self::negateRoundingMode($roundingMode);
+        }
 
-        // For ISO backward diffs, the calendarDiff always returns positive values
-        // with $receiverIsLater controlling the anchor. The dateUntil values we
-        // have now are already signed correctly (negative when going backward).
-        // The rounding functions handle sign via $receiverIsLater for the anchor.
         $sign = $totalDays > 0 ? 1 : ($totalDays < 0 ? -1 : 0);
         $receiverIsLater = $sign < 0;
 
@@ -1362,6 +1360,17 @@ final class PlainDate implements Stringable
      * For directed modes (floor/ceil, halfFloor/halfCeil), the mode is negated
      * for negative values to maintain correct directional semantics.
      */
+    private static function negateRoundingMode(string $mode): string
+    {
+        return match ($mode) {
+            'floor' => 'ceil',
+            'ceil' => 'floor',
+            'halfFloor' => 'halfCeil',
+            'halfCeil' => 'halfFloor',
+            default => $mode,
+        };
+    }
+
     private static function roundDays(int $totalDays, int $increment, string $mode): int
     {
         if ($increment === 1 && $mode === 'trunc') {

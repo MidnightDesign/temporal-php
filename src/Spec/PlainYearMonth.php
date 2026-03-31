@@ -1127,9 +1127,11 @@ final class PlainYearMonth implements Stringable
             'month',
         );
 
-        // Rounding works on the raw signed values from dateUntil.
-        // Since negation is applied at the return statements only.
+        // TC39: for "since", GetDifferenceSettings negates the rounding mode.
         $sinceSign = $operation === 'since' ? -1 : 1;
+        if ($operation === 'since') {
+            $roundingMode = self::negateRoundingMode($roundingMode);
+        }
 
         if ($normLargest === 'month') {
             if ($normSmallest === 'month') {
@@ -1260,6 +1262,17 @@ final class PlainYearMonth implements Stringable
      *
      * @throws InvalidArgumentException if the rounded result is outside the valid range.
      */
+    private static function negateRoundingMode(string $mode): string
+    {
+        return match ($mode) {
+            'floor' => 'ceil',
+            'ceil' => 'floor',
+            'halfFloor' => 'halfCeil',
+            'halfCeil' => 'halfFloor',
+            default => $mode,
+        };
+    }
+
     private static function roundCalendarYearsYM(
         int $years,
         int $months,
