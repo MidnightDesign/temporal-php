@@ -1939,22 +1939,27 @@ final class PlainDateTime implements Stringable
                 [$years, $months] = [0, 0];
             } else {
                 if ($calId !== 'iso8601') {
-                    // TC39 CalendarDateUntil(temporalDate, adjustedOther) — always
-                    // in (this, other) order. Compute adjustedOther per TC39
-                    // DifferenceISODateTime: only borrow a day when time and date
-                    // signs conflict (different from the swap+borrow above).
-                    $rawTD = $otherNs - $tdNs;
-                    $tS = $rawTD > 0 ? 1 : ($rawTD < 0 ? -1 : 0);
-                    $dS = $tdJdn > $otherJdn ? 1 : ($tdJdn < $otherJdn ? -1 : 0);
-                    $tc39AdjJdn = $otherJdn;
-                    if ($tS !== 0 && $tS === -$dS) {
-                        $tc39AdjJdn = $otherJdn - $tS;
+                    // For non-ISO calendars, use CalendarDateUntil(temporalDate,
+                    // adjustedOther) in (this, other) order per TC39 spec.
+                    // Compute the adjusted other JDN by borrowing from the date
+                    // component when the time difference and date difference have
+                    // different signs.
+                    $rawDateDiff = $otherJdn - $tdJdn;
+                    $rawTimeDiff = $otherNs - $tdNs;
+                    $nonIsoAdjJdn = $otherJdn;
+                    if ($rawDateDiff !== 0 && $rawTimeDiff !== 0) {
+                        $dateSign = $rawDateDiff > 0 ? 1 : -1;
+                        $timeSign = $rawTimeDiff > 0 ? 1 : -1;
+                        if ($dateSign !== $timeSign) {
+                            // Borrow one day in the direction of the date diff.
+                            $nonIsoAdjJdn = $otherJdn - $dateSign;
+                        }
                     }
-                    [$tc39Y, $tc39M, $tc39D] = CalendarMath::fromJulianDay($tc39AdjJdn);
+                    [$adjY2b, $adjM2b, $adjD2b] = CalendarMath::fromJulianDay($nonIsoAdjJdn);
                     $cal = CalendarFactory::get($calId);
                     [$years, $months, , $days] = $cal->dateUntil(
                         $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->isoDay,
-                        $tc39Y, $tc39M, $tc39D,
+                        $adjY2b, $adjM2b, $adjD2b,
                         $normLargest,
                     );
                     // Take absolute values — the output sign is applied later.
