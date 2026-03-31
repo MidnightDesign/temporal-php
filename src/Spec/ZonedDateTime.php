@@ -537,7 +537,7 @@ final class ZonedDateTime implements Stringable
     {
         $a = $one instanceof self ? $one : self::from($one);
         $b = $two instanceof self ? $two : self::from($two);
-        return $a->epochNanoseconds <=> $b->epochNanoseconds;
+        return self::compareInstants($a, $b);
     }
 
     // -------------------------------------------------------------------------
@@ -733,7 +733,7 @@ final class ZonedDateTime implements Stringable
             $other = self::from($other);
         }
         return (
-            $this->epochNanoseconds === $other->epochNanoseconds
+            self::compareInstants($this, $other) === 0
             && $this->timeZoneId === $other->timeZoneId
             && $this->calendarId === $other->calendarId
         );
@@ -1844,6 +1844,59 @@ final class ZonedDateTime implements Stringable
         } catch (\Exception) {
             throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": not a recognized timezone identifier.");
         }
+    }
+
+    /**
+     * Returns the true UTC epoch seconds and sub-second nanoseconds,
+     * handling sentinel epochNanoseconds values transparently.
+     *
+     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
+     */
+    private function getEpochParts(): array
+    {
+        if ($this->trueEpochSec !== null) {
+            return [$this->trueEpochSec, $this->trueSubNs];
+        }
+        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
+        return [$epochSec, $subNs];
+    }
+
+    /**
+     * Compares two ZonedDateTimes by their true epoch instant, handling sentinels.
+     *
+     * @return int -1, 0, or 1
+     */
+    private static function compareInstants(self $a, self $b): int
+    {
+        [$aSec, $aSubNs] = $a->getEpochParts();
+        [$bSec, $bSubNs] = $b->getEpochParts();
+        return ($aSec <=> $bSec) ?: ($aSubNs <=> $bSubNs);
+    }
+
+    /**
+     * Computes the signed nanosecond difference ($b - $a) using true epoch parts.
+     *
+     * When both values fit in int64, uses plain arithmetic. Falls back to
+     * seconds + sub-ns decomposition to avoid int overflow for proleptic dates.
+     *
+     * @return int Nanosecond difference (may still overflow for spans > ~292 years,
+     *             but calendar-largest paths only use this for sign detection).
+     */
+    private static function diffEpochNs(self $a, self $b): int
+    {
+        [$aSec, $aSubNs] = $a->getEpochParts();
+        [$bSec, $bSubNs] = $b->getEpochParts();
+        $diffSec = $bSec - $aSec;
+        $diffSubNs = $bSubNs - $aSubNs;
+        // Safe multiplication check: |diffSec| * 1e9 fits int64 when |diffSec| < ~9.2e9
+        $maxSafeSecDiff = 9_000_000_000;
+        if ($diffSec > $maxSafeSecDiff || $diffSec < -$maxSafeSecDiff) {
+            // Return a large sentinel value preserving sign; callers that need
+            // the calendar path only use this for sign, not magnitude.
+            return $diffSec > 0 ? PHP_INT_MAX : PHP_INT_MIN;
+        }
+        return ($diffSec * self::NS_PER_SECOND) + $diffSubNs;
     }
 
     /**
@@ -3268,7 +3321,7 @@ final class ZonedDateTime implements Stringable
 
         // Epoch ns difference: other − temporalDate.
         // Positive when other > temporalDate (the "until" direction).
-        $diffNs = $other->epochNanoseconds - $temporalDate->epochNanoseconds;
+        $diffNs = self::diffEpochNs($temporalDate, $other);
 
         // Overall sign.
         $sign = $diffNs > 0 ? 1 : ($diffNs < 0 ? -1 : 0);
