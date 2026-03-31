@@ -753,9 +753,43 @@ final class ZonedDateTime implements Stringable
         }
         return (
             self::compareInstants($this, $other) === 0
-            && $this->timeZoneId === $other->timeZoneId
+            && self::canonicalizeTimezoneForComparison($this->timeZoneId)
+                === self::canonicalizeTimezoneForComparison($other->timeZoneId)
             && $this->calendarId === $other->calendarId
         );
+    }
+
+    /**
+     * Canonicalizes a timezone ID for comparison purposes only.
+     * Does NOT change the stored timeZoneId. This allows Etc/GMT to be
+     * preserved in the timeZoneId property but still compare equal to UTC.
+     */
+    private static function canonicalizeTimezoneForComparison(string $id): string
+    {
+        // UTC aliases all compare equal.
+        /** @var list<string> $utcAliases */
+        static $utcAliases = [
+            'etc/utc', 'etc/gmt', 'etc/gmt+0', 'etc/gmt-0', 'etc/gmt0',
+            'etc/uct', 'etc/universal', 'etc/zulu',
+            'gmt', 'gmt+0', 'gmt-0', 'gmt0', 'uct', 'universal', 'zulu', 'utc',
+        ];
+        $lower = strtolower($id);
+        if (in_array($lower, $utcAliases, strict: true)) {
+            return 'UTC';
+        }
+        // Case-fold and use ICU canonical ID for IANA alias resolution.
+        // ICU's getCanonicalID is case-sensitive, so we look up using
+        // the properly-cased IANA ID from PHP's timezone list.
+        /** @var array<string, string>|null $lowerMap */
+        static $lowerMap = null;
+        if ($lowerMap === null) {
+            $lowerMap = [];
+            foreach (\DateTimeZone::listIdentifiers() as $ident) {
+                $lowerMap[strtolower($ident)] = $ident;
+            }
+        }
+        $properCase = $lowerMap[$lower] ?? $id;
+        return \IntlTimeZone::getCanonicalID($properCase) ?: $properCase;
     }
 
     /**
@@ -1862,8 +1896,11 @@ final class ZonedDateTime implements Stringable
 
         // IANA timezone name: validate via PHP DateTimeZone.
         try {
-            new \DateTimeZone($id);
-            return $id;
+            $tz = new \DateTimeZone($id);
+            // PHP returns the timezone name with proper casing.
+            $phpName = $tz->getName();
+            // Use the PHP-normalized name (which fixes case).
+            return $phpName;
         } catch (\Exception) {
             throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": not a recognized timezone identifier.");
         }
