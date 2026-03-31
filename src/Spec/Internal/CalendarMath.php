@@ -50,19 +50,82 @@ final class CalendarMath
         return is_int($raw) ? $raw : (int) $raw;
     }
 
+    /** @var list<string> Individual date/time component options that conflict with dateStyle/timeStyle. */
+    private const COMPONENT_OPTIONS = [
+        'weekday', 'era', 'year', 'month', 'day',
+        'hour', 'minute', 'second', 'dayPeriod',
+        'fractionalSecondDigits', 'timeZoneName',
+    ];
+
+    /**
+     * Validates that dateStyle/timeStyle are not combined with individual component options.
+     *
+     * Per ECMA-402, mixing dateStyle or timeStyle with any individual date/time component
+     * option (weekday, era, year, month, day, hour, minute, second, dayPeriod,
+     * fractionalSecondDigits, timeZoneName) throws a TypeError.
+     *
+     * @param array<string, mixed> $opts
+     * @throws \TypeError if style and component options are mixed.
+     */
+    public static function validateStyleConflicts(array $opts): void
+    {
+        $hasDateStyle = isset($opts['dateStyle']) && $opts['dateStyle'] !== null;
+        $hasTimeStyle = isset($opts['timeStyle']) && $opts['timeStyle'] !== null;
+
+        if (!$hasDateStyle && !$hasTimeStyle) {
+            return;
+        }
+
+        foreach (self::COMPONENT_OPTIONS as $opt) {
+            if (isset($opts[$opt]) && $opts[$opt] !== null) {
+                if ($hasDateStyle) {
+                    throw new \TypeError("toLocaleString(): dateStyle and {$opt} cannot be used together.");
+                }
+                if ($hasTimeStyle) {
+                    throw new \TypeError("toLocaleString(): timeStyle and {$opt} cannot be used together.");
+                }
+            }
+        }
+    }
+
     /**
      * Builds a configured IntlDateFormatter from a resolved locale, timezone, and options array.
      *
      * Reads `dateStyle` and `timeStyle` from $opts (each: "full"|"long"|"medium"|"short") and maps
-     * them to IntlDateFormatter constants. When neither style is provided, defaults to MEDIUM/SHORT.
+     * them to IntlDateFormatter constants. When neither style is provided, uses a pattern built
+     * from individual component options, or defaults based on the $defaultComponents parameter.
      * Appends a `@calendar=…` extension to $locale if $opts['calendar'] is set.
+     * Supports `hour12` and `hourCycle` options for hour format control.
      *
      * @param array<string, mixed> $opts
+     * @param string $defaultComponents Which components to include by default: 'datetime', 'date', or 'time'.
      */
-    public static function buildIntlFormatter(string $locale, string $timeZone, array $opts): \IntlDateFormatter
-    {
+    public static function buildIntlFormatter(
+        string $locale,
+        string $timeZone,
+        array $opts,
+        string $defaultComponents = 'datetime',
+    ): \IntlDateFormatter {
         if (isset($opts['calendar']) && is_string($opts['calendar'])) {
             $locale = sprintf('%s@calendar=%s', $locale, $opts['calendar']);
+        }
+
+        // Apply hourCycle as a Unicode locale extension
+        if (isset($opts['hourCycle']) && is_string($opts['hourCycle'])) {
+            $locale = self::applyHourCycle($locale, $opts['hourCycle']);
+        } elseif (isset($opts['hour12'])) {
+            // hour12=false -> h23, hour12=true -> h12
+            $hc = $opts['hour12'] ? 'h12' : 'h23';
+            $locale = self::applyHourCycle($locale, $hc);
+        }
+
+        // Detect non-gregorian calendar from locale keywords (e.g. en-u-ca-islamic-tbla
+        // or en@calendar=islamic-tbla). IntlDateFormatter only respects non-gregorian calendars
+        // when an explicit IntlCalendar instance is passed.
+        $calendarObj = null;
+        $keywords = \Locale::getKeywords($locale);
+        if (is_array($keywords) && isset($keywords['calendar']) && $keywords['calendar'] !== 'gregory' && $keywords['calendar'] !== 'gregorian') {
+            $calendarObj = \IntlCalendar::createInstance($timeZone, $locale);
         }
 
         $styleMap = [
@@ -76,18 +139,160 @@ final class CalendarMath
         $timeStyle = isset($opts['timeStyle']) && is_string($opts['timeStyle']) ? $opts['timeStyle'] : null;
 
         if ($dateStyle !== null || $timeStyle !== null) {
+            self::validateStyleConflicts($opts);
+
             $dateType = $dateStyle !== null
                 ? $styleMap[$dateStyle] ?? \IntlDateFormatter::MEDIUM
                 : \IntlDateFormatter::NONE;
             $timeType = $timeStyle !== null
                 ? $styleMap[$timeStyle] ?? \IntlDateFormatter::SHORT
                 : \IntlDateFormatter::NONE;
-        } else {
-            $dateType = \IntlDateFormatter::MEDIUM;
-            $timeType = \IntlDateFormatter::SHORT;
+
+            $formatter = new \IntlDateFormatter($locale, $dateType, $timeType, $timeZone, $calendarObj);
+            if ($calendarObj !== null) {
+                $formatter->setCalendar($calendarObj);
+            }
+            return $formatter;
         }
 
-        return new \IntlDateFormatter($locale, $dateType, $timeType, $timeZone);
+        // Check for individual component options that require a custom pattern
+        $hasComponents = false;
+        foreach (self::COMPONENT_OPTIONS as $opt) {
+            if (isset($opts[$opt]) && $opts[$opt] !== null) {
+                $hasComponents = true;
+                break;
+            }
+        }
+
+        if ($hasComponents) {
+            $pattern = self::buildPatternFromComponents($opts, $defaultComponents, $locale);
+            $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $timeZone, $calendarObj, $pattern);
+            if ($calendarObj !== null) {
+                $formatter->setCalendar($calendarObj);
+            }
+            return $formatter;
+        }
+
+        // Default: use skeleton-based patterns to match JS Intl.DateTimeFormat defaults
+        $generator = new \IntlDatePatternGenerator($locale);
+        if ($defaultComponents === 'date') {
+            $pattern = $generator->getBestPattern('yMd');
+        } elseif ($defaultComponents === 'time') {
+            $pattern = $generator->getBestPattern('jms');
+        } elseif ($defaultComponents === 'datetime-tz') {
+            // ZonedDateTime default includes timezone name
+            $pattern = $generator->getBestPattern('yMdjmsz');
+        } else {
+            $pattern = $generator->getBestPattern('yMdjms');
+        }
+
+        $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $timeZone, $calendarObj, $pattern);
+        if ($calendarObj !== null) {
+            $formatter->setCalendar($calendarObj);
+        }
+        return $formatter;
+    }
+
+    /**
+     * Appends a -u-hc-{hourCycle} extension to a BCP 47 locale string.
+     */
+    private static function applyHourCycle(string $locale, string $hourCycle): string
+    {
+        // If there's already a -u- extension, append hc keyword
+        if (str_contains($locale, '-u-')) {
+            return $locale . '-hc-' . $hourCycle;
+        }
+        // If there's an @keyword section, insert before it
+        $atPos = strpos($locale, '@');
+        if ($atPos !== false) {
+            return substr($locale, 0, $atPos) . '-u-hc-' . $hourCycle . substr($locale, $atPos);
+        }
+        return $locale . '-u-hc-' . $hourCycle;
+    }
+
+    /**
+     * Builds an ICU skeleton pattern from individual component options.
+     *
+     * @param array<string, mixed> $opts
+     */
+    private static function buildPatternFromComponents(array $opts, string $defaultComponents, string $locale = 'en'): string
+    {
+        $parts = [];
+
+        // Date components
+        if (isset($opts['weekday'])) {
+            $parts[] = match ($opts['weekday']) {
+                'narrow' => 'EEEEE',
+                'short' => 'EEE',
+                'long' => 'EEEE',
+                default => 'EEE',
+            };
+        }
+        if (isset($opts['era'])) {
+            $parts[] = match ($opts['era']) {
+                'narrow' => 'GGGGG',
+                'short' => 'GGG',
+                'long' => 'GGGG',
+                default => 'GGG',
+            };
+        }
+        if (isset($opts['year'])) {
+            $parts[] = $opts['year'] === '2-digit' ? 'yy' : 'y';
+        }
+        if (isset($opts['month'])) {
+            $parts[] = match ($opts['month']) {
+                'numeric' => 'M',
+                '2-digit' => 'MM',
+                'narrow' => 'MMMMM',
+                'short' => 'MMM',
+                'long' => 'MMMM',
+                default => 'M',
+            };
+        }
+        if (isset($opts['day'])) {
+            $parts[] = $opts['day'] === '2-digit' ? 'dd' : 'd';
+        }
+
+        // Time components
+        if (isset($opts['hour'])) {
+            // Use 'j' skeleton symbol which picks locale-appropriate hour cycle
+            $parts[] = $opts['hour'] === '2-digit' ? 'jj' : 'j';
+        }
+        if (isset($opts['minute'])) {
+            $parts[] = $opts['minute'] === '2-digit' ? 'mm' : 'm';
+        }
+        if (isset($opts['second'])) {
+            $parts[] = $opts['second'] === '2-digit' ? 'ss' : 's';
+        }
+        if (isset($opts['fractionalSecondDigits'])) {
+            $digits = (int) $opts['fractionalSecondDigits'];
+            $parts[] = str_repeat('S', $digits);
+        }
+        if (isset($opts['dayPeriod'])) {
+            $parts[] = match ($opts['dayPeriod']) {
+                'narrow' => 'BBBBB',
+                'short' => 'B',
+                'long' => 'BBBB',
+                default => 'B',
+            };
+        }
+        if (isset($opts['timeZoneName'])) {
+            $parts[] = match ($opts['timeZoneName']) {
+                'short' => 'z',
+                'long' => 'zzzz',
+                'shortOffset' => 'O',
+                'longOffset' => 'OOOO',
+                'shortGeneric' => 'v',
+                'longGeneric' => 'vvvv',
+                default => 'z',
+            };
+        }
+
+        $skeleton = implode('', $parts);
+
+        // Use ICU's DateTimePatternGenerator to get a best-fit pattern
+        $generator = new \IntlDatePatternGenerator($locale);
+        return $generator->getBestPattern($skeleton);
     }
 
     /**

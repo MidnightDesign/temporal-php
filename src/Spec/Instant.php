@@ -643,6 +643,7 @@ final class Instant implements Stringable
 
         $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone']) ? $opts['timeZone'] : 'UTC';
 
+        $opts['_locale'] = $locale;
         $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
         $seconds = intdiv(num1: $this->epochNanoseconds, num2: self::NS_PER_SECOND);
         $result = $formatter->format($seconds);
