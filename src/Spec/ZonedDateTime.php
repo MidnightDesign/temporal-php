@@ -382,8 +382,27 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
-    public int $hoursInDay {
-        get => 24;
+    public int|float $hoursInDay {
+        get {
+            // Compute the actual hours in the local day by finding
+            // start-of-day for today and tomorrow, accounting for DST.
+            $lc = $this->localComponents();
+            $todayJdn = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']);
+            $todayEpochDays = $todayJdn - 2_440_588;
+            $tomorrowEpochDays = $todayEpochDays + 1;
+
+            $todayWallSec = $todayEpochDays * 86_400;
+            $tomorrowWallSec = $tomorrowEpochDays * 86_400;
+
+            $todayEpochSec = self::wallSecToEpochSec($todayWallSec, $this->timeZoneId);
+            $tomorrowEpochSec = self::wallSecToEpochSec($tomorrowWallSec, $this->timeZoneId);
+
+            $diffSec = $tomorrowEpochSec - $todayEpochSec;
+            $hours = $diffSec / 3600.0;
+
+            // Return int when it's a whole number, float otherwise.
+            return $hours === (float) (int) $hours ? (int) $hours : $hours;
+        }
     }
 
     // -------------------------------------------------------------------------
