@@ -60,7 +60,11 @@ trait TemporalSerde
         $timeZone = 'UTC';
 
         // Determine default component mode
-        if ($isDateOnly) {
+        if ($this instanceof \Temporal\Spec\PlainYearMonth) {
+            $defaultComponents = 'yearmonth';
+        } elseif ($this instanceof \Temporal\Spec\PlainMonthDay) {
+            $defaultComponents = 'monthday';
+        } elseif ($isDateOnly) {
             $defaultComponents = 'date';
         } elseif ($isTimeOnly) {
             $defaultComponents = 'time';
@@ -111,7 +115,9 @@ trait TemporalSerde
         }
 
         if ($this instanceof \Temporal\Spec\PlainYearMonth) {
-            $dt = new \DateTime(sprintf('%04d-%02d-01 00:00:00', $this->isoYear, $this->isoMonth), new \DateTimeZone('UTC'));
+            // Use referenceISODay to ensure the timestamp falls within the correct
+            // calendar month for non-ISO calendars.
+            $dt = new \DateTime(sprintf('%04d-%02d-%02d 00:00:00', $this->isoYear, $this->isoMonth, $this->referenceISODay), new \DateTimeZone('UTC'));
             return $dt->getTimestamp();
         }
 

@@ -148,6 +148,28 @@ final class CalendarMath
                 ? $styleMap[$timeStyle] ?? \IntlDateFormatter::SHORT
                 : \IntlDateFormatter::NONE;
 
+            // For PlainYearMonth/PlainMonthDay, get the style pattern then strip
+            // year or day components to avoid displaying them.
+            if ($dateStyle !== null && ($defaultComponents === 'yearmonth' || $defaultComponents === 'monthday')) {
+                $tmpFormatter = new \IntlDateFormatter($locale, $dateType, \IntlDateFormatter::NONE, $timeZone, $calendarObj);
+                if ($calendarObj !== null) {
+                    $tmpFormatter->setCalendar($calendarObj);
+                }
+                $pattern = $tmpFormatter->getPattern();
+                if ($defaultComponents === 'monthday') {
+                    // Strip year-related patterns (y, G, U, r) and surrounding punctuation
+                    $pattern = self::stripPatternComponents($pattern, 'year');
+                } elseif ($defaultComponents === 'yearmonth') {
+                    // Strip day-related patterns (d)
+                    $pattern = self::stripPatternComponents($pattern, 'day');
+                }
+                $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $timeZone, $calendarObj, $pattern);
+                if ($calendarObj !== null) {
+                    $formatter->setCalendar($calendarObj);
+                }
+                return $formatter;
+            }
+
             $formatter = new \IntlDateFormatter($locale, $dateType, $timeType, $timeZone, $calendarObj);
             if ($calendarObj !== null) {
                 $formatter->setCalendar($calendarObj);
@@ -175,7 +197,11 @@ final class CalendarMath
 
         // Default: use skeleton-based patterns to match JS Intl.DateTimeFormat defaults
         $generator = new \IntlDatePatternGenerator($locale);
-        if ($defaultComponents === 'date') {
+        if ($defaultComponents === 'yearmonth') {
+            $pattern = $generator->getBestPattern('yM');
+        } elseif ($defaultComponents === 'monthday') {
+            $pattern = $generator->getBestPattern('Md');
+        } elseif ($defaultComponents === 'date') {
             $pattern = $generator->getBestPattern('yMd');
         } elseif ($defaultComponents === 'time') {
             $pattern = $generator->getBestPattern('jms');
@@ -677,5 +703,37 @@ final class CalendarMath
         $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
         $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
         return [$year, $month, $day];
+    }
+
+    /**
+     * Strips year or day components from an ICU date pattern.
+     *
+     * For 'year': removes y, Y, u, U, r, G (era often pairs with year) pattern chars
+     * and surrounding separators/whitespace.
+     * For 'day': removes d, D pattern chars and surrounding separators.
+     *
+     * Quoted literals (inside single quotes) are preserved.
+     */
+    public static function stripPatternComponents(string $pattern, string $which): string
+    {
+        if ($which === 'year') {
+            // Remove year-related fields: y, Y, u, U, r and era G
+            $result = preg_replace("/[yYuUrG]+/", '', $pattern);
+        } elseif ($which === 'day') {
+            // Remove day-related fields: d, D
+            $result = preg_replace("/[dD]+/", '', $pattern);
+        } else {
+            return $pattern;
+        }
+
+        // Clean up leftover separators: double separators, leading/trailing punctuation
+        /** @var string $result */
+        $result = preg_replace('/\s*[,\/\-\.]\s*(?=[,\/\-\.\s]|$)/', '', $result);
+        $result = preg_replace('/^[\s,\/\-\.]+/', '', $result);
+        $result = preg_replace('/[\s,\/\-\.]+$/', '', $result);
+        // Collapse multiple spaces
+        $result = preg_replace('/\s{2,}/', ' ', $result);
+
+        return trim($result);
     }
 }
