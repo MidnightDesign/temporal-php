@@ -605,11 +605,9 @@ final class IntlCalendarBridge implements CalendarProtocol
      * "Surpass" means overshoot in the given direction: for sign=+1, result <= target;
      * for sign=-1, result >= target.
      *
-     * Uses 'constrain' overflow. When the day is constrained (e.g., Jan 30 → Feb 28),
-     * the trial still passes since we're counting months, not exact days.  The day
-     * remainder will be computed separately. Only when the trial lands in the same
-     * month as the target do we need to check the day: we compare using the
-     * ORIGINAL day (pre-constraining) to avoid undercounting months.
+     * Uses 'constrain' overflow for day constraining (e.g., Jan 30 → Feb 28 counts
+     * as a valid month), but detects monthCode changes for leap-month calendars
+     * (e.g., M06L → M06 means the year/month doesn't count).
      */
     private function trialDateAddDoesNotSurpass(
         int $isoY1, int $isoM1, int $isoD1,
@@ -621,6 +619,18 @@ final class IntlCalendarBridge implements CalendarProtocol
             $years, $months, 0, 0,
             'constrain',
         );
+
+        // For year-only trials (months=0), check if the monthCode was
+        // preserved across the year addition. For leap-month calendars,
+        // M06L may constrain to M06 if the target year lacks that leap month.
+        if ($months === 0 && in_array($this->calendarId, ['chinese', 'dangi', 'hebrew'], true)) {
+            $origMonthCode = $this->monthCode($isoY1, $isoM1, $isoD1);
+            $trialMonthCode = $this->monthCode($tY, $tM, $tD);
+            if ($origMonthCode !== $trialMonthCode) {
+                return false;
+            }
+        }
+
         $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
 
         // Read the original calendar day from date1.
