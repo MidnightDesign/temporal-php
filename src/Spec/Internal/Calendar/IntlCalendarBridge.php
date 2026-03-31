@@ -605,32 +605,55 @@ final class IntlCalendarBridge implements CalendarProtocol
      * "Surpass" means overshoot in the given direction: for sign=+1, result <= target;
      * for sign=-1, result >= target.
      *
-     * Uses 'constrain' overflow for day constraining (e.g., Jan 30 → Feb 28 counts
-     * as a valid month), but detects monthCode changes for leap-month calendars
-     * (e.g., M06L → M06 means the year/month doesn't count).
+     * For year-only trials (months=0): uses 'reject' overflow so that leap-month
+     * changes (M04L→M04) correctly fail the trial. This matches TC39's behavior
+     * of preserving the monthCode across year additions.
+     *
+     * For month trials: uses 'constrain' overflow so that day constraining
+     * (e.g., Jan 30 → Feb 28) still counts as a valid month.
      */
     private function trialDateAddDoesNotSurpass(
         int $isoY1, int $isoM1, int $isoD1,
         int $years, int $months,
         int $targetJdn, int $sign,
     ): bool {
+        // Year-only trials: the direction matters for leap-month calendars.
+        // Forward: if monthCode changes (M04L→M04), the year position shifted
+        // backward (lower ordinal), so the trial should fail (reject).
+        // Backward: if monthCode changes, the position shifted backward, meaning
+        // we went further back than a year, which still counts (constrain).
+        if ($months === 0) {
+            if ($sign > 0) {
+                // Forward: use reject so monthCode changes fail.
+                try {
+                    [$tY, $tM, $tD] = $this->dateAdd(
+                        $isoY1, $isoM1, $isoD1,
+                        $years, 0, 0, 0,
+                        'reject',
+                    );
+                } catch (InvalidArgumentException) {
+                    return false;
+                }
+            } else {
+                // Backward: use constrain, allowing leap month fallback.
+                [$tY, $tM, $tD] = $this->dateAdd(
+                    $isoY1, $isoM1, $isoD1,
+                    $years, 0, 0, 0,
+                    'constrain',
+                );
+            }
+            $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
+            return $sign > 0
+                ? $trialJdn <= $targetJdn
+                : $trialJdn >= $targetJdn;
+        }
+
+        // Month trials use 'constrain' to allow day constraining.
         [$tY, $tM, $tD] = $this->dateAdd(
             $isoY1, $isoM1, $isoD1,
             $years, $months, 0, 0,
             'constrain',
         );
-
-        // For year-only trials (months=0), check if the monthCode was
-        // preserved across the year addition. For leap-month calendars,
-        // M06L may constrain to M06 if the target year lacks that leap month.
-        if ($months === 0 && in_array($this->calendarId, ['chinese', 'dangi', 'hebrew'], true)) {
-            $origMonthCode = $this->monthCode($isoY1, $isoM1, $isoD1);
-            $trialMonthCode = $this->monthCode($tY, $tM, $tD);
-            if ($origMonthCode !== $trialMonthCode) {
-                return false;
-            }
-        }
-
         $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
 
         // Read the original calendar day from date1.
@@ -642,10 +665,8 @@ final class IntlCalendarBridge implements CalendarProtocol
         $trialCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
 
         if ($trialCalDay < $origCalDay) {
-            // Day was constrained. Adjust the JDN upward to pretend the original
-            // day was preserved. This ensures that when we land in the same month
-            // as the target, we don't count a month as complete when the original
-            // day would have surpassed the target.
+            // Day was constrained. Adjust the JDN to pretend the original day
+            // was preserved, ensuring correct month counting at boundaries.
             $trialJdn += ($origCalDay - $trialCalDay);
         }
 
