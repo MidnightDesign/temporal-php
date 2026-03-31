@@ -649,6 +649,13 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
 
             if ($monthConstrained) {
+                // When day is also constrained, always use strict inequality
+                // because the position shifted both in month and day.
+                if ($dayConstrained) {
+                    return $sign > 0
+                        ? $trialJdn < $targetJdn
+                        : $trialJdn > $targetJdn;
+                }
                 if ($sign > 0) {
                     // Forward: ordinal decreased -> use strict <.
                     // Ordinal same/increased (Hebrew M05L->M06) -> use <=.
