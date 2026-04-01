@@ -2489,19 +2489,12 @@ final class Duration implements Stringable
      */
     private static function zdtToPlainDateBag(\Temporal\Spec\ZonedDateTime $zdt): array
     {
-        $epochNs = $zdt->epochNanoseconds;
-        // Integer division: floor toward negative infinity.
-        $epochSec = intdiv(num1: $epochNs, num2: 1_000_000_000);
-        if ($epochNs < 0 && ($epochNs % 1_000_000_000) !== 0) {
-            $epochSec -= 1;
-        }
-        $offsetSec = self::parseTimezoneToOffsetSec($zdt->timeZoneId);
-        $localSec = $epochSec + $offsetSec;
-        $dt = new \DateTimeImmutable(sprintf('@%d', $localSec), new \DateTimeZone('UTC'));
+        // Use the ZonedDateTime's local components directly, which handles
+        // both IANA timezones and fixed-offset timezones correctly.
         return [
-            'year' => (int) $dt->format('Y'),
-            'month' => (int) $dt->format('n'),
-            'day' => (int) $dt->format('j'),
+            'year' => $zdt->isoYear,
+            'month' => $zdt->isoMonth,
+            'day' => $zdt->isoDay,
         ];
     }
 
