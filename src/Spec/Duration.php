@@ -2491,10 +2491,11 @@ final class Duration implements Stringable
     {
         // Use the ZonedDateTime's local components directly, which handles
         // both IANA timezones and fixed-offset timezones correctly.
+        $lc = $zdt->localComponents();
         return [
-            'year' => $zdt->isoYear,
-            'month' => $zdt->isoMonth,
-            'day' => $zdt->isoDay,
+            'year' => $lc['year'],
+            'month' => $lc['month'],
+            'day' => $lc['day'],
         ];
     }
 
