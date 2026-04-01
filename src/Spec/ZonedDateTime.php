@@ -1028,15 +1028,24 @@ final class ZonedDateTime implements Stringable
      */
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
-        $locale = CalendarMath::resolveLocale($locales);
-        $opts = is_array($options) ? $options : [];
+        $opts = $options !== null ? (is_array($options) ? $options : (array) $options) : [];
         /** @psalm-var array<string, mixed> $opts */
 
-        $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone']) ? $opts['timeZone'] : $this->timeZoneId;
+        // TC39: timeZone option is disallowed for ZonedDateTime.toLocaleString.
+        if (array_key_exists('timeZone', $opts) && $opts['timeZone'] !== null) {
+            throw new \TypeError('toLocaleString(): timeZone option is not allowed for ZonedDateTime.');
+        }
 
-        $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
-        $seconds = intdiv(num1: $this->epochNanoseconds, num2: self::NS_PER_SECOND);
-        $result = $formatter->format($seconds);
+        $locale = CalendarMath::resolveLocale($locales);
+        $timeZone = $this->timeZoneId;
+        $opts['_locale'] = $locale;
+
+        // Validate style + component conflicts
+        CalendarMath::validateStyleConflicts($opts);
+
+        $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts, 'datetime');
+        [$epochSec, ] = $this->getEpochParts();
+        $result = $formatter->format($epochSec);
 
         return $result !== false ? $result : $this->toString();
     }
