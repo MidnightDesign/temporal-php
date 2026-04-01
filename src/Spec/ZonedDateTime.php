@@ -1894,16 +1894,26 @@ final class ZonedDateTime implements Stringable
             );
         }
 
-        // IANA timezone name: validate via PHP DateTimeZone.
+        // IANA timezone name: validate via PHP DateTimeZone (case-insensitive).
         try {
-            $tz = new \DateTimeZone($id);
-            // PHP returns the timezone name with proper casing.
-            $phpName = $tz->getName();
-            // Use the PHP-normalized name (which fixes case).
-            return $phpName;
+            new \DateTimeZone($id);
         } catch (\Exception) {
             throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": not a recognized timezone identifier.");
         }
+
+        // Case-normalize the timezone ID using the canonical timezone list.
+        /** @var array<string, string>|null $lowerToCanonical */
+        static $lowerToCanonical = null;
+        if ($lowerToCanonical === null) {
+            $lowerToCanonical = [];
+            foreach (\DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC) as $ident) {
+                $lowerToCanonical[strtolower($ident)] = $ident;
+            }
+            // PHP doesn't include Etc/UTC in listIdentifiers but accepts it
+            $lowerToCanonical['etc/utc'] = 'Etc/UTC';
+        }
+        $lower = strtolower($id);
+        return $lowerToCanonical[$lower] ?? $id;
     }
 
     /**
