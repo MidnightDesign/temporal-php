@@ -1040,6 +1040,11 @@ final class ZonedDateTime implements Stringable
         $timeZone = $this->timeZoneId;
         $opts['_locale'] = $locale;
 
+        // TC39: ZDT's default format includes the timezone name.
+        if (!array_key_exists('timeZoneName', $opts) && !array_key_exists('dateStyle', $opts) && !array_key_exists('timeStyle', $opts)) {
+            $opts['timeZoneName'] = 'short';
+        }
+
         // Validate style + component conflicts
         CalendarMath::validateStyleConflicts($opts);
 
