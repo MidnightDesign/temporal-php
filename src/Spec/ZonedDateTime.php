@@ -3472,6 +3472,13 @@ final class ZonedDateTime implements Stringable
 
             // Calendar diff. adjOtherJdn is the adjusted other date after borrow.
             $adjOtherJdn = $earlierJdn + $dateDiff;
+
+            // For DST-aware time computation: after computing the calendar date
+            // diff, find the actual epoch time difference by adding the date portion
+            // to the earlier ZDT and measuring the remaining epoch nanoseconds.
+            // This ensures DST transitions don't inflate/deflate the time component.
+            $earlierZdt = $sign >= 0 ? $temporalDate : $other;
+            $laterZdt = $sign >= 0 ? $other : $temporalDate;
             [$adjY2, $adjM2, $adjD2] = CalendarMath::fromJulianDay($adjOtherJdn);
             $calId = $temporalDate->calendarId;
 
@@ -3533,6 +3540,31 @@ final class ZonedDateTime implements Stringable
             if ($normLargest === 'month') {
                 $months = ($years * 12) + $months;
                 $years = 0;
+            }
+
+            // TC39: Recompute timeDiffNs using actual epoch arithmetic.
+            // Add the date portion to the earlier ZDT and measure the remaining
+            // epoch nanoseconds to the later ZDT. This accounts for DST
+            // transitions that change the day length.
+            try {
+                $intermediate = $earlierZdt->add(new Duration(
+                    years: $years, months: $months, weeks: $weeks, days: $days,
+                ));
+                [$intEpochSec, $intSubNs] = $intermediate->getEpochParts();
+                [$latEpochSec, $latSubNs] = $laterZdt->getEpochParts();
+                $timeDiffNs = ($latEpochSec - $intEpochSec) * 1_000_000_000 + ($latSubNs - $intSubNs);
+                // If timeDiffNs is negative, borrow one day.
+                if ($timeDiffNs < 0) {
+                    $days--;
+                    // Recompute: add one less day.
+                    $intermediate2 = $earlierZdt->add(new Duration(
+                        years: $years, months: $months, weeks: $weeks, days: $days,
+                    ));
+                    [$intEpochSec2, $intSubNs2] = $intermediate2->getEpochParts();
+                    $timeDiffNs = ($latEpochSec - $intEpochSec2) * 1_000_000_000 + ($latSubNs - $intSubNs2);
+                }
+            } catch (\Throwable) {
+                // Fall back to wall-clock timeDiffNs if add fails
             }
 
             $isSmallestCalendar = in_array($normSmallest, ['year', 'month', 'week', 'day'], strict: true);
