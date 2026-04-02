@@ -1103,6 +1103,9 @@ final class ZonedDateTime implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
+        if (self::canonicalizeTimezoneForComparison($this->timeZoneId) !== self::canonicalizeTimezoneForComparison($o->timeZoneId)) {
+            throw new InvalidArgumentException("Cannot compute since() between different timezones: \"{$this->timeZoneId}\" and \"{$o->timeZoneId}\".");
+        }
         return self::diffZdt($this, $o, 'since', $options);
     }
 
@@ -1120,6 +1123,9 @@ final class ZonedDateTime implements Stringable
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
+        }
+        if (self::canonicalizeTimezoneForComparison($this->timeZoneId) !== self::canonicalizeTimezoneForComparison($o->timeZoneId)) {
+            throw new InvalidArgumentException("Cannot compute until() between different timezones: \"{$this->timeZoneId}\" and \"{$o->timeZoneId}\".");
         }
         return self::diffZdt($this, $o, 'until', $options);
     }
