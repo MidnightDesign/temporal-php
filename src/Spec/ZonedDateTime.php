@@ -3535,6 +3535,38 @@ final class ZonedDateTime implements Stringable
                 $years = 0;
             }
 
+            // TC39 DifferenceZonedDateTime: recompute timeDiffNs using actual
+            // epoch arithmetic when the timezone is an IANA zone (not fixed-offset).
+            // This correctly handles DST transitions where wall-clock time
+            // differs from elapsed time.
+            $tzForRecompute = $temporalDate->timeZoneId;
+            $isIanaTz = $tzForRecompute !== 'UTC'
+                && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzForRecompute);
+            if ($isIanaTz && ($years !== 0 || $months !== 0 || $weeks !== 0 || $days !== 0)) {
+                // Add date portion to the earlier ZDT, measure remaining ns.
+                $earlierZ = $sign >= 0 ? $temporalDate : $other;
+                $laterZ = $sign >= 0 ? $other : $temporalDate;
+                try {
+                    $intermediate = $earlierZ->add(new Duration(
+                        years: $years, months: $months, weeks: $weeks, days: $days,
+                    ));
+                    [$intSec, $intSub] = $intermediate->getEpochParts();
+                    [$latSec, $latSub] = $laterZ->getEpochParts();
+                    $recomputedNs = ($latSec - $intSec) * 1_000_000_000 + ($latSub - $intSub);
+                    if ($recomputedNs >= 0) {
+                        $timeDiffNs = $recomputedNs;
+                    }
+                } catch (\Throwable) {
+                    // Keep wall-clock timeDiffNs on failure
+                }
+            } elseif ($isIanaTz && $years === 0 && $months === 0 && $weeks === 0 && $days === 0) {
+                // Same date, no date diff: use raw epoch diff for the time part.
+                $absDiffNsSameDay = $sign < 0 ? -$diffNs : $diffNs;
+                if ($absDiffNsSameDay >= 0) {
+                    $timeDiffNs = $absDiffNsSameDay;
+                }
+            }
+
             $isSmallestCalendar = in_array($normSmallest, ['year', 'month', 'week', 'day'], strict: true);
 
             // The receiver (temporalDate) is the later date when sign < 0.
