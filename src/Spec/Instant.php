@@ -449,9 +449,16 @@ final class Instant implements Stringable
 
         // Resolve timezone offset (null = UTC / 'Z' suffix).
         $tzOffsetMinutes = null;
+        $ianaTimeZone = null;
         if ($options !== null && array_key_exists('timeZone', $options)) {
             $tzStr = (string) $options['timeZone'];
-            $tzOffsetMinutes = self::resolveTimeZoneOffsetMinutes($tzStr);
+            $resolved = self::resolveTimeZoneOffsetMinutes($tzStr);
+            if ($resolved !== null) {
+                $tzOffsetMinutes = $resolved;
+            } else {
+                // IANA timezone: compute offset after rounding
+                $ianaTimeZone = $tzStr;
+            }
         }
 
         // Determine the rounding increment in nanoseconds.
@@ -470,6 +477,11 @@ final class Instant implements Stringable
 
         // Extract whole UTC seconds and sub-second nanoseconds.
         $secs = CalendarMath::floorDiv($ns, self::NS_PER_SECOND);
+
+        // For IANA timezones, compute the offset at this epoch.
+        if ($ianaTimeZone !== null) {
+            $tzOffsetMinutes = self::ianaOffsetMinutes($ianaTimeZone, $secs);
+        }
         $subNs = $ns - ($secs * self::NS_PER_SECOND); // always 0–999_999_999
 
         // Apply timezone offset to get local datetime.
@@ -572,7 +584,7 @@ final class Instant implements Stringable
      * Returns 0 for 'UTC' or 'Z', the offset minutes for ±HH:MM strings,
      * and the bracket annotation offset for datetime strings with [±HH:MM] or [UTC].
      */
-    private static function resolveTimeZoneOffsetMinutes(string $tz): int
+    private static function resolveTimeZoneOffsetMinutes(string $tz): ?int
     {
         // 'UTC' (case-insensitive)
         if (strtoupper($tz) === 'UTC') {
@@ -607,7 +619,26 @@ final class Instant implements Stringable
             $sign = $om[2] === '+' ? 1 : -1;
             return $sign * (((int) $om[3] * 60) + (int) $om[4]);
         }
-        return 0;
+        // IANA timezone name: look up the offset at the current epoch.
+        // This method doesn't have access to the instant's epoch, so we
+        // validate the timezone now and defer the offset computation to the caller.
+        self::validateTimeZoneString($tz);
+        return null; // Signal to caller that it's an IANA timezone needing epoch-relative offset.
+    }
+
+    /**
+     * Resolves an IANA timezone to an offset in minutes at a given epoch second.
+     */
+    private static function ianaOffsetMinutes(string $tz, int $epochSec): int
+    {
+        try {
+            $phpTz = new \DateTimeZone($tz);
+            $offset = $phpTz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
+            // TC39 rounds offset to nearest minute (away from zero at .5).
+            return (int) round($offset / 60.0);
+        } catch (\Exception) {
+            return 0;
+        }
     }
 
     #[\Override]
