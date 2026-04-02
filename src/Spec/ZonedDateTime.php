@@ -2092,6 +2092,16 @@ final class ZonedDateTime implements Stringable
             }
         }
 
+        // Resolve the 'disambiguation' option (default: 'compatible').
+        $disambiguation = 'compatible';
+        if (is_array($options) && array_key_exists('disambiguation', $options)) {
+            /** @var mixed $dv */
+            $dv = $options['disambiguation'];
+            if (is_string($dv) && in_array($dv, ['compatible', 'earlier', 'later', 'reject'], true)) {
+                $disambiguation = $dv;
+            }
+        }
+
         // Reject more than 9 fractional-second digits.
         if (preg_match('/[.,]\d{10,}/', $text) === 1) {
             throw new InvalidArgumentException(
@@ -2261,13 +2271,13 @@ final class ZonedDateTime implements Stringable
                 $epochSec = $wallSec - $inlineOffsetSec;
             } elseif ($offsetOption === 'ignore') {
                 // Ignore the inline offset; use the wall clock with the bracket timezone.
-                $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId);
+                $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
             } elseif ($offsetOption === 'prefer') {
                 // Prefer the inline offset if it matches the timezone; otherwise use timezone.
                 $epochSec = $wallSec - $inlineOffsetSec;
                 $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
                 if ($actualOffsetSec !== $inlineOffsetSec) {
-                    $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId);
+                    $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
                 }
             } else {
                 // offset: 'reject' (default): throw if inline offset doesn't match timezone.
@@ -2283,7 +2293,7 @@ final class ZonedDateTime implements Stringable
         } else {
             // No inline offset: convert wall clock to UTC via the timezone.
             $normalizedTzId = self::normalizeTimezoneId($tzId);
-            $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId);
+            $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
             $tzId = $normalizedTzId;
         }
 
@@ -2756,12 +2766,10 @@ final class ZonedDateTime implements Stringable
                 };
             }
             // Gap (spring-forward): wall time doesn't exist.
-            // wallAtPre = the wall clock at the transition in the old offset.
-            $wallAtPre = $transitionEpoch + $preOffset;
-            // 'earlier': the epoch just before the gap (as if clocks hadn't changed).
-            $beforeGapEpoch = $wallSec - $preOffset;
-            // 'later/compatible': the epoch that maps to the shifted-forward time.
-            $afterGapEpoch = $transitionEpoch + ($wallSec - $wallAtPre);
+            // TC39: 'earlier' snaps to the last instant before the gap.
+            // 'later'/'compatible' snaps to the first instant after the gap.
+            $beforeGapEpoch = $transitionEpoch - 1;
+            $afterGapEpoch = $transitionEpoch;
             return match ($disambiguation) {
                 'compatible', 'later' => $afterGapEpoch,
                 'earlier' => $beforeGapEpoch,
