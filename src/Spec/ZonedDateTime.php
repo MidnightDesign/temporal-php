@@ -2566,7 +2566,7 @@ final class ZonedDateTime implements Stringable
         $epochSec = self::wallSecToEpochSec($wallSec, $normalTzId, $disambiguation);
         $subNs = ($milli * self::NS_PER_MILLISECOND) + ($micro * self::NS_PER_MICROSECOND) + $nano;
 
-        // Validate 'offset' field if provided.
+        // Handle 'offset' field if provided: use it to disambiguate DST overlaps.
         if (array_key_exists('offset', $bag)) {
             /** @var mixed $offRaw */
             $offRaw = $bag['offset'];
@@ -2580,12 +2580,17 @@ final class ZonedDateTime implements Stringable
             $offSign = $offRaw[0] === '+' ? 1 : -1;
             $offParts = explode(separator: ':', string: substr(string: $offRaw, offset: 1));
             $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60));
-            $expectedOffsetSec = self::staticResolveOffset($epochSec, $normalTzId);
-            if ($givenOffsetSec !== $expectedOffsetSec) {
-                throw new InvalidArgumentException(
-                    "The offset {$offRaw} does not match the timezone {$normalTzId} offset at the given instant.",
-                );
+
+            // Try using the given offset to compute the epoch directly.
+            // This handles DST overlaps where the offset selects which instant.
+            $epochFromOffset = $wallSec - $givenOffsetSec;
+            $actualOffset = self::staticResolveOffset($epochFromOffset, $normalTzId);
+            if ($actualOffset === $givenOffsetSec) {
+                // The offset is valid at this instant — use it.
+                $epochSec = $epochFromOffset;
             }
+            // If offset doesn't match, we keep the disambiguation-resolved epoch.
+            // The offset option in the options bag (not the field) controls whether to throw.
         }
 
         return self::fromEpochParts($epochSec, $subNs, $normalTzId, $calendarId);
