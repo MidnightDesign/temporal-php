@@ -763,7 +763,8 @@ final class Duration implements Stringable
             if (!$hasYear || !$hasMonth || !$hasDay) {
                 throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
             }
-            return $this->totalCalendar($unit, $rt);
+            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo'] ?? null);
+            return $this->totalCalendar($unit, $rt, $zdtInfoCal);
         }
 
         if ($this->years !== 0 || $this->months !== 0 || $this->weeks !== 0) {
@@ -793,7 +794,8 @@ final class Duration implements Stringable
             if (!$hasYear || !$hasMonth || !$hasDay) {
                 throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
             }
-            return $this->totalCalendar($unit, $rt);
+            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo'] ?? null);
+            return $this->totalCalendar($unit, $rt, $zdtInfoCal);
         }
 
         // Validate relativeTo if provided (even for pure-time unit computations).
@@ -803,11 +805,22 @@ final class Duration implements Stringable
             if (is_string($rtRaw)) {
                 $parsedRt = $this->parseRelativeToString($rtRaw);
                 $rtIsZDT = $parsedRt['_isZDT'] === true;
-                // For total('days') with ZDT: local time must be exactly midnight.
+                // For total('days') with ZDT in UTC/fixed-offset: local time must be midnight.
+                // This ensures the start-of-next-day is within the representable instant range.
+                // (IANA timezones skip this check because DST-aware total legitimately uses non-midnight.)
                 if ($unit === 'days' && $rtIsZDT && $parsedRt['_localTimeSec'] !== 0) {
-                    throw new InvalidArgumentException(
-                        "relativeTo ZonedDateTime for total('days') must be at local midnight.",
-                    );
+                    // Check if the timezone is IANA (not UTC/fixed-offset).
+                    $tzBracket = null;
+                    if (preg_match('/\[([^\]=]+)\]\s*$/', $rtRaw, $_m)) {
+                        $tzBracket = $_m[1];
+                    }
+                    $isIanaTz = $tzBracket !== null && $tzBracket !== 'UTC'
+                        && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzBracket);
+                    if (!$isIanaTz) {
+                        throw new InvalidArgumentException(
+                            "relativeTo ZonedDateTime for total('days') must be at local midnight.",
+                        );
+                    }
                 }
                 // For non-blank duration: check epoch overflow.
                 if (!$this->blank) {
@@ -851,6 +864,63 @@ final class Duration implements Stringable
             } elseif ($rtRaw !== null) {
                 throw new \TypeError('relativeTo must be a string or property bag array.');
             }
+        }
+
+        // DST-aware computation when relativeTo is a ZDT with IANA timezone.
+        /** @var mixed $rtForZdt */
+        $rtForZdt = (is_array($totalOf) ? ($totalOf['relativeTo'] ?? null) : null);
+        $zdtInfo = $rtForZdt !== null ? self::resolveRelativeToZdt($rtForZdt) : null;
+
+        if ($zdtInfo !== null) {
+            // Time-only fields in seconds (sub-second precision preserved).
+            $subNs =
+                ((float) $this->milliseconds * 1_000_000.0)
+                + ((float) $this->microseconds * 1_000.0)
+                + (float) $this->nanoseconds;
+            $timeOnlySec =
+                ((float) $this->hours * 3_600.0)
+                + ((float) $this->minutes * 60.0)
+                + (float) $this->seconds
+                + ($subNs / 1_000_000_000.0);
+
+            $daysField = (int) $this->days;
+
+            if ($unit === 'days') {
+                // Convert days to actual epoch seconds, then add time seconds.
+                $daysSec = self::zdtDaysToSec(
+                    $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                    $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                    $zdtInfo['tzId'], $daysField, $zdtInfo['epochSec'],
+                );
+                $totalSec = $daysSec + $timeOnlySec;
+                // Count fractional days using actual day lengths, starting from the ZDT's real epoch.
+                $result = self::zdtTotalDays(
+                    $zdtInfo['epochSec'],
+                    $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                    $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                    $zdtInfo['tzId'], $totalSec,
+                );
+                return self::toIntIfWhole($result);
+            }
+
+            // For hours/minutes/seconds/etc: convert days to actual seconds, then total.
+            $daysSec = self::zdtDaysToSec(
+                $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'], $daysField, $zdtInfo['epochSec'],
+            );
+            $totalSec = $daysSec + $timeOnlySec;
+
+            $result = match ($unit) {
+                'hours' => $totalSec / 3_600.0,
+                'minutes' => $totalSec / 60.0,
+                'seconds' => $totalSec,
+                'milliseconds' => $totalSec * 1_000.0,
+                'microseconds' => $totalSec * 1_000_000.0,
+                'nanoseconds' => $totalSec * 1_000_000_000.0,
+                default => throw new InvalidArgumentException("Unhandled unit: \"{$unit}\"."),
+            };
+            return self::toIntIfWhole($result);
         }
 
         // Compute in seconds. Combine sub-second fields into nanoseconds first, then divide
@@ -1087,8 +1157,9 @@ final class Duration implements Stringable
      * relativeTo bag. Unknown keys in the bag are silently ignored per TC39.
      *
      * @param array<array-key,mixed> $relativeTo Validated plain-date property bag.
+     * @param null|array{epochSec: int, subNs: int, tzId: string, year: int, month: int, day: int, hour: int, minute: int, second: int} $zdtInfo Optional ZDT info for DST-aware day lengths.
      */
-    private function totalCalendar(string $unit, array $relativeTo): int|float
+    private function totalCalendar(string $unit, array $relativeTo, ?array $zdtInfo = null): int|float
     {
         /** @var mixed $yearRaw */
         $yearRaw = $relativeTo['year'];
@@ -1173,9 +1244,42 @@ final class Duration implements Stringable
             }
         }
 
+        // For ZDT with IANA timezone: use DST-aware day lengths for days/hours/etc.
+        if ($zdtInfo !== null && $unit !== 'months' && $unit !== 'years' && $unit !== 'weeks') {
+            // Convert totalWholeDays + fracNs to actual epoch seconds using DST-aware arithmetic.
+            $daysActualSec = self::zdtDaysToSec(
+                $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'], $totalWholeDays,
+            );
+            $timeOnlySec = (float) $fracNs / 1_000_000_000.0;
+            $totalActualSec = $daysActualSec + $timeOnlySec;
+
+            if ($unit === 'days') {
+                $result = self::zdtTotalDays(
+                    $zdtInfo['epochSec'],
+                    $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                    $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                    $zdtInfo['tzId'], $totalActualSec,
+                );
+                return self::toIntIfWhole($result);
+            }
+
+            $result = match ($unit) {
+                'hours' => $totalActualSec / 3_600.0,
+                'minutes' => $totalActualSec / 60.0,
+                'seconds' => $totalActualSec,
+                'milliseconds' => $totalActualSec * 1_000.0,
+                'microseconds' => $totalActualSec * 1_000_000.0,
+                'nanoseconds' => $totalActualSec * 1_000_000_000.0,
+                default => throw new InvalidArgumentException("Unhandled unit: \"{$unit}\"."),
+            };
+            return self::toIntIfWhole($result);
+        }
+
         return match ($unit) {
-            'months' => $this->totalCalendarMonths($start, $totalWholeDays, $fracNs, $nsPerDay),
-            'years' => $this->totalCalendarYears($start, $totalWholeDays, $fracNs),
+            'months' => $this->totalCalendarMonths($start, $totalWholeDays, $fracNs, $nsPerDay, $zdtInfo),
+            'years' => $this->totalCalendarYears($start, $totalWholeDays, $fracNs, $zdtInfo),
             // For weeks: use floor(days/7) + ((days%7 + fracDay)/7) to match TC39 test precision.
             // Non-associative float: (totalDays+fracDay)/7 ≠ floor(totalDays/7)+((rem+fracDay)/7).
             'weeks' => self::toIntIfWhole(
@@ -1197,12 +1301,15 @@ final class Duration implements Stringable
     /**
      * Counts fractional months from $start spanning $wholeDays days + $fracNs nanoseconds.
      * Implements TC39 RoundDuration for unit = "months".
+     *
+     * @param null|array{epochSec: int, subNs: int, tzId: string, year: int, month: int, day: int, hour: int, minute: int, second: int} $zdtInfo Optional ZDT info for DST-aware day lengths.
      */
     private function totalCalendarMonths(
         \DateTimeImmutable $start,
         int $wholeDays,
         int $fracNs,
         int $nsPerDay,
+        ?array $zdtInfo = null,
     ): int|float {
         $absWholeDays = abs($wholeDays);
         $dir = $wholeDays >= 0 ? '+' : '-';
@@ -1225,6 +1332,31 @@ final class Duration implements Stringable
         // r2 = start + (months+1) months, not current + 1 month).
         $r2 = self::addMonthsClamped($start, $sign * ($months + 1));
         $daysInNextMonth = (int) $current->diff($r2)->days;
+
+        if ($zdtInfo !== null) {
+            // DST-aware: compute the actual epoch seconds spanning from $current to $r2
+            // to get the real time length of the fractional month period.
+            $currentY = (int) $current->format('Y');
+            $currentM = (int) $current->format('n');
+            $currentD = (int) $current->format('j');
+            $actualSpanSec = self::zdtDaysToSec(
+                $currentY, $currentM, $currentD,
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'], $sign * $daysInNextMonth,
+            );
+            $actualRemainingSec = self::zdtDaysToSec(
+                $currentY, $currentM, $currentD,
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'], $sign * $remainingDays,
+            );
+            // Work in seconds to avoid float precision loss from nanosecond conversion.
+            $fracSec = (float) $fracNs / 1_000_000_000.0;
+            $absSpan = abs($actualSpanSec);
+            $progress = (abs($actualRemainingSec) + abs($fracSec)) / (float) $absSpan;
+            $result = (float) ($months * $sign) + ($sign > 0 ? $progress : -$progress);
+            return self::toIntIfWhole($result);
+        }
+
         $result =
             (float) ($months * $sign)
             + ((float) ($sign * $remainingDays) / (float) $daysInNextMonth)
@@ -1838,6 +1970,17 @@ final class Duration implements Stringable
             return $ns1 <=> $ns2;
         }
 
+        // When relativeTo is a ZDT with IANA timezone, compare using actual epoch offsets.
+        /** @var mixed $rtForCompare */
+        $rtForCompare = is_array($options) ? ($options['relativeTo'] ?? null) : null;
+        $zdtInfoCompare = $rtForCompare !== null ? self::resolveRelativeToZdt($rtForCompare) : null;
+
+        if ($zdtInfoCompare !== null) {
+            $epoch1 = self::durationToEpochOffsetSec($d1, $zdtInfoCompare);
+            $epoch2 = self::durationToEpochOffsetSec($d2, $zdtInfoCompare);
+            return $epoch1 <=> $epoch2;
+        }
+
         $s1 = $d1->sign;
         $s2 = $d2->sign;
         if ($s1 !== $s2) {
@@ -1943,6 +2086,7 @@ final class Duration implements Stringable
         /** @var mixed $rtRawForZdt */
         $rtRawForZdt = $roundTo['relativeTo'] ?? null;
         $zdtRelativeTo = $rtRawForZdt instanceof \Temporal\Spec\ZonedDateTime;
+        $zdtInfoRound = $rtRawForZdt !== null ? self::resolveRelativeToZdt($rtRawForZdt) : null;
 
         if ($needsRelativeTo && !$relativeToProvided) {
             throw new InvalidArgumentException(
@@ -2064,8 +2208,36 @@ final class Duration implements Stringable
         $absS = $absS % 60;
         $absH += intdiv(num1: $absM, num2: 60);
         $absM = $absM % 60;
-        $absD += intdiv(num1: $absH, num2: 24);
-        $absH = $absH % 24;
+
+        // Balance hours into days: DST-aware when ZDT IANA relativeTo is present.
+        if ($zdtInfoRound !== null) {
+            $timeOnlyNs =
+                ($absH * 3_600_000_000_000)
+                + ($absM * 60_000_000_000)
+                + ($absS * 1_000_000_000)
+                + ($absMs * 1_000_000)
+                + ($absUs * 1_000)
+                + $absNs;
+            [$absD, $timeOnlyNs] = self::zdtBalanceTimeToDays(
+                $zdtInfoRound['year'], $zdtInfoRound['month'], $zdtInfoRound['day'],
+                $zdtInfoRound['hour'], $zdtInfoRound['minute'], $zdtInfoRound['second'],
+                $zdtInfoRound['tzId'], $timeOnlyNs, $absD, $sign, $zdtInfoRound['epochSec'],
+            );
+            // Re-extract sub-fields from the balanced time nanoseconds.
+            $absH = intdiv($timeOnlyNs, 3_600_000_000_000);
+            $timeOnlyNs -= $absH * 3_600_000_000_000;
+            $absM = intdiv($timeOnlyNs, 60_000_000_000);
+            $timeOnlyNs -= $absM * 60_000_000_000;
+            $absS = intdiv($timeOnlyNs, 1_000_000_000);
+            $timeOnlyNs -= $absS * 1_000_000_000;
+            $absMs = intdiv($timeOnlyNs, 1_000_000);
+            $timeOnlyNs -= $absMs * 1_000_000;
+            $absUs = intdiv($timeOnlyNs, 1_000);
+            $absNs = $timeOnlyNs - $absUs * 1_000;
+        } else {
+            $absD += intdiv(num1: $absH, num2: 24);
+            $absH = $absH % 24;
+        }
 
         // Compute totalNs, guarding against int64 overflow for large day counts.
         $subDayNs =
@@ -2155,14 +2327,26 @@ final class Duration implements Stringable
         // ZDT sub-day rounding: for ZonedDateTime relativeTo with a time smallestUnit and
         // largestUnit >= days, keep whole days intact and round only the sub-day portion.
         // This differs from PlainDate behavior (which rounds the total nanoseconds).
-        if ($zdtRelativeTo && $suNormResolved !== 'days' && $luIdx >= 6) {
+        if (($zdtRelativeTo || $zdtInfoRound !== null) && $suNormResolved !== 'days' && $luIdx >= 6) {
             $roundedSubDayNs = self::roundNsPositive($subDayNs, $nsIncrement, $roundingMode);
             // If rounding carried the sub-day portion beyond one full day, add extra days.
-            $extraDays = intdiv(num1: $roundedSubDayNs, num2: 86_400_000_000_000);
-            $roundedSubDayNs -= $extraDays * 86_400_000_000_000;
-            $absD += $extraDays;
-            // Balance the sub-day ns to fields; days go into $absD.
-            [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields($roundedSubDayNs, $luIdx);
+            // Use DST-aware day length when available.
+            if ($zdtInfoRound !== null) {
+                [$absD, $roundedSubDayNs] = self::zdtBalanceTimeToDays(
+                    $zdtInfoRound['year'], $zdtInfoRound['month'], $zdtInfoRound['day'],
+                    $zdtInfoRound['hour'], $zdtInfoRound['minute'], $zdtInfoRound['second'],
+                    $zdtInfoRound['tzId'], $roundedSubDayNs, $absD, $sign, $zdtInfoRound['epochSec'],
+                );
+            } else {
+                $extraDays = intdiv(num1: $roundedSubDayNs, num2: 86_400_000_000_000);
+                $roundedSubDayNs -= $extraDays * 86_400_000_000_000;
+                $absD += $extraDays;
+            }
+            // Balance the sub-day ns to fields. When ZDT IANA is present, cap at hours
+            // (luIdx=5) since days were already computed by zdtBalanceTimeToDays with
+            // actual day lengths — re-balancing at 24h/day would produce incorrect results.
+            $balanceIdx = ($zdtInfoRound !== null && $luIdx >= 6) ? 5 : $luIdx;
+            [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields($roundedSubDayNs, $balanceIdx);
             /** @psalm-suppress InvalidOperand — balanceNsToFields returns int|float; $absD is int */
             $rDays += $absD;
             /** @psalm-suppress InvalidOperand — $sign (int) * int|float fields */
@@ -2199,6 +2383,46 @@ final class Duration implements Stringable
         // Compute totalNs as int when it fits in int64, float otherwise.
         // Safe threshold: 106_750 * 86_400_000_000_000 + 86_399_999_999_999 < PHP_INT_MAX.
         // Direct comparison (not a bool variable) lets Psalm narrow $absD's range inside the block.
+        // For ZDT IANA: convert days to actual nanoseconds using DST-aware day lengths.
+        $dayNsFactor = 86_400_000_000_000;
+        if ($zdtInfoRound !== null && $absD > 0) {
+            $actualDaysSec = (int) self::zdtDaysToSec(
+                $zdtInfoRound['year'], $zdtInfoRound['month'], $zdtInfoRound['day'],
+                $zdtInfoRound['hour'], $zdtInfoRound['minute'], $zdtInfoRound['second'],
+                $zdtInfoRound['tzId'], $sign * $absD,
+            );
+            $dayNsActual = abs($actualDaysSec) * 1_000_000_000;
+            if ($absD <= 106_750) {
+                $totalNsInt = $dayNsActual + $subDayNs;
+                $roundedNsInt = self::roundNsPositive($totalNsInt, $nsIncrement, $roundingMode);
+                if (((float) $roundedNsInt / 1_000_000_000.0) >= 9_007_199_254_740_992.0) {
+                    throw new InvalidArgumentException(
+                        'Duration time fields exceed the maximum representable range after rounding.',
+                    );
+                }
+                [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields($roundedNsInt, $luIdx);
+            } else {
+                $totalNsFloat = (float) $dayNsActual + (float) $subDayNs;
+                $roundedNsFloat = self::roundNsFloat($totalNsFloat, (float) $nsIncrement, $roundingMode);
+                if (($roundedNsFloat / 1_000_000_000.0) >= 9_007_199_254_740_992.0) {
+                    throw new InvalidArgumentException(
+                        'Duration time fields exceed the maximum representable range after rounding.',
+                    );
+                }
+                [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields((int) $roundedNsFloat, $luIdx);
+            }
+            $signF = (float) $sign;
+            return new self(
+                0, 0, 0,
+                $signF * (float) $rDays,
+                $signF * (float) $rH,
+                $signF * (float) $rM,
+                $signF * (float) $rS,
+                $signF * (float) $rMs,
+                $signF * (float) $rUs,
+                $signF * (float) $rNs,
+            );
+        }
         if ($absD <= 106_750) {
             $totalNsInt = ($absD * 86_400_000_000_000) + $subDayNs;
             // Round the total nanoseconds (int path).
@@ -2489,13 +2713,29 @@ final class Duration implements Stringable
      */
     private static function zdtToPlainDateBag(\Temporal\Spec\ZonedDateTime $zdt): array
     {
-        // Use the ZonedDateTime's local components directly, which handles
-        // both IANA timezones and fixed-offset timezones correctly.
-        $lc = $zdt->localComponents();
+        // Compute local date from epoch + timezone offset (cannot call private localComponents).
+        $epochNs = $zdt->epochNanoseconds;
+        $epochSec = intdiv($epochNs, 1_000_000_000);
+        $subNs = $epochNs - ($epochSec * 1_000_000_000);
+        if ($subNs < 0) {
+            $epochSec--;
+        }
+        $tzId = $zdt->timeZoneId;
+        if ($tzId === 'UTC') {
+            $offsetSec = 0;
+        } elseif (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m)) {
+            $sign = $m[1] === '+' ? 1 : -1;
+            $offsetSec = $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
+        } else {
+            $tz = new \DateTimeZone($tzId);
+            $offsetSec = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
+        }
+        $localSec = $epochSec + $offsetSec;
+        $dt = new \DateTimeImmutable(sprintf('@%d', $localSec));
         return [
-            'year' => $lc['year'],
-            'month' => $lc['month'],
-            'day' => $lc['day'],
+            'year' => (int) $dt->format('Y'),
+            'month' => (int) $dt->format('n'),
+            'day' => (int) $dt->format('j'),
         ];
     }
 
@@ -3090,6 +3330,274 @@ final class Duration implements Stringable
     }
 
     /**
+     * Resolves a relativeTo value to ZDT info if it represents a ZonedDateTime with
+     * an IANA timezone (i.e. one that may observe DST). Returns null for PlainDate,
+     * UTC, or fixed-offset timezones.
+     *
+     * @return null|array{epochSec: int, subNs: int, tzId: string, year: int, month: int, day: int, hour: int, minute: int, second: int}
+     */
+    private static function resolveRelativeToZdt(mixed $rt): ?array
+    {
+        if ($rt instanceof ZonedDateTime) {
+            $tzId = $rt->timeZoneId;
+            if ($tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId)) {
+                return null;
+            }
+            $epochNs = $rt->epochNanoseconds;
+            $epochSec = intdiv($epochNs, 1_000_000_000);
+            $subNs = $epochNs - ($epochSec * 1_000_000_000);
+            if ($subNs < 0) {
+                $epochSec--;
+                $subNs += 1_000_000_000;
+            }
+            // Compute local components via offset.
+            $tz = new \DateTimeZone($tzId);
+            $offsetSec = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
+            $localSec = $epochSec + $offsetSec;
+            $dt = new \DateTimeImmutable(sprintf('@%d', $localSec));
+            return [
+                'epochSec' => $epochSec,
+                'subNs' => $subNs,
+                'tzId' => $tzId,
+                'year' => (int) $dt->format('Y'),
+                'month' => (int) $dt->format('n'),
+                'day' => (int) $dt->format('j'),
+                'hour' => (int) $dt->format('G'),
+                'minute' => (int) $dt->format('i'),
+                'second' => (int) $dt->format('s'),
+            ];
+        }
+        if (is_string($rt)) {
+            // Parse the string to check for IANA timezone.
+            if (preg_match('/\[([^\]=]+)\]\s*$/', $rt, $m) === 1) {
+                $tzId = $m[1];
+                if ($tzId !== 'UTC' && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId)) {
+                    // It's an IANA timezone string. Construct a ZDT and recurse.
+                    $zdt = ZonedDateTime::from($rt);
+                    return self::resolveRelativeToZdt($zdt);
+                }
+            }
+            return null;
+        }
+        if (is_array($rt) && array_key_exists('timeZone', $rt)) {
+            /** @var mixed $tzVal */
+            $tzVal = $rt['timeZone'];
+            // Only treat as IANA timezone if it looks like one (contains '/' or is a known single-word zone).
+            // Datetime strings passed as timeZone (e.g. "2021-08-19T17:30-0700") are not IANA.
+            if (is_string($tzVal) && $tzVal !== 'UTC' && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzVal)
+                && !str_contains($tzVal, 'T') && !preg_match('/^\d{4}-/', $tzVal)
+                && @(new \DateTimeZone($tzVal))->getName() === $tzVal
+            ) {
+                // Property bag with IANA timezone. Create a ZDT from it.
+                /** @var mixed $yearRaw */
+                $yearRaw = $rt['year'] ?? 0;
+                /** @var mixed $monthRaw */
+                $monthRaw = $rt['month'] ?? (array_key_exists('monthCode', $rt) ? (int) substr((string) $rt['monthCode'], 1) : 1);
+                /** @var mixed $dayRaw */
+                $dayRaw = $rt['day'] ?? 1;
+                $pdt = PlainDateTime::from([
+                    'year' => (int) $yearRaw,
+                    'month' => (int) $monthRaw,
+                    'day' => (int) $dayRaw,
+                ]);
+                $zdt = $pdt->toZonedDateTime($tzVal);
+                return self::resolveRelativeToZdt($zdt);
+            }
+            return null;
+        }
+        return null;
+    }
+
+    /**
+     * Computes the epoch seconds for a given local date/time in an IANA timezone.
+     * Uses 'compatible' disambiguation (earlier for overlaps, post-transition for gaps).
+     */
+    private static function localToEpochSec(
+        int $year, int $month, int $day,
+        int $hour, int $minute, int $second,
+        string $tzId,
+    ): int {
+        // Compute wall seconds (seconds since epoch if interpreted as UTC).
+        $wallSec = gmmktime($hour, $minute, $second, $month, $day, $year);
+        return ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
+    }
+
+    /**
+     * Computes the length (in seconds) of one calendar day starting from the given
+     * local date/time in an IANA timezone. This is the epoch difference between
+     * the same local time tomorrow and today.
+     */
+    private static function zdtDayLengthSec(
+        int $year, int $month, int $day,
+        int $hour, int $minute, int $second,
+        string $tzId,
+    ): int {
+        $todayEpoch = self::localToEpochSec($year, $month, $day, $hour, $minute, $second, $tzId);
+        // Add 1 calendar day to the local date.
+        $dt = new \DateTimeImmutable(sprintf('%04d-%02d-%02dT%02d:%02d:%02d', $year, $month, $day, $hour, $minute, $second));
+        $next = $dt->modify('+1 day');
+        $tomorrowEpoch = self::localToEpochSec(
+            (int) $next->format('Y'), (int) $next->format('n'), (int) $next->format('j'),
+            $hour, $minute, $second, $tzId,
+        );
+        return $tomorrowEpoch - $todayEpoch;
+    }
+
+    /**
+     * For total('days') with ZDT: computes the fractional day count for a given
+     * number of total seconds starting from the ZDT's actual epoch.
+     * Uses the ZDT's real epoch for the start point (preserving ambiguous-time
+     * offset) and 'compatible' disambiguation for subsequent day boundaries.
+     *
+     * @param int $startEpochSec The ZDT's actual epoch seconds.
+     */
+    private static function zdtTotalDays(
+        int $startEpochSec,
+        int $year, int $month, int $day,
+        int $hour, int $minute, int $second,
+        string $tzId, float $totalSec,
+    ): float {
+        $sign = $totalSec >= 0 ? 1 : -1;
+        $remaining = abs($totalSec);
+        $wholeDays = 0;
+
+        $curEpoch = $startEpochSec;
+        $curYear = $year;
+        $curMonth = $month;
+        $curDay = $day;
+
+        while (true) {
+            $dt = new \DateTimeImmutable(sprintf('%04d-%02d-%02d', $curYear, $curMonth, $curDay));
+            $next = $dt->modify($sign > 0 ? '+1 day' : '-1 day');
+            $nextYear = (int) $next->format('Y');
+            $nextMonth = (int) $next->format('n');
+            $nextDay = (int) $next->format('j');
+            $nextEpoch = self::localToEpochSec($nextYear, $nextMonth, $nextDay, $hour, $minute, $second, $tzId);
+            $dayLengthSec = (float) abs($nextEpoch - $curEpoch);
+
+            if ($remaining < $dayLengthSec) {
+                $frac = $dayLengthSec > 0 ? $remaining / $dayLengthSec : 0.0;
+                return (float) $sign * ((float) $wholeDays + $frac);
+            }
+
+            $remaining -= $dayLengthSec;
+            $wholeDays++;
+            $curEpoch = $nextEpoch;
+            $curYear = $nextYear;
+            $curMonth = $nextMonth;
+            $curDay = $nextDay;
+        }
+    }
+
+    /**
+     * For total('hours'/'minutes'/etc) with ZDT: computes the total seconds
+     * for a duration that has days, by adding days as calendar days to the ZDT
+     * and measuring the actual epoch difference.
+     */
+    /**
+     * @param int|null $knownStartEpoch When provided, used as the start epoch instead of
+     *        re-resolving from wall time. This preserves the correct offset for ambiguous times.
+     */
+    private static function zdtDaysToSec(
+        int $year, int $month, int $day,
+        int $hour, int $minute, int $second,
+        string $tzId, int $days, ?int $knownStartEpoch = null,
+    ): float {
+        if ($days === 0) {
+            return 0.0;
+        }
+        $startEpoch = $knownStartEpoch ?? self::localToEpochSec($year, $month, $day, $hour, $minute, $second, $tzId);
+        $dt = new \DateTimeImmutable(sprintf('%04d-%02d-%02d', $year, $month, $day));
+        $end = $dt->modify(sprintf('%+d days', $days));
+        $endEpoch = self::localToEpochSec(
+            (int) $end->format('Y'), (int) $end->format('n'), (int) $end->format('j'),
+            $hour, $minute, $second, $tzId,
+        );
+        return (float) ($endEpoch - $startEpoch);
+    }
+
+    /**
+     * For round() with ZDT: balances time nanoseconds into whole days + remaining ns,
+     * using actual day lengths. Returns [wholeDays, remainingNs].
+     *
+     * @return array{int, int}
+     */
+    /**
+     * @param int $direction 1 for positive durations (forward), -1 for negative (backward).
+     * @param int|null $knownStartEpoch Use the ZDT's actual epoch for the initial date to
+     *        preserve the correct offset for ambiguous times.
+     * @return array{int, int}
+     */
+    private static function zdtBalanceTimeToDays(
+        int $year, int $month, int $day,
+        int $hour, int $minute, int $second,
+        string $tzId, int $absTimeNs, int $absDays,
+        int $direction = 1, ?int $knownStartEpoch = null,
+    ): array {
+        // Start from the date after adding absDays calendar days in the given direction.
+        $dt = new \DateTimeImmutable(sprintf('%04d-%02d-%02d', $year, $month, $day));
+        if ($absDays > 0) {
+            $dtAfterDays = $dt->modify(sprintf('%+d days', $direction * $absDays));
+        } else {
+            $dtAfterDays = $dt;
+        }
+        $curYear = (int) $dtAfterDays->format('Y');
+        $curMonth = (int) $dtAfterDays->format('n');
+        $curDay = (int) $dtAfterDays->format('j');
+
+        $totalDays = $absDays;
+        $remaining = $absTimeNs;
+
+        $step = $direction >= 0 ? '+1 day' : '-1 day';
+        // Use the known epoch only for the first iteration when no days were added.
+        $useKnownEpoch = ($knownStartEpoch !== null && $absDays === 0);
+
+        while (true) {
+            $curEpoch = $useKnownEpoch
+                ? $knownStartEpoch
+                : self::localToEpochSec($curYear, $curMonth, $curDay, $hour, $minute, $second, $tzId);
+            $useKnownEpoch = false;
+            $nextDt = (new \DateTimeImmutable(sprintf('%04d-%02d-%02d', $curYear, $curMonth, $curDay)))->modify($step);
+            $nextYear = (int) $nextDt->format('Y');
+            $nextMonth = (int) $nextDt->format('n');
+            $nextDay = (int) $nextDt->format('j');
+            $nextEpoch = self::localToEpochSec($nextYear, $nextMonth, $nextDay, $hour, $minute, $second, $tzId);
+            $dayLengthNs = abs($nextEpoch - $curEpoch) * 1_000_000_000;
+
+            if ($remaining < $dayLengthNs) {
+                return [$totalDays, $remaining];
+            }
+
+            $remaining -= $dayLengthNs;
+            $totalDays++;
+            $curYear = $nextYear;
+            $curMonth = $nextMonth;
+            $curDay = $nextDay;
+        }
+    }
+
+    /**
+     * Computes the total epoch-second offset for a duration added to a ZDT.
+     * Days are added as calendar days (DST-aware), time fields as seconds.
+     *
+     * @param array{epochSec: int, subNs: int, tzId: string, year: int, month: int, day: int, hour: int, minute: int, second: int} $zdtInfo
+     */
+    private static function durationToEpochOffsetSec(self $d, array $zdtInfo): float
+    {
+        $daysSec = self::zdtDaysToSec(
+            $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+            $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+            $zdtInfo['tzId'], (int) $d->days,
+        );
+        $timeSec =
+            ((float) $d->hours * 3_600.0)
+            + ((float) $d->minutes * 60.0)
+            + (float) $d->seconds
+            + (((float) $d->milliseconds * 1_000_000.0 + (float) $d->microseconds * 1_000.0 + (float) $d->nanoseconds) / 1_000_000_000.0);
+        return $daysSec + $timeSec;
+    }
+
+    /**
      * Converts a proleptic Gregorian calendar date to an epoch-day count
      * (days since 1970-01-01 = day 0), using the Julian Day Number formula.
      *
@@ -3215,7 +3723,6 @@ final class Duration implements Stringable
         // applyCalendarToDate throws InvalidArgumentException if totalDays > ±100M.
         [, $calendarDays] = $this->applyCalendarToDate($startDate);
 
-        $nsPerDay = 86_400_000_000_000;
         $timeNs =
             ((int) $this->hours * 3_600_000_000_000)
             + ((int) $this->minutes * 60_000_000_000)
@@ -3224,6 +3731,23 @@ final class Duration implements Stringable
             + ((int) $this->microseconds * 1_000)
             + (int) $this->nanoseconds;
 
+        // For ZDT with IANA timezone: use actual epoch seconds for calendar days.
+        $zdtInfo = self::resolveRelativeToZdt($rt);
+        if ($zdtInfo !== null) {
+            $actualDaysSec = (int) self::zdtDaysToSec(
+                $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'], $calendarDays,
+            );
+            $dayNs = $actualDaysSec * 1_000_000_000;
+            $totalNsF = (float) $dayNs + (float) $timeNs;
+            if ($totalNsF > (float) PHP_INT_MAX || $totalNsF < (float) PHP_INT_MIN) {
+                throw new InvalidArgumentException('Duration nanosecond total overflows the 64-bit range.');
+            }
+            return $dayNs + $timeNs;
+        }
+
+        $nsPerDay = 86_400_000_000_000;
         // Guard against int64 overflow when combining calendar days and time nanoseconds.
         $totalNsF = ((float) $calendarDays * (float) $nsPerDay) + (float) $timeNs;
         if ($totalNsF > (float) PHP_INT_MAX || $totalNsF < (float) PHP_INT_MIN) {
@@ -3361,6 +3885,7 @@ final class Duration implements Stringable
         array $UNIT_IDX,
     ): self {
         $bag = $this->relativeToPlainDateBag($rtRaw);
+        $zdtInfoRWR = self::resolveRelativeToZdt($rtRaw);
         $tz = new \DateTimeZone('UTC');
         $startDate = new \DateTimeImmutable('now', $tz)
             ->setDate($bag['year'], $bag['month'], $bag['day'])
@@ -3394,7 +3919,6 @@ final class Duration implements Stringable
         // applyCalendarToDate throws InvalidArgumentException if totalDays > ±100M.
         [, $calendarDays] = $this->applyCalendarToDate($startDate);
 
-        $nsPerDay = 86_400_000_000_000;
         $timeNs =
             ((int) $this->hours * 3_600_000_000_000)
             + ((int) $this->minutes * 60_000_000_000)
@@ -3402,6 +3926,8 @@ final class Duration implements Stringable
             + ((int) $this->milliseconds * 1_000_000)
             + ((int) $this->microseconds * 1_000)
             + (int) $this->nanoseconds;
+
+        $nsPerDay = 86_400_000_000_000;
 
         // Total nanoseconds = calendar days * nsPerDay + time fields.
         $totalNs = ($calendarDays * $nsPerDay) + $timeNs;
@@ -3508,8 +4034,43 @@ final class Duration implements Stringable
             $roundedAbsNs = self::roundNsPositive($absNs, $nsIncrement, $signedMode);
             $roundedNs = $sign * $roundedAbsNs;
             // Balance the rounded nanoseconds back into duration fields.
-            $roundedDays = intdiv(num1: $roundedNs, num2: $nsPerDay);
-            $subDayNs = $roundedNs - ($roundedDays * $nsPerDay);
+            // For ZDT IANA: use DST-aware day lengths for the day boundary.
+            if ($zdtInfoRWR !== null) {
+                // Compute the date after adding calendar fields (years/months/weeks) only.
+                $calDateEnd = $startDate;
+                $applySign = $this->sign;
+                if ((int) $this->years !== 0) {
+                    $calDateEnd = self::addYearsClamped($calDateEnd, $applySign * abs((int) $this->years));
+                }
+                if ((int) $this->months !== 0) {
+                    $calDateEnd = self::addMonthsClamped($calDateEnd, $applySign * abs((int) $this->months));
+                }
+                if ((int) $this->weeks !== 0) {
+                    $awDays = $applySign * abs((int) $this->weeks) * 7;
+                    $calDateEnd = $calDateEnd->modify(sprintf('%+d days', $awDays));
+                }
+                // Subtract calendar-day nanoseconds (computed at fixed 24h) from the rounded total
+                // to get only the days+time portion. Then balance using DST-aware day lengths.
+                $calOnlyDaysNs = abs($calendarDays) * $nsPerDay;
+                $timeAndDaysAbsNs = (int) $roundedAbsNs - $calOnlyDaysNs;
+                if ($timeAndDaysAbsNs < 0) {
+                    $timeAndDaysAbsNs = 0;
+                }
+                $calEndY = (int) $calDateEnd->format('Y');
+                $calEndM = (int) $calDateEnd->format('n');
+                $calEndD = (int) $calDateEnd->format('j');
+                [$roundedAbsDays, $absSubDayNs] = self::zdtBalanceTimeToDays(
+                    $calEndY, $calEndM, $calEndD,
+                    $zdtInfoRWR['hour'], $zdtInfoRWR['minute'], $zdtInfoRWR['second'],
+                    $zdtInfoRWR['tzId'], $timeAndDaysAbsNs, 0, $sign,
+                );
+                // Re-add the calendar days to get the total day count for balanceDateDuration.
+                $roundedDays = $sign * ($roundedAbsDays + abs($calendarDays));
+                $subDayNs = $sign * $absSubDayNs;
+            } else {
+                $roundedDays = intdiv(num1: $roundedNs, num2: $nsPerDay);
+                $subDayNs = $roundedNs - ($roundedDays * $nsPerDay);
+            }
         }
 
         // Balance calendar fields (years/months/weeks/days) from roundedDays.
