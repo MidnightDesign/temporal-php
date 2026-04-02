@@ -790,7 +790,7 @@ final class PlainDate implements Stringable
      */
     public function toPlainYearMonth(): PlainYearMonth
     {
-        return new PlainYearMonth($this->isoYear, $this->isoMonth, $this->calendarId);
+        return new PlainYearMonth($this->isoYear, $this->isoMonth, $this->calendarId, $this->isoDay);
     }
 
     /**
