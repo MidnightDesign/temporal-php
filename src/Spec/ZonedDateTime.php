@@ -777,6 +777,10 @@ final class ZonedDateTime implements Stringable
         if (in_array($lower, $utcAliases, strict: true)) {
             return 'UTC';
         }
+        // Fixed offset +00:00 and -00:00 are equivalent to UTC.
+        if ($id === '+00:00' || $id === '-00:00') {
+            return 'UTC';
+        }
         // Case-fold and use ICU canonical ID for IANA alias resolution.
         // ICU's getCanonicalID is case-sensitive, so we look up using
         // the properly-cased IANA ID from PHP's timezone list.
@@ -1103,9 +1107,6 @@ final class ZonedDateTime implements Stringable
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
         }
-        if (self::canonicalizeTimezoneForComparison($this->timeZoneId) !== self::canonicalizeTimezoneForComparison($o->timeZoneId)) {
-            throw new InvalidArgumentException("Cannot compute since() between different timezones: \"{$this->timeZoneId}\" and \"{$o->timeZoneId}\".");
-        }
         return self::diffZdt($this, $o, 'since', $options);
     }
 
@@ -1123,9 +1124,6 @@ final class ZonedDateTime implements Stringable
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
             throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
-        }
-        if (self::canonicalizeTimezoneForComparison($this->timeZoneId) !== self::canonicalizeTimezoneForComparison($o->timeZoneId)) {
-            throw new InvalidArgumentException("Cannot compute until() between different timezones: \"{$this->timeZoneId}\" and \"{$o->timeZoneId}\".");
         }
         return self::diffZdt($this, $o, 'until', $options);
     }
@@ -3421,6 +3419,16 @@ final class ZonedDateTime implements Stringable
         }
 
         $isCalendarLargest = in_array($normLargest, ['year', 'month', 'week', 'day'], strict: true);
+
+        // TC39: for calendar-largest units, require matching canonical timezones.
+        if ($isCalendarLargest
+            && self::canonicalizeTimezoneForComparison($temporalDate->timeZoneId)
+                !== self::canonicalizeTimezoneForComparison($other->timeZoneId)
+        ) {
+            throw new InvalidArgumentException(
+                "Cannot compute {$operation}() with largestUnit '{$normLargest}' between different timezones.",
+            );
+        }
 
         // Epoch ns difference: other − temporalDate.
         // Positive when other > temporalDate (the "until" direction).
