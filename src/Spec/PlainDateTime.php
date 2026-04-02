@@ -1269,12 +1269,16 @@ final class PlainDateTime implements Stringable
         }
 
         $normalTzId = ZonedDateTime::normalizeTimezoneId($timeZone);
+        $disambiguation = 'compatible';
+        if (is_array($options) && array_key_exists('disambiguation', $options) && is_string($options['disambiguation'])) {
+            $disambiguation = $options['disambiguation'];
+        }
 
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
         // year-formatting issues with extended years > 9999 or negative years).
         $epochDays = CalendarMath::toJulianDay($this->isoYear, $this->isoMonth, $this->isoDay) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($this->hour * 3600) + ($this->minute * 60) + $this->second;
-        $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $normalTzId);
+        $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $normalTzId, $disambiguation);
 
         $subNs = ($this->millisecond * self::NS_PER_MS) + ($this->microsecond * self::NS_PER_US) + $this->nanosecond;
 

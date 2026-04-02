@@ -2766,10 +2766,11 @@ final class ZonedDateTime implements Stringable
                 };
             }
             // Gap (spring-forward): wall time doesn't exist.
-            // TC39: 'earlier' snaps to the last instant before the gap.
-            // 'later'/'compatible' snaps to the first instant after the gap.
-            $beforeGapEpoch = $transitionEpoch - 1;
-            $afterGapEpoch = $transitionEpoch;
+            // TC39: resolve by interpreting the wall time in the opposite offset.
+            // 'earlier': use post offset → gives an instant before the gap.
+            // 'later'/'compatible': use pre offset → gives an instant after the gap.
+            $beforeGapEpoch = $wallSec - $postOffset;
+            $afterGapEpoch = $wallSec - $preOffset;
             return match ($disambiguation) {
                 'compatible', 'later' => $afterGapEpoch,
                 'earlier' => $beforeGapEpoch,
