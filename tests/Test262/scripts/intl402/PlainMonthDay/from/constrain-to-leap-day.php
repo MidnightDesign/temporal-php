@@ -11,5 +11,5 @@ $tests = [['buddhist', 'M02', 30], ['chinese', 'M01', 31], ['coptic', 'M13', 7],
 foreach ($tests as $__entry__) {
 [$calendar, $monthCode, $day] = array_pad($__entry__, 3, null);
 $md = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day], ['overflow' => 'constrain']);
-Assert::sameValue($md->day, $day - 1, "{$calendar}: {$monthCode}-{$day} should constrain to {$day - 1}, not {$day - 2}");
+Assert::sameValue($md->day, $day - 1, "{$calendar}: {$monthCode}-{$day} should constrain to " . ($day - 1) . ", not " . ($day - 2) . "");
 }
