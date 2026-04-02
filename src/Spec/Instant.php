@@ -738,9 +738,15 @@ final class Instant implements Stringable
                 if (preg_match('/^[+\-]\d{2}:\d{2}$/', $bracket) === 1) {
                     return $bracket;
                 }
-                throw new InvalidArgumentException(
-                    "Invalid time zone string \"{$tz}\": unsupported bracket timezone \"{$bracket}\".",
-                );
+                // Try as IANA timezone name.
+                try {
+                    new \DateTimeZone($bracket);
+                    return ZonedDateTime::normalizeTimezoneId($bracket);
+                } catch (\Exception) {
+                    throw new InvalidArgumentException(
+                        "Invalid time zone string \"{$tz}\": unsupported bracket timezone \"{$bracket}\".",
+                    );
+                }
             }
             // No bracket: inline offset (Z or ±HH:MM) required.
             // Reject sub-minute inline offset.
@@ -777,7 +783,13 @@ final class Instant implements Stringable
             );
         }
 
-        throw new InvalidArgumentException("Invalid time zone string \"{$tz}\": not a recognized timezone identifier.");
+        // IANA timezone name: validate via PHP DateTimeZone.
+        try {
+            new \DateTimeZone($tz);
+            return ZonedDateTime::normalizeTimezoneId($tz);
+        } catch (\Exception) {
+            throw new InvalidArgumentException("Invalid time zone string \"{$tz}\": not a recognized timezone identifier.");
+        }
     }
 
     /**
