@@ -394,8 +394,8 @@ final class ZonedDateTime implements Stringable
             $todayWallSec = $todayEpochDays * 86_400;
             $tomorrowWallSec = $tomorrowEpochDays * 86_400;
 
-            $todayEpochSec = self::wallSecToEpochSec($todayWallSec, $this->timeZoneId);
-            $tomorrowEpochSec = self::wallSecToEpochSec($tomorrowWallSec, $this->timeZoneId);
+            $todayEpochSec = self::wallSecToEpochSecStartOfDay($todayWallSec, $this->timeZoneId);
+            $tomorrowEpochSec = self::wallSecToEpochSecStartOfDay($tomorrowWallSec, $this->timeZoneId);
 
             $diffSec = $tomorrowEpochSec - $todayEpochSec;
             $hours = $diffSec / 3600.0;
@@ -734,7 +734,10 @@ final class ZonedDateTime implements Stringable
         $epochDays = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
         $wallSec = $epochDays * 86_400; // midnight in wall-clock seconds
 
-        $epochSec = self::wallSecToEpochSec($wallSec, $this->timeZoneId);
+        // For cross-midnight DST gaps (e.g., 1919-03-31 America/Toronto where
+        // midnight doesn't exist), startOfDay should return the transition
+        // epoch itself — the first valid instant of the day.
+        $epochSec = self::wallSecToEpochSecStartOfDay($wallSec, $this->timeZoneId);
 
         return self::createFromEpochParts($epochSec, 0, $this->timeZoneId, $this->calendarId);
     }
@@ -2715,6 +2718,39 @@ final class ZonedDateTime implements Stringable
      * @internal Used by PlainDate/PlainDateTime for timezone resolution.
      * @psalm-api
      */
+    /**
+     * Like wallSecToEpochSec, but for startOfDay: when midnight is in a gap,
+     * returns the transition epoch (first valid instant of the day) instead of
+     * the regular gap disambiguation.
+     */
+    private static function wallSecToEpochSecStartOfDay(int $wallSec, string $tzId): int
+    {
+        if ($tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) === 1) {
+            return self::wallSecToEpochSec($wallSec, $tzId);
+        }
+        $tz = new \DateTimeZone($tzId);
+        $approxOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $wallSec)));
+        $epoch1 = $wallSec - $approxOffset;
+        $transitions = $tz->getTransitions($epoch1 - 86400, $epoch1 + 86400);
+        if (count($transitions) >= 2) {
+            for ($i = 1; $i < count($transitions); $i++) {
+                $tEpoch = $transitions[$i]['ts'];
+                $pre = $transitions[$i - 1]['offset'];
+                $post = $transitions[$i]['offset'];
+                if ($post > $pre) {
+                    // Gap: check if wallSec is in [wallAtPre, wallAtPost)
+                    $wallAtPre = $tEpoch + $pre;
+                    $wallAtPost = $tEpoch + $post;
+                    if ($wallSec >= $wallAtPre && $wallSec < $wallAtPost) {
+                        // Midnight is in a gap: return the transition epoch.
+                        return $tEpoch;
+                    }
+                }
+            }
+        }
+        return self::wallSecToEpochSec($wallSec, $tzId);
+    }
+
     public static function wallSecToEpochSec(int $wallSec, string $tzId, string $disambiguation = 'compatible'): int
     {
         if ($tzId === 'UTC') {
