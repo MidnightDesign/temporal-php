@@ -2586,11 +2586,14 @@ final class ZonedDateTime implements Stringable
             $epochFromOffset = $wallSec - $givenOffsetSec;
             $actualOffset = self::staticResolveOffset($epochFromOffset, $normalTzId);
             if ($actualOffset === $givenOffsetSec) {
-                // The offset is valid at this instant — use it.
+                // The offset is valid at this instant — use it (DST overlap case).
                 $epochSec = $epochFromOffset;
+            } else {
+                // Offset doesn't match timezone at this wall time → reject.
+                throw new InvalidArgumentException(
+                    "The offset {$offRaw} does not match the timezone {$normalTzId} offset at the given instant.",
+                );
             }
-            // If offset doesn't match, we keep the disambiguation-resolved epoch.
-            // The offset option in the options bag (not the field) controls whether to throw.
         }
 
         return self::fromEpochParts($epochSec, $subNs, $normalTzId, $calendarId);
