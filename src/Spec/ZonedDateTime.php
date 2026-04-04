@@ -3624,9 +3624,27 @@ final class ZonedDateTime implements Stringable
                 $laterLocal = $tdLocal;
             }
 
+            // For IANA timezones, compute the actual day length at the intermediate
+            // date (after adding date portion). This is needed for DST-aware
+            // progress computation where 24h might not equal 1 day.
+            $nsPerDayF = 86_400_000_000_000.0;
+            if ($isIanaTz && ($years !== 0 || $months !== 0 || $weeks !== 0 || $days !== 0)) {
+                try {
+                    $earlierZ3 = $sign >= 0 ? $temporalDate : $other;
+                    $intermediate3 = $earlierZ3->add(new Duration(
+                        years: $years, months: $months, weeks: $weeks, days: $days,
+                    ));
+                    $actualHours = $intermediate3->hoursInDay;
+                    if ($actualHours !== 24 && $actualHours > 0) {
+                        $nsPerDayF = $actualHours * 3_600_000_000_000.0;
+                    }
+                } catch (\Throwable) {
+                    // Keep default 24h
+                }
+            }
+
             if ($isSmallestCalendar) {
                 // Calendar-unit rounding: zero out time and round the calendar part.
-                $nsPerDayF = 86_400_000_000_000.0;
 
                 // Receiver's local components for calendar-aware rounding.
                 $recLocal = $tdLocal;
@@ -3713,8 +3731,10 @@ final class ZonedDateTime implements Stringable
             $absTimeNs = self::roundPositiveNs($absTimeNs, $nsIncrement, $effectiveMode);
 
             // Handle day overflow from rounding time.
-            $overflowDays = intdiv(num1: $absTimeNs, num2: 86_400_000_000_000);
-            $absTimeNs = $absTimeNs % 86_400_000_000_000;
+            // Use DST-aware day length for IANA timezones.
+            $nsPerDayForOverflow = (int) $nsPerDayF;
+            $overflowDays = intdiv(num1: $absTimeNs, num2: $nsPerDayForOverflow);
+            $absTimeNs = $absTimeNs % $nsPerDayForOverflow;
             $days += $overflowDays;
 
             // Re-balance calendar units when day overflow pushes past month boundaries.
