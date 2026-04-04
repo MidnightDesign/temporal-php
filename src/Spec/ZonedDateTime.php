@@ -3191,7 +3191,7 @@ final class ZonedDateTime implements Stringable
         // Compute wall-clock seconds from JDN to handle extreme years.
         $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($min * 60) + $sec;
-        $epochSec = self::wallSecToEpochSec($wallSec, $tzId);
+        $epochSec = self::wallSecToEpochSec($wallSec, $tzId, $disambiguation);
 
         $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
 
