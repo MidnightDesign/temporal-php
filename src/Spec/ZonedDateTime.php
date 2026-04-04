@@ -3598,6 +3598,18 @@ final class ZonedDateTime implements Stringable
                     $recomputedNs = ($latSec - $intSec) * 1_000_000_000 + ($latSub - $intSub);
                     if ($recomputedNs >= 0) {
                         $timeDiffNs = $recomputedNs;
+                    } elseif ($days > 0) {
+                        // Negative time means the date portion overshot (DST gap at
+                        // the intermediate date). Reduce days by 1 and recompute.
+                        $days--;
+                        $intermediate2 = $earlierZ->add(new Duration(
+                            years: $years, months: $months, weeks: $weeks, days: $days,
+                        ));
+                        [$intSec2, $intSub2] = $intermediate2->getEpochParts();
+                        $recomputedNs2 = ($latSec - $intSec2) * 1_000_000_000 + ($latSub - $intSub2);
+                        if ($recomputedNs2 >= 0) {
+                            $timeDiffNs = $recomputedNs2;
+                        }
                     }
                 } catch (\Throwable) {
                     // Keep wall-clock timeDiffNs on failure
