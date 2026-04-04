@@ -3050,6 +3050,10 @@ final class ZonedDateTime implements Stringable
                 [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn);
             }
 
+            // TC39 AddZonedDateTime: first resolve the new local date+time to
+            // an intermediate ZDT epoch, then add time units to the epoch.
+            // This correctly handles DST day length differences.
+
             // Balance time units to nanoseconds.
             $timeNs =
                 ($hours * 3_600_000_000_000)
@@ -3059,57 +3063,33 @@ final class ZonedDateTime implements Stringable
                 + ($us * self::NS_PER_MICROSECOND)
                 + $ns;
 
-            // Combine with existing local time.
-            $localTimeNs =
-                ($lc['hour'] * 3_600_000_000_000)
-                + ($lc['minute'] * 60_000_000_000)
-                + ($lc['second'] * self::NS_PER_SECOND)
-                + ($lc['millisecond'] * self::NS_PER_MILLISECOND)
+            if ($timeNs === 0) {
+                // No time units: just resolve the new local date with original time.
+                return self::localToZdt(
+                    $newYear, $newMonth, $newDay,
+                    $lc['hour'], $lc['minute'], $lc['second'],
+                    $lc['millisecond'], $lc['microsecond'], $lc['nanosecond'],
+                    $this->timeZoneId, $this->calendarId, 'compatible',
+                );
+            }
+
+            // Step 1: Resolve new date + original time to intermediate epoch.
+            $epochDays = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) - 2_440_588;
+            $wallSec = ($epochDays * 86_400)
+                + ($lc['hour'] * 3600) + ($lc['minute'] * 60) + $lc['second'];
+            $intermediateEpochSec = self::wallSecToEpochSec($wallSec, $this->timeZoneId, 'compatible');
+            $intermediateSubNs =
+                ($lc['millisecond'] * self::NS_PER_MILLISECOND)
                 + ($lc['microsecond'] * self::NS_PER_MICROSECOND)
                 + $lc['nanosecond'];
-            $newTimeNs = $localTimeNs + $timeNs;
 
-            // Carry overflow days from the time component.
-            $nsPerDay = 86_400_000_000_000;
-            if ($newTimeNs < 0) {
-                $overflowDays = (int) floor($newTimeNs / $nsPerDay);
-                $newTimeNs -= $overflowDays * $nsPerDay;
-            } else {
-                $overflowDays = intdiv(num1: $newTimeNs, num2: $nsPerDay);
-                $newTimeNs = $newTimeNs % $nsPerDay;
-            }
+            // Step 2: Add time nanoseconds to the epoch.
+            $totalSubNs = $intermediateSubNs + $timeNs;
+            $overflowSec = CalendarMath::floorDiv($totalSubNs, self::NS_PER_SECOND);
+            $resultSubNs = $totalSubNs - ($overflowSec * self::NS_PER_SECOND);
+            $resultEpochSec = $intermediateEpochSec + $overflowSec;
 
-            if ($overflowDays !== 0) {
-                $jdn2 = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) + $overflowDays;
-                [$newYear, $newMonth, $newDay] = CalendarMath::fromJulianDay($jdn2);
-            }
-
-            // Decompose new time.
-            $h = intdiv(num1: $newTimeNs, num2: 3_600_000_000_000);
-            $rem = $newTimeNs % 3_600_000_000_000;
-            $min = intdiv(num1: $rem, num2: 60_000_000_000);
-            $rem = $rem % 60_000_000_000;
-            $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-            $rem = $rem % self::NS_PER_SECOND;
-            $msR = intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND);
-            $rem = $rem % self::NS_PER_MILLISECOND;
-            $usR = intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND);
-            $nsR = $rem % self::NS_PER_MICROSECOND;
-
-            return self::localToZdt(
-                $newYear,
-                $newMonth,
-                $newDay,
-                $h,
-                $min,
-                $sec,
-                $msR,
-                $usR,
-                $nsR,
-                $this->timeZoneId,
-                $this->calendarId,
-                'compatible',
-            );
+            return self::fromEpochParts($resultEpochSec, $resultSubNs, $this->timeZoneId, $this->calendarId);
         }
 
         // Pure time units: balance to days + sub-day ns to avoid int64 overflow.
