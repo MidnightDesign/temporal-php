@@ -2154,6 +2154,7 @@ final class ZonedDateTime implements Stringable
         /** @var list<string> $m */
         $m = [];
         $matched = false;
+        $isDateOnly = false;
         foreach ([
             $patternExtDateExtTime,
             $patternExtDateCptTime,
@@ -2179,6 +2180,7 @@ final class ZonedDateTime implements Stringable
             }
             // Normalize to the same $m layout with empty time fields (defaults to midnight).
             $m = [$dm[0], $dm[1], $dm[2], '', '', '', '', '', $dm[3]];
+            $isDateOnly = true;
         }
 
         [, $yearRaw, $dateRest, $hourStr, $minStr, $secStr, $fractionRaw, $offsetRaw, $annotationSection] = $m;
@@ -2305,7 +2307,12 @@ final class ZonedDateTime implements Stringable
         } else {
             // No inline offset: convert wall clock to UTC via the timezone.
             $normalizedTzId = self::normalizeTimezoneId($tzId);
-            $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+            if ($isDateOnly) {
+                // Date-only string: use startOfDay semantics (TC39 spec).
+                $epochSec = self::wallSecToEpochSecStartOfDay($wallSec, $normalizedTzId);
+            } else {
+                $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+            }
             $tzId = $normalizedTzId;
         }
 
