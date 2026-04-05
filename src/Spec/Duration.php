@@ -2639,7 +2639,8 @@ final class Duration implements Stringable
      */
     private static function validateRelativeToPropertyBag(array $rt): void
     {
-        $hasYear = array_key_exists('year', $rt);
+        $hasYear = array_key_exists('year', $rt)
+            || (array_key_exists('era', $rt) && array_key_exists('eraYear', $rt));
         $hasMonth = array_key_exists('month', $rt) || array_key_exists('monthCode', $rt);
         $hasDay = array_key_exists('day', $rt);
         if (!$hasYear || !$hasMonth || !$hasDay) {
@@ -2648,6 +2649,7 @@ final class Duration implements Stringable
         // Validate Infinity/NaN in numeric fields.
         foreach ([
             'year',
+            'eraYear',
             'month',
             'day',
             'hour',
