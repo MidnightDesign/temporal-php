@@ -314,6 +314,26 @@ final class CalendarMath
             };
         }
 
+        // If no primary date/time components but auxiliary options were set,
+        // add default components based on the default mode.
+        $hasDatePart = isset($opts['weekday']) || isset($opts['year']) || isset($opts['month']) || isset($opts['day']);
+        $hasTimePart = isset($opts['hour']) || isset($opts['minute']) || isset($opts['second']);
+        if (!$hasDatePart && !$hasTimePart) {
+            // Add defaults based on mode
+            if ($defaultComponents === 'date' || $defaultComponents === 'datetime' || $defaultComponents === 'yearmonth' || $defaultComponents === 'monthday') {
+                if ($defaultComponents === 'yearmonth') {
+                    $parts = array_merge(['y', 'M'], $parts);
+                } elseif ($defaultComponents === 'monthday') {
+                    $parts = array_merge(['M', 'd'], $parts);
+                } else {
+                    $parts = array_merge(['y', 'M', 'd'], $parts);
+                }
+            }
+            if ($defaultComponents === 'time' || $defaultComponents === 'datetime') {
+                $parts = array_merge($parts, ['j', 'm', 's']);
+            }
+        }
+
         $skeleton = implode('', $parts);
 
         // Use ICU's DateTimePatternGenerator to get a best-fit pattern
