@@ -110,6 +110,15 @@ final class CalendarMath
             $locale = sprintf('%s@calendar=%s', $locale, $opts['calendar']);
         }
 
+        // Convert fixed-offset timezone to ICU-compatible format (GMT±HH:MM).
+        if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $timeZone, $m) === 1) {
+            if ($m[2] === '00' && $m[3] === '00') {
+                $timeZone = 'GMT';
+            } else {
+                $timeZone = 'GMT' . $m[1] . $m[2] . ':' . $m[3];
+            }
+        }
+
         // Apply hourCycle as a Unicode locale extension
         if (isset($opts['hourCycle']) && is_string($opts['hourCycle'])) {
             $locale = self::applyHourCycle($locale, $opts['hourCycle']);
