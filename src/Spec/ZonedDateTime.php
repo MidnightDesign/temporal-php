@@ -540,8 +540,12 @@ final class ZonedDateTime implements Stringable
         if ($opts !== null && array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
             $disambiguation = $opts['disambiguation'];
         }
+        $offsetOption = 'reject';
+        if ($opts !== null && array_key_exists('offset', $opts) && is_string($opts['offset'])) {
+            $offsetOption = $opts['offset'];
+        }
         $bag = is_array($item) ? $item : (array) $item;
-        return self::fromPropertyBag($bag, $overflow, $disambiguation);
+        return self::fromPropertyBag($bag, $overflow, $disambiguation, $offsetOption);
     }
 
     /**
@@ -2336,7 +2340,7 @@ final class ZonedDateTime implements Stringable
      * @throws \TypeError              if required fields are missing or wrong type.
      * @throws InvalidArgumentException if values are invalid.
      */
-    private static function fromPropertyBag(array $bag, string $overflow = 'constrain', string $disambiguation = 'compatible'): self
+    private static function fromPropertyBag(array $bag, string $overflow = 'constrain', string $disambiguation = 'compatible', string $offsetOption = 'reject'): self
     {
         // Validate calendar first (spec validates calendar before required fields).
         $calendarId = 'iso8601';
@@ -2576,8 +2580,8 @@ final class ZonedDateTime implements Stringable
         $epochSec = self::wallSecToEpochSec($wallSec, $normalTzId, $disambiguation);
         $subNs = ($milli * self::NS_PER_MILLISECOND) + ($micro * self::NS_PER_MICROSECOND) + $nano;
 
-        // Handle 'offset' field if provided: use it to disambiguate DST overlaps.
-        if (array_key_exists('offset', $bag)) {
+        // Handle 'offset' field if provided: depends on offset option.
+        if (array_key_exists('offset', $bag) && $offsetOption !== 'ignore') {
             /** @var mixed $offRaw */
             $offRaw = $bag['offset'];
             if (!is_string($offRaw)) {
@@ -2591,18 +2595,23 @@ final class ZonedDateTime implements Stringable
             $offParts = explode(separator: ':', string: substr(string: $offRaw, offset: 1));
             $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60));
 
-            // Try using the given offset to compute the epoch directly.
-            // This handles DST overlaps where the offset selects which instant.
-            $epochFromOffset = $wallSec - $givenOffsetSec;
-            $actualOffset = self::staticResolveOffset($epochFromOffset, $normalTzId);
-            if ($actualOffset === $givenOffsetSec) {
-                // The offset is valid at this instant — use it (DST overlap case).
-                $epochSec = $epochFromOffset;
+            if ($offsetOption === 'use') {
+                // Use the offset directly, regardless of timezone rules.
+                $epochSec = $wallSec - $givenOffsetSec;
             } else {
-                // Offset doesn't match timezone at this wall time → reject.
-                throw new InvalidArgumentException(
-                    "The offset {$offRaw} does not match the timezone {$normalTzId} offset at the given instant.",
-                );
+                // 'prefer' or 'reject': try using the given offset.
+                $epochFromOffset = $wallSec - $givenOffsetSec;
+                $actualOffset = self::staticResolveOffset($epochFromOffset, $normalTzId);
+                if ($actualOffset === $givenOffsetSec) {
+                    // The offset is valid at this instant — use it.
+                    $epochSec = $epochFromOffset;
+                } elseif ($offsetOption === 'reject') {
+                    // Offset doesn't match timezone at this wall time → reject.
+                    throw new InvalidArgumentException(
+                        "The offset {$offRaw} does not match the timezone {$normalTzId} offset at the given instant.",
+                    );
+                }
+                // 'prefer': keep disambiguation-resolved epochSec.
             }
         }
 
