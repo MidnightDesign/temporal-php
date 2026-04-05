@@ -1306,9 +1306,8 @@ final class ZonedDateTime implements Stringable
         $overflow = self::extractOverflow($options);
         $disambiguation = self::extractDisambiguation($options);
 
-        // Validate the 'offset' option (how to use the offset field).
-        // Full DST-aware offset resolution is not yet implemented; for UTC/fixed-offset
-        // timezones the option has no effect beyond validation.
+        // Extract the 'offset' option (default is 'prefer' for with()).
+        $offsetOption = 'prefer';
         if ($options !== null) {
             $optArr = is_array($options) ? $options : (array) $options;
             if (array_key_exists('offset', $optArr)) {
@@ -1323,6 +1322,7 @@ final class ZonedDateTime implements Stringable
                             "Invalid offset option \"{$offOpt}\": must be 'prefer', 'use', 'ignore', or 'reject'.",
                         );
                     }
+                    $offsetOption = $offOpt;
                 }
             }
         }
@@ -1646,6 +1646,68 @@ final class ZonedDateTime implements Stringable
             $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             if ($day > $maxDay) {
                 throw new InvalidArgumentException("Day {$day} is out of range for {$year}-{$month} (max {$maxDay}).");
+            }
+        }
+
+        // If no offset field was provided but offset option requires preserving,
+        // use the ZDT's current offset for wall-to-epoch conversion. Per TC39,
+        // 'use'/'prefer'/'reject' all preserve the existing offset when possible.
+        if (!$hasOffsetField && $offsetOption !== 'ignore') {
+            [$curEpochSec, ] = $this->getEpochParts();
+            $currentOffsetSec = self::staticResolveOffset($curEpochSec, $this->timeZoneId);
+
+            $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
+            $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($min * 60) + $sec;
+
+            if ($offsetOption === 'use') {
+                $epochSec = $wallSec - $currentOffsetSec;
+                $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
+            }
+            // 'prefer'/'reject': check if current offset is valid at new wall time
+            $epochFromOffset = $wallSec - $currentOffsetSec;
+            $actualOffset = self::staticResolveOffset($epochFromOffset, $this->timeZoneId);
+            if ($actualOffset === $currentOffsetSec) {
+                $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                return self::fromEpochParts($epochFromOffset, $subNs, $this->timeZoneId, $this->calendarId);
+            }
+            // Current offset not valid at new wall time — fall through to disambiguation
+        }
+
+        // Handle offset field with offset option (like from()).
+        if ($hasOffsetField) {
+            /** @var string $offVal */
+            $offVal = $fields['offset'];
+            $offSign = $offVal[0] === '+' ? 1 : -1;
+            $offParts = explode(separator: ':', string: substr(string: $offVal, offset: 1));
+            $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60));
+
+            if ($offsetOption === 'ignore') {
+                // Fall through to normal localToZdt.
+            } else {
+                $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
+                $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($min * 60) + $sec;
+
+                if ($offsetOption === 'use') {
+                    // Use the offset directly, regardless of timezone rules.
+                    $epochSec = $wallSec - $givenOffsetSec;
+                    $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                    return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
+                }
+
+                // 'prefer' or 'reject': try using the given offset.
+                $epochFromOffset = $wallSec - $givenOffsetSec;
+                $actualOffset = self::staticResolveOffset($epochFromOffset, $this->timeZoneId);
+                if ($actualOffset === $givenOffsetSec) {
+                    $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                    return self::fromEpochParts($epochFromOffset, $subNs, $this->timeZoneId, $this->calendarId);
+                }
+                if ($offsetOption === 'reject') {
+                    throw new InvalidArgumentException(
+                        "The offset {$offVal} does not match the timezone offset at the given instant.",
+                    );
+                }
+                // 'prefer': fall through to normal localToZdt.
             }
         }
 
