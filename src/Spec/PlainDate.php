@@ -739,9 +739,9 @@ final class PlainDate implements Stringable
     public function toZonedDateTime(string|array $item): ZonedDateTime
     {
         if (is_string($item)) {
-            // String argument = timezone ID; combine with midnight.
+            // String argument = timezone ID; use startOfDay semantics (TC39 spec).
             $tzId = ZonedDateTime::normalizeTimezoneId($item);
-            return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0);
+            return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0, startOfDay: true);
         }
         // Property bag: must have 'timeZone' key.
         if (!array_key_exists('timeZone', $item)) {
@@ -780,7 +780,9 @@ final class PlainDate implements Stringable
             $us = $t->microsecond;
             $ns = $t->nanosecond;
         }
-        return $this->createZdt($tzId, $h, $m, $s, $ms, $us, $ns);
+        // Use startOfDay when no plainTime is explicitly provided.
+        $useStartOfDay = !array_key_exists('plainTime', $item);
+        return $this->createZdt($tzId, $h, $m, $s, $ms, $us, $ns, startOfDay: $useStartOfDay);
     }
 
     /**
@@ -843,12 +845,21 @@ final class PlainDate implements Stringable
      *
      * @throws InvalidArgumentException if the resulting epoch nanoseconds are out of range.
      */
-    private function createZdt(string $tzId, int $h, int $m, int $s, int $ms, int $us, int $ns): ZonedDateTime
+    private function createZdt(string $tzId, int $h, int $m, int $s, int $ms, int $us, int $ns, bool $startOfDay = false): ZonedDateTime
     {
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
         // year-formatting issues with extended years > 9999 or negative years).
         $epochDays = CalendarMath::toJulianDay($this->isoYear, $this->isoMonth, $this->isoDay) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($m * 60) + $s;
+
+        // For startOfDay semantics (string shorthand), use the transition epoch
+        // for cross-midnight DST gaps instead of regular disambiguation.
+        if ($startOfDay && $h === 0 && $m === 0 && $s === 0 && $ms === 0 && $us === 0 && $ns === 0) {
+            $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
+            $zdt = ZonedDateTime::createFromEpochParts($epochSec, 0, $tzId, $this->calendarId);
+            return $zdt->startOfDay();
+        }
+
         $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
 
         $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
