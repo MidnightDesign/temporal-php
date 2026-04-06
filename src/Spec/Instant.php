@@ -456,8 +456,13 @@ final class Instant implements Stringable
             if ($resolved !== null) {
                 $tzOffsetMinutes = $resolved;
             } else {
-                // IANA timezone: compute offset after rounding
-                $ianaTimeZone = $tzStr;
+                // IANA timezone: extract the timezone name from the string.
+                // For bracket annotations, extract the bracket content.
+                if (preg_match('/\[([^\]]+)\]/', $tzStr, $bm2) === 1) {
+                    $ianaTimeZone = $bm2[1];
+                } else {
+                    $ianaTimeZone = $tzStr;
+                }
             }
         }
 
@@ -608,6 +613,13 @@ final class Instant implements Stringable
             if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $bracket, $om) === 1) {
                 $sign = $om[1] === '+' ? 1 : -1;
                 return $sign * (((int) $om[2] * 60) + (int) $om[3]);
+            }
+            // IANA timezone in bracket: return null to signal epoch-dependent resolution.
+            try {
+                new \DateTimeZone($bracket);
+                return null; // Caller will use ianaOffsetMinutes
+            } catch (\Exception) {
+                // Not a valid timezone, fall through
             }
         }
         // Datetime strings without bracket: use inline offset or Z.
