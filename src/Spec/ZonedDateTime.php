@@ -669,11 +669,12 @@ final class ZonedDateTime implements Stringable
      */
     public function withPlainTime(string|array|object|null $time = null): self
     {
-        // When called with no arguments, default to midnight.
-        // Explicit null is an invalid type (mirrors JS null vs undefined distinction).
+        // When called with no arguments, use startOfDay semantics (TC39 spec).
+        // This handles cross-midnight DST gaps correctly.
         if (func_num_args() === 0) {
-            $h = $m = $s = $ms = $us = $ns = 0;
-        } elseif ($time === null) {
+            return $this->startOfDay();
+        }
+        if ($time === null) {
             throw new \TypeError(
                 'ZonedDateTime::withPlainTime() argument must be a PlainTime, string, or property bag; null given.',
             );
