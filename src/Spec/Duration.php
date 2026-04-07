@@ -2369,7 +2369,30 @@ final class Duration implements Stringable
         // In the pure-time path largestUnit is always 'days' when smallestUnit='days'
         // (weeks/months/years require relativeTo → calendar path via roundWithRelativeTo).
         if ($suNormResolved === 'days') {
-            $totalAbsDaysF = (float) $absD + ((float) $subDayNs / 86_400_000_000_000.0);
+            // For ZDT IANA: use the actual day length for fractional day computation.
+            if ($zdtInfoRound !== null) {
+                $dayLenSec = abs(self::zdtDayLengthSec(
+                    $zdtInfoRound['year'], $zdtInfoRound['month'], $zdtInfoRound['day'],
+                    $zdtInfoRound['hour'], $zdtInfoRound['minute'], $zdtInfoRound['second'],
+                    $zdtInfoRound['tzId'],
+                ));
+                // After DST-aware balancing, $absD days are consumed and $subDayNs remains.
+                // Compute the fractional day using the actual day length at the current position.
+                // Walk forward from the ZDT by $absD days to find the relevant day.
+                if ($absD > 0) {
+                    $baseDt = new \DateTimeImmutable(sprintf('%04d-%02d-%02d', $zdtInfoRound['year'], $zdtInfoRound['month'], $zdtInfoRound['day']));
+                    $afterDays = $baseDt->modify(sprintf('%+d days', $sign * $absD));
+                    $dayLenSec = abs(self::zdtDayLengthSec(
+                        (int) $afterDays->format('Y'), (int) $afterDays->format('n'), (int) $afterDays->format('j'),
+                        $zdtInfoRound['hour'], $zdtInfoRound['minute'], $zdtInfoRound['second'],
+                        $zdtInfoRound['tzId'],
+                    ));
+                }
+                $dayLenNs = (float) $dayLenSec * 1_000_000_000.0;
+                $totalAbsDaysF = (float) $absD + ($dayLenNs > 0 ? (float) $subDayNs / $dayLenNs : 0.0);
+            } else {
+                $totalAbsDaysF = (float) $absD + ((float) $subDayNs / 86_400_000_000_000.0);
+            }
             $roundedAbsDays = (int) self::roundNsFloat($totalAbsDaysF, (float) $increment, $roundingMode);
             if (((float) $roundedAbsDays * 86_400.0) >= 9_007_199_254_740_992.0) {
                 throw new InvalidArgumentException(
@@ -3888,6 +3911,15 @@ final class Duration implements Stringable
     ): self {
         $bag = $this->relativeToPlainDateBag($rtRaw);
         $zdtInfoRWR = self::resolveRelativeToZdt($rtRaw);
+        // When relativeTo resolves to a ZonedDateTime, use the ZDT's local date
+        // (which accounts for UTC offset to local time conversion, e.g. Z+IANA strings).
+        if ($zdtInfoRWR !== null) {
+            $bag = [
+                'year' => $zdtInfoRWR['year'],
+                'month' => $zdtInfoRWR['month'],
+                'day' => $zdtInfoRWR['day'],
+            ];
+        }
         $tz = new \DateTimeZone('UTC');
         $startDate = new \DateTimeImmutable('now', $tz)
             ->setDate($bag['year'], $bag['month'], $bag['day'])
@@ -3950,6 +3982,7 @@ final class Duration implements Stringable
                 $increment,
                 $roundingMode,
                 $isPositive,
+                $zdtInfoRWR,
             );
         }
 
@@ -4025,18 +4058,59 @@ final class Duration implements Stringable
         // For sub-day units: round in nanoseconds using integer arithmetic.
         $roundedAbsNs = 0; // initialised here; only used in the sub-day path (luIdx < 6)
         if ($suNormResolved === 'days') {
-            // Express total as fractional days and round using float arithmetic.
-            $totalAbsDaysF = (float) $absNs / (float) $nsPerDay;
-            $roundedAbsDays = (int) self::roundNsFloat($totalAbsDaysF, (float) $increment, $signedMode);
-            $roundedDays = $sign * $roundedAbsDays;
+            if ($zdtInfoRWR !== null) {
+                // For ZDT: use DST-aware day lengths to compute fractional days.
+                // Balance the time portion into days using actual day lengths first,
+                // then compute the fractional remainder for rounding.
+                $calDateEnd = $startDate;
+                $applySign = $this->sign;
+                if ((int) $this->years !== 0) {
+                    $calDateEnd = self::addYearsClamped($calDateEnd, $applySign * abs((int) $this->years));
+                }
+                if ((int) $this->months !== 0) {
+                    $calDateEnd = self::addMonthsClamped($calDateEnd, $applySign * abs((int) $this->months));
+                }
+                if ((int) $this->weeks !== 0) {
+                    $awDays = $applySign * abs((int) $this->weeks) * 7;
+                    $calDateEnd = $calDateEnd->modify(sprintf('%+d days', $awDays));
+                }
+                $absRawDays = abs((int) $this->days);
+                $absTimeOnlyNs = abs($timeNs);
+                $calEndY = (int) $calDateEnd->format('Y');
+                $calEndM = (int) $calDateEnd->format('n');
+                $calEndD = (int) $calDateEnd->format('j');
+                // Balance raw time ns into DST-aware days.
+                [$timeDays, $remainNs] = self::zdtBalanceTimeToDays(
+                    $calEndY, $calEndM, $calEndD,
+                    $zdtInfoRWR['hour'], $zdtInfoRWR['minute'], $zdtInfoRWR['second'],
+                    $zdtInfoRWR['tzId'], $absTimeOnlyNs, $absRawDays, $sign,
+                );
+                $totalAbsDays = $timeDays;
+                // Compute fractional day from the remainder using the next day's actual length.
+                $afterDaysDate = $calDateEnd->modify(sprintf('%+d days', $sign * $totalAbsDays));
+                $nextDayLengthSec = abs(self::zdtDayLengthSec(
+                    (int) $afterDaysDate->format('Y'), (int) $afterDaysDate->format('n'), (int) $afterDaysDate->format('j'),
+                    $zdtInfoRWR['hour'], $zdtInfoRWR['minute'], $zdtInfoRWR['second'],
+                    $zdtInfoRWR['tzId'],
+                ));
+                $nextDayLengthNs = $nextDayLengthSec * 1_000_000_000;
+                $fracDay = $nextDayLengthNs > 0 ? (float) $remainNs / (float) $nextDayLengthNs : 0.0;
+                $totalAbsDaysF = (float) $totalAbsDays + $fracDay;
+                $roundedAbsDays = (int) self::roundNsFloat($totalAbsDaysF, (float) $increment, $signedMode);
+                // Re-add calendar-only days.
+                $roundedDays = $sign * ($roundedAbsDays + abs($calendarDays) - $absRawDays);
+            } else {
+                // Express total as fractional days and round using float arithmetic.
+                $totalAbsDaysF = (float) $absNs / (float) $nsPerDay;
+                $roundedAbsDays = (int) self::roundNsFloat($totalAbsDaysF, (float) $increment, $signedMode);
+                $roundedDays = $sign * $roundedAbsDays;
+            }
             $subDayNs = 0;
         } else {
             $nsPerSmallest = $NS_PER_UNIT[$suNormResolved] ?? 1;
             $nsIncrement = $nsPerSmallest * $increment;
-            $roundedAbsNs = self::roundNsPositive($absNs, $nsIncrement, $signedMode);
-            $roundedNs = $sign * $roundedAbsNs;
-            // Balance the rounded nanoseconds back into duration fields.
-            // For ZDT IANA: use DST-aware day lengths for the day boundary.
+            // For ZDT IANA: balance time into DST-aware days BEFORE rounding,
+            // round only the sub-day remainder, then check for day overflow.
             if ($zdtInfoRWR !== null) {
                 // Compute the date after adding calendar fields (years/months/weeks) only.
                 $calDateEnd = $startDate;
@@ -4051,21 +4125,46 @@ final class Duration implements Stringable
                     $awDays = $applySign * abs((int) $this->weeks) * 7;
                     $calDateEnd = $calDateEnd->modify(sprintf('%+d days', $awDays));
                 }
-                // Subtract calendar-day nanoseconds (computed at fixed 24h) from the rounded total
-                // to get only the days+time portion. Then balance using DST-aware day lengths.
-                $calOnlyDaysNs = abs($calendarDays) * $nsPerDay;
-                $timeAndDaysAbsNs = (int) $roundedAbsNs - $calOnlyDaysNs;
-                if ($timeAndDaysAbsNs < 0) {
-                    $timeAndDaysAbsNs = 0;
-                }
+                // Get the raw time-only nanoseconds (H/M/S/ms/us/ns + day field converted).
+                $absTimeOnlyNs = abs($timeNs) + abs((int) $this->days) * $nsPerDay;
                 $calEndY = (int) $calDateEnd->format('Y');
                 $calEndM = (int) $calDateEnd->format('n');
                 $calEndD = (int) $calDateEnd->format('j');
-                [$roundedAbsDays, $absSubDayNs] = self::zdtBalanceTimeToDays(
+                // Balance raw time into DST-aware days before rounding.
+                [$preDays, $preSubDayNs] = self::zdtBalanceTimeToDays(
                     $calEndY, $calEndM, $calEndD,
                     $zdtInfoRWR['hour'], $zdtInfoRWR['minute'], $zdtInfoRWR['second'],
-                    $zdtInfoRWR['tzId'], $timeAndDaysAbsNs, 0, $sign,
+                    $zdtInfoRWR['tzId'], $absTimeOnlyNs, 0, $sign,
                 );
+                // Round only the sub-day remainder.
+                $roundedSubDayNs = self::roundNsPositive($preSubDayNs, $nsIncrement, $signedMode);
+                // Check if the rounded value overflows the current day's length.
+                $afterPreDaysDate = $calDateEnd->modify(sprintf('%+d days', $sign * $preDays));
+                $adY = (int) $afterPreDaysDate->format('Y');
+                $adM = (int) $afterPreDaysDate->format('n');
+                $adD = (int) $afterPreDaysDate->format('j');
+                [$extraDays, $absSubDayNs] = self::zdtBalanceTimeToDays(
+                    $adY, $adM, $adD,
+                    $zdtInfoRWR['hour'], $zdtInfoRWR['minute'], $zdtInfoRWR['second'],
+                    $zdtInfoRWR['tzId'], $roundedSubDayNs, 0, $sign,
+                );
+                $roundedAbsDays = $preDays + $extraDays;
+                // If time overflowed into an extra day, re-round the new remainder.
+                if ($extraDays > 0) {
+                    $absSubDayNs = self::roundNsPositive($absSubDayNs, $nsIncrement, $signedMode);
+                    $afterAllDaysDate = $calDateEnd->modify(sprintf('%+d days', $sign * $roundedAbsDays));
+                    $aaY = (int) $afterAllDaysDate->format('Y');
+                    $aaM = (int) $afterAllDaysDate->format('n');
+                    $aaD = (int) $afterAllDaysDate->format('j');
+                    [$moreDays, $absSubDayNs] = self::zdtBalanceTimeToDays(
+                        $aaY, $aaM, $aaD,
+                        $zdtInfoRWR['hour'], $zdtInfoRWR['minute'], $zdtInfoRWR['second'],
+                        $zdtInfoRWR['tzId'], $absSubDayNs, 0, $sign,
+                    );
+                    $roundedAbsDays += $moreDays;
+                }
+                // For the luIdx < 6 path (largestUnit < days), compute total rounded ns.
+                $roundedAbsNs = ($roundedAbsDays + abs($calendarDays)) * $nsPerDay + $absSubDayNs;
                 // Re-add the calendar days to get the total day count for balanceDateDuration.
                 $roundedDays = $sign * ($roundedAbsDays + abs($calendarDays));
                 $subDayNs = $sign * $absSubDayNs;
@@ -4223,12 +4322,13 @@ final class Duration implements Stringable
      *
      * @param \DateTimeImmutable $startDate UTC midnight on relativeTo date.
      * @param int $totalNs Signed total nanoseconds from start to end.
-     * @param int $nsPerDay Nanoseconds per day.
+     * @param int $nsPerDay Nanoseconds per day (fixed 86400e9).
      * @param int $suIdx Smallest unit index (8=months, 9=years).
      * @param int $luIdx Largest unit index.
      * @param int $increment Rounding increment in the smallest unit.
      * @param string $roundingMode TC39 rounding mode.
      * @param bool $isPositive Whether the duration is positive.
+     * @param ?array{epochSec: int, subNs: int, tzId: string, year: int, month: int, day: int, hour: int, minute: int, second: int} $zdtInfo ZDT info for DST-aware computation.
      */
     private function nudgeToCalendarMonthsOrYears(
         \DateTimeImmutable $startDate,
@@ -4239,8 +4339,24 @@ final class Duration implements Stringable
         int $increment,
         string $roundingMode,
         bool $isPositive,
+        ?array $zdtInfo = null,
     ): self {
         $sign = $totalNs >= 0 ? 1 : -1;
+
+        // For ZDT with IANA timezone, recompute totalNs using actual epoch seconds
+        // so DST transitions are accounted for.
+        if ($zdtInfo !== null) {
+            $actualDaysSec = (int) self::zdtDaysToSec(
+                $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'],
+                // calendarDays is totalNs/nsPerDay rounded toward zero (strip time component).
+                intdiv($totalNs - ($totalNs % $nsPerDay), $nsPerDay),
+                $zdtInfo['epochSec'],
+            );
+            $timePartNs = $totalNs % $nsPerDay;
+            $totalNs = ($actualDaysSec * 1_000_000_000) + $timePartNs;
+        }
 
         // Count full months (or years) from startDate that fit within totalNs.
         $isYears = $suIdx >= 9;
@@ -4251,7 +4367,16 @@ final class Duration implements Stringable
             $next = $isYears ? self::addYearsClamped($current, $sign) : self::addMonthsClamped($current, $sign);
             // Check if the next boundary in ns is still <= totalNs (in absolute terms).
             $nextDays = (int) $startDate->diff($next)->format('%r%a');
-            $nextNs = $nextDays * $nsPerDay;
+            if ($zdtInfo !== null) {
+                $nextSec = (int) self::zdtDaysToSec(
+                    $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                    $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                    $zdtInfo['tzId'], $nextDays, $zdtInfo['epochSec'],
+                );
+                $nextNs = $nextSec * 1_000_000_000;
+            } else {
+                $nextNs = $nextDays * $nsPerDay;
+            }
             // Compare: if moving positive, $nextNs <= $totalNs; if negative, $nextNs >= $totalNs.
             if ($sign > 0 ? $nextNs > $totalNs : $nextNs < $totalNs) {
                 break;
@@ -4274,8 +4399,21 @@ final class Duration implements Stringable
             : self::addMonthsClamped($startDate, $sign * $r2);
         $r1Days = (int) $startDate->diff($r1Date)->format('%r%a');
         $r2Days = (int) $startDate->diff($r2Date)->format('%r%a');
-        $r1Ns = $r1Days * $nsPerDay;
-        $r2Ns = $r2Days * $nsPerDay;
+        if ($zdtInfo !== null) {
+            $r1Ns = (int) self::zdtDaysToSec(
+                $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'], $r1Days, $zdtInfo['epochSec'],
+            ) * 1_000_000_000;
+            $r2Ns = (int) self::zdtDaysToSec(
+                $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
+                $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
+                $zdtInfo['tzId'], $r2Days, $zdtInfo['epochSec'],
+            ) * 1_000_000_000;
+        } else {
+            $r1Ns = $r1Days * $nsPerDay;
+            $r2Ns = $r2Days * $nsPerDay;
+        }
 
         $denominator = $r2Ns - $r1Ns;
         $progress = $denominator === 0 ? 0.0 : (float) ($totalNs - $r1Ns) / (float) $denominator;
