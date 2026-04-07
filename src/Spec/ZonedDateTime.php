@@ -1222,7 +1222,7 @@ final class ZonedDateTime implements Stringable
         $lc = $this->localComponents();
         $epochDays = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
         $midnightWallSec = $epochDays * 86_400;
-        $midnightEpochSec = self::wallSecToEpochSec($midnightWallSec, $this->timeZoneId);
+        $midnightEpochSec = self::wallSecToEpochSecStartOfDay($midnightWallSec, $this->timeZoneId);
 
         // Compute offset from midnight using true epoch parts to handle sentinels.
         if ($this->trueEpochSec !== null) {
@@ -1237,7 +1237,7 @@ final class ZonedDateTime implements Stringable
         if ($isDay) {
             // Compute actual day length for DST-aware day rounding.
             $nextDayWallSec = $midnightWallSec + 86_400;
-            $nextDayEpochSec = self::wallSecToEpochSec($nextDayWallSec, $this->timeZoneId);
+            $nextDayEpochSec = self::wallSecToEpochSecStartOfDay($nextDayWallSec, $this->timeZoneId);
             $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * self::NS_PER_SECOND;
 
             if ($dayLengthNs <= 0) {
