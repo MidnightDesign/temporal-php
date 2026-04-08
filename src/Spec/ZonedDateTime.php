@@ -2000,8 +2000,12 @@ final class ZonedDateTime implements Stringable
             // PHP doesn't include Etc/UTC in listIdentifiers but accepts it
             $lowerToCanonical['etc/utc'] = 'Etc/UTC';
         }
+        // Must be in the IANA timezone list — reject abbreviations like "AST", "EST".
         $lower = strtolower($id);
-        return $lowerToCanonical[$lower] ?? $id;
+        if (!array_key_exists($lower, $lowerToCanonical)) {
+            throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": not a recognized IANA timezone identifier.");
+        }
+        return $lowerToCanonical[$lower];
     }
 
     /**
