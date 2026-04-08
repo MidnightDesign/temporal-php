@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $test = function ($epochNs, $id, $expected) {
 $instance = new \Temporal\Spec\ZonedDateTime($epochNs, $id);
 $dt = $instance->toPlainDateTime();
-TemporalHelpers::assertPlainDateTime($dt, ...[...$expected, "Local time of {$instance->toInstant()} in {$id}"]);
+TemporalHelpers::assertPlainDateTime($dt, ...[...$expected, "Local time of " . ($instance->toInstant()) . " in {$id}"]);
 };
 $test(1_553_993_999_999_999_999, 'Europe/London', [2019, 3, 'M03', 31, 0, 59, 59, 999, 999, 999]);
 $test(1_553_994_000_000_000_000, 'Europe/London', [2019, 3, 'M03', 31, 2, 0, 0, 0, 0, 0]);

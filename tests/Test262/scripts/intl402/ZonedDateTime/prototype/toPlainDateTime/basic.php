@@ -12,7 +12,7 @@ $test = function ($epochNs, $results) {
 foreach ($results as $id => $expected) {
 $instance = new \Temporal\Spec\ZonedDateTime($epochNs, $id);
 $dt = $instance->toPlainDateTime();
-TemporalHelpers::assertPlainDateTime($dt, ...[...$expected, "Local time of {$instance->toInstant()} in {$id}"]);
+TemporalHelpers::assertPlainDateTime($dt, ...[...$expected, "Local time of " . ($instance->toInstant()) . " in {$id}"]);
 }
 };
 $test(0, ['America/Los_Angeles' => [1969, 12, 'M12', 31, 16, 0, 0, 0, 0, 0], 'America/New_York' => [1969, 12, 'M12', 31, 19, 0, 0, 0, 0, 0], 'Africa/Monrovia' => [1969, 12, 'M12', 31, 23, 15, 30, 0, 0, 0], 'Europe/London' => [1970, 1, 'M01', 1, 1, 0, 0, 0, 0, 0], 'Europe/Berlin' => [1970, 1, 'M01', 1, 1, 0, 0, 0, 0, 0], 'Europe/Moscow' => [1970, 1, 'M01', 1, 3, 0, 0, 0, 0, 0], 'Asia/Kolkata' => [1970, 1, 'M01', 1, 5, 30, 0, 0, 0, 0], 'Asia/Tokyo' => [1970, 1, 'M01', 1, 9, 0, 0, 0, 0, 0]]);

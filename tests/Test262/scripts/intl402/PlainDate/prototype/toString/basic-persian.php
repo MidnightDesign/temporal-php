@@ -12,5 +12,5 @@ $tests = [['testYear' => 1395, 'isoDate' => '2016-03-20'], ['testYear' => 1396, 
 foreach ($tests as $test) {
 $date = \Temporal\Spec\PlainDate::from(['year' => $test['testYear'], 'month' => 1, 'day' => 1, 'calendar' => $calendar]);
 $result = $date->toString(['calendarName' => 'always']);
-Assert::sameValue($result, "{$test['isoDate']}[u-ca=persian]", "ISO reference date");
+Assert::sameValue($result, "" . ($test['isoDate']) . "[u-ca=persian]", "ISO reference date");
 }

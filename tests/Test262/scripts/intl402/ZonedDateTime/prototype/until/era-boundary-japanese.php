@@ -40,8 +40,8 @@ $oneISO = $one->withCalendar('iso8601');
 $twoISO = $two->withCalendar('iso8601');
 $resultWeeks = $one->until($two, ['largestUnit' => 'weeks']);
 $resultWeeksISO = $oneISO->until($twoISO, ['largestUnit' => 'weeks']);
-TemporalHelpers::assertDurationsEqual($resultWeeks, $resultWeeksISO, "{$one->year}-{$one->monthCode}-{$one->day} : {$two->year}-{$two->monthCode}-{$two->day} largestUnit weeks");
+TemporalHelpers::assertDurationsEqual($resultWeeks, $resultWeeksISO, "" . ($one->year) . "-" . ($one->monthCode) . "-" . ($one->day) . " : " . ($two->year) . "-" . ($two->monthCode) . "-" . ($two->day) . " largestUnit weeks");
 $resultDays = $one->until($two);
 $resultDaysISO = $oneISO->until($twoISO);
-TemporalHelpers::assertDurationsEqual($resultDays, $resultDaysISO, "{$one->year}-{$one->monthCode}-{$one->day} : {$two->year}-{$two->monthCode}-{$two->day} largestUnit days");
+TemporalHelpers::assertDurationsEqual($resultDays, $resultDaysISO, "" . ($one->year) . "-" . ($one->monthCode) . "-" . ($one->day) . " : " . ($two->year) . "-" . ($two->monthCode) . "-" . ($two->day) . " largestUnit days");
 }

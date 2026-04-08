@@ -13,6 +13,12 @@ $expected = [['day', [1976, 11, 'M11', 18]], ['hour', [1976, 11, 'M11', 18, 14]]
 $roundingMode = 'floor';
 foreach ($expected as $__entry__) {
 [$smallestUnit, $expected] = array_pad($__entry__, 2, null);
-[$y, $mon, $mc, $d, $h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 10, 0);
+[$y, $mon, $mc, $d, $h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 10, null);
+$h = $h ?? 0;
+$min = $min ?? 0;
+$s = $s ?? 0;
+$ms = $ms ?? 0;
+$µs = $µs ?? 0;
+$ns = $ns ?? 0;
 TemporalHelpers::assertPlainDateTime($instance->round(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $y, $mon, $mc, $d, $h, $min, $s, $ms, $µs, $ns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
 }

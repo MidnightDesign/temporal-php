@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $valids = [['Africa/Bissau'], ['America/Belem'], ['Europe/Vienna'], ['America/New_York'], ['Africa/CAIRO', 'Africa/Cairo'], ['Asia/Ulan_Bator'], ['GMT'], ['etc/gmt', 'Etc/GMT'], ['1994-11-05T08:15:30-05:00[America/New_York]', 'America/New_York'], ['1994-11-05T08:15:30-05[America/New_York]', 'America/New_York']];
 foreach ($valids as $__entry__) {
-[$valid, $canonical] = array_pad($__entry__, 2, 0);
+[$valid, $canonical] = array_pad($__entry__, 2, null);
+$canonical = $canonical ?? $valid;
 $result = \Temporal\Spec\ZonedDateTime::from(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => $valid]);
 Assert::incomplete('untranslatable: Object.getPrototypeOf');
 }

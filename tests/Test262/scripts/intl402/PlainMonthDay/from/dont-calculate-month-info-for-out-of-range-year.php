@@ -9,7 +9,9 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $testData = [['buddhist', 'M02', 29, 'be'], ['chinese', 'M06L', 30], ['coptic', 'M13', 6, 'am'], ['dangi', 'M06L', 30], ['ethioaa', 'M13', 6, 'aa'], ['ethiopic', 'M13', 6, 'aa'], ['gregory', 'M02', 29, 'ce', 'bce'], ['hebrew', 'M05L', 29, 'am'], ['indian', 'M01', 31, 'shaka'], ['islamic-civil', 'M12', 30, 'ah', 'bh'], ['islamic-tbla', 'M12', 30, 'ah', 'bh'], ['islamic-umalqura', 'M12', 30, 'ah', 'bh'], ['japanese', 'M02', 29, 'reiwa', 'bce'], ['persian', 'M12', 30, 'ap'], ['roc', 'M02', 29, 'roc', 'broc']];
 foreach ($testData as $__entry__) {
-[$calendar, $monthCode, $day, $posEra, $negEra] = array_pad($__entry__, 5, 0);
+[$calendar, $monthCode, $day, $posEra, $negEra] = array_pad($__entry__, 5, null);
+$posEra = $posEra ?? null;
+$negEra = $negEra ?? null;
 Assert::throws(\InvalidArgumentException::class, function () use ($monthCode, $day, $calendar) { \Temporal\Spec\PlainMonthDay::from(['year' => -999_999, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]); }, "{$calendar} bails out when year is -999999");
 Assert::throws(\InvalidArgumentException::class, function () use ($monthCode, $day, $calendar) { \Temporal\Spec\PlainMonthDay::from(['year' => 999_999, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]); }, "{$calendar} bails out when year is +999999");
 if ($posEra) {

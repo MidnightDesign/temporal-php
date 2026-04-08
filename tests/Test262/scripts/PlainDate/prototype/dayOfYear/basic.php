@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 for ($i = 1; $i <= 7; ++$i) {
 $plainDate = new \Temporal\Spec\PlainDate(1976, 11, 14 + $i);
-Assert::sameValue($plainDate->dayOfYear, 319 + $i, "{$plainDate} should be on day {319 + $i}");
+Assert::sameValue($plainDate->dayOfYear, 319 + $i, "{$plainDate} should be on day " . (319 + $i) . "");
 }
 Assert::sameValue(new \Temporal\Spec\PlainDate(1970, 1, 1)->dayOfYear, 1, '');
 Assert::sameValue(new \Temporal\Spec\PlainDate(2000, 1, 1)->dayOfYear, 1, '');

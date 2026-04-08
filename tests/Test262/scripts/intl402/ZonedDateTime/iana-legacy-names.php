@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $legacyNames = ['Etc/GMT0', 'GMT0', 'GMT-0', 'GMT+0', 'EST5EDT', 'CST6CDT', 'MST7MDT', 'PST8PDT'];
 foreach ($legacyNames as $arg) {
 $instance = new \Temporal\Spec\ZonedDateTime(0, $arg);
-Assert::sameValue($instance->timeZoneId, $arg, "\"{$arg}\" does not match \"{$instance->timeZoneId}\" time zone identifier");
+Assert::sameValue($instance->timeZoneId, $arg, "\"{$arg}\" does not match \"" . ($instance->timeZoneId) . "\" time zone identifier");
 }

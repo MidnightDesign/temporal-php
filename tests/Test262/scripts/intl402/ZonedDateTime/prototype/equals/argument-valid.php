@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $valids = [['Africa/CAIRO', 'Africa/Cairo'], ['Asia/Ulan_Bator', 'Asia/Ulaanbaatar'], ['etc/gmt', 'Etc/GMT'], ['1994-11-05T08:15:30-05:00[America/New_York]', 'America/New_York'], ['1994-11-05T08:15:30+05:30[Asia/Calcutta]', 'Asia/Calcutta'], ['1994-11-05T08:15:30+05:30[Asia/Calcutta]', 'Asia/Kolkata'], ['1994-11-05T08:15:30+05:30[Asia/Kolkata]', 'Asia/Calcutta'], ['1994-11-05T08:15:30+05:30[Asia/Kolkata]', 'Asia/Kolkata']];
 foreach ($valids as $__entry__) {
-[$valid, $canonical] = array_pad($__entry__, 2, 0);
+[$valid, $canonical] = array_pad($__entry__, 2, null);
+$canonical = $canonical ?? $valid;
 Assert::assertTrue($instance->withTimeZone($valid)->equals($instance->withTimeZone($canonical)), "{$valid} equals {$canonical}");
 Assert::assertTrue($instance->withTimeZone($canonical)->equals($instance->withTimeZone($valid)), "{$canonical} equals {$valid}");
 }

@@ -9,7 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $valid = [['Europe/Vienna'], ['America/New_York'], ['Africa/CAIRO', 'Africa/Cairo'], ['africa/cairo', 'Africa/Cairo'], ['Asia/Ulaanbaatar'], ['Asia/Ulan_Bator'], ['UTC'], ['GMT']];
 foreach ($valid as $__entry__) {
-[$zone, $id] = array_pad($__entry__, 2, 0);
+[$zone, $id] = array_pad($__entry__, 2, null);
+$id = $id ?? $zone;
 $result = new \Temporal\Spec\ZonedDateTime(0, $zone);
 Assert::sameValue(is_object($result), true, "object should be created for {$zone}");
 Assert::sameValue($result->timeZoneId, $id, "id for {$zone} should be {$id}");

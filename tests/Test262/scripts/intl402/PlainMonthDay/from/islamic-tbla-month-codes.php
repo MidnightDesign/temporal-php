@@ -11,7 +11,8 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'islamic-tbla';
 $monthsWith30Days = [['M01'], ['M03'], ['M05'], ['M07'], ['M09'], ['M11'], ['M12', 1971]];
 foreach ($monthsWith30Days as $__entry__) {
-[$monthCode, $referenceYear30] = array_pad($__entry__, 2, 0);
+[$monthCode, $referenceYear30] = array_pad($__entry__, 2, null);
+$referenceYear30 = $referenceYear30 ?? 1972;
 $pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]);
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01");
 $pmd30 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]);

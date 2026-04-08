@@ -454,13 +454,21 @@ class Emitter {
         return;
       }
       // When destructuring an ArrayPattern, pad the RHS to avoid "Undefined array key" warnings.
-      // If any element has a default value (AssignmentPattern), pad with 0 (the most common
-      // default in test262 array destructuring). Otherwise pad with null.
+      // Elements with defaults (AssignmentPattern) get null-coalescing assignments after.
       if (decl.id.type === 'ArrayPattern') {
         const n = decl.id.elements.length;
-        const hasDefaults = decl.id.elements.some(e => e?.type === 'AssignmentPattern');
-        const padVal = hasDefaults ? '0' : 'null';
-        this.emit(`${lhs} = array_pad(${rhs}, ${n}, ${padVal});`);
+        this.emit(`${lhs} = array_pad(${rhs}, ${n}, null);`);
+        // Emit default assignments for elements with AssignmentPattern defaults.
+        for (let i = 0; i < decl.id.elements.length; i++) {
+          const el = decl.id.elements[i];
+          if (el?.type === 'AssignmentPattern') {
+            const varName = this.transpilePattern(el.left);
+            const defaultExpr = this.transpileExpr(el.right);
+            if (defaultExpr !== null) {
+              this.emit(`${varName} = ${varName} ?? ${defaultExpr};`);
+            }
+          }
+        }
       } else {
         this.emit(`${lhs} = ${rhs};`);
       }
@@ -678,8 +686,6 @@ class Emitter {
     // "Undefined array key N" warnings when arrays have fewer elements than destructured vars.
     if (patNode2.type === 'ArrayPattern' && !patNode2.elements.some(e => e?.type === 'RestElement')) {
       const n = patNode2.elements.length;
-      const hasDefaults = patNode2.elements.some(e => e?.type === 'AssignmentPattern');
-      const padVal = hasDefaults ? '0' : 'null';
       const parts = patNode2.elements.map(e => e ? this.transpilePattern(e) : 'null');
       const pat = '[' + parts.join(', ') + ']';
       // Determine if iterating over objects (objectArrayVars) — if so add loop vars to objectVars
@@ -699,7 +705,18 @@ class Emitter {
       const before2 = this.lines.length;
       this.emit(`foreach (${iter2} as ${tmpVar2}) {`);
       const opened2 = this.lines.length > before2;
-      this.emit(`${pat} = array_pad(${tmpVar2}, ${n}, ${padVal});`);
+      this.emit(`${pat} = array_pad(${tmpVar2}, ${n}, null);`);
+      // Emit default assignments for elements with AssignmentPattern defaults.
+      for (let i = 0; i < patNode2.elements.length; i++) {
+        const el = patNode2.elements[i];
+        if (el?.type === 'AssignmentPattern') {
+          const varName = this.transpilePattern(el.left);
+          const defaultExpr = this.transpileExpr(el.right);
+          if (defaultExpr !== null) {
+            this.emit(`${varName} = ${varName} ?? ${defaultExpr};`);
+          }
+        }
+      }
       this.transpileStatement(node.body);
       if (opened2) this.lines.push('}');
       return;
@@ -881,9 +898,12 @@ class Emitter {
         if (isArrayVar) {
           // Close the string, concatenate json_encode, re-open string
           result += '" . json_encode(' + exprPhp + ') . "';
-        } else {
-          // Wrap complex expressions in {…} so PHP interpolates them
+        } else if (/^\$[a-zA-Z_]\w*$/.test(exprPhp)) {
+          // Simple variable: use PHP string interpolation
           result += `{${exprPhp}}`;
+        } else {
+          // Complex expression: use concatenation to avoid PHP parse errors
+          result += `" . (${exprPhp}) . "`;
         }
       }
     }

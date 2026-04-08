@@ -15,8 +15,26 @@ $expected = [['years', [6], [-5]], ['months', [5, 8], [-5, -7]], ['weeks', [5, 7
 $roundingMode = 'ceil';
 foreach ($expected as $__entry__) {
 [$smallestUnit, $expectedPositive, $expectedNegative] = array_pad($__entry__, 3, null);
-[$py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns] = array_pad($expectedPositive, 10, 0);
-[$ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns] = array_pad($expectedNegative, 10, 0);
+[$py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns] = array_pad($expectedPositive, 10, null);
+$pm = $pm ?? 0;
+$pw = $pw ?? 0;
+$pd = $pd ?? 0;
+$ph = $ph ?? 0;
+$pmin = $pmin ?? 0;
+$ps = $ps ?? 0;
+$pms = $pms ?? 0;
+$pµs = $pµs ?? 0;
+$pns = $pns ?? 0;
+[$ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns] = array_pad($expectedNegative, 10, null);
+$nm = $nm ?? 0;
+$nw = $nw ?? 0;
+$nd = $nd ?? 0;
+$nh = $nh ?? 0;
+$nmin = $nmin ?? 0;
+$ns = $ns ?? 0;
+$nms = $nms ?? 0;
+$nµs = $nµs ?? 0;
+$nns = $nns ?? 0;
 TemporalHelpers::assertDuration($instance->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $relativeToForwards, 'roundingMode' => $roundingMode]), $py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode}, positive case)");
 TemporalHelpers::assertDuration($instance->negated()->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $relativeToBackwards, 'roundingMode' => $roundingMode]), $ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns, "rounds to {$smallestUnit} (rounding mode = {$roundingMode}, negative case)");
 }
