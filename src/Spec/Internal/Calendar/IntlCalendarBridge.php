@@ -1319,6 +1319,9 @@ final class IntlCalendarBridge implements CalendarProtocol
         $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
         $epochMs = ($jdn - 2_440_588) * self::MS_PER_DAY;
         $this->intlCal->setTime((float) $epochMs);
+        // Force ICU internal field resolution. Without this, getActualMaximum()
+        // may return stale values for Chinese/Dangi leap months.
+        $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
     }
 
     // -------------------------------------------------------------------------

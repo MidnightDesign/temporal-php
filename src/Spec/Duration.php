@@ -3413,19 +3413,9 @@ final class Duration implements Stringable
                 && !str_contains($tzVal, 'T') && !preg_match('/^\d{4}-/', $tzVal)
                 && @(new \DateTimeZone($tzVal))->getName() === $tzVal
             ) {
-                // Property bag with IANA timezone. Create a ZDT from it.
-                /** @var mixed $yearRaw */
-                $yearRaw = $rt['year'] ?? 0;
-                /** @var mixed $monthRaw */
-                $monthRaw = $rt['month'] ?? (array_key_exists('monthCode', $rt) ? (int) substr((string) $rt['monthCode'], 1) : 1);
-                /** @var mixed $dayRaw */
-                $dayRaw = $rt['day'] ?? 1;
-                $pdt = PlainDateTime::from([
-                    'year' => (int) $yearRaw,
-                    'month' => (int) $monthRaw,
-                    'day' => (int) $dayRaw,
-                ]);
-                $zdt = $pdt->toZonedDateTime($tzVal);
+                // Property bag with IANA timezone. Use ZonedDateTime::from() so offset
+                // validation (including sub-minute mismatch rejection) is handled.
+                $zdt = ZonedDateTime::from($rt);
                 return self::resolveRelativeToZdt($zdt);
             }
             return null;

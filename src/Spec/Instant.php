@@ -493,18 +493,16 @@ final class Instant implements Stringable
         $localSecs = $tzOffsetSec !== null ? $secs + $tzOffsetSec : $secs;
         $dt = new DateTimeImmutable(sprintf('@%d', $localSecs))->setTimezone(new DateTimeZone('UTC'));
 
-        // Build the UTC-offset suffix: 'Z' or ±HH:MM[:SS].
+        // Build the UTC-offset suffix: 'Z' or ±HH:MM (always rounded to minutes for Instant).
         if ($tzOffsetSec === null) {
             $tzSuffix = 'Z';
         } else {
-            $absSec = abs($tzOffsetSec);
-            $tzH = intdiv(num1: $absSec, num2: 3600);
-            $tzM = intdiv(num1: $absSec % 3600, num2: 60);
-            $tzS = $absSec % 60;
-            $tzSign = $tzOffsetSec < 0 ? '-' : '+';
-            $tzSuffix = $tzS !== 0
-                ? sprintf('%s%02d:%02d:%02d', $tzSign, $tzH, $tzM, $tzS)
-                : sprintf('%s%02d:%02d', $tzSign, $tzH, $tzM);
+            $roundedMin = (int) round($tzOffsetSec / 60.0);
+            $absMin = abs($roundedMin);
+            $tzH = intdiv(num1: $absMin, num2: 60);
+            $tzM = $absMin % 60;
+            $tzSign = $roundedMin < 0 ? '-' : '+';
+            $tzSuffix = sprintf('%s%02d:%02d', $tzSign, $tzH, $tzM);
         }
 
         if ($isMinute) {

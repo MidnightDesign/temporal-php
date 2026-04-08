@@ -2374,29 +2374,80 @@ final class ZonedDateTime implements Stringable
                 // Ignore the inline offset; use the wall clock with the bracket timezone.
                 $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
             } elseif ($offsetOption === 'prefer') {
-                // Prefer the inline offset if it exactly matches the timezone; otherwise use timezone.
-                $epochSec = $wallSec - $inlineOffsetSec;
-                $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
-                if ($actualOffsetSec !== $inlineOffsetSec) {
-                    // HH:MM-only offsets that round-match still fall through to timezone resolution,
-                    // since the inline offset lacks sub-minute precision.
-                    $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+                if ($inlineOffsetHasSeconds) {
+                    // HH:MM:SS: use inline offset if it matches exactly; otherwise timezone.
+                    $epochSec = $wallSec - $inlineOffsetSec;
+                    $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
+                    if ($actualOffsetSec !== $inlineOffsetSec) {
+                        $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+                    }
+                } else {
+                    // HH:MM: use timezone resolution first. If the resolved offset matches
+                    // exactly, the inline offset successfully disambiguated. Otherwise, accept
+                    // if it rounds to the resolved offset (sub-minute tolerance).
+                    $tzEpoch = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+                    $tzOffset = self::staticResolveOffset($tzEpoch, $normalizedTzId);
+                    if ($tzOffset === $inlineOffsetSec) {
+                        // The timezone's default resolution matches the inline offset.
+                        $epochSec = $tzEpoch;
+                    } elseif ($tzOffset % 60 !== 0) {
+                        // The resolved offset is sub-minute; HH:MM can't disambiguate.
+                        // Accept if the inline offset rounds to the resolved offset.
+                        $epochSec = $tzEpoch;
+                    } else {
+                        // Try using inline offset for disambiguation (DST fold with
+                        // whole-minute offsets on both sides).
+                        $epochSec = $wallSec - $inlineOffsetSec;
+                        $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
+                        if ($actualOffsetSec === $inlineOffsetSec) {
+                            // Exact match: inline offset disambiguates.
+                        } else {
+                            // No match: use timezone resolution.
+                            $epochSec = $tzEpoch;
+                        }
+                    }
                 }
             } else {
                 // offset: 'reject' (default): throw if inline offset doesn't match timezone.
-                $epochSec = $wallSec - $inlineOffsetSec;
-                $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
-                if ($actualOffsetSec !== $inlineOffsetSec) {
-                    // When the inline offset has no seconds, accept if it rounds to the actual offset.
-                    if ($inlineOffsetHasSeconds
-                        || (int) round($actualOffsetSec / 60.0) * 60 !== $inlineOffsetSec
-                    ) {
-                        throw new InvalidArgumentException(
-                            "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
-                        );
+                if ($inlineOffsetHasSeconds) {
+                    // HH:MM:SS: must match exactly.
+                    $epochSec = $wallSec - $inlineOffsetSec;
+                    $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
+                    if ($actualOffsetSec !== $inlineOffsetSec) {
+                        // Also check against timezone resolution for the error case.
+                        $tzEpoch = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+                        $tzOffset = self::staticResolveOffset($tzEpoch, $normalizedTzId);
+                        if ($tzOffset !== $inlineOffsetSec) {
+                            throw new InvalidArgumentException(
+                                "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
+                            );
+                        }
+                        $epochSec = $tzEpoch;
                     }
-                    // HH:MM rounds to match: use timezone resolution to preserve wall time.
-                    $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+                } else {
+                    // HH:MM: use timezone resolution, validate with rounding.
+                    $tzEpoch = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
+                    $tzOffset = self::staticResolveOffset($tzEpoch, $normalizedTzId);
+                    if ($tzOffset === $inlineOffsetSec) {
+                        $epochSec = $tzEpoch;
+                    } elseif ($tzOffset % 60 !== 0) {
+                        // Sub-minute resolved offset: HH:MM can't disambiguate.
+                        if ((int) round($tzOffset / 60.0) * 60 !== $inlineOffsetSec) {
+                            throw new InvalidArgumentException(
+                                "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
+                            );
+                        }
+                        $epochSec = $tzEpoch;
+                    } else {
+                        // Try using inline offset for disambiguation (whole-minute DST fold).
+                        $epochSec = $wallSec - $inlineOffsetSec;
+                        $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
+                        if ($actualOffsetSec !== $inlineOffsetSec) {
+                            throw new InvalidArgumentException(
+                                "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
+                            );
+                        }
+                    }
                 }
             }
             $tzId = $normalizedTzId;
