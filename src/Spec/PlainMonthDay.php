@@ -204,8 +204,33 @@ final class PlainMonthDay implements Stringable
         if (is_string($item)) {
             return self::fromString($item);
         }
+        // Temporal objects with calendar fields: extract as a property bag
+        // per TC39 ToTemporalMonthDay step that calls CalendarFields.
+        if ($item instanceof PlainDate || $item instanceof PlainDateTime) {
+            $bag = [
+                'year' => $item->year,
+                'month' => $item->month,
+                'monthCode' => $item->monthCode,
+                'day' => $item->day,
+                'calendar' => $item->calendarId,
+            ];
+            return self::fromPropertyBag($bag, $overflow);
+        }
+        if ($item instanceof ZonedDateTime) {
+            $bag = [
+                'year' => $item->year,
+                'month' => $item->month,
+                'monthCode' => $item->monthCode,
+                'day' => $item->day,
+                'calendar' => $item->calendarId,
+            ];
+            return self::fromPropertyBag($bag, $overflow);
+        }
         if (is_array($item)) {
             return self::fromPropertyBag($item, $overflow);
+        }
+        if (is_object($item)) {
+            return self::fromPropertyBag((array) $item, $overflow);
         }
         throw new \TypeError(sprintf(
             'PlainMonthDay::from() expects a PlainMonthDay, ISO 8601 string, or property-bag array; got %s.',
@@ -1182,7 +1207,7 @@ final class PlainMonthDay implements Stringable
             $resolvedDay = $calendar->day($isoY, $isoM, $isoD);
 
             // Find the reference ISO year for this monthCode+day.
-            return self::resolveNonIsoReferenceYear($calendar, $calendarId, $resolvedMonthCode, $resolvedDay);
+            return self::resolveNonIsoReferenceYear($calendar, $calendarId, $resolvedMonthCode, $resolvedDay, $overflow);
         }
 
         // No year: only monthCode path is allowed (validated above).

@@ -961,15 +961,15 @@ final class ZonedDateTime implements Stringable
         $us = intdiv(num1: $roundedSubNs % self::NS_PER_MILLISECOND, num2: self::NS_PER_MICROSECOND);
         $ns = $roundedSubNs % self::NS_PER_MICROSECOND;
 
-        // Build offset string: ±HH:MM or ±HH:MM:SS when seconds are non-zero.
-        $absOffsetSec = abs($offsetSec);
-        $offH = intdiv(num1: $absOffsetSec, num2: 3600);
-        $offM = intdiv(num1: $absOffsetSec % 3600, num2: 60);
-        $offS = $absOffsetSec % 60;
+        // Build offset string: ±HH:MM (rounded to minutes per FormatUTCOffsetRounded).
+        // TC39 toString() uses FormatUTCOffsetRounded, which applies halfExpand
+        // rounding of offset nanoseconds to the nearest minute, then formats ±HH:MM.
+        $absOffsetNs = abs($offsetSec) * self::NS_PER_SECOND;
+        $totalMinutes = intdiv($absOffsetNs + 30_000_000_000, 60_000_000_000);
+        $offH = intdiv($totalMinutes, 60);
+        $offM = $totalMinutes % 60;
         $offSign = $offsetSec >= 0 ? '+' : '-';
-        $offsetStr = $offS !== 0
-            ? sprintf('%s%02d:%02d:%02d', $offSign, $offH, $offM, $offS)
-            : sprintf('%s%02d:%02d', $offSign, $offH, $offM);
+        $offsetStr = sprintf('%s%02d:%02d', $offSign, $offH, $offM);
 
         // Year formatting: normal 4-digit, extended ±YYYYYY for out-of-range.
         if ($year < 0) {
@@ -1801,7 +1801,7 @@ final class ZonedDateTime implements Stringable
             return null;
         }
 
-        // 'previous': find the most recent transition BEFORE the current epoch.
+        // 'previous': find the most recent transition strictly BEFORE the current instant.
         $transitions = $tz->getTransitions($epochSec - (200 * 365 * 86_400), $epochSec);
         if ($transitions === [] || $transitions === false || count($transitions) < 2) { // @phpstan-ignore identical.alwaysFalse
             return null;
@@ -1809,11 +1809,15 @@ final class ZonedDateTime implements Stringable
         // Walk backwards from the end. Find entries where offset differs from
         // the following entry (= an actual UTC offset transition).
         // Skip index 0 (initial state).
+        // A transition at exactly the current epoch nanosecond is NOT "previous".
+        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
         /** @var ?int $candidateTs */
         $candidateTs = null;
         for ($i = count($transitions) - 1; $i >= 1; $i--) {
             $ts = (int) $transitions[$i]['ts'];
-            if ($ts <= $epochSec && $transitions[$i]['offset'] !== $transitions[$i - 1]['offset']) {
+            // Strictly before: ts < epochSec, or ts == epochSec only if there are sub-second ns.
+            $isBefore = $ts < $epochSec || ($ts === $epochSec && $subNs > 0);
+            if ($isBefore && $transitions[$i]['offset'] !== $transitions[$i - 1]['offset']) {
                 $candidateTs = $ts;
                 break;
             }
