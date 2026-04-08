@@ -445,7 +445,7 @@ final class IntlCalendarBridge implements CalendarProtocol
                 // Use monthCodeToMonth for the new year. If M05L and new year isn't
                 // leap, constrain to M06 (Adar) — the corresponding regular month,
                 // since Hebrew Adar I (M05L) maps to Adar (M06) in non-leap years.
-                $isNewLeap = (7 * $calYear + 1) % 19 < 7;
+                $isNewLeap = ((7 * $calYear + 1) % 19 + 19) % 19 < 7;
                 if ($mc === 'M05L' && !$isNewLeap) {
                     if ($overflow === 'reject') {
                         throw new InvalidArgumentException(
@@ -829,7 +829,7 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function hebrewMonthCodeToMonth(string $monthCode, int $calYear): int
     {
-        $isLeap = (7 * $calYear + 1) % 19 < 7;
+        $isLeap = ((7 * $calYear + 1) % 19 + 19) % 19 < 7;
         if ($monthCode === 'M05L') {
             if (!$isLeap) {
                 throw new InvalidArgumentException("monthCode \"M05L\" is only valid in Hebrew leap years; year {$calYear} is not a leap year.");
@@ -1108,7 +1108,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $calMonth - 1);
         } elseif ($this->calendarId === 'hebrew') {
             $this->intlCal->set(\IntlCalendar::FIELD_YEAR, $calYear);
-            $isLeap = (7 * $calYear + 1) % 19 < 7;
+            $isLeap = ((7 * $calYear + 1) % 19 + 19) % 19 < 7;
             $icuMonth = $this->hebrewOrdinalToIcuMonth($calMonth, $isLeap);
             $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $icuMonth);
         } elseif ($this->calendarId === 'chinese' || $this->calendarId === 'dangi') {
@@ -1171,7 +1171,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->calendarId === 'hebrew') {
             // Hebrew: M01-M05 → ICU 0-4, M05L → ICU 5, M06-M12 → ICU 6-12
             if ($monthCode === 'M05L') {
-                $isLeap = (7 * $calYear + 1) % 19 < 7;
+                $isLeap = ((7 * $calYear + 1) % 19 + 19) % 19 < 7;
                 if (!$isLeap) {
                     throw new InvalidArgumentException("monthCode \"M05L\" is only valid in Hebrew leap years; year {$calYear} is not a leap year.");
                 }
@@ -1333,7 +1333,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     {
         $year = $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
 
-        return (7 * $year + 1) % 19 < 7;
+        return ((7 * $year + 1) % 19 + 19) % 19 < 7;
     }
 
     /**

@@ -447,14 +447,14 @@ final class Instant implements Stringable
             }
         }
 
-        // Resolve timezone offset (null = UTC / 'Z' suffix).
-        $tzOffsetMinutes = null;
+        // Resolve timezone offset in seconds (null = UTC / 'Z' suffix).
+        $tzOffsetSec = null;
         $ianaTimeZone = null;
         if ($options !== null && array_key_exists('timeZone', $options)) {
             $tzStr = (string) $options['timeZone'];
-            $resolved = self::resolveTimeZoneOffsetMinutes($tzStr);
+            $resolved = self::resolveTimeZoneOffsetSeconds($tzStr);
             if ($resolved !== null) {
-                $tzOffsetMinutes = $resolved;
+                $tzOffsetSec = $resolved;
             } else {
                 // IANA timezone: extract the timezone name from the string.
                 // For bracket annotations, extract the bracket content.
@@ -485,23 +485,26 @@ final class Instant implements Stringable
 
         // For IANA timezones, compute the offset at this epoch.
         if ($ianaTimeZone !== null) {
-            $tzOffsetMinutes = self::ianaOffsetMinutes($ianaTimeZone, $secs);
+            $tzOffsetSec = self::ianaOffsetSeconds($ianaTimeZone, $secs);
         }
         $subNs = $ns - ($secs * self::NS_PER_SECOND); // always 0–999_999_999
 
         // Apply timezone offset to get local datetime.
-        $localSecs = $tzOffsetMinutes !== null ? $secs + ($tzOffsetMinutes * 60) : $secs;
+        $localSecs = $tzOffsetSec !== null ? $secs + $tzOffsetSec : $secs;
         $dt = new DateTimeImmutable(sprintf('@%d', $localSecs))->setTimezone(new DateTimeZone('UTC'));
 
-        // Build the UTC-offset suffix: 'Z' or ±HH:MM.
-        if ($tzOffsetMinutes === null) {
+        // Build the UTC-offset suffix: 'Z' or ±HH:MM[:SS].
+        if ($tzOffsetSec === null) {
             $tzSuffix = 'Z';
         } else {
-            $absMin = abs($tzOffsetMinutes);
-            $tzH = intdiv(num1: $absMin, num2: 60);
-            $tzM = $absMin % 60;
-            $tzSign = $tzOffsetMinutes < 0 ? '-' : '+';
-            $tzSuffix = sprintf('%s%02d:%02d', $tzSign, $tzH, $tzM);
+            $absSec = abs($tzOffsetSec);
+            $tzH = intdiv(num1: $absSec, num2: 3600);
+            $tzM = intdiv(num1: $absSec % 3600, num2: 60);
+            $tzS = $absSec % 60;
+            $tzSign = $tzOffsetSec < 0 ? '-' : '+';
+            $tzSuffix = $tzS !== 0
+                ? sprintf('%s%02d:%02d:%02d', $tzSign, $tzH, $tzM, $tzS)
+                : sprintf('%s%02d:%02d', $tzSign, $tzH, $tzM);
         }
 
         if ($isMinute) {
@@ -589,7 +592,7 @@ final class Instant implements Stringable
      * Returns 0 for 'UTC' or 'Z', the offset minutes for ±HH:MM strings,
      * and the bracket annotation offset for datetime strings with [±HH:MM] or [UTC].
      */
-    private static function resolveTimeZoneOffsetMinutes(string $tz): ?int
+    private static function resolveTimeZoneOffsetSeconds(string $tz): ?int
     {
         // 'UTC' (case-insensitive)
         if (strtoupper($tz) === 'UTC') {
@@ -598,11 +601,11 @@ final class Instant implements Stringable
         // Pure UTC-offset strings: ±HH:MM or ±HHMM
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tz, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
-            return $sign * (((int) $m[2] * 60) + (int) $m[3]);
+            return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $tz, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
-            return $sign * (((int) $m[2] * 60) + (int) $m[3]);
+            return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         // Datetime strings: bracket annotation takes precedence.
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
@@ -612,12 +615,12 @@ final class Instant implements Stringable
             }
             if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $bracket, $om) === 1) {
                 $sign = $om[1] === '+' ? 1 : -1;
-                return $sign * (((int) $om[2] * 60) + (int) $om[3]);
+                return $sign * (((int) $om[2] * 3600) + ((int) $om[3] * 60));
             }
             // IANA timezone in bracket: return null to signal epoch-dependent resolution.
             try {
                 new \DateTimeZone($bracket);
-                return null; // Caller will use ianaOffsetMinutes
+                return null; // Caller will use ianaOffsetSeconds
             } catch (\Exception) {
                 // Not a valid timezone, fall through
             }
@@ -629,7 +632,7 @@ final class Instant implements Stringable
             }
             /** @var array{non-falsy-string, non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $om */
             $sign = $om[2] === '+' ? 1 : -1;
-            return $sign * (((int) $om[3] * 60) + (int) $om[4]);
+            return $sign * (((int) $om[3] * 3600) + ((int) $om[4] * 60));
         }
         // IANA timezone name: look up the offset at the current epoch.
         // This method doesn't have access to the instant's epoch, so we
@@ -639,15 +642,13 @@ final class Instant implements Stringable
     }
 
     /**
-     * Resolves an IANA timezone to an offset in minutes at a given epoch second.
+     * Resolves an IANA timezone to an offset in seconds at a given epoch second.
      */
-    private static function ianaOffsetMinutes(string $tz, int $epochSec): int
+    private static function ianaOffsetSeconds(string $tz, int $epochSec): int
     {
         try {
             $phpTz = new \DateTimeZone($tz);
-            $offset = $phpTz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
-            // TC39 rounds offset to nearest minute (away from zero at .5).
-            return (int) round($offset / 60.0);
+            return $phpTz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
         } catch (\Exception) {
             return 0;
         }

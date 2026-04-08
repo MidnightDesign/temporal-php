@@ -961,12 +961,15 @@ final class ZonedDateTime implements Stringable
         $us = intdiv(num1: $roundedSubNs % self::NS_PER_MILLISECOND, num2: self::NS_PER_MICROSECOND);
         $ns = $roundedSubNs % self::NS_PER_MICROSECOND;
 
-        // Build offset string: ±HH:MM.
+        // Build offset string: ±HH:MM or ±HH:MM:SS when seconds are non-zero.
         $absOffsetSec = abs($offsetSec);
         $offH = intdiv(num1: $absOffsetSec, num2: 3600);
         $offM = intdiv(num1: $absOffsetSec % 3600, num2: 60);
+        $offS = $absOffsetSec % 60;
         $offSign = $offsetSec >= 0 ? '+' : '-';
-        $offsetStr = sprintf('%s%02d:%02d', $offSign, $offH, $offM);
+        $offsetStr = $offS !== 0
+            ? sprintf('%s%02d:%02d:%02d', $offSign, $offH, $offM, $offS)
+            : sprintf('%s%02d:%02d', $offSign, $offH, $offM);
 
         // Year formatting: normal 4-digit, extended ±YYYYYY for out-of-range.
         if ($year < 0) {
@@ -2108,12 +2111,15 @@ final class ZonedDateTime implements Stringable
         /** @var int<0, 999> $ns — remainder mod 10^3 gives 0–999 */
         $ns = $subNs % self::NS_PER_MICROSECOND;
 
-        // Build offset string: ±HH:MM.
+        // Build offset string: ±HH:MM or ±HH:MM:SS when seconds are non-zero.
         $absOffsetSec = abs($offsetSec);
         $offH = intdiv(num1: $absOffsetSec, num2: 3600);
         $offM = intdiv(num1: $absOffsetSec % 3600, num2: 60);
+        $offS = $absOffsetSec % 60;
         $offSign = $offsetSec >= 0 ? '+' : '-';
-        $offsetStr = sprintf('%s%02d:%02d', $offSign, $offH, $offM);
+        $offsetStr = $offS !== 0
+            ? sprintf('%s%02d:%02d:%02d', $offSign, $offH, $offM, $offS)
+            : sprintf('%s%02d:%02d', $offSign, $offH, $offM);
 
         $this->localCache = [
             'year' => $year,
@@ -2306,9 +2312,14 @@ final class ZonedDateTime implements Stringable
         // Parse inline offset if present.
         $hasInlineOffset = $offsetRaw !== '';
         $inlineOffsetSec = 0;
+        // Whether the inline offset string included a seconds component (e.g. +05:30:00 vs +05:30).
+        $inlineOffsetHasSeconds = false;
         if ($hasInlineOffset) {
             [$inlineSign, $inlineAbsSec] = self::parseSimpleOffset($offsetRaw);
             $inlineOffsetSec = $inlineSign * $inlineAbsSec;
+            // Detect seconds: extended ±HH:MM:SS or compact ±HHMMSS (7+ chars after sign).
+            $inlineOffsetHasSeconds = preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $offsetRaw) === 1
+                || preg_match('/^[+\-]\d{6}/', $offsetRaw) === 1;
         }
 
         // Build wall-clock DateTimeImmutable (treat as UTC to get Unix seconds).
@@ -2361,14 +2372,22 @@ final class ZonedDateTime implements Stringable
                 // Prefer the inline offset if it matches the timezone; otherwise use timezone.
                 $epochSec = $wallSec - $inlineOffsetSec;
                 $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
-                if ($actualOffsetSec !== $inlineOffsetSec) {
+                // When inline offset has no seconds component, round actual to nearest minute.
+                $cmpActual = !$inlineOffsetHasSeconds
+                    ? (int) round($actualOffsetSec / 60.0) * 60
+                    : $actualOffsetSec;
+                if ($cmpActual !== $inlineOffsetSec) {
                     $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
                 }
             } else {
                 // offset: 'reject' (default): throw if inline offset doesn't match timezone.
                 $epochSec = $wallSec - $inlineOffsetSec;
                 $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
-                if ($actualOffsetSec !== $inlineOffsetSec) {
+                // When inline offset has no seconds component, round actual to nearest minute.
+                $cmpActual = !$inlineOffsetHasSeconds
+                    ? (int) round($actualOffsetSec / 60.0) * 60
+                    : $actualOffsetSec;
+                if ($cmpActual !== $inlineOffsetSec) {
                     throw new InvalidArgumentException(
                         "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
                     );
