@@ -1339,8 +1339,8 @@ final class ZonedDateTime implements Stringable
             if (!is_string($offVal)) {
                 throw new \TypeError('ZonedDateTime::with() offset field must be a string.');
             }
-            if (preg_match('/^[+-]\d{2}:\d{2}$/', $offVal) !== 1) {
-                throw new InvalidArgumentException("Invalid offset string \"{$offVal}\": must be ±HH:MM.");
+            if (preg_match('/^[+-]\d{2}:\d{2}(:\d{2})?$/', $offVal) !== 1) {
+                throw new InvalidArgumentException("Invalid offset string \"{$offVal}\": must be ±HH:MM or ±HH:MM:SS.");
             }
         }
 
@@ -1684,7 +1684,8 @@ final class ZonedDateTime implements Stringable
             $offVal = $fields['offset'];
             $offSign = $offVal[0] === '+' ? 1 : -1;
             $offParts = explode(separator: ':', string: substr(string: $offVal, offset: 1));
-            $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60));
+            $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60)
+                + (isset($offParts[2]) ? (int) $offParts[2] : 0));
 
             if ($offsetOption === 'ignore') {
                 // Fall through to normal localToZdt.
@@ -1783,32 +1784,36 @@ final class ZonedDateTime implements Stringable
         $tz = new \DateTimeZone($this->timeZoneId);
 
         if ($dir === 'next') {
-            $transitions = $tz->getTransitions($epochSec + 1, $epochSec + (200 * 365 * 86_400));
-            if ($transitions === [] || $transitions === false) { // @phpstan-ignore identical.alwaysFalse
+            $transitions = $tz->getTransitions($epochSec, $epochSec + (200 * 365 * 86_400));
+            if ($transitions === [] || $transitions === false || count($transitions) < 2) { // @phpstan-ignore identical.alwaysFalse
                 return null;
             }
-            foreach ($transitions as $t) {
-                /** @psalm-suppress RedundantCast — Mago needs explicit cast */
-                $ts = (int) $t['ts']; // @phpstan-ignore cast.useless
-                if ($ts > $epochSec) {
-                    $transNs = $ts * self::NS_PER_SECOND;
-                    return new self($transNs, $this->timeZoneId, $this->calendarId);
+            // Skip index 0 (initial state at range start). Find first entry
+            // with a DIFFERENT UTC offset (TC39 defines transition as offset change).
+            $prevOffset = $transitions[0]['offset'];
+            for ($i = 1; $i < count($transitions); $i++) {
+                if ($transitions[$i]['offset'] !== $prevOffset) {
+                    $ts = (int) $transitions[$i]['ts'];
+                    return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
                 }
+                $prevOffset = $transitions[$i]['offset'];
             }
             return null;
         }
 
-        // 'previous'
+        // 'previous': find the most recent transition BEFORE the current epoch.
         $transitions = $tz->getTransitions($epochSec - (200 * 365 * 86_400), $epochSec);
-        if ($transitions === [] || $transitions === false) { // @phpstan-ignore identical.alwaysFalse
+        if ($transitions === [] || $transitions === false || count($transitions) < 2) { // @phpstan-ignore identical.alwaysFalse
             return null;
         }
+        // Walk backwards from the end. Find entries where offset differs from
+        // the following entry (= an actual UTC offset transition).
+        // Skip index 0 (initial state).
         /** @var ?int $candidateTs */
         $candidateTs = null;
-        for ($i = count($transitions) - 1; $i >= 0; $i--) {
-            /** @psalm-suppress RedundantCast — Mago needs explicit cast */
-            $ts = (int) $transitions[$i]['ts']; // @phpstan-ignore cast.useless
-            if ($ts > 0 && $ts <= $epochSec) {
+        for ($i = count($transitions) - 1; $i >= 1; $i--) {
+            $ts = (int) $transitions[$i]['ts'];
+            if ($ts <= $epochSec && $transitions[$i]['offset'] !== $transitions[$i - 1]['offset']) {
                 $candidateTs = $ts;
                 break;
             }
@@ -2369,28 +2374,29 @@ final class ZonedDateTime implements Stringable
                 // Ignore the inline offset; use the wall clock with the bracket timezone.
                 $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
             } elseif ($offsetOption === 'prefer') {
-                // Prefer the inline offset if it matches the timezone; otherwise use timezone.
+                // Prefer the inline offset if it exactly matches the timezone; otherwise use timezone.
                 $epochSec = $wallSec - $inlineOffsetSec;
                 $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
-                // When inline offset has no seconds component, round actual to nearest minute.
-                $cmpActual = !$inlineOffsetHasSeconds
-                    ? (int) round($actualOffsetSec / 60.0) * 60
-                    : $actualOffsetSec;
-                if ($cmpActual !== $inlineOffsetSec) {
+                if ($actualOffsetSec !== $inlineOffsetSec) {
+                    // HH:MM-only offsets that round-match still fall through to timezone resolution,
+                    // since the inline offset lacks sub-minute precision.
                     $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
                 }
             } else {
                 // offset: 'reject' (default): throw if inline offset doesn't match timezone.
                 $epochSec = $wallSec - $inlineOffsetSec;
                 $actualOffsetSec = self::staticResolveOffset($epochSec, $normalizedTzId);
-                // When inline offset has no seconds component, round actual to nearest minute.
-                $cmpActual = !$inlineOffsetHasSeconds
-                    ? (int) round($actualOffsetSec / 60.0) * 60
-                    : $actualOffsetSec;
-                if ($cmpActual !== $inlineOffsetSec) {
-                    throw new InvalidArgumentException(
-                        "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
-                    );
+                if ($actualOffsetSec !== $inlineOffsetSec) {
+                    // When the inline offset has no seconds, accept if it rounds to the actual offset.
+                    if ($inlineOffsetHasSeconds
+                        || (int) round($actualOffsetSec / 60.0) * 60 !== $inlineOffsetSec
+                    ) {
+                        throw new InvalidArgumentException(
+                            "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
+                        );
+                    }
+                    // HH:MM rounds to match: use timezone resolution to preserve wall time.
+                    $epochSec = self::wallSecToEpochSec($wallSec, $normalizedTzId, $disambiguation);
                 }
             }
             $tzId = $normalizedTzId;
@@ -2673,13 +2679,14 @@ final class ZonedDateTime implements Stringable
             if (!is_string($offRaw)) {
                 throw new \TypeError('ZonedDateTime offset must be a string.');
             }
-            // Valid format: ±HH:MM exactly.
-            if (preg_match('/^[+-]\d{2}:\d{2}$/', $offRaw) !== 1) {
-                throw new InvalidArgumentException("Invalid offset string \"{$offRaw}\": must be ±HH:MM.");
+            // Valid format: ±HH:MM or ±HH:MM:SS.
+            if (preg_match('/^[+-]\d{2}:\d{2}(:\d{2})?$/', $offRaw) !== 1) {
+                throw new InvalidArgumentException("Invalid offset string \"{$offRaw}\": must be ±HH:MM or ±HH:MM:SS.");
             }
             $offSign = $offRaw[0] === '+' ? 1 : -1;
             $offParts = explode(separator: ':', string: substr(string: $offRaw, offset: 1));
-            $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60));
+            $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60)
+                + (isset($offParts[2]) ? (int) $offParts[2] : 0));
 
             if ($offsetOption === 'use') {
                 // Use the offset directly, regardless of timezone rules.
