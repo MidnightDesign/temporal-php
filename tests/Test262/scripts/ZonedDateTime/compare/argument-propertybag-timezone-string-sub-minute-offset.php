@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\ZonedDateTime(1_588_371_240_000_000_000, '+01:46');
 foreach (['-12:12:59.9', '2021-08-19T17:30:45.123456789-12:12:59.9[-12:12:59.9]'] as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance), "{$timeZone} is not a valid time zone string (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]), "{$timeZone} is not a valid time zone string (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone, &$instance) { return \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $instance); }, "{$timeZone} is not a valid time zone string (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$timeZone) { return \Temporal\Spec\ZonedDateTime::compare($instance, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]); }, "{$timeZone} is not a valid time zone string (second argument)");
 }

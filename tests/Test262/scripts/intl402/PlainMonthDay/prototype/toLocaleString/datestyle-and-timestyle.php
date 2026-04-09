@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $item = new \Temporal\Spec\PlainMonthDay(1, 20, 'gregory', 1972);
-Assert::throws(\TypeError::class, function () use ($item) { $item->toLocaleString('en-u-ca-gregory', ['dateStyle' => 'full', 'timeStyle' => 'full']); }, '');
+Assert::throws(\TypeError::class, function () use (&$item) { $item->toLocaleString('en-u-ca-gregory', ['dateStyle' => 'full', 'timeStyle' => 'full']); }, '');

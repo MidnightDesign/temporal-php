@@ -44,10 +44,10 @@ TemporalHelpers::assertPlainDateTime($common0231->subtract($months, $options), 1
 foreach ([[$months5, 7, 'M07'], [$months6, 8, 'M08'], [$months7, 9, 'M09'], [$months8, 10, 'M10'], [$months9, 11, 'M11'], [$months10, 12, 'M12']] as $__entry__) {
 [$months, $month, $monthCode] = array_pad($__entry__, 3, null);
 TemporalHelpers::assertPlainDateTime($common0231->subtract($months), 1944, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} constrains to 30 when adding", 'shaka', 1944);
-Assert::throws(\InvalidArgumentException::class, function () use ($common0231, $months, $options) { $common0231->subtract($months, $options); }, "common-year {$monthCode} rejects 31 when adding");
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0231, &$months, &$options) { $common0231->subtract($months, $options); }, "common-year {$monthCode} rejects 31 when adding");
 }
 TemporalHelpers::assertPlainDateTime($common0231->subtract($months11), 1945, 1, 'M01', 30, 12, 34, 0, 0, 0, 0, 'common-year Chaitra constrains to 30 when adding', 'shaka', 1945);
-Assert::throws(\InvalidArgumentException::class, function () use ($common0231, $months11, $options) { $common0231->subtract($months11, $options); }, 'common-year Chaitra rejects 31 when adding');
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0231, &$months11, &$options) { $common0231->subtract($months11, $options); }, 'common-year Chaitra rejects 31 when adding');
 foreach ([[$months1, 2, 'M02'], [$months2, 3, 'M03'], [$months3, 4, 'M04'], [$months4, 5, 'M05'], [$months5, 6, 'M06']] as $__entry__) {
 [$months, $month, $monthCode] = array_pad($__entry__, 3, null);
 TemporalHelpers::assertPlainDateTime($leap0131->subtract($months, $options), 1946, $month, $monthCode, 31, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} does not reject 31 when adding", 'shaka', 1946);
@@ -55,10 +55,10 @@ TemporalHelpers::assertPlainDateTime($leap0131->subtract($months, $options), 194
 foreach ([[$months6, 7, 'M07'], [$months7, 8, 'M08'], [$months8, 9, 'M09'], [$months9, 10, 'M10'], [$months10, 11, 'M11'], [$months11, 12, 'M12']] as $__entry__) {
 [$months, $month, $monthCode] = array_pad($__entry__, 3, null);
 TemporalHelpers::assertPlainDateTime($leap0131->subtract($months), 1946, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} constrains to 30 when adding", 'shaka', 1946);
-Assert::throws(\InvalidArgumentException::class, function () use ($leap0131, $months, $options) { $leap0131->subtract($months, $options); }, "leap-year {$monthCode} rejects 31 when adding");
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap0131, &$months, &$options) { $leap0131->subtract($months, $options); }, "leap-year {$monthCode} rejects 31 when adding");
 }
 TemporalHelpers::assertPlainDateTime($common0231->subtract($months1n), 1944, 1, 'M01', 30, 12, 34, 0, 0, 0, 0, "common-year Chaitra constrains to 30 when subtracting", 'shaka', 1944);
-Assert::throws(\InvalidArgumentException::class, function () use ($common0231, $months1n, $options) { $common0231->subtract($months1n, $options); }, 'common-year Chaitra rejects 31 when subtracting');
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0231, &$months1n, &$options) { $common0231->subtract($months1n, $options); }, 'common-year Chaitra rejects 31 when subtracting');
 foreach ([[$months12n, 2, 'M02'], [$months11n, 3, 'M03'], [$months10n, 4, 'M04'], [$months9n, 5, 'M05'], [$months8n, 6, 'M06']] as $__entry__) {
 [$months, $month, $monthCode] = array_pad($__entry__, 3, null);
 TemporalHelpers::assertPlainDateTime($common0231->subtract($months, $options), 1943, $month, $monthCode, 31, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} does not reject 31 when subtracting", 'shaka', 1943);
@@ -66,7 +66,7 @@ TemporalHelpers::assertPlainDateTime($common0231->subtract($months, $options), 1
 foreach ([[$months7n, 7, 'M07'], [$months6n, 8, 'M08'], [$months5n, 9, 'M09'], [$months4n, 10, 'M10'], [$months3n, 11, 'M11'], [$months2n, 12, 'M12']] as $__entry__) {
 [$months, $month, $monthCode] = array_pad($__entry__, 3, null);
 TemporalHelpers::assertPlainDateTime($common0231->subtract($months), 1943, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} constrains to 30 when subtracting", 'shaka', 1943);
-Assert::throws(\InvalidArgumentException::class, function () use ($common0231, $months, $options) { $common0231->subtract($months, $options); }, "common-year {$monthCode} rejects 31 when adding");
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0231, &$months, &$options) { $common0231->subtract($months, $options); }, "common-year {$monthCode} rejects 31 when adding");
 }
 foreach ([[$months13n, 1, 'M01'], [$months12n, 2, 'M02'], [$months11n, 3, 'M03'], [$months10n, 4, 'M04'], [$months9n, 5, 'M05'], [$months8n, 6, 'M06']] as $__entry__) {
 [$months, $month, $monthCode] = array_pad($__entry__, 3, null);
@@ -75,5 +75,5 @@ TemporalHelpers::assertPlainDateTime($common0231After->subtract($months, $option
 foreach ([[$months7n, 7, 'M07'], [$months6n, 8, 'M08'], [$months5n, 9, 'M09'], [$months4n, 10, 'M10'], [$months3n, 11, 'M11'], [$months2n, 12, 'M12']] as $__entry__) {
 [$months, $month, $monthCode] = array_pad($__entry__, 3, null);
 TemporalHelpers::assertPlainDateTime($common0231After->subtract($months), 1946, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} constrains to 30 when subtracting", 'shaka', 1946);
-Assert::throws(\InvalidArgumentException::class, function () use ($common0231After, $months, $options) { $common0231After->subtract($months, $options); }, "leap-year {$monthCode} rejects 31 when adding");
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0231After, &$months, &$options) { $common0231After->subtract($months, $options); }, "leap-year {$monthCode} rejects 31 when adding");
 }

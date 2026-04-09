@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt->getTimeZoneTransition(new \stdClass()), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt->getTimeZoneTransition([]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt->getTimeZoneTransition(function () {  }), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->getTimeZoneTransition(new \stdClass()); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->getTimeZoneTransition([]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->getTimeZoneTransition(function () {  }); }, '');

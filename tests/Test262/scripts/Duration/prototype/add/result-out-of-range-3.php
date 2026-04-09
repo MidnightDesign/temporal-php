@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $one = \Temporal\Spec\Duration::from(['nanoseconds' => 9.007_199_254_740_991e+24]);
 $two = \Temporal\Spec\Duration::from(['microseconds' => 1_000_000]);
-Assert::throws(\InvalidArgumentException::class, fn() => $one->add($two), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$one, &$two) { return $one->add($two); }, '');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $monthday = new \Temporal\Spec\PlainMonthDay(5, 2, 'gregory');
-TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', fn($calendarName) => $monthday->toString(['calendarName' => $calendarName]), fn($result, $descr) => Assert::sameValue($result, '1972-05-02[u-ca=gregory]', $descr));
+TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', function ($calendarName) use (&$monthday) { return $monthday->toString(['calendarName' => $calendarName]); }, fn($result, $descr) => Assert::sameValue($result, '1972-05-02[u-ca=gregory]', $descr));

@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => $datetime->subtract($duration, ['overflow' => $overflow]), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 999_913_600_987_654_321, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$datetime, &$duration) { return $datetime->subtract($duration, ['overflow' => $overflow]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 999_913_600_987_654_321, $descr));

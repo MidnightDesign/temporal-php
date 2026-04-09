@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $ids = \DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC);
-$forEachDistinctPair = function ($array, $func) use ($i, $j) { for ($i = 0; $i < count($array); $i++) { for ($j = $i + 1; $j < count($array); $j++) { $func($array[$i], $array[$j]); } } };
-$forEachDistinctPair($ids, function ($id1, $id2) use ($instance) { $instance = new \Temporal\Spec\ZonedDateTime(0, $id1); Assert::assertTrue(!$instance->equals($instance->withTimeZone($id2)), "{$id1} does not equal {$id2}"); });
+$forEachDistinctPair = function ($array, $func) use (&$i, &$j) { for ($i = 0; $i < count($array); $i++) { for ($j = $i + 1; $j < count($array); $j++) { $func($array[$i], $array[$j]); } } };
+$forEachDistinctPair($ids, function ($id1, $id2) use (&$instance) { $instance = new \Temporal\Spec\ZonedDateTime(0, $id1); Assert::assertTrue(!$instance->equals($instance->withTimeZone($id2)), "{$id1} does not equal {$id2}"); });

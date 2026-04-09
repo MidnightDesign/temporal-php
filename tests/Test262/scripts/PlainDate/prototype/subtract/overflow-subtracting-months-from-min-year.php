@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $minYear = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
 $duration = new \Temporal\Spec\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, fn() => $minYear->subtract($duration), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minYear, &$duration) { return $minYear->subtract($duration); }, '');
 $maxYear = new \Temporal\Spec\PlainDate(275_760, 1, 1);
-Assert::throws(\InvalidArgumentException::class, fn() => $maxYear->subtract($duration->negated()), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$maxYear, &$duration) { return $maxYear->subtract($duration->negated()); }, '');

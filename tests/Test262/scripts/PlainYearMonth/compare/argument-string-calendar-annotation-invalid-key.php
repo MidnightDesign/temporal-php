@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = [['1970-01-01T00:00[U-CA=iso8601]', 'invalid capitalized key'], ['1970-01-01T00:00[u-CA=iso8601]', 'invalid partially-capitalized key'], ['1970-01-01T00:00[FOO=bar]', 'invalid capitalized unrecognized key']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)), "annotation keys must be lowercase: {$arg} - {$descr} (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg), "annotation keys must be lowercase: {$arg} - {$descr} (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)); }, "annotation keys must be lowercase: {$arg} - {$descr} (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg); }, "annotation keys must be lowercase: {$arg} - {$descr} (second argument)");
 }

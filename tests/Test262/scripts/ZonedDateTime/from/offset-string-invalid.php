@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['garbage', '00:00', '+000:00', '-00:000', '-00:00:000', '+00:00.0', '+00:00:00.0000000000', '+00:0000'] as $offset) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from(['offset' => $offset, 'year' => 2024, 'monthCode' => 'M10', 'day' => 3, 'timeZone' => 'UTC']), "UTC offset '{$offset}' is not well-formed");
+Assert::throws(\InvalidArgumentException::class, function () use (&$offset) { return \Temporal\Spec\ZonedDateTime::from(['offset' => $offset, 'year' => 2024, 'monthCode' => 'M10', 'day' => 3, 'timeZone' => 'UTC']); }, "UTC offset '{$offset}' is not well-formed");
 }
 Assert::incomplete('untranslatable: Symbol()');

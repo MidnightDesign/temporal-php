@@ -21,9 +21,9 @@ TemporalHelpers::assertPlainMonthDay($md, $monthCode, $day, 'md', $referenceYear
 $md2 = \Temporal\Spec\PlainMonthDay::from(['monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]);
 TemporalHelpers::assertPlainMonthDay($md2, $monthCode, $day, 'md2', $referenceYear);
 Assert::sameValue($md->equals($md2), true, '');
-Assert::throws(\InvalidArgumentException::class, function () use ($calendar) { \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use ($calendar) { \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use ($year, $calendar) { \Temporal\Spec\PlainMonthDay::from(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$year, &$calendar) { \Temporal\Spec\PlainMonthDay::from(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
 $constrained = \Temporal\Spec\PlainMonthDay::from(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]);
 Assert::sameValue($constrained->monthCode, 'M12', '');
 }

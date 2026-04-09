@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $plainDate1 = new \Temporal\Spec\PlainDate(2000, 1, 1, 'gregory');
 $plainDate2 = new \Temporal\Spec\PlainDate(2000, 1, 1, 'japanese');
-Assert::throws(\InvalidArgumentException::class, fn() => $plainDate1->until($plainDate2), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$plainDate1, &$plainDate2) { return $plainDate1->until($plainDate2); }, '');

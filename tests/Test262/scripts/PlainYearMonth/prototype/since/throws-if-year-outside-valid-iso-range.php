@@ -12,5 +12,5 @@ $minYearMonth = new \Temporal\Spec\PlainYearMonth(-271_821, 4);
 $maxYearMonth = new \Temporal\Spec\PlainYearMonth(275_760, 9);
 $epochYearMonth = new \Temporal\Spec\PlainYearMonth(1970, 1);
 TemporalHelpers::assertDuration($minYearMonth->since($minYearMonth), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'minYearMonth.since(minYearMonth)');
-Assert::throws(\InvalidArgumentException::class, fn() => $minYearMonth->since($maxYearMonth), 'minYearMonth.since(maxYearMonth)');
-Assert::throws(\InvalidArgumentException::class, fn() => $minYearMonth->since($epochYearMonth), 'minYearMonth.since(epochYearMonth)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minYearMonth, &$maxYearMonth) { return $minYearMonth->since($maxYearMonth); }, 'minYearMonth.since(maxYearMonth)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minYearMonth, &$epochYearMonth) { return $minYearMonth->since($epochYearMonth); }, 'minYearMonth.since(epochYearMonth)');

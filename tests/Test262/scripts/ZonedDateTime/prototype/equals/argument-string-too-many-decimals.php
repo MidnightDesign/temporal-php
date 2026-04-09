@@ -11,5 +11,5 @@ $invalidStrings = ['1970-01-01T00:00:00.1234567891Z[UTC]', '1970-01-01T00:00:00.
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use ($instance, $arg) { $instance->equals($arg); }, 'no more than 9 decimal places are allowed');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { $instance->equals($arg); }, 'no more than 9 decimal places are allowed');
 }

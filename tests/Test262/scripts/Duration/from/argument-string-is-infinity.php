@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inf = str_repeat('9', (int) (1000));
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from("P{$inf}Y"), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from("P{$inf}M"), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from("P{$inf}W"), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from("P{$inf}D"), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from("PT{$inf}H"), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from("PT{$inf}M"), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from("PT{$inf}S"), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$inf) { return \Temporal\Spec\Duration::from("P{$inf}Y"); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$inf) { return \Temporal\Spec\Duration::from("P{$inf}M"); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$inf) { return \Temporal\Spec\Duration::from("P{$inf}W"); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$inf) { return \Temporal\Spec\Duration::from("P{$inf}D"); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$inf) { return \Temporal\Spec\Duration::from("PT{$inf}H"); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$inf) { return \Temporal\Spec\Duration::from("PT{$inf}M"); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$inf) { return \Temporal\Spec\Duration::from("PT{$inf}S"); }, '');

@@ -13,8 +13,8 @@ Assert::sameValue(is_string($instant->toLocaleString('en', ['dateStyle' => 'shor
 Assert::sameValue(is_string($instant->toLocaleString('en', ['timeStyle' => 'short'])), true, '');
 foreach ($conflictingOptions as $__entry__) {
 [$option, $value] = array_pad($__entry__, 2, null);
-Assert::throws(\TypeError::class, function () use ($instant, $option, $value) { $instant->toLocaleString('en', [$option => $value, 'dateStyle' => 'short']); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
-Assert::throws(\TypeError::class, function () use ($instant, $option, $value) { $instant->toLocaleString('en', [$option => $value, 'timeStyle' => 'short']); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
+Assert::throws(\TypeError::class, function () use (&$instant, &$option, &$value) { $instant->toLocaleString('en', [$option => $value, 'dateStyle' => 'short']); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
+Assert::throws(\TypeError::class, function () use (&$instant, &$option, &$value) { $instant->toLocaleString('en', [$option => $value, 'timeStyle' => 'short']); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
 $instant->toLocaleString('en', [$option => $value]);
 $instant->toLocaleString('en', [$option => $value]);
 }

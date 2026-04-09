@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891Z', '1970-01-01T00:00:00.1234567890Z', '1970-01-01T00+00:00:00.1234567891', '1970-01-01T00+00:00:00.1234567890'];
 $epoch = new \Temporal\Spec\Instant(0);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use ($arg, $epoch) { \Temporal\Spec\Instant::compare($arg, $epoch); }, 'no more than 9 decimal places are allowed (first arg)');
-Assert::throws(\InvalidArgumentException::class, function () use ($epoch, $arg) { \Temporal\Spec\Instant::compare($epoch, $arg); }, 'no more than 9 decimal places are allowed (second arg)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$epoch) { \Temporal\Spec\Instant::compare($arg, $epoch); }, 'no more than 9 decimal places are allowed (first arg)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$epoch, &$arg) { \Temporal\Spec\Instant::compare($epoch, $arg); }, 'no more than 9 decimal places are allowed (second arg)');
 }

@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['m1', 'M1', 'm01'] as $monthCode) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not well-formed");
+Assert::throws(\InvalidArgumentException::class, function () use (&$monthCode) { return \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17]); }, "monthCode '{$monthCode}' is not well-formed");
 }
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'month' => 12, 'monthCode' => 'M11', 'day' => 17]), 'monthCode and month conflict');
 foreach (['M00', 'M19', 'M99', 'M13', 'M00L', 'M05L', 'M13L'] as $monthCode) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17]), "monthCode '{$monthCode}' is not valid for ISO 8601 calendar");
+Assert::throws(\InvalidArgumentException::class, function () use (&$monthCode) { return \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17]); }, "monthCode '{$monthCode}' is not valid for ISO 8601 calendar");
 }
 Assert::incomplete('untranslatable: Symbol()');

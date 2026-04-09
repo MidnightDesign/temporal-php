@@ -15,5 +15,5 @@ TemporalHelpers::assertPlainYearMonth($lastDayOfShowa->with(['month' => 2], $opt
 TemporalHelpers::assertPlainYearMonth($lastDayOfShowa->with(['monthCode' => 'M03'], $options), 1989, 3, 'M03', 'monthCode excludes month, era, and eraYear', 'heisei', 1);
 TemporalHelpers::assertPlainYearMonth($lastDayOfShowa->with(['year' => 1988], $options), 1988, 1, 'M01', 'year excludes era and eraYear (within same era)', 'showa', 63);
 TemporalHelpers::assertPlainYearMonth($lastDayOfShowa->with(['year' => 1990], $options), 1990, 1, 'M01', 'year excludes era and eraYear (in a different era)', 'heisei', 2);
-Assert::throws(\TypeError::class, fn() => $lastDayOfShowa->with(['eraYear' => 1]), 'eraYear excludes year and era, and cannot be provided without era');
-Assert::throws(\TypeError::class, fn() => $lastDayOfShowa->with(['era' => 'heisei']), 'era excludes year and eraYear, and cannot be provided without eraYear');
+Assert::throws(\TypeError::class, function () use (&$lastDayOfShowa) { return $lastDayOfShowa->with(['eraYear' => 1]); }, 'eraYear excludes year and era, and cannot be provided without era');
+Assert::throws(\TypeError::class, function () use (&$lastDayOfShowa) { return $lastDayOfShowa->with(['era' => 'heisei']); }, 'era excludes year and eraYear, and cannot be provided without eraYear');

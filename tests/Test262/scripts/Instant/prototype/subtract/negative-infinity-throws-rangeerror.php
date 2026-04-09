@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $fields = ['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 $instance = \Temporal\Spec\Instant::fromEpochMilliseconds(10_000);
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract([$field => -INF]), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->subtract([$field => -INF]); }, '');
 }
 $calls = 0;
 Assert::incomplete('untranslatable object property');

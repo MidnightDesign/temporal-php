@@ -17,10 +17,10 @@ $common0130 = \Temporal\Spec\ZonedDateTime::from(['year' => 1740, 'monthCode' =>
 $months1 = new \Temporal\Spec\Duration(0, -1);
 $months1n = new \Temporal\Spec\Duration(0, 1);
 TemporalHelpers::assertPlainDateTime($common1230->subtract($months1)->toPlainDateTime(), 1738, 13, 'M13', 5, 12, 34, 0, 0, 0, 0, 'Adding 1 month to last day of Mesori constrains to day 5 of common-year epagomenal month', 'am', 1738);
-Assert::throws(\InvalidArgumentException::class, function () use ($common1230, $months1, $options) { $common1230->subtract($months1, $options); }, 'Adding 1 month to last day of Mesori rejects in common year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$common1230, &$months1, &$options) { $common1230->subtract($months1, $options); }, 'Adding 1 month to last day of Mesori rejects in common year');
 TemporalHelpers::assertPlainDateTime($leap1230->subtract($months1)->toPlainDateTime(), 1739, 13, 'M13', 6, 12, 34, 0, 0, 0, 0, 'Adding 1 month to last day of Mesori constrains to day 6 of leap-year epagomenal month', 'am', 1739);
-Assert::throws(\InvalidArgumentException::class, function () use ($leap1230, $months1, $options) { $leap1230->subtract($months1, $options); }, 'Adding 1 month to last day of Mesori rejects in leap year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap1230, &$months1, &$options) { $leap1230->subtract($months1, $options); }, 'Adding 1 month to last day of Mesori rejects in leap year');
 TemporalHelpers::assertPlainDateTime($leap0130->subtract($months1n)->toPlainDateTime(), 1738, 13, 'M13', 5, 12, 34, 0, 0, 0, 0, 'Subtracting 1 month from last day of Thout constrains to day 5 of common-year epagomenal month', 'am', 1738);
-Assert::throws(\InvalidArgumentException::class, function () use ($leap0130, $months1n, $options) { $leap0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Thout rejects in common year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap0130, &$months1n, &$options) { $leap0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Thout rejects in common year');
 TemporalHelpers::assertPlainDateTime($common0130->subtract($months1n)->toPlainDateTime(), 1739, 13, 'M13', 6, 12, 34, 0, 0, 0, 0, 'Subtracting 1 month from last day of Thout constrains to day 6 of leap-year epagomenal month', 'am', 1739);
-Assert::throws(\InvalidArgumentException::class, function () use ($common0130, $months1n, $options) { $common0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Thout rejects in leap year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0130, &$months1n, &$options) { $common0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Thout rejects in leap year');

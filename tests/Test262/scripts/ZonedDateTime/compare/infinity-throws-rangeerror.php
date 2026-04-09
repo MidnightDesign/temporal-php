@@ -12,8 +12,8 @@ $other = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $base = ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 15, 'minute' => 30, 'second' => 45, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321, 'timeZone' => 'UTC'];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare(array_merge($base, [$prop => $inf]), $other), "{$prop} property cannot be {$inf}");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($other, array_merge($base, [$prop => $inf])), "{$prop} property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$inf, &$other) { return \Temporal\Spec\ZonedDateTime::compare(array_merge($base, [$prop => $inf]), $other); }, "{$prop} property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$other, &$base, &$prop, &$inf) { return \Temporal\Spec\ZonedDateTime::compare($other, array_merge($base, [$prop => $inf])); }, "{$prop} property cannot be {$inf}");
 $calls1 = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

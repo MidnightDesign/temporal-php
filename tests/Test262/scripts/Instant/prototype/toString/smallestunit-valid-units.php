@@ -18,5 +18,5 @@ $test($instant, [['minute', '2001-09-09T01:46Z'], ['second', '2001-09-09T01:46:4
 $test(new \Temporal\Spec\Instant(999_999_960_000_000_000), [['minute', '2001-09-09T01:46Z'], ['second', '2001-09-09T01:46:00Z'], ['millisecond', '2001-09-09T01:46:00.000Z'], ['microsecond', '2001-09-09T01:46:00.000000Z'], ['nanosecond', '2001-09-09T01:46:00.000000000Z']], 'whole minutes toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour'];
 foreach ($notValid as $smallestUnit) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['smallestUnit' => $smallestUnit]), "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instant, &$smallestUnit) { return $instant->toString(['smallestUnit' => $smallestUnit]); }, "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
 }

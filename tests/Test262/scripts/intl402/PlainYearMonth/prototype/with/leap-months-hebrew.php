@@ -13,4 +13,4 @@ $options = ['overflow' => 'reject'];
 $leapMonth = \Temporal\Spec\PlainYearMonth::from(['year' => 5784, 'monthCode' => 'M05L', 'calendar' => $calendar], $options);
 TemporalHelpers::assertPlainYearMonth($leapMonth->with(['year' => 5782], $options), 5782, 6, 'M05L', 'month not constrained when moving to another leap year', 'am', 5782, null);
 TemporalHelpers::assertPlainYearMonth($leapMonth->with(['year' => 5783]), 5783, 6, 'M06', 'month constrained when moving to a common year', 'am', 5783, null);
-Assert::throws(\InvalidArgumentException::class, function () use ($leapMonth, $options) { $leapMonth->with(['year' => 5783], $options); }, 'reject when moving to a common year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leapMonth, &$options) { $leapMonth->with(['year' => 5783], $options); }, 'reject when moving to a common year');

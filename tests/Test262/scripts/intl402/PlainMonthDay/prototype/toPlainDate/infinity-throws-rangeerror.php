@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2, 'gregory');
 foreach ([INF, -INF] as $inf) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->toPlainDate(['era' => 'ad', 'eraYear' => $inf]), "eraYear property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf) { return $instance->toPlainDate(['era' => 'ad', 'eraYear' => $inf]); }, "eraYear property cannot be {$inf}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

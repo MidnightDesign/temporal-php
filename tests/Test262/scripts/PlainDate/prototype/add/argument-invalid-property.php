@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
-Assert::throws(\TypeError::class, fn() => $instance->add(new \stdClass()), 'Throws TypeError if no property is present');
-Assert::throws(\TypeError::class, fn() => $instance->add(['nonsense' => true]), 'Throws TypeError if no recognized property is present');
-Assert::throws(\TypeError::class, fn() => $instance->add(['sign' => 1]), 'Sign property is not recognized');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(new \stdClass()); }, 'Throws TypeError if no property is present');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(['nonsense' => true]); }, 'Throws TypeError if no recognized property is present');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(['sign' => 1]); }, 'Sign property is not recognized');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $duration = \Temporal\Spec\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
 $relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->total(['relativeTo' => $relativeTo, 'unit' => 'days']), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$relativeTo) { return $duration->total(['relativeTo' => $relativeTo, 'unit' => 'days']); }, '');

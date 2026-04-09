@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
-Assert::throws(\TypeError::class, fn() => $instance->add(), 'undefined');
-Assert::throws(\TypeError::class, fn() => $instance->add(null), 'null');
-Assert::throws(\TypeError::class, fn() => $instance->add(true), 'boolean');
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->add(''), 'empty string');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(); }, 'undefined');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(null); }, 'null');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(true); }, 'boolean');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->add(''); }, 'empty string');
 Assert::incomplete('untranslatable: Symbol()');

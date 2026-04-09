@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = new \stdClass();
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::from($arg), '[object Object] is not a valid ISO string');
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, '[object Object] is not a valid ISO string');
 $temporalInstant = new \stdClass();
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::from($temporalInstant), 'Temporal.Instant object is not a valid ISO string');
+Assert::throws(\InvalidArgumentException::class, function () use (&$temporalInstant) { return \Temporal\Spec\Instant::from($temporalInstant); }, 'Temporal.Instant object is not a valid ISO string');
 $arg['toString'] = function () { return '1970-01-01T00:00Z'; };
 $result = \Temporal\Spec\Instant::from($arg);
 Assert::sameValue($result->epochNanoseconds, 0, 'result of toString is interpreted as ISO string');

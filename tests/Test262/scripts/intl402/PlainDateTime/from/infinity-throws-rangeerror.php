@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $base = ['era' => 'ad', 'month' => 5, 'day' => 2, 'hour' => 15, 'calendar' => 'gregory'];
 foreach ([INF, -INF] as $inf) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(array_merge($base, ['eraYear' => $inf]), ['overflow' => $overflow]), "eraYear property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$inf, &$overflow) { return \Temporal\Spec\PlainDateTime::from(array_merge($base, ['eraYear' => $inf]), ['overflow' => $overflow]); }, "eraYear property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

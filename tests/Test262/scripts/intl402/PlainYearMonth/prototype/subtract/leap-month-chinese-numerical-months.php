@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = \Temporal\Spec\PlainYearMonth::from(['calendar' => 'chinese', 'year' => 2012, 'month' => 5]);
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract('P1Y1M', ['overflow' => 'reject']), 'Subtracting a year and a month to a numerical (leap) month.');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->subtract('P1Y1M', ['overflow' => 'reject']); }, 'Subtracting a year and a month to a numerical (leap) month.');
 $oneYear = new \Temporal\Spec\Duration(1);
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract($oneYear, ['overflow' => 'reject']), 'Subtracting a year to a numerical (leap) month.');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$oneYear) { return $instance->subtract($oneYear, ['overflow' => 'reject']); }, 'Subtracting a year to a numerical (leap) month.');

@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00Z[u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00Z[!u-ca=iso8601][u-ca=iso8601]', '1970-01-01T00:00Z[UTC][u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00Z[u-ca=iso8601][foo=bar][!u-ca=iso8601]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::from($arg), "reject more than one calendar annotation if any critical: {$arg}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, "reject more than one calendar annotation if any critical: {$arg}");
 }

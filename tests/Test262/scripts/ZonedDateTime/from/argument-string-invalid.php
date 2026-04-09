@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['2025-01-01T00:00:00+00:0000[UTC]', '2025-01-01T00:00:00+0000:00[UTC]', '202501-01T00:00:00+00:00[UTC]', '2025-0101T00:00:00+00:00[UTC]', '2025-01-01T00:0000+00:00[UTC]', '2025-01-01T0000:00+00:00[UTC]'];
 foreach ($invalidStrings as $s) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($s), "invalid date-time string ({$s})");
+Assert::throws(\InvalidArgumentException::class, function () use (&$s) { return \Temporal\Spec\ZonedDateTime::from($s); }, "invalid date-time string ({$s})");
 }

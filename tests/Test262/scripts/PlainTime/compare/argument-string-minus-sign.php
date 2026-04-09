@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '−009999-11-18T15:23:30.12'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)), "variant minus sign: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321), $arg), "variant minus sign: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)); }, "variant minus sign: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321), $arg); }, "variant minus sign: {$arg} (second argument)");
 }

@@ -17,7 +17,7 @@ $pmd31 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode
 TemporalHelpers::assertPlainMonthDay($pmd31, $monthCode, 31, "{$monthCode}-31");
 $constrained = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 32], ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 31, "day 32 should be constrained to 31 for {$monthCode}");
-Assert::throws(\InvalidArgumentException::class, function () use ($calendar, $monthCode) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 32], ['overflow' => 'reject']); }, "{$monthCode} with day 32 should throw with reject overflow");
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 32], ['overflow' => 'reject']); }, "{$monthCode} with day 32 should throw with reject overflow");
 }
 $monthsWith30Days = ['M07', 'M08', 'M09', 'M10', 'M11', 'M12'];
 foreach ($monthsWith30Days as $monthCode) {
@@ -27,5 +27,5 @@ $pmd30 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode
 TemporalHelpers::assertPlainMonthDay($pmd30, $monthCode, 30, "{$monthCode}-31");
 $constrained = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 30, "day 31 should be constrained to 30 for {$monthCode}");
-Assert::throws(\InvalidArgumentException::class, function () use ($calendar, $monthCode) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }

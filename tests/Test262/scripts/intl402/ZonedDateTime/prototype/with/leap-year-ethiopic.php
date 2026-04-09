@@ -12,5 +12,5 @@ $calendar = 'ethiopic';
 $options = ['overflow' => 'reject'];
 $leapDay = \Temporal\Spec\ZonedDateTime::from(['year' => 2015, 'monthCode' => 'M13', 'day' => 6, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
 TemporalHelpers::assertPlainDateTime($leapDay->with(['year' => 2016])->toPlainDateTime(), 2016, 13, 'M13', 5, 12, 34, 0, 0, 0, 0, 'Changing year on leap day to a common year constrains to day 5 of epagomenal month', 'am', 2016);
-Assert::throws(\InvalidArgumentException::class, function () use ($leapDay, $options) { $leapDay->with(['year' => 2016], $options); }, 'Changing year on leap day to a common year rejects');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leapDay, &$options) { $leapDay->with(['year' => 2016], $options); }, 'Changing year on leap day to a common year rejects');
 TemporalHelpers::assertPlainDateTime($leapDay->with(['year' => 2011], $options)->toPlainDateTime(), 2011, 13, 'M13', 6, 12, 34, 0, 0, 0, 0, 'Changing year on leap day to another leap year constrains to day 6 of epagomenal month', 'am', 2011);

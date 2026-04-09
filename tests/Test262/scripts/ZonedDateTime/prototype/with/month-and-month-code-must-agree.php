@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt->with(['month' => 5, 'monthCode' => 'M06']), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->with(['month' => 5, 'monthCode' => 'M06']); }, '');

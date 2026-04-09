@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $numbers = [1, -123_456.987_654_321, 1_234_567, 123_456.9_876_543_219];
 foreach ($numbers as $arg) {
-Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)), "A number ({$arg}) is not a valid ISO string for PlainTime (first argument)");
-Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321), $arg), "A number ({$arg}) is not a valid ISO string for PlainTime (second argument)");
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)); }, "A number ({$arg}) is not a valid ISO string for PlainTime (first argument)");
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321), $arg); }, "A number ({$arg}) is not a valid ISO string for PlainTime (second argument)");
 }

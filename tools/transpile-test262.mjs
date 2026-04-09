@@ -1523,12 +1523,24 @@ class Emitter {
           if (v !== '__' && v !== 'this' && !paramNames.has(v)) usedVars.add(v);
         }
       }
-      const useClause = usedVars.size > 0 ? `use (${[...usedVars].map(v => `$${v}`).join(', ')}) ` : '';
+      const useClause = usedVars.size > 0 ? `use (${[...usedVars].map(v => `&$${v}`).join(', ')}) ` : '';
       return `function (${params}) ${useClause}{ ${inner.join(' ')} }`;
     }
-    // Concise body
+    // Concise body — collect outer variable references and capture by
+    // reference so that JS-style late-binding semantics are preserved when
+    // the outer variable is reassigned after the closure is created.
     const body = this.transpileExpr(node.body);
     if (body === null) return null;
+    const paramNames = new Set(node.params.map(p => p.type === 'Identifier' ? p.name : null).filter(Boolean));
+    const usedVars = new Set();
+    for (const m of body.matchAll(/\$([a-zA-Z_]\w*)/g)) {
+      const v = m[1];
+      if (v !== '__' && v !== 'this' && v !== '__m' && !paramNames.has(v)) usedVars.add(v);
+    }
+    if (usedVars.size > 0) {
+      const useClause = `use (${[...usedVars].map(v => `&$${v}`).join(', ')}) `;
+      return `function (${params}) ${useClause}{ return ${body}; }`;
+    }
     return `fn(${params}) => ${body}`;
   }
 

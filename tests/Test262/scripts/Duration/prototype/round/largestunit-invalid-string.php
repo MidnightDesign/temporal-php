@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->round(['largestUnit' => 'other string']), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->round(['largestUnit' => 'other string']); }, '');

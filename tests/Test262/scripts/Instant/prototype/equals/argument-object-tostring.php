@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\Instant(0);
 $arg = new \stdClass();
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), '[object Object] is not a valid ISO string');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, '[object Object] is not a valid ISO string');
 $arg['toString'] = function () { return '1970-01-01T00:00Z'; };
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'result of toString is interpreted as ISO string');

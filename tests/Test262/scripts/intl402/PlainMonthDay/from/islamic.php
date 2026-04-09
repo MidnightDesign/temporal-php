@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $calendar = 'islamic';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['year' => 1500, 'month' => 1, 'day' => 1, 'calendar' => $calendar]), 'fallback for calendar ID \'islamic\' only supported in Intl.DateTimeFormat constructor, not Temporal');
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\PlainMonthDay::from(['year' => 1500, 'month' => 1, 'day' => 1, 'calendar' => $calendar]); }, 'fallback for calendar ID \'islamic\' only supported in Intl.DateTimeFormat constructor, not Temporal');

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = \Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991, 'nanoseconds' => 999_999_999]);
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->round(['smallestUnit' => 'seconds']), 'result is out of range');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->round(['smallestUnit' => 'seconds']); }, 'result is out of range');

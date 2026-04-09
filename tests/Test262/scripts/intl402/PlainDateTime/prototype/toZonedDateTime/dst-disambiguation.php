@@ -12,10 +12,10 @@ Assert::sameValue($dtmFall->toZonedDateTime('America/Los_Angeles')->epochNanosec
 Assert::sameValue($dtmFall->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'earlier'])->epochNanoseconds, 972_809_100_000_000_000, 'epoch nanoseconds in fall back - earlier');
 Assert::sameValue($dtmFall->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'later'])->epochNanoseconds, 972_812_700_000_000_000, 'epoch nanoseconds in fall back - later');
 Assert::sameValue($dtmFall->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'compatible'])->epochNanoseconds, 972_809_100_000_000_000, 'epoch nanoseconds in fall back - compatible');
-Assert::throws(\InvalidArgumentException::class, fn() => $dtmFall->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'reject']), 'fall back - reject');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dtmFall) { return $dtmFall->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'reject']); }, 'fall back - reject');
 $dtmSpring = new \Temporal\Spec\PlainDateTime(2000, 4, 2, 2, 30);
 Assert::sameValue($dtmSpring->toZonedDateTime('America/Los_Angeles')->epochNanoseconds, 954_671_400_000_000_000, 'epoch nanoseconds in spring forward - no disambiguation');
 Assert::sameValue($dtmSpring->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'earlier'])->epochNanoseconds, 954_667_800_000_000_000, 'epoch nanoseconds in spring forward - earlier');
 Assert::sameValue($dtmSpring->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'later'])->epochNanoseconds, 954_671_400_000_000_000, 'epoch nanoseconds in spring forward - later');
 Assert::sameValue($dtmSpring->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'compatible'])->epochNanoseconds, 954_671_400_000_000_000, 'epoch nanoseconds in spring forward - compatible');
-Assert::throws(\InvalidArgumentException::class, fn() => $dtmSpring->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'reject']), 'spring forward - reject');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dtmSpring) { return $dtmSpring->toZonedDateTime('America/Los_Angeles', ['disambiguation' => 'reject']); }, 'spring forward - reject');
