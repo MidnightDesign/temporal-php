@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 15, 30, 45, 987, 654, 321);
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add([$field => 1.5]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add([$field => -1.5]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->add([$field => 1.5]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->add([$field => -1.5]), '');
 }

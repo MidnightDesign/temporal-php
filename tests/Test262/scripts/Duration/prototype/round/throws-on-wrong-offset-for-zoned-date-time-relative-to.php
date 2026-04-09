@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
-Assert::throws(\InvalidArgumentException::class, function () use (&$d) { return $d->round(['smallestUnit' => 'seconds', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44:30]']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['smallestUnit' => 'seconds', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44:30]']), '');

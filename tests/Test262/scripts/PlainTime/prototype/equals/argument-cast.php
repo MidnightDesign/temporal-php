@@ -12,5 +12,5 @@ Assert::sameValue($t1->equals(['hour' => 14, 'minute' => 23, 'second' => 30, 'mi
 Assert::sameValue($t1->equals(['hour' => 8, 'minute' => 44, 'second' => 15, 'millisecond' => 321]), true, 'object');
 Assert::sameValue($t1->equals('14:23:30.123'), false, 'string');
 Assert::sameValue($t1->equals('08:44:15.321'), true, 'string');
-Assert::throws(\TypeError::class, function () use (&$t1) { return $t1->equals(new \stdClass()); }, 'no properties');
-Assert::throws(\TypeError::class, function () use (&$t1) { return $t1->equals(['hours' => 8]); }, 'only plural property');
+Assert::throws(\TypeError::class, fn() => $t1->equals(new \stdClass()), 'no properties');
+Assert::throws(\TypeError::class, fn() => $t1->equals(['hours' => 8]), 'only plural property');

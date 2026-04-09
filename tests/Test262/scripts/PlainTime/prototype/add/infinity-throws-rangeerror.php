@@ -12,7 +12,7 @@ $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'm
 $instance = \Temporal\Spec\PlainTime::from(['hour' => 12, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321]);
 foreach ($overflows as $overflow) {
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field, &$overflow) { return $instance->add([$field => INF], ['overflow' => $overflow]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->add([$field => INF], ['overflow' => $overflow]), '');
 }
 }
 $calls = 0;

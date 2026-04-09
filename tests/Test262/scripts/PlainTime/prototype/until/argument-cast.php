@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $plainTime = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789);
 TemporalHelpers::assertDuration($plainTime->until('16:34'), 0, 0, 0, 0, 1, 10, 29, 876, 543, 211, 'string');
 TemporalHelpers::assertDuration($plainTime->until(['hour' => 16, 'minute' => 34]), 0, 0, 0, 0, 1, 10, 29, 876, 543, 211, 'object');
-Assert::throws(\TypeError::class, function () use (&$plainTime) { return $plainTime->until(new \stdClass()); }, 'empty');
-Assert::throws(\TypeError::class, function () use (&$plainTime) { return $plainTime->until(['minutes' => 30]); }, 'only plural \'minutes\'');
+Assert::throws(\TypeError::class, fn() => $plainTime->until(new \stdClass()), 'empty');
+Assert::throws(\TypeError::class, fn() => $plainTime->until(['minutes' => 30]), 'only plural \'minutes\'');

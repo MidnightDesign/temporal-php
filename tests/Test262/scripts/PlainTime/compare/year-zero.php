@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 $invalidStrings = ['-000000-12-07T03:24:30', '-000000-12-07T03:24:30+01:00', '-000000-12-07T03:24:30+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$time) { return \Temporal\Spec\PlainTime::compare($arg, $time); }, 'Cannot use minus zero as extended year (first argument)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$time, &$arg) { return \Temporal\Spec\PlainTime::compare($time, $arg); }, 'Cannot use minus zero as extended year (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare($arg, $time), 'Cannot use minus zero as extended year (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare($time, $arg), 'Cannot use minus zero as extended year (second argument)');
 }

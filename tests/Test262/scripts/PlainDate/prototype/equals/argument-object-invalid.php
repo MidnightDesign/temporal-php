@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals(new \stdClass()); }, 'plain object');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals(['year' => 1972, 'month' => 7]); }, 'only year, month');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals(['year' => 1972, 'month' => 7]); }, 'only year, month');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals(['year' => 1972, 'day' => 7]); }, 'only year, day');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals(new \stdClass()); }, 'Temporal.PlainDate');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals(new \stdClass()); }, 'Temporal.PlainDate.prototype');
+Assert::throws(\TypeError::class, fn() => $instance->equals(new \stdClass()), 'plain object');
+Assert::throws(\TypeError::class, fn() => $instance->equals(['year' => 1972, 'month' => 7]), 'only year, month');
+Assert::throws(\TypeError::class, fn() => $instance->equals(['year' => 1972, 'month' => 7]), 'only year, month');
+Assert::throws(\TypeError::class, fn() => $instance->equals(['year' => 1972, 'day' => 7]), 'only year, day');
+Assert::throws(\TypeError::class, fn() => $instance->equals(new \stdClass()), 'Temporal.PlainDate');
+Assert::throws(\TypeError::class, fn() => $instance->equals(new \stdClass()), 'Temporal.PlainDate.prototype');

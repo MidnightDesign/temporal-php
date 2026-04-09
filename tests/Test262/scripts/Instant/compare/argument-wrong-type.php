@@ -11,7 +11,7 @@ $other = new \Temporal\Spec\Instant(0);
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint'], [new \stdClass(), 'plain object'], [new \stdClass(), 'Temporal.Instant, object']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) || is_object($arg) && $arg !== null || is_callable($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg, &$other) { return \Temporal\Spec\Instant::compare($arg, $other); }, "{$description} does not convert to a valid ISO string (first argument)");
-Assert::throws((is_string($arg) || is_object($arg) && $arg !== null || is_callable($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$other, &$arg) { return \Temporal\Spec\Instant::compare($other, $arg); }, "{$description} does not convert to a valid ISO string (second argument)");
+Assert::throws((is_string($arg) || is_object($arg) && $arg !== null || is_callable($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\Instant::compare($arg, $other), "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($arg) || is_object($arg) && $arg !== null || is_callable($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\Instant::compare($other, $arg), "{$description} does not convert to a valid ISO string (second argument)");
 }
 Assert::incomplete('untranslatable: Symbol()');

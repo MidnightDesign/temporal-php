@@ -16,6 +16,6 @@ TemporalHelpers::assertPlainMonthDay($result, 'M01', 1, 'ISO year is not checked
 $leap = new \Temporal\Spec\PlainMonthDay(2, 29, 'iso8601', 1972);
 $commonResult = $leap->with(['year' => $outOfRangeCommonYear]);
 TemporalHelpers::assertPlainMonthDay($commonResult, 'M02', 28, 'ISO year is used to apply overflow');
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap, &$outOfRangeCommonYear) { $leap->with(['year' => $outOfRangeCommonYear], ['overflow' => 'reject']); }, 'ISO year is used to apply overflow');
+Assert::throws(\InvalidArgumentException::class, function () use ($leap, $outOfRangeCommonYear) { $leap->with(['year' => $outOfRangeCommonYear], ['overflow' => 'reject']); }, 'ISO year is used to apply overflow');
 $leapResult = $leap->with(['year' => $outOfRangeLeapYear]);
 TemporalHelpers::assertPlainMonthDay($leapResult, 'M02', 29, 'ISO year is used to apply overflow');

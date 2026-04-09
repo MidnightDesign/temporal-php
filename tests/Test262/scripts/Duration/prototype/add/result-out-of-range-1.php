@@ -13,5 +13,5 @@ $maxUs = 9.007_199_254_740_991e+21;
 $maxNs = 9.007_199_254_740_991e+24;
 $durations = [\Temporal\Spec\Duration::from(['seconds' => $maxSec]), \Temporal\Spec\Duration::from(['milliseconds' => $maxMs]), \Temporal\Spec\Duration::from(['microseconds' => $maxUs]), \Temporal\Spec\Duration::from(['nanoseconds' => $maxNs]), \Temporal\Spec\Duration::from(['seconds' => -$maxSec]), \Temporal\Spec\Duration::from(['milliseconds' => -$maxMs]), \Temporal\Spec\Duration::from(['microseconds' => -$maxUs]), \Temporal\Spec\Duration::from(['nanoseconds' => -$maxNs])];
 foreach ($durations as $duration) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { $duration->add($duration); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use ($duration) { $duration->add($duration); }, '');
 }

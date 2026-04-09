@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zonedDateTime = \Temporal\Spec\ZonedDateTime::from(['calendar' => 'gregory', 'timeZone' => 'UTC', 'year' => 2020, 'month' => 5, 'day' => 15, 'hour' => 12]);
-Assert::throws(\TypeError::class, function () use (&$zonedDateTime) { return $zonedDateTime->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]); }, 'Missing eraYear throws TypeError before month/monthCode conflict throws RangeError');
-Assert::throws(\TypeError::class, function () use (&$zonedDateTime) { return $zonedDateTime->with(['era' => 'ce', 'day' => 32]); }, 'Missing eraYear throws TypeError before out-of-range day throws RangeError');
-Assert::throws(\TypeError::class, function () use (&$zonedDateTime) { return $zonedDateTime->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]); }, 'undefined eraYear throws TypeError before month/monthCode conflict throws RangeError');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zonedDateTime) { return $zonedDateTime->with(['monthCode' => 'M05', 'month' => 6]); }, 'month/monthCode conflict throws RangeError when all types are valid');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zonedDateTime) { return $zonedDateTime->with(['day' => 32], ['overflow' => 'reject']); }, 'Out-of-range day throws RangeError when all types are valid');
+Assert::throws(\TypeError::class, fn() => $zonedDateTime->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]), 'Missing eraYear throws TypeError before month/monthCode conflict throws RangeError');
+Assert::throws(\TypeError::class, fn() => $zonedDateTime->with(['era' => 'ce', 'day' => 32]), 'Missing eraYear throws TypeError before out-of-range day throws RangeError');
+Assert::throws(\TypeError::class, fn() => $zonedDateTime->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]), 'undefined eraYear throws TypeError before month/monthCode conflict throws RangeError');
+Assert::throws(\InvalidArgumentException::class, fn() => $zonedDateTime->with(['monthCode' => 'M05', 'month' => 6]), 'month/monthCode conflict throws RangeError when all types are valid');
+Assert::throws(\InvalidArgumentException::class, fn() => $zonedDateTime->with(['day' => 32], ['overflow' => 'reject']), 'Out-of-range day throws RangeError when all types are valid');

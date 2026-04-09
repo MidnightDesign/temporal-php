@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891Z[UTC]', '1970-01-01T00:00:00.1234567890Z[UTC]', '1970-01-01T00+00:00:00.0000000000Z[UTC]'];
 $datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, 'no more than 9 decimal places are allowed (first arg)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, 'no more than 9 decimal places are allowed (second arg)');
+Assert::throws(\InvalidArgumentException::class, function () use ($arg, $datetime) { \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, 'no more than 9 decimal places are allowed (first arg)');
+Assert::throws(\InvalidArgumentException::class, function () use ($datetime, $arg) { \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, 'no more than 9 decimal places are allowed (second arg)');
 }

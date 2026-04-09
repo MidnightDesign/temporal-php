@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $jan31 = new \Temporal\Spec\ZonedDateTime(1_580_511_600_000_000_000, '-08:00');
-Assert::throws(\InvalidArgumentException::class, function () use (&$jan31) { return $jan31->add(['months' => 1], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $jan31->add(['months' => 1], ['overflow' => 'reject']), '');

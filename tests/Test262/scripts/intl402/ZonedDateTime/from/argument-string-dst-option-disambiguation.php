@@ -14,7 +14,7 @@ $zdt = \Temporal\Spec\ZonedDateTime::from($DSTEnd, ['disambiguation' => 'earlier
 Assert::sameValue($zdt->offset, '-02:00', 'Offset result when option disambiguation: earlier, ambiguous time');
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTEnd, ['disambiguation' => 'later']);
 Assert::sameValue($zdt->offset, '-03:00', 'Offset result when option disambiguation: later, ambiguous time');
-Assert::throws(\InvalidArgumentException::class, function () use (&$DSTEnd) { return \Temporal\Spec\ZonedDateTime::from($DSTEnd, ['disambiguation' => 'reject']); }, 'Throws when option disambiguation: reject, ambiguous time');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($DSTEnd, ['disambiguation' => 'reject']), 'Throws when option disambiguation: reject, ambiguous time');
 $DSTStart = '2020-03-08T02:30[America/Los_Angeles]';
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStart, ['disambiguation' => 'compatible']);
 Assert::sameValue($zdt->offset, '-07:00', 'Offset result when option disambiguation: compatible, non existent time');
@@ -25,4 +25,4 @@ Assert::sameValue($zdt->hour, 1, 'Hour result when option disambiguation: earlie
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStart, ['disambiguation' => 'later']);
 Assert::sameValue($zdt->offset, '-07:00', 'Offset result when option disambiguation: later, non existent time');
 Assert::sameValue($zdt->hour, 3, 'Hour result when option disambiguation: later, non existent time');
-Assert::throws(\InvalidArgumentException::class, function () use (&$DSTStart) { return \Temporal\Spec\ZonedDateTime::from($DSTStart, ['disambiguation' => 'reject']); }, 'Throws when option disambiguation: reject, non existent time');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($DSTStart, ['disambiguation' => 'reject']), 'Throws when option disambiguation: reject, non existent time');

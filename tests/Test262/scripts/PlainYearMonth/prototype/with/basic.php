@@ -12,6 +12,6 @@ $ym = \Temporal\Spec\PlainYearMonth::from('2019-10');
 TemporalHelpers::assertPlainYearMonth($ym->with(['year' => 2020]), 2020, 10, 'M10', 'year');
 TemporalHelpers::assertPlainYearMonth($ym->with(['month' => 9]), 2019, 9, 'M09', 'month');
 TemporalHelpers::assertPlainYearMonth($ym->with(['monthCode' => 'M09']), 2019, 9, 'M09', 'monthCode');
-Assert::throws(\InvalidArgumentException::class, function () use (&$ym) { return $ym->with(['month' => 9, 'monthCode' => 'M10']); }, 'month/monthCode mismatch');
+Assert::throws(\InvalidArgumentException::class, fn() => $ym->with(['month' => 9, 'monthCode' => 'M10']), 'month/monthCode mismatch');
 TemporalHelpers::assertPlainYearMonth($ym->with(['month' => 1, 'years' => 2020]), 2019, 1, 'M01', 'plural \'years\'');
 Assert::incomplete('untranslatable object property');

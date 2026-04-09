@@ -3599,13 +3599,10 @@ final class Duration implements Stringable
      */
     private static function durationToEpochOffsetSec(self $d, array $zdtInfo): float
     {
-        // Pass the ZDT's actual epoch so that sub-minute offsets (e.g. Pacific/Niue
-        // -11:19:40 vs -11:20:00) are preserved instead of being re-resolved via
-        // compatible disambiguation.
         $daysSec = self::zdtDaysToSec(
             $zdtInfo['year'], $zdtInfo['month'], $zdtInfo['day'],
             $zdtInfo['hour'], $zdtInfo['minute'], $zdtInfo['second'],
-            $zdtInfo['tzId'], (int) $d->days, $zdtInfo['epochSec'],
+            $zdtInfo['tzId'], (int) $d->days,
         );
         $timeSec =
             ((float) $d->hours * 3_600.0)

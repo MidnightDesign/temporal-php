@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00Z[!foo=bar]', '1970-01-01T00:00Z[UTC][!foo=bar]', '1970-01-01T00:00Z[u-ca=iso8601][!foo=bar]', '1970-01-01T00:00Z[UTC][!foo=bar][u-ca=iso8601]', '1970-01-01T00:00Z[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]'];
 $epoch = new \Temporal\Spec\Instant(0);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$epoch) { return \Temporal\Spec\Instant::compare($arg, $epoch); }, "reject unknown annotation with critical flag: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$epoch, &$arg) { return \Temporal\Spec\Instant::compare($epoch, $arg); }, "reject unknown annotation with critical flag: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, $epoch), "reject unknown annotation with critical flag: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($epoch, $arg), "reject unknown annotation with critical flag: {$arg} (second argument)");
 }

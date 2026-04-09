@@ -11,4 +11,4 @@ $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 $result = \Temporal\Spec\ZonedDateTime::from($str);
 Assert::sameValue($result->timeZoneId, '+01:35', 'ISO offset, sub-minute offset trailing-zeroes');
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35:00.000000000]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$str) { return \Temporal\Spec\ZonedDateTime::from($str); }, 'Trailing zeroes not allowed for sub-minute time zone identifiers');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($str), 'Trailing zeroes not allowed for sub-minute time zone identifiers');

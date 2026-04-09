@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $validUnits = ['year', 'month'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($smallestUnit) use (&$later, &$earlier) { return $later->since($earlier, ['smallestUnit' => $smallestUnit]); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $later->since($earlier, ['smallestUnit' => $smallestUnit]), $validUnits);

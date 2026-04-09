@@ -13,6 +13,6 @@ $options = ['overflow' => 'reject'];
 $common1230 = \Temporal\Spec\PlainDateTime::from(['year' => 7514, 'monthCode' => 'M12', 'day' => 30, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
 $leap1230 = \Temporal\Spec\PlainDateTime::from(['year' => 7515, 'monthCode' => 'M12', 'day' => 30, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
 TemporalHelpers::assertPlainDateTime($common1230->with(['monthCode' => 'M13']), 7514, 13, 'M13', 5, 12, 34, 0, 0, 0, 0, 'Changing month constrains to day 5 of common-year epagomenal month', 'aa', 7514);
-Assert::throws(\InvalidArgumentException::class, function () use (&$common1230, &$options) { $common1230->with(['monthCode' => 'M13'], $options); }, 'Changing month to common-year epagomenal month rejects');
+Assert::throws(\InvalidArgumentException::class, function () use ($common1230, $options) { $common1230->with(['monthCode' => 'M13'], $options); }, 'Changing month to common-year epagomenal month rejects');
 TemporalHelpers::assertPlainDateTime($leap1230->with(['monthCode' => 'M13']), 7515, 13, 'M13', 6, 12, 34, 0, 0, 0, 0, 'Changing month constrains to day 6 of leap-year epagomenal month', 'aa', 7515);
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap1230, &$options) { $leap1230->with(['monthCode' => 'M13'], $options); }, 'Changing month to leap-year epagomenal month rejects');
+Assert::throws(\InvalidArgumentException::class, function () use ($leap1230, $options) { $leap1230->with(['monthCode' => 'M13'], $options); }, 'Changing month to leap-year epagomenal month rejects');

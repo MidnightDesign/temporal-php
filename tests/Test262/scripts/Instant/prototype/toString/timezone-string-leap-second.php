@@ -12,4 +12,4 @@ $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
 $result = $instance->toString(['timeZone' => $timeZone]);
 Assert::sameValue(substr(string: $result, offset: -6), '+00:00', 'leap second is a valid ISO string for TimeZone');
 $timeZone = '2021-08-19T17:30:45.123456789+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$timeZone) { return $instance->toString(['timeZone' => $timeZone]); }, 'leap second in time zone name not valid');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->toString(['timeZone' => $timeZone]), 'leap second in time zone name not valid');

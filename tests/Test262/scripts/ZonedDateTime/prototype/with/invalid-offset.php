@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['', 'PREFER', 'balance'] as $offset) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$offset) { return $zdt->with(['day' => 5], ['offset' => $offset]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $zdt->with(['day' => 5], ['offset' => $offset]), '');
 }

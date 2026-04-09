@@ -14,6 +14,6 @@ for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
 $largestUnit = $units[$largestIdx];
 $smallestUnit = $units[$smallestIdx];
-Assert::throws(\InvalidArgumentException::class, function () use (&$d, &$largestUnit, &$smallestUnit, &$relativeTo) { return $d->round(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'relativeTo' => $relativeTo]); }, "{$smallestUnit} > {$largestUnit}");
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'relativeTo' => $relativeTo]), "{$smallestUnit} > {$largestUnit}");
 }
 }

@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validValues = [new \Temporal\Spec\PlainYearMonth(2000, 5), ['year' => 2000, 'month' => 5], '2000-05'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainYearMonth::from($value, ['overflow' => $overflow]); }, fn($result, $descr) => TemporalHelpers::assertPlainYearMonth($result, 2000, 5, 'M05', $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\Spec\PlainYearMonth::from($value, ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainYearMonth($result, 2000, 5, 'M05', $descr));
 }

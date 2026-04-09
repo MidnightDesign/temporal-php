@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $temporalZonedDateTimeLike = ['year' => -271_821, 'month' => 4, 'day' => 19, 'hour' => 1, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'offset' => '+00'];
 $options = ['offset' => 'use'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$temporalZonedDateTimeLike, &$options) { return $zdt->with($temporalZonedDateTimeLike, $options); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $zdt->with($temporalZonedDateTimeLike, $options), '');

@@ -11,9 +11,9 @@ Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from(), 
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "{$description} does not convert to a valid ISO string");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::from($arg), "{$description} does not convert to a valid ISO string");
 foreach ([null, ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg, &$options) { return \Temporal\Spec\ZonedDateTime::from($arg, $options); }, "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::from($arg, $options), "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
 }
 }
 Assert::incomplete('untranslatable: Symbol()');

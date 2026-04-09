@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
-Assert::throws(\TypeError::class, function () use (&$datetime) { return $datetime->with(['year' => 2021, 'timeZone' => 'UTC']); }, 'throws with timezone property');
+Assert::throws(\TypeError::class, fn() => $datetime->with(['year' => 2021, 'timeZone' => 'UTC']), 'throws with timezone property');

@@ -14,23 +14,23 @@ Assert::sameValue($i1->add(\Temporal\Spec\Duration::from(['nanoseconds' => -9_00
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
 Assert::sameValue($i1->add(\Temporal\Spec\Duration::from(['microseconds' => -9_007_199_254_740_991]))->epochNanoseconds, -7_424_232_606_993_378_422, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => 9_007_199_254_740_991])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => -9_007_199_254_740_991])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from(['seconds' => -9_007_199_254_740_991])); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => 9_007_199_254_740_991])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => -9_007_199_254_740_991])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['seconds' => -9_007_199_254_740_991])), '');
 $bigNumber = 9_007_199_254_740_990_976;
 // SKIP (int64 overflow): Assert::sameValue($i1->add(\Temporal\Spec\Duration::from(['nanoseconds' => $bigNumber]))->epochNanoseconds, 10590165902488603554, ...);
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
 Assert::sameValue($i1->add(\Temporal\Spec\Duration::from(['nanoseconds' => -$bigNumber]))->epochNanoseconds, -7_424_232_606_993_378_398, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i1->add(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])), '');
 $i2 = new \Temporal\Spec\Instant(0);
 Assert::sameValue($i2->add(\Temporal\Spec\Duration::from(['nanoseconds' => $bigNumber]))->epochNanoseconds, 9_007_199_254_740_990_976, '');
 Assert::sameValue($i2->add(\Temporal\Spec\Duration::from(['nanoseconds' => -$bigNumber]))->epochNanoseconds, -9_007_199_254_740_990_976, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i2->add(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i2->add(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i2->add(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $i2->add(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])), '');

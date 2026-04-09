@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 $baddies = ['12:00', '1995-04-07', '2019-05-17T12:34:56.007007007', '2019-05-17T12:34:56.007007007Z', '42'];
 foreach ($baddies as $bad) {
-Assert::throws(\TypeError::class, function () use (&$instance, &$bad) { return $instance->with($bad); }, "bad argument ({$bad})");
+Assert::throws(\TypeError::class, fn() => $instance->with($bad), "bad argument ({$bad})");
 }

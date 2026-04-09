@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $props = new \stdClass();
-Assert::throws(\TypeError::class, function () use (&$props) { return \Temporal\Spec\PlainTime::compare($props, new \Temporal\Spec\PlainTime(0, 30)); }, 'TypeError if no properties are present');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainTime::compare($props, new \Temporal\Spec\PlainTime(0, 30)), 'TypeError if no properties are present');
 $props['minute'] = 30;
 $result = \Temporal\Spec\PlainTime::compare($props, new \Temporal\Spec\PlainTime(0, 30));
 Assert::sameValue($result, 0, 'missing time units default to 0');

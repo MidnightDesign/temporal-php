@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 2, 31, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$d) { return $d->total(['unit' => 'months', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44:30]']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->total(['unit' => 'months', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44:30]']), '');

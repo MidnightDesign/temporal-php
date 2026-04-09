@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $obj = ['year' => 2020, 'month' => 3, 'day' => 8, 'hour' => 1, 'offset' => '-04:00', 'timeZone' => 'UTC'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$obj) { return \Temporal\Spec\ZonedDateTime::from($obj); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$obj) { return \Temporal\Spec\ZonedDateTime::from($obj, ['offset' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($obj), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($obj, ['offset' => 'reject']), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('2020-03-08T01:00-04:00[UTC]'), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('2020-03-08T01:00-04:00[UTC]', ['offset' => 'reject']), '');

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 foreach (['', 'EARLIER', 'balance'] as $disambiguation) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$disambiguation) { return \Temporal\Spec\ZonedDateTime::from('2020-11-01T04:00[-08:00]', ['disambiguation' => $disambiguation]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('2020-11-01T04:00[-08:00]', ['disambiguation' => $disambiguation]), '');
 }

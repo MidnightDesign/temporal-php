@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 4, 12, 34, 56, 987, 654, 321);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->round(['smallestUnit' => 'second', 'roundingIncrement' => NAN]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->round(['smallestUnit' => 'second', 'roundingIncrement' => NAN]), '');

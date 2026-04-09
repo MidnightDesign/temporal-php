@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['', 'EARLIER', 'balance'] as $disambiguation) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$disambiguation) { return $zdt->with(['day' => 5], ['disambiguation' => $disambiguation]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $zdt->with(['day' => 5], ['disambiguation' => $disambiguation]), '');
 }

@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $validUnits = ['year', 'month'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($largestUnit) use (&$earlier, &$later) { return $earlier->until($later, ['largestUnit' => $largestUnit]); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(fn($largestUnit) => $earlier->until($later, ['largestUnit' => $largestUnit]), $validUnits);

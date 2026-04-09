@@ -11,6 +11,6 @@ $datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar'], ['1997-12-04[u-ca=11111111]', 'compact ISO date used as calendar name'], ['1997-12-04[u-ca=1111-11-11]', 'extended ISO date used as calendar name']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, "{$description} is not a valid calendar ID (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, "{$description} is not a valid calendar ID (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), "{$description} is not a valid calendar ID (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), "{$description} is not a valid calendar ID (second argument)");
 }

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance1 = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
 $instance2 = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'japanese');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance1, &$instance2) { return $instance1->until($instance2); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance1->until($instance2), '');

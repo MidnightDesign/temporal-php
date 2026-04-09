@@ -17,13 +17,13 @@ $blankInstance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]);
 $validStringsThatFailAfterEarlyReturn = ['+275760-09-13T00:00Z[UTC]', '+275760-09-13T01:00+01:00[+01:00]', '+275760-09-13T23:59+23:59[+23:59]', '-271821-04-19', '-271821-04-19T01:00'];
 foreach ($validStringsThatFailAfterEarlyReturn as $relativeTo) {
 $blankInstance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]); }, "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter after conversion to DateTime");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter after conversion to DateTime");
 }
 $invalidStrings = ['-271821-04-19T23:00-01:00[-01:00]', '-271821-04-19T00:01-23:59[-23:59]', '-271821-04-19T23:59:59.999999999Z[UTC]', '-271821-04-19T23:00-00:59[-00:59]', '-271821-04-19T00:00:00-23:59[-23:59]', '+275760-09-13T00:00:00.000000001Z[UTC]', '+275760-09-13T01:00+00:59[+00:59]', '+275760-09-14T00:00+23:59[+23:59]', '-271821-04-18', '-271821-04-18T23:00', '+275760-09-14', '+275760-09-14T01:00'];
 foreach ($invalidStrings as $relativeTo) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]); }, "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
-Assert::throws(\InvalidArgumentException::class, function () use (&$blankInstance, &$relativeTo) { return $blankInstance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]); }, "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
+Assert::throws(\InvalidArgumentException::class, fn() => $blankInstance->total(['unit' => 'minutes', 'relativeTo' => $relativeTo]), "\"{$relativeTo}\" is outside the representable range for a relativeTo parameter");
 }
 $duration = \Temporal\Spec\Duration::from(['nanoseconds' => 0]);
 $options = ['unit' => 'nanoseconds', 'relativeTo' => '+999999-01-01'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$options) { return $duration->total($options); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->total($options), '');

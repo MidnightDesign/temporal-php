@@ -11,6 +11,6 @@ $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 3
 $primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$arg) { return $instance->since($arg); }, "{$description} does not convert to a valid ISO string");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), fn() => $instance->since($arg), "{$description} does not convert to a valid ISO string");
 }
 Assert::incomplete('untranslatable: Symbol()');

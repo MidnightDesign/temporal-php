@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $inst = \Temporal\Spec\Instant::from('1976-11-18T14:23:30.123456789Z');
-Assert::throws(\TypeError::class, function () use (&$inst) { return $inst->toZonedDateTimeISO(); }, '');
+Assert::throws(\TypeError::class, fn() => $inst->toZonedDateTimeISO(), '');

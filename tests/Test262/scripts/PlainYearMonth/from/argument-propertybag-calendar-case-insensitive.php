@@ -12,4 +12,4 @@ $arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => 'IsO8601'];
 $result = \Temporal\Spec\PlainYearMonth::from($arg);
 TemporalHelpers::assertPlainYearMonth($result, 2019, 6, 'M06', 'Calendar is case-insensitive');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::from($arg); }, 'calendar ID is capital dotted I is not lowercased');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from($arg), 'calendar ID is capital dotted I is not lowercased');

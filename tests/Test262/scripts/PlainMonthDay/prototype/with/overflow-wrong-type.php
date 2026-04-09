@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $monthday = new \Temporal\Spec\PlainMonthDay(5, 2);
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$monthday) { return $monthday->with(['day' => 8], ['overflow' => $overflow]); }, fn($result, $descr) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 8, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => $monthday->with(['day' => 8], ['overflow' => $overflow]), fn($result, $descr) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 8, $descr));

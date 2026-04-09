@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->add('invalid duration string'); }, 'invalid duration string causes a RangeError');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->add('invalid duration string'), 'invalid duration string causes a RangeError');

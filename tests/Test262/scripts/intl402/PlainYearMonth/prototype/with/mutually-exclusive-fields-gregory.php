@@ -15,5 +15,5 @@ TemporalHelpers::assertPlainYearMonth($instance->with(['era' => 'bce', 'eraYear'
 TemporalHelpers::assertPlainYearMonth($instance->with(['year' => -2], $options), -2, 12, 'M12', 'year excludes era and eraYear', 'bce', 3);
 TemporalHelpers::assertPlainYearMonth($instance->with(['month' => 5], $options), 1981, 5, 'M05', 'month excludes monthCode', 'ce', 1981);
 TemporalHelpers::assertPlainYearMonth($instance->with(['monthCode' => 'M05'], $options), 1981, 5, 'M05', 'monthCode excludes month', 'ce', 1981);
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(['eraYear' => 1]); }, 'eraYear excludes year and era, and cannot be provided without era');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(['era' => 'bce']); }, 'era excludes year and eraYear, and cannot be provided without eraYear');
+Assert::throws(\TypeError::class, fn() => $instance->with(['eraYear' => 1]), 'eraYear excludes year and era, and cannot be provided without era');
+Assert::throws(\TypeError::class, fn() => $instance->with(['era' => 'bce']), 'era excludes year and eraYear, and cannot be provided without eraYear');

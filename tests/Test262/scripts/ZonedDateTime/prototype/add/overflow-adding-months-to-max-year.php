@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $maxYear = new \Temporal\Spec\PlainDate(275_760, 1, 1)->toZonedDateTime('UTC');
 $duration = new \Temporal\Spec\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$maxYear, &$duration) { return $maxYear->add($duration); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $maxYear->add($duration), '');
 Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');

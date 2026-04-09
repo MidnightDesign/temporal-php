@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(1_585_641_600_000_000_000, '-08:00');
 $d = new \Temporal\Spec\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $options = ['overflow' => 'reject'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$d, &$options) { return $zdt->subtract($d, $options); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $zdt->subtract($d, $options), '');

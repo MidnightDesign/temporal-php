@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
-TemporalHelpers::checkRoundingIncrementOptionWrongType(function ($roundingIncrement) use (&$earlier, &$later) { return $earlier->until($later, ['roundingIncrement' => $roundingIncrement]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkRoundingIncrementOptionWrongType(fn($roundingIncrement) => $earlier->until($later, ['roundingIncrement' => $roundingIncrement]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, $descr));

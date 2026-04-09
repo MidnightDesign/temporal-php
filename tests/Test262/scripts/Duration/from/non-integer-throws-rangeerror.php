@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$field) { return \Temporal\Spec\Duration::from([$field => 1.5]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$field) { return \Temporal\Spec\Duration::from([$field => -1.5]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from([$field => 1.5]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::from([$field => -1.5]), '');
 }

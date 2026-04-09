@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
-TemporalHelpers::checkRoundingIncrementOptionWrongType(function ($roundingIncrement) use (&$time) { return $time->round(['smallestUnit' => 'second', 'roundingIncrement' => $roundingIncrement]); }, fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 34, 57, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 34, 56, 0, 0, 0, $descr));
+TemporalHelpers::checkRoundingIncrementOptionWrongType(fn($roundingIncrement) => $time->round(['smallestUnit' => 'second', 'roundingIncrement' => $roundingIncrement]), fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 34, 57, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 34, 56, 0, 0, 0, $descr));

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $base = ['year' => 2000, 'month' => 5, 'day' => 2, 'era' => 'ce', 'calendar' => 'gregory'];
-Assert::throws(\TypeError::class, function () use (&$base) { return \Temporal\Spec\PlainYearMonth::from($base); }, '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from($base), '');
 $base2 = ['year' => 2000, 'month' => 5, 'day' => 2, 'eraYear' => 1, 'calendar' => 'gregory'];
-Assert::throws(\TypeError::class, function () use (&$base2) { return \Temporal\Spec\PlainYearMonth::from($base2); }, '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from($base2), '');

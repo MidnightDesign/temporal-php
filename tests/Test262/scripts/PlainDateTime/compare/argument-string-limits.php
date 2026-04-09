@@ -15,6 +15,6 @@ foreach ($validStrings as $arg) {
 }
 $invalidStrings = ['-271821-04-19', '-271821-04-19T00:00', '+275760-09-14', '+275760-09-14T00:00'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$instance) { return \Temporal\Spec\PlainDateTime::compare($arg, $instance); }, "\"{$arg}\" is outside the representable range of PlainDateTime (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return \Temporal\Spec\PlainDateTime::compare($instance, $arg); }, "\"{$arg}\" is outside the representable range of PlainDateTime (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($arg, $instance), "\"{$arg}\" is outside the representable range of PlainDateTime (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($instance, $arg), "\"{$arg}\" is outside the representable range of PlainDateTime (second argument)");
 }

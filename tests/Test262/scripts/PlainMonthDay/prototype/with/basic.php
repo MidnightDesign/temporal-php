@@ -13,11 +13,11 @@ TemporalHelpers::assertPlainMonthDay($md->with(['day' => 22]), 'M01', 22, 'with(
 TemporalHelpers::assertPlainMonthDay($md->with(['month' => 12]), 'M12', 15, 'with({month})');
 TemporalHelpers::assertPlainMonthDay($md->with(['monthCode' => 'M12']), 'M12', 15, 'with({monthCode})');
 TemporalHelpers::assertPlainMonthDay($md->with(['month' => 12, 'monthCode' => 'M12']), 'M12', 15, 'with({month, monthCode}) agree');
-Assert::throws(\InvalidArgumentException::class, function () use (&$md) { return $md->with(['month' => 12, 'monthCode' => 'M11']); }, 'with({month, monthCode}) disagree');
+Assert::throws(\InvalidArgumentException::class, fn() => $md->with(['month' => 12, 'monthCode' => 'M11']), 'with({month, monthCode}) disagree');
 TemporalHelpers::assertPlainMonthDay($md->with(['year' => 2000, 'month' => 12]), 'M12', 15, 'with({year, month})');
 TemporalHelpers::assertPlainMonthDay($md->with(['year' => 2000]), 'M01', 15, 'with({year})');
-Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(['day' => 1, 'calendar' => 'iso8601']); }, 'with({calendar})');
-Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(['day' => 1, 'timeZone' => 'UTC']); }, 'with({timeZone})');
-Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(new \stdClass()); }, 'with({})');
-Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(['months' => 12]); }, 'with({months})');
+Assert::throws(\TypeError::class, fn() => $md->with(['day' => 1, 'calendar' => 'iso8601']), 'with({calendar})');
+Assert::throws(\TypeError::class, fn() => $md->with(['day' => 1, 'timeZone' => 'UTC']), 'with({timeZone})');
+Assert::throws(\TypeError::class, fn() => $md->with(new \stdClass()), 'with({})');
+Assert::throws(\TypeError::class, fn() => $md->with(['months' => 12]), 'with({months})');
 TemporalHelpers::assertPlainMonthDay($md->with(['monthCode' => 'M12', 'days' => 1]), 'M12', 15, 'with({monthCode, days})');

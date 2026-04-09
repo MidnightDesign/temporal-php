@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
-TemporalHelpers::checkStringOptionWrongType('largestUnit', 'month', function ($largestUnit) use (&$later, &$earlier) { return $later->since($earlier, ['largestUnit' => $largestUnit]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('largestUnit', 'month', fn($largestUnit) => $later->since($earlier, ['largestUnit' => $largestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 13, 0, 0, 0, 0, 0, 0, 0, 0, $descr));

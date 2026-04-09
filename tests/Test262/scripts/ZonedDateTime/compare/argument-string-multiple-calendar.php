@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00[UTC][!u-ca=iso8601][u-ca=iso8601]', '1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar][!u-ca=iso8601]'];
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, "reject more than one calendar annotation if any critical: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, "reject more than one calendar annotation if any critical: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), "reject more than one calendar annotation if any critical: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), "reject more than one calendar annotation if any critical: {$arg} (second argument)");
 }

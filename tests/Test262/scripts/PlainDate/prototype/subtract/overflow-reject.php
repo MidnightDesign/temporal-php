@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $mar31 = \Temporal\Spec\PlainDate::from('2020-03-31');
-Assert::throws(\InvalidArgumentException::class, function () use (&$mar31) { return $mar31->subtract(['months' => 1], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $mar31->subtract(['months' => 1], ['overflow' => 'reject']), '');

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $calendarMonthDay = \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => 1, 'day' => 15, 'calendar' => 'gregory']);
-Assert::throws(\TypeError::class, function () use (&$calendarMonthDay) { return $calendarMonthDay->with(['month' => 12]); }, 'nonIso8601MonthDay.with({month})');
+Assert::throws(\TypeError::class, fn() => $calendarMonthDay->with(['month' => 12]), 'nonIso8601MonthDay.with({month})');

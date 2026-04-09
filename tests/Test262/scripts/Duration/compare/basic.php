@@ -24,7 +24,7 @@ $dd2pos = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 4, 5, 5, 5, 5);
 $dd1neg = new \Temporal\Spec\Duration(-5, -5, -5, -5, -5, -5, -5, -5, -5, -5);
 $dd2neg = new \Temporal\Spec\Duration(-5, -5, -5, -5, -5, -4, -5, -5, -5, -5);
 $relativeTo = \Temporal\Spec\PlainDate::from('2017-01-01');
-Assert::throws(\InvalidArgumentException::class, function () use (&$dd1pos, &$dd2pos) { return \Temporal\Spec\Duration::compare($dd1pos, $dd2pos); }, 'date units: relativeTo is required');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($dd1pos, $dd2pos), 'date units: relativeTo is required');
 Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd1pos, ['relativeTo' => $relativeTo]), 0, 'date units: equal');
 Assert::sameValue(\Temporal\Spec\Duration::compare($dd2pos, $dd1pos, ['relativeTo' => $relativeTo]), -1, 'date units: smaller/larger');
 Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd2pos, ['relativeTo' => $relativeTo]), 1, 'date units: larger/smaller');

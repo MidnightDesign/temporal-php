@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return new \Temporal\Spec\PlainYearMonth(275_760, 9)->subtract($duration); }, 'Addition of 1 month to receiver out of range');
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(275_760, 9)->subtract($duration), 'Addition of 1 month to receiver out of range');

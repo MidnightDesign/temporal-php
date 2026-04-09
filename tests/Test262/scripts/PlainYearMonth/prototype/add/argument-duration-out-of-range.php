@@ -11,5 +11,5 @@ $instance = new \Temporal\Spec\PlainYearMonth(1970, 1);
 $cases = [['P4294967296Y', 'string with years > max'], [['years' => 4_294_967_296], 'property bag with years > max'], ['-P4294967296Y', 'string with years < min'], [['years' => -4_294_967_296], 'property bag with years < min'], ['P4294967296M', 'string with months > max'], [['months' => 4_294_967_296], 'property bag with months > max'], ['-P4294967296M', 'string with months < min'], [['months' => -4_294_967_296], 'property bag with months < min'], ['P4294967296W', 'string with weeks > max'], [['weeks' => 4_294_967_296], 'property bag with weeks > max'], ['-P4294967296W', 'string with weeks < min'], [['weeks' => -4_294_967_296], 'property bag with weeks < min']];
 foreach ($cases as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->add($arg); }, "{$descr} is out of range");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->add($arg), "{$descr} is out of range");
 }

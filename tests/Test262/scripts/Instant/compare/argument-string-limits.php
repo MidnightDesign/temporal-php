@@ -15,6 +15,6 @@ foreach ($validStrings as $arg) {
 }
 $invalidStrings = ['-271821-04-19T23:59:59.999999999Z', '-271821-04-19T23:00-00:59:59.999999999', '-271821-04-19T00:00:00-23:59:59.999999999', '+275760-09-13T00:00:00.000000001Z', '+275760-09-13T01:00+00:59:59.999999999', '+275760-09-14T00:00+23:59:59.999999999'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$instance) { return \Temporal\Spec\Instant::compare($arg, $instance); }, "\"{$arg}\" is outside the representable range of Instant (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return \Temporal\Spec\Instant::compare($instance, $arg); }, "\"{$arg}\" is outside the representable range of Instant (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, $instance), "\"{$arg}\" is outside the representable range of Instant (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($instance, $arg), "\"{$arg}\" is outside the representable range of Instant (second argument)");
 }

@@ -12,4 +12,4 @@ Assert::sameValue($nov94->equals(['year' => 2013, 'month' => 6]), false, 'object
 Assert::sameValue($nov94->equals(['year' => 1994, 'month' => 11]), true, 'object');
 Assert::sameValue($nov94->equals('2013-06'), false, 'string');
 Assert::sameValue($nov94->equals('1994-11'), true, 'string');
-Assert::throws(\TypeError::class, function () use (&$nov94) { return $nov94->equals(['year' => 2013]); }, 'missing property');
+Assert::throws(\TypeError::class, fn() => $nov94->equals(['year' => 2013]), 'missing property');

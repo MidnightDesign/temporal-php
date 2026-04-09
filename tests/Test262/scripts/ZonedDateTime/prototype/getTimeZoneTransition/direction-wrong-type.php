@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $rangeErrorValues = [false, 42, 55, null];
 foreach ($rangeErrorValues as $badValue) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$badValue) { return $zdt->getTimeZoneTransition(['direction' => $badValue]); }, 'Non-Symbol throws a RangeError');
+Assert::throws(\InvalidArgumentException::class, fn() => $zdt->getTimeZoneTransition(['direction' => $badValue]), 'Non-Symbol throws a RangeError');
 }
 Assert::incomplete('untranslatable: Symbol()');

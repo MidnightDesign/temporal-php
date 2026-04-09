@@ -20,7 +20,7 @@ TemporalHelpers::assertPlainYearMonth($ym, $year, $month, $monthCode, 'construct
 $ym2 = \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'monthCode' => $monthCode, 'calendar' => $calendar]);
 TemporalHelpers::assertPlainYearMonth($ym2, $year, $month, $monthCode, 'constructing PlainYearMonth from month code', null, null, $referenceDay);
 Assert::sameValue($ym->equals($ym2), true, 'year-month from month should equal year-month from month code');
-Assert::throws(\InvalidArgumentException::class, function () use (&$year, &$calendar) { \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'month' => 15, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use ($year, $calendar) { \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'month' => 15, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
 $constrained = \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'month' => 15, 'calendar' => $calendar]);
 Assert::sameValue($constrained->monthCode, 'M12', '');
 }

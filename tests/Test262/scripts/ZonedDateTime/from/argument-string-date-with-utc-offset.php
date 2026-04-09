@@ -14,5 +14,5 @@ Assert::sameValue($result->timeZoneId, 'UTC', "\"{$arg}\" is a valid UTC offset 
 }
 $invalidStrings = ['2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00[UTC]', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "\"{$arg}\" UTC offset without time is not valid for ZonedDateTime");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($arg), "\"{$arg}\" UTC offset without time is not valid for ZonedDateTime");
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $findPart = function ($parts, $expectedType) use (&$__unknown__) {
-return $parts->find(function ($__unknown__) use (&$type, &$expectedType) { return $type === $expectedType; })->value;
+return $parts->find(fn($__unknown__) => $type === $expectedType)->value;
 };
 $time = \Temporal\Spec\PlainTime::from('1976-11-18T15:23:30');
 Assert::incomplete('untranslatable new expression');

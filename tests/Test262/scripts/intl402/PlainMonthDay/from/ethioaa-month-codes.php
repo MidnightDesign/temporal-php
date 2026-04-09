@@ -17,10 +17,10 @@ $pmd30 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode
 TemporalHelpers::assertPlainMonthDay($pmd30, $monthCode, 30, "{$monthCode}-30", 1972);
 $constrained = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 30, "day 31 should be constrained to 30 for {$monthCode}", 1972);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\InvalidArgumentException::class, function () use ($calendar, $monthCode) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }
 $pmdM13Day6 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 6]);
 TemporalHelpers::assertPlainMonthDay($pmdM13Day6, 'M13', 6, 'M13-06', 1971);
 $constrained = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 7], ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, 'M13', 6, 'day 7 should be constrained to 6 for M13', 1971);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 7], ['overflow' => 'reject']); }, 'M13 with day 7 should throw with reject overflow');
+Assert::throws(\InvalidArgumentException::class, function () use ($calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 7], ['overflow' => 'reject']); }, 'M13 with day 7 should throw with reject overflow');

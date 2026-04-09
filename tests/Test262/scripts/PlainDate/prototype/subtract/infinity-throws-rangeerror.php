@@ -12,7 +12,7 @@ $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'm
 $instance = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
 foreach ($overflows as $overflow) {
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field, &$overflow) { return $instance->subtract([$field => INF], ['overflow' => $overflow]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract([$field => INF], ['overflow' => $overflow]), '');
 }
 }
 $calls = 0;

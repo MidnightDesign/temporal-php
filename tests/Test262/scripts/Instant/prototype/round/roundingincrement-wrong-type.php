@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
-TemporalHelpers::checkRoundingIncrementOptionWrongType(function ($roundingIncrement) use (&$instant) { return $instant->round(['smallestUnit' => 'second', 'roundingIncrement' => $roundingIncrement]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_001_000_000_000, $descr), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_000_000_000, $descr));
+TemporalHelpers::checkRoundingIncrementOptionWrongType(fn($roundingIncrement) => $instant->round(['smallestUnit' => 'second', 'roundingIncrement' => $roundingIncrement]), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_001_000_000_000, $descr), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_000_000_000, $descr));

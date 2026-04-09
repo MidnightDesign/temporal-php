@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $arg = '15:23:30.100junk';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from($arg), '');

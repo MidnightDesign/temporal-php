@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '−009999-11-18T15:23:30.12'];
 $instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "variant minus sign: {$arg}");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "variant minus sign: {$arg}");
 }

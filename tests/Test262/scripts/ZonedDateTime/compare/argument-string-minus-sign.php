@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '1976-11-18T15:23:30.12-02:00[−02:00]', '1976-11-18T15:23:30.12−02:00[−02:00]', '−009999-11-18T15:23:30.12[UTC]'];
 $datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, "variant minus sign: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, "variant minus sign: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), "variant minus sign: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), "variant minus sign: {$arg} (second argument)");
 }

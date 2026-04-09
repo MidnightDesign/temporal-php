@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_123_987_500, 'UTC');
-TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', function ($roundingMode) use (&$datetime) { return $datetime->toString(['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]); }, fn($result, $descr) => Assert::sameValue($result, '2001-09-09T01:46:40.123987+00:00[UTC]', $descr));
+TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', fn($roundingMode) => $datetime->toString(['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]), fn($result, $descr) => Assert::sameValue($result, '2001-09-09T01:46:40.123987+00:00[UTC]', $descr));

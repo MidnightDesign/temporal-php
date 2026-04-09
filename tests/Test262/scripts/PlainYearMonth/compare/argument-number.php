@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $arg = 201_906;
 $numbers = [1, 201_906, -201_906, 1_234_567];
 foreach ($numbers as $arg) {
-Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)); }, "A number ({$arg}) is not a valid ISO string for PlainYearMonth (first argument)");
-Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg); }, "A number ({$arg}) is not a valid ISO string for PlainYearMonth (first argument)");
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)), "A number ({$arg}) is not a valid ISO string for PlainYearMonth (first argument)");
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg), "A number ({$arg}) is not a valid ISO string for PlainYearMonth (first argument)");
 }

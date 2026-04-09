@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = \Temporal\Spec\Duration::from(['days' => 104_249_991_374]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->add($duration); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->add($duration), '');

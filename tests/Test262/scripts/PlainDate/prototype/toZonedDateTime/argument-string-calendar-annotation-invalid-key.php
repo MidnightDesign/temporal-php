@@ -11,5 +11,5 @@ $invalidStrings = [['00:00[U-CA=iso8601]', 'invalid capitalized key, time-only']
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime(['plainTime' => $arg, 'timeZone' => 'UTC']); }, "annotation keys must be lowercase: {$arg} - {$descr}");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->toZonedDateTime(['plainTime' => $arg, 'timeZone' => 'UTC']), "annotation keys must be lowercase: {$arg} - {$descr}");
 }

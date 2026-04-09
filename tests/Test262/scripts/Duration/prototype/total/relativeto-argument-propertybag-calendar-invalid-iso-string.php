@@ -12,5 +12,5 @@ $invalidStrings = [['', 'empty string'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as $__entry__) {
 [$cal, $description] = array_pad($__entry__, 2, null);
 $arg = ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal];
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->total(['unit' => 'months', 'relativeTo' => $arg]); }, "{$description} is not a valid calendar ID");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['unit' => 'months', 'relativeTo' => $arg]), "{$description} is not a valid calendar ID");
 }

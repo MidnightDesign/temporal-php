@@ -15,5 +15,5 @@ Assert::sameValue($result->epochNanoseconds, 957_270_896_987_654_321, "\"{$arg}\
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime(['plainTime' => $arg, 'timeZone' => 'UTC']); }, "\"{$arg}\" UTC offset without time is not valid for PlainTime");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->toZonedDateTime(['plainTime' => $arg, 'timeZone' => 'UTC']), "\"{$arg}\" UTC offset without time is not valid for PlainTime");
 }

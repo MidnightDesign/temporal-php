@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $duration = \Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991, 'milliseconds' => 999]);
 $options = ['smallestUnit' => 'seconds', 'roundingMode' => 'ceil'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$options) { return $duration->toString($options); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->toString($options), '');

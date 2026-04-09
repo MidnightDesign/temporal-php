@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 1, 2, 3, 4, 987, 654, 321);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->subtract(['hours' => 1, 'minutes' => -30]); }, "mixed positive and negative values always throw");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract(['hours' => 1, 'minutes' => -30]), "mixed positive and negative values always throw");

@@ -1496,23 +1496,12 @@ class Emitter {
           if (v !== '__' && v !== 'this' && !paramNames.has(v)) usedVars.add(v);
         }
       }
-      const useClause = usedVars.size > 0 ? `use (${[...usedVars].map(v => `&$${v}`).join(', ')}) ` : '';
+      const useClause = usedVars.size > 0 ? `use (${[...usedVars].map(v => `$${v}`).join(', ')}) ` : '';
       return `function (${params}) ${useClause}{ ${inner.join(' ')} }`;
     }
-    // Concise body — collect outer variables so we can capture by reference
-    // (JS closures always capture by reference; PHP fn() captures by value).
+    // Concise body
     const body = this.transpileExpr(node.body);
     if (body === null) return null;
-    const paramNames = new Set(node.params.map(p => p.type === 'Identifier' ? p.name : null).filter(Boolean));
-    const usedVars = new Set();
-    for (const m of body.matchAll(/\$([a-zA-Z_]\w*)/g)) {
-      const v = m[1];
-      if (v !== '__' && v !== 'this' && !paramNames.has(v)) usedVars.add(v);
-    }
-    if (usedVars.size > 0) {
-      const useClause = `use (${[...usedVars].map(v => `&$${v}`).join(', ')}) `;
-      return `function (${params}) ${useClause}{ return ${body}; }`;
-    }
     return `fn(${params}) => ${body}`;
   }
 

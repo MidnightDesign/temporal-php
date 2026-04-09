@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $jun13 = new \Temporal\Spec\PlainYearMonth(2013, 6);
-Assert::throws(\TypeError::class, function () use (&$jun13) { return $jun13->until(['year' => 1994]); }, 'Throws when missing required month');
-Assert::throws(\TypeError::class, function () use (&$jun13) { return $jun13->until(['month' => 11]); }, 'Throws when missing required year');
+Assert::throws(\TypeError::class, fn() => $jun13->until(['year' => 1994]), 'Throws when missing required month');
+Assert::throws(\TypeError::class, fn() => $jun13->until(['month' => 11]), 'Throws when missing required year');

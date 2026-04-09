@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with('1976-11-18T12:00+00:00[UTC]'); }, '');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with('1976-11-18'); }, '');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with('12:00'); }, '');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with('invalid'); }, '');
+Assert::throws(\TypeError::class, fn() => $zdt->with('1976-11-18T12:00+00:00[UTC]'), '');
+Assert::throws(\TypeError::class, fn() => $zdt->with('1976-11-18'), '');
+Assert::throws(\TypeError::class, fn() => $zdt->with('12:00'), '');
+Assert::throws(\TypeError::class, fn() => $zdt->with('invalid'), '');

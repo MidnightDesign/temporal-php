@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_987_650_000);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->toString(['fractionalSecondDigits' => -INF]); }, '−∞ is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->toString(['fractionalSecondDigits' => -1]); }, '−1 is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->toString(['fractionalSecondDigits' => 10]); }, '10 is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->toString(['fractionalSecondDigits' => INF]); }, '∞ is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => -INF]), '−∞ is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => -1]), '−1 is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => 10]), '10 is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $instant->toString(['fractionalSecondDigits' => INF]), '∞ is out of range for fractionalSecondDigits');

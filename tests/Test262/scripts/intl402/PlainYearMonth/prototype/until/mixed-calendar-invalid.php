@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $ym1 = new \Temporal\Spec\PlainYearMonth(2000, 1);
 $ym2 = new \Temporal\Spec\PlainYearMonth(2000, 1, 'gregory');
-Assert::throws(\InvalidArgumentException::class, function () use (&$ym1, &$ym2) { return $ym1->until($ym2); }, 'until throws with different calendars');
+Assert::throws(\InvalidArgumentException::class, fn() => $ym1->until($ym2), 'until throws with different calendars');

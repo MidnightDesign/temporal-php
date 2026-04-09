@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ([INF, -INF] as $inf) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf, &$overflow) { return $instance->with(['day' => $inf], ['overflow' => $overflow]); }, "day property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->with(['day' => $inf], ['overflow' => $overflow]), "day property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

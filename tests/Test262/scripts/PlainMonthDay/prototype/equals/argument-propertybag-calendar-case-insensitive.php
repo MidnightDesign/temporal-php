@@ -12,4 +12,4 @@ $arg = ['monthCode' => 'M11', 'day' => 18, 'calendar' => 'IsO8601'];
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'Calendar is case-insensitive');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, 'calendar ID is capital dotted I is not lowercased');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), 'calendar ID is capital dotted I is not lowercased');

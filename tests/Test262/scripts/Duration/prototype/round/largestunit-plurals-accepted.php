@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 $relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $validUnits = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($largestUnit) use (&$duration, &$relativeTo) { return $duration->round(['largestUnit' => $largestUnit, 'relativeTo' => $relativeTo]); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(fn($largestUnit) => $duration->round(['largestUnit' => $largestUnit, 'relativeTo' => $relativeTo]), $validUnits);

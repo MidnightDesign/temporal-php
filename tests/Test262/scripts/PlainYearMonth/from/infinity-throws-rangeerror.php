@@ -12,7 +12,7 @@ $base = ['year' => 2000, 'month' => 5];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month'] as $prop) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$inf, &$overflow) { return \Temporal\Spec\PlainYearMonth::from(array_merge($base, [$prop => $inf]), ['overflow' => $overflow]); }, "{$prop} property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(array_merge($base, [$prop => $inf]), ['overflow' => $overflow]), "{$prop} property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

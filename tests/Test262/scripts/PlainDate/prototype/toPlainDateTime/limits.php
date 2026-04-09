@@ -13,7 +13,7 @@ $firstNs = new \Temporal\Spec\PlainTime(0, 0, 0, 0, 0, 1);
 $lastNs = new \Temporal\Spec\PlainTime(23, 59, 59, 999, 999, 999);
 $min = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
 $max = new \Temporal\Spec\PlainDate(275_760, 9, 13);
-Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$midnight) { return $min->toPlainDateTime($midnight); }, 'Cannot go below representable limit for PlainDateTime');
+Assert::throws(\InvalidArgumentException::class, fn() => $min->toPlainDateTime($midnight), 'Cannot go below representable limit for PlainDateTime');
 TemporalHelpers::assertPlainDateTime($max->toPlainDateTime($midnight), 275_760, 9, 'M09', 13, 0, 0, 0, 0, 0, 0, 'Midnight on maximal representable PlainDate');
 TemporalHelpers::assertPlainDateTime($min->toPlainDateTime($firstNs), -271_821, 4, 'M04', 19, 0, 0, 0, 0, 0, 1, 'Computing the minimum (earliest) representable PlainDateTime');
 TemporalHelpers::assertPlainDateTime($max->toPlainDateTime($lastNs), 275_760, 9, 'M09', 13, 23, 59, 59, 999, 999, 999, 'Computing the maximum (latest) representable PlainDateTime');

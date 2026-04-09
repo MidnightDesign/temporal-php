@@ -16,4 +16,4 @@ TemporalHelpers::assertPlainTime($result2, 23, 59, 59, 0, 0, 0, 'leap second is 
 $arg = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
 $result3 = \Temporal\Spec\PlainTime::from($arg);
 TemporalHelpers::assertPlainTime($result3, 23, 59, 59, 0, 0, 0, 'second: 60 is ignored in property bag for PlainTime');
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg, ['overflow' => 'reject']); }, 'second: 60 is rejected in property bag for PlainTime with overflow: reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from($arg, ['overflow' => 'reject']), 'second: 60 is rejected in property bag for PlainTime with overflow: reject');

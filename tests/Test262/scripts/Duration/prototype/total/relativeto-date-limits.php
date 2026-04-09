@@ -21,7 +21,7 @@ $relativeTo = '+275760-09-12T00:00:00+00:00[UTC]';
 $result4 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
 Assert::sameValue($result4, 0, 'maximum date is a valid ISO string for ZonedDateTime relativeTo');
 $relativeTo = '+275760-09-12T00:00:01+00:00[UTC]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]); }, "{$relativeTo} is out of range as a relativeTo argument for total");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]), "{$relativeTo} is out of range as a relativeTo argument for total");
 $relativeTo = ['year' => -271_821, 'month' => 4, 'day' => 19];
 $result5 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
 Assert::sameValue($result5, 0, 'maximum date is valid in a property bag for PlainDateTime relativeTo');

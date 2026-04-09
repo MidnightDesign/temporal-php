@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 5);
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -INF]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -1]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0.9]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1_000_000_000 + 1]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => INF]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -INF]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -1]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0.9]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1_000_000_000 + 1]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $time->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => INF]), '');

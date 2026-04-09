@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = new \Temporal\Spec\PlainDate(2000, 5, 2, 'iso8601');
-TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', function ($calendarName) use (&$date) { return $date->toString(['calendarName' => $calendarName]); }, fn($result, $descr) => Assert::sameValue($result, '2000-05-02', $descr));
+TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', fn($calendarName) => $date->toString(['calendarName' => $calendarName]), fn($result, $descr) => Assert::sameValue($result, '2000-05-02', $descr));

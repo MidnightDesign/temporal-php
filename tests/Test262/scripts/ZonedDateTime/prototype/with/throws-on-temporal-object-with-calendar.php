@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with(new \Temporal\Spec\PlainDateTime(1976, 11, 18, 12, 0)); }, '');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with(new \Temporal\Spec\PlainDate(1976, 11, 18)); }, '');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with(new \Temporal\Spec\PlainTime(12, 0)); }, '');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with(new \Temporal\Spec\PlainYearMonth(1976, 11)); }, '');
-Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with(new \Temporal\Spec\PlainMonthDay(11, 18)); }, '');
+Assert::throws(\TypeError::class, fn() => $zdt->with(new \Temporal\Spec\PlainDateTime(1976, 11, 18, 12, 0)), '');
+Assert::throws(\TypeError::class, fn() => $zdt->with(new \Temporal\Spec\PlainDate(1976, 11, 18)), '');
+Assert::throws(\TypeError::class, fn() => $zdt->with(new \Temporal\Spec\PlainTime(12, 0)), '');
+Assert::throws(\TypeError::class, fn() => $zdt->with(new \Temporal\Spec\PlainYearMonth(1976, 11)), '');
+Assert::throws(\TypeError::class, fn() => $zdt->with(new \Temporal\Spec\PlainMonthDay(11, 18)), '');

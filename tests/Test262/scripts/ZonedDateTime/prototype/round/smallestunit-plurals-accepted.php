@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $validUnits = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($smallestUnit) use (&$datetime) { return $datetime->round(['smallestUnit' => $smallestUnit]); }, $validUnits);
-TemporalHelpers::checkPluralUnitsAccepted(function ($smallestUnit) use (&$datetime) { return $datetime->round($smallestUnit); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $datetime->round(['smallestUnit' => $smallestUnit]), $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(fn($smallestUnit) => $datetime->round($smallestUnit), $validUnits);

@@ -10,10 +10,10 @@ use Temporal\Tests\Test262\Assert;
 $conflictingOptions = [['hour', 'numeric'], ['minute', 'numeric'], ['second', 'numeric'], ['dayPeriod', 'short'], ['fractionalSecondDigits', 3]];
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 Assert::sameValue(is_string($time->toLocaleString('en', ['timeStyle' => 'short'])), true, '');
-Assert::throws(\TypeError::class, function () use (&$time) { $time->toLocaleString('en', ['dateStyle' => 'short']); }, 'dateStyle conflicts with PlainTime');
+Assert::throws(\TypeError::class, function () use ($time) { $time->toLocaleString('en', ['dateStyle' => 'short']); }, 'dateStyle conflicts with PlainTime');
 foreach ($conflictingOptions as $__entry__) {
 [$option, $value] = array_pad($__entry__, 2, null);
-Assert::throws(\TypeError::class, function () use (&$time, &$option, &$value) { $time->toLocaleString('en', [$option => $value, 'timeStyle' => 'short']); }, "time.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
+Assert::throws(\TypeError::class, function () use ($time, $option, $value) { $time->toLocaleString('en', [$option => $value, 'timeStyle' => 'short']); }, "time.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
 $time->toLocaleString('en', [$option => $value]);
 $time->toLocaleString('en', [$option => $value]);
 }

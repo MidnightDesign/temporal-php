@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $bad = ['year' => 2019, 'month' => 1, 'day' => 32, 'timeZone' => '+01:00'];
 $expected = new \Temporal\Spec\ZonedDateTime(1_548_889_200_000_000_000, '+01:00');
-Assert::throws(\InvalidArgumentException::class, function () use (&$bad) { return \Temporal\Spec\ZonedDateTime::from($bad, ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($bad, ['overflow' => 'reject']), '');
 TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from($bad), $expected);
 TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from($bad, ['overflow' => 'constrain']), $expected);

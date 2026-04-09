@@ -11,4 +11,4 @@ $arg = '2016-12-31T23:59:60+00:00[UTC]';
 $result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->epochNanoseconds, 1_483_228_799_000_000_000, 'leap second is a valid ISO string for ZonedDateTime');
 $arg = '2000-05-02T12:34:56+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, 'leap second in time zone name not valid');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($arg), 'leap second in time zone name not valid');

@@ -15,5 +15,5 @@ $date = \Temporal\Spec\PlainDate::from(['year' => $year, 'month' => $month, 'day
 $daysInMonth = $date->daysInMonth;
 $oneDayPastMonthEnd = $date->with(['day' => $daysInMonth + 1]);
 Assert::sameValue($oneDayPastMonthEnd->day, $daysInMonth, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with(['day' => $daysInMonth + 1], $options); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $date->with(['day' => $daysInMonth + 1], $options), '');
 }

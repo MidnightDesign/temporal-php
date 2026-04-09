@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$overflow) { return $instance->subtract(['hours' => 1, 'minutes' => -30], ['overflow' => $overflow]); }, "mixed positive and negative values always throw (overflow = \"{$overflow}\")");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->subtract(['hours' => 1, 'minutes' => -30], ['overflow' => $overflow]), "mixed positive and negative values always throw (overflow = \"{$overflow}\")");
 }

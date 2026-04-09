@@ -13,6 +13,6 @@ $options = ['overflow' => 'reject'];
 $leapMonth = \Temporal\Spec\PlainDate::from(['year' => 2017, 'monthCode' => 'M06L', 'day' => 1, 'calendar' => $calendar], $options);
 TemporalHelpers::assertPlainDate($leapMonth->with(['year' => 2025], $options), 2025, 7, 'M06L', 1, 'month not constrained when moving to another leap year with M06L');
 TemporalHelpers::assertPlainDate($leapMonth->with(['year' => 2020]), 2020, 7, 'M06', 1, 'month constrained when moving to another leap year without M06L');
-Assert::throws(\InvalidArgumentException::class, function () use (&$leapMonth, &$options) { $leapMonth->with(['year' => 2020], $options); }, 'reject when moving to another leap year without M06L');
+Assert::throws(\InvalidArgumentException::class, function () use ($leapMonth, $options) { $leapMonth->with(['year' => 2020], $options); }, 'reject when moving to another leap year without M06L');
 TemporalHelpers::assertPlainDate($leapMonth->with(['year' => 2024]), 2024, 6, 'M06', 1, 'month constrained when moving to a common year');
-Assert::throws(\InvalidArgumentException::class, function () use (&$leapMonth, &$options) { $leapMonth->with(['year' => 2024], $options); }, 'reject when moving to a common year');
+Assert::throws(\InvalidArgumentException::class, function () use ($leapMonth, $options) { $leapMonth->with(['year' => 2024], $options); }, 'reject when moving to a common year');

@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $duration1 = \Temporal\Spec\Duration::from(['years' => 1, 'seconds' => 2 ** 53 - 1]);
 $duration2 = \Temporal\Spec\Duration::from(['years' => 2]);
 $relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2, &$relativeTo) { return \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration2, &$duration1, &$relativeTo) { return \Temporal\Spec\Duration::compare($duration2, $duration1, ['relativeTo' => $relativeTo]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => $relativeTo]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($duration2, $duration1, ['relativeTo' => $relativeTo]), '');

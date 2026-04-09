@@ -18,5 +18,5 @@ Assert::sameValue($plainMonthDay->calendarId, $expectedCalendar, "resulting cale
 $notOkTests = [[['month' => 8, 'day' => 1, 'calendar' => 'gregory'], 'month and non-ISO string calendar'], [['month' => 8, 'day' => 1, 'calendar' => 'hebrew'], 'month and non-ISO non-Gregorian string calendar']];
 foreach ($notOkTests as $__entry__) {
 [$argument, $description] = array_pad($__entry__, 2, null);
-Assert::throws(\TypeError::class, function () use (&$argument) { return \Temporal\Spec\PlainMonthDay::from($argument); }, $description);
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from($argument), $description);
 }

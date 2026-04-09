@@ -18,11 +18,11 @@ TemporalHelpers::assertPlainMonthDay($reject, 'M05', 2, 'overflow is ignored: re
 $propertyBag1 = ['year' => 2000, 'month' => 13, 'day' => 34];
 $result1 = \Temporal\Spec\PlainMonthDay::from($propertyBag1, ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($result1, 'M12', 31, 'default overflow is constrain');
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag1) { return \Temporal\Spec\PlainMonthDay::from($propertyBag1, ['overflow' => 'reject']); }, 'invalid property bag: reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from($propertyBag1, ['overflow' => 'reject']), 'invalid property bag: reject');
 $propertyBag2 = ['month' => 1, 'day' => 32];
 $result2 = \Temporal\Spec\PlainMonthDay::from($propertyBag2, ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($result2, 'M01', 31, 'default overflow is constrain');
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag2) { return \Temporal\Spec\PlainMonthDay::from($propertyBag2, ['overflow' => 'reject']); }, 'invalid property bag: reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from($propertyBag2, ['overflow' => 'reject']), 'invalid property bag: reject');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from('13-34', ['overflow' => 'constrain']), 'invalid ISO string: constrain');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from('13-34', ['overflow' => 'reject']), 'invalid ISO string: reject');
 $opt = ['overflow' => 'constrain'];
@@ -31,6 +31,6 @@ TemporalHelpers::assertPlainMonthDay($result, 'M12', 1, 'month 13 is constrained
 $result = \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => 999_999, 'day' => 500], $opt);
 TemporalHelpers::assertPlainMonthDay($result, 'M12', 31, 'month 999999 is constrained to 12 and day 500 is constrained to 31');
 foreach ([-99_999, -1, 0] as $month) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$month, &$opt) { return \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => $month, 'day' => 1], $opt); }, "Month {$month} is out of range for 2021 even with overflow: constrain");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => $month, 'day' => 1], $opt), "Month {$month} is out of range for 2021 even with overflow: constrain");
 }
 Assert::incomplete('TemporalHelpers.ISOMonths is not translatable as iterable');

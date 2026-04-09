@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $duration1 = \Temporal\Spec\Duration::from(['days' => 104_249_991_374]);
 $duration2 = \Temporal\Spec\Duration::from(['days' => -104_249_991_374]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2) { return $duration1->subtract($duration2); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration1->subtract($duration2), '');

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round(['smallestUnit' => 'second', 'roundingIncrement' => NAN]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'second', 'roundingIncrement' => NAN]), '');

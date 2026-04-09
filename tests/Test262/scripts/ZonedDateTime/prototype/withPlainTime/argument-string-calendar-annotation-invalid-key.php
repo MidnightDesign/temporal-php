@@ -12,5 +12,5 @@ $timeZone = 'UTC';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "annotation keys must be lowercase: {$arg} - {$descr}");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->withPlainTime($arg), "annotation keys must be lowercase: {$arg} - {$descr}");
 }

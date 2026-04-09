@@ -14,5 +14,5 @@ $instance->until($arg);
 }
 $invalidStrings = ['-271821-04-18', '-271821-04-18T23:00', '+275760-09-14', '+275760-09-14T01:00'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->until($arg); }, "\"{$arg}\" is outside the representable range of PlainDate");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->until($arg), "\"{$arg}\" is outside the representable range of PlainDate");
 }

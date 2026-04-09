@@ -13,5 +13,5 @@ Assert::sameValue($result1, 0, 'Calendar is case-insensitive (first argument)');
 $result2 = \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg);
 Assert::sameValue($result2, 0, 'Calendar is case-insensitive (second argument)');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(1976, 11, 18)); }, 'calendar ID is capital dotted I is not lowercased (first argument)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg); }, 'calendar ID is capital dotted I is not lowercased (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(1976, 11, 18)), 'calendar ID is capital dotted I is not lowercased (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg), 'calendar ID is capital dotted I is not lowercased (second argument)');

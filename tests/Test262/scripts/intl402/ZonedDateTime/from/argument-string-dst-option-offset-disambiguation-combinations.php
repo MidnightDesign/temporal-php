@@ -18,7 +18,7 @@ Assert::sameValue($zdt->hour, 1, 'Hour result when option offset: ignore and dis
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStart, ['offset' => $offset, 'disambiguation' => 'later']);
 Assert::sameValue($zdt->offset, '-07:00', 'Offset result when option offset: ignore and disambiguation: later');
 Assert::sameValue($zdt->hour, 3, 'Hour result when option offset: ignore and disambiguation: later');
-Assert::throws(\InvalidArgumentException::class, function () use (&$DSTStart, &$offset) { return \Temporal\Spec\ZonedDateTime::from($DSTStart, ['offset' => $offset, 'disambiguation' => 'reject']); }, 'Throws when offset: ignore and disambiguation: reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($DSTStart, ['offset' => $offset, 'disambiguation' => 'reject']), 'Throws when offset: ignore and disambiguation: reject');
 $DSTStartWithWrongOffset = '2020-03-08T02:30-23:59[America/Los_Angeles]';
 $offset = 'prefer';
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, ['offset' => $offset, 'disambiguation' => 'compatible']);
@@ -30,4 +30,4 @@ Assert::sameValue($zdt->hour, 1, 'Hour result when option offset is wrong, optio
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, ['offset' => $offset, 'disambiguation' => 'later']);
 Assert::sameValue($zdt->offset, '-07:00', 'Offset result when option offset: prefer, and disambiguation: later');
 Assert::sameValue($zdt->hour, 3, 'Hour result when option offset: prefer, and disambiguation: later');
-Assert::throws(\InvalidArgumentException::class, function () use (&$DSTStartWithWrongOffset, &$offset) { return \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, ['offset' => $offset, 'disambiguation' => 'reject']); }, 'Throws when offset is wrong, option offset: prefer, and disambiguation: reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, ['offset' => $offset, 'disambiguation' => 'reject']), 'Throws when offset is wrong, option offset: prefer, and disambiguation: reject');

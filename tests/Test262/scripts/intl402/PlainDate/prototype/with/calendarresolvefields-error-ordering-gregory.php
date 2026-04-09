@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $plainDate = \Temporal\Spec\PlainDate::from(['calendar' => 'gregory', 'year' => 2020, 'month' => 5, 'day' => 15]);
-Assert::throws(\TypeError::class, function () use (&$plainDate) { return $plainDate->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]); }, 'Missing eraYear throws TypeError before month/monthCode conflict throws RangeError');
-Assert::throws(\TypeError::class, function () use (&$plainDate) { return $plainDate->with(['era' => 'ce', 'day' => 32]); }, 'Missing eraYear throws TypeError before out-of-range day throws RangeError');
-Assert::throws(\TypeError::class, function () use (&$plainDate) { return $plainDate->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]); }, 'undefined eraYear throws TypeError before month/monthCode conflict throws RangeError');
-Assert::throws(\InvalidArgumentException::class, function () use (&$plainDate) { return $plainDate->with(['monthCode' => 'M05', 'month' => 6]); }, 'month/monthCode conflict throws RangeError when all types are valid');
-Assert::throws(\InvalidArgumentException::class, function () use (&$plainDate) { return $plainDate->with(['day' => 32], ['overflow' => 'reject']); }, 'Out-of-range day throws RangeError when all types are valid');
+Assert::throws(\TypeError::class, fn() => $plainDate->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]), 'Missing eraYear throws TypeError before month/monthCode conflict throws RangeError');
+Assert::throws(\TypeError::class, fn() => $plainDate->with(['era' => 'ce', 'day' => 32]), 'Missing eraYear throws TypeError before out-of-range day throws RangeError');
+Assert::throws(\TypeError::class, fn() => $plainDate->with(['era' => 'ce', 'monthCode' => 'M05', 'month' => 6]), 'undefined eraYear throws TypeError before month/monthCode conflict throws RangeError');
+Assert::throws(\InvalidArgumentException::class, fn() => $plainDate->with(['monthCode' => 'M05', 'month' => 6]), 'month/monthCode conflict throws RangeError when all types are valid');
+Assert::throws(\InvalidArgumentException::class, fn() => $plainDate->with(['day' => 32], ['overflow' => 'reject']), 'Out-of-range day throws RangeError when all types are valid');

@@ -14,6 +14,6 @@ $result = \Temporal\Spec\PlainMonthDay::from(['year' => $outOfRangeCommonYear, '
 TemporalHelpers::assertPlainMonthDay($result, 'M01', 1, 'ISO year is not checked for range');
 $commonResult = \Temporal\Spec\PlainMonthDay::from(['year' => $outOfRangeCommonYear, 'monthCode' => 'M02', 'day' => 29]);
 TemporalHelpers::assertPlainMonthDay($commonResult, 'M02', 28, 'ISO year is used to apply overflow');
-Assert::throws(\InvalidArgumentException::class, function () use (&$outOfRangeCommonYear) { \Temporal\Spec\PlainMonthDay::from(['year' => $outOfRangeCommonYear, 'monthCode' => 'M02', 'day' => 29], ['overflow' => 'reject']); }, 'ISO year is used to apply overflow');
+Assert::throws(\InvalidArgumentException::class, function () use ($outOfRangeCommonYear) { \Temporal\Spec\PlainMonthDay::from(['year' => $outOfRangeCommonYear, 'monthCode' => 'M02', 'day' => 29], ['overflow' => 'reject']); }, 'ISO year is used to apply overflow');
 $leapResult = \Temporal\Spec\PlainMonthDay::from(['year' => $outOfRangeLeapYear, 'monthCode' => 'M02', 'day' => 29]);
 TemporalHelpers::assertPlainMonthDay($leapResult, 'M02', 29, 'ISO year is used to apply overflow');

@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $calendar = 'hebrew';
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 1]); }, "M13 should not be a valid month code for {$calendar} calendar");
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 1], ['overflow' => 'constrain']); }, "M13 should not be valid for {$calendar} calendar even with constrain overflow");
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 1], ['overflow' => 'reject']); }, "M13 should not be valid for {$calendar} calendar with reject overflow");
+Assert::throws(\InvalidArgumentException::class, function () use ($calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 1]); }, "M13 should not be a valid month code for {$calendar} calendar");
+Assert::throws(\InvalidArgumentException::class, function () use ($calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 1], ['overflow' => 'constrain']); }, "M13 should not be valid for {$calendar} calendar even with constrain overflow");
+Assert::throws(\InvalidArgumentException::class, function () use ($calendar) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 1], ['overflow' => 'reject']); }, "M13 should not be valid for {$calendar} calendar with reject overflow");
 for ($i = 1; $i <= 12; $i++) {
 if ($i === 5) {
 Assert::incomplete('untranslatable statement: ContinueStatement');

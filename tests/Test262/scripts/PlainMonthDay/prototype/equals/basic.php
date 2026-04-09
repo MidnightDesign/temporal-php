@@ -15,7 +15,7 @@ Assert::assertTrue($md1->equals('01-22'), 'same string');
 Assert::sameValue($md2->equals('01-22'), false, 'different string');
 Assert::assertTrue($md1->equals(['month' => 1, 'day' => 22]), 'same property bag');
 Assert::sameValue($md2->equals(['month' => 1, 'day' => 22]), false, 'different property bag');
-Assert::throws(\TypeError::class, function () use (&$md1) { return $md1->equals(['month' => 1]); }, 'missing field in property bag');
+Assert::throws(\TypeError::class, fn() => $md1->equals(['month' => 1]), 'missing field in property bag');
 $mdYear1 = new \Temporal\Spec\PlainMonthDay(1, 1, null, 1972);
 $mdYear2 = new \Temporal\Spec\PlainMonthDay(1, 1, null, 2000);
 Assert::sameValue($mdYear1->equals($mdYear2), false, 'different reference years');

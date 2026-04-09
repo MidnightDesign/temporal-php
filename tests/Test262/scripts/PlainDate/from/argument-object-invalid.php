@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $badFields = ['year' => 2019, 'month' => 1, 'day' => 32];
-Assert::throws(\InvalidArgumentException::class, function () use (&$badFields) { return \Temporal\Spec\PlainDate::from($badFields, ['overflow' => 'reject']); }, 'bad fields with reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from($badFields, ['overflow' => 'reject']), 'bad fields with reject');
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from($badFields), 2019, 1, 'M01', 31, 'bad fields with missing overflow');
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from($badFields, ['overflow' => 'constrain']), 2019, 1, 'M01', 31, 'bad fields with constrain');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 1976, 'month' => 11, 'monthCode' => 'M12', 'day' => 18]), 'month and monthCode must agree');

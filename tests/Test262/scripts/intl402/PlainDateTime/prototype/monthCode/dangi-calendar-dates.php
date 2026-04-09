@@ -20,7 +20,7 @@ TemporalHelpers::assertPlainDateTime($date, $year, $month, $monthCode, $day, 0, 
 $date2 = \Temporal\Spec\PlainDateTime::from(['year' => $year, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]);
 TemporalHelpers::assertPlainDateTime($date2, $year, $month, $monthCode, $day, 0, 0, 0, 0, 0, 0, 'constructing PlainDateTime from month code');
 Assert::sameValue($date->equals($date2), true, 'datetime from month should equal datetime from month code');
-Assert::throws(\InvalidArgumentException::class, function () use (&$year, &$calendar) { \Temporal\Spec\PlainDateTime::from(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use ($year, $calendar) { \Temporal\Spec\PlainDateTime::from(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar], ['overflow' => 'reject']); }, '');
 $constrained = \Temporal\Spec\PlainDateTime::from(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]);
 Assert::sameValue($constrained->monthCode, 'M12', '');
 }

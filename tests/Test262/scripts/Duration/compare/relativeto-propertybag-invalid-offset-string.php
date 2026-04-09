@@ -12,5 +12,5 @@ $d2 = new \Temporal\Spec\Duration(0, 1, 0, 281);
 $badOffsets = ['00:00', '+0', '-000:00', 1000, null, true, 1000, '+00:0000'];
 foreach ($badOffsets as $offset) {
 $relativeTo = ['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => 'UTC'];
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$d1, &$d2, &$relativeTo) { return \Temporal\Spec\Duration::compare($d1, $d2, ['relativeTo' => $relativeTo]); }, "\"{$offset} is not a valid offset string");
+Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\Duration::compare($d1, $d2, ['relativeTo' => $relativeTo]), "\"{$offset} is not a valid offset string");
 }

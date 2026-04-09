@@ -13,4 +13,4 @@ $arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => 'IsO8601'];
 $result = $instance->since($arg);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Calendar is case-insensitive');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, 'calendar ID is capital dotted I is not lowercased');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->since($arg), 'calendar ID is capital dotted I is not lowercased');

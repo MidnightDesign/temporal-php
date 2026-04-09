@@ -14,5 +14,5 @@ Assert::sameValue($result1, 0, 'leap second is a valid ISO string for ZonedDateT
 $result2 = \Temporal\Spec\ZonedDateTime::compare($datetime, $arg);
 Assert::sameValue($result2, 0, 'leap second is a valid ISO string for ZonedDateTime (second argument)');
 $arg = '2000-05-02T12:34:56+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, 'leap second in time zone name not valid (first argument)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, 'leap second in time zone name not valid (second argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), 'leap second in time zone name not valid (first argument)');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), 'leap second in time zone name not valid (second argument)');

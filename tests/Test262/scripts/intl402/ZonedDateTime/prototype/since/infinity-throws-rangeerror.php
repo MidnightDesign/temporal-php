@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC', 'gregory');
 $base = ['era' => 'ad', 'month' => 5, 'day' => 2, 'hour' => 15, 'timeZone' => 'UTC', 'calendar' => 'gregory'];
 foreach ([INF, -INF] as $inf) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$inf) { return $instance->since(array_merge($base, ['eraYear' => $inf])); }, "eraYear property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->since(array_merge($base, ['eraYear' => $inf])), "eraYear property cannot be {$inf}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

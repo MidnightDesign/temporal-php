@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidTimeZones = ['ACT', 'AET', 'AGT', 'ART', 'AST', 'BET', 'BST', 'CAT', 'CNT', 'CST', 'CTT', 'EAT', 'ECT', 'IET', 'IST', 'JST', 'MIT', 'NET', 'NST', 'PLT', 'PNT', 'PRT', 'PST', 'SST', 'VST'];
 foreach ($invalidTimeZones as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone) { new \Temporal\Spec\ZonedDateTime(0, $timeZone); }, 'Time zone: ' . $timeZone);
+Assert::throws(\InvalidArgumentException::class, function () use ($timeZone) { new \Temporal\Spec\ZonedDateTime(0, $timeZone); }, 'Time zone: ' . $timeZone);
 }

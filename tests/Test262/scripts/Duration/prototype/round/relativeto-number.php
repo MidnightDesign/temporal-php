@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $numbers = [1, 20_191_101, -20_191_101, 1_234_567_890];
 foreach ($numbers as $relativeTo) {
-Assert::throws(\TypeError::class, function () use (&$instance, &$relativeTo) { return $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]); }, "A number ({$relativeTo}) is not a valid ISO string for relativeTo");
+Assert::throws(\TypeError::class, fn() => $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]), "A number ({$relativeTo}) is not a valid ISO string for relativeTo");
 }

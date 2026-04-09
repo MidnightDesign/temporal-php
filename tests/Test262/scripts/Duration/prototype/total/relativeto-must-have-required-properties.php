@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 2, 31, 0);
-Assert::throws(\TypeError::class, function () use (&$d) { return $d->total(['unit' => 'months', 'relativeTo' => new \stdClass()]); }, '');
-Assert::throws(\TypeError::class, function () use (&$d) { return $d->total(['unit' => 'months', 'relativeTo' => ['years' => 2020, 'month' => 1, 'day' => 1]]); }, '');
+Assert::throws(\TypeError::class, fn() => $d->total(['unit' => 'months', 'relativeTo' => new \stdClass()]), '');
+Assert::throws(\TypeError::class, fn() => $d->total(['unit' => 'months', 'relativeTo' => ['years' => 2020, 'month' => 1, 'day' => 1]]), '');

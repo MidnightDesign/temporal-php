@@ -15,6 +15,6 @@ Assert::sameValue($result, 0, "\"{$arg}\" is a valid UTC offset with time for In
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 $epoch = new \Temporal\Spec\Instant(0);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$epoch) { return \Temporal\Spec\Instant::compare($arg, $epoch); }, "\"{$arg}\" UTC offset without time is not valid for Instant (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$epoch, &$arg) { return \Temporal\Spec\Instant::compare($epoch, $arg); }, "\"{$arg}\" UTC offset without time is not valid for Instant (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, $epoch), "\"{$arg}\" UTC offset without time is not valid for Instant (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($epoch, $arg), "\"{$arg}\" UTC offset without time is not valid for Instant (second argument)");
 }

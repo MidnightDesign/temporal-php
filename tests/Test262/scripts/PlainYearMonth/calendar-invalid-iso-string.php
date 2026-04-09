@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=iso8601]', 'ISO string with calendar annotation'], ['notacal', 'Unknown calendar'], ['11111111', 'compact ISO date used as calendar name'], ['1111-11-11', 'extended ISO date used as calendar name']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return new \Temporal\Spec\PlainYearMonth(2000, 5, $arg, 1); }, "{$description} is not a valid calendar ID");
+Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(2000, 5, $arg, 1), "{$description} is not a valid calendar ID");
 }

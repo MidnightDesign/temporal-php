@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 0);
 $later = new \Temporal\Spec\PlainTime(13, 35, 57, 123, 987, 500);
-TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', function ($roundingMode) use (&$later, &$earlier) { return $later->since($earlier, ['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 1, 1, 1, 123, 987, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', fn($roundingMode) => $later->since($earlier, ['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 1, 1, 1, 123, 987, 0, $descr));

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->total(['unit' => 'other string']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->total(['unit' => 'other string']), '');

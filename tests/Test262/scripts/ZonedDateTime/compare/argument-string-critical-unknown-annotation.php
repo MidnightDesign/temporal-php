@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00[UTC][!foo=bar]', '1970-01-01T00:00[UTC][!foo=bar][u-ca=iso8601]', '1970-01-01T00:00[UTC][u-ca=iso8601][!foo=bar]', '1970-01-01T00:00[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]'];
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, "reject unknown annotation with critical flag: {$arg} (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, "reject unknown annotation with critical flag: {$arg} (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), "reject unknown annotation with critical flag: {$arg} (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), "reject unknown annotation with critical flag: {$arg} (second argument)");
 }

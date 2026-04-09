@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-11');
 $tests = [['days' => 1], ['hours' => 1], ['minutes' => 1], ['seconds' => 1], ['milliseconds' => 1], ['microseconds' => 1], ['nanoseconds' => 1], ['days' => 29], ['days' => 30], ['days' => 60], ['days' => 61], ['hours' => 720], ['minutes' => 43_200], ['seconds' => 2_592_000], ['milliseconds' => 2_592_000_000], ['microseconds' => 2_592_000_000_000], ['nanoseconds' => 2_592_000_000_000_000]];
 foreach ($tests as $argument) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$ym, &$argument) { $ym->subtract($argument); }, 'subtracting a unit lower than months should throw, no options');
-Assert::throws(\InvalidArgumentException::class, function () use (&$ym, &$argument) { $ym->subtract($argument, ['overflow' => 'constrain']); }, 'subtracting a unit lower than months should throw, constrain');
-Assert::throws(\InvalidArgumentException::class, function () use (&$ym, &$argument) { $ym->subtract($argument, ['overflow' => 'reject']); }, 'subtracting a unit lower than months should throw, reject');
+Assert::throws(\InvalidArgumentException::class, function () use ($ym, $argument) { $ym->subtract($argument); }, 'subtracting a unit lower than months should throw, no options');
+Assert::throws(\InvalidArgumentException::class, function () use ($ym, $argument) { $ym->subtract($argument, ['overflow' => 'constrain']); }, 'subtracting a unit lower than months should throw, constrain');
+Assert::throws(\InvalidArgumentException::class, function () use ($ym, $argument) { $ym->subtract($argument, ['overflow' => 'reject']); }, 'subtracting a unit lower than months should throw, reject');
 }

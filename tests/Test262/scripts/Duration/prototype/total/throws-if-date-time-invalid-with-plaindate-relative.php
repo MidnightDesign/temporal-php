@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 $relativeTo = new \Temporal\Spec\PlainDate(275_760, 9, 13);
 $totalOf = ['unit' => 'years', 'relativeTo' => $relativeTo];
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$totalOf) { return $duration->total($totalOf); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $duration->total($totalOf), '');

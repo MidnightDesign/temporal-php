@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $later = new \Temporal\Spec\PlainDate(2001, 6, 3);
-TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'year', function ($smallestUnit) use (&$earlier, &$later) { return $earlier->until($later, ['smallestUnit' => $smallestUnit]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'year', fn($smallestUnit) => $earlier->until($later, ['smallestUnit' => $smallestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, $descr));

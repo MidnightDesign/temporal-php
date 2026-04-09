@@ -14,6 +14,6 @@ Assert::sameValue($result, 0, "\"{$arg}\" is a valid UTC offset with time for Pl
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDate::compare($arg, new \Temporal\Spec\PlainDate(1976, 11, 18)); }, "\"{$arg}\" UTC offset without time is not valid for PlainDate (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDate::compare(new \Temporal\Spec\PlainDate(1976, 11, 18), $arg); }, "\"{$arg}\" UTC offset without time is not valid for PlainDate (second argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::compare($arg, new \Temporal\Spec\PlainDate(1976, 11, 18)), "\"{$arg}\" UTC offset without time is not valid for PlainDate (first argument)");
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::compare(new \Temporal\Spec\PlainDate(1976, 11, 18), $arg), "\"{$arg}\" UTC offset without time is not valid for PlainDate (second argument)");
 }

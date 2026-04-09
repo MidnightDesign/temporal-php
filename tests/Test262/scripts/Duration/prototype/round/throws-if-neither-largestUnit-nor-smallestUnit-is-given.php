@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $hoursOnly = new \Temporal\Spec\Duration(0, 0, 0, 0, 1);
 foreach ([new \stdClass(), function () {  }, ['roundingMode' => 'ceil']] as $roundTo) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$d, &$roundTo) { return $d->round($roundTo); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$hoursOnly, &$roundTo) { return $hoursOnly->round($roundTo); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $d->round($roundTo), '');
+Assert::throws(\InvalidArgumentException::class, fn() => $hoursOnly->round($roundTo), '');
 }

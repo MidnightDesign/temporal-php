@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 123, 987, 500);
-TemporalHelpers::checkStringOptionWrongType('roundingMode', 'halfExpand', function ($roundingMode) use (&$time) { return $time->round(['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]); }, fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 34, 56, 123, 988, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('roundingMode', 'halfExpand', fn($roundingMode) => $time->round(['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]), fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 34, 56, 123, 988, 0, $descr));

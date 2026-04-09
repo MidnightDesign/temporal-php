@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
 $later = new \Temporal\Spec\Instant(1_086_403_661_988_655_322);
 $validUnits = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($largestUnit) use (&$later, &$earlier) { return $later->since($earlier, ['largestUnit' => $largestUnit]); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(fn($largestUnit) => $later->since($earlier, ['largestUnit' => $largestUnit]), $validUnits);

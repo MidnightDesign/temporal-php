@@ -18,4 +18,4 @@ $relativeTo = '2019-11-01T00:00-07:00[America/Vancouver]';
 $result6 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
 Assert::sameValue($result6, 366.96, 'date-time + offset + IANA annotation is a zoned relativeTo');
 $relativeTo = '2019-11-01T00:00+04:15[America/Vancouver]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]); }, 'date-time + offset + IANA annotation throws if wall time and exact time mismatch');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]), 'date-time + offset + IANA annotation throws if wall time and exact time mismatch');

@@ -19,5 +19,5 @@ TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, $day, $monthCode, $refere
 $constrain = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1], ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrain, $monthCode, $day, "{$monthCode} (constrained)", $referenceYear);
 Assert::sameValue($constrain->equals($pmd), true, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode, &$day) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use ($calendar, $monthCode, $day) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1], ['overflow' => 'reject']); }, '');
 }

@@ -12,5 +12,5 @@ $timeZone = 'UTC';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $str) {
 $arg = ['year' => 1976, 'month' => 11, 'day' => 18, 'calendar' => $str];
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->until($arg); }, 'reject minus zero as extended year');
+Assert::throws(\InvalidArgumentException::class, fn() => $instance->until($arg), 'reject minus zero as extended year');
 }

@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 650, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString(['fractionalSecondDigits' => -INF]); }, '−∞ is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString(['fractionalSecondDigits' => -1]); }, '−1 is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString(['fractionalSecondDigits' => 10]); }, '10 is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString(['fractionalSecondDigits' => INF]); }, '∞ is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => -INF]), '−∞ is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => -1]), '−1 is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => 10]), '10 is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['fractionalSecondDigits' => INF]), '∞ is out of range for fractionalSecondDigits');

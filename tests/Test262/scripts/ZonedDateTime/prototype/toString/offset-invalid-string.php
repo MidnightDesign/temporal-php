@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\Spec\ZonedDateTime(100_000_000_098_764_321, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString(['offset' => 'other string']); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['offset' => 'other string']), '');

@@ -10,10 +10,10 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validValues = [new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC'), '2001-09-09T01:46:40.987654321+00:00[UTC]'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\ZonedDateTime::from($value, ['overflow' => $overflow]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', fn($overflow) => \Temporal\Spec\ZonedDateTime::from($value, ['overflow' => $overflow]), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));
 }
 $propertyBag = ['year' => 2001, 'month' => 9, 'day' => 9, 'hour' => 1, 'minute' => 46, 'second' => 40, 'timeZone' => 'UTC'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, ['overflow' => null]); }, 'null');
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, ['overflow' => true]); }, 'true');
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, ['overflow' => false]); }, 'false');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($propertyBag, ['overflow' => null]), 'null');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($propertyBag, ['overflow' => true]), 'true');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($propertyBag, ['overflow' => false]), 'false');
 Assert::incomplete('untranslatable: Symbol()');

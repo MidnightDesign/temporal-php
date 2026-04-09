@@ -24,7 +24,7 @@ $common2Adar = \Temporal\Spec\PlainYearMonth::from(['year' => 5785, 'monthCode' 
 TemporalHelpers::assertPlainYearMonth($common1Adar->add($years1, $options), 5784, 7, 'M06', 'Adding 1 year to common-year Adar (M06) lands in leap-year Adar II (M06)', 'am', 5784, null);
 TemporalHelpers::assertPlainYearMonth($common1Adar->add($years2, $options), 5785, 6, 'M06', 'Adding 2 years to common-year Adar (M06) crossing leap year lands in common-year Adar (M06)', 'am', 5785, null);
 TemporalHelpers::assertPlainYearMonth($leap2AdarI->add($years1), 5785, 6, 'M06', 'Adding 1 year to Adar I (M05L) lands in common-year Adar (M06) with constrain', 'am', 5785, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap2AdarI, &$years1, &$options) { $leap2AdarI->add($years1, $options); }, 'Adding 1 year to Adar I (M05L) rejects');
+Assert::throws(\InvalidArgumentException::class, function () use ($leap2AdarI, $years1, $options) { $leap2AdarI->add($years1, $options); }, 'Adding 1 year to Adar I (M05L) rejects');
 TemporalHelpers::assertPlainYearMonth($leap2AdarII->add($years1, $options), 5785, 6, 'M06', 'Adding 1 year to Adar II (M06) lands in common-year Adar (M06) even with reject', 'am', 5785, null);
 TemporalHelpers::assertPlainYearMonth($common->add($years1, $options), 5784, 9, 'M08', 'Adding 1 year across Adar I (M05L)', 'am', 5784, null);
 TemporalHelpers::assertPlainYearMonth($leap1AdarI->add($years2, $options), 5784, 6, 'M05L', 'Adding 2 years to leap-year Adar I (M05L) lands in leap-year Adar I (M05L)', 'am', 5784, null);
@@ -32,7 +32,7 @@ TemporalHelpers::assertPlainYearMonth($leap1AdarII->add($years2, $options), 5784
 TemporalHelpers::assertPlainYearMonth($common2Adar->add($years1n, $options), 5784, 7, 'M06', 'Subtracting 1 year from common-year Adar (M06) lands in leap-year Adar II (M06)', 'am', 5784, null);
 TemporalHelpers::assertPlainYearMonth($common2Adar->add($years2n, $options), 5783, 6, 'M06', 'Subtracting 2 years from common-year Adar (M06) crossing leap year lands in common-year Adar (M06)', 'am', 5783, null);
 TemporalHelpers::assertPlainYearMonth($leap2AdarI->add($years1n), 5783, 6, 'M06', 'Subtracting 1 year from Adar I (M05L) lands in common-year Adar (M06) with constrain', 'am', 5783, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap2AdarI, &$years1n, &$options) { $leap2AdarI->add($years1n, $options); }, 'Subtracting 1 year from Adar I (M05L) rejects');
+Assert::throws(\InvalidArgumentException::class, function () use ($leap2AdarI, $years1n, $options) { $leap2AdarI->add($years1n, $options); }, 'Subtracting 1 year from Adar I (M05L) rejects');
 TemporalHelpers::assertPlainYearMonth($leap2AdarII->add($years1n, $options), 5783, 6, 'M06', 'Subtracting 1 year from Adar II (M06) lands in common-year Adar (M06) even with reject', 'am', 5783, null);
 TemporalHelpers::assertPlainYearMonth($common->add($years2n, $options), 5781, 8, 'M08', 'Subtracting 2 years across Adar I (M05L)', 'am', 5781, null);
 TemporalHelpers::assertPlainYearMonth($leap2AdarI->add($years2n, $options), 5782, 6, 'M05L', 'Subtracting 2 years from leap-year Adar I (M05L) lands in leap-year Adar I (M05L)', 'am', 5782, null);

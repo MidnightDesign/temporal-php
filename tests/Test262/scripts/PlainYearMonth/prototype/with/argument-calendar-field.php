@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-10');
-Assert::throws(\TypeError::class, function () use (&$ym) { return $ym->with(['year' => 2021, 'calendar' => 'iso8601']); }, '');
+Assert::throws(\TypeError::class, fn() => $ym->with(['year' => 2021, 'calendar' => 'iso8601']), '');

@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 1, 2, 3, 4, 987, 654, 321);
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(); }, 'undefined');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(null); }, 'null');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(true); }, 'boolean');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(''); }, 'empty string');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with('P1D'); }, 'duration string');
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with('string'); }, 'string');
+Assert::throws(\TypeError::class, fn() => $instance->with(), 'undefined');
+Assert::throws(\TypeError::class, fn() => $instance->with(null), 'null');
+Assert::throws(\TypeError::class, fn() => $instance->with(true), 'boolean');
+Assert::throws(\TypeError::class, fn() => $instance->with(''), 'empty string');
+Assert::throws(\TypeError::class, fn() => $instance->with('P1D'), 'duration string');
+Assert::throws(\TypeError::class, fn() => $instance->with('string'), 'string');
 Assert::incomplete('untranslatable: Symbol()');

@@ -27,6 +27,6 @@ $implicit = \Temporal\Spec\ZonedDateTime::from($fields);
 Assert::sameValue($implicit->epochNanoseconds, $expected, 'default disambiguation is compatible');
 }
 $offsetFields = ['year' => 2000, 'month' => 5, 'day' => 2, 'offset' => '+23:59', 'timeZone' => 'UTC'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$offsetFields) { return \Temporal\Spec\ZonedDateTime::from($offsetFields); }, 'default offset is reject');
-Assert::throws(\InvalidArgumentException::class, function () use (&$offsetFields) { return \Temporal\Spec\ZonedDateTime::from($offsetFields, new \stdClass()); }, 'default offset is reject');
-Assert::throws(\InvalidArgumentException::class, function () use (&$offsetFields) { return \Temporal\Spec\ZonedDateTime::from($offsetFields); }, 'default offset is reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($offsetFields), 'default offset is reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($offsetFields, new \stdClass()), 'default offset is reject');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from($offsetFields), 'default offset is reject');

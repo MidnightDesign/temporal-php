@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 650, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->toString(['fractionalSecondDigits' => NAN]); }, '');
+Assert::throws(\InvalidArgumentException::class, fn() => $time->toString(['fractionalSecondDigits' => NAN]), '');

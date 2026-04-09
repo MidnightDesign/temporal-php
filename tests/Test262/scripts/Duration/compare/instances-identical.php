@@ -14,4 +14,4 @@ $dateDuration1 = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $dateDuration2 = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 Assert::sameValue(\Temporal\Spec\Duration::compare($dateDuration1, $dateDuration2), 0, 'relativeTo is not required if two distinct Duration instances are identical');
 $dateDuration3 = new \Temporal\Spec\Duration(5, 5, 5, 5, 4, 65, 5, 5, 5, 5);
-Assert::throws(\InvalidArgumentException::class, function () use (&$dateDuration1, &$dateDuration3) { return \Temporal\Spec\Duration::compare($dateDuration1, $dateDuration3); }, 'relativeTo is required if two Duration instances are the same length but not identical');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Duration::compare($dateDuration1, $dateDuration3), 'relativeTo is required if two Duration instances are the same length but not identical');

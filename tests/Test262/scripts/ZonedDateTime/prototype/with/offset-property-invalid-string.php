@@ -12,6 +12,6 @@ $offsetOptions = ['use', 'prefer', 'ignore', 'reject'];
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000];
 foreach ($offsetOptions as $offsetOption) {
 foreach ($badOffsets as $offset) {
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$offset, &$offsetOption) { return $instance->with(['offset' => $offset], ['offset' => $offsetOption]); }, "\"{$offset} is not a valid offset string (with {$offsetOption} offset option)");
+Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), fn() => $instance->with(['offset' => $offset], ['offset' => $offsetOption]), "\"{$offset} is not a valid offset string (with {$offsetOption} offset option)");
 }
 }

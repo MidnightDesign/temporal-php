@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
-TemporalHelpers::checkStringOptionWrongType('largestUnit', 'year', function ($largestUnit) use (&$earlier, &$later) { return $earlier->until($later, ['largestUnit' => $largestUnit]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 1, 1, 1, 1, 987, 654, 321, $descr));
+TemporalHelpers::checkStringOptionWrongType('largestUnit', 'year', fn($largestUnit) => $earlier->until($later, ['largestUnit' => $largestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 1, 1, 1, 1, 987, 654, 321, $descr));

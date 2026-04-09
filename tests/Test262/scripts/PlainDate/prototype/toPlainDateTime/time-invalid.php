@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
-Assert::throws(\TypeError::class, function () use (&$plainDate) { return $plainDate->toPlainDateTime(new \stdClass()); }, 'empty object');
-Assert::throws(\TypeError::class, function () use (&$plainDate) { return $plainDate->toPlainDateTime(['minutes' => 30]); }, 'plural property');
+Assert::throws(\TypeError::class, fn() => $plainDate->toPlainDateTime(new \stdClass()), 'empty object');
+Assert::throws(\TypeError::class, fn() => $plainDate->toPlainDateTime(['minutes' => 30]), 'plural property');

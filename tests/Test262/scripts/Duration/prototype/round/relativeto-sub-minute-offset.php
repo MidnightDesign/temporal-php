@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
-$action = function ($relativeTo) use (&$instance) { return $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]); };
+$action = fn($relativeTo) => $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
 $relativeTo = '1970-01-01T00:00-00:45:00[-00:45]';
 $result = $action($relativeTo);
 TemporalHelpers::assertDateDuration($result, 1, 0, 0, 1, 'ISO string offset accepted with zero seconds (string)');
@@ -17,6 +17,6 @@ $relativeTo = ['year' => 1970, 'month' => 1, 'day' => 1, 'offset' => '+00:45:00.
 $result = $action($relativeTo);
 TemporalHelpers::assertDateDuration($result, 1, 0, 0, 1, 'ISO string offset accepted with zero seconds (property bag)');
 $relativeTo = '1970-01-01T00:00+00:44:30.123456789[+00:45]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$action, &$relativeTo) { return $action($relativeTo); }, 'rounding is not accepted between ISO offset and time zone');
+Assert::throws(\InvalidArgumentException::class, fn() => $action($relativeTo), 'rounding is not accepted between ISO offset and time zone');
 $relativeTo = '1970-01-01T00:00-00:44:59[-00:44:59]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$action, &$relativeTo) { return $action($relativeTo); }, 'sub-minute offset not accepted as time zone identifier');
+Assert::throws(\InvalidArgumentException::class, fn() => $action($relativeTo), 'sub-minute offset not accepted as time zone identifier');

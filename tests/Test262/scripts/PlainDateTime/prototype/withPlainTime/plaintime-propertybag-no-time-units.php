@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 1, 1, 12, 30, 45, 123, 456, 789);
 $props = new \stdClass();
-Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->withPlainTime($props); }, 'TypeError if no properties are present');
+Assert::throws(\TypeError::class, fn() => $instance->withPlainTime($props), 'TypeError if no properties are present');
 $props['minute'] = 30;
 $result = $instance->withPlainTime($props);
 TemporalHelpers::assertPlainDateTime($result, 2000, 1, 'M01', 1, 0, 30, 0, 0, 0, 0, 'missing time units default to 0');
