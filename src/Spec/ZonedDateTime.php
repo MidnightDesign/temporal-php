@@ -778,8 +778,8 @@ final class ZonedDateTime implements Stringable
         /** @var list<string> $utcAliases */
         static $utcAliases = [
             'etc/utc', 'etc/gmt', 'etc/gmt+0', 'etc/gmt-0', 'etc/gmt0',
-            'etc/uct', 'etc/universal', 'etc/zulu',
-            'gmt', 'gmt+0', 'gmt-0', 'gmt0', 'uct', 'universal', 'zulu', 'utc',
+            'etc/greenwich', 'etc/uct', 'etc/universal', 'etc/zulu',
+            'gmt', 'gmt+0', 'gmt-0', 'gmt0', 'greenwich', 'uct', 'universal', 'zulu', 'utc',
         ];
         $lower = strtolower($id);
         if (in_array($lower, $utcAliases, strict: true)) {
@@ -789,19 +789,18 @@ final class ZonedDateTime implements Stringable
         if ($id === '+00:00' || $id === '-00:00') {
             return 'UTC';
         }
-        // Case-fold and use ICU canonical ID for IANA alias resolution.
-        // ICU's getCanonicalID is case-sensitive, so we look up using
-        // the properly-cased IANA ID from PHP's timezone list.
+        // Case-fold using the properly-cased IANA ID from PHP's timezone list
+        // (ICU's getCanonicalID is case-sensitive).
         /** @var array<string, string>|null $lowerMap */
         static $lowerMap = null;
         if ($lowerMap === null) {
             $lowerMap = [];
-            foreach (\DateTimeZone::listIdentifiers() as $ident) {
+            foreach (\DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC) as $ident) {
                 $lowerMap[strtolower($ident)] = $ident;
             }
         }
         $properCase = $lowerMap[$lower] ?? $id;
-        return \IntlTimeZone::getCanonicalID($properCase) ?: $properCase;
+        return self::resolveCanonicalTimezoneId($properCase);
     }
 
     /**
@@ -2154,6 +2153,38 @@ final class ZonedDateTime implements Stringable
      * - '±HH:MM' → ±(H*3600 + M*60).
      * - IANA name → use PHP DateTimeZone::getOffset().
      */
+    /**
+     * Resolves an IANA timezone ID to its canonical form for consistent
+     * offset lookups. Uses ICU canonicalization plus fixups for known
+     * inconsistencies where ICU and IANA disagree on canonical targets.
+     */
+    private static function resolveCanonicalTimezoneId(string $id): string
+    {
+        // Known ICU inconsistencies where an IANA link target is reported as
+        // self-canonical instead of resolving to its true primary zone.
+        /** @var array<string, string> $icuFixups */
+        static $icuFixups = [
+            'Antarctica/McMurdo' => 'Pacific/Auckland',
+        ];
+        if (isset($icuFixups[$id])) {
+            return $icuFixups[$id];
+        }
+        if (function_exists('intltz_get_canonical_id')) {
+            $canon = \IntlTimeZone::getCanonicalID($id);
+            if ($canon !== null && $canon !== '' && $canon !== $id) {
+                // Apply fixups to the ICU result as well
+                $canon = $icuFixups[$canon] ?? $canon;
+                try {
+                    new \DateTimeZone($canon);
+                    return $canon;
+                } catch (\Exception) {
+                    // Fall back to original if canonical ID is not recognized
+                }
+            }
+        }
+        return $id;
+    }
+
     private function resolveOffsetSecondsAt(int $epochSec): int
     {
         if ($this->timeZoneId === 'UTC') {
@@ -2165,8 +2196,12 @@ final class ZonedDateTime implements Stringable
             return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         // IANA timezone: use PHP to find the offset at the given instant.
+        // Canonicalize through ICU so that link aliases (e.g. Africa/Asmera
+        // and Africa/Asmara) resolve to the same underlying timezone data.
+        // PHP's DateTimeZone can have divergent historical data for aliases.
+        $tzId = self::resolveCanonicalTimezoneId($this->timeZoneId);
         /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated to be non-empty in constructor */
-        $tz = new \DateTimeZone($this->timeZoneId);
+        $tz = new \DateTimeZone($tzId);
         return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
     }
 
