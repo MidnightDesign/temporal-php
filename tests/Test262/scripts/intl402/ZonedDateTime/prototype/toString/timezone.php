@@ -7,13 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$timeZoneId = function ($zdt) {
+$timeZoneId = function ($zdt) use (&$__m) {
 $str = $zdt->toString();
-$m = $str->match(/(?<=\[)[\w\/_+-]+(?=\])/);
+$m = (preg_match('/(?<=\[)[\w\/_+-]+(?=\])/', $str, $__m) ? $__m : null);
 Assert::sameValue($m !== null, true, $str);
 return $m[0];
 };
-foreach ($Intl->supportedValuesOf('timeZone') as $id) {
+foreach (\DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC) as $id) {
 $instance = new \Temporal\Spec\ZonedDateTime(0, $id);
 Assert::sameValue($timeZoneId($instance), $id, '');
 }

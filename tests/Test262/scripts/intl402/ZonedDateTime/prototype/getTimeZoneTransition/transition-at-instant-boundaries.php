@@ -7,6 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-foreach ($Intl->supportedValuesOf('timeZone') as $id) {
+foreach (\DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC) as $id) {
 Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
 }

@@ -858,6 +858,13 @@ class Emitter {
     if (node.value === null) {
       return 'null';
     }
+    // Regex literal → PHP preg-compatible string: '/pattern/flags'
+    if (node.regex) {
+      const { pattern, flags } = node.regex;
+      // Escape single quotes inside the pattern, use '/' as delimiter
+      const escaped = pattern.replace(/'/g, "\\'");
+      return `'/${escaped}/${flags}'`;
+    }
     return this.raw(node);
   }
 
@@ -1133,6 +1140,15 @@ class Emitter {
       return null;
     }
 
+    // Intl.supportedValuesOf('timeZone') → iterator_to_array(IntlTimeZone::createEnumeration())
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.object.type === 'Identifier' && callee.object.name === 'Intl'
+        && callee.property.name === 'supportedValuesOf'
+        && node.arguments.length === 1
+        && node.arguments[0].type === 'Literal' && node.arguments[0].value === 'timeZone') {
+      return '\\DateTimeZone::listIdentifiers(\\DateTimeZone::ALL_WITH_BC)';
+    }
+
     // Calls on JS built-in globals that have no PHP equivalent
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.object.type === 'Identifier') {
@@ -1227,6 +1243,17 @@ class Emitter {
         return `substr(string: ${str}, offset: ${start}, length: ${len})`;
       }
       return `substr(string: ${str}, offset: ${start})`;
+    }
+
+    // str.match(regex) → (preg_match(pattern, $str, $__m) ? $__m : null)
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'match'
+        && node.arguments.length === 1
+        && node.arguments[0].type === 'Literal' && node.arguments[0].regex) {
+      const str = this.transpileExpr(callee.object);
+      const pat = this.transpileExpr(node.arguments[0]);
+      if (str === null || pat === null) return null;
+      return `(preg_match(${pat}, ${str}, $__m) ? $__m : null)`;
     }
 
     // str.includes(needle[, position]) → str_contains($str, $needle) (position ignored)
