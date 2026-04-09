@@ -828,12 +828,12 @@ final class PlainMonthDay implements Stringable
                 );
             }
 
-            // For non-ISO calendars, project the ISO date through the calendar and find reference year.
+            // Per TC39 spec: month-day form (no year) with non-ISO calendar is invalid,
+            // because a year is required to resolve the reference ISO year.
             if ($calendarId !== null && $calendarId !== 'iso8601') {
-                $cal = CalendarFactory::get($calendarId);
-                $mc = $cal->monthCode(1972, $month, $day);
-                $d = $cal->day(1972, $month, $day);
-                return self::resolveNonIsoReferenceYear($cal, $calendarId, $mc, $d);
+                throw new InvalidArgumentException(
+                    "PlainMonthDay::from() cannot parse \"{$s}\": month-day form requires a full date (YYYY-MM-DD) with non-ISO calendar \"{$calendarId}\".",
+                );
             }
 
             // --MM-DD or MM-DD form: referenceISOYear = 1972 (canonical default).

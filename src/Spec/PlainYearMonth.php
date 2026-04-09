@@ -765,6 +765,15 @@ final class PlainYearMonth implements Stringable
         $annotationSection = $m[7];
         $calendarId = CalendarMath::validateAnnotations($annotationSection, $s);
 
+        // Per TC39 spec: year-month form (no day) with non-ISO calendar is invalid,
+        // because a day is required to resolve the reference ISO day.
+        $hasDay = str_starts_with($dateRest, '-') ? strlen($dateRest) >= 6 : strlen($dateRest) === 4;
+        if (!$hasDay && $calendarId !== null && $calendarId !== 'iso8601') {
+            throw new InvalidArgumentException(
+                "PlainYearMonth::from() cannot parse \"{$s}\": year-month form requires a full date (YYYY-MM-DD) with non-ISO calendar \"{$calendarId}\".",
+            );
+        }
+
         // TC39 spec §9.2.4 ParseTemporalYearMonthString + §9.5.2 ToTemporalYearMonth:
         // For ISO 8601, the referenceISODay is always constrained to 1 regardless of
         // what day appeared in the input string. The day field in the string is used only
