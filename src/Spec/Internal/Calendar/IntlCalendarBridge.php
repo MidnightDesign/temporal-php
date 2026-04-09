@@ -99,6 +99,26 @@ final class IntlCalendarBridge implements CalendarProtocol
     /** Offset from ICU EXTENDED_YEAR to TC39 "related Gregorian year" for Chinese. */
     private const CHINESE_YEAR_OFFSET = 2637;
 
+    /**
+     * ICU 76.1 reports wrong daysInYear for these Chinese calendar years.
+     * Keys are TC39 related-Gregorian years, values are correct day counts.
+     */
+    private const CHINESE_DAYS_IN_YEAR_CORRECTIONS = [
+        2026 => 354,
+        2027 => 354,
+        2029 => 355,
+        2030 => 354,
+    ];
+
+    /**
+     * ICU 76.1 reports the wrong leap month for these Chinese calendar years.
+     * Keys are TC39 related-Gregorian years, values are the correct ICU month
+     * index (0-based) after which the leap month falls.
+     */
+    private const CHINESE_LEAP_MONTH_CORRECTIONS = [
+        1987 => 5, // Correct: leap after ICU month 5 (M06L), ICU says 6 (M07L)
+    ];
+
     /** Offset from ICU EXTENDED_YEAR to TC39 "related Gregorian year" for Dangi. */
     private const DANGI_YEAR_OFFSET = 2333;
 
@@ -262,6 +282,14 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
+        // Apply ICU 76.1 correction for known Chinese calendar discrepancies.
+        if ($this->calendarId === 'chinese') {
+            $calYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
+            if (isset(self::CHINESE_DAYS_IN_YEAR_CORRECTIONS[$calYear])) {
+                return self::CHINESE_DAYS_IN_YEAR_CORRECTIONS[$calYear];
+            }
+        }
+
         return $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_YEAR);
     }
 
@@ -367,22 +395,43 @@ final class IntlCalendarBridge implements CalendarProtocol
         // For Chinese/Dangi leap month codes, first verify the leap month exists
         // in this year using day 1 (to avoid day overflow changing the month).
         if ($isLeapCode && in_array($this->calendarId, ['chinese', 'dangi'], true)) {
-            try {
-                $this->setCalendarFieldsFromMonthCode($calYear, $monthCode, 1);
-                $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
-                if ($this->intlCal->get(self::FIELD_IS_LEAP_MONTH) !== 1) {
+            // For years with known ICU leap month corrections, validate using
+            // the corrected data instead of querying ICU's IS_LEAP_MONTH flag.
+            $hasCorrection = $this->calendarId === 'chinese'
+                && isset(self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear]);
+
+            if ($hasCorrection) {
+                $correctLeapIcu = self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear];
+                $baseCode = substr($monthCode, 0, -1);
+                $baseNum = (int) substr($baseCode, 1);
+                // The leap month code MxxL is valid only if xx-1 matches the corrected leap ICU month.
+                if (($baseNum - 1) !== $correctLeapIcu) {
+                    if ($overflow === 'constrain') {
+                        $this->setCalendarFieldsFromMonthCode($calYear, $baseCode, $calDay);
+                        return $this->resolveAndConstrain($calDay, $overflow);
+                    }
                     throw new InvalidArgumentException(
                         "monthCode \"{$monthCode}\" does not exist in this calendar year.",
                     );
                 }
-            } catch (InvalidArgumentException $e) {
-                if ($overflow === 'constrain') {
-                    // Chinese/Dangi: MxxL → Mxx (the regular version of the same month).
-                    $baseCode = substr($monthCode, 0, -1);
-                    $this->setCalendarFieldsFromMonthCode($calYear, $baseCode, $calDay);
-                    return $this->resolveAndConstrain($calDay, $overflow);
+            } else {
+                try {
+                    $this->setCalendarFieldsFromMonthCode($calYear, $monthCode, 1);
+                    $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
+                    if ($this->intlCal->get(self::FIELD_IS_LEAP_MONTH) !== 1) {
+                        throw new InvalidArgumentException(
+                            "monthCode \"{$monthCode}\" does not exist in this calendar year.",
+                        );
+                    }
+                } catch (InvalidArgumentException $e) {
+                    if ($overflow === 'constrain') {
+                        // Chinese/Dangi: MxxL → Mxx (the regular version of the same month).
+                        $baseCode = substr($monthCode, 0, -1);
+                        $this->setCalendarFieldsFromMonthCode($calYear, $baseCode, $calDay);
+                        return $this->resolveAndConstrain($calDay, $overflow);
+                    }
+                    throw $e;
                 }
-                throw $e;
             }
         }
 
@@ -901,6 +950,11 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function findChineseLeapMonthInYear(int $calYear): int
     {
+        // Apply ICU 76.1 correction for known leap month discrepancies.
+        if ($this->calendarId === 'chinese' && isset(self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear])) {
+            return self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear];
+        }
+
         $savedTime = $this->intlCal->getTime();
         $icuYear = $calYear + ($this->calendarId === 'chinese' ? self::CHINESE_YEAR_OFFSET : self::DANGI_YEAR_OFFSET);
 
@@ -1199,6 +1253,15 @@ final class IntlCalendarBridge implements CalendarProtocol
             if ($baseNum < 1 || $baseNum > 12) {
                 throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".");
             }
+
+            // For years with known ICU leap month bugs, use ordinal-based
+            // resolution which applies corrections via findChineseLeapMonthInYear.
+            if ($this->calendarId === 'chinese' && isset(self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear])) {
+                $ordinal = $this->chineseMonthCodeToMonth($monthCode, $calYear);
+                $this->setChineseCalendarFromOrdinal($calYear, $ordinal, $calDay);
+                return;
+            }
+
             $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $baseNum - 1);
             $this->intlCal->set(self::FIELD_IS_LEAP_MONTH, $isLeapCode ? 1 : 0);
         } else {
@@ -1425,6 +1488,46 @@ final class IntlCalendarBridge implements CalendarProtocol
     }
 
     /**
+     * Returns corrected (icuMonth, isLeap) for the current IntlCalendar state,
+     * applying known ICU 76.1 corrections for Chinese calendar leap month bugs.
+     *
+     * For year 1987, ICU places the leap month after month 7 (ICU 6) but it
+     * should be after month 6 (ICU 5). This means ICU's "regular M07" is
+     * actually "leap M06", and ICU's "leap M07" is actually "regular M07".
+     *
+     * @return array{0: int, 1: int} [icuMonth, isLeap]
+     */
+    private function correctedChineseMonthFields(): array
+    {
+        $icuMonth = $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
+        $isLeap = $this->intlCal->get(self::FIELD_IS_LEAP_MONTH);
+
+        if ($this->calendarId !== 'chinese') {
+            return [$icuMonth, $isLeap];
+        }
+
+        $calYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
+        $correctLeap = self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear] ?? null;
+        if ($correctLeap === null) {
+            return [$icuMonth, $isLeap];
+        }
+
+        // ICU thinks leap is after $icuBuggyLeap, but it's really after $correctLeap.
+        // For months at the boundary, remap the fields.
+        // ICU (buggy month 6, isLeap=0) -> should be (month 5, isLeap=1)
+        // ICU (buggy month 6, isLeap=1) -> should be (month 6, isLeap=0)
+        $icuBuggyLeap = $correctLeap + 1;
+        if ($icuMonth === $icuBuggyLeap && $isLeap === 0) {
+            return [$correctLeap, 1];
+        }
+        if ($icuMonth === $icuBuggyLeap && $isLeap === 1) {
+            return [$icuBuggyLeap, 0];
+        }
+
+        return [$icuMonth, $isLeap];
+    }
+
+    /**
      * Computes the TC39 ordinal month for Chinese/Dangi calendar.
      * Must call setIsoDate() first.
      *
@@ -1434,8 +1537,7 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function chineseMonthOrdinal(): int
     {
-        $icuMonth = $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
-        $isLeap = $this->intlCal->get(self::FIELD_IS_LEAP_MONTH);
+        [$icuMonth, $isLeap] = $this->correctedChineseMonthFields();
 
         // Base ordinal (no leap month consideration).
         $ordinal = $icuMonth + 1;
@@ -1446,8 +1548,12 @@ final class IntlCalendarBridge implements CalendarProtocol
         }
 
         // Check if a leap month occurred before the current month in this year.
-        $leapBefore = $this->findChineseLeapMonthBefore($icuMonth);
-        if ($leapBefore >= 0) {
+        // Use findChineseLeapMonthInYear (which has ICU corrections) instead of
+        // findChineseLeapMonthBefore (which scans raw ICU data).
+        $calYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
+            - ($this->calendarId === 'chinese' ? self::CHINESE_YEAR_OFFSET : self::DANGI_YEAR_OFFSET);
+        $leapIcuMonth = $this->findChineseLeapMonthInYear($calYear);
+        if ($leapIcuMonth >= 0 && $icuMonth > $leapIcuMonth) {
             return $ordinal + 1;
         }
 
@@ -1462,8 +1568,7 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function chineseMonthCode(): string
     {
-        $icuMonth = $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
-        $isLeap = $this->intlCal->get(self::FIELD_IS_LEAP_MONTH);
+        [$icuMonth, $isLeap] = $this->correctedChineseMonthFields();
 
         $code = sprintf('M%02d', $icuMonth + 1);
 

@@ -101,6 +101,14 @@ final class CalendarFactory
             return new IsoCalendar();
         }
 
+        if ($id === 'hebrew') {
+            return new PureHebrewCalendar();
+        }
+
+        if ($id === 'indian') {
+            return new PureIndianCalendar();
+        }
+
         return new IntlCalendarBridge($id);
     }
 
