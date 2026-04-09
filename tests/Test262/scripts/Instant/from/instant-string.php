@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $str = '1970-01-01T00:00';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::from($str), 'bare date-time string is not an instant');
+Assert::throws(\InvalidArgumentException::class, function () use (&$str) { return \Temporal\Spec\Instant::from($str); }, 'bare date-time string is not an instant');
 $str = '1970-01-01T00:00[UTC]';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::from($str), 'date-time + IANA annotation is not an instant');
+Assert::throws(\InvalidArgumentException::class, function () use (&$str) { return \Temporal\Spec\Instant::from($str); }, 'date-time + IANA annotation is not an instant');
 $str = '1970-01-01T00:00Z';
 $result1 = \Temporal\Spec\Instant::from($str);
 Assert::sameValue($result1->epochNanoseconds, 0, 'date-time + Z preserves exact time');

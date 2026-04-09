@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\ZonedDateTime(1_588_371_240_000_000_000, '+01:46');
 $str = '2021-08-19T17:30:45.123456789-12:12:59.9[-12:12:59.9]';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($str, $instance), "{$str} is not a valid ISO string (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($instance, $str), "{$str} is not a valid ISO string (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$str, &$instance) { return \Temporal\Spec\ZonedDateTime::compare($str, $instance); }, "{$str} is not a valid ISO string (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$str) { return \Temporal\Spec\ZonedDateTime::compare($instance, $str); }, "{$str} is not a valid ISO string (second argument)");

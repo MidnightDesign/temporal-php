@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $plainDateTime = \Temporal\Spec\PlainDateTime::from('1976-11-18T14:00:00');
-Assert::throws(\TypeError::class, fn() => $plainDateTime->withCalendar(), 'missing argument');
-Assert::throws(\TypeError::class, fn() => $plainDateTime->withCalendar(), 'undefined argument');
+Assert::throws(\TypeError::class, function () use (&$plainDateTime) { return $plainDateTime->withCalendar(); }, 'missing argument');
+Assert::throws(\TypeError::class, function () use (&$plainDateTime) { return $plainDateTime->withCalendar(); }, 'undefined argument');

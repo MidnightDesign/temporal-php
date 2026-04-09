@@ -14,6 +14,6 @@ Assert::sameValue($result, 0, "\"{$arg}\" is a valid UTC offset with time for Pl
 }
 $invalidStrings = ['2022-09[u-ca=hebrew]', '2022-09Z', '2022-09+01:00', '2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)), "\"{$arg}\" UTC offset without time is not valid for PlainYearMonth (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg), "\"{$arg}\" UTC offset without time is not valid for PlainYearMonth (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)); }, "\"{$arg}\" UTC offset without time is not valid for PlainYearMonth (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg); }, "\"{$arg}\" UTC offset without time is not valid for PlainYearMonth (second argument)");
 }

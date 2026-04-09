@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $min = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
 $max = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 23, 59, 59, 999, 999, 999);
 foreach (['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond'] as $smallestUnit) {
-Assert::throws(\InvalidArgumentException::class, fn() => $min->round(['smallestUnit' => $smallestUnit, 'roundingMode' => 'floor']), "rounding beyond limit (unit = {$smallestUnit}, rounding mode = floor)");
-Assert::throws(\InvalidArgumentException::class, fn() => $max->round(['smallestUnit' => $smallestUnit, 'roundingMode' => 'ceil']), "rounding beyond limit (unit = {$smallestUnit}, rounding mode = ceil)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$smallestUnit) { return $min->round(['smallestUnit' => $smallestUnit, 'roundingMode' => 'floor']); }, "rounding beyond limit (unit = {$smallestUnit}, rounding mode = floor)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$max, &$smallestUnit) { return $max->round(['smallestUnit' => $smallestUnit, 'roundingMode' => 'ceil']); }, "rounding beyond limit (unit = {$smallestUnit}, rounding mode = ceil)");
 }

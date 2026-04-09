@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $minYearMonth = new \Temporal\Spec\PlainYearMonth(-271_821, 4);
 $blank = new \Temporal\Spec\Duration();
-Assert::throws(\InvalidArgumentException::class, fn() => $minYearMonth->subtract($blank), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minYearMonth, &$blank) { return $minYearMonth->subtract($blank); }, '');

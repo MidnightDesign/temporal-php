@@ -11,5 +11,5 @@ $invalidStrings = ['-000000-10-31', '-000000-10-31T17:45', '-000000-10-31T17:45Z
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ($invalidStrings as $str) {
 $arg = ['year' => 1976, 'month' => 11, 'day' => 18, 'calendar' => $str];
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), 'reject minus zero as extended year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, 'reject minus zero as extended year');
 }

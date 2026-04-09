@@ -12,4 +12,4 @@ $dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789, 
 $result = $dt->withCalendar('iso8601');
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 15, 23, 30, 123, 456, 789, '\'iso8601\' is a recognizable calendar');
 Assert::sameValue($result->calendarId, 'iso8601', 'underlying calendar has changed');
-Assert::throws(\InvalidArgumentException::class, fn() => $dt->withCalendar('this will fail'), 'unknown calendar throws');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt) { return $dt->withCalendar('this will fail'); }, 'unknown calendar throws');

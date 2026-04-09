@@ -9,8 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => -271_821, 'month' => 4, 'day' => 19], ['overflow' => $overflow]), "negative out of bounds (plain object, overflow = {$overflow})");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 275_760, 'month' => 9, 'day' => 14], ['overflow' => $overflow]), "positive out of bounds (plain object, overflow = {$overflow})");
+Assert::throws(\InvalidArgumentException::class, function () use (&$overflow) { return \Temporal\Spec\PlainDateTime::from(['year' => -271_821, 'month' => 4, 'day' => 19], ['overflow' => $overflow]); }, "negative out of bounds (plain object, overflow = {$overflow})");
+Assert::throws(\InvalidArgumentException::class, function () use (&$overflow) { return \Temporal\Spec\PlainDateTime::from(['year' => 275_760, 'month' => 9, 'day' => 14], ['overflow' => $overflow]); }, "positive out of bounds (plain object, overflow = {$overflow})");
 }
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from(['year' => -271_821, 'month' => 4, 'day' => 19, 'nanosecond' => 1]), -271_821, 4, 'M04', 19, 0, 0, 0, 0, 0, 1, 'construct from property bag (negative boundary)');
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from(['year' => 275_760, 'month' => 9, 'day' => 13, 'hour' => 23, 'minute' => 59, 'second' => 59, 'millisecond' => 999, 'microsecond' => 999, 'nanosecond' => 999]), 275_760, 9, 'M09', 13, 23, 59, 59, 999, 999, 999, 'construct from property bag (positive boundary)');

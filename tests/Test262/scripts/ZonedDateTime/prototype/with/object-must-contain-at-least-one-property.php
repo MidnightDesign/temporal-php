@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::throws(\TypeError::class, fn() => $zdt->with(new \stdClass()), '');
-Assert::throws(\TypeError::class, fn() => $zdt->with(['months' => 12]), '');
+Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with(new \stdClass()); }, '');
+Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->with(['months' => 12]); }, '');

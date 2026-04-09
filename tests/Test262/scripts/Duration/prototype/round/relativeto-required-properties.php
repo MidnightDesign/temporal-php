@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $hours25 = new \Temporal\Spec\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
-Assert::throws(\TypeError::class, fn() => $hours25->round(['largestUnit' => 'days', 'relativeTo' => ['month' => 11, 'day' => 3]]), '');
-Assert::throws(\TypeError::class, fn() => $hours25->round(['largestUnit' => 'days', 'relativeTo' => ['year' => 2019, 'month' => 11]]), '');
-Assert::throws(\TypeError::class, fn() => $hours25->round(['largestUnit' => 'days', 'relativeTo' => ['year' => 2019, 'day' => 3]]), '');
+Assert::throws(\TypeError::class, function () use (&$hours25) { return $hours25->round(['largestUnit' => 'days', 'relativeTo' => ['month' => 11, 'day' => 3]]); }, '');
+Assert::throws(\TypeError::class, function () use (&$hours25) { return $hours25->round(['largestUnit' => 'days', 'relativeTo' => ['year' => 2019, 'month' => 11]]); }, '');
+Assert::throws(\TypeError::class, function () use (&$hours25) { return $hours25->round(['largestUnit' => 'days', 'relativeTo' => ['year' => 2019, 'day' => 3]]); }, '');

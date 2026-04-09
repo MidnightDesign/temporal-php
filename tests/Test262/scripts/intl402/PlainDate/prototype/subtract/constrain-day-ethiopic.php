@@ -17,10 +17,10 @@ $common0130 = \Temporal\Spec\PlainDate::from(['year' => 2016, 'monthCode' => 'M0
 $months1 = new \Temporal\Spec\Duration(0, -1);
 $months1n = new \Temporal\Spec\Duration(0, 1);
 TemporalHelpers::assertPlainDate($common1230->subtract($months1), 2014, 13, 'M13', 5, 'Adding 1 month to last day of Nahase constrains to day 5 of common-year epagomenal month', 'am', 2014);
-Assert::throws(\InvalidArgumentException::class, function () use ($common1230, $months1, $options) { $common1230->subtract($months1, $options); }, 'Adding 1 month to last day of Nahase rejects in common year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$common1230, &$months1, &$options) { $common1230->subtract($months1, $options); }, 'Adding 1 month to last day of Nahase rejects in common year');
 TemporalHelpers::assertPlainDate($leap1230->subtract($months1), 2015, 13, 'M13', 6, 'Adding 1 month to last day of Nahase constrains to day 6 of leap-year epagomenal month', 'am', 2015);
-Assert::throws(\InvalidArgumentException::class, function () use ($leap1230, $months1, $options) { $leap1230->subtract($months1, $options); }, 'Adding 1 month to last day of Nahase rejects in leap year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap1230, &$months1, &$options) { $leap1230->subtract($months1, $options); }, 'Adding 1 month to last day of Nahase rejects in leap year');
 TemporalHelpers::assertPlainDate($leap0130->subtract($months1n), 2014, 13, 'M13', 5, 'Subtracting 1 month from last day of Maskaram constrains to day 5 of common-year epagomenal month', 'am', 2014);
-Assert::throws(\InvalidArgumentException::class, function () use ($leap0130, $months1n, $options) { $leap0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Maskaram rejects in common year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap0130, &$months1n, &$options) { $leap0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Maskaram rejects in common year');
 TemporalHelpers::assertPlainDate($common0130->subtract($months1n), 2015, 13, 'M13', 6, 'Subtracting 1 month from last day of Maskaram constrains to day 6 of leap-year epagomenal month', 'am', 2015);
-Assert::throws(\InvalidArgumentException::class, function () use ($common0130, $months1n, $options) { $common0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Maskaram rejects in leap year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0130, &$months1n, &$options) { $common0130->subtract($months1n, $options); }, 'Subtracting 1 month from last day of Maskaram rejects in leap year');

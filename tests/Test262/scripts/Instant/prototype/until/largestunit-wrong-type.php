@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
 $later = new \Temporal\Spec\Instant(1_000_090_061_987_654_321);
-TemporalHelpers::checkStringOptionWrongType('largestUnit', 'hour', fn($largestUnit) => $earlier->until($later, ['largestUnit' => $largestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 25, 1, 1, 987, 654, 321, $descr));
+TemporalHelpers::checkStringOptionWrongType('largestUnit', 'hour', function ($largestUnit) use (&$earlier, &$later) { return $earlier->until($later, ['largestUnit' => $largestUnit]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 25, 1, 1, 987, 654, 321, $descr));

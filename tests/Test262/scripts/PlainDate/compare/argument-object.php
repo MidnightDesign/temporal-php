@@ -15,5 +15,5 @@ Assert::sameValue(\Temporal\Spec\PlainDate::compare(['year' => 2024, 'month' => 
 Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, ['year' => 2024, 'month' => 1, 'day' => 12]), -1, 'second argument');
 Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, ['year' => 1976, 'month' => 11, 'day' => 18]), 0, 'second argument');
 Assert::sameValue(\Temporal\Spec\PlainDate::compare($d1, ['year' => 1926, 'month' => 7, 'day' => 7]), 1, 'second argument');
-Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::compare(['year' => 1976], $d2), 'only year in first argument');
-Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::compare($d1, ['year' => 2019]), 'only year in second argument');
+Assert::throws(\TypeError::class, function () use (&$d2) { return \Temporal\Spec\PlainDate::compare(['year' => 1976], $d2); }, 'only year in first argument');
+Assert::throws(\TypeError::class, function () use (&$d1) { return \Temporal\Spec\PlainDate::compare($d1, ['year' => 2019]); }, 'only year in second argument');

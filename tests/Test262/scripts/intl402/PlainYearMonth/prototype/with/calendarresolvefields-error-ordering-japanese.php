@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $plainYearMonth = \Temporal\Spec\PlainYearMonth::from(['calendar' => 'japanese', 'year' => 2020, 'month' => 5]);
-Assert::throws(\TypeError::class, fn() => $plainYearMonth->with(['era' => 'heisei', 'monthCode' => 'M05', 'month' => 6]), 'Missing eraYear throws TypeError before month/monthCode conflict throws RangeError');
-Assert::throws(\TypeError::class, fn() => $plainYearMonth->with(['era' => 'heisei', 'monthCode' => 'M05', 'month' => 6]), 'undefined eraYear throws TypeError before month/monthCode conflict throws RangeError');
-Assert::throws(\InvalidArgumentException::class, fn() => $plainYearMonth->with(['monthCode' => 'M05', 'month' => 6]), 'month/monthCode conflict throws RangeError when all types are valid');
-Assert::throws(\InvalidArgumentException::class, fn() => $plainYearMonth->with(['month' => 13], ['overflow' => 'reject']), 'Out-of-range month throws RangeError when all types are valid');
+Assert::throws(\TypeError::class, function () use (&$plainYearMonth) { return $plainYearMonth->with(['era' => 'heisei', 'monthCode' => 'M05', 'month' => 6]); }, 'Missing eraYear throws TypeError before month/monthCode conflict throws RangeError');
+Assert::throws(\TypeError::class, function () use (&$plainYearMonth) { return $plainYearMonth->with(['era' => 'heisei', 'monthCode' => 'M05', 'month' => 6]); }, 'undefined eraYear throws TypeError before month/monthCode conflict throws RangeError');
+Assert::throws(\InvalidArgumentException::class, function () use (&$plainYearMonth) { return $plainYearMonth->with(['monthCode' => 'M05', 'month' => 6]); }, 'month/monthCode conflict throws RangeError when all types are valid');
+Assert::throws(\InvalidArgumentException::class, function () use (&$plainYearMonth) { return $plainYearMonth->with(['month' => 13], ['overflow' => 'reject']); }, 'Out-of-range month throws RangeError when all types are valid');

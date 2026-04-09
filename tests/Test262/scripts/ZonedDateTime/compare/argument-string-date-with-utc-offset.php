@@ -15,6 +15,6 @@ Assert::sameValue($result, 0, "\"{$arg}\" is a valid UTC offset with time for Zo
 $invalidStrings = ['2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00[UTC]', '2022-09-15-02:30[America/St_Johns]'];
 $datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), "\"{$arg}\" UTC offset without time is not valid for ZonedDateTime (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), "\"{$arg}\" UTC offset without time is not valid for ZonedDateTime (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, "\"{$arg}\" UTC offset without time is not valid for ZonedDateTime (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, "\"{$arg}\" UTC offset without time is not valid for ZonedDateTime (second argument)");
 }

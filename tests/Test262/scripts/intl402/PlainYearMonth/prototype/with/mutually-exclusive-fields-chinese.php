@@ -13,4 +13,4 @@ $instance = \Temporal\Spec\PlainYearMonth::from(['year' => 1981, 'monthCode' => 
 TemporalHelpers::assertPlainYearMonth($instance, 1981, 12, 'M12', 'check that all fields are as expected', null, null, null);
 TemporalHelpers::assertPlainYearMonth($instance->with(['month' => 5], $options), 1981, 5, 'M05', 'month excludes monthCode', null, null, null);
 TemporalHelpers::assertPlainYearMonth($instance->with(['monthCode' => 'M05'], $options), 1981, 5, 'M05', 'monthCode excludes month', null, null, null);
-Assert::throws(\TypeError::class, fn() => $instance->with(['eraYear' => 2025, 'era' => 'ce']), 'eraYear and era are invalid for this calendar');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(['eraYear' => 2025, 'era' => 'ce']); }, 'eraYear and era are invalid for this calendar');

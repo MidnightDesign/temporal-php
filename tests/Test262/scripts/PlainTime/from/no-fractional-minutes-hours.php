@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = [['05:07.123', 'Fractional minutes'], ['12.5', 'Fractional hours']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from($arg), "{$description} not allowed in time string");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "{$description} not allowed in time string");
 }

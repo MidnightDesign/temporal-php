@@ -17,5 +17,5 @@ Assert::sameValue($result->timeZoneId, $id, "id for {$zone} should be {$id}");
 }
 $invalid = ['+00:01.1', '-01.1'];
 foreach ($invalid as $zone) {
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\ZonedDateTime(0, $zone), "should throw for {$zone}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$zone) { return new \Temporal\Spec\ZonedDateTime(0, $zone); }, "should throw for {$zone}");
 }

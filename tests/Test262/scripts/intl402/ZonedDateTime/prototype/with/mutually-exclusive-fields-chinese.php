@@ -13,4 +13,4 @@ $instance = \Temporal\Spec\ZonedDateTime::from(['year' => 1981, 'monthCode' => '
 TemporalHelpers::assertPlainDateTime($instance->toPlainDateTime(), 1981, 12, 'M12', 15, 12, 34, 0, 0, 0, 0, 'check that all fields are as expected');
 TemporalHelpers::assertPlainDateTime($instance->with(['month' => 5], $options)->toPlainDateTime(), 1981, 5, 'M05', 15, 12, 34, 0, 0, 0, 0, 'month excludes monthCode');
 TemporalHelpers::assertPlainDateTime($instance->with(['monthCode' => 'M05'], $options)->toPlainDateTime(), 1981, 5, 'M05', 15, 12, 34, 0, 0, 0, 0, 'monthCode excludes month');
-Assert::throws(\TypeError::class, fn() => $instance->with(['eraYear' => 2025, 'era' => 'ce']), 'eraYear and era are invalid for this calendar');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(['eraYear' => 2025, 'era' => 'ce']); }, 'eraYear and era are invalid for this calendar');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
-TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'microsecond', fn($smallestUnit) => $duration->round(['smallestUnit' => $smallestUnit]), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 12, 34, 56, 123, 988, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'microsecond', function ($smallestUnit) use (&$duration) { return $duration->round(['smallestUnit' => $smallestUnit]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 12, 34, 56, 123, 988, 0, $descr));

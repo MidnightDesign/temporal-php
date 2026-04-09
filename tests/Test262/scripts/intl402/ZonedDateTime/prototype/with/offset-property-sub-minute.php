@@ -21,4 +21,4 @@ $result = $instance->with($properties, ['offset' => 'use']);
 Assert::sameValue($result->epochNanoseconds, 132_300_000_000_000, 'accepts HH:MM rounded offset (offset=use)');
 Assert::sameValue($result->offset, $instance->offset, 'offset property is unchanged');
 TemporalHelpers::assertPlainDateTime($result->toPlainDateTime(), 1970, 1, 'M01', 2, 12, 0, 30, 0, 0, 0, 'wall time is shifted by the difference between exact and rounded offset');
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->with($properties, ['offset' => 'reject']), 'no fuzzy matching is done in with()');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$properties) { return $instance->with($properties, ['offset' => 'reject']); }, 'no fuzzy matching is done in with()');

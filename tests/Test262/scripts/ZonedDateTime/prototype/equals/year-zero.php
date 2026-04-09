@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['-0000000-01-01T00:02Z[UTC]', '-0000000-01-01T00:02+00:00[UTC]', '-0000000-01-01T00:02:00.000000000+00:00[UTC]'];
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), 'reject minus zero as extended year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, 'reject minus zero as extended year');
 }

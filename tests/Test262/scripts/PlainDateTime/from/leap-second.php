@@ -16,4 +16,4 @@ TemporalHelpers::assertPlainDateTime($result2, 2016, 12, 'M12', 31, 23, 59, 59, 
 $arg = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
 $result3 = \Temporal\Spec\PlainDateTime::from($arg);
 TemporalHelpers::assertPlainDateTime($result3, 2016, 12, 'M12', 31, 23, 59, 59, 0, 0, 0, 'second: 60 is constrained in property bag for PlainDateTime');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from($arg, ['overflow' => 'reject']), 'second: 60 is rejected in property bag for PlainDateTime with overflow: reject');
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDateTime::from($arg, ['overflow' => 'reject']); }, 'second: 60 is rejected in property bag for PlainDateTime with overflow: reject');

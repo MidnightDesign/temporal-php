@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $timeZone = '+01:00';
 $datetime = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $properties = ['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => '-07:00', 'timeZone' => $timeZone];
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($properties, $datetime), 'offset property not matching time zone is rejected (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $properties), 'offset property not matching time zone is rejected (second argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$properties, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($properties, $datetime); }, 'offset property not matching time zone is rejected (first argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$properties) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $properties); }, 'offset property not matching time zone is rejected (second argument)');

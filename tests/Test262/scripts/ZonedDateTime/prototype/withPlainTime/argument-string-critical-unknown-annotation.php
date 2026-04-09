@@ -11,5 +11,5 @@ $invalidStrings = ['00:00[!foo=bar]', 'T00:00[!foo=bar]', '1970-01-01T00:00[!foo
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->withPlainTime($arg), "reject unknown annotation with critical flag: {$arg}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "reject unknown annotation with critical flag: {$arg}");
 }

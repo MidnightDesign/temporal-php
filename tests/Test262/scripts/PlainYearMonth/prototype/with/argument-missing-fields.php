@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-10');
-Assert::throws(\TypeError::class, fn() => $ym->with(new \stdClass()), 'No properties');
-Assert::throws(\TypeError::class, fn() => $ym->with(['months' => 12]), 'Only plural \'months\' property');
+Assert::throws(\TypeError::class, function () use (&$ym) { return $ym->with(new \stdClass()); }, 'No properties');
+Assert::throws(\TypeError::class, function () use (&$ym) { return $ym->with(['months' => 12]); }, 'Only plural \'months\' property');

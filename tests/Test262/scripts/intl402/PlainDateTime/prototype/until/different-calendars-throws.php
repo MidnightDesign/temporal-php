@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $dt1 = new \Temporal\Spec\PlainDateTime(2000, 1, 1, 0, 0, 0, 0, 0, 0);
 $dt2 = new \Temporal\Spec\PlainDateTime(2000, 1, 1, 0, 0, 0, 0, 0, 0, 'gregory');
-Assert::throws(\InvalidArgumentException::class, fn() => $dt1->until($dt2), 'cannot use until with PDTs having different calendars');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt1, &$dt2) { return $dt1->until($dt2); }, 'cannot use until with PDTs having different calendars');

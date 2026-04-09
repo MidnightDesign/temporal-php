@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $zdt = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt->round(new \stdClass()), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->round(new \stdClass()); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']); }, '');

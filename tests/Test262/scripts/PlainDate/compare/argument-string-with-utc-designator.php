@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]'];
 $plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::compare($arg, $plainDate), 'String with UTC designator should not be valid as a PlainDate (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::compare($plainDate, $arg), 'String with UTC designator should not be valid as a PlainDate (second argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$plainDate) { return \Temporal\Spec\PlainDate::compare($arg, $plainDate); }, 'String with UTC designator should not be valid as a PlainDate (first argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$plainDate, &$arg) { return \Temporal\Spec\PlainDate::compare($plainDate, $arg); }, 'String with UTC designator should not be valid as a PlainDate (second argument)');
 }

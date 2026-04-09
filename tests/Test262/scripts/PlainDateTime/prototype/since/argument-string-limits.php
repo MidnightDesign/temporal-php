@@ -14,5 +14,5 @@ $instance->since($arg);
 }
 $invalidStrings = ['-271821-04-19', '-271821-04-19T00:00', '+275760-09-14', '+275760-09-14T00:00'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->since($arg), "\"{$arg}\" is outside the representable range of PlainDateTime");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, "\"{$arg}\" is outside the representable range of PlainDateTime");
 }

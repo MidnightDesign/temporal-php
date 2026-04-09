@@ -13,4 +13,4 @@ $maxDays = (int) ($maxSeconds / $secondsPerDay);
 $maxHours = (int) (fmod(num1: $maxSeconds / $secondsPerDay, num2: 1) * 24);
 $d = new \Temporal\Spec\Duration(0, 0, 0, -$maxDays, -$maxHours);
 $pdt = new \Temporal\Spec\PlainDateTime(1970, 1, 1, 24 - $maxHours);
-Assert::throws(\InvalidArgumentException::class, fn() => $pdt->subtract($d), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$pdt, &$d) { return $pdt->subtract($d); }, '');

@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['-12:12:59.9', '2021-08-19T17:30:45.123456789-12:12:59.9[-12:12:59.9]'] as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->withTimeZone($timeZone), "{$timeZone} is not a valid time zone string");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$timeZone) { return $instance->withTimeZone($timeZone); }, "{$timeZone} is not a valid time zone string");
 }

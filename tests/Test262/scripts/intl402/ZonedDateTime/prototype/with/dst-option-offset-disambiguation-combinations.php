@@ -30,7 +30,7 @@ Assert::sameValue($zdt->hour, 1, 'Hour result when option offset: ignore and dis
 $zdt = $dstEndDay->with($oneThirty, ['offset' => $offset, 'disambiguation' => 'later']);
 Assert::sameValue($zdt->offset, '-08:00', 'Offset result when option offset: ignore and disambiguation: later, repeated time');
 Assert::sameValue($zdt->hour, 1, 'Hour result when option offset: ignore and disambiguation: later, repeated time');
-Assert::throws(\InvalidArgumentException::class, fn() => $dstStartDay->with($twoThirty, ['offset' => $offset, 'disambiguation' => 'reject']), 'Throws when option offset: ignore and disambiguation: reject');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dstStartDay, &$twoThirty, &$offset) { return $dstStartDay->with($twoThirty, ['offset' => $offset, 'disambiguation' => 'reject']); }, 'Throws when option offset: ignore and disambiguation: reject');
 $bogus = array_merge($twoThirty, ['offset' => '+23:59']);
 $offset = 'ignore';
 $zdt = $dstStartDay->with($bogus, ['offset' => $offset, 'disambiguation' => 'earlier']);

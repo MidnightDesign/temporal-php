@@ -24,9 +24,9 @@ $leap202004L = \Temporal\Spec\PlainDateTime::from(['year' => 2020, 'monthCode' =
 $common202104 = \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'monthCode' => 'M04', 'day' => 1, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
 TemporalHelpers::assertPlainDateTime($common201901->subtract($years1), 2020, 1, 'M01', 1, 12, 34, 0, 0, 0, 0, 'add 1 year from non-leap day');
 TemporalHelpers::assertPlainDateTime($leap196603L->subtract($years1), 1967, 3, 'M03', 1, 12, 34, 0, 0, 0, 0, 'Adding 1 year to leap month M03L lands in common-year M03 with overflow constrain');
-Assert::throws(\InvalidArgumentException::class, function () use ($leap196603L, $years1, $options) { $leap196603L->subtract($years1, $options); }, 'Adding 1 year to leap month rejects');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap196603L, &$years1, &$options) { $leap196603L->subtract($years1, $options); }, 'Adding 1 year to leap month rejects');
 TemporalHelpers::assertPlainDateTime($leap193807L->subtract($years1), 1939, 7, 'M07', 29, 12, 34, 0, 0, 0, 0, 'Adding 1 year to leap month M07L on day 30 constrains to M07 day 29');
-Assert::throws(\InvalidArgumentException::class, function () use ($leap193807L, $years1, $options) { $leap193807L->subtract($years1, $options); }, 'Adding 1 year to leap month day 30 rejects');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap193807L, &$years1, &$options) { $leap193807L->subtract($years1, $options); }, 'Adding 1 year to leap month day 30 rejects');
 TemporalHelpers::assertPlainDateTime($common201904->subtract($years1, $options), 2020, 4, 'M04', 1, 12, 34, 0, 0, 0, 0, 'Adding 1 year to common-year M04 lands in leap-year M04');
 TemporalHelpers::assertPlainDateTime($leap202004->subtract($years1, $options), 2021, 4, 'M04', 1, 12, 34, 0, 0, 0, 0, 'Adding 1 year to leap-year M04 lands in common-year M04');
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from(['year' => 2012, 'monthCode' => 'M04L', 'day' => 1, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options)->subtract(new \Temporal\Spec\Duration(-8), $options), 2020, 5, 'M04L', 1, 12, 34, 0, 0, 0, 0, 'Adding years to go from one M04L to the next M04L');
@@ -34,9 +34,9 @@ TemporalHelpers::assertPlainDateTime($common200008->subtract($years1, $options),
 TemporalHelpers::assertPlainDateTime($common201904->subtract(new \Temporal\Spec\Duration(-2), $options), 2021, 4, 'M04', 1, 12, 34, 0, 0, 0, 0, 'Adding 2 years to common-year M04 crossing leap year lands in common-year M04');
 TemporalHelpers::assertPlainDateTime($common201901->subtract($years1n), 2018, 1, 'M01', 1, 12, 34, 0, 0, 0, 0, 'Subtracting 1 year from non-leap day');
 TemporalHelpers::assertPlainDateTime($leap196603L->subtract($years1n), 1965, 3, 'M03', 1, 12, 34, 0, 0, 0, 0, 'Subtracting 1 year from leap month M03L lands in common-year M03 with overflow constrain');
-Assert::throws(\InvalidArgumentException::class, function () use ($leap196603L, $years1n, $options) { $leap196603L->subtract($years1n, $options); }, 'Subtracting 1 year from leap month rejects');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap196603L, &$years1n, &$options) { $leap196603L->subtract($years1n, $options); }, 'Subtracting 1 year from leap month rejects');
 TemporalHelpers::assertPlainDateTime($leap195205L->subtract($years1n), 1951, 5, 'M05', 29, 12, 34, 0, 0, 0, 0, 'Subtracting 1 year from leap month M05L on day 30 constrains to M05 day 29');
-Assert::throws(\InvalidArgumentException::class, function () use ($leap195205L, $years1n, $options) { $leap195205L->subtract($years1n, $options); }, 'Subtracting 1 year from leap month day 30 rejects');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap195205L, &$years1n, &$options) { $leap195205L->subtract($years1n, $options); }, 'Subtracting 1 year from leap month day 30 rejects');
 TemporalHelpers::assertPlainDateTime($common202104->subtract($years1n, $options), 2020, 4, 'M04', 1, 12, 34, 0, 0, 0, 0, 'Subtracting 1 year from common-year M04 lands in leap-year M04');
 TemporalHelpers::assertPlainDateTime($leap202004->subtract($years1n, $options), 2019, 4, 'M04', 1, 12, 34, 0, 0, 0, 0, 'Subtracting 1 year from leap-year M04 lands in common-year M04');
 TemporalHelpers::assertPlainDateTime($leap202004L->subtract(new \Temporal\Spec\Duration(8), $options), 2012, 5, 'M04L', 1, 12, 34, 0, 0, 0, 0, 'Subtracting years to go from one M04L to the previous M04L');

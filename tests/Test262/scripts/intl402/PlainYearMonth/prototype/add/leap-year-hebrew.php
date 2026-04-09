@@ -14,6 +14,6 @@ $years1 = new \Temporal\Spec\Duration(1);
 $years1n = new \Temporal\Spec\Duration(-1);
 $adarI = \Temporal\Spec\PlainYearMonth::from(['year' => 5782, 'monthCode' => 'M05L', 'calendar' => $calendar], $options);
 TemporalHelpers::assertPlainYearMonth($adarI->add($years1), 5783, 6, 'M06', 'Adding 1 year to Adar I constrains to Adar', 'am', 5783, null);
-Assert::throws(\InvalidArgumentException::class, function () use ($adarI, $years1, $options) { $adarI->add($years1, $options); }, 'Adding 1 year to 30 Adar I rejects because the month would be constrained');
+Assert::throws(\InvalidArgumentException::class, function () use (&$adarI, &$years1, &$options) { $adarI->add($years1, $options); }, 'Adding 1 year to 30 Adar I rejects because the month would be constrained');
 TemporalHelpers::assertPlainYearMonth($adarI->add($years1n), 5781, 6, 'M06', 'Subtracting 1 year from Adar I constrains to Adar', 'am', 5781, null);
-Assert::throws(\InvalidArgumentException::class, function () use ($adarI, $years1n, $options) { $adarI->add($years1n, $options); }, 'Subtracting 1 year from 30 Adar I rejects because the month would be constrained');
+Assert::throws(\InvalidArgumentException::class, function () use (&$adarI, &$years1n, &$options) { $adarI->add($years1n, $options); }, 'Subtracting 1 year from 30 Adar I rejects because the month would be constrained');

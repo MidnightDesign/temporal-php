@@ -14,6 +14,6 @@ foreach ($nonexistentMonthDays as $__obj__) {
 $year = $__obj__['year'] ?? null;
 $monthCode = $__obj__['monthCode'] ?? null;
 $day = $__obj__['day'] ?? null;
-Assert::throws(\InvalidArgumentException::class, function () use ($pmd, $calendar, $year, $monthCode, $day) { $pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day], ['overflow' => 'reject']); }, "{$year}, {$monthCode}, {$day} should not be valid with reject overflow");
+Assert::throws(\InvalidArgumentException::class, function () use (&$pmd, &$calendar, &$year, &$monthCode, &$day) { $pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day], ['overflow' => 'reject']); }, "{$year}, {$monthCode}, {$day} should not be valid with reject overflow");
 }
 }

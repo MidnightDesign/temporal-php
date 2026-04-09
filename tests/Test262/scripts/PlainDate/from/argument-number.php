@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $numbers = [1, 19_761_118, -19_761_118, 1_234_567_890];
 foreach ($numbers as $arg) {
-Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from($arg), 'Numbers cannot be used in place of an ISO string for PlainDate');
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainDate::from($arg); }, 'Numbers cannot be used in place of an ISO string for PlainDate');
 }

@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18);
 $numbers = [1, 19_761_118, -19_761_118, 1_234_567_890];
 foreach ($numbers as $arg) {
-Assert::throws(\TypeError::class, fn() => $instance->since($arg), "A number ({$arg}) is not a valid ISO string for PlainDateTime");
+Assert::throws(\TypeError::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, "A number ({$arg}) is not a valid ISO string for PlainDateTime");
 }

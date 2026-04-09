@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $ym = \Temporal\Spec\PlainYearMonth::from('2002-01');
 TemporalHelpers::assertPlainDate($ym->toPlainDate(['day' => 22]), 2002, 1, 'M01', 22);
-Assert::throws(\TypeError::class, fn() => $ym->toPlainDate(['something' => 'nothing']), '');
+Assert::throws(\TypeError::class, function () use (&$ym) { return $ym->toPlainDate(['something' => 'nothing']); }, '');

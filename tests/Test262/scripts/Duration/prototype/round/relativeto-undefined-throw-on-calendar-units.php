@@ -14,11 +14,11 @@ $oneWeek = new \Temporal\Spec\Duration(0, 0, 1);
 $oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $options = ['largestUnit' => 'days'];
 TemporalHelpers::assertDuration($oneDay->round($options), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'days do not require relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneWeek->round($options), 'balancing weeks to days requires relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneMonth->round($options), 'balancing months to days requires relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->round($options), 'balancing years to days requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneWeek, &$options) { return $oneWeek->round($options); }, 'balancing weeks to days requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneMonth, &$options) { return $oneMonth->round($options); }, 'balancing months to days requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneYear, &$options) { return $oneYear->round($options); }, 'balancing years to days requires relativeTo');
 foreach (['months', 'weeks'] as $largestUnit) {
 foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->round(['largestUnit' => $largestUnit]), "balancing {$duration} to {$largestUnit} requires relativeTo");
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$largestUnit) { return $duration->round(['largestUnit' => $largestUnit]); }, "balancing {$duration} to {$largestUnit} requires relativeTo");
 }
 }

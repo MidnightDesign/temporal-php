@@ -15,7 +15,7 @@ $leapMonthCode = $nonLeapMonthCode . 'L';
 $fields = ['year' => 2022, 'monthCode' => $leapMonthCode, 'calendar' => 'chinese'];
 $result = \Temporal\Spec\PlainYearMonth::from($fields, ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainYearMonth($result, 2022, $month, $nonLeapMonthCode, "Chinese intercalary month {$leapMonthCode} is constrained to {$nonLeapMonthCode} in year 2022 (overflow constrain)", null, null, $referenceISODay);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from($fields, ['overflow' => 'reject']), "Chinese intercalary month {$leapMonthCode} does not exist in year 2022 (overflow reject)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$fields) { return \Temporal\Spec\PlainYearMonth::from($fields, ['overflow' => 'reject']); }, "Chinese intercalary month {$leapMonthCode} does not exist in year 2022 (overflow reject)");
 }
 $leapMonthsTestData = [['M02L', 2023, 3, 22], ['M03L', 1993, 4, 22], ['M04L', 2020, 5, 23], ['M05L', 2009, 6, 23], ['M06L', 2017, 7, 23], ['M07L', 2006, 8, 24], ['M08L', 1995, 9, 25], ['M09L', 2014, 10, 24], ['M10L', 1984, 11, 23], ['M11L', 2033, 12, 22]];
 foreach ($leapMonthsTestData as $__entry__) {

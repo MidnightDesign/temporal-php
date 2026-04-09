@@ -13,4 +13,4 @@ $options = ['overflow' => 'reject'];
 $leapDay = \Temporal\Spec\PlainDate::from(['year' => 105, 'monthCode' => 'M02', 'day' => 29, 'calendar' => $calendar], $options);
 TemporalHelpers::assertPlainDate($leapDay->with(['year' => 101], $options), 101, 2, 'M02', 29, 'day not constrained when moving to another leap year', 'roc', 101);
 TemporalHelpers::assertPlainDate($leapDay->with(['year' => 107]), 107, 2, 'M02', 28, 'day constrained when moving to a common year', 'roc', 107);
-Assert::throws(\InvalidArgumentException::class, function () use ($leapDay, $options) { $leapDay->with(['year' => 107], $options); }, 'reject when moving to a common year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$leapDay, &$options) { $leapDay->with(['year' => 107], $options); }, 'reject when moving to a common year');

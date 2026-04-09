@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $earlier = new \Temporal\Spec\PlainYearMonth(2019, 1);
 $later = new \Temporal\Spec\PlainYearMonth(2021, 9);
 foreach (['weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $largestUnit) {
-Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['largestUnit' => $largestUnit]), "throws on disallowed or invalid largestUnit: {$largestUnit}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier, &$largestUnit) { return $later->since($earlier, ['largestUnit' => $largestUnit]); }, "throws on disallowed or invalid largestUnit: {$largestUnit}");
 }

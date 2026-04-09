@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $calendarsWithEras = ['buddhist', 'coptic', 'ethioaa', 'ethiopic', 'gregory', 'hebrew', 'indian', 'islamic-civil', 'islamic-tbla', 'islamic-umalqura', 'japanese', 'persian', 'roc'];
 $calendarsWithoutEras = ['chinese', 'dangi'];
 foreach ($calendarsWithEras as $calendar) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from(['year' => 2025, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'era' => 'xyz', 'eraYear' => 2025, 'calendar' => $calendar]), "xyz is not a valid era in calendar {$calendar}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\ZonedDateTime::from(['year' => 2025, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'era' => 'xyz', 'eraYear' => 2025, 'calendar' => $calendar]); }, "xyz is not a valid era in calendar {$calendar}");
 }
 foreach ($calendarsWithoutEras as $calendar) {
 $result = \Temporal\Spec\ZonedDateTime::from(['year' => 2025, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'era' => 'xyz', 'eraYear' => 2025, 'calendar' => $calendar]);

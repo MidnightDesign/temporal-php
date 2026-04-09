@@ -12,5 +12,5 @@ $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::compare($str, $datetime), 0, 'Time zone determined from bracket name (first argument)');
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::compare($datetime, $str), 0, 'Time zone determined from bracket name (second argument)');
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35:00.000000000]';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($str, $datetime), 'Trailing zeroes not allowed for sub-minute time zone identifiers (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $str), 'Trailing zeroes not allowed for sub-minute time zone identifiers (second argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$str, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($str, $datetime); }, 'Trailing zeroes not allowed for sub-minute time zone identifiers (first argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$str) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $str); }, 'Trailing zeroes not allowed for sub-minute time zone identifiers (second argument)');
