@@ -13,7 +13,7 @@ $m = (preg_match('/(?<=\[)[\w\/_+-]+(?=\])/', $str, $__m) ? $__m : null);
 Assert::sameValue($m !== null, true, $str);
 return $m[0];
 };
-foreach (\DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC) as $id) {
+foreach (\DateTimeZone::listIdentifiers() as $id) {
 $instance = new \Temporal\Spec\ZonedDateTime(0, $id);
 Assert::sameValue($timeZoneId($instance), $id, '');
 }

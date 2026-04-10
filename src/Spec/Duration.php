@@ -673,7 +673,10 @@ final class Duration implements Stringable
         return $this->toString();
     }
 
-    /** @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec */
+    /**
+     * @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec
+     * @psalm-api
+     */
     public function toJSON(mixed $options = null): string
     {
         return $this->toString();
@@ -811,11 +814,11 @@ final class Duration implements Stringable
                 if ($unit === 'days' && $rtIsZDT && $parsedRt['_localTimeSec'] !== 0) {
                     // Check if the timezone is IANA (not UTC/fixed-offset).
                     $tzBracket = null;
-                    if (preg_match('/\[([^\]=]+)\]\s*$/', $rtRaw, $_m)) {
+                    if (preg_match('/\[([^\]=]+)\]\s*$/', $rtRaw, $_m) === 1) {
                         $tzBracket = $_m[1];
                     }
                     $isIanaTz = $tzBracket !== null && $tzBracket !== 'UTC'
-                        && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzBracket);
+                        && preg_match('/^[+\-]\d{2}:\d{2}$/', $tzBracket) !== 1;
                     if (!$isIanaTz) {
                         throw new InvalidArgumentException(
                             "relativeTo ZonedDateTime for total('days') must be at local midnight.",
@@ -1352,7 +1355,7 @@ final class Duration implements Stringable
             // Work in seconds to avoid float precision loss from nanosecond conversion.
             $fracSec = (float) $fracNs / 1_000_000_000.0;
             $absSpan = abs($actualSpanSec);
-            $progress = (abs($actualRemainingSec) + abs($fracSec)) / (float) $absSpan;
+            $progress = (abs($actualRemainingSec) + abs($fracSec)) / $absSpan;
             $result = (float) ($months * $sign) + ($sign > 0 ? $progress : -$progress);
             return self::toIntIfWhole($result);
         }
@@ -1369,8 +1372,12 @@ final class Duration implements Stringable
      * Counts fractional years from $start spanning $wholeDays days + $fracNs nanoseconds.
      * Implements TC39 RoundDuration for unit = "years".
      */
-    private function totalCalendarYears(\DateTimeImmutable $start, int $wholeDays, int $fracNs): int|float
+    /**
+     * @param array{epochSec:int,subNs:int,tzId:string,year:int,month:int,day:int,hour:int,minute:int,second:int}|null $zdtInfo
+     */
+    private function totalCalendarYears(\DateTimeImmutable $start, int $wholeDays, int $fracNs, ?array $zdtInfo = null): int|float
     {
+        unset($zdtInfo); // Not currently used; reserved for future ZDT-aware year total.
         $absWholeDays = abs($wholeDays);
         $dir = $wholeDays >= 0 ? '+' : '-';
         $sign = $wholeDays >= 0 ? 1 : -1;
@@ -2345,7 +2352,8 @@ final class Duration implements Stringable
             // Balance the sub-day ns to fields. When ZDT IANA is present, cap at hours
             // (luIdx=5) since days were already computed by zdtBalanceTimeToDays with
             // actual day lengths — re-balancing at 24h/day would produce incorrect results.
-            $balanceIdx = ($zdtInfoRound !== null && $luIdx >= 6) ? 5 : $luIdx;
+            // $luIdx is guaranteed >= 6 by the enclosing branch.
+            $balanceIdx = $zdtInfoRound !== null ? 5 : $luIdx;
             [$rDays, $rH, $rM, $rS, $rMs, $rUs, $rNs] = self::balanceNsToFields($roundedSubDayNs, $balanceIdx);
             /** @psalm-suppress InvalidOperand — balanceNsToFields returns int|float; $absD is int */
             $rDays += $absD;
@@ -2407,12 +2415,14 @@ final class Duration implements Stringable
         // Safe threshold: 106_750 * 86_400_000_000_000 + 86_399_999_999_999 < PHP_INT_MAX.
         // Direct comparison (not a bool variable) lets Psalm narrow $absD's range inside the block.
         // For ZDT IANA: convert days to actual nanoseconds using DST-aware day lengths.
-        $dayNsFactor = 86_400_000_000_000;
         if ($zdtInfoRound !== null && $absD > 0) {
+            // Pass the ZDT's actual epoch so that sub-minute offsets (e.g. Pacific/Niue
+            // -11:19:40 vs -11:20:00) are preserved instead of being re-resolved from
+            // the wall time via compatible disambiguation.
             $actualDaysSec = (int) self::zdtDaysToSec(
                 $zdtInfoRound['year'], $zdtInfoRound['month'], $zdtInfoRound['day'],
                 $zdtInfoRound['hour'], $zdtInfoRound['minute'], $zdtInfoRound['second'],
-                $zdtInfoRound['tzId'], $sign * $absD,
+                $zdtInfoRound['tzId'], $sign * $absD, $zdtInfoRound['epochSec'],
             );
             $dayNsActual = abs($actualDaysSec) * 1_000_000_000;
             if ($absD <= 106_750) {
@@ -2748,10 +2758,11 @@ final class Duration implements Stringable
         $tzId = $zdt->timeZoneId;
         if ($tzId === 'UTC') {
             $offsetSec = 0;
-        } elseif (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m)) {
+        } elseif (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
             $offsetSec = $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         } else {
+            assert($tzId !== '');
             $tz = new \DateTimeZone($tzId);
             $offsetSec = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
         }
@@ -2762,27 +2773,6 @@ final class Duration implements Stringable
             'month' => (int) $dt->format('n'),
             'day' => (int) $dt->format('j'),
         ];
-    }
-
-    /**
-     * Parses a timezone identifier to an offset in seconds.
-     *
-     * Supported: "UTC", "Z", and fixed-offset "±HH:MM[:SS]".
-     *
-     * @throws InvalidArgumentException for IANA timezone names or invalid formats.
-     */
-    private static function parseTimezoneToOffsetSec(string $tz): int
-    {
-        if ($tz === 'UTC' || $tz === 'Z') {
-            return 0;
-        }
-        if (preg_match('/^([+\-])(\d{2}):(\d{2})(?::(\d{2}))?$/', $tz, $m) === 1) {
-            $sign = $m[1] === '+' ? 1 : -1;
-            return $sign * (((int) $m[2] * 3_600) + ((int) $m[3] * 60) + (isset($m[4]) ? (int) $m[4] : 0));
-        }
-        throw new InvalidArgumentException(
-            "ZonedDateTime timezone '{$tz}' is not a fixed-offset timezone. Only UTC and ±HH:MM are supported.",
-        );
     }
 
     /**
@@ -3365,7 +3355,7 @@ final class Duration implements Stringable
     {
         if ($rt instanceof ZonedDateTime) {
             $tzId = $rt->timeZoneId;
-            if ($tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId)) {
+            if ($tzId === '' || $tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) === 1) {
                 return null;
             }
             $epochNs = $rt->epochNanoseconds;
@@ -3396,7 +3386,7 @@ final class Duration implements Stringable
             // Parse the string to check for IANA timezone.
             if (preg_match('/\[([^\]=]+)\]\s*$/', $rt, $m) === 1) {
                 $tzId = $m[1];
-                if ($tzId !== 'UTC' && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId)) {
+                if ($tzId !== 'UTC' && preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) !== 1) {
                     // It's an IANA timezone string. Construct a ZDT and recurse.
                     $zdt = ZonedDateTime::from($rt);
                     return self::resolveRelativeToZdt($zdt);
@@ -3409,8 +3399,8 @@ final class Duration implements Stringable
             $tzVal = $rt['timeZone'];
             // Only treat as IANA timezone if it looks like one (contains '/' or is a known single-word zone).
             // Datetime strings passed as timeZone (e.g. "2021-08-19T17:30-0700") are not IANA.
-            if (is_string($tzVal) && $tzVal !== 'UTC' && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzVal)
-                && !str_contains($tzVal, 'T') && !preg_match('/^\d{4}-/', $tzVal)
+            if (is_string($tzVal) && $tzVal !== '' && $tzVal !== 'UTC' && preg_match('/^[+\-]\d{2}:\d{2}$/', $tzVal) !== 1
+                && !str_contains($tzVal, 'T') && preg_match('/^\d{4}-/', $tzVal) !== 1
                 && @(new \DateTimeZone($tzVal))->getName() === $tzVal
             ) {
                 // Property bag with IANA timezone. Use ZonedDateTime::from() so offset
@@ -3434,6 +3424,11 @@ final class Duration implements Stringable
     ): int {
         // Compute wall seconds (seconds since epoch if interpreted as UTC).
         $wallSec = gmmktime($hour, $minute, $second, $month, $day, $year);
+        if ($wallSec === false) {
+            throw new InvalidArgumentException(
+                "Invalid local date/time: {$year}-{$month}-{$day} {$hour}:{$minute}:{$second}.",
+            );
+        }
         return ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
     }
 
@@ -3568,7 +3563,7 @@ final class Duration implements Stringable
         $useKnownEpoch = ($knownStartEpoch !== null && $absDays === 0);
 
         while (true) {
-            $curEpoch = $useKnownEpoch
+            $curEpoch = $useKnownEpoch && $knownStartEpoch !== null
                 ? $knownStartEpoch
                 : self::localToEpochSec($curYear, $curMonth, $curDay, $hour, $minute, $second, $tzId);
             $useKnownEpoch = false;
@@ -4162,6 +4157,8 @@ final class Duration implements Stringable
                 $roundedDays = $sign * ($roundedAbsDays + abs($calendarDays));
                 $subDayNs = $sign * $absSubDayNs;
             } else {
+                $roundedAbsNs = self::roundNsPositive($absNs, $nsIncrement, $signedMode);
+                $roundedNs = $sign * $roundedAbsNs;
                 $roundedDays = intdiv(num1: $roundedNs, num2: $nsPerDay);
                 $subDayNs = $roundedNs - ($roundedDays * $nsPerDay);
             }

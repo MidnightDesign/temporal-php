@@ -48,50 +48,67 @@ final class PlainDateTest extends TestCase
     public function testDayOfWeek(): void
     {
         // 2020-06-15 is a Monday (1)
-        self::assertSame(1, (new PlainDate(2020, 6, 15))->dayOfWeek);
+        self::assertSame(1, new PlainDate(2020, 6, 15)->dayOfWeek);
         // 2020-06-21 is a Sunday (7)
-        self::assertSame(7, (new PlainDate(2020, 6, 21))->dayOfWeek);
+        self::assertSame(7, new PlainDate(2020, 6, 21)->dayOfWeek);
     }
 
     public function testDayOfYear(): void
     {
         // Jan 1 is day 1
-        self::assertSame(1, (new PlainDate(2020, 1, 1))->dayOfYear);
+        self::assertSame(1, new PlainDate(2020, 1, 1)->dayOfYear);
         // Dec 31 of a leap year is day 366
-        self::assertSame(366, (new PlainDate(2020, 12, 31))->dayOfYear);
+        self::assertSame(366, new PlainDate(2020, 12, 31)->dayOfYear);
     }
 
     public function testWeekOfYear(): void
     {
         // 2020-01-01 is in week 1
-        self::assertSame(1, (new PlainDate(2020, 1, 1))->weekOfYear);
+        self::assertSame(1, new PlainDate(2020, 1, 1)->weekOfYear);
     }
 
     public function testYearOfWeek(): void
     {
         // 2020-01-01 is in week-year 2020
-        self::assertSame(2020, (new PlainDate(2020, 1, 1))->yearOfWeek);
+        self::assertSame(2020, new PlainDate(2020, 1, 1)->yearOfWeek);
         // 2024-12-30 (Monday) is in ISO week 1 of 2025
-        self::assertSame(2025, (new PlainDate(2024, 12, 30))->yearOfWeek);
+        self::assertSame(2025, new PlainDate(2024, 12, 30)->yearOfWeek);
     }
 
     public function testDaysInMonth(): void
     {
-        self::assertSame(31, (new PlainDate(2020, 1, 1))->daysInMonth);
-        self::assertSame(29, (new PlainDate(2020, 2, 1))->daysInMonth);
-        self::assertSame(28, (new PlainDate(2019, 2, 1))->daysInMonth);
+        self::assertSame(31, new PlainDate(2020, 1, 1)->daysInMonth);
+        self::assertSame(29, new PlainDate(2020, 2, 1)->daysInMonth);
+        self::assertSame(28, new PlainDate(2019, 2, 1)->daysInMonth);
     }
 
     public function testDaysInYear(): void
     {
-        self::assertSame(366, (new PlainDate(2020, 1, 1))->daysInYear);
-        self::assertSame(365, (new PlainDate(2019, 1, 1))->daysInYear);
+        self::assertSame(366, new PlainDate(2020, 1, 1)->daysInYear);
+        self::assertSame(365, new PlainDate(2019, 1, 1)->daysInYear);
+    }
+
+    public function testDaysInWeek(): void
+    {
+        self::assertSame(7, new PlainDate(2020, 1, 1)->daysInWeek);
+    }
+
+    public function testMonthsInYear(): void
+    {
+        self::assertSame(12, new PlainDate(2020, 1, 1)->monthsInYear);
+    }
+
+    public function testMonthCode(): void
+    {
+        self::assertSame('M01', new PlainDate(2020, 1, 1)->monthCode);
+        self::assertSame('M06', new PlainDate(2020, 6, 15)->monthCode);
+        self::assertSame('M12', new PlainDate(2020, 12, 31)->monthCode);
     }
 
     public function testInLeapYear(): void
     {
-        self::assertTrue((new PlainDate(2020, 1, 1))->inLeapYear);
-        self::assertFalse((new PlainDate(2019, 1, 1))->inLeapYear);
+        self::assertTrue(new PlainDate(2020, 1, 1)->inLeapYear);
+        self::assertFalse(new PlainDate(2019, 1, 1)->inLeapYear);
     }
 
     // -------------------------------------------------------------------------

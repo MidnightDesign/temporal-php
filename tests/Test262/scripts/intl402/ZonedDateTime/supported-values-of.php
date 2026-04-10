@@ -7,7 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-foreach (\DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC) as $id) {
+foreach (\DateTimeZone::listIdentifiers() as $id) {
 $instance = new \Temporal\Spec\ZonedDateTime(0, $id);
 Assert::sameValue($instance->timeZoneId, $id, '');
 }

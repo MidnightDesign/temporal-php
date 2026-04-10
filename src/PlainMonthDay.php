@@ -70,12 +70,8 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      * @param int         $referenceISOYear Reference ISO year for round-trip fidelity (default 1972).
      * @throws \InvalidArgumentException if the month-day is invalid or out of range.
      */
-    public function __construct(
-        int $isoMonth,
-        int $isoDay,
-        ?string $calendarId = null,
-        int $referenceISOYear = 1972,
-    ) {
+    public function __construct(int $isoMonth, int $isoDay, ?string $calendarId = null, int $referenceISOYear = 1972)
+    {
         $this->spec = new SpecPlainMonthDay($isoMonth, $isoDay, $calendarId, $referenceISOYear);
     }
 
@@ -110,11 +106,8 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      * @return self A new PlainMonthDay with the overridden fields.
      * @throws \InvalidArgumentException if the resulting month-day is invalid (overflow: reject) or fields conflict.
      */
-    public function with(
-        ?int $month = null,
-        ?int $day = null,
-        Overflow $overflow = Overflow::Constrain,
-    ): self {
+    public function with(?int $month = null, ?int $day = null, Overflow $overflow = Overflow::Constrain): self
+    {
         $fields = [];
         if ($month !== null) {
             $fields['month'] = $month;

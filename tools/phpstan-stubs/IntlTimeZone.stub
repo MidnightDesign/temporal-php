@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * Override PHPStan's built-in stub for IntlTimeZone::getCanonicalID.
+ *
+ * PHPStan's default stub declares the return as string, but at runtime
+ * the function returns false for invalid or empty identifiers. Declaring
+ * the true return type lets us guard with a false check without tripping
+ * an "always true" warning.
+ */
+class IntlTimeZone
+{
+    /**
+     * @param string $zoneId
+     * @param bool $isSystemID
+     * @return string|false
+     */
+    public static function getCanonicalID($zoneId, &$isSystemID = null)
+    {
+    }
+}

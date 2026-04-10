@@ -91,7 +91,7 @@ final class CalendarArithmeticTest extends TestCase
 
     public function testDateAddRejectOverflow(): void
     {
-        $cal = CalendarFactory::get('hebrew');
+        CalendarFactory::get('hebrew');
         // Adding years/months that reduce the day should throw for 'reject'.
         // Hebrew month Adar (month 12 / ICU month 12) has 29 days in non-leap years.
         // Create a date on day 30 of a 30-day month, then add months to land on a 29-day month.
@@ -146,7 +146,7 @@ final class CalendarArithmeticTest extends TestCase
     public function testDateUntilHebrewMonthUnit(): void
     {
         $cal = CalendarFactory::get('hebrew');
-        [$y, $m, $w, $d] = $cal->dateUntil(2024, 1, 15, 2024, 6, 15, 'month');
+        [$y, $m, $w] = $cal->dateUntil(2024, 1, 15, 2024, 6, 15, 'month');
 
         self::assertSame(0, $y);
         self::assertGreaterThan(0, $m);
@@ -157,7 +157,7 @@ final class CalendarArithmeticTest extends TestCase
     {
         $cal = CalendarFactory::get('hebrew');
         // One Hebrew year apart
-        [$y, $m, $w, $d] = $cal->dateUntil(2023, 9, 16, 2024, 10, 3, 'year');
+        [$y, $m, $w] = $cal->dateUntil(2023, 9, 16, 2024, 10, 3, 'year');
 
         self::assertSame(1, $y);
         self::assertSame(0, $m);
@@ -394,7 +394,7 @@ final class CalendarArithmeticTest extends TestCase
 
     public function testPlainYearMonthAddBuddhistOneYear(): void
     {
-        $ym = PlainYearMonth::from('2024-01[u-ca=buddhist]');
+        $ym = PlainYearMonth::from('2024-01-01[u-ca=buddhist]');
         $ym2 = $ym->add(new Duration(1));
 
         self::assertSame('buddhist', $ym2->calendarId);
@@ -404,7 +404,7 @@ final class CalendarArithmeticTest extends TestCase
 
     public function testPlainYearMonthAddHebrewMonths(): void
     {
-        $ym = PlainYearMonth::from('2024-01[u-ca=hebrew]');
+        $ym = PlainYearMonth::from('2024-01-01[u-ca=hebrew]');
         $ym2 = $ym->add(new Duration(0, 3));
 
         self::assertSame('hebrew', $ym2->calendarId);
@@ -417,7 +417,7 @@ final class CalendarArithmeticTest extends TestCase
 
     public function testPlainYearMonthAddPreservesCalendarId(): void
     {
-        $ym = PlainYearMonth::from('2024-06[u-ca=persian]');
+        $ym = PlainYearMonth::from('2024-06-01[u-ca=persian]');
         $ym2 = $ym->add(new Duration(0, 1));
 
         self::assertSame('persian', $ym2->calendarId);
@@ -435,7 +435,7 @@ final class CalendarArithmeticTest extends TestCase
 
     public function testPlainYearMonthSubtractNonIso(): void
     {
-        $ym = PlainYearMonth::from('2024-06[u-ca=buddhist]');
+        $ym = PlainYearMonth::from('2024-06-01[u-ca=buddhist]');
         $ym2 = $ym->subtract(new Duration(0, 3));
 
         self::assertSame('buddhist', $ym2->calendarId);
@@ -449,8 +449,8 @@ final class CalendarArithmeticTest extends TestCase
 
     public function testPlainYearMonthUntilBuddhistYear(): void
     {
-        $a = PlainYearMonth::from('2024-01[u-ca=buddhist]');
-        $b = PlainYearMonth::from('2025-01[u-ca=buddhist]');
+        $a = PlainYearMonth::from('2024-01-01[u-ca=buddhist]');
+        $b = PlainYearMonth::from('2025-01-01[u-ca=buddhist]');
         $diff = $a->until($b);
 
         self::assertSame(1, $diff->years);
@@ -459,8 +459,8 @@ final class CalendarArithmeticTest extends TestCase
 
     public function testPlainYearMonthSinceBuddhistMonths(): void
     {
-        $a = PlainYearMonth::from('2024-01[u-ca=buddhist]');
-        $b = PlainYearMonth::from('2024-06[u-ca=buddhist]');
+        $a = PlainYearMonth::from('2024-01-01[u-ca=buddhist]');
+        $b = PlainYearMonth::from('2024-06-01[u-ca=buddhist]');
         $diff = $b->since($a, ['largestUnit' => 'month']);
 
         self::assertSame(5, $diff->months);
@@ -484,7 +484,7 @@ final class CalendarArithmeticTest extends TestCase
     {
         // Hebrew leap year has 13 months. Adding months should cross the Adar I gap.
         // Hebrew year 5784 (2023-09-16 to 2024-10-02) is a leap year.
-        $cal = CalendarFactory::get('hebrew');
+        CalendarFactory::get('hebrew');
 
         // Start from Hebrew 5784 Adar I (month 6 in leap year, ICU month 5)
         // which is roughly Feb 2024.
@@ -507,7 +507,6 @@ final class CalendarArithmeticTest extends TestCase
     {
         // dateAdd then dateUntil should be consistent for multiple calendars.
         $calendars = ['gregory', 'buddhist', 'persian'];
-        $cal = null;
 
         foreach ($calendars as $calId) {
             $cal = CalendarFactory::get($calId);

@@ -25,6 +25,7 @@ final class PureIndianCalendar implements CalendarProtocol
     /** Saka year = ISO year - YEAR_OFFSET */
     private const int YEAR_OFFSET = 78;
 
+    #[\Override]
     public function id(): string
     {
         return 'indian';
@@ -39,8 +40,17 @@ final class PureIndianCalendar implements CalendarProtocol
     {
         return [
             1 => $isLeap ? 31 : 30,
-            2 => 31, 3 => 31, 4 => 31, 5 => 31, 6 => 31,
-            7 => 30, 8 => 30, 9 => 30, 10 => 30, 11 => 30, 12 => 30,
+            2 => 31,
+            3 => 31,
+            4 => 31,
+            5 => 31,
+            6 => 31,
+            7 => 30,
+            8 => 30,
+            9 => 30,
+            10 => 30,
+            11 => 30,
+            12 => 30,
         ];
     }
 
@@ -130,36 +140,43 @@ final class PureIndianCalendar implements CalendarProtocol
     // CalendarProtocol implementation
     // -------------------------------------------------------------------------
 
+    #[\Override]
     public function year(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToSaka($isoYear, $isoMonth, $isoDay)[0];
     }
 
+    #[\Override]
     public function month(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToSaka($isoYear, $isoMonth, $isoDay)[1];
     }
 
+    #[\Override]
     public function day(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToSaka($isoYear, $isoMonth, $isoDay)[2];
     }
 
-    public function era(int $isoYear, int $isoMonth, int $isoDay): ?string
+    #[\Override]
+    public function era(int $isoYear, int $isoMonth, int $isoDay): string
     {
         return 'shaka';
     }
 
-    public function eraYear(int $isoYear, int $isoMonth, int $isoDay): ?int
+    #[\Override]
+    public function eraYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToSaka($isoYear, $isoMonth, $isoDay)[0];
     }
 
+    #[\Override]
     public function monthCode(int $isoYear, int $isoMonth, int $isoDay): string
     {
         return sprintf('M%02d', self::isoToSaka($isoYear, $isoMonth, $isoDay)[1]);
     }
 
+    #[\Override]
     public function dayOfYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
@@ -169,6 +186,7 @@ final class PureIndianCalendar implements CalendarProtocol
         return $jdn - $nyJdn + 1;
     }
 
+    #[\Override]
     public function daysInMonth(int $isoYear, int $isoMonth, int $isoDay): int
     {
         [$sakaYear, $month] = self::isoToSaka($isoYear, $isoMonth, $isoDay);
@@ -176,30 +194,32 @@ final class PureIndianCalendar implements CalendarProtocol
         return $lengths[$month];
     }
 
+    #[\Override]
     public function daysInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         [$sakaYear] = self::isoToSaka($isoYear, $isoMonth, $isoDay);
         return self::isIndianLeapYear($sakaYear) ? 366 : 365;
     }
 
+    #[\Override]
     public function monthsInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return 12;
     }
 
+    #[\Override]
     public function inLeapYear(int $isoYear, int $isoMonth, int $isoDay): bool
     {
         [$sakaYear] = self::isoToSaka($isoYear, $isoMonth, $isoDay);
         return self::isIndianLeapYear($sakaYear);
     }
 
+    #[\Override]
     public function calendarToIso(int $calYear, int $calMonth, int $calDay, string $overflow): array
     {
         if ($calMonth > 12) {
             if ($overflow === 'reject') {
-                throw new InvalidArgumentException(
-                    "Month {$calMonth} exceeds maximum 12 for this calendar year.",
-                );
+                throw new InvalidArgumentException("Month {$calMonth} exceeds maximum 12 for this calendar year.");
             }
             $calMonth = 12;
         }
@@ -215,6 +235,7 @@ final class PureIndianCalendar implements CalendarProtocol
         return self::sakaToIso($calYear, $calMonth, $calDay);
     }
 
+    #[\Override]
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
@@ -236,6 +257,7 @@ final class PureIndianCalendar implements CalendarProtocol
         return self::sakaToIso($calYear, $month, $calDay);
     }
 
+    #[\Override]
     public function dateAdd(
         int $isoYear,
         int $isoMonth,
@@ -250,17 +272,14 @@ final class PureIndianCalendar implements CalendarProtocol
         $originalCalDay = $calDay;
 
         if ($years !== 0 || $months !== 0) {
+            // Use (month - 1) in the 0-based form so normalization is a single
+            // floor-division step. This avoids Psalm incorrectly narrowing the
+            // bounds of the while-loop condition.
             $calYear += $years;
-            $calMonth += $months;
-
-            while ($calMonth < 1) {
-                $calYear--;
-                $calMonth += 12;
-            }
-            while ($calMonth > 12) {
-                $calMonth -= 12;
-                $calYear++;
-            }
+            $zeroBasedMonth = ($calMonth - 1) + $months;
+            $yearDelta = CalendarMath::floorDiv($zeroBasedMonth, 12);
+            $calYear += $yearDelta;
+            $calMonth = ($zeroBasedMonth - ($yearDelta * 12)) + 1;
 
             $lengths = self::monthLengths(self::isIndianLeapYear($calYear));
             $maxDay = $lengths[$calMonth];
@@ -280,6 +299,7 @@ final class PureIndianCalendar implements CalendarProtocol
         return CalendarMath::fromJulianDay($jdn);
     }
 
+    #[\Override]
     public function dateUntil(
         int $isoY1,
         int $isoM1,
@@ -291,8 +311,8 @@ final class PureIndianCalendar implements CalendarProtocol
         bool $receiverIsLater = false,
     ): array {
         if ($largestUnit === 'day' || $largestUnit === 'week') {
-            $totalDays = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2)
-                - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
+            $totalDays =
+                CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2) - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
             if ($largestUnit === 'week') {
                 $weeks = intdiv($totalDays, 7);
                 $days = $totalDays - ($weeks * 7);
@@ -318,13 +338,17 @@ final class PureIndianCalendar implements CalendarProtocol
         if ($largestUnit === 'year') {
             $yearDiff = abs($calY2 - $calY1);
             $years = max(0, $yearDiff - 1);
-            while ($this->trialDoesNotSurpass(
-                $isoY1, $isoM1, $isoD1, $sign * ($years + 1), 0, $jdn2, $sign,
-            )) {
+            while ($this->trialDoesNotSurpass($isoY1, $isoM1, $isoD1, $sign * ($years + 1), 0, $jdn2, $sign)) {
                 $years++;
             }
             while ($this->trialDoesNotSurpass(
-                $isoY1, $isoM1, $isoD1, $sign * $years, $sign * ($months + 1), $jdn2, $sign,
+                $isoY1,
+                $isoM1,
+                $isoD1,
+                $sign * $years,
+                $sign * ($months + 1),
+                $jdn2,
+                $sign,
             )) {
                 $months++;
             }
@@ -333,18 +357,21 @@ final class PureIndianCalendar implements CalendarProtocol
         if ($largestUnit === 'month') {
             $yearDiff = abs($calY2 - $calY1);
             if ($yearDiff > 1) {
-                $months = max(0, ($yearDiff - 1) * 12 - 2);
+                $months = max(0, (($yearDiff - 1) * 12) - 2);
             }
-            while ($this->trialDoesNotSurpass(
-                $isoY1, $isoM1, $isoD1, 0, $sign * ($months + 1), $jdn2, $sign,
-            )) {
+            while ($this->trialDoesNotSurpass($isoY1, $isoM1, $isoD1, 0, $sign * ($months + 1), $jdn2, $sign)) {
                 $months++;
             }
         }
 
         [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
-            $isoY1, $isoM1, $isoD1,
-            $sign * $years, $sign * $months, 0, 0,
+            $isoY1,
+            $isoM1,
+            $isoD1,
+            $sign * $years,
+            $sign * $months,
+            0,
+            0,
             'constrain',
         );
         $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
@@ -353,31 +380,28 @@ final class PureIndianCalendar implements CalendarProtocol
     }
 
     private function trialDoesNotSurpass(
-        int $isoY1, int $isoM1, int $isoD1,
-        int $years, int $months,
-        int $targetJdn, int $sign,
+        int $isoY1,
+        int $isoM1,
+        int $isoD1,
+        int $years,
+        int $months,
+        int $targetJdn,
+        int $sign,
     ): bool {
-        [$tY, $tM, $tD] = $this->dateAdd(
-            $isoY1, $isoM1, $isoD1,
-            $years, $months, 0, 0,
-            'constrain',
-        );
+        [$tY, $tM, $tD] = $this->dateAdd($isoY1, $isoM1, $isoD1, $years, $months, 0, 0, 'constrain');
         $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
 
         [, , $origCalDay] = self::isoToSaka($isoY1, $isoM1, $isoD1);
         [, , $trialCalDay] = self::isoToSaka($tY, $tM, $tD);
 
         if ($trialCalDay < $origCalDay) {
-            return $sign > 0
-                ? $trialJdn < $targetJdn
-                : $trialJdn > $targetJdn;
+            return $sign > 0 ? $trialJdn < $targetJdn : $trialJdn > $targetJdn;
         }
 
-        return $sign > 0
-            ? $trialJdn <= $targetJdn
-            : $trialJdn >= $targetJdn;
+        return $sign > 0 ? $trialJdn <= $targetJdn : $trialJdn >= $targetJdn;
     }
 
+    #[\Override]
     public function monthCodeToMonth(string $monthCode, int $calYear): int
     {
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
@@ -390,7 +414,8 @@ final class PureIndianCalendar implements CalendarProtocol
         return $month;
     }
 
-    public function resolveEra(string $era, int $eraYear): ?int
+    #[\Override]
+    public function resolveEra(string $era, int $eraYear): int
     {
         if ($era !== 'shaka') {
             throw new InvalidArgumentException("Invalid era \"{$era}\" for calendar \"indian\".");

@@ -111,7 +111,4 @@ final class CalendarFactory
 
         return new IntlCalendarBridge($id);
     }
-
-    /** @codeCoverageIgnore */
-    private function __construct() {}
 }

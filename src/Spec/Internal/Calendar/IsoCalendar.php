@@ -18,6 +18,7 @@ use Temporal\Spec\Internal\CalendarMath;
  */
 final class IsoCalendar implements CalendarProtocol
 {
+    #[\Override]
     public function id(): string
     {
         return 'iso8601';
@@ -27,56 +28,67 @@ final class IsoCalendar implements CalendarProtocol
     // ISO -> Calendar field projection (identity for ISO)
     // -------------------------------------------------------------------------
 
+    #[\Override]
     public function year(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return $isoYear;
     }
 
+    #[\Override]
     public function month(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return $isoMonth;
     }
 
+    #[\Override]
     public function day(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return $isoDay;
     }
 
+    #[\Override]
     public function era(int $isoYear, int $isoMonth, int $isoDay): ?string
     {
         return null;
     }
 
+    #[\Override]
     public function eraYear(int $isoYear, int $isoMonth, int $isoDay): ?int
     {
         return null;
     }
 
+    #[\Override]
     public function monthCode(int $isoYear, int $isoMonth, int $isoDay): string
     {
         return sprintf('M%02d', $isoMonth);
     }
 
+    #[\Override]
     public function dayOfYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return CalendarMath::calcDayOfYear($isoYear, $isoMonth, $isoDay);
     }
 
+    #[\Override]
     public function daysInMonth(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return CalendarMath::calcDaysInMonth($isoYear, $isoMonth);
     }
 
+    #[\Override]
     public function daysInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return CalendarMath::isLeapYear($isoYear) ? 366 : 365;
     }
 
+    #[\Override]
     public function monthsInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return 12;
     }
 
+    #[\Override]
     public function inLeapYear(int $isoYear, int $isoMonth, int $isoDay): bool
     {
         return CalendarMath::isLeapYear($isoYear);
@@ -86,11 +98,13 @@ final class IsoCalendar implements CalendarProtocol
     // Calendar -> ISO field resolution (identity for ISO)
     // -------------------------------------------------------------------------
 
+    #[\Override]
     public function calendarToIso(int $calYear, int $calMonth, int $calDay, string $overflow): array
     {
         return self::regulateIsoDate($calYear, $calMonth, $calDay, $overflow);
     }
 
+    #[\Override]
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
         $month = CalendarMath::monthCodeToMonth($monthCode);
@@ -102,6 +116,7 @@ final class IsoCalendar implements CalendarProtocol
     // Calendar-aware arithmetic
     // -------------------------------------------------------------------------
 
+    #[\Override]
     public function dateAdd(
         int $isoYear,
         int $isoMonth,
@@ -145,6 +160,7 @@ final class IsoCalendar implements CalendarProtocol
         return [$newYear, $newMonth, $newDay];
     }
 
+    #[\Override]
     public function dateUntil(
         int $isoY1,
         int $isoM1,
@@ -156,8 +172,8 @@ final class IsoCalendar implements CalendarProtocol
         bool $receiverIsLater = false,
     ): array {
         if ($largestUnit === 'day' || $largestUnit === 'week') {
-            $totalDays = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2)
-                - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
+            $totalDays =
+                CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2) - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
             if ($largestUnit === 'week') {
                 $weeks = intdiv($totalDays, 7);
                 $days = $totalDays - ($weeks * 7);
@@ -169,13 +185,11 @@ final class IsoCalendar implements CalendarProtocol
         }
 
         // Year/month decomposition.
-        $sign = $isoY2 > $isoY1
-            || ($isoY2 === $isoY1 && ($isoM2 > $isoM1 || ($isoM2 === $isoM1 && $isoD2 >= $isoD1)))
-            ? 1 : -1;
+        $sign =
+            $isoY2 > $isoY1 || $isoY2 === $isoY1 && ($isoM2 > $isoM1 || $isoM2 === $isoM1 && $isoD2 >= $isoD1) ? 1 : -1;
 
         if ($sign < 0) {
-            [$isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2] =
-                [$isoY2, $isoM2, $isoD2, $isoY1, $isoM1, $isoD1];
+            [$isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2] = [$isoY2, $isoM2, $isoD2, $isoY1, $isoM1, $isoD1];
         }
 
         $years = $isoY2 - $isoY1;
@@ -209,7 +223,8 @@ final class IsoCalendar implements CalendarProtocol
         }
         $anchorMaxDay = CalendarMath::calcDaysInMonth($anchorYear, $anchorMonth);
         $anchorDay = min($isoD1, $anchorMaxDay);
-        $days = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2)
+        $days =
+            CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2)
             - CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
 
         return [$sign * $years, $sign * $months, 0, $sign * $days];
@@ -219,11 +234,13 @@ final class IsoCalendar implements CalendarProtocol
     // Month code utilities
     // -------------------------------------------------------------------------
 
+    #[\Override]
     public function monthCodeToMonth(string $monthCode, int $calYear): int
     {
         return CalendarMath::monthCodeToMonth($monthCode);
     }
 
+    #[\Override]
     public function resolveEra(string $era, int $eraYear): ?int
     {
         // ISO calendar has no eras.
@@ -250,7 +267,9 @@ final class IsoCalendar implements CalendarProtocol
             }
             $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             if ($day < 1 || $day > $maxDay) {
-                throw new InvalidArgumentException("Invalid PlainDate: day {$day} is out of range for {$year}-{$month}.");
+                throw new InvalidArgumentException(
+                    "Invalid PlainDate: day {$day} is out of range for {$year}-{$month}.",
+                );
             }
         }
 

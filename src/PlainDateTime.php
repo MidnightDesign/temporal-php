@@ -135,9 +135,8 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Ordinal day of the year: 1–366.
+     * Ordinal day of the year (1-based). Range depends on the calendar system.
      *
-     * @var int<1, 366>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $dayOfYear {
@@ -145,21 +144,21 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * ISO 8601 week number: 1–53.
+     * ISO 8601 week number: 1–53, or null for non-ISO calendars.
      *
-     * @var int<1, 53>
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $weekOfYear {
+    public ?int $weekOfYear {
         get => $this->spec->weekOfYear;
     }
 
     /**
-     * ISO 8601 week-year (may differ from calendar year near year boundaries).
+     * ISO 8601 week-year (may differ from calendar year near year boundaries),
+     * or null for non-ISO calendars.
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $yearOfWeek {
+    public ?int $yearOfWeek {
         get => $this->spec->yearOfWeek;
     }
 
@@ -175,7 +174,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     /**
      * Days in a week (always 7).
      *
-     * @var int<7, 7>
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInWeek {
@@ -194,6 +193,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     /**
      * Number of months in this date's year.
      *
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $monthsInYear {
@@ -536,6 +536,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     /**
      * Converts this datetime to a ZonedDateTime in the given time zone.
      *
+     * @api
      * @param string         $timeZone      IANA time zone identifier or UTC offset string.
      * @param Disambiguation $disambiguation How to resolve ambiguous wall-clock times.
      * @return ZonedDateTime

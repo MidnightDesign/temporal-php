@@ -74,7 +74,6 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * Month of the year (1-12).
      *
-     * @var int<1, 12>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $month {
@@ -84,7 +83,6 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * Day of the month (1-31).
      *
-     * @var int<1, 31>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $day {
@@ -199,7 +197,6 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * Ordinal day of the year: 1-366.
      *
-     * @var int<1, 366>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $dayOfYear {
@@ -209,11 +206,14 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * ISO 8601 week number: 1-53.
      *
-     * @var int<1, 53>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $weekOfYear {
-        get => $this->spec->weekOfYear;
+        get {
+            $w = $this->spec->weekOfYear;
+            assert($w !== null, 'weekOfYear is always non-null for ISO calendar');
+            return $w;
+        }
     }
 
     /**
@@ -222,13 +222,16 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $yearOfWeek {
-        get => $this->spec->yearOfWeek;
+        get {
+            $y = $this->spec->yearOfWeek;
+            assert($y !== null, 'yearOfWeek is always non-null for ISO calendar');
+            return $y;
+        }
     }
 
     /**
      * Number of days in this date's month (28-31).
      *
-     * @var int<28, 31>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $daysInMonth {
@@ -238,7 +241,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * Always 7 (ISO 8601 calendar).
      *
-     * @var int<7, 7>
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $daysInWeek {
@@ -248,7 +251,6 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * 365 or 366, depending on whether this date's year is a leap year.
      *
-     * @var int<365, 366>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $daysInYear {
@@ -258,7 +260,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     /**
      * Always 12 (ISO 8601 calendar).
      *
-     * @var int<12, 12>
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $monthsInYear {
@@ -280,7 +282,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $hoursInDay {
-        get => $this->spec->hoursInDay;
+        get => (int) $this->spec->hoursInDay;
     }
 
     // -------------------------------------------------------------------------
@@ -374,18 +376,21 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
         Disambiguation $disambiguation = Disambiguation::Compatible,
         OffsetOption $offsetOption = OffsetOption::Prefer,
     ): self {
-        $fields = array_filter([
-            'year' => $year,
-            'month' => $month,
-            'day' => $day,
-            'hour' => $hour,
-            'minute' => $minute,
-            'second' => $second,
-            'millisecond' => $millisecond,
-            'microsecond' => $microsecond,
-            'nanosecond' => $nanosecond,
-            'offset' => $offset,
-        ], fn($v) => $v !== null);
+        $fields = array_filter(
+            [
+                'year' => $year,
+                'month' => $month,
+                'day' => $day,
+                'hour' => $hour,
+                'minute' => $minute,
+                'second' => $second,
+                'millisecond' => $millisecond,
+                'microsecond' => $microsecond,
+                'nanosecond' => $nanosecond,
+                'offset' => $offset,
+            ],
+            fn($v) => $v !== null,
+        );
 
         $opts = [
             'overflow' => $overflow->value,

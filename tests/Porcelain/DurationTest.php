@@ -7,9 +7,8 @@ namespace Temporal\Tests\Porcelain;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Temporal\Duration;
-use Temporal\RoundingMode;
 use Temporal\PlainDate;
-
+use Temporal\RoundingMode;
 use Temporal\Unit;
 
 final class DurationTest extends TemporalTestCase
@@ -575,5 +574,4 @@ final class DurationTest extends TemporalTestCase
         self::assertSame('PT2S', $ceil);
         self::assertSame('PT1S', $trunc);
     }
-
 }

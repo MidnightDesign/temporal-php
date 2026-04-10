@@ -202,21 +202,24 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainMonthDayFromStringExtractsCalendar(): void
     {
-        $md = PlainMonthDay::from('03-15[u-ca=chinese]');
+        $md = PlainMonthDay::from('1972-03-15[u-ca=chinese]');
 
         self::assertSame('chinese', $md->calendarId);
     }
 
     public function testPlainMonthDayFromPropertyBagAcceptsCalendar(): void
     {
-        $md = PlainMonthDay::from(['month' => 3, 'day' => 15, 'calendar' => 'dangi']);
+        // Per TC39 spec, PlainMonthDay with non-ISO calendar requires either
+        // monthCode or year to disambiguate, since plain month numbers may not
+        // be stable across years (e.g. leap months).
+        $md = PlainMonthDay::from(['monthCode' => 'M03', 'day' => 15, 'calendar' => 'dangi']);
 
         self::assertSame('dangi', $md->calendarId);
     }
 
     public function testPlainMonthDayFromPreservesCalendarId(): void
     {
-        $md1 = PlainMonthDay::from('03-15[u-ca=indian]');
+        $md1 = PlainMonthDay::from('1972-03-15[u-ca=indian]');
         $md2 = PlainMonthDay::from($md1);
 
         self::assertSame('indian', $md2->calendarId);
@@ -241,9 +244,9 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainYearMonthFromStringExtractsCalendar(): void
     {
-        $ym = PlainYearMonth::from('2024-06[u-ca=islamic]');
+        $ym = PlainYearMonth::from('2024-06-01[u-ca=islamic-civil]');
 
-        self::assertSame('islamic', $ym->calendarId);
+        self::assertSame('islamic-civil', $ym->calendarId);
     }
 
     public function testPlainYearMonthFromPropertyBagAcceptsCalendar(): void
@@ -255,7 +258,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainYearMonthFromPreservesCalendarId(): void
     {
-        $ym1 = PlainYearMonth::from('2024-06[u-ca=roc]');
+        $ym1 = PlainYearMonth::from('2024-06-01[u-ca=roc]');
         $ym2 = PlainYearMonth::from($ym1);
 
         self::assertSame('roc', $ym2->calendarId);
@@ -364,20 +367,14 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testValidateAnnotationsReturnsCalendarId(): void
     {
-        $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations(
-            '[u-ca=hebrew]',
-            'test',
-        );
+        $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[u-ca=hebrew]', 'test');
 
         self::assertSame('hebrew', $result);
     }
 
     public function testValidateAnnotationsReturnsNullWhenNoCalendar(): void
     {
-        $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations(
-            '[America/New_York]',
-            'test',
-        );
+        $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[America/New_York]', 'test');
 
         self::assertNull($result);
     }
@@ -393,20 +390,13 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unknown calendar');
-        \Temporal\Spec\Internal\CalendarMath::validateAnnotations(
-            '[u-ca=bogus]',
-            'test',
-        );
+        \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[u-ca=bogus]', 'test');
     }
 
     public function testValidateAnnotationsSkipsCalendarCheckWhenDisabled(): void
     {
         // With checkCalendar=false, unknown calendars should be silently ignored
-        $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations(
-            '[u-ca=anything]',
-            'test',
-            false,
-        );
+        $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[u-ca=anything]', 'test', false);
 
         self::assertNull($result);
     }
@@ -465,9 +455,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
             'gregory',
             'hebrew',
             'indian',
-            'islamic',
             'islamic-civil',
-            'islamic-rgsa',
             'islamic-tbla',
             'islamic-umalqura',
             'japanese',

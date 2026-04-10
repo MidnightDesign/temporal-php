@@ -42,19 +42,48 @@ final class CalendarMath
         if ($raw === null) {
             throw new \TypeError("{$className} property bag {$field} field must not be undefined.");
         }
-        /** @phpstan-ignore cast.double */
-        if (!is_finite((float) $raw)) {
-            throw new InvalidArgumentException("{$className} {$field} must be finite.");
+        return self::toFiniteInt($raw, "{$className} {$field}");
+    }
+
+    /**
+     * Validates that a mixed value is finite and converts it to int.
+     *
+     * @throws InvalidArgumentException if the value is non-finite.
+     */
+    public static function toFiniteInt(mixed $value, string $errorContext): int
+    {
+        if (is_int($value)) {
+            return $value;
         }
-        /** @phpstan-ignore cast.int */
-        return is_int($raw) ? $raw : (int) $raw;
+        if (is_float($value)) {
+            if (!is_finite($value)) {
+                throw new InvalidArgumentException("{$errorContext} must be finite.");
+            }
+            return (int) $value;
+        }
+        if (is_string($value) || is_bool($value)) {
+            $floatVal = (float) $value;
+            if (!is_finite($floatVal)) {
+                throw new InvalidArgumentException("{$errorContext} must be finite.");
+            }
+            return (int) $floatVal;
+        }
+        throw new InvalidArgumentException("{$errorContext} must be numeric.");
     }
 
     /** @var list<string> Individual date/time component options that conflict with dateStyle/timeStyle. */
     private const COMPONENT_OPTIONS = [
-        'weekday', 'era', 'year', 'month', 'day',
-        'hour', 'minute', 'second', 'dayPeriod',
-        'fractionalSecondDigits', 'timeZoneName',
+        'weekday',
+        'era',
+        'year',
+        'month',
+        'day',
+        'hour',
+        'minute',
+        'second',
+        'dayPeriod',
+        'fractionalSecondDigits',
+        'timeZoneName',
     ];
 
     /**
@@ -69,21 +98,17 @@ final class CalendarMath
      */
     public static function validateStyleConflicts(array $opts): void
     {
-        $hasDateStyle = isset($opts['dateStyle']) && $opts['dateStyle'] !== null;
-        $hasTimeStyle = isset($opts['timeStyle']) && $opts['timeStyle'] !== null;
+        $hasDateStyle = isset($opts['dateStyle']);
+        $hasTimeStyle = isset($opts['timeStyle']);
 
         if (!$hasDateStyle && !$hasTimeStyle) {
             return;
         }
 
         foreach (self::COMPONENT_OPTIONS as $opt) {
-            if (isset($opts[$opt]) && $opts[$opt] !== null) {
-                if ($hasDateStyle) {
-                    throw new \TypeError("toLocaleString(): dateStyle and {$opt} cannot be used together.");
-                }
-                if ($hasTimeStyle) {
-                    throw new \TypeError("toLocaleString(): timeStyle and {$opt} cannot be used together.");
-                }
+            if (isset($opts[$opt])) {
+                $style = $hasDateStyle ? 'dateStyle' : 'timeStyle';
+                throw new \TypeError(sprintf('toLocaleString(): %s and %s cannot be used together.', $style, $opt));
             }
         }
     }
@@ -115,7 +140,7 @@ final class CalendarMath
             if ($m[2] === '00' && $m[3] === '00') {
                 $timeZone = 'GMT';
             } else {
-                $timeZone = 'GMT' . $m[1] . $m[2] . ':' . $m[3];
+                $timeZone = sprintf('GMT%s%s:%s', $m[1], $m[2], $m[3]);
             }
         }
 
@@ -124,7 +149,7 @@ final class CalendarMath
             $locale = self::applyHourCycle($locale, $opts['hourCycle']);
         } elseif (isset($opts['hour12'])) {
             // hour12=false -> h23, hour12=true -> h12
-            $hc = $opts['hour12'] ? 'h12' : 'h23';
+            $hc = (bool) $opts['hour12'] ? 'h12' : 'h23';
             $locale = self::applyHourCycle($locale, $hc);
         }
 
@@ -133,7 +158,12 @@ final class CalendarMath
         // when an explicit IntlCalendar instance is passed.
         $calendarObj = null;
         $keywords = \Locale::getKeywords($locale);
-        if (is_array($keywords) && isset($keywords['calendar']) && $keywords['calendar'] !== 'gregory' && $keywords['calendar'] !== 'gregorian') {
+        if (
+            is_array($keywords)
+            && isset($keywords['calendar'])
+            && $keywords['calendar'] !== 'gregory'
+            && $keywords['calendar'] !== 'gregorian'
+        ) {
             $calendarObj = \IntlCalendar::createInstance($timeZone, $locale);
         }
 
@@ -160,19 +190,35 @@ final class CalendarMath
             // For PlainYearMonth/PlainMonthDay, get the style pattern then strip
             // year or day components to avoid displaying them.
             if ($dateStyle !== null && ($defaultComponents === 'yearmonth' || $defaultComponents === 'monthday')) {
-                $tmpFormatter = new \IntlDateFormatter($locale, $dateType, \IntlDateFormatter::NONE, $timeZone, $calendarObj);
+                $tmpFormatter = new \IntlDateFormatter(
+                    $locale,
+                    $dateType,
+                    \IntlDateFormatter::NONE,
+                    $timeZone,
+                    $calendarObj,
+                );
                 if ($calendarObj !== null) {
                     $tmpFormatter->setCalendar($calendarObj);
                 }
                 $pattern = $tmpFormatter->getPattern();
+                if ($pattern === false) {
+                    $pattern = '';
+                }
                 if ($defaultComponents === 'monthday') {
                     // Strip year-related patterns (y, G, U, r) and surrounding punctuation
                     $pattern = self::stripPatternComponents($pattern, 'year');
-                } elseif ($defaultComponents === 'yearmonth') {
-                    // Strip day-related patterns (d)
+                } else {
+                    // yearmonth: strip day-related patterns (d)
                     $pattern = self::stripPatternComponents($pattern, 'day');
                 }
-                $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $timeZone, $calendarObj, $pattern);
+                $formatter = new \IntlDateFormatter(
+                    $locale,
+                    \IntlDateFormatter::NONE,
+                    \IntlDateFormatter::NONE,
+                    $timeZone,
+                    $calendarObj,
+                    $pattern,
+                );
                 if ($calendarObj !== null) {
                     $formatter->setCalendar($calendarObj);
                 }
@@ -189,7 +235,7 @@ final class CalendarMath
         // Check for individual component options that require a custom pattern
         $hasComponents = false;
         foreach (self::COMPONENT_OPTIONS as $opt) {
-            if (isset($opts[$opt]) && $opts[$opt] !== null) {
+            if (isset($opts[$opt])) {
                 $hasComponents = true;
                 break;
             }
@@ -197,7 +243,14 @@ final class CalendarMath
 
         if ($hasComponents) {
             $pattern = self::buildPatternFromComponents($opts, $defaultComponents, $locale);
-            $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $timeZone, $calendarObj, $pattern);
+            $formatter = new \IntlDateFormatter(
+                $locale,
+                \IntlDateFormatter::NONE,
+                \IntlDateFormatter::NONE,
+                $timeZone,
+                $calendarObj,
+                $pattern,
+            );
             if ($calendarObj !== null) {
                 $formatter->setCalendar($calendarObj);
             }
@@ -220,8 +273,18 @@ final class CalendarMath
         } else {
             $pattern = $generator->getBestPattern('yMdjms');
         }
+        if ($pattern === false) {
+            $pattern = null;
+        }
 
-        $formatter = new \IntlDateFormatter($locale, \IntlDateFormatter::NONE, \IntlDateFormatter::NONE, $timeZone, $calendarObj, $pattern);
+        $formatter = new \IntlDateFormatter(
+            $locale,
+            \IntlDateFormatter::NONE,
+            \IntlDateFormatter::NONE,
+            $timeZone,
+            $calendarObj,
+            $pattern,
+        );
         if ($calendarObj !== null) {
             $formatter->setCalendar($calendarObj);
         }
@@ -235,14 +298,14 @@ final class CalendarMath
     {
         // If there's already a -u- extension, append hc keyword
         if (str_contains($locale, '-u-')) {
-            return $locale . '-hc-' . $hourCycle;
+            return sprintf('%s-hc-%s', $locale, $hourCycle);
         }
         // If there's an @keyword section, insert before it
         $atPos = strpos($locale, '@');
         if ($atPos !== false) {
-            return substr($locale, 0, $atPos) . '-u-hc-' . $hourCycle . substr($locale, $atPos);
+            return sprintf('%s-u-hc-%s%s', substr($locale, 0, $atPos), $hourCycle, substr($locale, $atPos));
         }
-        return $locale . '-u-hc-' . $hourCycle;
+        return sprintf('%s-u-hc-%s', $locale, $hourCycle);
     }
 
     /**
@@ -250,8 +313,11 @@ final class CalendarMath
      *
      * @param array<string, mixed> $opts
      */
-    private static function buildPatternFromComponents(array $opts, string $defaultComponents, string $locale = 'en'): string
-    {
+    private static function buildPatternFromComponents(
+        array $opts,
+        string $defaultComponents,
+        string $locale = 'en',
+    ): string {
         $parts = [];
 
         // Date components
@@ -300,7 +366,9 @@ final class CalendarMath
             $parts[] = $opts['second'] === '2-digit' ? 'ss' : 's';
         }
         if (isset($opts['fractionalSecondDigits'])) {
-            $digits = (int) $opts['fractionalSecondDigits'];
+            /** @var mixed $fsd */
+            $fsd = $opts['fractionalSecondDigits'];
+            $digits = is_int($fsd) ? $fsd : (int) (is_string($fsd) ? $fsd : 0);
             $parts[] = str_repeat('S', $digits);
         }
         if (isset($opts['dayPeriod'])) {
@@ -329,7 +397,12 @@ final class CalendarMath
         $hasTimePart = isset($opts['hour']) || isset($opts['minute']) || isset($opts['second']);
         if (!$hasDatePart && !$hasTimePart) {
             // Add defaults based on mode
-            if ($defaultComponents === 'date' || $defaultComponents === 'datetime' || $defaultComponents === 'yearmonth' || $defaultComponents === 'monthday') {
+            if (
+                $defaultComponents === 'date'
+                || $defaultComponents === 'datetime'
+                || $defaultComponents === 'yearmonth'
+                || $defaultComponents === 'monthday'
+            ) {
                 if ($defaultComponents === 'yearmonth') {
                     $parts = array_merge(['y', 'M'], $parts);
                 } elseif ($defaultComponents === 'monthday') {
@@ -347,7 +420,9 @@ final class CalendarMath
 
         // Use ICU's DateTimePatternGenerator to get a best-fit pattern
         $generator = new \IntlDatePatternGenerator($locale);
-        return $generator->getBestPattern($skeleton);
+        $result = $generator->getBestPattern($skeleton);
+
+        return $result !== false ? $result : $skeleton;
     }
 
     /**
@@ -395,9 +470,7 @@ final class CalendarMath
                     if ($checkCalendar && $calCount === 0) {
                         $calValue = substr(string: $content, offset: strlen($key) + 1);
                         if (!CalendarFactory::isKnownCalendar($calValue)) {
-                            throw new InvalidArgumentException(
-                                "Unknown calendar \"{$calValue}\" in \"{$original}\".",
-                            );
+                            throw new InvalidArgumentException("Unknown calendar \"{$calValue}\" in \"{$original}\".");
                         }
                         $calendarId = CalendarFactory::canonicalize($calValue);
                     }
@@ -586,7 +659,7 @@ final class CalendarMath
     }
 
     /**
-     * @param int<1, 12> $month
+     * @param int $month
      * @return int<28, 31>
      */
     public static function calcDaysInMonth(int $year, int $month): int
@@ -595,6 +668,7 @@ final class CalendarMath
             1, 3, 5, 7, 8, 10, 12 => 31,
             4, 6, 9, 11 => 30,
             2 => self::isLeapYear($year) ? 29 : 28,
+            default => throw new \ValueError("Month must be between 1 and 12, got {$month}."),
         };
     }
 
@@ -747,21 +821,20 @@ final class CalendarMath
     {
         if ($which === 'year') {
             // Remove year-related fields: y, Y, u, U, r and era G
-            $result = preg_replace("/[yYuUrG]+/", '', $pattern);
+            $result = (string) preg_replace('/[yYuUrG]+/', '', $pattern);
         } elseif ($which === 'day') {
             // Remove day-related fields: d, D
-            $result = preg_replace("/[dD]+/", '', $pattern);
+            $result = (string) preg_replace('/[dD]+/', '', $pattern);
         } else {
             return $pattern;
         }
 
         // Clean up leftover separators: double separators, leading/trailing punctuation
-        /** @var string $result */
-        $result = preg_replace('/\s*[,\/\-\.]\s*(?=[,\/\-\.\s]|$)/', '', $result);
-        $result = preg_replace('/^[\s,\/\-\.]+/', '', $result);
-        $result = preg_replace('/[\s,\/\-\.]+$/', '', $result);
+        $result = (string) preg_replace('/\s*[,\/\-\.]\s*(?=[,\/\-\.\s]|$)/', '', $result);
+        $result = (string) preg_replace('/^[\s,\/\-\.]+/', '', $result);
+        $result = (string) preg_replace('/[\s,\/\-\.]+$/', '', $result);
         // Collapse multiple spaces
-        $result = preg_replace('/\s{2,}/', ' ', $result);
+        $result = (string) preg_replace('/\s{2,}/', ' ', $result);
 
         return trim($result);
     }

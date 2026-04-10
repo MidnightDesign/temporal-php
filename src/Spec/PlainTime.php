@@ -33,53 +33,48 @@ final class PlainTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * @var int<0, 23>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public int $hour {
-        get => intdiv(num1: $this->ns, num2: self::NS_PER_HOUR); // @phpstan-ignore return.type
+        get => intdiv(num1: $this->ns, num2: self::NS_PER_HOUR);
     }
 
     /**
-     * @var int<0, 59>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public int $minute {
-        get => intdiv(num1: $this->ns % self::NS_PER_HOUR, num2: self::NS_PER_MINUTE); // @phpstan-ignore return.type
+        get => intdiv(num1: $this->ns % self::NS_PER_HOUR, num2: self::NS_PER_MINUTE);
     }
 
     /**
-     * @var int<0, 59>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public int $second {
-        get => intdiv(num1: $this->ns % self::NS_PER_MINUTE, num2: self::NS_PER_SECOND); // @phpstan-ignore return.type
+        get => intdiv(num1: $this->ns % self::NS_PER_MINUTE, num2: self::NS_PER_SECOND);
     }
 
     /**
-     * @var int<0, 999>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public int $millisecond {
-        get => intdiv(num1: $this->ns % self::NS_PER_SECOND, num2: self::NS_PER_MS); // @phpstan-ignore return.type
+        get => intdiv(num1: $this->ns % self::NS_PER_SECOND, num2: self::NS_PER_MS);
     }
 
     /**
-     * @var int<0, 999>
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
      */
     public int $microsecond {
-        get => intdiv(num1: $this->ns % self::NS_PER_MS, num2: self::NS_PER_US); // @phpstan-ignore return.type
+        get => intdiv(num1: $this->ns % self::NS_PER_MS, num2: self::NS_PER_US);
     }
 
     /**
@@ -239,64 +234,22 @@ final class PlainTime implements Stringable
         $ns = $this->nanosecond;
 
         if (array_key_exists('hour', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['hour'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('PlainTime::with() hour must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $h = (int) $v;
+            $h = CalendarMath::toFiniteInt($fields['hour'], 'PlainTime::with() hour');
         }
         if (array_key_exists('minute', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['minute'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('PlainTime::with() minute must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $min = (int) $v;
+            $min = CalendarMath::toFiniteInt($fields['minute'], 'PlainTime::with() minute');
         }
         if (array_key_exists('second', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['second'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('PlainTime::with() second must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $sec = (int) $v;
+            $sec = CalendarMath::toFiniteInt($fields['second'], 'PlainTime::with() second');
         }
         if (array_key_exists('millisecond', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['millisecond'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('PlainTime::with() millisecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $ms = (int) $v;
+            $ms = CalendarMath::toFiniteInt($fields['millisecond'], 'PlainTime::with() millisecond');
         }
         if (array_key_exists('microsecond', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['microsecond'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('PlainTime::with() microsecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $us = (int) $v;
+            $us = CalendarMath::toFiniteInt($fields['microsecond'], 'PlainTime::with() microsecond');
         }
         if (array_key_exists('nanosecond', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['nanosecond'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('PlainTime::with() nanosecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $ns = (int) $v;
+            $ns = CalendarMath::toFiniteInt($fields['nanosecond'], 'PlainTime::with() nanosecond');
         }
 
         if ($overflow === 'constrain') {
@@ -553,14 +506,19 @@ final class PlainTime implements Stringable
         // digits=-2 ('auto'): nanosecond precision (no rounding changes display).
         // digits=-1 ('minute'): minute precision.
         // digits=0..9: second or sub-second precision.
-        if ($digits === -2) {
-            $nsIncrement = 1; // nanosecond precision; rounding=trunc is a no-op
-        } elseif ($digits === -1) {
-            $nsIncrement = self::NS_PER_MINUTE;
-        } else {
-            // exponent is 9 - $digits (0..9), so 10^0=1 to 10^9=1_000_000_000.
-            $nsIncrement = (int) 10 ** (9 - $digits); // @phpstan-ignore cast.useless
-        }
+        $nsIncrement = match ($digits) {
+            -2, 9 => 1, // nanosecond precision; rounding=trunc is a no-op when -2
+            -1 => self::NS_PER_MINUTE,
+            0 => 1_000_000_000,
+            1 => 100_000_000,
+            2 => 10_000_000,
+            3 => 1_000_000,
+            4 => 100_000,
+            5 => 10_000,
+            6 => 1_000,
+            7 => 100,
+            default => 10, // only remaining case is 8
+        };
 
         // Round the nanoseconds (always non-negative).
         $nsToFormat = self::roundPositiveNs($this->ns, $nsIncrement, $roundingMode);
@@ -887,12 +845,7 @@ final class PlainTime implements Stringable
         if ($hourRaw === null) {
             throw new \TypeError('PlainTime property bag hour field must not be undefined.');
         }
-        /** @phpstan-ignore cast.double */
-        if (!is_finite((float) $hourRaw)) {
-            throw new InvalidArgumentException('PlainTime hour must be finite.');
-        }
-        /** @phpstan-ignore cast.int */
-        $h = is_int($hourRaw) ? $hourRaw : (int) $hourRaw;
+        $h = CalendarMath::toFiniteInt($hourRaw, 'PlainTime hour');
 
         $min = CalendarMath::extractIntField($bag, 'minute', 0, 'PlainTime');
         $sec = CalendarMath::extractIntField($bag, 'second', 0, 'PlainTime');
@@ -1072,14 +1025,7 @@ final class PlainTime implements Stringable
                 /** @var mixed $ri */
                 $ri = $opts['roundingIncrement'];
                 if ($ri !== null) {
-                    $riFloat = (float) $ri; // @phpstan-ignore cast.double
-                    if (!is_finite($riFloat) || $riFloat < 1) {
-                        throw new InvalidArgumentException('roundingIncrement must be a finite positive number.');
-                    }
-                    $roundingIncrement = (int) $riFloat;
-                    if ($roundingIncrement < 1) {
-                        throw new InvalidArgumentException('roundingIncrement must be at least 1.');
-                    }
+                    $roundingIncrement = CalendarMath::validateRoundingIncrement($ri);
                 }
             }
         }
@@ -1259,5 +1205,34 @@ final class PlainTime implements Stringable
                 ),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
+    }
+
+    #[\Override]
+    protected function localeDefaultComponents(): string
+    {
+        return 'time';
+    }
+
+    #[\Override]
+    protected function localeIsDateOnly(): bool
+    {
+        return false;
+    }
+
+    #[\Override]
+    protected function localeIsTimeOnly(): bool
+    {
+        return true;
+    }
+
+    #[\Override]
+    protected function toLocaleTimestamp(): int
+    {
+        // Use Unix epoch date (1970-01-01) with the given time
+        $dt = new \DateTime(
+            sprintf('1970-01-01T%02d:%02d:%02d', $this->hour, $this->minute, $this->second),
+            new \DateTimeZone('UTC'),
+        );
+        return $dt->getTimestamp();
     }
 }

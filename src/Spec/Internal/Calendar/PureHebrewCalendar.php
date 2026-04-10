@@ -27,13 +27,7 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private const int EPOCH = 347998;
 
-    /** Month lengths for non-variable months. Indexed by ICU-style month (0-based). */
-    private const array MONTH_NAMES = [
-        'Tishrei', 'Cheshvan', 'Kislev', 'Tevet', 'Shevat',
-        'Adar I', 'Adar', // In non-leap: slot 5 unused, slot 6 = Adar
-        'Nisan', 'Iyar', 'Sivan', 'Tammuz', 'Av', 'Elul',
-    ];
-
+    #[\Override]
     public function id(): string
     {
         return 'hebrew';
@@ -49,10 +43,10 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function hebrewDelay1(int $year): int
     {
-        $months = (int) floor((235 * $year - 234) / 19);
-        $parts = 12084 + 13753 * $months;
-        $day = $months * 29 + (int) floor($parts / 25920);
-        if (((3 * ($day + 1)) % 7 + 7) % 7 < 3) {
+        $months = (int) floor(((235 * $year) - 234) / 19);
+        $parts = 12084 + (13753 * $months);
+        $day = ($months * 29) + (int) floor($parts / 25920);
+        if (((((3 * ($day + 1)) % 7) + 7) % 7) < 3) {
             $day++;
         }
         return $day;
@@ -66,10 +60,10 @@ final class PureHebrewCalendar implements CalendarProtocol
         $last = self::hebrewDelay1($year - 1);
         $present = self::hebrewDelay1($year);
         $next = self::hebrewDelay1($year + 1);
-        if ($next - $present === 356) {
+        if (($next - $present) === 356) {
             return 2;
         }
-        if ($present - $last === 382) {
+        if (($present - $last) === 382) {
             return 1;
         }
         return 0;
@@ -104,7 +98,7 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function isLeapYear(int $year): bool
     {
-        return ((7 * $year + 1) % 19 + 19) % 19 < 7;
+        return (((((7 * $year) + 1) % 19) + 19) % 19) < 7;
     }
 
     /**
@@ -114,9 +108,9 @@ final class PureHebrewCalendar implements CalendarProtocol
     {
         $d = self::daysInHebrewYear($year);
         return match ($d % 10) {
-            3 => 'deficient',  // 353 or 383
-            4 => 'regular',    // 354 or 384
-            5 => 'complete',   // 355 or 385
+            3 => 'deficient', // 353 or 383
+            4 => 'regular', // 354 or 384
+            5 => 'complete', // 355 or 385
             default => throw new \RuntimeException("Unexpected Hebrew year length: {$d}"),
         };
     }
@@ -144,35 +138,36 @@ final class PureHebrewCalendar implements CalendarProtocol
         // Map ordinal to logical month identity
         if ($isLeap) {
             return match ($ordinalMonth) {
-                1 => 30,                                        // Tishrei
-                2 => $type === 'complete' ? 30 : 29,            // Cheshvan
-                3 => $type === 'deficient' ? 29 : 30,           // Kislev
-                4 => 29,                                        // Tevet
-                5 => 30,                                        // Shevat
-                6 => 30,                                        // Adar I
-                7 => 29,                                        // Adar II
-                8 => 30,                                        // Nisan
-                9 => 29,                                        // Iyar
-                10 => 30,                                       // Sivan
-                11 => 29,                                       // Tammuz
-                12 => 30,                                       // Av
-                13 => 29,                                       // Elul
+                1 => 30, // Tishrei
+                2 => $type === 'complete' ? 30 : 29, // Cheshvan
+                3 => $type === 'deficient' ? 29 : 30, // Kislev
+                4 => 29, // Tevet
+                5 => 30, // Shevat
+                6 => 30, // Adar I
+                7 => 29, // Adar II
+                8 => 30, // Nisan
+                9 => 29, // Iyar
+                10 => 30, // Sivan
+                11 => 29, // Tammuz
+                12 => 30, // Av
+                13 => 29, // Elul
             };
         }
 
         return match ($ordinalMonth) {
-            1 => 30,                                            // Tishrei
-            2 => $type === 'complete' ? 30 : 29,                // Cheshvan
-            3 => $type === 'deficient' ? 29 : 30,               // Kislev
-            4 => 29,                                            // Tevet
-            5 => 30,                                            // Shevat
-            6 => 29,                                            // Adar
-            7 => 30,                                            // Nisan
-            8 => 29,                                            // Iyar
-            9 => 30,                                            // Sivan
-            10 => 29,                                           // Tammuz
-            11 => 30,                                           // Av
-            12 => 29,                                           // Elul
+            1 => 30, // Tishrei
+            2 => $type === 'complete' ? 30 : 29, // Cheshvan
+            3 => $type === 'deficient' ? 29 : 30, // Kislev
+            4 => 29, // Tevet
+            5 => 30, // Shevat
+            6 => 29, // Adar
+            7 => 30, // Nisan
+            8 => 29, // Iyar
+            9 => 30, // Sivan
+            10 => 29, // Tammuz
+            11 => 30, // Av
+            12 => 29, // Elul
+            default => throw new InvalidArgumentException("Invalid ordinal month {$ordinalMonth} for non-leap Hebrew year."),
         };
     }
 
@@ -236,7 +231,7 @@ final class PureHebrewCalendar implements CalendarProtocol
         $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
 
         // Estimate the Hebrew year (could be off by 1).
-        $approxYear = (int) floor(($jdn - self::EPOCH) / 365.25) + 1;
+        $approxYear = (int) floor((float) ($jdn - self::EPOCH) / 365.25) + 1;
 
         // Adjust to find the correct year.
         while (self::newYearJdn($approxYear + 1) <= $jdn) {
@@ -288,37 +283,44 @@ final class PureHebrewCalendar implements CalendarProtocol
     // CalendarProtocol implementation
     // -------------------------------------------------------------------------
 
+    #[\Override]
     public function year(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToHebrew($isoYear, $isoMonth, $isoDay)[0];
     }
 
+    #[\Override]
     public function month(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToHebrew($isoYear, $isoMonth, $isoDay)[1];
     }
 
+    #[\Override]
     public function day(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToHebrew($isoYear, $isoMonth, $isoDay)[2];
     }
 
-    public function era(int $isoYear, int $isoMonth, int $isoDay): ?string
+    #[\Override]
+    public function era(int $isoYear, int $isoMonth, int $isoDay): string
     {
         return 'am';
     }
 
-    public function eraYear(int $isoYear, int $isoMonth, int $isoDay): ?int
+    #[\Override]
+    public function eraYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         return self::isoToHebrew($isoYear, $isoMonth, $isoDay)[0];
     }
 
+    #[\Override]
     public function monthCode(int $isoYear, int $isoMonth, int $isoDay): string
     {
         [$year, $month] = self::isoToHebrew($isoYear, $isoMonth, $isoDay);
         return self::ordinalToMonthCode($month, self::isLeapYear($year));
     }
 
+    #[\Override]
     public function dayOfYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
@@ -326,30 +328,35 @@ final class PureHebrewCalendar implements CalendarProtocol
         return $jdn - self::newYearJdn($year) + 1;
     }
 
+    #[\Override]
     public function daysInMonth(int $isoYear, int $isoMonth, int $isoDay): int
     {
         [$year, $month] = self::isoToHebrew($isoYear, $isoMonth, $isoDay);
         return self::monthLength($year, $month);
     }
 
+    #[\Override]
     public function daysInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         [$year] = self::isoToHebrew($isoYear, $isoMonth, $isoDay);
         return self::daysInHebrewYear($year);
     }
 
+    #[\Override]
     public function monthsInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         [$year] = self::isoToHebrew($isoYear, $isoMonth, $isoDay);
         return self::isLeapYear($year) ? 13 : 12;
     }
 
+    #[\Override]
     public function inLeapYear(int $isoYear, int $isoMonth, int $isoDay): bool
     {
         [$year] = self::isoToHebrew($isoYear, $isoMonth, $isoDay);
         return self::isLeapYear($year);
     }
 
+    #[\Override]
     public function calendarToIso(int $calYear, int $calMonth, int $calDay, string $overflow): array
     {
         $totalMonths = self::isLeapYear($calYear) ? 13 : 12;
@@ -373,14 +380,13 @@ final class PureHebrewCalendar implements CalendarProtocol
         return self::hebrewToIso($calYear, $calMonth, $calDay);
     }
 
+    #[\Override]
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
         $isLeapCode = str_ends_with($monthCode, 'L');
 
         if ($isLeapCode && $monthCode !== 'M05L') {
-            throw new InvalidArgumentException(
-                "monthCode \"{$monthCode}\" is not valid for the hebrew calendar.",
-            );
+            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is not valid for the hebrew calendar.");
         }
 
         try {
@@ -403,6 +409,7 @@ final class PureHebrewCalendar implements CalendarProtocol
         return self::hebrewToIso($calYear, $ordinal, $calDay);
     }
 
+    #[\Override]
     public function dateAdd(
         int $isoYear,
         int $isoMonth,
@@ -469,6 +476,7 @@ final class PureHebrewCalendar implements CalendarProtocol
         return CalendarMath::fromJulianDay($jdn);
     }
 
+    #[\Override]
     public function dateUntil(
         int $isoY1,
         int $isoM1,
@@ -481,8 +489,8 @@ final class PureHebrewCalendar implements CalendarProtocol
     ): array {
         // Day/week: pure JDN subtraction.
         if ($largestUnit === 'day' || $largestUnit === 'week') {
-            $totalDays = CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2)
-                - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
+            $totalDays =
+                CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2) - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
             if ($largestUnit === 'week') {
                 $weeks = intdiv($totalDays, 7);
                 $days = $totalDays - ($weeks * 7);
@@ -509,13 +517,17 @@ final class PureHebrewCalendar implements CalendarProtocol
         if ($largestUnit === 'year') {
             $yearDiff = abs($calY2 - $calY1);
             $years = max(0, $yearDiff - 1);
-            while ($this->trialDoesNotSurpass(
-                $isoY1, $isoM1, $isoD1, $sign * ($years + 1), 0, $jdn2, $sign,
-            )) {
+            while ($this->trialDoesNotSurpass($isoY1, $isoM1, $isoD1, $sign * ($years + 1), 0, $jdn2, $sign)) {
                 $years++;
             }
             while ($this->trialDoesNotSurpass(
-                $isoY1, $isoM1, $isoD1, $sign * $years, $sign * ($months + 1), $jdn2, $sign,
+                $isoY1,
+                $isoM1,
+                $isoD1,
+                $sign * $years,
+                $sign * ($months + 1),
+                $jdn2,
+                $sign,
             )) {
                 $months++;
             }
@@ -524,18 +536,21 @@ final class PureHebrewCalendar implements CalendarProtocol
         if ($largestUnit === 'month') {
             $yearDiff = abs($calY2 - $calY1);
             if ($yearDiff > 1) {
-                $months = max(0, ($yearDiff - 1) * 12 - 14);
+                $months = max(0, (($yearDiff - 1) * 12) - 14);
             }
-            while ($this->trialDoesNotSurpass(
-                $isoY1, $isoM1, $isoD1, 0, $sign * ($months + 1), $jdn2, $sign,
-            )) {
+            while ($this->trialDoesNotSurpass($isoY1, $isoM1, $isoD1, 0, $sign * ($months + 1), $jdn2, $sign)) {
                 $months++;
             }
         }
 
         [$intIsoY, $intIsoM, $intIsoD] = $this->dateAdd(
-            $isoY1, $isoM1, $isoD1,
-            $sign * $years, $sign * $months, 0, 0,
+            $isoY1,
+            $isoM1,
+            $isoD1,
+            $sign * $years,
+            $sign * $months,
+            0,
+            0,
             'constrain',
         );
         $days = $jdn2 - CalendarMath::toJulianDay($intIsoY, $intIsoM, $intIsoD);
@@ -544,15 +559,15 @@ final class PureHebrewCalendar implements CalendarProtocol
     }
 
     private function trialDoesNotSurpass(
-        int $isoY1, int $isoM1, int $isoD1,
-        int $years, int $months,
-        int $targetJdn, int $sign,
+        int $isoY1,
+        int $isoM1,
+        int $isoD1,
+        int $years,
+        int $months,
+        int $targetJdn,
+        int $sign,
     ): bool {
-        [$tY, $tM, $tD] = $this->dateAdd(
-            $isoY1, $isoM1, $isoD1,
-            $years, $months, 0, 0,
-            'constrain',
-        );
+        [$tY, $tM, $tD] = $this->dateAdd($isoY1, $isoM1, $isoD1, $years, $months, 0, 0, 'constrain');
         $trialJdn = CalendarMath::toJulianDay($tY, $tM, $tD);
 
         if ($months === 0) {
@@ -572,29 +587,19 @@ final class PureHebrewCalendar implements CalendarProtocol
                 $constrainedOrdEarlier = $trialOrd < $origOrd;
 
                 if ($dayConstrained) {
-                    return $sign > 0
-                        ? $trialJdn < $targetJdn
-                        : $trialJdn > $targetJdn;
+                    return $sign > 0 ? $trialJdn < $targetJdn : $trialJdn > $targetJdn;
                 }
                 if ($sign > 0) {
-                    return $constrainedOrdEarlier
-                        ? $trialJdn < $targetJdn
-                        : $trialJdn <= $targetJdn;
+                    return $constrainedOrdEarlier ? $trialJdn < $targetJdn : $trialJdn <= $targetJdn;
                 }
-                return $constrainedOrdEarlier
-                    ? $trialJdn >= $targetJdn
-                    : $trialJdn > $targetJdn;
+                return $constrainedOrdEarlier ? $trialJdn >= $targetJdn : $trialJdn > $targetJdn;
             }
 
             if ($dayConstrained) {
-                return $sign > 0
-                    ? $trialJdn < $targetJdn
-                    : $trialJdn > $targetJdn;
+                return $sign > 0 ? $trialJdn < $targetJdn : $trialJdn > $targetJdn;
             }
 
-            return $sign > 0
-                ? $trialJdn <= $targetJdn
-                : $trialJdn >= $targetJdn;
+            return $sign > 0 ? $trialJdn <= $targetJdn : $trialJdn >= $targetJdn;
         }
 
         // Month trials: check if day was constrained and adjust.
@@ -604,20 +609,20 @@ final class PureHebrewCalendar implements CalendarProtocol
         $trialCalDay = $trialHebrew[2];
 
         if ($trialCalDay < $origCalDay) {
-            $trialJdn += ($origCalDay - $trialCalDay);
+            $trialJdn += $origCalDay - $trialCalDay;
         }
 
-        return $sign > 0
-            ? $trialJdn <= $targetJdn
-            : $trialJdn >= $targetJdn;
+        return $sign > 0 ? $trialJdn <= $targetJdn : $trialJdn >= $targetJdn;
     }
 
+    #[\Override]
     public function monthCodeToMonth(string $monthCode, int $calYear): int
     {
         return self::monthCodeToOrdinal($monthCode, $calYear);
     }
 
-    public function resolveEra(string $era, int $eraYear): ?int
+    #[\Override]
+    public function resolveEra(string $era, int $eraYear): int
     {
         if ($era !== 'am') {
             throw new InvalidArgumentException("Invalid era \"{$era}\" for calendar \"hebrew\".");

@@ -12,7 +12,6 @@ use Temporal\PlainDate;
 use Temporal\PlainDateTime;
 use Temporal\PlainTime;
 use Temporal\RoundingMode;
-
 use Temporal\Unit;
 
 final class PlainDateTimeTest extends TemporalTestCase
@@ -76,55 +75,65 @@ final class PlainDateTimeTest extends TemporalTestCase
 
     public function testMonthCode(): void
     {
-        self::assertSame('M01', (new PlainDateTime(2020, 1, 1))->monthCode);
-        self::assertSame('M06', (new PlainDateTime(2020, 6, 15))->monthCode);
-        self::assertSame('M12', (new PlainDateTime(2020, 12, 31))->monthCode);
+        self::assertSame('M01', new PlainDateTime(2020, 1, 1)->monthCode);
+        self::assertSame('M06', new PlainDateTime(2020, 6, 15)->monthCode);
+        self::assertSame('M12', new PlainDateTime(2020, 12, 31)->monthCode);
     }
 
     public function testDayOfWeek(): void
     {
         // 2020-06-15 is a Monday (1)
-        self::assertSame(1, (new PlainDateTime(2020, 6, 15))->dayOfWeek);
+        self::assertSame(1, new PlainDateTime(2020, 6, 15)->dayOfWeek);
         // 2020-06-21 is a Sunday (7)
-        self::assertSame(7, (new PlainDateTime(2020, 6, 21))->dayOfWeek);
+        self::assertSame(7, new PlainDateTime(2020, 6, 21)->dayOfWeek);
     }
 
     public function testDayOfYear(): void
     {
-        self::assertSame(1, (new PlainDateTime(2020, 1, 1))->dayOfYear);
+        self::assertSame(1, new PlainDateTime(2020, 1, 1)->dayOfYear);
         // Dec 31 of a leap year is day 366
-        self::assertSame(366, (new PlainDateTime(2020, 12, 31))->dayOfYear);
+        self::assertSame(366, new PlainDateTime(2020, 12, 31)->dayOfYear);
     }
 
     public function testWeekOfYear(): void
     {
-        self::assertSame(1, (new PlainDateTime(2020, 1, 1))->weekOfYear);
+        self::assertSame(1, new PlainDateTime(2020, 1, 1)->weekOfYear);
     }
 
     public function testYearOfWeek(): void
     {
-        self::assertSame(2020, (new PlainDateTime(2020, 1, 1))->yearOfWeek);
+        self::assertSame(2020, new PlainDateTime(2020, 1, 1)->yearOfWeek);
         // 2024-12-30 (Monday) is in ISO week 1 of 2025
-        self::assertSame(2025, (new PlainDateTime(2024, 12, 30))->yearOfWeek);
+        self::assertSame(2025, new PlainDateTime(2024, 12, 30)->yearOfWeek);
     }
 
     public function testDaysInMonth(): void
     {
-        self::assertSame(31, (new PlainDateTime(2020, 1, 1))->daysInMonth);
-        self::assertSame(29, (new PlainDateTime(2020, 2, 1))->daysInMonth);
-        self::assertSame(28, (new PlainDateTime(2019, 2, 1))->daysInMonth);
+        self::assertSame(31, new PlainDateTime(2020, 1, 1)->daysInMonth);
+        self::assertSame(29, new PlainDateTime(2020, 2, 1)->daysInMonth);
+        self::assertSame(28, new PlainDateTime(2019, 2, 1)->daysInMonth);
     }
 
     public function testDaysInYear(): void
     {
-        self::assertSame(366, (new PlainDateTime(2020, 1, 1))->daysInYear);
-        self::assertSame(365, (new PlainDateTime(2019, 1, 1))->daysInYear);
+        self::assertSame(366, new PlainDateTime(2020, 1, 1)->daysInYear);
+        self::assertSame(365, new PlainDateTime(2019, 1, 1)->daysInYear);
+    }
+
+    public function testDaysInWeek(): void
+    {
+        self::assertSame(7, new PlainDateTime(2020, 1, 1)->daysInWeek);
+    }
+
+    public function testMonthsInYear(): void
+    {
+        self::assertSame(12, new PlainDateTime(2020, 1, 1)->monthsInYear);
     }
 
     public function testInLeapYear(): void
     {
-        self::assertTrue((new PlainDateTime(2020, 1, 1))->inLeapYear);
-        self::assertFalse((new PlainDateTime(2019, 1, 1))->inLeapYear);
+        self::assertTrue(new PlainDateTime(2020, 1, 1)->inLeapYear);
+        self::assertFalse(new PlainDateTime(2019, 1, 1)->inLeapYear);
     }
 
     // -------------------------------------------------------------------------
@@ -572,10 +581,7 @@ final class PlainDateTimeTest extends TemporalTestCase
     {
         $dt = new PlainDateTime(2020, 6, 15, 12, 0);
 
-        self::assertSame(
-            '2020-06-15T12:00:00[u-ca=iso8601]',
-            $dt->toString(CalendarDisplay::Always),
-        );
+        self::assertSame('2020-06-15T12:00:00[u-ca=iso8601]', $dt->toString(CalendarDisplay::Always));
     }
 
     public function testToStringCalendarNever(): void
@@ -589,10 +595,7 @@ final class PlainDateTimeTest extends TemporalTestCase
     {
         $dt = new PlainDateTime(2020, 6, 15, 12, 0);
 
-        self::assertSame(
-            '2020-06-15T12:00:00[!u-ca=iso8601]',
-            $dt->toString(CalendarDisplay::Critical),
-        );
+        self::assertSame('2020-06-15T12:00:00[!u-ca=iso8601]', $dt->toString(CalendarDisplay::Critical));
     }
 
     public function testToStringWithFractionalSecondDigits(): void

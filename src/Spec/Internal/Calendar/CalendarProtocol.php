@@ -33,20 +33,27 @@ interface CalendarProtocol
 
     public function day(int $isoYear, int $isoMonth, int $isoDay): int;
 
+    /** @psalm-api */
     public function era(int $isoYear, int $isoMonth, int $isoDay): ?string;
 
+    /** @psalm-api */
     public function eraYear(int $isoYear, int $isoMonth, int $isoDay): ?int;
 
     public function monthCode(int $isoYear, int $isoMonth, int $isoDay): string;
 
+    /** @psalm-api */
     public function dayOfYear(int $isoYear, int $isoMonth, int $isoDay): int;
 
+    /** @psalm-api */
     public function daysInMonth(int $isoYear, int $isoMonth, int $isoDay): int;
 
+    /** @psalm-api */
     public function daysInYear(int $isoYear, int $isoMonth, int $isoDay): int;
 
+    /** @psalm-api */
     public function monthsInYear(int $isoYear, int $isoMonth, int $isoDay): int;
 
+    /** @psalm-api */
     public function inLeapYear(int $isoYear, int $isoMonth, int $isoDay): bool;
 
     // -------------------------------------------------------------------------

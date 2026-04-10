@@ -58,6 +58,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
     /**
      * Month code in "M01"–"M12" format (or "M01L"–"M12L" for leap months).
      *
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public string $monthCode {
@@ -75,9 +76,8 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Ordinal day of the year: 1–366.
+     * Ordinal day of the year (1-based). Range depends on the calendar system.
      *
-     * @var int<1, 366>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $dayOfYear {
@@ -85,21 +85,21 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * ISO 8601 week number: 1–53.
+     * ISO 8601 week number: 1–53, or null for non-ISO calendars.
      *
-     * @var int<1, 53>
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $weekOfYear {
+    public ?int $weekOfYear {
         get => $this->spec->weekOfYear;
     }
 
     /**
-     * ISO 8601 week-year (may differ from calendar year near year boundaries).
+     * ISO 8601 week-year (may differ from calendar year near year boundaries),
+     * or null for non-ISO calendars.
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $yearOfWeek {
+    public ?int $yearOfWeek {
         get => $this->spec->yearOfWeek;
     }
 
@@ -115,7 +115,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
     /**
      * Days in a week (always 7).
      *
-     * @var int<7, 7>
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInWeek {
@@ -134,6 +134,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
     /**
      * Number of months in this date's year.
      *
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $monthsInYear {
@@ -164,12 +165,8 @@ final class PlainDate implements \Stringable, \JsonSerializable
      * @param string|null  $calendarId Calendar identifier, or null for "iso8601".
      * @throws \InvalidArgumentException if the date is invalid or out of range.
      */
-    public function __construct(
-        int $isoYear,
-        int $isoMonth,
-        int $isoDay,
-        ?string $calendarId = null,
-    ) {
+    public function __construct(int $isoYear, int $isoMonth, int $isoDay, ?string $calendarId = null)
+    {
         $this->spec = new SpecPlainDate($isoYear, $isoMonth, $isoDay, $calendarId);
     }
 

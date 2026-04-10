@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use Temporal\Duration;
 use Temporal\PlainTime;
 use Temporal\RoundingMode;
-
 use Temporal\Unit;
 
 final class PlainTimeTest extends TemporalTestCase
@@ -449,10 +448,7 @@ final class PlainTimeTest extends TemporalTestCase
     {
         $t = new PlainTime(13, 45, 30, 600);
 
-        self::assertSame('13:45:31', $t->toString(
-            fractionalSecondDigits: 0,
-            roundingMode: RoundingMode::Ceil,
-        ));
+        self::assertSame('13:45:31', $t->toString(fractionalSecondDigits: 0, roundingMode: RoundingMode::Ceil));
     }
 
     public function testMagicToString(): void
@@ -623,5 +619,4 @@ final class PlainTimeTest extends TemporalTestCase
         // 7 minutes truncated to nearest 5 = 5
         self::assertSame(5, $d->minutes);
     }
-
 }

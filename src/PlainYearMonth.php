@@ -76,6 +76,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
     /**
      * Number of months in this year-month's year.
      *
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $monthsInYear {
@@ -106,12 +107,8 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
      * @param int         $referenceISODay Reference ISO day for round-trip fidelity (default 1).
      * @throws \InvalidArgumentException if the year-month is invalid or out of range.
      */
-    public function __construct(
-        int $isoYear,
-        int $isoMonth,
-        ?string $calendarId = null,
-        int $referenceISODay = 1,
-    ) {
+    public function __construct(int $isoYear, int $isoMonth, ?string $calendarId = null, int $referenceISODay = 1)
+    {
         $this->spec = new SpecPlainYearMonth($isoYear, $isoMonth, $calendarId, $referenceISODay);
     }
 
@@ -155,10 +152,8 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
      * @return self A new PlainYearMonth with the overridden fields.
      * @throws \InvalidArgumentException if the resulting year-month is invalid or fields conflict.
      */
-    public function with(
-        ?int $year = null,
-        ?int $month = null,
-    ): self {
+    public function with(?int $year = null, ?int $month = null): self
+    {
         $fields = [];
         if ($year !== null) {
             $fields['year'] = $year;

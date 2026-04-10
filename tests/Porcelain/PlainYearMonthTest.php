@@ -10,7 +10,6 @@ use Temporal\Duration;
 use Temporal\PlainDate;
 use Temporal\PlainYearMonth;
 use Temporal\RoundingMode;
-
 use Temporal\Unit;
 
 final class PlainYearMonthTest extends TemporalTestCase
@@ -33,34 +32,39 @@ final class PlainYearMonthTest extends TemporalTestCase
 
     public function testCalendarIdIsIso8601(): void
     {
-        self::assertSame('iso8601', (new PlainYearMonth(2020, 6))->calendarId);
+        self::assertSame('iso8601', new PlainYearMonth(2020, 6)->calendarId);
     }
 
     public function testMonthCode(): void
     {
-        self::assertSame('M01', (new PlainYearMonth(2020, 1))->monthCode);
-        self::assertSame('M06', (new PlainYearMonth(2020, 6))->monthCode);
-        self::assertSame('M12', (new PlainYearMonth(2020, 12))->monthCode);
+        self::assertSame('M01', new PlainYearMonth(2020, 1)->monthCode);
+        self::assertSame('M06', new PlainYearMonth(2020, 6)->monthCode);
+        self::assertSame('M12', new PlainYearMonth(2020, 12)->monthCode);
     }
 
     public function testDaysInMonth(): void
     {
-        self::assertSame(31, (new PlainYearMonth(2020, 1))->daysInMonth);
-        self::assertSame(29, (new PlainYearMonth(2020, 2))->daysInMonth);
-        self::assertSame(28, (new PlainYearMonth(2019, 2))->daysInMonth);
-        self::assertSame(30, (new PlainYearMonth(2020, 4))->daysInMonth);
+        self::assertSame(31, new PlainYearMonth(2020, 1)->daysInMonth);
+        self::assertSame(29, new PlainYearMonth(2020, 2)->daysInMonth);
+        self::assertSame(28, new PlainYearMonth(2019, 2)->daysInMonth);
+        self::assertSame(30, new PlainYearMonth(2020, 4)->daysInMonth);
     }
 
     public function testDaysInYear(): void
     {
-        self::assertSame(366, (new PlainYearMonth(2020, 1))->daysInYear);
-        self::assertSame(365, (new PlainYearMonth(2019, 1))->daysInYear);
+        self::assertSame(366, new PlainYearMonth(2020, 1)->daysInYear);
+        self::assertSame(365, new PlainYearMonth(2019, 1)->daysInYear);
+    }
+
+    public function testMonthsInYear(): void
+    {
+        self::assertSame(12, new PlainYearMonth(2020, 1)->monthsInYear);
     }
 
     public function testInLeapYear(): void
     {
-        self::assertTrue((new PlainYearMonth(2020, 1))->inLeapYear);
-        self::assertFalse((new PlainYearMonth(2019, 1))->inLeapYear);
+        self::assertTrue(new PlainYearMonth(2020, 1)->inLeapYear);
+        self::assertFalse(new PlainYearMonth(2019, 1)->inLeapYear);
     }
 
     // -------------------------------------------------------------------------

@@ -78,9 +78,7 @@ enum RoundingMode: string
             \RoundingMode::HalfAwayFromZero => self::HalfExpand,
             \RoundingMode::HalfTowardsZero => self::HalfTrunc,
             \RoundingMode::HalfEven => self::HalfEven,
-            \RoundingMode::HalfOdd => throw new \LogicException(
-                'HalfOdd has no Temporal RoundingMode equivalent.',
-            ),
+            \RoundingMode::HalfOdd => throw new \LogicException('HalfOdd has no Temporal RoundingMode equivalent.'),
         };
     }
 }

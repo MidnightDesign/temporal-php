@@ -32,7 +32,11 @@ final class PlainMonthDay implements Stringable
      * @psalm-api
      */
     public string $monthCode {
-        get => CalendarFactory::get($this->calendarId)->monthCode($this->referenceISOYear, $this->isoMonth, $this->isoDay);
+        get => CalendarFactory::get($this->calendarId)->monthCode(
+            $this->referenceISOYear,
+            $this->isoMonth,
+            $this->isoDay,
+        );
     }
 
     /**
@@ -229,13 +233,8 @@ final class PlainMonthDay implements Stringable
         if (is_array($item)) {
             return self::fromPropertyBag($item, $overflow);
         }
-        if (is_object($item)) {
-            return self::fromPropertyBag((array) $item, $overflow);
-        }
-        throw new \TypeError(sprintf(
-            'PlainMonthDay::from() expects a PlainMonthDay, ISO 8601 string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        // is_object check covers remaining object types not matched above.
+        return self::fromPropertyBag((array) $item, $overflow);
     }
 
     // -------------------------------------------------------------------------
@@ -332,38 +331,29 @@ final class PlainMonthDay implements Stringable
             }
         }
 
-        $calendar = $this->calendarId !== 'iso8601'
-            ? CalendarFactory::get($this->calendarId)
-            : null;
+        $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
         // Non-ISO calendar path.
         if ($calendar !== null) {
             // For non-ISO calendars, month without monthCode requires year.
             if ($hasMonth && !$hasMonthCode && !$hasYear) {
-                throw new \TypeError('PlainMonthDay::with() non-ISO calendar requires year when only month is provided.');
+                throw new \TypeError(
+                    'PlainMonthDay::with() non-ISO calendar requires year when only month is provided.',
+                );
             }
 
             // Resolve monthCode: use provided, or default to current.
             $monthCode = null;
             $useMonthCode = false;
             if ($hasMonthCode) {
-                /** @var mixed $mc */
                 $mc = $bag['monthCode'];
-                /** @phpstan-ignore cast.string */
-                $monthCode = (string) $mc;
+                $monthCode = is_string($mc) ? $mc : (string) $mc;
                 $useMonthCode = true;
             }
 
             $month = null;
             if ($hasMonth) {
-                /** @var mixed $m */
-                $m = $bag['month'];
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $m)) {
-                    throw new InvalidArgumentException('PlainMonthDay::with() month must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $month = (int) $m;
+                $month = CalendarMath::toFiniteInt($bag['month'], 'PlainMonthDay::with() month');
                 $useMonthCode = false;
             }
             if (!$hasMonth && !$hasMonthCode) {
@@ -374,14 +364,7 @@ final class PlainMonthDay implements Stringable
 
             $day = $this->day;
             if ($hasDay) {
-                /** @var mixed $d */
-                $d = $bag['day'];
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $d)) {
-                    throw new InvalidArgumentException('PlainMonthDay::with() day must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $day = (int) $d;
+                $day = CalendarMath::toFiniteInt($bag['day'], 'PlainMonthDay::with() day');
             }
 
             if ($day < 1) {
@@ -391,19 +374,14 @@ final class PlainMonthDay implements Stringable
             // Resolve year for validation context.
             $calYear = null;
             if ($hasYear) {
-                /** @var mixed $yr */
-                $yr = $bag['year'];
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $yr)) {
-                    throw new InvalidArgumentException('PlainMonthDay::with() year must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $calYear = (int) $yr;
+                $calYear = CalendarMath::toFiniteInt($bag['year'], 'PlainMonthDay::with() year');
             }
 
             if ($calYear !== null) {
                 // Validate month/monthCode conflict with year context.
-                if ($useMonthCode && $monthCode !== null && $hasMonth && $month !== null) {
+                if ($useMonthCode && $hasMonth) {
+                    assert($monthCode !== null);
+                    /** @var int $month */
                     $resolvedMonth = $calendar->monthCodeToMonth($monthCode, $calYear);
                     if ($month !== $resolvedMonth) {
                         throw new InvalidArgumentException('Conflicting month and monthCode fields.');
@@ -411,7 +389,12 @@ final class PlainMonthDay implements Stringable
                 }
 
                 if ($useMonthCode && $monthCode !== null) {
-                    [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($calYear, $monthCode, $day, $overflow);
+                    [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode(
+                        $calYear,
+                        $monthCode,
+                        $day,
+                        $overflow,
+                    );
                 } else {
                     /** @var int $month */
                     if ($month < 1) {
@@ -441,46 +424,28 @@ final class PlainMonthDay implements Stringable
         if ($hasMonthCode) {
             /** @var mixed $mc */
             $mc = $bag['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $monthCode = (string) $mc;
+            if (!is_string($mc)) {
+                throw new \TypeError('monthCode must be a string.');
+            }
+            $monthCode = $mc;
         }
         if ($hasMonth) {
-            /** @var mixed $m */
-            $m = $bag['month'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $m)) {
-                throw new InvalidArgumentException('PlainMonthDay::with() month must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $month = (int) $m;
+            $month = CalendarMath::toFiniteInt($bag['month'], 'PlainMonthDay::with() month');
         }
 
         $day = $this->isoDay;
         if ($hasDay) {
-            /** @var mixed $d */
-            $d = $bag['day'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $d)) {
-                throw new InvalidArgumentException('PlainMonthDay::with() day must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $day = (int) $d;
+            $day = CalendarMath::toFiniteInt($bag['day'], 'PlainMonthDay::with() day');
         }
 
         $refYear = $this->referenceISOYear;
         if ($hasYear) {
-            /** @var mixed $yr */
-            $yr = $bag['year'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yr)) {
-                throw new InvalidArgumentException('PlainMonthDay::with() year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $refYear = (int) $yr;
+            $refYear = CalendarMath::toFiniteInt($bag['year'], 'PlainMonthDay::with() year');
         }
 
         // Resolve monthCode.
-        if ($hasMonthCode && $monthCode !== null) {
+        if ($hasMonthCode) {
+            /** @var string $monthCode */
             $mcMonth = CalendarMath::monthCodeToMonth($monthCode);
             if ($hasMonth && $month !== $mcMonth) {
                 throw new InvalidArgumentException('Conflicting month and monthCode fields.');
@@ -497,7 +462,6 @@ final class PlainMonthDay implements Stringable
 
         if ($overflow === 'constrain') {
             /**
-             * @var int<1, 12>
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
@@ -519,7 +483,6 @@ final class PlainMonthDay implements Stringable
         // Always use 1972 as the new referenceISOYear unless the day exceeds 1972's days for that month.
         $newRefYear = 1972;
         /**
-         * @var int<1, 12> $month
          * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
          */
         $maxDayIn1972 = CalendarMath::calcDaysInMonth(1972, $month);
@@ -588,9 +551,7 @@ final class PlainMonthDay implements Stringable
             'auto' => $isNonIso
                 ? sprintf('%s[u-ca=%s]', $dateStr, $this->calendarId)
                 : sprintf('%02d-%02d', $this->isoMonth, $this->isoDay),
-            'never' => $isNonIso
-                ? $dateStr
-                : sprintf('%02d-%02d', $this->isoMonth, $this->isoDay),
+            'never' => $isNonIso ? $dateStr : sprintf('%02d-%02d', $this->isoMonth, $this->isoDay),
             'always' => sprintf('%s[u-ca=%s]', $dateStr, $this->calendarId),
             'critical' => sprintf('%s[!u-ca=%s]', $dateStr, $this->calendarId),
             default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
@@ -645,9 +606,7 @@ final class PlainMonthDay implements Stringable
             $bag = get_object_vars($fields);
         }
 
-        $calendar = $this->calendarId !== 'iso8601'
-            ? CalendarFactory::get($this->calendarId)
-            : null;
+        $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
         $hasYear = array_key_exists('year', $bag);
         $hasEra = array_key_exists('era', $bag);
@@ -659,14 +618,7 @@ final class PlainMonthDay implements Stringable
 
         $year = null;
         if ($hasYear) {
-            /** @var mixed $yearRaw */
-            $yearRaw = $bag['year'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yearRaw)) {
-                throw new InvalidArgumentException('toPlainDate() year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $year = (int) $yearRaw;
+            $year = CalendarMath::toFiniteInt($bag['year'], 'toPlainDate() year');
         }
 
         // Resolve era + eraYear for non-ISO calendars.
@@ -675,15 +627,8 @@ final class PlainMonthDay implements Stringable
             $eraRaw = $bag['era'];
             /** @var mixed $eraYearRaw */
             $eraYearRaw = $bag['eraYear'];
-            if ($eraYearRaw !== null) {
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $eraYearRaw)) {
-                    throw new InvalidArgumentException('toPlainDate() eraYear must be finite.');
-                }
-            }
             if (is_string($eraRaw) && $eraYearRaw !== null) {
-                /** @phpstan-ignore cast.int */
-                $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
+                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'toPlainDate() eraYear');
                 $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
                 if ($resolved !== null) {
                     $year = $resolved;
@@ -973,9 +918,7 @@ final class PlainMonthDay implements Stringable
         $hasEra = array_key_exists('era', $bag);
         $hasEraYear = array_key_exists('eraYear', $bag);
 
-        $calendar = $calendarId !== null && $calendarId !== 'iso8601'
-            ? CalendarFactory::get($calendarId)
-            : null;
+        $calendar = $calendarId !== null && $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
 
         // For non-ISO calendars: validate era/eraYear completeness and calendar compatibility.
         if ($calendar !== null) {
@@ -991,16 +934,20 @@ final class PlainMonthDay implements Stringable
         }
 
         $hasEraAndEraYear = $hasEra && $hasEraYear;
-        $hasYearLike = $hasYear || ($calendar !== null && $hasEraAndEraYear);
+        $hasYearLike = $hasYear || $calendar !== null && $hasEraAndEraYear;
 
         // For non-ISO calendars, year is required when using month (without monthCode).
         if ($calendar !== null) {
             if (!$hasMonthCode && !$hasYearLike) {
-                throw new \TypeError('PlainMonthDay::from() non-ISO calendar requires year when monthCode is not provided.');
+                throw new \TypeError(
+                    'PlainMonthDay::from() non-ISO calendar requires year when monthCode is not provided.',
+                );
             }
             // When both month and monthCode are given, year is needed to resolve conflicts.
             if ($hasMonth && $hasMonthCode && !$hasYearLike) {
-                throw new \TypeError('PlainMonthDay::from() non-ISO calendar requires year when both month and monthCode are provided.');
+                throw new \TypeError(
+                    'PlainMonthDay::from() non-ISO calendar requires year when both month and monthCode are provided.',
+                );
             }
         }
 
@@ -1021,43 +968,22 @@ final class PlainMonthDay implements Stringable
         if ($hasMonthCode) {
             /** @var mixed $mc */
             $mc = $bag['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $monthCode = (string) $mc;
+            if (!is_string($mc)) {
+                throw new \TypeError('PlainMonthDay monthCode must be a string.');
+            }
+            $monthCode = $mc;
         }
         if ($hasMonth) {
-            /**
-             * @var mixed $m
-             * @psalm-suppress PossiblyUndefinedArrayOffset
-             */
-            $m = $bag['month'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $m)) {
-                throw new InvalidArgumentException('PlainMonthDay::from() month must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $month = (int) $m;
+            /** @psalm-suppress PossiblyUndefinedArrayOffset */
+            $month = CalendarMath::toFiniteInt($bag['month'], 'PlainMonthDay::from() month');
         }
 
-        /** @var mixed $dayRaw */
-        $dayRaw = $bag['day'];
-        /** @phpstan-ignore cast.double */
-        if (!is_finite((float) $dayRaw)) {
-            throw new InvalidArgumentException('PlainMonthDay::from() day must be finite.');
-        }
-        /** @phpstan-ignore cast.int */
-        $day = (int) $dayRaw;
+        $day = CalendarMath::toFiniteInt($bag['day'], 'PlainMonthDay::from() day');
 
         // Determine the year for overflow/validation.
         $year = null;
         if ($hasYear) {
-            /** @var mixed $yr */
-            $yr = $bag['year'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yr)) {
-                throw new InvalidArgumentException('PlainMonthDay::from() year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $year = (int) $yr;
+            $year = CalendarMath::toFiniteInt($bag['year'], 'PlainMonthDay::from() year');
         }
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
@@ -1067,12 +993,7 @@ final class PlainMonthDay implements Stringable
             /** @var mixed $eraYearRaw */
             $eraYearRaw = $bag['eraYear'];
             if (is_string($eraRaw) && $eraYearRaw !== null) {
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $eraYearRaw)) {
-                    throw new InvalidArgumentException('PlainMonthDay::from() eraYear must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
+                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainMonthDay::from() eraYear');
                 $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
                 if ($resolved !== null) {
                     if ($year !== null && $year !== $resolved) {
@@ -1088,7 +1009,15 @@ final class PlainMonthDay implements Stringable
         // For non-ISO calendars, delegate to the non-ISO path with reference year resolution.
         if ($calendar !== null) {
             return self::fromPropertyBagNonIso(
-                $calendar, $calendarId, $hasMonth, $month, $hasMonthCode, $monthCode, $day, $year, $overflow,
+                $calendar,
+                $calendarId,
+                $hasMonth,
+                $month,
+                $hasMonthCode,
+                $monthCode,
+                $day,
+                $year,
+                $overflow,
             );
         }
 
@@ -1098,7 +1027,8 @@ final class PlainMonthDay implements Stringable
         }
 
         // ISO path: resolve monthCode to month number.
-        if ($hasMonthCode && $monthCode !== null) {
+        if ($hasMonthCode) {
+            /** @var string $monthCode — guaranteed non-null when $hasMonthCode is true */
             $mcMonth = CalendarMath::monthCodeToMonth($monthCode);
             if ($hasMonth && $month !== $mcMonth) {
                 throw new InvalidArgumentException('Conflicting month and monthCode fields.');
@@ -1117,7 +1047,6 @@ final class PlainMonthDay implements Stringable
 
         if ($overflow === 'constrain') {
             /**
-             * @var int<1, 12>
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
@@ -1140,7 +1069,6 @@ final class PlainMonthDay implements Stringable
         // otherwise use the provided year (for cases like Feb 29 constrained to 28 in common year).
         $refYear = 1972;
         /**
-         * @var int<1, 12> $month
          * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
          */
         $maxDayIn1972 = CalendarMath::calcDaysInMonth(1972, $month);
@@ -1198,7 +1126,10 @@ final class PlainMonthDay implements Stringable
             if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
                 throw new InvalidArgumentException(sprintf(
                     'Calendar year %d produces ISO date %d-%d-%d which is outside the representable range.',
-                    $year, $isoY, $isoM, $isoD,
+                    $year,
+                    $isoY,
+                    $isoM,
+                    $isoD,
                 ));
             }
 
@@ -1207,12 +1138,20 @@ final class PlainMonthDay implements Stringable
             $resolvedDay = $calendar->day($isoY, $isoM, $isoD);
 
             // Find the reference ISO year for this monthCode+day.
-            return self::resolveNonIsoReferenceYear($calendar, $calendarId, $resolvedMonthCode, $resolvedDay, $overflow);
+            return self::resolveNonIsoReferenceYear(
+                $calendar,
+                $calendarId,
+                $resolvedMonthCode,
+                $resolvedDay,
+                $overflow,
+            );
         }
 
         // No year: only monthCode path is allowed (validated above).
         if ($monthCode === null) {
-            throw new \TypeError('PlainMonthDay::from() non-ISO calendar requires year when monthCode is not provided.');
+            throw new \TypeError(
+                'PlainMonthDay::from() non-ISO calendar requires year when monthCode is not provided.',
+            );
         }
         if ($day < 1) {
             throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
@@ -1267,7 +1206,10 @@ final class PlainMonthDay implements Stringable
                 // Try exact match first.
                 try {
                     [$resIsoY, $resIsoM, $resIsoD] = $calendar->calendarToIsoFromMonthCode(
-                        $tryCalYear, $monthCode, $day, 'reject',
+                        $tryCalYear,
+                        $monthCode,
+                        $day,
+                        'reject',
                     );
                     if ($resIsoY > 1972) {
                         continue;
@@ -1284,15 +1226,21 @@ final class PlainMonthDay implements Stringable
                     if ($overflow === 'constrain') {
                         try {
                             [$resIsoY, $resIsoM, $resIsoD] = $calendar->calendarToIsoFromMonthCode(
-                                $tryCalYear, $monthCode, $day, 'constrain',
+                                $tryCalYear,
+                                $monthCode,
+                                $day,
+                                'constrain',
                             );
                             if ($resIsoY <= 1972) {
                                 $rtMonthCode = $calendar->monthCode($resIsoY, $resIsoM, $resIsoD);
                                 if ($rtMonthCode === $monthCode) {
                                     $rtDay = $calendar->day($resIsoY, $resIsoM, $resIsoD);
                                     $constrainedCandidates[] = [
-                                        'calYear' => $tryCalYear, 'isoY' => $resIsoY,
-                                        'isoM' => $resIsoM, 'isoD' => $resIsoD, 'day' => $rtDay,
+                                        'calYear' => $tryCalYear,
+                                        'isoY' => $resIsoY,
+                                        'isoM' => $resIsoM,
+                                        'isoD' => $resIsoD,
+                                        'day' => $rtDay,
                                     ];
                                 }
                             }
@@ -1320,9 +1268,7 @@ final class PlainMonthDay implements Stringable
                 }
             }
             // Now find the reference year for the constrained monthCode+day.
-            return self::resolveNonIsoReferenceYear(
-                $calendar, $calendarId, $monthCode, $maxConstrainedDay, 'reject',
-            );
+            return self::resolveNonIsoReferenceYear($calendar, $calendarId, $monthCode, $maxConstrainedDay, 'reject');
         }
 
         // With 'reject' overflow, if no exact match was found, throw.
@@ -1367,5 +1313,33 @@ final class PlainMonthDay implements Stringable
             $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
         }
         return $lower;
+    }
+
+    #[\Override]
+    protected function localeDefaultComponents(): string
+    {
+        return 'monthday';
+    }
+
+    #[\Override]
+    protected function localeIsDateOnly(): bool
+    {
+        return true;
+    }
+
+    #[\Override]
+    protected function localeIsTimeOnly(): bool
+    {
+        return false;
+    }
+
+    #[\Override]
+    protected function toLocaleTimestamp(): int
+    {
+        $dt = new \DateTime(
+            sprintf('%04d-%02d-%02d 00:00:00', $this->referenceISOYear, $this->isoMonth, $this->isoDay),
+            new \DateTimeZone('UTC'),
+        );
+        return $dt->getTimestamp();
     }
 }

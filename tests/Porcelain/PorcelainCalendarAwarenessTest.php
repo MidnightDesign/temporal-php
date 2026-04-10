@@ -296,7 +296,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
 
     public function testPlainYearMonthParsePreservesCalendar(): void
     {
-        $pym = PlainYearMonth::parse('2024-06[u-ca=japanese]');
+        $pym = PlainYearMonth::parse('2024-06-01[u-ca=japanese]');
 
         self::assertSame('japanese', $pym->calendarId);
     }
@@ -359,7 +359,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
 
     public function testPlainMonthDayParsePreservesCalendar(): void
     {
-        $pmd = PlainMonthDay::parse('03-15[u-ca=chinese]');
+        $pmd = PlainMonthDay::parse('1972-03-15[u-ca=chinese]');
 
         self::assertSame('chinese', $pmd->calendarId);
     }
@@ -442,10 +442,12 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $d2 = new Duration(days: 30);
         $rt = new PlainDate(2024, 1, 15, 'hebrew');
 
-        // Should not throw; should compare correctly
+        // Should not throw; should compare correctly. The actual ordering depends
+        // on the Hebrew calendar month length at the reference date; we only
+        // require a valid comparison result (-1, 0, or 1).
         $result = Duration::compare($d1, $d2, $rt);
 
-        self::assertIsInt($result);
+        self::assertContains($result, [-1, 0, 1]);
     }
 
     public function testDurationTotalWithNonIsoRelativeTo(): void
@@ -464,10 +466,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $d = new Duration(months: 15);
         $rt = new PlainDate(2024, 1, 15, 'buddhist');
 
-        $rounded = $d->round(
-            smallestUnit: Unit::Year,
-            relativeTo: $rt,
-        );
+        $rounded = $d->round(smallestUnit: Unit::Year, relativeTo: $rt);
 
         self::assertSame(1, $rounded->years);
     }

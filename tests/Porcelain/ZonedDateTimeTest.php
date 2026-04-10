@@ -16,7 +16,6 @@ use Temporal\PlainDate;
 use Temporal\PlainDateTime;
 use Temporal\PlainTime;
 use Temporal\RoundingMode;
-
 use Temporal\TimeZoneDisplay;
 use Temporal\TransitionDirection;
 use Temporal\Unit;
@@ -214,6 +213,16 @@ final class ZonedDateTimeTest extends TemporalTestCase
         self::assertSame(365, $zdtNormal->daysInYear);
     }
 
+    public function testDaysInWeek(): void
+    {
+        self::assertSame(7, ZonedDateTime::parse('2020-01-01T00:00:00+00:00[UTC]')->daysInWeek);
+    }
+
+    public function testMonthsInYear(): void
+    {
+        self::assertSame(12, ZonedDateTime::parse('2020-01-01T00:00:00+00:00[UTC]')->monthsInYear);
+    }
+
     public function testInLeapYear(): void
     {
         $zdtLeap = ZonedDateTime::parse('2020-01-01T00:00:00+00:00[UTC]');
@@ -301,10 +310,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
     public function testParseWithOffsetOptionUse(): void
     {
-        $zdt = ZonedDateTime::parse(
-            '2020-01-01T12:00:00+05:30[Asia/Kolkata]',
-            offset: OffsetOption::Use,
-        );
+        $zdt = ZonedDateTime::parse('2020-01-01T12:00:00+05:30[Asia/Kolkata]', offset: OffsetOption::Use);
 
         self::assertSame(12, $zdt->hour);
         self::assertSame('+05:30', $zdt->offset);
@@ -313,10 +319,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     public function testParseWithOffsetOptionRejectValid(): void
     {
         // Offset matches the timezone -- should succeed
-        $zdt = ZonedDateTime::parse(
-            '2020-01-01T12:00:00+05:30[Asia/Kolkata]',
-            offset: OffsetOption::Reject,
-        );
+        $zdt = ZonedDateTime::parse('2020-01-01T12:00:00+05:30[Asia/Kolkata]', offset: OffsetOption::Reject);
 
         self::assertSame(12, $zdt->hour);
     }
@@ -326,10 +329,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
         $this->expectException(InvalidArgumentException::class);
 
         // Offset does not match the timezone
-        ZonedDateTime::parse(
-            '2020-01-01T12:00:00+00:00[Asia/Kolkata]',
-            offset: OffsetOption::Reject,
-        );
+        ZonedDateTime::parse('2020-01-01T12:00:00+00:00[Asia/Kolkata]', offset: OffsetOption::Reject);
     }
 
     // -------------------------------------------------------------------------
@@ -844,20 +844,14 @@ final class ZonedDateTimeTest extends TemporalTestCase
     {
         $zdt = ZonedDateTime::parse('2020-01-01T12:00:00.100+00:00[UTC]');
 
-        self::assertSame(
-            '2020-01-01T12:00:00.100+00:00[UTC]',
-            $zdt->toString(fractionalSecondDigits: 3),
-        );
+        self::assertSame('2020-01-01T12:00:00.100+00:00[UTC]', $zdt->toString(fractionalSecondDigits: 3));
     }
 
     public function testToStringWithFractionalSecondDigitsZero(): void
     {
         $zdt = ZonedDateTime::parse('2020-01-01T12:00:00.500+00:00[UTC]');
 
-        self::assertSame(
-            '2020-01-01T12:00:00+00:00[UTC]',
-            $zdt->toString(fractionalSecondDigits: 0),
-        );
+        self::assertSame('2020-01-01T12:00:00+00:00[UTC]', $zdt->toString(fractionalSecondDigits: 0));
     }
 
     public function testToStringWithSmallestUnit(): void
@@ -865,20 +859,17 @@ final class ZonedDateTimeTest extends TemporalTestCase
         $zdt = ZonedDateTime::parse('2020-01-01T12:30:45+00:00[UTC]');
 
         // smallestUnit: minute produces HH:MM format (no seconds)
-        self::assertSame(
-            '2020-01-01T12:30+00:00[UTC]',
-            $zdt->toString(smallestUnit: Unit::Minute),
-        );
+        self::assertSame('2020-01-01T12:30+00:00[UTC]', $zdt->toString(smallestUnit: Unit::Minute));
     }
 
     public function testToStringWithRoundingMode(): void
     {
         $zdt = ZonedDateTime::parse('2020-01-01T12:00:00.600+00:00[UTC]');
 
-        self::assertSame(
-            '2020-01-01T12:00:01+00:00[UTC]',
-            $zdt->toString(fractionalSecondDigits: 0, roundingMode: RoundingMode::Ceil),
-        );
+        self::assertSame('2020-01-01T12:00:01+00:00[UTC]', $zdt->toString(
+            fractionalSecondDigits: 0,
+            roundingMode: RoundingMode::Ceil,
+        ));
     }
 
     public function testToStringOffsetDisplayNever(): void
@@ -1025,10 +1016,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     {
         // The disambiguation option is forwarded; we verify it doesn't throw
         // and produces a valid result when set to a non-default value.
-        $zdt = ZonedDateTime::parse(
-            '2020-06-15T12:00:00+00:00[UTC]',
-            disambiguation: Disambiguation::Later,
-        );
+        $zdt = ZonedDateTime::parse('2020-06-15T12:00:00+00:00[UTC]', disambiguation: Disambiguation::Later);
 
         self::assertSame(12, $zdt->hour);
     }
@@ -1040,10 +1028,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     public function testParseForwardsOffsetOptionIgnore(): void
     {
         // The offset +01:00 doesn't match UTC, but "ignore" ignores offset
-        $zdt = ZonedDateTime::parse(
-            '2020-01-01T12:00:00+01:00[UTC]',
-            offset: OffsetOption::Ignore,
-        );
+        $zdt = ZonedDateTime::parse('2020-01-01T12:00:00+01:00[UTC]', offset: OffsetOption::Ignore);
 
         self::assertSame(12, $zdt->hour);
         self::assertSame('+00:00', $zdt->offset);
@@ -1189,5 +1174,4 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
         self::assertSame(7, $result->minute);
     }
-
 }

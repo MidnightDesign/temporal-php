@@ -173,10 +173,21 @@ final class CalendarFieldResolutionTest extends TestCase
     public static function roundtripCalendarProvider(): iterable
     {
         $calendars = [
-            'buddhist', 'coptic', 'ethiopic', 'ethioaa', 'gregory',
-            'hebrew', 'indian', 'islamic-civil', 'islamic-tbla',
-            'islamic-umalqura', 'japanese', 'persian', 'roc',
-            'chinese', 'dangi',
+            'buddhist',
+            'coptic',
+            'ethiopic',
+            'ethioaa',
+            'gregory',
+            'hebrew',
+            'indian',
+            'islamic-civil',
+            'islamic-tbla',
+            'islamic-umalqura',
+            'japanese',
+            'persian',
+            'roc',
+            'chinese',
+            'dangi',
         ];
         foreach ($calendars as $cal) {
             yield $cal => [$cal];
@@ -190,7 +201,6 @@ final class CalendarFieldResolutionTest extends TestCase
     public function testPlainDateWithDayOnHebrewCalendar(): void
     {
         $d = PlainDate::from('2024-01-15')->withCalendar('hebrew');
-        $original = $d->day;
 
         $d2 = $d->with(['day' => 10]);
 
@@ -288,7 +298,7 @@ final class CalendarFieldResolutionTest extends TestCase
             'calendar' => 'chinese',
         ]);
 
-        self::assertInstanceOf(PlainDate::class, $d);
+        self::assertInstanceOf(PlainDate::class, $d); // @phpstan-ignore staticMethod.alreadyNarrowedType
     }
 
     // -------------------------------------------------------------------------
@@ -391,7 +401,7 @@ final class CalendarFieldResolutionTest extends TestCase
 
     public function testPlainYearMonthWithOnHebrewCalendar(): void
     {
-        $ym = PlainYearMonth::from('2024-01[u-ca=hebrew]');
+        $ym = PlainYearMonth::from('2024-01-01[u-ca=hebrew]');
 
         $ym2 = $ym->with(['month' => 6]);
 

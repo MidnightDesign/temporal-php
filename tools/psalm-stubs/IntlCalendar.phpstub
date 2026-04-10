@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * Override Psalm's built-in CallMap stub for IntlCalendar::createInstance
+ * so it matches PHPStan's stub (non-nullable return). Without this override
+ * the two static analyzers disagree about whether a null check is needed.
+ */
+class IntlCalendar
+{
+    /**
+     * @param IntlTimeZone|DateTimeZone|string|null $timezone
+     * @param string|null $locale
+     */
+    public static function createInstance($timezone = null, $locale = null): IntlCalendar
+    {
+    }
+}

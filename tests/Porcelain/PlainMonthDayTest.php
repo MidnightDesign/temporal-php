@@ -10,7 +10,6 @@ use Temporal\Overflow;
 use Temporal\PlainDate;
 use Temporal\PlainMonthDay;
 
-
 final class PlainMonthDayTest extends TemporalTestCase
 {
     // -------------------------------------------------------------------------
@@ -45,14 +44,14 @@ final class PlainMonthDayTest extends TemporalTestCase
 
     public function testCalendarIdIsIso8601(): void
     {
-        self::assertSame('iso8601', (new PlainMonthDay(12, 25))->calendarId);
+        self::assertSame('iso8601', new PlainMonthDay(12, 25)->calendarId);
     }
 
     public function testMonthCode(): void
     {
-        self::assertSame('M01', (new PlainMonthDay(1, 1))->monthCode);
-        self::assertSame('M06', (new PlainMonthDay(6, 15))->monthCode);
-        self::assertSame('M12', (new PlainMonthDay(12, 31))->monthCode);
+        self::assertSame('M01', new PlainMonthDay(1, 1)->monthCode);
+        self::assertSame('M06', new PlainMonthDay(6, 15)->monthCode);
+        self::assertSame('M12', new PlainMonthDay(12, 31)->monthCode);
     }
 
     // -------------------------------------------------------------------------
@@ -195,10 +194,7 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame(
-            '1972-12-25[!u-ca=iso8601]',
-            $md->toString(CalendarDisplay::Critical),
-        );
+        self::assertSame('1972-12-25[!u-ca=iso8601]', $md->toString(CalendarDisplay::Critical));
     }
 
     public function testToStringSingleDigitMonth(): void
@@ -318,5 +314,4 @@ final class PlainMonthDayTest extends TemporalTestCase
         self::assertSame('iso8601', $info['calendarId']);
         self::assertSame('12-25', $info['iso']);
     }
-
 }

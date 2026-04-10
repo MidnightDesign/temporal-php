@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use Temporal\Duration;
 use Temporal\Instant;
 use Temporal\RoundingMode;
-
 use Temporal\Unit;
 use Temporal\ZonedDateTime;
 
@@ -230,7 +229,7 @@ final class InstantTest extends TemporalTestCase
         $i = new Instant(0);
         $result = $i->add(new Duration(minutes: 30, seconds: 15));
 
-        $expected = (30 * 60 + 15) * 1_000_000_000;
+        $expected = ((30 * 60) + 15) * 1_000_000_000;
         self::assertSame($expected, $result->epochNanoseconds);
     }
 
@@ -562,6 +561,7 @@ final class InstantTest extends TemporalTestCase
         $i = Instant::fromSpec($spec);
 
         self::assertSame(42_000_000_000, $i->epochNanoseconds);
+        self::assertSame(42_000, $spec->epochMilliseconds);
     }
 
     // -------------------------------------------------------------------------

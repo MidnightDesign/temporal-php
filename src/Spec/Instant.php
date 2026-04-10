@@ -29,6 +29,7 @@ final class Instant implements Stringable
      * Unlike the JS spec, which returns a Number, PHP returns int since a
      * 64-bit integer has sufficient range for all practical timestamps.
      *
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $epochMilliseconds {
@@ -470,8 +471,18 @@ final class Instant implements Stringable
         if ($isMinute) {
             $increment = 60_000_000_000;
         } elseif ($digits >= 0) {
-            // exponent (9 - $digits) is always 0-9, so ** always returns int here.
-            $increment = (int) 10 ** (9 - $digits); // @phpstan-ignore cast.useless
+            $increment = match ($digits) {
+                0 => 1_000_000_000,
+                1 => 100_000_000,
+                2 => 10_000_000,
+                3 => 1_000_000,
+                4 => 100_000,
+                5 => 10_000,
+                6 => 1_000,
+                7 => 100,
+                8 => 10,
+                default => 1,
+            };
         }
         // For 'auto' ($digits === -2), increment stays 1 (no rounding).
 
@@ -497,7 +508,7 @@ final class Instant implements Stringable
         if ($tzOffsetSec === null) {
             $tzSuffix = 'Z';
         } else {
-            $roundedMin = (int) round($tzOffsetSec / 60.0);
+            $roundedMin = (int) round((float) $tzOffsetSec / 60.0);
             $absMin = abs($roundedMin);
             $tzH = intdiv(num1: $absMin, num2: 60);
             $tzM = $absMin % 60;
@@ -607,6 +618,7 @@ final class Instant implements Stringable
         }
         // Datetime strings: bracket annotation takes precedence.
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
+            /** @var non-empty-string $bracket */
             $bracket = $bm[1];
             if (strtoupper($bracket) === 'UTC') {
                 return 0;
@@ -644,6 +656,9 @@ final class Instant implements Stringable
      */
     private static function ianaOffsetSeconds(string $tz, int $epochSec): int
     {
+        if ($tz === '') {
+            return 0;
+        }
         try {
             $phpTz = new \DateTimeZone($tz);
             return $phpTz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
@@ -658,7 +673,10 @@ final class Instant implements Stringable
         return $this->toString();
     }
 
-    /** @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec */
+    /**
+     * @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec
+     * @psalm-api
+     */
     public function toJSON(mixed $options = null): string
     {
         return $this->toString();
@@ -736,6 +754,7 @@ final class Instant implements Stringable
         if ($isDatetime) {
             // Bracket annotation takes precedence over the inline offset.
             if (preg_match('/\[(!?[^\]]+)\]/', $tz, $bm) === 1) {
+                /** @var non-empty-string $bracket */
                 $bracket = $bm[1];
                 // Sub-minute offset in bracket: reject.
                 if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bracket) === 1) {
@@ -799,7 +818,9 @@ final class Instant implements Stringable
             new \DateTimeZone($tz);
             return ZonedDateTime::normalizeTimezoneId($tz);
         } catch (\Exception) {
-            throw new InvalidArgumentException("Invalid time zone string \"{$tz}\": not a recognized timezone identifier.");
+            throw new InvalidArgumentException(
+                "Invalid time zone string \"{$tz}\": not a recognized timezone identifier.",
+            );
         }
     }
 
@@ -1149,6 +1170,8 @@ final class Instant implements Stringable
         $us = (int) $microseconds;
         $ns = (int) $nanoseconds;
 
+        // Exact integer computation. PHP promotes int to float on overflow,
+        // but the range check above already guards against that.
         $result =
             $epochNs
             + $ns
@@ -1157,11 +1180,6 @@ final class Instant implements Stringable
             + ($s * self::NS_PER_SECOND)
             + ($m * 60 * self::NS_PER_SECOND)
             + ($h * 3_600 * self::NS_PER_SECOND);
-
-        // PHP promotes int to float on overflow; use float-result sentinel in that case.
-        if (is_float($result)) { // @phpstan-ignore function.impossibleType
-            return new self($floatResult < 0.0 ? PHP_INT_MIN : PHP_INT_MAX);
-        }
 
         return new self($result);
     }

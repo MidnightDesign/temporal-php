@@ -79,7 +79,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
-     * @var int<1, 12>
+     * @var int
      */
     public int $month {
         get {
@@ -94,7 +94,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
-     * @var int<1, 31>
+     * @var int
      */
     public int $day {
         get {
@@ -259,7 +259,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
-     * @var int<1, 366>
+     * @var int
      */
     public int $dayOfYear {
         get {
@@ -310,7 +310,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
-     * @var int<28, 31>
+     * @var int
      */
     public int $daysInMonth {
         get {
@@ -337,7 +337,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
-     * @var int<365, 366>
+     * @var int
      */
     public int $daysInYear {
         get {
@@ -352,7 +352,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      * @psalm-suppress PossiblyUnusedProperty — accessed externally via test262 scripts
      * @psalm-api
-     * @var int<12, 12>
+     * @var int
      */
     public int $monthsInYear {
         get {
@@ -398,7 +398,7 @@ final class ZonedDateTime implements Stringable
             $tomorrowEpochSec = self::wallSecToEpochSecStartOfDay($tomorrowWallSec, $this->timeZoneId);
 
             $diffSec = $tomorrowEpochSec - $todayEpochSec;
-            $hours = $diffSec / 3600.0;
+            $hours = (float) $diffSec / 3600.0;
 
             // Return int when it's a whole number, float otherwise.
             return $hours === (float) (int) $hours ? (int) $hours : $hours;
@@ -761,25 +761,50 @@ final class ZonedDateTime implements Stringable
         }
         return (
             self::compareInstants($this, $other) === 0
-            && self::canonicalizeTimezoneForComparison($this->timeZoneId)
-                === self::canonicalizeTimezoneForComparison($other->timeZoneId)
+            && self::canonicalizeTimezoneForComparison($this->timeZoneId) === self::canonicalizeTimezoneForComparison($other->timeZoneId)
             && $this->calendarId === $other->calendarId
         );
     }
 
     /**
-     * Canonicalizes a timezone ID for comparison purposes only.
-     * Does NOT change the stored timeZoneId. This allows Etc/GMT to be
-     * preserved in the timeZoneId property but still compare equal to UTC.
+     * Returns a comparison key for a timezone ID used by ZonedDateTime::equals().
+     *
+     * Per the TC39 Temporal spec, equals() compares timezones by canonical
+     * primary identifier via ICU — so IANA aliases like Asia/Calcutta and
+     * Asia/Kolkata compare equal, but two distinct canonical IDs that happen
+     * to share offset rules (for example Antarctica/McMurdo and
+     * Pacific/Auckland) are NOT equal.
+     *
+     * UTC-equivalent aliases and the '+00:00' / '-00:00' fixed offsets are
+     * folded to 'UTC' so they compare equal.
+     *
+     * This path deliberately does NOT apply the McMurdo → Auckland ICU fixup
+     * used by resolveCanonicalTimezoneId() for offset resolution, because
+     * those IDs are distinct canonical primaries per IANA.
      */
     private static function canonicalizeTimezoneForComparison(string $id): string
     {
         // UTC aliases all compare equal.
         /** @var list<string> $utcAliases */
         static $utcAliases = [
-            'etc/utc', 'etc/gmt', 'etc/gmt+0', 'etc/gmt-0', 'etc/gmt0',
-            'etc/greenwich', 'etc/uct', 'etc/universal', 'etc/zulu',
-            'gmt', 'gmt+0', 'gmt-0', 'gmt0', 'greenwich', 'uct', 'universal', 'zulu', 'utc',
+            'etc/utc',
+            'etc/gmt',
+            'etc/gmt+0',
+            'etc/gmt-0',
+            'etc/gmt0',
+            'etc/greenwich',
+            'etc/uct',
+            'etc/universal',
+            'etc/zulu',
+            'gmt',
+            'gmt+0',
+            'gmt-0',
+            'gmt0',
+            'greenwich',
+            'uct',
+            'universal',
+            'zulu',
+            'utc',
         ];
         $lower = strtolower($id);
         if (in_array($lower, $utcAliases, strict: true)) {
@@ -800,7 +825,24 @@ final class ZonedDateTime implements Stringable
             }
         }
         $properCase = $lowerMap[$lower] ?? $id;
-        return self::resolveCanonicalTimezoneId($properCase);
+        // Override ICU canonicalization for IDs where ICU's link target is
+        // stale relative to the current IANA chain. ICU still resolves
+        // Antarctica/South_Pole to Pacific/Auckland, but post-2017 IANA links
+        // it to Antarctica/McMurdo, which is a distinct primary.
+        /** @var array<string, string> $comparisonOverrides */
+        static $comparisonOverrides = [
+            'Antarctica/South_Pole' => 'Antarctica/McMurdo',
+        ];
+        if (isset($comparisonOverrides[$properCase])) {
+            return $comparisonOverrides[$properCase];
+        }
+        if (function_exists('intltz_get_canonical_id')) {
+            $canon = \IntlTimeZone::getCanonicalID($properCase);
+            if ($canon !== false && $canon !== '') {
+                return $canon;
+            }
+        }
+        return $properCase;
     }
 
     /**
@@ -925,10 +967,19 @@ final class ZonedDateTime implements Stringable
         // Compute rounding increment in nanoseconds.
         if ($isMinute) {
             $increment = 60_000_000_000;
-        } elseif ($digits >= 0) {
-            $increment = (int) 10 ** (9 - $digits); // @phpstan-ignore cast.useless
         } else {
-            $increment = 1;
+            $increment = match ($digits) {
+                0 => 1_000_000_000,
+                1 => 100_000_000,
+                2 => 10_000_000,
+                3 => 1_000_000,
+                4 => 100_000,
+                5 => 10_000,
+                6 => 1_000,
+                7 => 100,
+                8 => 10,
+                default => 1,
+            };
         }
 
         // Round epoch nanoseconds using RoundNumberToIncrementAsIfPositive.
@@ -1019,7 +1070,7 @@ final class ZonedDateTime implements Stringable
             $result .= sprintf('[u-ca=%s]', $this->calendarId);
         } elseif ($calendarName === 'critical') {
             $result .= sprintf('[!u-ca=%s]', $this->calendarId);
-        } elseif ($calendarName === 'auto' && $this->calendarId !== 'iso8601') { // @phpstan-ignore booleanAnd.alwaysFalse, notIdentical.alwaysFalse
+        } elseif ($calendarName === 'auto' && $this->calendarId !== 'iso8601') {
             $result .= sprintf('[u-ca=%s]', $this->calendarId);
         }
         // 'never': omit calendar annotation entirely.
@@ -1055,7 +1106,11 @@ final class ZonedDateTime implements Stringable
         $opts['_locale'] = $locale;
 
         // TC39: ZDT's default format includes the timezone name.
-        if (!array_key_exists('timeZoneName', $opts) && !array_key_exists('dateStyle', $opts) && !array_key_exists('timeStyle', $opts)) {
+        if (
+            !array_key_exists('timeZoneName', $opts)
+            && !array_key_exists('dateStyle', $opts)
+            && !array_key_exists('timeStyle', $opts)
+        ) {
             $opts['timeZoneName'] = 'short';
         }
 
@@ -1063,7 +1118,7 @@ final class ZonedDateTime implements Stringable
         CalendarMath::validateStyleConflicts($opts);
 
         $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts, 'datetime');
-        [$epochSec, ] = $this->getEpochParts();
+        [$epochSec] = $this->getEpochParts();
         $result = $formatter->format($epochSec);
 
         return $result !== false ? $result : $this->toString();
@@ -1115,7 +1170,9 @@ final class ZonedDateTime implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
+            throw new InvalidArgumentException(
+                "Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
+            );
         }
         return self::diffZdt($this, $o, 'since', $options);
     }
@@ -1133,7 +1190,9 @@ final class ZonedDateTime implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
+            throw new InvalidArgumentException(
+                "Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
+            );
         }
         return self::diffZdt($this, $o, 'until', $options);
     }
@@ -1353,64 +1412,22 @@ final class ZonedDateTime implements Stringable
 
         // --- Resolve time fields (shared by ISO and non-ISO paths) ---
         if (array_key_exists('hour', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['hour'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() hour must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $h = (int) $v;
+            $h = CalendarMath::toFiniteInt($fields['hour'], 'ZonedDateTime::with() hour');
         }
         if (array_key_exists('minute', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['minute'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() minute must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $min = (int) $v;
+            $min = CalendarMath::toFiniteInt($fields['minute'], 'ZonedDateTime::with() minute');
         }
         if (array_key_exists('second', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['second'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() second must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $sec = (int) $v;
+            $sec = CalendarMath::toFiniteInt($fields['second'], 'ZonedDateTime::with() second');
         }
         if (array_key_exists('millisecond', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['millisecond'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() millisecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $ms = (int) $v;
+            $ms = CalendarMath::toFiniteInt($fields['millisecond'], 'ZonedDateTime::with() millisecond');
         }
         if (array_key_exists('microsecond', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['microsecond'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() microsecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $us = (int) $v;
+            $us = CalendarMath::toFiniteInt($fields['microsecond'], 'ZonedDateTime::with() microsecond');
         }
         if (array_key_exists('nanosecond', $fields)) {
-            /** @var mixed $v */
-            $v = $fields['nanosecond'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $v)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() nanosecond must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $ns = (int) $v;
+            $ns = CalendarMath::toFiniteInt($fields['nanosecond'], 'ZonedDateTime::with() nanosecond');
         }
 
         // --- Constrain/reject time fields ---
@@ -1442,9 +1459,7 @@ final class ZonedDateTime implements Stringable
             }
         }
 
-        $calendar = $this->calendarId !== 'iso8601'
-            ? CalendarFactory::get($this->calendarId)
-            : null;
+        $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
         // --- Non-ISO calendar date resolution ---
         if ($calendar !== null) {
@@ -1468,28 +1483,18 @@ final class ZonedDateTime implements Stringable
             }
 
             // Resolve year: era+eraYear takes precedence over the current year if both provided.
+            // When $hasYear is false, $hasEra implies $hasEraYear (and vice versa) due to checks above.
             $year = $this->year;
             if ($hasYear) {
-                /** @var mixed $yr */
-                $yr = $fields['year'];
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $yr)) {
-                    throw new InvalidArgumentException('ZonedDateTime::with() year must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $year = (int) $yr;
-            } elseif ($hasEra && $hasEraYear) {
+                $year = CalendarMath::toFiniteInt($fields['year'], 'ZonedDateTime::with() year');
+            } elseif ($hasEra) {
                 /** @var mixed $eraRaw */
                 $eraRaw = $fields['era'];
                 /** @var mixed $eraYearRaw */
                 $eraYearRaw = $fields['eraYear'];
                 if (is_string($eraRaw) && $eraYearRaw !== null) {
-                    /** @phpstan-ignore cast.double */
-                    if (!is_finite((float) $eraYearRaw)) {
-                        throw new InvalidArgumentException('eraYear must be finite.');
-                    }
-                    /** @phpstan-ignore cast.int */
-                    $resolved = $calendar->resolveEra($eraRaw, (int) $eraYearRaw);
+                    $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'eraYear');
+                    $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
                     if ($resolved !== null) {
                         $year = $resolved;
                     }
@@ -1505,21 +1510,16 @@ final class ZonedDateTime implements Stringable
             if ($hasMonthCode) {
                 /** @var mixed $mc */
                 $mc = $fields['monthCode'];
-                /** @phpstan-ignore cast.string */
-                $monthCode = (string) $mc;
+                if (!is_string($mc)) {
+                    throw new InvalidArgumentException('ZonedDateTime::with() monthCode must be a string.');
+                }
+                $monthCode = $mc;
                 $useMonthCode = true;
             }
             if ($hasMonth) {
-                /** @var mixed $m */
-                $m = $fields['month'];
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $m)) {
-                    throw new InvalidArgumentException('ZonedDateTime::with() month must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $month = (int) $m;
+                $month = CalendarMath::toFiniteInt($fields['month'], 'ZonedDateTime::with() month');
                 // Validate month/monthCode conflict.
-                if ($hasMonthCode && $monthCode !== null) {
+                if ($monthCode !== null) {
                     $monthFromCode = $calendar->monthCodeToMonth($monthCode, $year);
                     if ($month !== $monthFromCode) {
                         throw new InvalidArgumentException('Conflicting month and monthCode fields.');
@@ -1535,14 +1535,7 @@ final class ZonedDateTime implements Stringable
 
             $day = $this->day;
             if (array_key_exists('day', $fields)) {
-                /** @var mixed $dy */
-                $dy = $fields['day'];
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $dy)) {
-                    throw new InvalidArgumentException('ZonedDateTime::with() day must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $day = (int) $dy;
+                $day = CalendarMath::toFiniteInt($fields['day'], 'ZonedDateTime::with() day');
             }
 
             if ($day < 1) {
@@ -1581,14 +1574,7 @@ final class ZonedDateTime implements Stringable
         $day = $lc['day'];
 
         if (array_key_exists('year', $fields)) {
-            /** @var mixed $yr */
-            $yr = $fields['year'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yr)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $year = (int) $yr;
+            $year = CalendarMath::toFiniteInt($fields['year'], 'ZonedDateTime::with() year');
         }
 
         $hasMonth = array_key_exists('month', $fields);
@@ -1596,19 +1582,13 @@ final class ZonedDateTime implements Stringable
         if ($hasMonthCode) {
             /** @var mixed $mc */
             $mc = $fields['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $mcStr = (string) $mc;
-            $month = CalendarMath::monthCodeToMonth($mcStr);
+            if (!is_string($mc)) {
+                throw new InvalidArgumentException('ZonedDateTime::with() monthCode must be a string.');
+            }
+            $month = CalendarMath::monthCodeToMonth($mc);
         }
         if ($hasMonth) {
-            /** @var mixed $m */
-            $m = $fields['month'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $m)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() month must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $newMonth = (int) $m;
+            $newMonth = CalendarMath::toFiniteInt($fields['month'], 'ZonedDateTime::with() month');
             if ($hasMonthCode && $newMonth !== $month) {
                 throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
@@ -1616,14 +1596,7 @@ final class ZonedDateTime implements Stringable
         }
 
         if (array_key_exists('day', $fields)) {
-            /** @var mixed $dy */
-            $dy = $fields['day'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $dy)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() day must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $day = (int) $dy;
+            $day = CalendarMath::toFiniteInt($fields['day'], 'ZonedDateTime::with() day');
         }
 
         if ($month < 1) {
@@ -1635,7 +1608,6 @@ final class ZonedDateTime implements Stringable
 
         if ($overflow === 'constrain') {
             /**
-             * @var int<1, 12>
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
              */
             $month = min(12, $month);
@@ -1656,7 +1628,7 @@ final class ZonedDateTime implements Stringable
         // use the ZDT's current offset for wall-to-epoch conversion. Per TC39,
         // 'use'/'prefer'/'reject' all preserve the existing offset when possible.
         if (!$hasOffsetField && $offsetOption !== 'ignore') {
-            [$curEpochSec, ] = $this->getEpochParts();
+            [$curEpochSec] = $this->getEpochParts();
             $currentOffsetSec = self::staticResolveOffset($curEpochSec, $this->timeZoneId);
 
             $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
@@ -1674,6 +1646,7 @@ final class ZonedDateTime implements Stringable
                 $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
                 return self::fromEpochParts($epochFromOffset, $subNs, $this->timeZoneId, $this->calendarId);
             }
+
             // Current offset not valid at new wall time — fall through to disambiguation
         }
 
@@ -1683,8 +1656,13 @@ final class ZonedDateTime implements Stringable
             $offVal = $fields['offset'];
             $offSign = $offVal[0] === '+' ? 1 : -1;
             $offParts = explode(separator: ':', string: substr(string: $offVal, offset: 1));
-            $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60)
-                + (isset($offParts[2]) ? (int) $offParts[2] : 0));
+            $givenOffsetSec =
+                $offSign
+                * (
+                    ((int) $offParts[0] * 3600)
+                    + ((int) $offParts[1] * 60)
+                    + (isset($offParts[2]) ? (int) $offParts[2] : 0)
+                );
 
             if ($offsetOption === 'ignore') {
                 // Fall through to normal localToZdt.
@@ -1711,6 +1689,7 @@ final class ZonedDateTime implements Stringable
                         "The offset {$offVal} does not match the timezone offset at the given instant.",
                     );
                 }
+
                 // 'prefer': fall through to normal localToZdt.
             }
         }
@@ -1784,7 +1763,7 @@ final class ZonedDateTime implements Stringable
 
         if ($dir === 'next') {
             $transitions = $tz->getTransitions($epochSec, $epochSec + (200 * 365 * 86_400));
-            if ($transitions === [] || $transitions === false || count($transitions) < 2) { // @phpstan-ignore identical.alwaysFalse
+            if ($transitions === [] || count($transitions) < 2) {
                 return null;
             }
             // Skip index 0 (initial state at range start). Find first entry
@@ -1792,7 +1771,7 @@ final class ZonedDateTime implements Stringable
             $prevOffset = $transitions[0]['offset'];
             for ($i = 1; $i < count($transitions); $i++) {
                 if ($transitions[$i]['offset'] !== $prevOffset) {
-                    $ts = (int) $transitions[$i]['ts'];
+                    $ts = $transitions[$i]['ts'];
                     return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
                 }
                 $prevOffset = $transitions[$i]['offset'];
@@ -1802,7 +1781,7 @@ final class ZonedDateTime implements Stringable
 
         // 'previous': find the most recent transition strictly BEFORE the current instant.
         $transitions = $tz->getTransitions($epochSec - (200 * 365 * 86_400), $epochSec);
-        if ($transitions === [] || $transitions === false || count($transitions) < 2) { // @phpstan-ignore identical.alwaysFalse
+        if ($transitions === [] || count($transitions) < 2) {
             return null;
         }
         // Walk backwards from the end. Find entries where offset differs from
@@ -1813,9 +1792,9 @@ final class ZonedDateTime implements Stringable
         /** @var ?int $candidateTs */
         $candidateTs = null;
         for ($i = count($transitions) - 1; $i >= 1; $i--) {
-            $ts = (int) $transitions[$i]['ts'];
+            $ts = $transitions[$i]['ts'];
             // Strictly before: ts < epochSec, or ts == epochSec only if there are sub-second ns.
-            $isBefore = $ts < $epochSec || ($ts === $epochSec && $subNs > 0);
+            $isBefore = $ts < $epochSec || $ts === $epochSec && $subNs > 0;
             if ($isBefore && $transitions[$i]['offset'] !== $transitions[$i - 1]['offset']) {
                 $candidateTs = $ts;
                 break;
@@ -2014,7 +1993,9 @@ final class ZonedDateTime implements Stringable
         // Must be in the IANA timezone list — reject abbreviations like "AST", "EST".
         $lower = strtolower($id);
         if (!array_key_exists($lower, $lowerToCanonical)) {
-            throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": not a recognized IANA timezone identifier.");
+            throw new InvalidArgumentException(
+                "Invalid timeZoneId \"{$id}\": not a recognized IANA timezone identifier.",
+            );
         }
         return $lowerToCanonical[$lower];
     }
@@ -2044,7 +2025,8 @@ final class ZonedDateTime implements Stringable
     {
         [$aSec, $aSubNs] = $a->getEpochParts();
         [$bSec, $bSubNs] = $b->getEpochParts();
-        return ($aSec <=> $bSec) ?: ($aSubNs <=> $bSubNs);
+        $cmp = $aSec <=> $bSec;
+        return $cmp !== 0 ? $cmp : ($aSubNs <=> $bSubNs);
     }
 
     /**
@@ -2171,9 +2153,12 @@ final class ZonedDateTime implements Stringable
         }
         if (function_exists('intltz_get_canonical_id')) {
             $canon = \IntlTimeZone::getCanonicalID($id);
-            if ($canon !== null && $canon !== '' && $canon !== $id) {
+            if ($canon !== false && $canon !== '' && $canon !== $id) {
                 // Apply fixups to the ICU result as well
                 $canon = $icuFixups[$canon] ?? $canon;
+                if ($canon === '') {
+                    return $id;
+                }
                 try {
                     new \DateTimeZone($canon);
                     return $canon;
@@ -2362,7 +2347,8 @@ final class ZonedDateTime implements Stringable
             [$inlineSign, $inlineAbsSec] = self::parseSimpleOffset($offsetRaw);
             $inlineOffsetSec = $inlineSign * $inlineAbsSec;
             // Detect seconds: extended ±HH:MM:SS or compact ±HHMMSS (7+ chars after sign).
-            $inlineOffsetHasSeconds = preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $offsetRaw) === 1
+            $inlineOffsetHasSeconds =
+                preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $offsetRaw) === 1
                 || preg_match('/^[+\-]\d{6}/', $offsetRaw) === 1;
         }
 
@@ -2429,7 +2415,7 @@ final class ZonedDateTime implements Stringable
                     if ($tzOffset === $inlineOffsetSec) {
                         // The timezone's default resolution matches the inline offset.
                         $epochSec = $tzEpoch;
-                    } elseif ($tzOffset % 60 !== 0) {
+                    } elseif (($tzOffset % 60) !== 0) {
                         // The resolved offset is sub-minute; HH:MM can't disambiguate.
                         // Accept if the inline offset rounds to the resolved offset.
                         $epochSec = $tzEpoch;
@@ -2469,9 +2455,9 @@ final class ZonedDateTime implements Stringable
                     $tzOffset = self::staticResolveOffset($tzEpoch, $normalizedTzId);
                     if ($tzOffset === $inlineOffsetSec) {
                         $epochSec = $tzEpoch;
-                    } elseif ($tzOffset % 60 !== 0) {
+                    } elseif (($tzOffset % 60) !== 0) {
                         // Sub-minute resolved offset: HH:MM can't disambiguate.
-                        if ((int) round($tzOffset / 60.0) * 60 !== $inlineOffsetSec) {
+                        if (((int) round((float) $tzOffset / 60.0) * 60) !== $inlineOffsetSec) {
                             throw new InvalidArgumentException(
                                 "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
                             );
@@ -2522,8 +2508,12 @@ final class ZonedDateTime implements Stringable
      * @throws \TypeError              if required fields are missing or wrong type.
      * @throws InvalidArgumentException if values are invalid.
      */
-    private static function fromPropertyBag(array $bag, string $overflow = 'constrain', string $disambiguation = 'compatible', string $offsetOption = 'reject'): self
-    {
+    private static function fromPropertyBag(
+        array $bag,
+        string $overflow = 'constrain',
+        string $disambiguation = 'compatible',
+        string $offsetOption = 'reject',
+    ): self {
         // Validate calendar first (spec validates calendar before required fields).
         $calendarId = 'iso8601';
         if (array_key_exists('calendar', $bag)) {
@@ -2565,14 +2555,14 @@ final class ZonedDateTime implements Stringable
             throw new \TypeError('ZonedDateTime property bag must have both era and eraYear, or neither.');
         }
 
-        $calendarSupportsEras = $calendarId !== null && $calendarId !== 'iso8601'
-            && !in_array($calendarId, ['chinese', 'dangi'], true);
+        $calendarSupportsEras =
+            $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], true);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
-            throw new \TypeError("ZonedDateTime property bag must have a year field.");
+            throw new \TypeError('ZonedDateTime property bag must have a year field.');
         }
         if (!array_key_exists('day', $bag)) {
-            throw new \TypeError("ZonedDateTime property bag must have a day field.");
+            throw new \TypeError('ZonedDateTime property bag must have a day field.');
         }
 
         // month can come from 'month' or 'monthCode'.
@@ -2580,21 +2570,21 @@ final class ZonedDateTime implements Stringable
             throw new \TypeError('ZonedDateTime property bag must have a month or monthCode field.');
         }
 
-        /** @var mixed $yr */
+        /** @var int|float|string|null $yr */
         $yr = $bag['year'] ?? null;
-        /** @var mixed $dy */
+        /** @var int|float|string $dy */
         $dy = $bag['day'];
-        /** @var mixed $hr */
+        /** @var int|float|string $hr */
         $hr = $bag['hour'] ?? 0;
-        /** @var mixed $mn */
+        /** @var int|float|string $mn */
         $mn = $bag['minute'] ?? 0;
-        /** @var mixed $sc */
+        /** @var int|float|string $sc */
         $sc = $bag['second'] ?? 0;
-        /** @var mixed $ms */
+        /** @var int|float|string $ms */
         $ms = $bag['millisecond'] ?? 0;
-        /** @var mixed $us */
+        /** @var int|float|string $us */
         $us = $bag['microsecond'] ?? 0;
-        /** @var mixed $ns */
+        /** @var int|float|string $ns */
         $ns = $bag['nanosecond'] ?? 0;
 
         // Validate and cast numeric fields; reject INF/-INF.
@@ -2621,26 +2611,16 @@ final class ZonedDateTime implements Stringable
             }
         }
 
-        /** @phpstan-ignore cast.int */
-        $year = $yr !== null ? (is_int($yr) ? $yr : (int) $yr) : 0;
-        /** @phpstan-ignore cast.int */
-        $day = is_int($dy) ? $dy : (int) $dy;
-        /** @phpstan-ignore cast.int */
-        $hour = is_int($hr) ? $hr : (int) $hr;
-        /** @phpstan-ignore cast.int */
-        $minute = is_int($mn) ? $mn : (int) $mn;
-        /** @phpstan-ignore cast.int */
-        $second = is_int($sc) ? $sc : (int) $sc;
-        /** @phpstan-ignore cast.int */
-        $milli = is_int($ms) ? $ms : (int) $ms;
-        /** @phpstan-ignore cast.int */
-        $micro = is_int($us) ? $us : (int) $us;
-        /** @phpstan-ignore cast.int */
-        $nano = is_int($ns) ? $ns : (int) $ns;
+        $year = $yr !== null ? intval($yr) : 0;
+        $day = intval($dy);
+        $hour = intval($hr);
+        $minute = intval($mn);
+        $second = intval($sc);
+        $milli = intval($ms);
+        $micro = intval($us);
+        $nano = intval($ns);
 
-        $calendar = $calendarId !== 'iso8601'
-            ? CalendarFactory::get($calendarId)
-            : null;
+        $calendar = $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && array_key_exists('era', $bag) && array_key_exists('eraYear', $bag)) {
@@ -2649,12 +2629,7 @@ final class ZonedDateTime implements Stringable
             /** @var mixed $eraYearRaw */
             $eraYearRaw = $bag['eraYear'];
             if (is_string($eraRaw) && $eraYearRaw !== null) {
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $eraYearRaw)) {
-                    throw new InvalidArgumentException('eraYear must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
+                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'eraYear');
                 $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
                 if ($resolved !== null) {
                     $year = $resolved;
@@ -2669,28 +2644,16 @@ final class ZonedDateTime implements Stringable
         $hasMC = array_key_exists('monthCode', $bag);
 
         if ($hasMC) {
-            /** @var mixed $mc */
             $mc = $bag['monthCode'];
             if (!is_string($mc)) {
                 throw new \TypeError('ZonedDateTime monthCode must be a string.');
             }
             $monthCode = $mc;
-            $month = $calendar !== null
-                ? $calendar->monthCodeToMonth($mc, $year)
-                : CalendarMath::monthCodeToMonth($mc);
+            $month = $calendar !== null ? $calendar->monthCodeToMonth($mc, $year) : CalendarMath::monthCodeToMonth($mc);
         }
 
         if ($hasMonth) {
-            /** @var mixed $mo */
-            $mo = $bag['month'];
-            if (is_float($mo) && is_infinite($mo)) {
-                throw new InvalidArgumentException(sprintf(
-                    'ZonedDateTime month must be finite; got %s.',
-                    $mo > 0 ? 'INF' : '-INF',
-                ));
-            }
-            /** @phpstan-ignore cast.int */
-            $newMonth = is_int($mo) ? $mo : (int) $mo;
+            $newMonth = CalendarMath::toFiniteInt($bag['month'], 'ZonedDateTime month');
             if ($hasMC && $newMonth !== $month) {
                 throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
@@ -2708,7 +2671,7 @@ final class ZonedDateTime implements Stringable
 
         // Non-ISO calendar: resolve calendar fields to ISO via the calendar protocol.
         if ($calendar !== null) {
-            if ($hasMC && $monthCode !== null) {
+            if ($monthCode !== null) {
                 [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
             } else {
                 [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
@@ -2719,7 +2682,6 @@ final class ZonedDateTime implements Stringable
         } else {
             if ($overflow === 'constrain') {
                 /**
-                 * @var int<1, 12>
                  * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
                  */
                 $month = min(12, $month);
@@ -2775,8 +2737,13 @@ final class ZonedDateTime implements Stringable
             }
             $offSign = $offRaw[0] === '+' ? 1 : -1;
             $offParts = explode(separator: ':', string: substr(string: $offRaw, offset: 1));
-            $givenOffsetSec = $offSign * (((int) $offParts[0] * 3600) + ((int) $offParts[1] * 60)
-                + (isset($offParts[2]) ? (int) $offParts[2] : 0));
+            $givenOffsetSec =
+                $offSign
+                * (
+                    ((int) $offParts[0] * 3600)
+                    + ((int) $offParts[1] * 60)
+                    + (isset($offParts[2]) ? (int) $offParts[2] : 0)
+                );
 
             if ($offsetOption === 'use') {
                 // Use the offset directly, regardless of timezone rules.
@@ -2794,6 +2761,7 @@ final class ZonedDateTime implements Stringable
                         "The offset {$offRaw} does not match the timezone {$normalTzId} offset at the given instant.",
                     );
                 }
+
                 // 'prefer': keep disambiguation-resolved epochSec.
             }
         }
@@ -2835,9 +2803,7 @@ final class ZonedDateTime implements Stringable
                     if ($calCount === 0) {
                         $calValue = substr(string: $content, offset: strlen($key) + 1);
                         if (!CalendarFactory::isKnownCalendar($calValue)) {
-                            throw new InvalidArgumentException(
-                                "Unknown calendar \"{$calValue}\" in \"{$original}\".",
-                            );
+                            throw new InvalidArgumentException("Unknown calendar \"{$calValue}\" in \"{$original}\".");
                         }
                         $calendarId = CalendarFactory::canonicalize($calValue);
                     }
@@ -2924,7 +2890,7 @@ final class ZonedDateTime implements Stringable
      */
     private static function wallSecToEpochSecStartOfDay(int $wallSec, string $tzId): int
     {
-        if ($tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) === 1) {
+        if ($tzId === '' || $tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) === 1) {
             return self::wallSecToEpochSec($wallSec, $tzId);
         }
         $tz = new \DateTimeZone($tzId);
@@ -3006,14 +2972,12 @@ final class ZonedDateTime implements Stringable
         if ($transitionEpoch !== null && $preOffset !== null && $postOffset !== null) {
             if ($preOffset > $postOffset) {
                 // Overlap (fall-back): two valid epochs.
-                $earlierEpoch = $wallSec - $preOffset;  // Earlier occurrence (before transition, higher offset)
-                $laterEpoch = $wallSec - $postOffset;    // Later occurrence (after transition, lower offset)
+                $earlierEpoch = $wallSec - $preOffset; // Earlier occurrence (before transition, higher offset)
+                $laterEpoch = $wallSec - $postOffset; // Later occurrence (after transition, lower offset)
                 return match ($disambiguation) {
                     'earlier', 'compatible' => $earlierEpoch,
                     'later' => $laterEpoch,
-                    'reject' => throw new InvalidArgumentException(
-                        "Ambiguous wall clock time in timezone {$tzId}.",
-                    ),
+                    'reject' => throw new InvalidArgumentException("Ambiguous wall clock time in timezone {$tzId}."),
                     default => $earlierEpoch,
                 };
             }
@@ -3026,9 +2990,7 @@ final class ZonedDateTime implements Stringable
             return match ($disambiguation) {
                 'compatible', 'later' => $afterGapEpoch,
                 'earlier' => $beforeGapEpoch,
-                'reject' => throw new InvalidArgumentException(
-                    "Non-existent wall clock time in timezone {$tzId}.",
-                ),
+                'reject' => throw new InvalidArgumentException("Non-existent wall clock time in timezone {$tzId}."),
                 default => $afterGapEpoch,
             };
         }
@@ -3215,8 +3177,13 @@ final class ZonedDateTime implements Stringable
             if ($this->calendarId !== 'iso8601') {
                 $cal = CalendarFactory::get($this->calendarId);
                 [$newYear, $newMonth, $newDay] = $cal->dateAdd(
-                    $lc['year'], $lc['month'], $lc['day'],
-                    $years, $months, $weeks, $days,
+                    $lc['year'],
+                    $lc['month'],
+                    $lc['day'],
+                    $years,
+                    $months,
+                    $weeks,
+                    $days,
                     $overflow,
                 );
             } else {
@@ -3265,17 +3232,24 @@ final class ZonedDateTime implements Stringable
             if ($timeNs === 0) {
                 // No time units: just resolve the new local date with original time.
                 return self::localToZdt(
-                    $newYear, $newMonth, $newDay,
-                    $lc['hour'], $lc['minute'], $lc['second'],
-                    $lc['millisecond'], $lc['microsecond'], $lc['nanosecond'],
-                    $this->timeZoneId, $this->calendarId, 'compatible',
+                    $newYear,
+                    $newMonth,
+                    $newDay,
+                    $lc['hour'],
+                    $lc['minute'],
+                    $lc['second'],
+                    $lc['millisecond'],
+                    $lc['microsecond'],
+                    $lc['nanosecond'],
+                    $this->timeZoneId,
+                    $this->calendarId,
+                    'compatible',
                 );
             }
 
             // Step 1: Resolve new date + original time to intermediate epoch.
             $epochDays = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) - 2_440_588;
-            $wallSec = ($epochDays * 86_400)
-                + ($lc['hour'] * 3600) + ($lc['minute'] * 60) + $lc['second'];
+            $wallSec = ($epochDays * 86_400) + ($lc['hour'] * 3600) + ($lc['minute'] * 60) + $lc['second'];
             $intermediateEpochSec = self::wallSecToEpochSec($wallSec, $this->timeZoneId, 'compatible');
             $intermediateSubNs =
                 ($lc['millisecond'] * self::NS_PER_MILLISECOND)
@@ -3433,8 +3407,12 @@ final class ZonedDateTime implements Stringable
      * @param string $operation 'since' or 'until'
      * @param array<array-key, mixed>|object|null $options
      */
-    private static function diffZdt(self $temporalDate, self $other, string $operation, array|object|null $options): Duration
-    {
+    private static function diffZdt(
+        self $temporalDate,
+        self $other,
+        string $operation,
+        array|object|null $options,
+    ): Duration {
         /** @var list<string> $validUnits */
         static $validUnits = [
             'auto',
@@ -3644,9 +3622,9 @@ final class ZonedDateTime implements Stringable
         $isCalendarLargest = in_array($normLargest, ['year', 'month', 'week', 'day'], strict: true);
 
         // TC39: for calendar-largest units, require matching canonical timezones.
-        if ($isCalendarLargest
-            && self::canonicalizeTimezoneForComparison($temporalDate->timeZoneId)
-                !== self::canonicalizeTimezoneForComparison($other->timeZoneId)
+        if (
+            $isCalendarLargest
+            && self::canonicalizeTimezoneForComparison($temporalDate->timeZoneId) !== self::canonicalizeTimezoneForComparison($other->timeZoneId)
         ) {
             throw new InvalidArgumentException(
                 "Cannot compute {$operation}() with largestUnit '{$normLargest}' between different timezones.",
@@ -3731,13 +3709,19 @@ final class ZonedDateTime implements Stringable
                 $tdJdn = CalendarMath::toJulianDay($tdLocal['year'], $tdLocal['month'], $tdLocal['day']);
                 $otherJdn2 = CalendarMath::toJulianDay($otherLocal['year'], $otherLocal['month'], $otherLocal['day']);
                 $rawTdTimeNs =
-                    ($tdLocal['hour'] * 3_600_000_000_000) + ($tdLocal['minute'] * 60_000_000_000)
-                    + ($tdLocal['second'] * self::NS_PER_SECOND) + ($tdLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                    + ($tdLocal['microsecond'] * self::NS_PER_MICROSECOND) + $tdLocal['nanosecond'];
+                    ($tdLocal['hour'] * 3_600_000_000_000)
+                    + ($tdLocal['minute'] * 60_000_000_000)
+                    + ($tdLocal['second'] * self::NS_PER_SECOND)
+                    + ($tdLocal['millisecond'] * self::NS_PER_MILLISECOND)
+                    + ($tdLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                    + $tdLocal['nanosecond'];
                 $rawOtherTimeNs =
-                    ($otherLocal['hour'] * 3_600_000_000_000) + ($otherLocal['minute'] * 60_000_000_000)
-                    + ($otherLocal['second'] * self::NS_PER_SECOND) + ($otherLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                    + ($otherLocal['microsecond'] * self::NS_PER_MICROSECOND) + $otherLocal['nanosecond'];
+                    ($otherLocal['hour'] * 3_600_000_000_000)
+                    + ($otherLocal['minute'] * 60_000_000_000)
+                    + ($otherLocal['second'] * self::NS_PER_SECOND)
+                    + ($otherLocal['millisecond'] * self::NS_PER_MILLISECOND)
+                    + ($otherLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                    + $otherLocal['nanosecond'];
                 $rawTD = $rawOtherTimeNs - $rawTdTimeNs;
                 $tS = $rawTD > 0 ? 1 : ($rawTD < 0 ? -1 : 0);
                 $dS = $tdJdn > $otherJdn2 ? 1 : ($tdJdn < $otherJdn2 ? -1 : 0);
@@ -3748,8 +3732,12 @@ final class ZonedDateTime implements Stringable
                 [$tc39Y, $tc39M, $tc39D] = CalendarMath::fromJulianDay($tc39AdjJdn);
                 $cal = CalendarFactory::get($calId);
                 [$years, $months, , $days] = $cal->dateUntil(
-                    $tdLocal['year'], $tdLocal['month'], $tdLocal['day'],
-                    $tc39Y, $tc39M, $tc39D,
+                    $tdLocal['year'],
+                    $tdLocal['month'],
+                    $tdLocal['day'],
+                    $tc39Y,
+                    $tc39M,
+                    $tc39D,
                     $normLargest,
                 );
                 $years = abs($years);
@@ -3782,19 +3770,21 @@ final class ZonedDateTime implements Stringable
             // This correctly handles DST transitions where wall-clock time
             // differs from elapsed time.
             $tzForRecompute = $temporalDate->timeZoneId;
-            $isIanaTz = $tzForRecompute !== 'UTC'
-                && !preg_match('/^[+\-]\d{2}:\d{2}$/', $tzForRecompute);
+            $isIanaTz = $tzForRecompute !== 'UTC' && preg_match('/^[+\-]\d{2}:\d{2}$/', $tzForRecompute) !== 1;
             if ($isIanaTz && ($years !== 0 || $months !== 0 || $weeks !== 0 || $days !== 0)) {
                 // Add date portion to the earlier ZDT, measure remaining ns.
                 $earlierZ = $sign >= 0 ? $temporalDate : $other;
                 $laterZ = $sign >= 0 ? $other : $temporalDate;
                 try {
                     $intermediate = $earlierZ->add(new Duration(
-                        years: $years, months: $months, weeks: $weeks, days: $days,
+                        years: $years,
+                        months: $months,
+                        weeks: $weeks,
+                        days: $days,
                     ));
                     [$intSec, $intSub] = $intermediate->getEpochParts();
                     [$latSec, $latSub] = $laterZ->getEpochParts();
-                    $recomputedNs = ($latSec - $intSec) * 1_000_000_000 + ($latSub - $intSub);
+                    $recomputedNs = (($latSec - $intSec) * 1_000_000_000) + ($latSub - $intSub);
                     if ($recomputedNs >= 0) {
                         $timeDiffNs = $recomputedNs;
                     } elseif ($days > 0) {
@@ -3802,10 +3792,13 @@ final class ZonedDateTime implements Stringable
                         // the intermediate date). Reduce days by 1 and recompute.
                         $days--;
                         $intermediate2 = $earlierZ->add(new Duration(
-                            years: $years, months: $months, weeks: $weeks, days: $days,
+                            years: $years,
+                            months: $months,
+                            weeks: $weeks,
+                            days: $days,
                         ));
                         [$intSec2, $intSub2] = $intermediate2->getEpochParts();
-                        $recomputedNs2 = ($latSec - $intSec2) * 1_000_000_000 + ($latSub - $intSub2);
+                        $recomputedNs2 = (($latSec - $intSec2) * 1_000_000_000) + ($latSub - $intSub2);
                         if ($recomputedNs2 >= 0) {
                             $timeDiffNs = $recomputedNs2;
                         }
@@ -3843,11 +3836,14 @@ final class ZonedDateTime implements Stringable
                 try {
                     $earlierZ3 = $sign >= 0 ? $temporalDate : $other;
                     $intermediate3 = $earlierZ3->add(new Duration(
-                        years: $years, months: $months, weeks: $weeks, days: $days,
+                        years: $years,
+                        months: $months,
+                        weeks: $weeks,
+                        days: $days,
                     ));
                     $actualHours = $intermediate3->hoursInDay;
                     if ($actualHours !== 24 && $actualHours > 0) {
-                        $nsPerDayF = $actualHours * 3_600_000_000_000.0;
+                        $nsPerDayF = (float) $actualHours * 3_600_000_000_000.0;
                     }
                 } catch (\Throwable) {
                     // Keep default 24h
@@ -3924,7 +3920,11 @@ final class ZonedDateTime implements Stringable
                     $remDays = $totalDays - ($roundedWeeks * 7);
                     return new Duration(weeks: $outputSign * $roundedWeeks, days: $outputSign * $remDays);
                 }
-                return new Duration(years: $outputSign * $years, months: $outputSign * $months, days: $outputSign * $roundedDays);
+                return new Duration(
+                    years: $outputSign * $years,
+                    months: $outputSign * $months,
+                    days: $outputSign * $roundedDays,
+                );
             }
 
             // smallestUnit is a time unit but largestUnit is a calendar unit.
@@ -3952,12 +3952,19 @@ final class ZonedDateTime implements Stringable
             if ($overflowDays > 0 && in_array($normLargest, ['year', 'month'], strict: true)) {
                 if ($calId !== 'iso8601') {
                     // Non-ISO: shift tc39AdjJdn by overflow in the diff direction.
+                    // $tc39AdjJdn was assigned in the earlier non-ISO branch above.
+                    assert(isset($tc39AdjJdn));
+                    /** @var int $tc39AdjJdn */
                     $tc39Jdn2 = $tc39AdjJdn + ($sign >= 0 ? $overflowDays : -$overflowDays);
                     [$anchorY, $anchorM, $anchorD] = CalendarMath::fromJulianDay($tc39Jdn2);
                     $cal2 = CalendarFactory::get($calId);
                     [$years, $months, , $days] = $cal2->dateUntil(
-                        $tdLocal['year'], $tdLocal['month'], $tdLocal['day'],
-                        $anchorY, $anchorM, $anchorD,
+                        $tdLocal['year'],
+                        $tdLocal['month'],
+                        $tdLocal['day'],
+                        $anchorY,
+                        $anchorM,
+                        $anchorD,
                         $normLargest,
                     );
                     $years = abs($years);
@@ -4429,5 +4436,33 @@ final class ZonedDateTime implements Stringable
             'halfCeil' => 'halfFloor',
             default => $mode,
         };
+    }
+
+    #[\Override]
+    protected function localeDefaultComponents(): string
+    {
+        return 'datetime';
+    }
+
+    #[\Override]
+    protected function localeIsDateOnly(): bool
+    {
+        return false;
+    }
+
+    #[\Override]
+    protected function localeIsTimeOnly(): bool
+    {
+        return false;
+    }
+
+    #[\Override]
+    protected function toLocaleTimestamp(): int
+    {
+        // ZonedDateTime has its own toLocaleString implementation and does not
+        // rely on the trait's default formatter path; this value is not consumed
+        // by that override, but the trait contract requires it.
+        [$epochSec] = $this->getEpochParts();
+        return $epochSec;
     }
 }

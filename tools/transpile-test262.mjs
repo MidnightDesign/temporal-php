@@ -1140,13 +1140,14 @@ class Emitter {
       return null;
     }
 
-    // Intl.supportedValuesOf('timeZone') → iterator_to_array(IntlTimeZone::createEnumeration())
+    // Intl.supportedValuesOf('timeZone') → DateTimeZone::listIdentifiers() (canonical only).
+    // Must NOT include ALL_WITH_BC, since TC39's supportedValuesOf only returns canonical IDs.
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.object.type === 'Identifier' && callee.object.name === 'Intl'
         && callee.property.name === 'supportedValuesOf'
         && node.arguments.length === 1
         && node.arguments[0].type === 'Literal' && node.arguments[0].value === 'timeZone') {
-      return '\\DateTimeZone::listIdentifiers(\\DateTimeZone::ALL_WITH_BC)';
+      return '\\DateTimeZone::listIdentifiers()';
     }
 
     // Calls on JS built-in globals that have no PHP equivalent

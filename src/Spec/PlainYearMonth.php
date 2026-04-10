@@ -40,7 +40,11 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public ?int $eraYear {
-        get => CalendarFactory::get($this->calendarId)->eraYear($this->isoYear, $this->isoMonth, $this->referenceISODay);
+        get => CalendarFactory::get($this->calendarId)->eraYear(
+            $this->isoYear,
+            $this->isoMonth,
+            $this->referenceISODay,
+        );
     }
 
     /**
@@ -49,7 +53,11 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public string $monthCode {
-        get => CalendarFactory::get($this->calendarId)->monthCode($this->isoYear, $this->isoMonth, $this->referenceISODay);
+        get => CalendarFactory::get($this->calendarId)->monthCode(
+            $this->isoYear,
+            $this->isoMonth,
+            $this->referenceISODay,
+        );
     }
 
     /**
@@ -82,7 +90,11 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public int $daysInMonth {
-        get => CalendarFactory::get($this->calendarId)->daysInMonth($this->isoYear, $this->isoMonth, $this->referenceISODay);
+        get => CalendarFactory::get($this->calendarId)->daysInMonth(
+            $this->isoYear,
+            $this->isoMonth,
+            $this->referenceISODay,
+        );
     }
 
     /**
@@ -91,7 +103,11 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public int $daysInYear {
-        get => CalendarFactory::get($this->calendarId)->daysInYear($this->isoYear, $this->isoMonth, $this->referenceISODay);
+        get => CalendarFactory::get($this->calendarId)->daysInYear(
+            $this->isoYear,
+            $this->isoMonth,
+            $this->referenceISODay,
+        );
     }
 
     /**
@@ -100,7 +116,11 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public int $monthsInYear {
-        get => CalendarFactory::get($this->calendarId)->monthsInYear($this->isoYear, $this->isoMonth, $this->referenceISODay);
+        get => CalendarFactory::get($this->calendarId)->monthsInYear(
+            $this->isoYear,
+            $this->isoMonth,
+            $this->referenceISODay,
+        );
     }
 
     /**
@@ -111,7 +131,11 @@ final class PlainYearMonth implements Stringable
      * @psalm-api
      */
     public bool $inLeapYear {
-        get => CalendarFactory::get($this->calendarId)->inLeapYear($this->isoYear, $this->isoMonth, $this->referenceISODay);
+        get => CalendarFactory::get($this->calendarId)->inLeapYear(
+            $this->isoYear,
+            $this->isoMonth,
+            $this->referenceISODay,
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -306,7 +330,9 @@ final class PlainYearMonth implements Stringable
             && !array_key_exists('era', $fields)
             && !array_key_exists('eraYear', $fields)
         ) {
-            throw new \TypeError('PlainYearMonth::with() requires at least one of: year, month, monthCode, era, eraYear.');
+            throw new \TypeError(
+                'PlainYearMonth::with() requires at least one of: year, month, monthCode, era, eraYear.',
+            );
         }
 
         // Validate overflow option.
@@ -333,14 +359,7 @@ final class PlainYearMonth implements Stringable
         // ISO path.
         $year = $this->isoYear;
         if (array_key_exists('year', $fields)) {
-            /** @var mixed $yr */
-            $yr = $fields['year'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yr)) {
-                throw new InvalidArgumentException('PlainYearMonth::with() year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $year = (int) $yr;
+            $year = CalendarMath::toFiniteInt($fields['year'], 'PlainYearMonth::with() year');
         }
 
         $month = $this->isoMonth;
@@ -350,18 +369,13 @@ final class PlainYearMonth implements Stringable
         if ($hasMonthCode) {
             /** @var mixed $mc */
             $mc = $fields['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $month = CalendarMath::monthCodeToMonth((string) $mc);
+            if (!is_string($mc)) {
+                throw new \TypeError('monthCode must be a string.');
+            }
+            $month = CalendarMath::monthCodeToMonth($mc);
         }
         if ($hasMonth) {
-            /** @var mixed $m */
-            $m = $fields['month'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $m)) {
-                throw new InvalidArgumentException('PlainYearMonth::with() month must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $newMonth = (int) $m;
+            $newMonth = CalendarMath::toFiniteInt($fields['month'], 'PlainYearMonth::with() month');
             if ($hasMonthCode && $newMonth !== $month) {
                 throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
@@ -408,28 +422,18 @@ final class PlainYearMonth implements Stringable
         }
 
         // Resolve year: era+eraYear takes precedence over the current year if both provided.
+        // When $hasYear is false, $hasEra implies $hasEraYear (and vice versa) due to checks above.
         $year = $this->year;
         if ($hasYear) {
-            /** @var mixed $yr */
-            $yr = $fields['year'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yr)) {
-                throw new InvalidArgumentException('PlainYearMonth::with() year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $year = (int) $yr;
-        } elseif ($hasEra && $hasEraYear) {
+            $year = CalendarMath::toFiniteInt($fields['year'], 'PlainYearMonth::with() year');
+        } elseif ($hasEra) {
             /** @var mixed $eraRaw */
             $eraRaw = $fields['era'];
             /** @var mixed $eraYearRaw */
             $eraYearRaw = $fields['eraYear'];
             if (is_string($eraRaw) && $eraYearRaw !== null) {
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $eraYearRaw)) {
-                    throw new InvalidArgumentException('eraYear must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $resolved = $calendar->resolveEra($eraRaw, (int) $eraYearRaw);
+                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'eraYear');
+                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
                 if ($resolved !== null) {
                     $year = $resolved;
                 }
@@ -443,23 +447,18 @@ final class PlainYearMonth implements Stringable
         $useMonthCode = false;
 
         if ($hasMonthCode) {
-            /** @var mixed $mc */
             $mc = $fields['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $monthCode = (string) $mc;
+            if (!is_string($mc)) {
+                throw new \TypeError('monthCode must be a string.');
+            }
+            $monthCode = $mc;
             $useMonthCode = true;
         }
         if ($hasMonth) {
-            /** @var mixed $m */
-            $m = $fields['month'];
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $m)) {
-                throw new InvalidArgumentException('PlainYearMonth::with() month must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $month = (int) $m;
+            $month = CalendarMath::toFiniteInt($fields['month'], 'PlainYearMonth::with() month');
             // Validate month/monthCode conflict.
-            if ($hasMonthCode && $monthCode !== null) {
+            if ($hasMonthCode) {
+                /** @var string $monthCode */
                 $monthFromCode = $calendar->monthCodeToMonth($monthCode, $year);
                 if ($month !== $monthFromCode) {
                     throw new InvalidArgumentException('Conflicting month and monthCode fields.');
@@ -525,7 +524,9 @@ final class PlainYearMonth implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException("Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
+            throw new InvalidArgumentException(
+                "Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
+            );
         }
         return self::diffYearMonth($this, $o, 'since', $options);
     }
@@ -541,7 +542,9 @@ final class PlainYearMonth implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException("Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".");
+            throw new InvalidArgumentException(
+                "Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
+            );
         }
         return self::diffYearMonth($this, $o, 'until', $options);
     }
@@ -555,10 +558,12 @@ final class PlainYearMonth implements Stringable
     public function equals(string|array|object $other): bool
     {
         $o = $other instanceof self ? $other : self::from($other);
-        return $this->isoYear === $o->isoYear
+        return (
+            $this->isoYear === $o->isoYear
             && $this->isoMonth === $o->isoMonth
             && $this->referenceISODay === $o->referenceISODay
-            && $this->calendarId === $o->calendarId;
+            && $this->calendarId === $o->calendarId
+        );
     }
 
     /**
@@ -592,9 +597,7 @@ final class PlainYearMonth implements Stringable
         $baseWithDay = sprintf('%s-%02d', $base, $this->referenceISODay);
 
         return match ($calendarName) {
-            'auto' => $isNonIso
-                ? sprintf('%s[u-ca=%s]', $baseWithDay, $this->calendarId)
-                : $base,
+            'auto' => $isNonIso ? sprintf('%s[u-ca=%s]', $baseWithDay, $this->calendarId) : $base,
             'never' => $isNonIso ? $baseWithDay : $base,
             'always' => sprintf('%s[u-ca=%s]', $baseWithDay, $this->calendarId),
             'critical' => sprintf('%s[!u-ca=%s]', $baseWithDay, $this->calendarId),
@@ -635,14 +638,7 @@ final class PlainYearMonth implements Stringable
             throw new \TypeError('PlainYearMonth::toPlainDate() argument must have a day property.');
         }
 
-        /** @var mixed $dayRaw */
-        $dayRaw = $bag['day'];
-        /** @phpstan-ignore cast.double */
-        if (!is_finite((float) $dayRaw)) {
-            throw new InvalidArgumentException('toPlainDate() day must be finite.');
-        }
-        /** @phpstan-ignore cast.int */
-        $day = (int) $dayRaw;
+        $day = CalendarMath::toFiniteInt($bag['day'], 'toPlainDate() day');
 
         // Constrain day to valid range for this year-month.
         $maxDay = CalendarMath::calcDaysInMonth($this->isoYear, $this->isoMonth);
@@ -800,7 +796,7 @@ final class PlainYearMonth implements Stringable
 
         // For ISO calendar: referenceISODay = 1 (per spec §9.5.2 step 5.d).
         // For non-ISO calendars: preserve the referenceISODay from the string.
-        $effectiveRefDay = ($calendarId !== null && $calendarId !== 'iso8601') ? $refDay : 1;
+        $effectiveRefDay = $calendarId !== null && $calendarId !== 'iso8601' ? $refDay : 1;
         return new self($year, $month, $calendarId, $effectiveRefDay);
     }
 
@@ -841,8 +837,8 @@ final class PlainYearMonth implements Stringable
             throw new \TypeError('PlainYearMonth property bag must have both era and eraYear, or neither.');
         }
 
-        $calendarSupportsEras = $calendarId !== null && $calendarId !== 'iso8601'
-            && !in_array($calendarId, ['chinese', 'dangi'], true);
+        $calendarSupportsEras =
+            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], true);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('PlainYearMonth property bag must have a year field.');
@@ -851,9 +847,7 @@ final class PlainYearMonth implements Stringable
             throw new \TypeError('PlainYearMonth property bag must have a month or monthCode field.');
         }
 
-        $calendar = $calendarId !== null && $calendarId !== 'iso8601'
-            ? CalendarFactory::get($calendarId)
-            : null;
+        $calendar = $calendarId !== null && $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
 
         // Extract year from the bag, or resolve from era + eraYear.
         $year = 0;
@@ -863,12 +857,7 @@ final class PlainYearMonth implements Stringable
             if ($yearRaw === null) {
                 throw new \TypeError('PlainYearMonth property bag year field must not be undefined.');
             }
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $yearRaw)) {
-                throw new InvalidArgumentException('PlainYearMonth year must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
+            $year = CalendarMath::toFiniteInt($yearRaw, 'PlainYearMonth year');
         }
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
@@ -878,12 +867,7 @@ final class PlainYearMonth implements Stringable
             /** @var mixed $eraYearRaw */
             $eraYearRaw = $bag['eraYear'];
             if (is_string($eraRaw) && $eraYearRaw !== null) {
-                /** @phpstan-ignore cast.double */
-                if (!is_finite((float) $eraYearRaw)) {
-                    throw new InvalidArgumentException('PlainYearMonth eraYear must be finite.');
-                }
-                /** @phpstan-ignore cast.int */
-                $eraYearInt = is_int($eraYearRaw) ? $eraYearRaw : (int) $eraYearRaw;
+                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainYearMonth eraYear');
                 $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
                 if ($resolved !== null) {
                     $year = $resolved;
@@ -900,8 +884,10 @@ final class PlainYearMonth implements Stringable
         if ($hasMonthCode) {
             /** @var mixed $monthCodeRaw */
             $monthCodeRaw = $bag['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $monthCode = is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw;
+            if (!is_string($monthCodeRaw)) {
+                throw new \TypeError('PlainYearMonth monthCode must be a string.');
+            }
+            $monthCode = $monthCodeRaw;
             $month = $calendar !== null
                 ? $calendar->monthCodeToMonth($monthCode, $year)
                 : CalendarMath::monthCodeToMonth($monthCode);
@@ -913,12 +899,7 @@ final class PlainYearMonth implements Stringable
             if ($monthRaw === null) {
                 throw new \TypeError('PlainYearMonth property bag month field must not be undefined.');
             }
-            /** @phpstan-ignore cast.double */
-            if (!is_finite((float) $monthRaw)) {
-                throw new InvalidArgumentException('PlainYearMonth month must be finite.');
-            }
-            /** @phpstan-ignore cast.int */
-            $newMonth = is_int($monthRaw) ? $monthRaw : (int) $monthRaw;
+            $newMonth = CalendarMath::toFiniteInt($monthRaw, 'PlainYearMonth month');
             if ($hasMonthCode && $newMonth !== $month) {
                 throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
@@ -935,7 +916,7 @@ final class PlainYearMonth implements Stringable
         // Non-ISO calendar: resolve calendar fields to ISO via the calendar protocol.
         // Use day=1 as the reference day for year-month resolution.
         if ($calendar !== null) {
-            if ($hasMonthCode && $monthCode !== null) {
+            if ($monthCode !== null) {
                 [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, 1, $overflow);
             } else {
                 [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, 1, $overflow);
@@ -1113,9 +1094,11 @@ final class PlainYearMonth implements Stringable
         // Short-circuit when both year-months represent the same calendar month.
         // Compare all three ISO fields because non-ISO calendars can map different
         // calendar months to the same ISO year/month (distinguished by referenceISODay).
-        if ($temporalDate->isoYear === $other->isoYear
+        if (
+            $temporalDate->isoYear === $other->isoYear
             && $temporalDate->isoMonth === $other->isoMonth
-            && $temporalDate->referenceISODay === $other->referenceISODay) {
+            && $temporalDate->referenceISODay === $other->referenceISODay
+        ) {
             return new Duration();
         }
 
@@ -1127,16 +1110,24 @@ final class PlainYearMonth implements Stringable
         // The sign and leap-month asymmetry are handled inside dateUntil.
         $calId = $temporalDate->calendarId;
         $cal = CalendarFactory::get($calId);
-        [$rawYears, $rawMonths, , ] = $cal->dateUntil(
-            $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->referenceISODay,
-            $other->isoYear, $other->isoMonth, $other->referenceISODay,
+        [$rawYears, $rawMonths] = $cal->dateUntil(
+            $temporalDate->isoYear,
+            $temporalDate->isoMonth,
+            $temporalDate->referenceISODay,
+            $other->isoYear,
+            $other->isoMonth,
+            $other->referenceISODay,
             'year',
         );
         // For totalMonths, use dateUntil with largestUnit='month' for correct result
         // in calendars with variable months-per-year (e.g. Hebrew 13-month years).
-        [, $totalMonths, , ] = $cal->dateUntil(
-            $temporalDate->isoYear, $temporalDate->isoMonth, $temporalDate->referenceISODay,
-            $other->isoYear, $other->isoMonth, $other->referenceISODay,
+        [, $totalMonths] = $cal->dateUntil(
+            $temporalDate->isoYear,
+            $temporalDate->isoMonth,
+            $temporalDate->referenceISODay,
+            $other->isoYear,
+            $other->isoMonth,
+            $other->referenceISODay,
             'month',
         );
 
@@ -1271,9 +1262,7 @@ final class PlainYearMonth implements Stringable
     }
 
     /**
-     * Calendar-aware rounding for years in a PlainYearMonth diff.
-     *
-     * @throws InvalidArgumentException if the rounded result is outside the valid range.
+     * Inverts a rounding mode for negative diffs.
      */
     private static function negateRoundingMode(string $mode): string
     {
@@ -1302,7 +1291,11 @@ final class PlainYearMonth implements Stringable
         $dir = $receiverIsLater ? -$sign : $sign;
 
         // Anchor at floorCount years from receiver.
-        [$anchorY, $anchorM] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir * $floorCount * 12);
+        [$anchorY, $anchorM] = self::addSignedMonthsYM(
+            $receiver->isoYear,
+            $receiver->isoMonth,
+            $dir * $floorCount * 12,
+        );
         [$nextY, $nextM] = self::addSignedMonthsYM(
             $receiver->isoYear,
             $receiver->isoMonth,
@@ -1487,8 +1480,13 @@ final class PlainYearMonth implements Stringable
         // Delegate to the calendar protocol for date arithmetic.
         $cal = CalendarFactory::get($this->calendarId);
         [$newIsoY, $newIsoM, $newIsoD] = $cal->dateAdd(
-            $this->isoYear, $this->isoMonth, $this->referenceISODay,
-            $years, $months, 0, 0,
+            $this->isoYear,
+            $this->isoMonth,
+            $this->referenceISODay,
+            $years,
+            $months,
+            0,
+            0,
             $overflow,
         );
 
@@ -1577,5 +1575,35 @@ final class PlainYearMonth implements Stringable
             return false;
         }
         return true;
+    }
+
+    #[\Override]
+    protected function localeDefaultComponents(): string
+    {
+        return 'yearmonth';
+    }
+
+    #[\Override]
+    protected function localeIsDateOnly(): bool
+    {
+        return true;
+    }
+
+    #[\Override]
+    protected function localeIsTimeOnly(): bool
+    {
+        return false;
+    }
+
+    #[\Override]
+    protected function toLocaleTimestamp(): int
+    {
+        // Use referenceISODay to ensure the timestamp falls within the correct
+        // calendar month for non-ISO calendars.
+        $dt = new \DateTime(
+            sprintf('%04d-%02d-%02d 00:00:00', $this->isoYear, $this->isoMonth, $this->referenceISODay),
+            new \DateTimeZone('UTC'),
+        );
+        return $dt->getTimestamp();
     }
 }
