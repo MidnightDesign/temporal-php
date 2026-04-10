@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use PHPUnit\Framework\TestCase;
-use Temporal\CalendarDisplay;
 use Temporal\Duration;
 use Temporal\PlainDate;
 use Temporal\PlainDateTime;
@@ -28,14 +27,14 @@ final class PorcelainCalendarAwarenessTest extends TestCase
     {
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
 
-        self::assertSame('hebrew', $pd->calendarId);
+        static::assertSame('hebrew', $pd->calendarId);
     }
 
     public function testPlainDateConstructorDefaultsToIso(): void
     {
         $pd = new PlainDate(2024, 1, 15);
 
-        self::assertSame('iso8601', $pd->calendarId);
+        static::assertSame('iso8601', $pd->calendarId);
     }
 
     public function testPlainDateYearMonthDayAreCalendarProjected(): void
@@ -43,8 +42,8 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         // 2024-01-15 ISO corresponds to Hebrew year 5784
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
 
-        self::assertSame(5784, $pd->year);
-        self::assertNotSame(2024, $pd->year);
+        static::assertSame(5784, $pd->year);
+        static::assertNotSame(2024, $pd->year);
     }
 
     public function testPlainDateIsoYearMonthDayRoundTrip(): void
@@ -52,10 +51,10 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
 
         $spec = $pd->toSpec();
-        self::assertSame(2024, $spec->isoYear);
-        self::assertSame(1, $spec->isoMonth);
-        self::assertSame(15, $spec->isoDay);
-        self::assertSame('hebrew', $spec->calendarId);
+        static::assertSame(2024, $spec->isoYear);
+        static::assertSame(1, $spec->isoMonth);
+        static::assertSame(15, $spec->isoDay);
+        static::assertSame('hebrew', $spec->calendarId);
     }
 
     public function testPlainDateFromSpecPreservesCalendar(): void
@@ -63,11 +62,11 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec = new \Temporal\Spec\PlainDate(2024, 1, 15, 'hebrew');
         $pd = PlainDate::fromSpec($spec);
 
-        self::assertSame('hebrew', $pd->calendarId);
+        static::assertSame('hebrew', $pd->calendarId);
         // The porcelain should round-trip ISO fields faithfully
-        self::assertSame(2024, $pd->toSpec()->isoYear);
-        self::assertSame(1, $pd->toSpec()->isoMonth);
-        self::assertSame(15, $pd->toSpec()->isoDay);
+        static::assertSame(2024, $pd->toSpec()->isoYear);
+        static::assertSame(1, $pd->toSpec()->isoMonth);
+        static::assertSame(15, $pd->toSpec()->isoDay);
     }
 
     public function testPlainDateFromSpecDoesNotCorruptNonIsoCalendar(): void
@@ -81,25 +80,25 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd2 = PlainDate::fromSpec($spec2);
 
         // All ISO fields must be identical after round-trip
-        self::assertSame($spec1->isoYear, $pd2->toSpec()->isoYear);
-        self::assertSame($spec1->isoMonth, $pd2->toSpec()->isoMonth);
-        self::assertSame($spec1->isoDay, $pd2->toSpec()->isoDay);
-        self::assertSame('hebrew', $pd2->calendarId);
+        static::assertSame($spec1->isoYear, $pd2->toSpec()->isoYear);
+        static::assertSame($spec1->isoMonth, $pd2->toSpec()->isoMonth);
+        static::assertSame($spec1->isoDay, $pd2->toSpec()->isoDay);
+        static::assertSame('hebrew', $pd2->calendarId);
     }
 
     public function testPlainDateParsePreservesCalendar(): void
     {
         $pd = PlainDate::parse('2024-01-15[u-ca=hebrew]');
 
-        self::assertSame('hebrew', $pd->calendarId);
-        self::assertSame(5784, $pd->year);
+        static::assertSame('hebrew', $pd->calendarId);
+        static::assertSame(5784, $pd->year);
     }
 
     public function testPlainDateToStringIncludesNonIsoCalendar(): void
     {
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
 
-        self::assertStringContainsString('[u-ca=hebrew]', $pd->toString());
+        static::assertStringContainsString('[u-ca=hebrew]', $pd->toString());
     }
 
     public function testPlainDateWithPreservesCalendar(): void
@@ -109,7 +108,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         // $pd->day is the Hebrew day. Use with() to change the calendar day.
         $pd2 = $pd->with(day: 1);
 
-        self::assertSame('hebrew', $pd2->calendarId);
+        static::assertSame('hebrew', $pd2->calendarId);
     }
 
     public function testPlainDateAddPreservesCalendar(): void
@@ -117,7 +116,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
         $pd2 = $pd->add(new Duration(days: 10));
 
-        self::assertSame('hebrew', $pd2->calendarId);
+        static::assertSame('hebrew', $pd2->calendarId);
     }
 
     public function testPlainDateSubtractPreservesCalendar(): void
@@ -125,7 +124,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
         $pd2 = $pd->subtract(new Duration(days: 10));
 
-        self::assertSame('hebrew', $pd2->calendarId);
+        static::assertSame('hebrew', $pd2->calendarId);
     }
 
     public function testPlainDateToPlainDateTimePreservesCalendar(): void
@@ -133,7 +132,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
         $pdt = $pd->toPlainDateTime();
 
-        self::assertSame('hebrew', $pdt->calendarId);
+        static::assertSame('hebrew', $pdt->calendarId);
     }
 
     public function testPlainDateToPlainYearMonthPreservesCalendar(): void
@@ -141,7 +140,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
         $pym = $pd->toPlainYearMonth();
 
-        self::assertSame('hebrew', $pym->calendarId);
+        static::assertSame('hebrew', $pym->calendarId);
     }
 
     public function testPlainDateToPlainMonthDayPreservesCalendar(): void
@@ -149,7 +148,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 1, 15, 'hebrew');
         $pmd = $pd->toPlainMonthDay();
 
-        self::assertSame('hebrew', $pmd->calendarId);
+        static::assertSame('hebrew', $pmd->calendarId);
     }
 
     // =========================================================================
@@ -160,33 +159,33 @@ final class PorcelainCalendarAwarenessTest extends TestCase
     {
         $pdt = new PlainDateTime(2024, 1, 15, 10, 30, 0, 0, 0, 0, 'japanese');
 
-        self::assertSame('japanese', $pdt->calendarId);
+        static::assertSame('japanese', $pdt->calendarId);
     }
 
     public function testPlainDateTimeConstructorDefaultsToIso(): void
     {
         $pdt = new PlainDateTime(2024, 1, 15);
 
-        self::assertSame('iso8601', $pdt->calendarId);
+        static::assertSame('iso8601', $pdt->calendarId);
     }
 
     public function testPlainDateTimeYearMonthDayAreCalendarProjected(): void
     {
         $pdt = new PlainDateTime(2024, 1, 15, 10, 30, 0, 0, 0, 0, 'hebrew');
 
-        self::assertSame(5784, $pdt->year);
+        static::assertSame(5784, $pdt->year);
     }
 
     public function testPlainDateTimeTimeFieldsDelegateCorrectly(): void
     {
         $pdt = new PlainDateTime(2024, 1, 15, 10, 30, 45, 100, 200, 300, 'hebrew');
 
-        self::assertSame(10, $pdt->hour);
-        self::assertSame(30, $pdt->minute);
-        self::assertSame(45, $pdt->second);
-        self::assertSame(100, $pdt->millisecond);
-        self::assertSame(200, $pdt->microsecond);
-        self::assertSame(300, $pdt->nanosecond);
+        static::assertSame(10, $pdt->hour);
+        static::assertSame(30, $pdt->minute);
+        static::assertSame(45, $pdt->second);
+        static::assertSame(100, $pdt->millisecond);
+        static::assertSame(200, $pdt->microsecond);
+        static::assertSame(300, $pdt->nanosecond);
     }
 
     public function testPlainDateTimeFromSpecPreservesCalendar(): void
@@ -194,10 +193,10 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec = new \Temporal\Spec\PlainDateTime(2024, 1, 15, 10, 30, 0, 0, 0, 0, 'japanese');
         $pdt = PlainDateTime::fromSpec($spec);
 
-        self::assertSame('japanese', $pdt->calendarId);
-        self::assertSame(2024, $pdt->toSpec()->isoYear);
-        self::assertSame(1, $pdt->toSpec()->isoMonth);
-        self::assertSame(15, $pdt->toSpec()->isoDay);
+        static::assertSame('japanese', $pdt->calendarId);
+        static::assertSame(2024, $pdt->toSpec()->isoYear);
+        static::assertSame(1, $pdt->toSpec()->isoMonth);
+        static::assertSame(15, $pdt->toSpec()->isoDay);
     }
 
     public function testPlainDateTimeFromSpecDoesNotCorruptNonIso(): void
@@ -209,17 +208,17 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec2 = $pdt->toSpec();
         $pdt2 = PlainDateTime::fromSpec($spec2);
 
-        self::assertSame($spec1->isoYear, $pdt2->toSpec()->isoYear);
-        self::assertSame($spec1->isoMonth, $pdt2->toSpec()->isoMonth);
-        self::assertSame($spec1->isoDay, $pdt2->toSpec()->isoDay);
-        self::assertSame('persian', $pdt2->calendarId);
+        static::assertSame($spec1->isoYear, $pdt2->toSpec()->isoYear);
+        static::assertSame($spec1->isoMonth, $pdt2->toSpec()->isoMonth);
+        static::assertSame($spec1->isoDay, $pdt2->toSpec()->isoDay);
+        static::assertSame('persian', $pdt2->calendarId);
     }
 
     public function testPlainDateTimeParsePreservesCalendar(): void
     {
         $pdt = PlainDateTime::parse('2024-01-15T10:30:00[u-ca=buddhist]');
 
-        self::assertSame('buddhist', $pdt->calendarId);
+        static::assertSame('buddhist', $pdt->calendarId);
     }
 
     public function testPlainDateTimeAddPreservesCalendar(): void
@@ -227,7 +226,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pdt = new PlainDateTime(2024, 1, 15, 10, 0, 0, 0, 0, 0, 'gregory');
         $pdt2 = $pdt->add(new Duration(days: 5));
 
-        self::assertSame('gregory', $pdt2->calendarId);
+        static::assertSame('gregory', $pdt2->calendarId);
     }
 
     public function testPlainDateTimeToPlainDatePreservesCalendar(): void
@@ -235,7 +234,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pdt = new PlainDateTime(2024, 1, 15, 10, 0, 0, 0, 0, 0, 'hebrew');
         $pd = $pdt->toPlainDate();
 
-        self::assertSame('hebrew', $pd->calendarId);
+        static::assertSame('hebrew', $pd->calendarId);
     }
 
     // =========================================================================
@@ -246,14 +245,14 @@ final class PorcelainCalendarAwarenessTest extends TestCase
     {
         $pym = new PlainYearMonth(2024, 6, 'buddhist');
 
-        self::assertSame('buddhist', $pym->calendarId);
+        static::assertSame('buddhist', $pym->calendarId);
     }
 
     public function testPlainYearMonthConstructorDefaultsToIso(): void
     {
         $pym = new PlainYearMonth(2024, 6);
 
-        self::assertSame('iso8601', $pym->calendarId);
+        static::assertSame('iso8601', $pym->calendarId);
     }
 
     public function testPlainYearMonthYearMonthAreCalendarProjected(): void
@@ -261,7 +260,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         // Buddhist year = ISO year + 543
         $pym = new PlainYearMonth(2024, 6, 'buddhist');
 
-        self::assertSame(2567, $pym->year);
+        static::assertSame(2567, $pym->year);
     }
 
     public function testPlainYearMonthFromSpecPreservesCalendar(): void
@@ -269,9 +268,9 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec = new \Temporal\Spec\PlainYearMonth(2024, 6, 'buddhist');
         $pym = PlainYearMonth::fromSpec($spec);
 
-        self::assertSame('buddhist', $pym->calendarId);
-        self::assertSame(2024, $pym->toSpec()->isoYear);
-        self::assertSame(6, $pym->toSpec()->isoMonth);
+        static::assertSame('buddhist', $pym->calendarId);
+        static::assertSame(2024, $pym->toSpec()->isoYear);
+        static::assertSame(6, $pym->toSpec()->isoMonth);
     }
 
     public function testPlainYearMonthFromSpecPreservesReferenceDay(): void
@@ -279,7 +278,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec = new \Temporal\Spec\PlainYearMonth(2024, 3, 'iso8601', 15);
         $pym = PlainYearMonth::fromSpec($spec);
 
-        self::assertSame(15, $pym->toSpec()->referenceISODay);
+        static::assertSame(15, $pym->toSpec()->referenceISODay);
     }
 
     public function testPlainYearMonthFromSpecDoesNotCorruptNonIso(): void
@@ -289,16 +288,16 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec2 = $pym->toSpec();
         $pym2 = PlainYearMonth::fromSpec($spec2);
 
-        self::assertSame($spec1->isoYear, $pym2->toSpec()->isoYear);
-        self::assertSame($spec1->isoMonth, $pym2->toSpec()->isoMonth);
-        self::assertSame('gregory', $pym2->calendarId);
+        static::assertSame($spec1->isoYear, $pym2->toSpec()->isoYear);
+        static::assertSame($spec1->isoMonth, $pym2->toSpec()->isoMonth);
+        static::assertSame('gregory', $pym2->calendarId);
     }
 
     public function testPlainYearMonthParsePreservesCalendar(): void
     {
         $pym = PlainYearMonth::parse('2024-06-01[u-ca=japanese]');
 
-        self::assertSame('japanese', $pym->calendarId);
+        static::assertSame('japanese', $pym->calendarId);
     }
 
     public function testPlainYearMonthAddPreservesCalendar(): void
@@ -306,7 +305,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pym = new PlainYearMonth(2024, 6, 'buddhist');
         $pym2 = $pym->add(new Duration(months: 2));
 
-        self::assertSame('buddhist', $pym2->calendarId);
+        static::assertSame('buddhist', $pym2->calendarId);
     }
 
     // =========================================================================
@@ -317,14 +316,14 @@ final class PorcelainCalendarAwarenessTest extends TestCase
     {
         $pmd = new PlainMonthDay(3, 15, 'coptic');
 
-        self::assertSame('coptic', $pmd->calendarId);
+        static::assertSame('coptic', $pmd->calendarId);
     }
 
     public function testPlainMonthDayConstructorDefaultsToIso(): void
     {
         $pmd = new PlainMonthDay(3, 15);
 
-        self::assertSame('iso8601', $pmd->calendarId);
+        static::assertSame('iso8601', $pmd->calendarId);
     }
 
     public function testPlainMonthDayFromSpecPreservesCalendar(): void
@@ -332,9 +331,9 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec = new \Temporal\Spec\PlainMonthDay(3, 15, 'coptic');
         $pmd = PlainMonthDay::fromSpec($spec);
 
-        self::assertSame('coptic', $pmd->calendarId);
-        self::assertSame(3, $pmd->toSpec()->isoMonth);
-        self::assertSame(15, $pmd->toSpec()->isoDay);
+        static::assertSame('coptic', $pmd->calendarId);
+        static::assertSame(3, $pmd->toSpec()->isoMonth);
+        static::assertSame(15, $pmd->toSpec()->isoDay);
     }
 
     public function testPlainMonthDayFromSpecPreservesReferenceYear(): void
@@ -342,7 +341,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec = new \Temporal\Spec\PlainMonthDay(6, 15, 'iso8601', 2000);
         $pmd = PlainMonthDay::fromSpec($spec);
 
-        self::assertSame(2000, $pmd->toSpec()->referenceISOYear);
+        static::assertSame(2000, $pmd->toSpec()->referenceISOYear);
     }
 
     public function testPlainMonthDayFromSpecDoesNotCorruptNonIso(): void
@@ -352,16 +351,16 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec2 = $pmd->toSpec();
         $pmd2 = PlainMonthDay::fromSpec($spec2);
 
-        self::assertSame($spec1->isoMonth, $pmd2->toSpec()->isoMonth);
-        self::assertSame($spec1->isoDay, $pmd2->toSpec()->isoDay);
-        self::assertSame('indian', $pmd2->calendarId);
+        static::assertSame($spec1->isoMonth, $pmd2->toSpec()->isoMonth);
+        static::assertSame($spec1->isoDay, $pmd2->toSpec()->isoDay);
+        static::assertSame('indian', $pmd2->calendarId);
     }
 
     public function testPlainMonthDayParsePreservesCalendar(): void
     {
         $pmd = PlainMonthDay::parse('1972-03-15[u-ca=chinese]');
 
-        self::assertSame('chinese', $pmd->calendarId);
+        static::assertSame('chinese', $pmd->calendarId);
     }
 
     // =========================================================================
@@ -372,14 +371,14 @@ final class PorcelainCalendarAwarenessTest extends TestCase
     {
         $zdt = new ZonedDateTime(0, 'UTC', 'hebrew');
 
-        self::assertSame('hebrew', $zdt->calendarId);
+        static::assertSame('hebrew', $zdt->calendarId);
     }
 
     public function testZonedDateTimeConstructorDefaultsToIso(): void
     {
         $zdt = new ZonedDateTime(0, 'UTC');
 
-        self::assertSame('iso8601', $zdt->calendarId);
+        static::assertSame('iso8601', $zdt->calendarId);
     }
 
     public function testZonedDateTimeFromSpecPreservesCalendar(): void
@@ -387,7 +386,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'gregory');
         $zdt = ZonedDateTime::fromSpec($spec);
 
-        self::assertSame('gregory', $zdt->calendarId);
+        static::assertSame('gregory', $zdt->calendarId);
     }
 
     public function testZonedDateTimeFromSpecDoesNotCorruptCalendar(): void
@@ -397,15 +396,15 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $spec2 = $zdt->toSpec();
         $zdt2 = ZonedDateTime::fromSpec($spec2);
 
-        self::assertSame($spec1->epochNanoseconds, $zdt2->epochNanoseconds);
-        self::assertSame('japanese', $zdt2->calendarId);
+        static::assertSame($spec1->epochNanoseconds, $zdt2->epochNanoseconds);
+        static::assertSame('japanese', $zdt2->calendarId);
     }
 
     public function testZonedDateTimeParsePreservesCalendar(): void
     {
         $zdt = ZonedDateTime::parse('2024-01-15T10:30:00+00:00[UTC][u-ca=hebrew]');
 
-        self::assertSame('hebrew', $zdt->calendarId);
+        static::assertSame('hebrew', $zdt->calendarId);
     }
 
     public function testZonedDateTimeAddPreservesCalendar(): void
@@ -413,7 +412,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $zdt = new ZonedDateTime(0, 'UTC', 'buddhist');
         $zdt2 = $zdt->add(new Duration(days: 5));
 
-        self::assertSame('buddhist', $zdt2->calendarId);
+        static::assertSame('buddhist', $zdt2->calendarId);
     }
 
     public function testZonedDateTimeToPlainDatePreservesCalendar(): void
@@ -421,7 +420,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $zdt = new ZonedDateTime(0, 'UTC', 'hebrew');
         $pd = $zdt->toPlainDate();
 
-        self::assertSame('hebrew', $pd->calendarId);
+        static::assertSame('hebrew', $pd->calendarId);
     }
 
     public function testZonedDateTimeToPlainDateTimePreservesCalendar(): void
@@ -429,7 +428,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $zdt = new ZonedDateTime(0, 'UTC', 'japanese');
         $pdt = $zdt->toPlainDateTime();
 
-        self::assertSame('japanese', $pdt->calendarId);
+        static::assertSame('japanese', $pdt->calendarId);
     }
 
     // =========================================================================
@@ -447,7 +446,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         // require a valid comparison result (-1, 0, or 1).
         $result = Duration::compare($d1, $d2, $rt);
 
-        self::assertContains($result, [-1, 0, 1]);
+        static::assertContains($result, [-1, 0, 1]);
     }
 
     public function testDurationTotalWithNonIsoRelativeTo(): void
@@ -458,7 +457,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         // 2024 is a leap year, so 1 year from Jan 15 should be 366 days
         $result = $d->total(Unit::Day, $rt);
 
-        self::assertEquals(366, $result);
+        static::assertSame(366.0, (float) $result);
     }
 
     public function testDurationRoundWithNonIsoRelativeTo(): void
@@ -468,7 +467,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
 
         $rounded = $d->round(smallestUnit: Unit::Year, relativeTo: $rt);
 
-        self::assertSame(1, $rounded->years);
+        static::assertSame(1, $rounded->years);
     }
 
     // =========================================================================
@@ -480,52 +479,52 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 6, 15);
 
         // Same values for ISO calendar
-        self::assertSame(2024, $pd->year);
-        self::assertSame(6, $pd->month);
-        self::assertSame(15, $pd->day);
-        self::assertSame('iso8601', $pd->calendarId);
+        static::assertSame(2024, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(15, $pd->day);
+        static::assertSame('iso8601', $pd->calendarId);
     }
 
     public function testPlainDateTimeIsoBackwardCompatibility(): void
     {
         $pdt = new PlainDateTime(2024, 6, 15, 10, 30, 45, 100, 200, 300);
 
-        self::assertSame(2024, $pdt->year);
-        self::assertSame(6, $pdt->month);
-        self::assertSame(15, $pdt->day);
-        self::assertSame(10, $pdt->hour);
-        self::assertSame(30, $pdt->minute);
-        self::assertSame(45, $pdt->second);
-        self::assertSame(100, $pdt->millisecond);
-        self::assertSame(200, $pdt->microsecond);
-        self::assertSame(300, $pdt->nanosecond);
-        self::assertSame('iso8601', $pdt->calendarId);
+        static::assertSame(2024, $pdt->year);
+        static::assertSame(6, $pdt->month);
+        static::assertSame(15, $pdt->day);
+        static::assertSame(10, $pdt->hour);
+        static::assertSame(30, $pdt->minute);
+        static::assertSame(45, $pdt->second);
+        static::assertSame(100, $pdt->millisecond);
+        static::assertSame(200, $pdt->microsecond);
+        static::assertSame(300, $pdt->nanosecond);
+        static::assertSame('iso8601', $pdt->calendarId);
     }
 
     public function testPlainYearMonthIsoBackwardCompatibility(): void
     {
         $pym = new PlainYearMonth(2024, 6);
 
-        self::assertSame(2024, $pym->year);
-        self::assertSame(6, $pym->month);
-        self::assertSame('iso8601', $pym->calendarId);
+        static::assertSame(2024, $pym->year);
+        static::assertSame(6, $pym->month);
+        static::assertSame('iso8601', $pym->calendarId);
     }
 
     public function testPlainMonthDayIsoBackwardCompatibility(): void
     {
         $pmd = new PlainMonthDay(3, 15);
 
-        self::assertSame(3, $pmd->month);
-        self::assertSame(15, $pmd->day);
-        self::assertSame('iso8601', $pmd->calendarId);
+        static::assertSame(3, $pmd->month);
+        static::assertSame(15, $pmd->day);
+        static::assertSame('iso8601', $pmd->calendarId);
     }
 
     public function testZonedDateTimeIsoBackwardCompatibility(): void
     {
         $zdt = new ZonedDateTime(0, 'UTC');
 
-        self::assertSame('iso8601', $zdt->calendarId);
-        self::assertSame(0, $zdt->epochNanoseconds);
+        static::assertSame('iso8601', $zdt->calendarId);
+        static::assertSame(0, $zdt->epochNanoseconds);
     }
 
     // =========================================================================
@@ -537,7 +536,7 @@ final class PorcelainCalendarAwarenessTest extends TestCase
         $pd = new PlainDate(2024, 1, 15, 'buddhist');
         $zdt = $pd->toZonedDateTime('UTC');
 
-        self::assertSame('buddhist', $zdt->calendarId);
+        static::assertSame('buddhist', $zdt->calendarId);
     }
 
     // =========================================================================
@@ -546,6 +545,6 @@ final class PorcelainCalendarAwarenessTest extends TestCase
 
     public function testIntlExtensionIsLoaded(): void
     {
-        self::assertTrue(extension_loaded('intl'), 'ext-intl must be loaded');
+        static::assertTrue(extension_loaded('intl'), 'ext-intl must be loaded');
     }
 }

@@ -23,9 +23,9 @@ final class PlainDateTest extends TestCase
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame(2020, $pd->year);
-        self::assertSame(6, $pd->month);
-        self::assertSame(15, $pd->day);
+        static::assertSame(2020, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(15, $pd->day);
     }
 
     public function testConstructorRejectsInvalidDay(): void
@@ -42,73 +42,73 @@ final class PlainDateTest extends TestCase
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame('iso8601', $pd->calendarId);
+        static::assertSame('iso8601', $pd->calendarId);
     }
 
     public function testDayOfWeek(): void
     {
         // 2020-06-15 is a Monday (1)
-        self::assertSame(1, new PlainDate(2020, 6, 15)->dayOfWeek);
+        static::assertSame(1, new PlainDate(2020, 6, 15)->dayOfWeek);
         // 2020-06-21 is a Sunday (7)
-        self::assertSame(7, new PlainDate(2020, 6, 21)->dayOfWeek);
+        static::assertSame(7, new PlainDate(2020, 6, 21)->dayOfWeek);
     }
 
     public function testDayOfYear(): void
     {
         // Jan 1 is day 1
-        self::assertSame(1, new PlainDate(2020, 1, 1)->dayOfYear);
+        static::assertSame(1, new PlainDate(2020, 1, 1)->dayOfYear);
         // Dec 31 of a leap year is day 366
-        self::assertSame(366, new PlainDate(2020, 12, 31)->dayOfYear);
+        static::assertSame(366, new PlainDate(2020, 12, 31)->dayOfYear);
     }
 
     public function testWeekOfYear(): void
     {
         // 2020-01-01 is in week 1
-        self::assertSame(1, new PlainDate(2020, 1, 1)->weekOfYear);
+        static::assertSame(1, new PlainDate(2020, 1, 1)->weekOfYear);
     }
 
     public function testYearOfWeek(): void
     {
         // 2020-01-01 is in week-year 2020
-        self::assertSame(2020, new PlainDate(2020, 1, 1)->yearOfWeek);
+        static::assertSame(2020, new PlainDate(2020, 1, 1)->yearOfWeek);
         // 2024-12-30 (Monday) is in ISO week 1 of 2025
-        self::assertSame(2025, new PlainDate(2024, 12, 30)->yearOfWeek);
+        static::assertSame(2025, new PlainDate(2024, 12, 30)->yearOfWeek);
     }
 
     public function testDaysInMonth(): void
     {
-        self::assertSame(31, new PlainDate(2020, 1, 1)->daysInMonth);
-        self::assertSame(29, new PlainDate(2020, 2, 1)->daysInMonth);
-        self::assertSame(28, new PlainDate(2019, 2, 1)->daysInMonth);
+        static::assertSame(31, new PlainDate(2020, 1, 1)->daysInMonth);
+        static::assertSame(29, new PlainDate(2020, 2, 1)->daysInMonth);
+        static::assertSame(28, new PlainDate(2019, 2, 1)->daysInMonth);
     }
 
     public function testDaysInYear(): void
     {
-        self::assertSame(366, new PlainDate(2020, 1, 1)->daysInYear);
-        self::assertSame(365, new PlainDate(2019, 1, 1)->daysInYear);
+        static::assertSame(366, new PlainDate(2020, 1, 1)->daysInYear);
+        static::assertSame(365, new PlainDate(2019, 1, 1)->daysInYear);
     }
 
     public function testDaysInWeek(): void
     {
-        self::assertSame(7, new PlainDate(2020, 1, 1)->daysInWeek);
+        static::assertSame(7, new PlainDate(2020, 1, 1)->daysInWeek);
     }
 
     public function testMonthsInYear(): void
     {
-        self::assertSame(12, new PlainDate(2020, 1, 1)->monthsInYear);
+        static::assertSame(12, new PlainDate(2020, 1, 1)->monthsInYear);
     }
 
     public function testMonthCode(): void
     {
-        self::assertSame('M01', new PlainDate(2020, 1, 1)->monthCode);
-        self::assertSame('M06', new PlainDate(2020, 6, 15)->monthCode);
-        self::assertSame('M12', new PlainDate(2020, 12, 31)->monthCode);
+        static::assertSame('M01', new PlainDate(2020, 1, 1)->monthCode);
+        static::assertSame('M06', new PlainDate(2020, 6, 15)->monthCode);
+        static::assertSame('M12', new PlainDate(2020, 12, 31)->monthCode);
     }
 
     public function testInLeapYear(): void
     {
-        self::assertTrue(new PlainDate(2020, 1, 1)->inLeapYear);
-        self::assertFalse(new PlainDate(2019, 1, 1)->inLeapYear);
+        static::assertTrue(new PlainDate(2020, 1, 1)->inLeapYear);
+        static::assertFalse(new PlainDate(2019, 1, 1)->inLeapYear);
     }
 
     // -------------------------------------------------------------------------
@@ -119,18 +119,18 @@ final class PlainDateTest extends TestCase
     {
         $pd = PlainDate::parse('2020-06-15');
 
-        self::assertSame(2020, $pd->year);
-        self::assertSame(6, $pd->month);
-        self::assertSame(15, $pd->day);
+        static::assertSame(2020, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(15, $pd->day);
     }
 
     public function testParseWithTime(): void
     {
         $pd = PlainDate::parse('2020-06-15T12:30:00');
 
-        self::assertSame(2020, $pd->year);
-        self::assertSame(6, $pd->month);
-        self::assertSame(15, $pd->day);
+        static::assertSame(2020, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(15, $pd->day);
     }
 
     public function testParseInvalidStringThrows(): void
@@ -143,18 +143,18 @@ final class PlainDateTest extends TestCase
     {
         $pd = PlainDate::parse('-001000-01-01');
 
-        self::assertSame(-1000, $pd->year);
-        self::assertSame(1, $pd->month);
-        self::assertSame(1, $pd->day);
+        static::assertSame(-1000, $pd->year);
+        static::assertSame(1, $pd->month);
+        static::assertSame(1, $pd->day);
     }
 
     public function testParseExtendedYear(): void
     {
         $pd = PlainDate::parse('+010000-01-01');
 
-        self::assertSame(10000, $pd->year);
-        self::assertSame(1, $pd->month);
-        self::assertSame(1, $pd->day);
+        static::assertSame(10_000, $pd->year);
+        static::assertSame(1, $pd->month);
+        static::assertSame(1, $pd->day);
     }
 
     // -------------------------------------------------------------------------
@@ -166,7 +166,7 @@ final class PlainDateTest extends TestCase
         $a = new PlainDate(2020, 6, 15);
         $b = new PlainDate(2020, 6, 15);
 
-        self::assertSame(0, PlainDate::compare($a, $b));
+        static::assertSame(0, PlainDate::compare($a, $b));
     }
 
     public function testCompareEarlierVsLater(): void
@@ -174,8 +174,8 @@ final class PlainDateTest extends TestCase
         $a = new PlainDate(2020, 1, 1);
         $b = new PlainDate(2020, 12, 31);
 
-        self::assertLessThan(0, PlainDate::compare($a, $b));
-        self::assertGreaterThan(0, PlainDate::compare($b, $a));
+        static::assertLessThan(0, PlainDate::compare($a, $b));
+        static::assertGreaterThan(0, PlainDate::compare($b, $a));
     }
 
     public function testCompareByYear(): void
@@ -183,7 +183,7 @@ final class PlainDateTest extends TestCase
         $a = new PlainDate(2019, 12, 31);
         $b = new PlainDate(2020, 1, 1);
 
-        self::assertLessThan(0, PlainDate::compare($a, $b));
+        static::assertLessThan(0, PlainDate::compare($a, $b));
     }
 
     // -------------------------------------------------------------------------
@@ -195,9 +195,9 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 6, 15);
         $result = $pd->with(year: 2021);
 
-        self::assertSame(2021, $result->year);
-        self::assertSame(6, $result->month);
-        self::assertSame(15, $result->day);
+        static::assertSame(2021, $result->year);
+        static::assertSame(6, $result->month);
+        static::assertSame(15, $result->day);
     }
 
     public function testWithMonth(): void
@@ -205,9 +205,9 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 6, 15);
         $result = $pd->with(month: 1);
 
-        self::assertSame(2020, $result->year);
-        self::assertSame(1, $result->month);
-        self::assertSame(15, $result->day);
+        static::assertSame(2020, $result->year);
+        static::assertSame(1, $result->month);
+        static::assertSame(15, $result->day);
     }
 
     public function testWithDay(): void
@@ -215,9 +215,9 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 6, 15);
         $result = $pd->with(day: 1);
 
-        self::assertSame(2020, $result->year);
-        self::assertSame(6, $result->month);
-        self::assertSame(1, $result->day);
+        static::assertSame(2020, $result->year);
+        static::assertSame(6, $result->month);
+        static::assertSame(1, $result->day);
     }
 
     public function testWithConstrainsDay(): void
@@ -226,7 +226,7 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 1, 31);
         $result = $pd->with(month: 2);
 
-        self::assertSame(29, $result->day);
+        static::assertSame(29, $result->day);
     }
 
     public function testWithRejectOverflow(): void
@@ -242,7 +242,7 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 6, 15);
         $result = $pd->with(year: 2021);
 
-        self::assertNotSame($pd, $result);
+        static::assertNotSame($pd, $result);
     }
 
     // -------------------------------------------------------------------------
@@ -254,9 +254,9 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 1, 1);
         $result = $pd->add(new Duration(days: 10));
 
-        self::assertSame(2020, $result->year);
-        self::assertSame(1, $result->month);
-        self::assertSame(11, $result->day);
+        static::assertSame(2020, $result->year);
+        static::assertSame(1, $result->month);
+        static::assertSame(11, $result->day);
     }
 
     public function testAddMonths(): void
@@ -264,10 +264,10 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 1, 31);
         $result = $pd->add(new Duration(months: 1));
 
-        self::assertSame(2020, $result->year);
-        self::assertSame(2, $result->month);
+        static::assertSame(2020, $result->year);
+        static::assertSame(2, $result->month);
         // Day constrained from 31 to 29 (Feb 2020 is leap)
-        self::assertSame(29, $result->day);
+        static::assertSame(29, $result->day);
     }
 
     public function testAddYears(): void
@@ -276,9 +276,9 @@ final class PlainDateTest extends TestCase
         $result = $pd->add(new Duration(years: 1));
 
         // 2021 is not a leap year, so Feb 29 constrains to Feb 28
-        self::assertSame(2021, $result->year);
-        self::assertSame(2, $result->month);
-        self::assertSame(28, $result->day);
+        static::assertSame(2021, $result->year);
+        static::assertSame(2, $result->month);
+        static::assertSame(28, $result->day);
     }
 
     public function testSubtractDays(): void
@@ -286,9 +286,9 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 1, 11);
         $result = $pd->subtract(new Duration(days: 10));
 
-        self::assertSame(2020, $result->year);
-        self::assertSame(1, $result->month);
-        self::assertSame(1, $result->day);
+        static::assertSame(2020, $result->year);
+        static::assertSame(1, $result->month);
+        static::assertSame(1, $result->day);
     }
 
     public function testSubtractAcrossMonthBoundary(): void
@@ -296,9 +296,9 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 3, 1);
         $result = $pd->subtract(new Duration(days: 1));
 
-        self::assertSame(2020, $result->year);
-        self::assertSame(2, $result->month);
-        self::assertSame(29, $result->day);
+        static::assertSame(2020, $result->year);
+        static::assertSame(2, $result->month);
+        static::assertSame(29, $result->day);
     }
 
     // -------------------------------------------------------------------------
@@ -312,7 +312,7 @@ final class PlainDateTest extends TestCase
 
         $dur = $b->since($a);
 
-        self::assertSame(10, $dur->days);
+        static::assertSame(10, $dur->days);
     }
 
     public function testUntilDays(): void
@@ -322,7 +322,7 @@ final class PlainDateTest extends TestCase
 
         $dur = $a->until($b);
 
-        self::assertSame(10, $dur->days);
+        static::assertSame(10, $dur->days);
     }
 
     public function testSinceNegative(): void
@@ -332,7 +332,7 @@ final class PlainDateTest extends TestCase
 
         $dur = $b->since($a);
 
-        self::assertSame(-10, $dur->days);
+        static::assertSame(-10, $dur->days);
     }
 
     public function testUntilNegative(): void
@@ -342,7 +342,7 @@ final class PlainDateTest extends TestCase
 
         $dur = $a->until($b);
 
-        self::assertSame(-10, $dur->days);
+        static::assertSame(-10, $dur->days);
     }
 
     public function testSinceWithLargestUnitYear(): void
@@ -352,9 +352,9 @@ final class PlainDateTest extends TestCase
 
         $dur = $b->since($a, largestUnit: Unit::Year);
 
-        self::assertSame(2, $dur->years);
-        self::assertSame(3, $dur->months);
-        self::assertSame(5, $dur->days);
+        static::assertSame(2, $dur->years);
+        static::assertSame(3, $dur->months);
+        static::assertSame(5, $dur->days);
     }
 
     public function testUntilWithLargestUnitMonth(): void
@@ -364,8 +364,8 @@ final class PlainDateTest extends TestCase
 
         $dur = $a->until($b, largestUnit: Unit::Month);
 
-        self::assertSame(3, $dur->months);
-        self::assertSame(0, $dur->days);
+        static::assertSame(3, $dur->months);
+        static::assertSame(0, $dur->days);
     }
 
     public function testSinceWithRoundingIncrement(): void
@@ -376,7 +376,7 @@ final class PlainDateTest extends TestCase
         $dur = $b->since($a, roundingIncrement: 5);
 
         // 7 days rounded to nearest 5 with trunc = 5
-        self::assertSame(5, $dur->days);
+        static::assertSame(5, $dur->days);
     }
 
     // -------------------------------------------------------------------------
@@ -388,7 +388,7 @@ final class PlainDateTest extends TestCase
         $a = new PlainDate(2020, 6, 15);
         $b = new PlainDate(2020, 6, 15);
 
-        self::assertTrue($a->equals($b));
+        static::assertTrue($a->equals($b));
     }
 
     public function testEqualsDifferentDate(): void
@@ -396,7 +396,7 @@ final class PlainDateTest extends TestCase
         $a = new PlainDate(2020, 6, 15);
         $b = new PlainDate(2020, 6, 16);
 
-        self::assertFalse($a->equals($b));
+        static::assertFalse($a->equals($b));
     }
 
     // -------------------------------------------------------------------------
@@ -407,42 +407,42 @@ final class PlainDateTest extends TestCase
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame('2020-06-15', $pd->toString());
+        static::assertSame('2020-06-15', $pd->toString());
     }
 
     public function testToStringCalendarAlways(): void
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame('2020-06-15[u-ca=iso8601]', $pd->toString(CalendarDisplay::Always));
+        static::assertSame('2020-06-15[u-ca=iso8601]', $pd->toString(CalendarDisplay::Always));
     }
 
     public function testToStringCalendarNever(): void
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame('2020-06-15', $pd->toString(CalendarDisplay::Never));
+        static::assertSame('2020-06-15', $pd->toString(CalendarDisplay::Never));
     }
 
     public function testToStringCalendarCritical(): void
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame('2020-06-15[!u-ca=iso8601]', $pd->toString(CalendarDisplay::Critical));
+        static::assertSame('2020-06-15[!u-ca=iso8601]', $pd->toString(CalendarDisplay::Critical));
     }
 
     public function testToStringNegativeYear(): void
     {
         $pd = new PlainDate(-1000, 1, 1);
 
-        self::assertSame('-001000-01-01', $pd->toString());
+        static::assertSame('-001000-01-01', $pd->toString());
     }
 
     public function testToStringExtendedYear(): void
     {
-        $pd = new PlainDate(10000, 1, 1);
+        $pd = new PlainDate(10_000, 1, 1);
 
-        self::assertSame('+010000-01-01', $pd->toString());
+        static::assertSame('+010000-01-01', $pd->toString());
     }
 
     // -------------------------------------------------------------------------
@@ -453,14 +453,14 @@ final class PlainDateTest extends TestCase
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame('2020-06-15', (string) $pd);
+        static::assertSame('2020-06-15', (string) $pd);
     }
 
     public function testJsonSerialize(): void
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        self::assertSame('"2020-06-15"', json_encode($pd));
+        static::assertSame('"2020-06-15"', json_encode($pd));
     }
 
     // -------------------------------------------------------------------------
@@ -472,9 +472,9 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 6, 15);
         $spec = $pd->toSpec();
 
-        self::assertSame(2020, $spec->year);
-        self::assertSame(6, $spec->month);
-        self::assertSame(15, $spec->day);
+        static::assertSame(2020, $spec->year);
+        static::assertSame(6, $spec->month);
+        static::assertSame(15, $spec->day);
     }
 
     public function testFromSpecCreatesInstance(): void
@@ -482,9 +482,9 @@ final class PlainDateTest extends TestCase
         $spec = new \Temporal\Spec\PlainDate(2020, 6, 15);
         $pd = PlainDate::fromSpec($spec);
 
-        self::assertSame(2020, $pd->year);
-        self::assertSame(6, $pd->month);
-        self::assertSame(15, $pd->day);
+        static::assertSame(2020, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(15, $pd->day);
     }
 
     public function testToSpecRoundTrip(): void
@@ -492,7 +492,7 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 6, 15);
         $restored = PlainDate::fromSpec($pd->toSpec());
 
-        self::assertTrue($pd->equals($restored));
+        static::assertTrue($pd->equals($restored));
     }
 
     // -------------------------------------------------------------------------
@@ -504,11 +504,11 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 6, 15);
         $info = $pd->__debugInfo();
 
-        self::assertSame(2020, $info['year']);
-        self::assertSame(6, $info['month']);
-        self::assertSame(15, $info['day']);
-        self::assertSame('iso8601', $info['calendarId']);
-        self::assertSame('2020-06-15', $info['iso']);
+        static::assertSame(2020, $info['year']);
+        static::assertSame(6, $info['month']);
+        static::assertSame(15, $info['day']);
+        static::assertSame('iso8601', $info['calendarId']);
+        static::assertSame('2020-06-15', $info['iso']);
     }
 
     // -------------------------------------------------------------------------
@@ -539,8 +539,8 @@ final class PlainDateTest extends TestCase
         $b = new PlainDate(2020, 4, 15);
         $dur = $b->since($a, largestUnit: Unit::Month, smallestUnit: Unit::Month);
 
-        self::assertSame(3, $dur->months);
-        self::assertSame(0, $dur->days);
+        static::assertSame(3, $dur->months);
+        static::assertSame(0, $dur->days);
     }
 
     public function testSinceForwardsRoundingMode(): void
@@ -551,8 +551,8 @@ final class PlainDateTest extends TestCase
         $trunc = $b->since($a, roundingIncrement: 5, roundingMode: RoundingMode::Trunc);
         $ceil = $b->since($a, roundingIncrement: 5, roundingMode: RoundingMode::Ceil);
 
-        self::assertSame(5, $trunc->days);
-        self::assertSame(10, $ceil->days);
+        static::assertSame(5, $trunc->days);
+        static::assertSame(10, $ceil->days);
     }
 
     public function testUntilForwardsSmallestUnit(): void
@@ -561,8 +561,8 @@ final class PlainDateTest extends TestCase
         $b = new PlainDate(2020, 4, 15);
         $dur = $a->until($b, largestUnit: Unit::Month, smallestUnit: Unit::Month);
 
-        self::assertSame(3, $dur->months);
-        self::assertSame(0, $dur->days);
+        static::assertSame(3, $dur->months);
+        static::assertSame(0, $dur->days);
     }
 
     public function testUntilForwardsRoundingMode(): void
@@ -573,8 +573,8 @@ final class PlainDateTest extends TestCase
         $trunc = $a->until($b, roundingIncrement: 5, roundingMode: RoundingMode::Trunc);
         $ceil = $a->until($b, roundingIncrement: 5, roundingMode: RoundingMode::Ceil);
 
-        self::assertSame(5, $trunc->days);
-        self::assertSame(10, $ceil->days);
+        static::assertSame(5, $trunc->days);
+        static::assertSame(10, $ceil->days);
     }
 
     public function testUntilForwardsRoundingIncrement(): void
@@ -585,6 +585,6 @@ final class PlainDateTest extends TestCase
         $dur = $a->until($b, roundingIncrement: 5);
 
         // 7 days truncated to nearest 5 = 5
-        self::assertSame(5, $dur->days);
+        static::assertSame(5, $dur->days);
     }
 }

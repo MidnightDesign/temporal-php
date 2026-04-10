@@ -98,15 +98,15 @@ final class CalendarMath
      */
     public static function validateStyleConflicts(array $opts): void
     {
-        $hasDateStyle = isset($opts['dateStyle']);
-        $hasTimeStyle = isset($opts['timeStyle']);
+        $hasDateStyle = ($opts['dateStyle'] ?? null) !== null;
+        $hasTimeStyle = ($opts['timeStyle'] ?? null) !== null;
 
         if (!$hasDateStyle && !$hasTimeStyle) {
             return;
         }
 
         foreach (self::COMPONENT_OPTIONS as $opt) {
-            if (isset($opts[$opt])) {
+            if (($opts[$opt] ?? null) !== null) {
                 $style = $hasDateStyle ? 'dateStyle' : 'timeStyle';
                 throw new \TypeError(sprintf('toLocaleString(): %s and %s cannot be used together.', $style, $opt));
             }
@@ -131,8 +131,10 @@ final class CalendarMath
         array $opts,
         string $defaultComponents = 'datetime',
     ): \IntlDateFormatter {
-        if (isset($opts['calendar']) && is_string($opts['calendar'])) {
-            $locale = sprintf('%s@calendar=%s', $locale, $opts['calendar']);
+        /** @var mixed $calendarOpt */
+        $calendarOpt = $opts['calendar'] ?? null;
+        if (is_string($calendarOpt)) {
+            $locale = sprintf('%s@calendar=%s', $locale, $calendarOpt);
         }
 
         // Convert fixed-offset timezone to ICU-compatible format (GMT±HH:MM).
@@ -145,9 +147,11 @@ final class CalendarMath
         }
 
         // Apply hourCycle as a Unicode locale extension
-        if (isset($opts['hourCycle']) && is_string($opts['hourCycle'])) {
-            $locale = self::applyHourCycle($locale, $opts['hourCycle']);
-        } elseif (isset($opts['hour12'])) {
+        /** @var mixed $hourCycleOpt */
+        $hourCycleOpt = $opts['hourCycle'] ?? null;
+        if (is_string($hourCycleOpt)) {
+            $locale = self::applyHourCycle($locale, $hourCycleOpt);
+        } elseif (($opts['hour12'] ?? null) !== null) {
             // hour12=false -> h23, hour12=true -> h12
             $hc = (bool) $opts['hour12'] ? 'h12' : 'h23';
             $locale = self::applyHourCycle($locale, $hc);
@@ -160,7 +164,7 @@ final class CalendarMath
         $keywords = \Locale::getKeywords($locale);
         if (
             is_array($keywords)
-            && isset($keywords['calendar'])
+            && array_key_exists('calendar', $keywords)
             && $keywords['calendar'] !== 'gregory'
             && $keywords['calendar'] !== 'gregorian'
         ) {
@@ -174,8 +178,12 @@ final class CalendarMath
             'short' => \IntlDateFormatter::SHORT,
         ];
 
-        $dateStyle = isset($opts['dateStyle']) && is_string($opts['dateStyle']) ? $opts['dateStyle'] : null;
-        $timeStyle = isset($opts['timeStyle']) && is_string($opts['timeStyle']) ? $opts['timeStyle'] : null;
+        /** @var mixed $dateStyleOpt */
+        $dateStyleOpt = $opts['dateStyle'] ?? null;
+        /** @var mixed $timeStyleOpt */
+        $timeStyleOpt = $opts['timeStyle'] ?? null;
+        $dateStyle = is_string($dateStyleOpt) ? $dateStyleOpt : null;
+        $timeStyle = is_string($timeStyleOpt) ? $timeStyleOpt : null;
 
         if ($dateStyle !== null || $timeStyle !== null) {
             self::validateStyleConflicts($opts);
@@ -235,7 +243,7 @@ final class CalendarMath
         // Check for individual component options that require a custom pattern
         $hasComponents = false;
         foreach (self::COMPONENT_OPTIONS as $opt) {
-            if (isset($opts[$opt])) {
+            if (($opts[$opt] ?? null) !== null) {
                 $hasComponents = true;
                 break;
             }
@@ -301,9 +309,9 @@ final class CalendarMath
             return sprintf('%s-hc-%s', $locale, $hourCycle);
         }
         // If there's an @keyword section, insert before it
-        $atPos = strpos($locale, '@');
+        $atPos = strpos($locale, needle: '@');
         if ($atPos !== false) {
-            return sprintf('%s-u-hc-%s%s', substr($locale, 0, $atPos), $hourCycle, substr($locale, $atPos));
+            return sprintf('%s-u-hc-%s%s', substr($locale, offset: 0, length: $atPos), $hourCycle, substr($locale, $atPos));
         }
         return sprintf('%s-u-hc-%s', $locale, $hourCycle);
     }
@@ -321,7 +329,7 @@ final class CalendarMath
         $parts = [];
 
         // Date components
-        if (isset($opts['weekday'])) {
+        if (($opts['weekday'] ?? null) !== null) {
             $parts[] = match ($opts['weekday']) {
                 'narrow' => 'EEEEE',
                 'short' => 'EEE',
@@ -329,7 +337,7 @@ final class CalendarMath
                 default => 'EEE',
             };
         }
-        if (isset($opts['era'])) {
+        if (($opts['era'] ?? null) !== null) {
             $parts[] = match ($opts['era']) {
                 'narrow' => 'GGGGG',
                 'short' => 'GGG',
@@ -337,10 +345,10 @@ final class CalendarMath
                 default => 'GGG',
             };
         }
-        if (isset($opts['year'])) {
+        if (($opts['year'] ?? null) !== null) {
             $parts[] = $opts['year'] === '2-digit' ? 'yy' : 'y';
         }
-        if (isset($opts['month'])) {
+        if (($opts['month'] ?? null) !== null) {
             $parts[] = match ($opts['month']) {
                 'numeric' => 'M',
                 '2-digit' => 'MM',
@@ -350,28 +358,28 @@ final class CalendarMath
                 default => 'M',
             };
         }
-        if (isset($opts['day'])) {
+        if (($opts['day'] ?? null) !== null) {
             $parts[] = $opts['day'] === '2-digit' ? 'dd' : 'd';
         }
 
         // Time components
-        if (isset($opts['hour'])) {
+        if (($opts['hour'] ?? null) !== null) {
             // Use 'j' skeleton symbol which picks locale-appropriate hour cycle
             $parts[] = $opts['hour'] === '2-digit' ? 'jj' : 'j';
         }
-        if (isset($opts['minute'])) {
+        if (($opts['minute'] ?? null) !== null) {
             $parts[] = $opts['minute'] === '2-digit' ? 'mm' : 'm';
         }
-        if (isset($opts['second'])) {
+        if (($opts['second'] ?? null) !== null) {
             $parts[] = $opts['second'] === '2-digit' ? 'ss' : 's';
         }
-        if (isset($opts['fractionalSecondDigits'])) {
+        if (($opts['fractionalSecondDigits'] ?? null) !== null) {
             /** @var mixed $fsd */
             $fsd = $opts['fractionalSecondDigits'];
             $digits = is_int($fsd) ? $fsd : (int) (is_string($fsd) ? $fsd : 0);
             $parts[] = str_repeat('S', $digits);
         }
-        if (isset($opts['dayPeriod'])) {
+        if (($opts['dayPeriod'] ?? null) !== null) {
             $parts[] = match ($opts['dayPeriod']) {
                 'narrow' => 'BBBBB',
                 'short' => 'B',
@@ -379,7 +387,7 @@ final class CalendarMath
                 default => 'B',
             };
         }
-        if (isset($opts['timeZoneName'])) {
+        if (($opts['timeZoneName'] ?? null) !== null) {
             $parts[] = match ($opts['timeZoneName']) {
                 'short' => 'z',
                 'long' => 'zzzz',
@@ -393,8 +401,13 @@ final class CalendarMath
 
         // If no primary date/time components but auxiliary options were set,
         // add default components based on the default mode.
-        $hasDatePart = isset($opts['weekday']) || isset($opts['year']) || isset($opts['month']) || isset($opts['day']);
-        $hasTimePart = isset($opts['hour']) || isset($opts['minute']) || isset($opts['second']);
+        $hasDatePart = ($opts['weekday'] ?? null) !== null
+            || ($opts['year'] ?? null) !== null
+            || ($opts['month'] ?? null) !== null
+            || ($opts['day'] ?? null) !== null;
+        $hasTimePart = ($opts['hour'] ?? null) !== null
+            || ($opts['minute'] ?? null) !== null
+            || ($opts['second'] ?? null) !== null;
         if (!$hasDatePart && !$hasTimePart) {
             // Add defaults based on mode
             if (
@@ -710,8 +723,7 @@ final class CalendarMath
             )
             % 7;
         /** @var int<1, 7> Sakamoto maps 0→7, rest 1–6 unchanged */
-        $result = $dow === 0 ? 7 : $dow;
-        return $result;
+        return $dow === 0 ? 7 : $dow;
     }
 
     /**
@@ -728,8 +740,7 @@ final class CalendarMath
             $result++;
         }
         /** @var int<1, 366> $result — max 335 + 31 = 366 (Dec 31 in leap year) */
-        $ordinal = $result;
-        return $ordinal;
+        return $result;
     }
 
     /**
@@ -821,20 +832,20 @@ final class CalendarMath
     {
         if ($which === 'year') {
             // Remove year-related fields: y, Y, u, U, r and era G
-            $result = (string) preg_replace('/[yYuUrG]+/', '', $pattern);
+            $result = (string) preg_replace('/[yYuUrG]+/', replacement: '', subject: $pattern);
         } elseif ($which === 'day') {
             // Remove day-related fields: d, D
-            $result = (string) preg_replace('/[dD]+/', '', $pattern);
+            $result = (string) preg_replace('/[dD]+/', replacement: '', subject: $pattern);
         } else {
             return $pattern;
         }
 
         // Clean up leftover separators: double separators, leading/trailing punctuation
-        $result = (string) preg_replace('/\s*[,\/\-\.]\s*(?=[,\/\-\.\s]|$)/', '', $result);
-        $result = (string) preg_replace('/^[\s,\/\-\.]+/', '', $result);
-        $result = (string) preg_replace('/[\s,\/\-\.]+$/', '', $result);
+        $result = (string) preg_replace('/\s*[,\/\-\.]\s*(?=[,\/\-\.\s]|$)/', replacement: '', subject: $result);
+        $result = (string) preg_replace('/^[\s,\/\-\.]+/', replacement: '', subject: $result);
+        $result = (string) preg_replace('/[\s,\/\-\.]+$/', replacement: '', subject: $result);
         // Collapse multiple spaces
-        $result = (string) preg_replace('/\s{2,}/', ' ', $result);
+        $result = (string) preg_replace('/\s{2,}/', replacement: ' ', subject: $result);
 
         return trim($result);
     }

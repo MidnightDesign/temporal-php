@@ -566,7 +566,7 @@ final class PlainDateTime implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $fields);
 
         // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
-        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], true)) {
+        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
             throw new \TypeError('eraYear and era are invalid for this calendar.');
         }
 
@@ -862,8 +862,8 @@ final class PlainDateTime implements Stringable
         $newJdn = $jdn + $overflowDays;
 
         // Range check.
-        $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
-        $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $minJdn = CalendarMath::toJulianDay(-271_821, 4, 19);
+        $maxJdn = CalendarMath::toJulianDay(275_760, 9, 13);
         if ($newJdn < $minJdn || $newJdn > $maxJdn) {
             throw new InvalidArgumentException('PlainDateTime rounding result is outside the representable range.');
         }
@@ -1033,8 +1033,8 @@ final class PlainDateTime implements Stringable
         $jdn = CalendarMath::toJulianDay($this->isoYear, $this->isoMonth, $this->isoDay) + $overflowDays;
 
         // Range check the rounded result.
-        $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
-        $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $minJdn = CalendarMath::toJulianDay(-271_821, 4, 19);
+        $maxJdn = CalendarMath::toJulianDay(275_760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
             throw new InvalidArgumentException('PlainDateTime rounding result is outside the representable range.');
         }
@@ -1456,7 +1456,7 @@ final class PlainDateTime implements Stringable
 
         // Determine if this calendar supports eras.
         $calendarSupportsEras =
-            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], true);
+            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('PlainDateTime property bag must have a year field.');
@@ -2262,8 +2262,8 @@ final class PlainDateTime implements Stringable
             $overflow,
         );
 
-        $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
-        $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $minJdn = CalendarMath::toJulianDay(-271_821, 4, 19);
+        $maxJdn = CalendarMath::toJulianDay(275_760, 9, 13);
         $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
             throw new InvalidArgumentException('PlainDateTime arithmetic result is outside the representable range.');
@@ -2294,8 +2294,7 @@ final class PlainDateTime implements Stringable
     {
         $digits = substr(string: $fractionRaw, offset: 1); // strip leading '.' or ','
         /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
-        $ns = (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
-        return $ns;
+        return (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
     }
 
     /**
@@ -2307,7 +2306,7 @@ final class PlainDateTime implements Stringable
      * @throws \TypeError if the overflow value is not a string.
      * @throws InvalidArgumentException if the overflow value is unrecognized.
      */
-    // TODO: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
+    // NOTE: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
     // PlainDateTime: null/bool → InvalidArgumentException; other non-string → TypeError.
     // PlainTime:     null → 'constrain' (treated as default); non-string → TypeError.
     // ZonedDateTime: null or any non-string → InvalidArgumentException (with get_debug_type).
@@ -2587,8 +2586,8 @@ final class PlainDateTime implements Stringable
         );
 
         $jdn = CalendarMath::toJulianDay($y, $m, $d);
-        $minJdn = CalendarMath::toJulianDay(-271821, 4, 19);
-        $maxJdn = CalendarMath::toJulianDay(275760, 9, 13);
+        $minJdn = CalendarMath::toJulianDay(-271_821, 4, 19);
+        $maxJdn = CalendarMath::toJulianDay(275_760, 9, 13);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
             throw new InvalidArgumentException('Rounded PlainDateTime is outside the representable range.');
         }
@@ -2607,14 +2606,21 @@ final class PlainDateTime implements Stringable
         $rem = $ns - ($q * $increment);
         $r1 = $q * $increment; // floor multiple
         $r2 = $r1 + $increment; // ceil multiple
+        if ($mode === 'halfEven') {
+            $cmp = $rem * 2;
+            if ($cmp < $increment) {
+                return $r1;
+            }
+            if ($cmp > $increment) {
+                return $r2;
+            }
+            return ($q % 2) === 0 ? $r1 : $r2;
+        }
         return match ($mode) {
             'trunc', 'floor' => $r1,
             'ceil', 'expand' => $rem === 0 ? $r1 : $r2,
             'halfExpand', 'halfCeil' => ($rem * 2) >= $increment ? $r2 : $r1,
             'halfTrunc', 'halfFloor' => ($rem * 2) > $increment ? $r2 : $r1,
-            'halfEven' => ($rem * 2) < $increment
-                ? $r1
-                : (($rem * 2) > $increment ? $r2 : (($q % 2) === 0 ? $r1 : $r2)),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
     }

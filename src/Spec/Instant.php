@@ -631,8 +631,10 @@ final class Instant implements Stringable
             try {
                 new \DateTimeZone($bracket);
                 return null; // Caller will use ianaOffsetSeconds
-            } catch (\Exception) {
-                // Not a valid timezone, fall through
+            } catch (\Exception $e) {
+                // Not a valid timezone; ignore the error and fall through to
+                // the inline-offset path below.
+                unset($e);
             }
         }
         // Datetime strings without bracket: use inline offset or Z.
@@ -698,10 +700,12 @@ final class Instant implements Stringable
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         $locale = CalendarMath::resolveLocale($locales);
+        /** @var array<string, mixed> $opts */
         $opts = is_array($options) ? $options : [];
-        /** @psalm-var array<string, mixed> $opts */
 
-        $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone']) ? $opts['timeZone'] : 'UTC';
+        /** @var mixed $tzOpt */
+        $tzOpt = $opts['timeZone'] ?? null;
+        $timeZone = is_string($tzOpt) ? $tzOpt : 'UTC';
 
         $opts['_locale'] = $locale;
         $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
@@ -1080,8 +1084,7 @@ final class Instant implements Stringable
     {
         $digits = substr($fractionRaw, offset: 1); // strip leading '.' or ','
         /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
-        $ns = (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
-        return $ns;
+        return (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
     }
 
     /**
@@ -1110,14 +1113,24 @@ final class Instant implements Stringable
 
         // Directed rounding (AsIfPositive: trunc/floor → r1; ceil/expand → r2):
         $r2 = $r1 + 1;
-        $rounded = match ($mode) {
-            'trunc', 'floor' => $r1,
-            'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
-            'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
-            'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
-            'halfEven' => ($d1 * 2) < $increment ? $r1 : (($d1 * 2) > $increment ? $r2 : (($r1 % 2) === 0 ? $r1 : $r2)),
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-        };
+        if ($mode === 'halfEven') {
+            $cmp = $d1 * 2;
+            if ($cmp < $increment) {
+                $rounded = $r1;
+            } elseif ($cmp > $increment) {
+                $rounded = $r2;
+            } else {
+                $rounded = ($r1 % 2) === 0 ? $r1 : $r2;
+            }
+        } else {
+            $rounded = match ($mode) {
+                'trunc', 'floor' => $r1,
+                'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
+                'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
+                'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
+                default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+            };
+        }
 
         return $rounded * $increment;
     }

@@ -25,7 +25,7 @@ final class PureHebrewCalendar implements CalendarProtocol
      * JDN epoch: the JDN of 1 Tishrei year 1 is computed as EPOCH + hebrewNewYearDay(1).
      * hebrewNewYearDay(1) = 0, so the epoch is the JDN of 1 Tishrei AM 1.
      */
-    private const int EPOCH = 347998;
+    private const int EPOCH = 347_998;
 
     #[\Override]
     public function id(): string
@@ -44,8 +44,8 @@ final class PureHebrewCalendar implements CalendarProtocol
     private static function hebrewDelay1(int $year): int
     {
         $months = (int) floor(((235 * $year) - 234) / 19);
-        $parts = 12084 + (13753 * $months);
-        $day = ($months * 29) + (int) floor($parts / 25920);
+        $parts = 12_084 + (13_753 * $months);
+        $day = ($months * 29) + (int) floor($parts / 25_920);
         if (((((3 * ($day + 1)) % 7) + 7) % 7) < 3) {
             $day++;
         }
@@ -492,7 +492,7 @@ final class PureHebrewCalendar implements CalendarProtocol
             $totalDays =
                 CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2) - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
             if ($largestUnit === 'week') {
-                $weeks = intdiv($totalDays, 7);
+                $weeks = intdiv($totalDays, num2: 7);
                 $days = $totalDays - ($weeks * 7);
                 return [0, 0, $weeks, $days];
             }

@@ -27,10 +27,10 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $d = new PlainDate(2024, 1, 15, 'hebrew');
 
-        self::assertSame('hebrew', $d->calendarId);
-        self::assertSame(2024, $d->isoYear);
-        self::assertSame(1, $d->isoMonth);
-        self::assertSame(15, $d->isoDay);
+        static::assertSame('hebrew', $d->calendarId);
+        static::assertSame(2024, $d->isoYear);
+        static::assertSame(1, $d->isoMonth);
+        static::assertSame(15, $d->isoDay);
     }
 
     public function testPlainDateConstructorRejectsUnknownCalendar(): void
@@ -44,8 +44,8 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $d = PlainDate::from('2024-01-15[u-ca=hebrew]');
 
-        self::assertSame('hebrew', $d->calendarId);
-        self::assertSame(2024, $d->isoYear);
+        static::assertSame('hebrew', $d->calendarId);
+        static::assertSame(2024, $d->isoYear);
     }
 
     public function testPlainDateFromStringRejectsUnknownCalendar(): void
@@ -59,14 +59,14 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $d = PlainDate::from('2024-01-15');
 
-        self::assertSame('iso8601', $d->calendarId);
+        static::assertSame('iso8601', $d->calendarId);
     }
 
     public function testPlainDateFromPropertyBagAcceptsNonIsoCalendar(): void
     {
         $d = PlainDate::from(['year' => 2024, 'month' => 1, 'day' => 15, 'calendar' => 'japanese']);
 
-        self::assertSame('japanese', $d->calendarId);
+        static::assertSame('japanese', $d->calendarId);
     }
 
     public function testPlainDateFromPropertyBagRejectsUnknownCalendar(): void
@@ -80,8 +80,8 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $d = PlainDate::from('2024-01-15');
         $d2 = $d->withCalendar('hebrew');
 
-        self::assertSame('hebrew', $d2->calendarId);
-        self::assertSame(2024, $d2->isoYear);
+        static::assertSame('hebrew', $d2->calendarId);
+        static::assertSame(2024, $d2->isoYear);
     }
 
     public function testPlainDateFromPreservesCalendarId(): void
@@ -89,7 +89,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $d1 = PlainDate::from('2024-01-15[u-ca=hebrew]');
         $d2 = PlainDate::from($d1);
 
-        self::assertSame('hebrew', $d2->calendarId);
+        static::assertSame('hebrew', $d2->calendarId);
     }
 
     public function testPlainDateCalendarProjectedProperties(): void
@@ -97,37 +97,37 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $d = new PlainDate(2024, 1, 15, 'hebrew');
 
         // Hebrew year for Jan 15 2024 should be in the 5784 range
-        self::assertSame(5784, $d->year);
+        static::assertSame(5784, $d->year);
         // monthCode should be valid
-        self::assertNotEmpty($d->monthCode);
+        static::assertNotEmpty($d->monthCode);
     }
 
     public function testPlainDateToStringIncludesNonIsoCalendar(): void
     {
         $d = new PlainDate(2024, 1, 15, 'hebrew');
 
-        self::assertSame('2024-01-15[u-ca=hebrew]', $d->toString());
+        static::assertSame('2024-01-15[u-ca=hebrew]', $d->toString());
     }
 
     public function testPlainDateToStringOmitsIsoCalendar(): void
     {
         $d = new PlainDate(2024, 1, 15);
 
-        self::assertSame('2024-01-15', $d->toString());
+        static::assertSame('2024-01-15', $d->toString());
     }
 
     public function testPlainDateConstructorCanonicalizesCalendar(): void
     {
         $d = new PlainDate(2024, 1, 15, 'HEBREW');
 
-        self::assertSame('hebrew', $d->calendarId);
+        static::assertSame('hebrew', $d->calendarId);
     }
 
     public function testPlainDateConstructorResolvesAlias(): void
     {
         $d = new PlainDate(2024, 1, 15, 'islamicc');
 
-        self::assertSame('islamic-civil', $d->calendarId);
+        static::assertSame('islamic-civil', $d->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -138,7 +138,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $dt = new PlainDateTime(2024, 1, 15, 10, 30, 0, 0, 0, 0, 'japanese');
 
-        self::assertSame('japanese', $dt->calendarId);
+        static::assertSame('japanese', $dt->calendarId);
     }
 
     public function testPlainDateTimeConstructorRejectsUnknownCalendar(): void
@@ -151,7 +151,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $dt = PlainDateTime::from('2024-01-15T10:30:00[u-ca=buddhist]');
 
-        self::assertSame('buddhist', $dt->calendarId);
+        static::assertSame('buddhist', $dt->calendarId);
     }
 
     public function testPlainDateTimeFromPropertyBagAcceptsCalendar(): void
@@ -164,7 +164,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
             'calendar' => 'gregory',
         ]);
 
-        self::assertSame('gregory', $dt->calendarId);
+        static::assertSame('gregory', $dt->calendarId);
     }
 
     public function testPlainDateTimeWithCalendarAcceptsNonIso(): void
@@ -172,7 +172,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $dt = PlainDateTime::from('2024-01-15T10:30:00');
         $dt2 = $dt->withCalendar('persian');
 
-        self::assertSame('persian', $dt2->calendarId);
+        static::assertSame('persian', $dt2->calendarId);
     }
 
     public function testPlainDateTimeFromPreservesCalendarId(): void
@@ -180,7 +180,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $dt1 = PlainDateTime::from('2024-01-15T10:30:00[u-ca=roc]');
         $dt2 = PlainDateTime::from($dt1);
 
-        self::assertSame('roc', $dt2->calendarId);
+        static::assertSame('roc', $dt2->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -191,7 +191,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $md = new PlainMonthDay(3, 15, 'coptic');
 
-        self::assertSame('coptic', $md->calendarId);
+        static::assertSame('coptic', $md->calendarId);
     }
 
     public function testPlainMonthDayConstructorRejectsUnknownCalendar(): void
@@ -204,7 +204,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $md = PlainMonthDay::from('1972-03-15[u-ca=chinese]');
 
-        self::assertSame('chinese', $md->calendarId);
+        static::assertSame('chinese', $md->calendarId);
     }
 
     public function testPlainMonthDayFromPropertyBagAcceptsCalendar(): void
@@ -214,7 +214,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         // be stable across years (e.g. leap months).
         $md = PlainMonthDay::from(['monthCode' => 'M03', 'day' => 15, 'calendar' => 'dangi']);
 
-        self::assertSame('dangi', $md->calendarId);
+        static::assertSame('dangi', $md->calendarId);
     }
 
     public function testPlainMonthDayFromPreservesCalendarId(): void
@@ -222,7 +222,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $md1 = PlainMonthDay::from('1972-03-15[u-ca=indian]');
         $md2 = PlainMonthDay::from($md1);
 
-        self::assertSame('indian', $md2->calendarId);
+        static::assertSame('indian', $md2->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -233,7 +233,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $ym = new PlainYearMonth(2024, 6, 'ethiopic');
 
-        self::assertSame('ethiopic', $ym->calendarId);
+        static::assertSame('ethiopic', $ym->calendarId);
     }
 
     public function testPlainYearMonthConstructorRejectsUnknownCalendar(): void
@@ -246,14 +246,14 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $ym = PlainYearMonth::from('2024-06-01[u-ca=islamic-civil]');
 
-        self::assertSame('islamic-civil', $ym->calendarId);
+        static::assertSame('islamic-civil', $ym->calendarId);
     }
 
     public function testPlainYearMonthFromPropertyBagAcceptsCalendar(): void
     {
         $ym = PlainYearMonth::from(['year' => 2024, 'month' => 6, 'calendar' => 'persian']);
 
-        self::assertSame('persian', $ym->calendarId);
+        static::assertSame('persian', $ym->calendarId);
     }
 
     public function testPlainYearMonthFromPreservesCalendarId(): void
@@ -261,7 +261,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $ym1 = PlainYearMonth::from('2024-06-01[u-ca=roc]');
         $ym2 = PlainYearMonth::from($ym1);
 
-        self::assertSame('roc', $ym2->calendarId);
+        static::assertSame('roc', $ym2->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -272,7 +272,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $zdt = new ZonedDateTime(0, 'UTC', 'gregory');
 
-        self::assertSame('gregory', $zdt->calendarId);
+        static::assertSame('gregory', $zdt->calendarId);
     }
 
     public function testZonedDateTimeConstructorRejectsUnknownCalendar(): void
@@ -285,7 +285,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $zdt = ZonedDateTime::from('2024-01-15T10:30:00+00:00[UTC][u-ca=hebrew]');
 
-        self::assertSame('hebrew', $zdt->calendarId);
+        static::assertSame('hebrew', $zdt->calendarId);
     }
 
     public function testZonedDateTimeFromStringRejectsUnknownCalendar(): void
@@ -299,7 +299,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         $zdt = ZonedDateTime::from('2024-01-15T10:30:00+00:00[UTC]');
         $zdt2 = $zdt->withCalendar('japanese');
 
-        self::assertSame('japanese', $zdt2->calendarId);
+        static::assertSame('japanese', $zdt2->calendarId);
     }
 
     public function testZonedDateTimeFromPropertyBagAcceptsCalendar(): void
@@ -312,7 +312,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
             'calendar' => 'buddhist',
         ]);
 
-        self::assertSame('buddhist', $zdt->calendarId);
+        static::assertSame('buddhist', $zdt->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -326,7 +326,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         // Should not throw
         $result = $d->total(['unit' => 'days', 'relativeTo' => '2024-01-15[u-ca=hebrew]']);
 
-        self::assertEquals(366, $result);
+        static::assertSame(366.0, (float) $result);
     }
 
     public function testDurationRelativeToStringRejectsUnknownCalendar(): void
@@ -347,7 +347,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
             'relativeTo' => ['year' => 2024, 'month' => 1, 'day' => 15, 'calendar' => 'hebrew'],
         ]);
 
-        self::assertEquals(366, $result);
+        static::assertSame(366.0, (float) $result);
     }
 
     public function testDurationRelativeToPropertyBagRejectsUnknownCalendar(): void
@@ -369,21 +369,21 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[u-ca=hebrew]', 'test');
 
-        self::assertSame('hebrew', $result);
+        static::assertSame('hebrew', $result);
     }
 
     public function testValidateAnnotationsReturnsNullWhenNoCalendar(): void
     {
         $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[America/New_York]', 'test');
 
-        self::assertNull($result);
+        static::assertNull($result);
     }
 
     public function testValidateAnnotationsReturnsNullForEmptySection(): void
     {
         $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations('', 'test');
 
-        self::assertNull($result);
+        static::assertNull($result);
     }
 
     public function testValidateAnnotationsRejectsUnknownCalendar(): void
@@ -398,7 +398,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
         // With checkCalendar=false, unknown calendars should be silently ignored
         $result = \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[u-ca=anything]', 'test', false);
 
-        self::assertNull($result);
+        static::assertNull($result);
     }
 
     // -------------------------------------------------------------------------
@@ -409,14 +409,14 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $result = ZonedDateTime::extractCalendarFromString('hebrew');
 
-        self::assertSame('hebrew', $result);
+        static::assertSame('hebrew', $result);
     }
 
     public function testExtractCalendarFromStringAcceptsAnnotation(): void
     {
         $result = ZonedDateTime::extractCalendarFromString('2024-01-15[u-ca=japanese]');
 
-        self::assertSame('japanese', $result);
+        static::assertSame('japanese', $result);
     }
 
     public function testExtractCalendarFromStringRejectsUnknownCalendar(): void
@@ -436,7 +436,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $d = new PlainDate(2024, 1, 15, $calendarId);
 
-        self::assertSame($calendarId, $d->calendarId);
+        static::assertSame($calendarId, $d->calendarId);
     }
 
     /**

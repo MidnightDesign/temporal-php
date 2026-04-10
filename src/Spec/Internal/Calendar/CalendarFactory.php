@@ -70,11 +70,11 @@ final class CalendarFactory
     {
         $lower = strtolower($id);
 
-        if (isset(self::ALIASES[$lower])) {
+        if (array_key_exists($lower, self::ALIASES)) {
             $lower = self::ALIASES[$lower];
         }
 
-        if (!in_array($lower, self::KNOWN_CALENDARS, true)) {
+        if (!in_array($lower, self::KNOWN_CALENDARS, strict: true)) {
             throw new InvalidArgumentException("Unknown calendar \"{$id}\".");
         }
 
@@ -88,11 +88,11 @@ final class CalendarFactory
     {
         $lower = strtolower($id);
 
-        if (isset(self::ALIASES[$lower])) {
+        if (array_key_exists($lower, self::ALIASES)) {
             $lower = self::ALIASES[$lower];
         }
 
-        return in_array($lower, self::KNOWN_CALENDARS, true);
+        return in_array($lower, self::KNOWN_CALENDARS, strict: true);
     }
 
     private static function create(string $id): CalendarProtocol

@@ -409,7 +409,7 @@ final class PlainYearMonth implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $fields);
 
         // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
-        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], true)) {
+        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
             throw new \TypeError('eraYear and era are invalid for this calendar.');
         }
 
@@ -838,7 +838,7 @@ final class PlainYearMonth implements Stringable
         }
 
         $calendarSupportsEras =
-            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], true);
+            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('PlainYearMonth property bag must have a year field.');
@@ -1283,7 +1283,11 @@ final class PlainYearMonth implements Stringable
         string $mode,
         bool $receiverIsLater,
     ): int {
-        $sign = $years !== 0 ? ($years >= 0 ? 1 : -1) : ($months >= 0 ? 1 : -1);
+        if ($years !== 0) {
+            $sign = $years >= 0 ? 1 : -1;
+        } else {
+            $sign = $months >= 0 ? 1 : -1;
+        }
         $absYears = abs($years);
 
         $floorCount = intdiv(num1: $absYears, num2: $increment) * $increment;
@@ -1354,7 +1358,11 @@ final class PlainYearMonth implements Stringable
         string $mode,
         bool $receiverIsLater,
     ): array {
-        $sign = $rawYears !== 0 ? ($rawYears >= 0 ? 1 : -1) : ($rawMonths >= 0 ? 1 : -1);
+        if ($rawYears !== 0) {
+            $sign = $rawYears >= 0 ? 1 : -1;
+        } else {
+            $sign = $rawMonths >= 0 ? 1 : -1;
+        }
 
         // Direction from receiver toward the other.
         $dir = $receiverIsLater ? -$sign : $sign;

@@ -601,7 +601,7 @@ final class PlainTime implements Stringable
      * @throws \TypeError if the overflow value is not a string (or null).
      * @throws InvalidArgumentException if the overflow value is an unrecognized string.
      */
-    // TODO: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
+    // NOTE: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
     // PlainTime: null overflow value → 'constrain' (treated as default/absent).
     // PlainDateTime: null/bool overflow → InvalidArgumentException; other non-string → TypeError.
     // ZonedDateTime: null or any non-string → InvalidArgumentException (with get_debug_type).
@@ -877,8 +877,7 @@ final class PlainTime implements Stringable
     {
         $digits = substr(string: $fractionRaw, offset: 1); // strip leading '.' or ','
         /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
-        $ns = (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
-        return $ns;
+        return (int) str_pad(substr(string: $digits, offset: 0, length: 9), length: 9, pad_string: '0');
     }
 
     /**
@@ -1140,14 +1139,21 @@ final class PlainTime implements Stringable
         $rem = $ns - ($q * $increment);
         $r1 = $q * $increment; // floor multiple
         $r2 = $r1 + $increment; // ceil multiple
+        if ($mode === 'halfEven') {
+            $cmp = $rem * 2;
+            if ($cmp < $increment) {
+                return $r1;
+            }
+            if ($cmp > $increment) {
+                return $r2;
+            }
+            return ($q % 2) === 0 ? $r1 : $r2;
+        }
         return match ($mode) {
             'trunc', 'floor' => $r1,
             'ceil', 'expand' => $rem === 0 ? $r1 : $r2,
             'halfExpand', 'halfCeil' => ($rem * 2) >= $increment ? $r2 : $r1,
             'halfTrunc', 'halfFloor' => ($rem * 2) > $increment ? $r2 : $r1,
-            'halfEven' => ($rem * 2) < $increment
-                ? $r1
-                : (($rem * 2) > $increment ? $r2 : (($q % 2) === 0 ? $r1 : $r2)),
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
     }
@@ -1169,42 +1175,56 @@ final class PlainTime implements Stringable
         $trunc = $q * $increment; // truncated toward zero
         $absRem = abs($rem);
 
-        return match ($mode) {
-            'trunc' => $trunc,
-            'floor' => $rem < 0 ? $trunc - $increment : $trunc,
-            'ceil' => $rem > 0 ? $trunc + $increment : $trunc,
-            'expand' => $rem < 0 ? $trunc - $increment : ($rem > 0 ? $trunc + $increment : $trunc),
-            // half modes: not at exact midpoint → same as expand/trunc; at midpoint → direction-dependent.
-            'halfExpand' => ($absRem * 2) >= $increment
-                ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                : $trunc,
-            'halfTrunc' => ($absRem * 2) > $increment ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment) : $trunc,
-            'halfFloor' => ($absRem * 2) < $increment
-                ? $trunc
-                : (
-                    ($absRem * 2)
-                    > $increment
-                        ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                        : ($ns >= 0 ? $trunc : $trunc - $increment)
-                ), // tie: toward -∞
-            'halfCeil' => ($absRem * 2) < $increment
-                ? $trunc
-                : (
-                    ($absRem * 2)
-                    > $increment
-                        ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                        : ($ns >= 0 ? $trunc + $increment : $trunc)
-                ), // tie: toward +∞
-            'halfEven' => ($absRem * 2) < $increment
-                ? $trunc
-                : (
-                    ($absRem * 2)
-                    > $increment
-                        ? ($ns >= 0 ? $trunc + $increment : $trunc - $increment)
-                        : (($q % 2) === 0 ? $trunc : ($ns >= 0 ? $trunc + $increment : $trunc - $increment))
-                ),
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-        };
+        $expand = $ns >= 0 ? $trunc + $increment : $trunc - $increment;
+
+        switch ($mode) {
+            case 'trunc':
+                return $trunc;
+            case 'floor':
+                return $rem < 0 ? $trunc - $increment : $trunc;
+            case 'ceil':
+                return $rem > 0 ? $trunc + $increment : $trunc;
+            case 'expand':
+                if ($rem < 0) {
+                    return $trunc - $increment;
+                }
+                return $rem > 0 ? $trunc + $increment : $trunc;
+            case 'halfExpand':
+                return ($absRem * 2) >= $increment ? $expand : $trunc;
+            case 'halfTrunc':
+                return ($absRem * 2) > $increment ? $expand : $trunc;
+            case 'halfFloor':
+                $cmp = $absRem * 2;
+                if ($cmp < $increment) {
+                    return $trunc;
+                }
+                if ($cmp > $increment) {
+                    return $expand;
+                }
+                // tie: toward -∞
+                return $ns >= 0 ? $trunc : $trunc - $increment;
+            case 'halfCeil':
+                $cmp = $absRem * 2;
+                if ($cmp < $increment) {
+                    return $trunc;
+                }
+                if ($cmp > $increment) {
+                    return $expand;
+                }
+                // tie: toward +∞
+                return $ns >= 0 ? $trunc + $increment : $trunc;
+            case 'halfEven':
+                $cmp = $absRem * 2;
+                if ($cmp < $increment) {
+                    return $trunc;
+                }
+                if ($cmp > $increment) {
+                    return $expand;
+                }
+                return ($q % 2) === 0 ? $trunc : $expand;
+            default:
+                throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\".");
+        }
     }
 
     #[\Override]

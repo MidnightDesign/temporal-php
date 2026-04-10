@@ -30,9 +30,9 @@ final class CalendarArithmeticTest extends TestCase
         // 2024-01-15 in Buddhist is year 2567
         [$isoY, $isoM, $isoD] = $cal->dateAdd(2024, 1, 15, 1, 0, 0, 0, 'constrain');
 
-        self::assertSame(2025, $isoY);
-        self::assertSame(1, $isoM);
-        self::assertSame(15, $isoD);
+        static::assertSame(2025, $isoY);
+        static::assertSame(1, $isoM);
+        static::assertSame(15, $isoD);
     }
 
     public function testDateAddHebrewOneMonth(): void
@@ -44,8 +44,8 @@ final class CalendarArithmeticTest extends TestCase
         // Verify the result is a valid date about 29-30 days later
         $d1 = PlainDate::from('2024-01-15[u-ca=hebrew]');
         $d2 = new PlainDate($isoY, $isoM, $isoD, 'hebrew');
-        self::assertSame($d1->year, $d2->year);
-        self::assertSame($d1->month + 1, $d2->month);
+        static::assertSame($d1->year, $d2->year);
+        static::assertSame($d1->month + 1, $d2->month);
     }
 
     public function testDateAddPersianOneYear(): void
@@ -55,8 +55,8 @@ final class CalendarArithmeticTest extends TestCase
 
         // 2024-03-20 is ~Farvardin 1, 1403. +1 year → Farvardin 1, 1404
         $d = new PlainDate($isoY, $isoM, $isoD, 'persian');
-        self::assertSame(1404, $d->year);
-        self::assertSame(1, $d->month);
+        static::assertSame(1404, $d->year);
+        static::assertSame(1, $d->month);
     }
 
     public function testDateAddGregoryNegativeMonths(): void
@@ -64,9 +64,9 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('gregory');
         [$isoY, $isoM, $isoD] = $cal->dateAdd(2024, 3, 15, 0, -2, 0, 0, 'constrain');
 
-        self::assertSame(2024, $isoY);
-        self::assertSame(1, $isoM);
-        self::assertSame(15, $isoD);
+        static::assertSame(2024, $isoY);
+        static::assertSame(1, $isoM);
+        static::assertSame(15, $isoD);
     }
 
     public function testDateAddDaysOnly(): void
@@ -74,9 +74,9 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('hebrew');
         [$isoY, $isoM, $isoD] = $cal->dateAdd(2024, 1, 15, 0, 0, 0, 10, 'constrain');
 
-        self::assertSame(2024, $isoY);
-        self::assertSame(1, $isoM);
-        self::assertSame(25, $isoD);
+        static::assertSame(2024, $isoY);
+        static::assertSame(1, $isoM);
+        static::assertSame(25, $isoD);
     }
 
     public function testDateAddWeeks(): void
@@ -84,9 +84,9 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('buddhist');
         [$isoY, $isoM, $isoD] = $cal->dateAdd(2024, 1, 15, 0, 0, 2, 0, 'constrain');
 
-        self::assertSame(2024, $isoY);
-        self::assertSame(1, $isoM);
-        self::assertSame(29, $isoD);
+        static::assertSame(2024, $isoY);
+        static::assertSame(1, $isoM);
+        static::assertSame(29, $isoD);
     }
 
     public function testDateAddRejectOverflow(): void
@@ -111,9 +111,9 @@ final class CalendarArithmeticTest extends TestCase
         // Jan 31 + 1 month = Feb 29 (2024 is a leap year), constrained from 31.
         [$isoY, $isoM, $isoD] = $cal->dateAdd(2024, 1, 31, 0, 1, 0, 0, 'constrain');
 
-        self::assertSame(2024, $isoY);
-        self::assertSame(2, $isoM);
-        self::assertSame(29, $isoD);
+        static::assertSame(2024, $isoY);
+        static::assertSame(2, $isoM);
+        static::assertSame(29, $isoD);
     }
 
     // =========================================================================
@@ -125,11 +125,11 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('hebrew');
         [$y, $m, $w, $d] = $cal->dateUntil(2024, 1, 15, 2024, 6, 15, 'day');
 
-        self::assertSame(0, $y);
-        self::assertSame(0, $m);
-        self::assertSame(0, $w);
+        static::assertSame(0, $y);
+        static::assertSame(0, $m);
+        static::assertSame(0, $w);
         // 152 days from Jan 15 to Jun 15, 2024
-        self::assertSame(152, $d);
+        static::assertSame(152, $d);
     }
 
     public function testDateUntilHebrewWeekUnit(): void
@@ -137,10 +137,10 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('hebrew');
         [$y, $m, $w, $d] = $cal->dateUntil(2024, 1, 15, 2024, 6, 15, 'week');
 
-        self::assertSame(0, $y);
-        self::assertSame(0, $m);
-        self::assertSame(21, $w);
-        self::assertSame(5, $d);
+        static::assertSame(0, $y);
+        static::assertSame(0, $m);
+        static::assertSame(21, $w);
+        static::assertSame(5, $d);
     }
 
     public function testDateUntilHebrewMonthUnit(): void
@@ -148,9 +148,9 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('hebrew');
         [$y, $m, $w] = $cal->dateUntil(2024, 1, 15, 2024, 6, 15, 'month');
 
-        self::assertSame(0, $y);
-        self::assertGreaterThan(0, $m);
-        self::assertSame(0, $w);
+        static::assertSame(0, $y);
+        static::assertGreaterThan(0, $m);
+        static::assertSame(0, $w);
     }
 
     public function testDateUntilHebrewYearUnit(): void
@@ -159,9 +159,9 @@ final class CalendarArithmeticTest extends TestCase
         // One Hebrew year apart
         [$y, $m, $w] = $cal->dateUntil(2023, 9, 16, 2024, 10, 3, 'year');
 
-        self::assertSame(1, $y);
-        self::assertSame(0, $m);
-        self::assertSame(0, $w);
+        static::assertSame(1, $y);
+        static::assertSame(0, $m);
+        static::assertSame(0, $w);
     }
 
     public function testDateUntilNegative(): void
@@ -169,10 +169,10 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('buddhist');
         [$y, $m, $w, $d] = $cal->dateUntil(2024, 6, 15, 2024, 1, 15, 'month');
 
-        self::assertSame(0, $y);
-        self::assertSame(-5, $m);
-        self::assertSame(0, $w);
-        self::assertSame(0, $d);
+        static::assertSame(0, $y);
+        static::assertSame(-5, $m);
+        static::assertSame(0, $w);
+        static::assertSame(0, $d);
     }
 
     public function testDateUntilSameDate(): void
@@ -180,10 +180,10 @@ final class CalendarArithmeticTest extends TestCase
         $cal = CalendarFactory::get('persian');
         [$y, $m, $w, $d] = $cal->dateUntil(2024, 3, 20, 2024, 3, 20, 'year');
 
-        self::assertSame(0, $y);
-        self::assertSame(0, $m);
-        self::assertSame(0, $w);
-        self::assertSame(0, $d);
+        static::assertSame(0, $y);
+        static::assertSame(0, $m);
+        static::assertSame(0, $w);
+        static::assertSame(0, $d);
     }
 
     // =========================================================================
@@ -195,9 +195,9 @@ final class CalendarArithmeticTest extends TestCase
         $d = PlainDate::from('2024-01-15[u-ca=hebrew]');
         $d2 = $d->add(new Duration(0, 1));
 
-        self::assertSame('hebrew', $d2->calendarId);
-        self::assertSame($d->year, $d2->year);
-        self::assertSame($d->month + 1, $d2->month);
+        static::assertSame('hebrew', $d2->calendarId);
+        static::assertSame($d->year, $d2->year);
+        static::assertSame($d->month + 1, $d2->month);
     }
 
     public function testPlainDateAddBuddhistOneYear(): void
@@ -205,9 +205,9 @@ final class CalendarArithmeticTest extends TestCase
         $d = PlainDate::from('2024-01-15[u-ca=buddhist]');
         $d2 = $d->add(new Duration(1));
 
-        self::assertSame('buddhist', $d2->calendarId);
-        self::assertSame(2568, $d2->year);
-        self::assertSame(2025, $d2->isoYear);
+        static::assertSame('buddhist', $d2->calendarId);
+        static::assertSame(2568, $d2->year);
+        static::assertSame(2025, $d2->isoYear);
     }
 
     public function testPlainDateSubtractPersianMonths(): void
@@ -215,10 +215,10 @@ final class CalendarArithmeticTest extends TestCase
         $d = PlainDate::from('2024-06-15[u-ca=persian]');
         $d2 = $d->subtract(new Duration(0, 3));
 
-        self::assertSame('persian', $d2->calendarId);
+        static::assertSame('persian', $d2->calendarId);
         // Should go back 3 Persian months
         $diff = $d2->until($d, ['largestUnit' => 'month']);
-        self::assertSame(3, $diff->months);
+        static::assertSame(3, $diff->months);
     }
 
     public function testPlainDateAddPreservesCalendarId(): void
@@ -226,7 +226,7 @@ final class CalendarArithmeticTest extends TestCase
         $d = PlainDate::from('2024-01-15[u-ca=japanese]');
         $d2 = $d->add(new Duration(0, 0, 1));
 
-        self::assertSame('japanese', $d2->calendarId);
+        static::assertSame('japanese', $d2->calendarId);
     }
 
     public function testPlainDateAddIsoStillWorks(): void
@@ -234,10 +234,10 @@ final class CalendarArithmeticTest extends TestCase
         $d = PlainDate::from('2024-01-15');
         $d2 = $d->add(new Duration(1, 2, 0, 3));
 
-        self::assertSame('iso8601', $d2->calendarId);
-        self::assertSame(2025, $d2->isoYear);
-        self::assertSame(3, $d2->isoMonth);
-        self::assertSame(18, $d2->isoDay);
+        static::assertSame('iso8601', $d2->calendarId);
+        static::assertSame(2025, $d2->isoYear);
+        static::assertSame(3, $d2->isoMonth);
+        static::assertSame(18, $d2->isoDay);
     }
 
     public function testPlainDateAddDaysNonIso(): void
@@ -245,10 +245,10 @@ final class CalendarArithmeticTest extends TestCase
         $d = PlainDate::from('2024-01-15[u-ca=hebrew]');
         $d2 = $d->add(new Duration(0, 0, 0, 10));
 
-        self::assertSame('hebrew', $d2->calendarId);
-        self::assertSame(2024, $d2->isoYear);
-        self::assertSame(1, $d2->isoMonth);
-        self::assertSame(25, $d2->isoDay);
+        static::assertSame('hebrew', $d2->calendarId);
+        static::assertSame(2024, $d2->isoYear);
+        static::assertSame(1, $d2->isoMonth);
+        static::assertSame(25, $d2->isoDay);
     }
 
     public function testPlainDateAddRejectOverflowNonIso(): void
@@ -269,8 +269,8 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainDate::from('2024-06-15[u-ca=hebrew]');
         $diff = $a->until($b, ['largestUnit' => 'month']);
 
-        self::assertGreaterThan(0, $diff->months);
-        self::assertGreaterThanOrEqual(0, $diff->days);
+        static::assertGreaterThan(0, $diff->months);
+        static::assertGreaterThanOrEqual(0, $diff->days);
     }
 
     public function testPlainDateSinceHebrewMonths(): void
@@ -279,7 +279,7 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainDate::from('2024-06-15[u-ca=hebrew]');
         $diff = $b->since($a, ['largestUnit' => 'month']);
 
-        self::assertGreaterThan(0, $diff->months);
+        static::assertGreaterThan(0, $diff->months);
     }
 
     public function testPlainDateUntilBuddhistYear(): void
@@ -288,9 +288,9 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainDate::from('2025-01-15[u-ca=buddhist]');
         $diff = $a->until($b, ['largestUnit' => 'year']);
 
-        self::assertSame(1, $diff->years);
-        self::assertSame(0, $diff->months);
-        self::assertSame(0, $diff->days);
+        static::assertSame(1, $diff->years);
+        static::assertSame(0, $diff->months);
+        static::assertSame(0, $diff->days);
     }
 
     public function testPlainDateUntilIsoDays(): void
@@ -300,7 +300,7 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainDate::from('2024-06-15[u-ca=hebrew]');
         $diff = $a->until($b, ['largestUnit' => 'day']);
 
-        self::assertSame(152, $diff->days);
+        static::assertSame(152, $diff->days);
     }
 
     public function testPlainDateUntilIsoStillWorks(): void
@@ -309,8 +309,8 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainDate::from('2024-06-15');
         $diff = $a->until($b, ['largestUnit' => 'month']);
 
-        self::assertSame(5, $diff->months);
-        self::assertSame(0, $diff->days);
+        static::assertSame(5, $diff->months);
+        static::assertSame(0, $diff->days);
     }
 
     public function testPlainDateRoundTripAddUntilNonIso(): void
@@ -321,9 +321,9 @@ final class CalendarArithmeticTest extends TestCase
         $d2 = $d->add($dur);
         $roundTrip = $d->until($d2, ['largestUnit' => 'year']);
 
-        self::assertSame(1, $roundTrip->years);
-        self::assertSame(3, $roundTrip->months);
-        self::assertSame(0, $roundTrip->days);
+        static::assertSame(1, $roundTrip->years);
+        static::assertSame(3, $roundTrip->months);
+        static::assertSame(0, $roundTrip->days);
     }
 
     // =========================================================================
@@ -335,9 +335,9 @@ final class CalendarArithmeticTest extends TestCase
         $dt = PlainDateTime::from('2024-01-15T10:30:00[u-ca=hebrew]');
         $dt2 = $dt->add(new Duration(0, 1));
 
-        self::assertSame('hebrew', $dt2->calendarId);
-        self::assertSame(10, $dt2->hour);
-        self::assertSame(30, $dt2->minute);
+        static::assertSame('hebrew', $dt2->calendarId);
+        static::assertSame(10, $dt2->hour);
+        static::assertSame(30, $dt2->minute);
     }
 
     public function testPlainDateTimeAddBuddhistOneYear(): void
@@ -345,10 +345,10 @@ final class CalendarArithmeticTest extends TestCase
         $dt = PlainDateTime::from('2024-01-15T08:00:00[u-ca=buddhist]');
         $dt2 = $dt->add(new Duration(1));
 
-        self::assertSame('buddhist', $dt2->calendarId);
-        self::assertSame(2568, $dt2->year);
-        self::assertSame(2025, $dt2->isoYear);
-        self::assertSame(8, $dt2->hour);
+        static::assertSame('buddhist', $dt2->calendarId);
+        static::assertSame(2568, $dt2->year);
+        static::assertSame(2025, $dt2->isoYear);
+        static::assertSame(8, $dt2->hour);
     }
 
     public function testPlainDateTimeAddPreservesCalendarId(): void
@@ -356,7 +356,7 @@ final class CalendarArithmeticTest extends TestCase
         $dt = PlainDateTime::from('2024-01-15T10:00:00[u-ca=japanese]');
         $dt2 = $dt->add(new Duration(0, 0, 1));
 
-        self::assertSame('japanese', $dt2->calendarId);
+        static::assertSame('japanese', $dt2->calendarId);
     }
 
     public function testPlainDateTimeAddIsoStillWorks(): void
@@ -364,9 +364,9 @@ final class CalendarArithmeticTest extends TestCase
         $dt = PlainDateTime::from('2024-01-15T10:30:00');
         $dt2 = $dt->add(new Duration(0, 1, 0, 0, 2));
 
-        self::assertSame('iso8601', $dt2->calendarId);
-        self::assertSame(2, $dt2->isoMonth);
-        self::assertSame(12, $dt2->hour);
+        static::assertSame('iso8601', $dt2->calendarId);
+        static::assertSame(2, $dt2->isoMonth);
+        static::assertSame(12, $dt2->hour);
     }
 
     public function testPlainDateTimeSinceBuddhistMonths(): void
@@ -375,7 +375,7 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainDateTime::from('2024-06-15T10:00:00[u-ca=buddhist]');
         $diff = $b->since($a, ['largestUnit' => 'month']);
 
-        self::assertSame(5, $diff->months);
+        static::assertSame(5, $diff->months);
     }
 
     public function testPlainDateTimeUntilHebrewYear(): void
@@ -385,7 +385,7 @@ final class CalendarArithmeticTest extends TestCase
         $diff = $a->until($b, ['largestUnit' => 'year']);
 
         // Should be roughly 1 year in the Hebrew calendar
-        self::assertGreaterThanOrEqual(0, $diff->years);
+        static::assertGreaterThanOrEqual(0, $diff->years);
     }
 
     // =========================================================================
@@ -397,9 +397,9 @@ final class CalendarArithmeticTest extends TestCase
         $ym = PlainYearMonth::from('2024-01-01[u-ca=buddhist]');
         $ym2 = $ym->add(new Duration(1));
 
-        self::assertSame('buddhist', $ym2->calendarId);
-        self::assertSame(2568, $ym2->year);
-        self::assertSame(2025, $ym2->isoYear);
+        static::assertSame('buddhist', $ym2->calendarId);
+        static::assertSame(2568, $ym2->year);
+        static::assertSame(2025, $ym2->isoYear);
     }
 
     public function testPlainYearMonthAddHebrewMonths(): void
@@ -407,12 +407,12 @@ final class CalendarArithmeticTest extends TestCase
         $ym = PlainYearMonth::from('2024-01-01[u-ca=hebrew]');
         $ym2 = $ym->add(new Duration(0, 3));
 
-        self::assertSame('hebrew', $ym2->calendarId);
+        static::assertSame('hebrew', $ym2->calendarId);
         // After adding 3 months, the month should advance
         $calOrig = CalendarFactory::get('hebrew');
         $origMonth = $calOrig->month($ym->isoYear, $ym->isoMonth, 1);
         $newMonth = $calOrig->month($ym2->isoYear, $ym2->isoMonth, $ym2->referenceISODay);
-        self::assertGreaterThan($origMonth, $newMonth);
+        static::assertGreaterThan($origMonth, $newMonth);
     }
 
     public function testPlainYearMonthAddPreservesCalendarId(): void
@@ -420,7 +420,7 @@ final class CalendarArithmeticTest extends TestCase
         $ym = PlainYearMonth::from('2024-06-01[u-ca=persian]');
         $ym2 = $ym->add(new Duration(0, 1));
 
-        self::assertSame('persian', $ym2->calendarId);
+        static::assertSame('persian', $ym2->calendarId);
     }
 
     public function testPlainYearMonthAddIsoStillWorks(): void
@@ -428,9 +428,9 @@ final class CalendarArithmeticTest extends TestCase
         $ym = PlainYearMonth::from('2024-01');
         $ym2 = $ym->add(new Duration(1, 3));
 
-        self::assertSame('iso8601', $ym2->calendarId);
-        self::assertSame(2025, $ym2->isoYear);
-        self::assertSame(4, $ym2->isoMonth);
+        static::assertSame('iso8601', $ym2->calendarId);
+        static::assertSame(2025, $ym2->isoYear);
+        static::assertSame(4, $ym2->isoMonth);
     }
 
     public function testPlainYearMonthSubtractNonIso(): void
@@ -438,9 +438,9 @@ final class CalendarArithmeticTest extends TestCase
         $ym = PlainYearMonth::from('2024-06-01[u-ca=buddhist]');
         $ym2 = $ym->subtract(new Duration(0, 3));
 
-        self::assertSame('buddhist', $ym2->calendarId);
-        self::assertSame(2024, $ym2->isoYear);
-        self::assertSame(3, $ym2->isoMonth);
+        static::assertSame('buddhist', $ym2->calendarId);
+        static::assertSame(2024, $ym2->isoYear);
+        static::assertSame(3, $ym2->isoMonth);
     }
 
     // =========================================================================
@@ -453,8 +453,8 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainYearMonth::from('2025-01-01[u-ca=buddhist]');
         $diff = $a->until($b);
 
-        self::assertSame(1, $diff->years);
-        self::assertSame(0, $diff->months);
+        static::assertSame(1, $diff->years);
+        static::assertSame(0, $diff->months);
     }
 
     public function testPlainYearMonthSinceBuddhistMonths(): void
@@ -463,7 +463,7 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainYearMonth::from('2024-06-01[u-ca=buddhist]');
         $diff = $b->since($a, ['largestUnit' => 'month']);
 
-        self::assertSame(5, $diff->months);
+        static::assertSame(5, $diff->months);
     }
 
     public function testPlainYearMonthUntilIsoStillWorks(): void
@@ -472,8 +472,8 @@ final class CalendarArithmeticTest extends TestCase
         $b = PlainYearMonth::from('2025-07');
         $diff = $a->until($b);
 
-        self::assertSame(1, $diff->years);
-        self::assertSame(6, $diff->months);
+        static::assertSame(1, $diff->years);
+        static::assertSame(6, $diff->months);
     }
 
     // =========================================================================
@@ -491,13 +491,13 @@ final class CalendarArithmeticTest extends TestCase
         $d = PlainDate::from(['year' => 5784, 'monthCode' => 'M05', 'day' => 1, 'calendar' => 'hebrew']);
         $d2 = $d->add(new Duration(0, 2)); // +2 months: should go past Adar I into Adar II + 1
 
-        self::assertSame('hebrew', $d2->calendarId);
-        self::assertSame($d->month + 2, $d2->month);
+        static::assertSame('hebrew', $d2->calendarId);
+        static::assertSame($d->month + 2, $d2->month);
     }
 
     public function testPlainDateAddOutOfRangeThrows(): void
     {
-        $d = new PlainDate(275760, 9, 1, 'buddhist');
+        $d = new PlainDate(275_760, 9, 1, 'buddhist');
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('outside the representable range');
         $d->add(new Duration(1));
@@ -513,9 +513,9 @@ final class CalendarArithmeticTest extends TestCase
             [$isoY, $isoM, $isoD] = $cal->dateAdd(2024, 3, 15, 1, 2, 0, 0, 'constrain');
             [$y, $m, , $d] = $cal->dateUntil(2024, 3, 15, $isoY, $isoM, $isoD, 'year');
 
-            self::assertSame(1, $y, "{$calId}: round-trip years");
-            self::assertSame(2, $m, "{$calId}: round-trip months");
-            self::assertSame(0, $d, "{$calId}: round-trip days");
+            static::assertSame(1, $y, "{$calId}: round-trip years");
+            static::assertSame(2, $m, "{$calId}: round-trip months");
+            static::assertSame(0, $d, "{$calId}: round-trip days");
         }
     }
 }

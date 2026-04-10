@@ -175,7 +175,7 @@ final class IsoCalendar implements CalendarProtocol
             $totalDays =
                 CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2) - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
             if ($largestUnit === 'week') {
-                $weeks = intdiv($totalDays, 7);
+                $weeks = intdiv($totalDays, num2: 7);
                 $days = $totalDays - ($weeks * 7);
 
                 return [0, 0, $weeks, $days];
@@ -218,7 +218,7 @@ final class IsoCalendar implements CalendarProtocol
         $anchorMonth = $isoM1 + $months;
         $anchorYear = $isoY1 + $years;
         if ($anchorMonth > 12) {
-            $anchorYear += intdiv($anchorMonth - 1, 12);
+            $anchorYear += intdiv($anchorMonth - 1, num2: 12);
             $anchorMonth = (($anchorMonth - 1) % 12) + 1;
         }
         $anchorMaxDay = CalendarMath::calcDaysInMonth($anchorYear, $anchorMonth);

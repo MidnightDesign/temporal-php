@@ -314,7 +314,7 @@ final class PureIndianCalendar implements CalendarProtocol
             $totalDays =
                 CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2) - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
             if ($largestUnit === 'week') {
-                $weeks = intdiv($totalDays, 7);
+                $weeks = intdiv($totalDays, num2: 7);
                 $days = $totalDays - ($weeks * 7);
                 return [0, 0, $weeks, $days];
             }

@@ -211,7 +211,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     public int $weekOfYear {
         get {
             $w = $this->spec->weekOfYear;
-            assert($w !== null, 'weekOfYear is always non-null for ISO calendar');
+            assert($w !== null, description: 'weekOfYear is always non-null for ISO calendar');
             return $w;
         }
     }
@@ -224,7 +224,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     public int $yearOfWeek {
         get {
             $y = $this->spec->yearOfWeek;
-            assert($y !== null, 'yearOfWeek is always non-null for ISO calendar');
+            assert($y !== null, description: 'yearOfWeek is always non-null for ISO calendar');
             return $y;
         }
     }

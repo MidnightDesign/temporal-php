@@ -58,7 +58,11 @@ trait TemporalSerde
      */
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
-        $opts = $options !== null ? (is_array($options) ? $options : (array) $options) : [];
+        if ($options === null) {
+            $opts = [];
+        } else {
+            $opts = is_array($options) ? $options : (array) $options;
+        }
         /** @psalm-var array<string, mixed> $opts */
         $hasTimeStyle = array_key_exists('timeStyle', $opts) && $opts['timeStyle'] !== null;
         $hasDateStyle = array_key_exists('dateStyle', $opts) && $opts['dateStyle'] !== null;

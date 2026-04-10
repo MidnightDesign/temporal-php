@@ -12,8 +12,8 @@ use Temporal\Tests\Porcelain\Constraint\PlainTimeEquals;
 
 abstract class TemporalTestCase extends TestCase
 {
-    public const int YEAR_MIN = -271821;
-    public const int YEAR_MAX = 275760;
+    public const int YEAR_MIN = -271_821;
+    public const int YEAR_MAX = 275_760;
 
     protected function assertPlainTimeIs(
         int $h,
@@ -25,7 +25,7 @@ abstract class TemporalTestCase extends TestCase
         PlainTime $time,
         string $message = '',
     ): void {
-        self::assertThat($time, new PlainTimeEquals($h, $min, $sec, $ms, $us, $ns), $message);
+        static::assertThat($time, new PlainTimeEquals($h, $min, $sec, $ms, $us, $ns), $message);
     }
 
     protected function assertDurationIs(
@@ -42,7 +42,7 @@ abstract class TemporalTestCase extends TestCase
         Duration $d,
         string $message = '',
     ): void {
-        self::assertThat(
+        static::assertThat(
             $d,
             new DurationEquals($years, $months, $weeks, $days, $hours, $minutes, $seconds, $ms, $us, $ns),
             $message,

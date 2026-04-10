@@ -380,7 +380,7 @@ final class PlainMonthDay implements Stringable
             if ($calYear !== null) {
                 // Validate month/monthCode conflict with year context.
                 if ($useMonthCode && $hasMonth) {
-                    assert($monthCode !== null);
+                    assert($monthCode !== null, description: '$useMonthCode implies monthCode was provided');
                     /** @var int $month */
                     $resolvedMonth = $calendar->monthCodeToMonth($monthCode, $calYear);
                     if ($month !== $resolvedMonth) {
@@ -922,7 +922,7 @@ final class PlainMonthDay implements Stringable
 
         // For non-ISO calendars: validate era/eraYear completeness and calendar compatibility.
         if ($calendar !== null) {
-            if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], true)) {
+            if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
                 throw new \TypeError('eraYear and era are invalid for this calendar.');
             }
             if ($hasEra && !$hasEraYear) {
@@ -1161,6 +1161,46 @@ final class PlainMonthDay implements Stringable
     }
 
     /**
+     * Attempts to resolve a constrained (clamped-day) candidate for the given
+     * calendar year/monthCode/day, returning a candidate record or null when the
+     * constrained result cannot be matched for the reference-year search.
+     *
+     * @return array{calYear: int, isoY: int, isoM: int, isoD: int, day: int}|null
+     */
+    private static function tryConstrainedCandidate(
+        Internal\Calendar\CalendarProtocol $calendar,
+        int $tryCalYear,
+        string $monthCode,
+        int $day,
+    ): ?array {
+        try {
+            [$resIsoY, $resIsoM, $resIsoD] = $calendar->calendarToIsoFromMonthCode(
+                $tryCalYear,
+                $monthCode,
+                $day,
+                'constrain',
+            );
+        } catch (InvalidArgumentException $e) {
+            // monthCode itself doesn't exist; keep searching.
+            unset($e);
+            return null;
+        }
+        if ($resIsoY > 1972) {
+            return null;
+        }
+        if ($calendar->monthCode($resIsoY, $resIsoM, $resIsoD) !== $monthCode) {
+            return null;
+        }
+        return [
+            'calYear' => $tryCalYear,
+            'isoY' => $resIsoY,
+            'isoM' => $resIsoM,
+            'isoD' => $resIsoD,
+            'day' => $calendar->day($resIsoY, $resIsoM, $resIsoD),
+        ];
+    }
+
+    /**
      * Finds the latest ISO year at or before 1972 where the given calendar
      * monthCode+day exists, and returns a PlainMonthDay with that reference year.
      *
@@ -1198,7 +1238,7 @@ final class PlainMonthDay implements Stringable
             rsort($candidates);
 
             foreach ($candidates as $tryCalYear) {
-                if (isset($triedCalYears[$tryCalYear])) {
+                if (array_key_exists($tryCalYear, $triedCalYears)) {
                     continue;
                 }
                 $triedCalYears[$tryCalYear] = true;
@@ -1221,32 +1261,20 @@ final class PlainMonthDay implements Stringable
                             $bestMatch = [$resIsoY, $resIsoM, $resIsoD];
                         }
                     }
-                } catch (InvalidArgumentException) {
+                } catch (InvalidArgumentException $exactErr) {
                     // Exact day doesn't fit. Record the constrained result for phase 2.
-                    if ($overflow === 'constrain') {
-                        try {
-                            [$resIsoY, $resIsoM, $resIsoD] = $calendar->calendarToIsoFromMonthCode(
-                                $tryCalYear,
-                                $monthCode,
-                                $day,
-                                'constrain',
-                            );
-                            if ($resIsoY <= 1972) {
-                                $rtMonthCode = $calendar->monthCode($resIsoY, $resIsoM, $resIsoD);
-                                if ($rtMonthCode === $monthCode) {
-                                    $rtDay = $calendar->day($resIsoY, $resIsoM, $resIsoD);
-                                    $constrainedCandidates[] = [
-                                        'calYear' => $tryCalYear,
-                                        'isoY' => $resIsoY,
-                                        'isoM' => $resIsoM,
-                                        'isoD' => $resIsoD,
-                                        'day' => $rtDay,
-                                    ];
-                                }
-                            }
-                        } catch (InvalidArgumentException) {
-                            // monthCode itself doesn't exist; keep searching.
-                        }
+                    unset($exactErr);
+                    if ($overflow !== 'constrain') {
+                        continue;
+                    }
+                    $candidate = self::tryConstrainedCandidate(
+                        $calendar,
+                        $tryCalYear,
+                        $monthCode,
+                        $day,
+                    );
+                    if ($candidate !== null) {
+                        $constrainedCandidates[] = $candidate;
                     }
                 }
             }

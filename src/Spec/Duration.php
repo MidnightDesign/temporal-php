@@ -1102,9 +1102,9 @@ final class Duration implements Stringable
 
             // Extract local time (hours, minutes, seconds) and detect sub-second fraction.
             if (preg_match('/T(\d{2}):?(\d{2})(?::?(\d{2})(\.\d+)?)?/i', $s, $tm) === 1) {
-                $localTimeSec = ((int) $tm[1] * 3_600) + ((int) $tm[2] * 60) + (isset($tm[3]) ? (int) $tm[3] : 0);
+                $localTimeSec = ((int) $tm[1] * 3_600) + ((int) $tm[2] * 60) + (array_key_exists(3, $tm) ? (int) $tm[3] : 0);
                 // @phpstan-ignore notIdentical.alwaysTrue
-                $hasFracSec = isset($tm[4]) && $tm[4] !== '';
+                $hasFracSec = array_key_exists(4, $tm) && $tm[4] !== '';
             }
 
             // Extract the inline UTC offset in seconds.
@@ -1743,7 +1743,8 @@ final class Duration implements Stringable
 
         // Detect mixed signs after integer carry.  Cross-field borrows (e.g. h=-1, min=+1)
         // are not resolved by bottom-up carry; the float path handles them correctly.
-        $hasPos = $hasNeg = false;
+        $hasPos = false;
+        $hasNeg = false;
         foreach ([$d, $h, $min, $s, $ms, $us, $ns] as $fv) {
             if ($fv > 0) {
                 $hasPos = true;
@@ -1875,6 +1876,21 @@ final class Duration implements Stringable
             return 0;
         }
         $positive = $sign >= 0;
+        $doubled = $remainder * 2;
+        // Half toward -∞: tie rounds up only for the negative branch.
+        if ($mode === 'halfFloor') {
+            if ($positive) {
+                return $doubled > $unitNs ? 1 : 0;
+            }
+            return $doubled >= $unitNs ? 1 : 0;
+        }
+        // Half toward +∞: tie rounds up only for the positive branch.
+        if ($mode === 'halfCeil') {
+            if ($positive) {
+                return $doubled >= $unitNs ? 1 : 0;
+            }
+            return $doubled > $unitNs ? 1 : 0;
+        }
         return match ($mode) {
             // Toward zero
             'trunc', 'truncate' => 0,
@@ -1885,13 +1901,9 @@ final class Duration implements Stringable
             // Always away from zero.
             'expand' => 1,
             // Half away from zero (standard rounding).
-            'halfExpand' => ($remainder * 2) >= $unitNs ? 1 : 0,
+            'halfExpand' => $doubled >= $unitNs ? 1 : 0,
             // Half toward zero.
-            'halfTrunc' => ($remainder * 2) > $unitNs ? 1 : 0,
-            // Half toward -∞.
-            'halfFloor' => $positive ? (($remainder * 2) > $unitNs ? 1 : 0) : (($remainder * 2) >= $unitNs ? 1 : 0),
-            // Half toward +∞.
-            'halfCeil' => $positive ? (($remainder * 2) >= $unitNs ? 1 : 0) : (($remainder * 2) > $unitNs ? 1 : 0),
+            'halfTrunc' => $doubled > $unitNs ? 1 : 0,
             // Half to even.
             'halfEven' => self::halfEvenRound($remainder, $unitNs, $quotient),
             default => throw new InvalidArgumentException("Unknown rounding mode \"{$mode}\"."),
@@ -2078,8 +2090,8 @@ final class Duration implements Stringable
         $luNorm = $luIsAuto ? null : self::normalizeUnit((string) $luRaw);
 
         // Calendar smallestUnit or largestUnit require relativeTo.
-        $suIsCalendar = $suNorm !== null && isset($UNIT_IDX[$suNorm]) && $UNIT_IDX[$suNorm] >= 7;
-        $luIsCalendar = $luNorm !== null && isset($UNIT_IDX[$luNorm]) && $UNIT_IDX[$luNorm] >= 7;
+        $suIsCalendar = $suNorm !== null && array_key_exists($suNorm, $UNIT_IDX) && $UNIT_IDX[$suNorm] >= 7;
+        $luIsCalendar = $luNorm !== null && array_key_exists($luNorm, $UNIT_IDX) && $UNIT_IDX[$luNorm] >= 7;
 
         // Duration itself has calendar units.
         $durationHasCalendar = $this->years !== 0 || $this->months !== 0 || $this->weeks !== 0;
@@ -2187,7 +2199,7 @@ final class Duration implements Stringable
             $this->microseconds,
             $this->nanoseconds,
         ] as $_field) {
-            if (is_float($_field) && abs($_field) >= 9.223372036854776e18) {
+            if (is_float($_field) && abs($_field) >= 9.223_372_036_854_776e18) {
                 throw new InvalidArgumentException(
                     'Duration time fields exceed the maximum representable range after rounding.',
                 );
@@ -2231,15 +2243,15 @@ final class Duration implements Stringable
                 $zdtInfoRound['tzId'], $timeOnlyNs, $absD, $sign, $zdtInfoRound['epochSec'],
             );
             // Re-extract sub-fields from the balanced time nanoseconds.
-            $absH = intdiv($timeOnlyNs, 3_600_000_000_000);
+            $absH = intdiv($timeOnlyNs, num2: 3_600_000_000_000);
             $timeOnlyNs -= $absH * 3_600_000_000_000;
-            $absM = intdiv($timeOnlyNs, 60_000_000_000);
+            $absM = intdiv($timeOnlyNs, num2: 60_000_000_000);
             $timeOnlyNs -= $absM * 60_000_000_000;
-            $absS = intdiv($timeOnlyNs, 1_000_000_000);
+            $absS = intdiv($timeOnlyNs, num2: 1_000_000_000);
             $timeOnlyNs -= $absS * 1_000_000_000;
-            $absMs = intdiv($timeOnlyNs, 1_000_000);
+            $absMs = intdiv($timeOnlyNs, num2: 1_000_000);
             $timeOnlyNs -= $absMs * 1_000_000;
-            $absUs = intdiv($timeOnlyNs, 1_000);
+            $absUs = intdiv($timeOnlyNs, num2: 1_000);
             $absNs = $timeOnlyNs - $absUs * 1_000;
         } else {
             $absD += intdiv(num1: $absH, num2: 24);
@@ -2638,7 +2650,7 @@ final class Duration implements Stringable
             return ['year' => (int) $parsed['year'], 'month' => (int) $parsed['month'], 'day' => (int) $parsed['day']];
         }
         // Array property bag — extract year/month/day.
-        assert(is_array($rt));
+        assert(is_array($rt), description: 'non-string $rt must be a property-bag array at this point');
         $bag = $rt;
         /** @var mixed $yearRaw */
         $yearRaw = $bag['year'];
@@ -2726,10 +2738,10 @@ final class Duration implements Stringable
                 throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\".");
             }
             // Reject non-zero seconds or sub-seconds.
-            if (isset($offM[4]) && (int) $offM[4] !== 0) {
+            if (array_key_exists(4, $offM) && (int) $offM[4] !== 0) {
                 throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\": non-zero seconds.");
             }
-            if (isset($offM[5]) && ltrim($offM[5], characters: '0') !== '') {
+            if (array_key_exists(5, $offM) && ltrim($offM[5], characters: '0') !== '') {
                 throw new InvalidArgumentException(
                     "Invalid relativeTo offset string \"{$offVal}\": non-zero sub-seconds.",
                 );
@@ -2750,7 +2762,7 @@ final class Duration implements Stringable
     {
         // Compute local date from epoch + timezone offset (cannot call private localComponents).
         $epochNs = $zdt->epochNanoseconds;
-        $epochSec = intdiv($epochNs, 1_000_000_000);
+        $epochSec = intdiv($epochNs, num2: 1_000_000_000);
         $subNs = $epochNs - ($epochSec * 1_000_000_000);
         if ($subNs < 0) {
             $epochSec--;
@@ -2762,7 +2774,7 @@ final class Duration implements Stringable
             $sign = $m[1] === '+' ? 1 : -1;
             $offsetSec = $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         } else {
-            assert($tzId !== '');
+            assert($tzId !== '', description: 'caller guarantees a non-empty timezone id for this branch');
             $tz = new \DateTimeZone($tzId);
             $offsetSec = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
         }
@@ -2894,14 +2906,24 @@ final class Duration implements Stringable
         $q = intdiv(num1: $ns, num2: $increment);
         $d1 = $ns - ($q * $increment); // remainder, >= 0
         $r2 = $q + 1;
-        $rounded = match ($mode) {
-            'trunc', 'floor' => $q,
-            'ceil', 'expand' => $d1 === 0 ? $q : $r2,
-            'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $q,
-            'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $q,
-            'halfEven' => ($d1 * 2) < $increment ? $q : (($d1 * 2) > $increment ? $r2 : (($q % 2) === 0 ? $q : $r2)),
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-        };
+        if ($mode === 'halfEven') {
+            $cmp = $d1 * 2;
+            if ($cmp < $increment) {
+                $rounded = $q;
+            } elseif ($cmp > $increment) {
+                $rounded = $r2;
+            } else {
+                $rounded = ($q % 2) === 0 ? $q : $r2;
+            }
+        } else {
+            $rounded = match ($mode) {
+                'trunc', 'floor' => $q,
+                'ceil', 'expand' => $d1 === 0 ? $q : $r2,
+                'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $q,
+                'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $q,
+                default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+            };
+        }
         return $rounded * $increment;
     }
 
@@ -3147,16 +3169,24 @@ final class Duration implements Stringable
         $q = floor($ns / $increment);
         $d1 = $ns - ($q * $increment); // >= 0
         $r2 = $q + 1.0;
-        $rounded = match ($mode) {
-            'trunc', 'floor' => $q,
-            'ceil', 'expand' => $d1 === 0.0 ? $q : $r2,
-            'halfExpand', 'halfCeil' => ($d1 * 2.0) >= $increment ? $r2 : $q,
-            'halfTrunc', 'halfFloor' => ($d1 * 2.0) > $increment ? $r2 : $q,
-            'halfEven' => ($d1 * 2.0) < $increment
-                ? $q
-                : (($d1 * 2.0) > $increment ? $r2 : (fmod(num1: $q, num2: 2.0) === 0.0 ? $q : $r2)),
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-        };
+        if ($mode === 'halfEven') {
+            $cmp = $d1 * 2.0;
+            if ($cmp < $increment) {
+                $rounded = $q;
+            } elseif ($cmp > $increment) {
+                $rounded = $r2;
+            } else {
+                $rounded = fmod(num1: $q, num2: 2.0) === 0.0 ? $q : $r2;
+            }
+        } else {
+            $rounded = match ($mode) {
+                'trunc', 'floor' => $q,
+                'ceil', 'expand' => $d1 === 0.0 ? $q : $r2,
+                'halfExpand', 'halfCeil' => ($d1 * 2.0) >= $increment ? $r2 : $q,
+                'halfTrunc', 'halfFloor' => ($d1 * 2.0) > $increment ? $r2 : $q,
+                default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+            };
+        }
         return $rounded * $increment;
     }
 
@@ -3359,7 +3389,7 @@ final class Duration implements Stringable
                 return null;
             }
             $epochNs = $rt->epochNanoseconds;
-            $epochSec = intdiv($epochNs, 1_000_000_000);
+            $epochSec = intdiv($epochNs, num2: 1_000_000_000);
             $subNs = $epochNs - ($epochSec * 1_000_000_000);
             if ($subNs < 0) {
                 $epochSec--;
@@ -3399,10 +3429,17 @@ final class Duration implements Stringable
             $tzVal = $rt['timeZone'];
             // Only treat as IANA timezone if it looks like one (contains '/' or is a known single-word zone).
             // Datetime strings passed as timeZone (e.g. "2021-08-19T17:30-0700") are not IANA.
+            $isIanaTz = false;
             if (is_string($tzVal) && $tzVal !== '' && $tzVal !== 'UTC' && preg_match('/^[+\-]\d{2}:\d{2}$/', $tzVal) !== 1
                 && !str_contains($tzVal, 'T') && preg_match('/^\d{4}-/', $tzVal) !== 1
-                && @(new \DateTimeZone($tzVal))->getName() === $tzVal
             ) {
+                try {
+                    $isIanaTz = (new \DateTimeZone($tzVal))->getName() === $tzVal;
+                } catch (\Exception) {
+                    $isIanaTz = false;
+                }
+            }
+            if ($isIanaTz) {
                 // Property bag with IANA timezone. Use ZonedDateTime::from() so offset
                 // validation (including sub-minute mismatch rejection) is handled.
                 $zdt = ZonedDateTime::from($rt);
@@ -3626,7 +3663,7 @@ final class Duration implements Stringable
             $d + self::floorDivInt((153 * $mp) + 2, 5) + (365 * $yp) + self::floorDivInt($yp, 4)
                 - self::floorDivInt($yp, 100)
                 + self::floorDivInt($yp, 400)
-            - 32045;
+            - 32_045;
         return $jdn - 2_440_588;
     }
 
@@ -3790,6 +3827,27 @@ final class Duration implements Stringable
         if ($progress === 0.0) {
             return $r1;
         }
+        if ($mode === 'halfFloor') {
+            if ($positive) {
+                return $progress > 0.5 ? $r2 : $r1;
+            }
+            return $progress >= 0.5 ? $r2 : $r1;
+        }
+        if ($mode === 'halfCeil') {
+            if ($positive) {
+                return $progress >= 0.5 ? $r2 : $r1;
+            }
+            return $progress > 0.5 ? $r2 : $r1;
+        }
+        if ($mode === 'halfEven') {
+            if ($progress > 0.5) {
+                return $r2;
+            }
+            if ($progress < 0.5) {
+                return $r1;
+            }
+            return ($r1 % 2) === 0 ? $r1 : $r2;
+        }
         return match ($mode) {
             'trunc' => $r1,
             'floor' => $positive ? $r1 : $r2,
@@ -3797,9 +3855,6 @@ final class Duration implements Stringable
             'expand' => $r2,
             'halfExpand' => $progress >= 0.5 ? $r2 : $r1,
             'halfTrunc' => $progress > 0.5 ? $r2 : $r1,
-            'halfFloor' => $positive ? ($progress > 0.5 ? $r2 : $r1) : ($progress >= 0.5 ? $r2 : $r1),
-            'halfCeil' => $positive ? ($progress >= 0.5 ? $r2 : $r1) : ($progress > 0.5 ? $r2 : $r1),
-            'halfEven' => $progress > 0.5 ? $r2 : ($progress < 0.5 ? $r1 : (($r1 % 2) === 0 ? $r1 : $r2)), // ties-to-even: use even boundary
             default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
         };
     }
