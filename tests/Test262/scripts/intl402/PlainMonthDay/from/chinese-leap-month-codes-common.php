@@ -13,6 +13,8 @@ $calendar = 'chinese';
 foreach ($monthCodesWithYears as $__obj__) {
 $monthCode = $__obj__['monthCode'] ?? null;
 $referenceYear1 = $__obj__['referenceYear1'] ?? null;
+$referenceYear29 = $__obj__['referenceYear29'] ?? $referenceYear1;
+$has30 = $__obj__['has30'] ?? false;
 $pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]);
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01", $referenceYear1);
 $pmd29 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]);

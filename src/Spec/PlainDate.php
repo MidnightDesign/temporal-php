@@ -1030,7 +1030,7 @@ final class PlainDate implements Stringable
 
         if ($hasMonth) {
             /** @var mixed $monthRaw */
-            $monthRaw = $bag['month'];
+            $monthRaw = $bag['month'] ?? null;
             if ($monthRaw === null) {
                 throw new \TypeError('PlainDate property bag month field must not be undefined.');
             }
@@ -1116,7 +1116,7 @@ final class PlainDate implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : (array) $options;
+            $opts = is_array($options) ? $options : get_object_vars($options);
 
             // largestUnit
             if (array_key_exists('largestUnit', $opts)) {

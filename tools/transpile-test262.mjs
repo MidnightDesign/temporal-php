@@ -642,6 +642,8 @@ class Emitter {
     }
 
     // Special case: for (const [k, v] of Object.entries(obj)) → foreach ($obj as $k => $v)
+    // Also handles: for (const [k, {a, b, c}] of Object.entries(obj)) where the value slot
+    // is an ObjectPattern — the properties are bound inside the loop body.
     if (node.right.type === 'CallExpression'
         && isMember(node.right.callee, 'Object', 'entries')
         && node.right.arguments.length >= 1) {
@@ -650,7 +652,24 @@ class Emitter {
         const obj = this.transpileExpr(node.right.arguments[0]);
         if (obj === null) return;
         const key = this.transpilePattern(patNode.elements[0]);
-        const val = this.transpilePattern(patNode.elements[1]);
+        const valEl = patNode.elements[1];
+        // If the value destructures an ObjectPattern, emit a temp var + property bindings.
+        if (valEl?.type === 'ObjectPattern') {
+          const tmpVar = '$__entry__';
+          const before = this.lines.length;
+          this.emit(`foreach (${obj} as ${key} => ${tmpVar}) {`);
+          const opened = this.lines.length > before;
+          for (const prop of valEl.properties) {
+            if (prop.type === 'Property' && !prop.computed
+                && prop.key?.type === 'Identifier' && prop.value?.type === 'Identifier') {
+              this.emit(`$${prop.value.name} = ${tmpVar}['${prop.key.name}'] ?? null;`);
+            }
+          }
+          this.transpileStatement(node.body);
+          if (opened) this.lines.push('}');
+          return;
+        }
+        const val = this.transpilePattern(valEl);
         const before = this.lines.length;
         this.emit(`foreach (${obj} as ${key} => ${val}) {`);
         const opened = this.lines.length > before;
@@ -721,7 +740,7 @@ class Emitter {
       if (opened2) this.lines.push('}');
       return;
     }
-    // ObjectPattern destructuring: for (const {a, b} of arr) → bind properties inside loop.
+    // ObjectPattern destructuring: for (const {a, b = default} of arr) → bind properties inside loop.
     const patNode3 = node.left.declarations?.[0]?.id ?? node.left;
     if (patNode3.type === 'ObjectPattern') {
       const iter3 = this.transpileExpr(node.right);
@@ -731,10 +750,26 @@ class Emitter {
       this.emit(`foreach (${iter3} as ${tmpVar3}) {`);
       const opened3 = this.lines.length > before3;
       // Bind each destructured property from the temp array var.
+      // Handles { a } → $a = $tmp['a'] ?? null
+      //         { a = def } → $a = $tmp['a'] ?? def (AssignmentPattern with default)
       for (const prop of patNode3.properties) {
-        if (prop.type === 'Property' && !prop.computed
-            && prop.key?.type === 'Identifier' && prop.value?.type === 'Identifier') {
-          this.emit(`$${prop.value.name} = ${tmpVar3}['${prop.key.name}'] ?? null;`);
+        if (prop.type !== 'Property' || prop.computed
+            || prop.key?.type !== 'Identifier') continue;
+        const keyName = prop.key.name;
+        // Simple identifier binding: { foo }
+        if (prop.value?.type === 'Identifier') {
+          this.emit(`$${prop.value.name} = ${tmpVar3}['${keyName}'] ?? null;`);
+          continue;
+        }
+        // Default value binding: { foo = default }
+        if (prop.value?.type === 'AssignmentPattern'
+            && prop.value.left?.type === 'Identifier') {
+          const varName = prop.value.left.name;
+          const defaultExpr = this.transpileExpr(prop.value.right);
+          if (defaultExpr !== null) {
+            this.emit(`$${varName} = ${tmpVar3}['${keyName}'] ?? ${defaultExpr};`);
+          }
+          continue;
         }
       }
       this.transpileStatement(node.body);

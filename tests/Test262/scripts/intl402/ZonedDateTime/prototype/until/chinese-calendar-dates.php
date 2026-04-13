@@ -10,7 +10,10 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'chinese';
 $durationCases = ['days' => ['duration' => ['days' => 280], 'result' => ['year' => 2000, 'month' => 10, 'monthCode' => 'M10', 'day' => 16], 'startDate' => ['year' => 2000, 'month' => 1, 'day' => 1]], 'weeks' => ['duration' => ['weeks' => 40], 'result' => ['year' => 2000, 'month' => 10, 'monthCode' => 'M10', 'day' => 16], 'startDate' => ['year' => 2000, 'month' => 1, 'day' => 1]], 'months' => ['duration' => ['months' => 6], 'result' => ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 1], 'startDate' => ['year' => 2000, 'month' => 12, 'day' => 1]], 'years' => ['duration' => ['years' => 3, 'months' => 6, 'days' => 17], 'result' => ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 18], 'startDate' => ['year' => 1997, 'monthCode' => 'M12', 'day' => 1]]];
-foreach ($durationCases as $unit => $__unknown__) {
+foreach ($durationCases as $unit => $__entry__) {
+$duration = $__entry__['duration'] ?? null;
+$result = $__entry__['result'] ?? null;
+$startDate = $__entry__['startDate'] ?? null;
 $duration = \Temporal\Spec\Duration::from($duration);
 $start = \Temporal\Spec\ZonedDateTime::from(array_merge($startDate, ['timeZone' => 'UTC', 'calendar' => $calendar]));
 $end = $start->add($duration);

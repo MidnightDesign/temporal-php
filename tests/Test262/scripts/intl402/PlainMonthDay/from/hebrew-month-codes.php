@@ -12,6 +12,9 @@ $calendar = 'hebrew';
 $commonMonthCodes = [['monthCode' => 'M01', 'has30' => true], ['monthCode' => 'M02', 'has30' => true, 'referenceYear30' => 1971], ['monthCode' => 'M03', 'has30' => true, 'referenceYear30' => 1971], ['monthCode' => 'M04'], ['monthCode' => 'M05', 'has30' => true], ['monthCode' => 'M06'], ['monthCode' => 'M07', 'has30' => true], ['monthCode' => 'M08'], ['monthCode' => 'M09', 'has30' => true], ['monthCode' => 'M10'], ['monthCode' => 'M11', 'has30' => true], ['monthCode' => 'M12']];
 foreach ($commonMonthCodes as $__obj__) {
 $monthCode = $__obj__['monthCode'] ?? null;
+$has30 = $__obj__['has30'] ?? false;
+$referenceYear = $__obj__['referenceYear'] ?? 1972;
+$referenceYear30 = $__obj__['referenceYear30'] ?? $referenceYear;
 $pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]);
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01", $referenceYear);
 $pmd29 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]);

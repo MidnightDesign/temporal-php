@@ -61,7 +61,13 @@ final class CalendarMath
             }
             return (int) $value;
         }
-        if (is_string($value) || is_bool($value)) {
+        if (is_bool($value)) {
+            return (int) $value;
+        }
+        if (is_string($value)) {
+            if (!is_numeric($value)) {
+                throw new InvalidArgumentException("{$errorContext} must be numeric.");
+            }
             $floatVal = (float) $value;
             if (!is_finite($floatVal)) {
                 throw new InvalidArgumentException("{$errorContext} must be finite.");
@@ -153,7 +159,11 @@ final class CalendarMath
             $locale = self::applyHourCycle($locale, $hourCycleOpt);
         } elseif (($opts['hour12'] ?? null) !== null) {
             // hour12=false -> h23, hour12=true -> h12
-            $hc = (bool) $opts['hour12'] ? 'h12' : 'h23';
+            /** @var mixed $hour12Raw */
+            $hour12Raw = $opts['hour12'];
+            $isTrue = $hour12Raw !== false && $hour12Raw !== 0 && $hour12Raw !== 0.0
+                && $hour12Raw !== '' && $hour12Raw !== '0';
+            $hc = $isTrue ? 'h12' : 'h23';
             $locale = self::applyHourCycle($locale, $hc);
         }
 
@@ -535,7 +545,7 @@ final class CalendarMath
      *
      * Returns the first non-empty string from the input, or the system default locale.
      *
-     * @param string|array<mixed>|null $locales
+     * @param string|array<array-key, mixed>|null $locales
      */
     public static function resolveLocale(string|array|null $locales): string
     {
@@ -543,8 +553,10 @@ final class CalendarMath
             return $locales;
         }
         if (is_array($locales)) {
-            /** @psalm-suppress MixedAssignment */
-            foreach ($locales as $candidate) {
+            $values = array_values($locales);
+            for ($i = 0, $n = count($values); $i < $n; $i++) {
+                /** @var mixed $candidate */
+                $candidate = $values[$i];
                 if (is_string($candidate) && $candidate !== '') {
                     return $candidate;
                 }

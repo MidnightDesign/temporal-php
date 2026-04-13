@@ -150,7 +150,8 @@ final class PureHebrewCalendar implements CalendarProtocol
                 10 => 30, // Sivan
                 11 => 29, // Tammuz
                 12 => 30, // Av
-                13 => 29, // Elul
+                // Elul (ordinal 13) and any value beyond the validated range.
+                default => 29,
             };
         }
 

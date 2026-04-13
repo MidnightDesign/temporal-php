@@ -233,7 +233,7 @@ final class PlainYearMonth implements Stringable
         $overflow = 'constrain';
         if ($options !== null) {
             if (!is_array($options)) {
-                $opts = (array) $options;
+                $opts = get_object_vars($options);
                 if (array_key_exists('overflow', $opts)) {
                     /** @var mixed $ov */
                     $ov = $opts['overflow'];
@@ -447,6 +447,7 @@ final class PlainYearMonth implements Stringable
         $useMonthCode = false;
 
         if ($hasMonthCode) {
+            /** @var mixed $mc */
             $mc = $fields['monthCode'];
             if (!is_string($mc)) {
                 throw new \TypeError('monthCode must be a string.');
@@ -630,7 +631,6 @@ final class PlainYearMonth implements Stringable
         if (is_array($fields)) {
             $bag = $fields;
         } else {
-            /** @var array<array-key, mixed> $bag */
             $bag = get_object_vars($fields);
         }
 
@@ -895,7 +895,7 @@ final class PlainYearMonth implements Stringable
 
         if ($hasMonth) {
             /** @var mixed $monthRaw */
-            $monthRaw = $bag['month'];
+            $monthRaw = $bag['month'] ?? null;
             if ($monthRaw === null) {
                 throw new \TypeError('PlainYearMonth property bag month field must not be undefined.');
             }
@@ -993,7 +993,7 @@ final class PlainYearMonth implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : (array) $options;
+            $opts = is_array($options) ? $options : get_object_vars($options);
 
             // largestUnit
             if (array_key_exists('largestUnit', $opts)) {
@@ -1003,11 +1003,10 @@ final class PlainYearMonth implements Stringable
                     throw new \TypeError('largestUnit option must be a string.');
                 }
                 if (is_string($lu)) {
-                    if (in_array($lu, $disallowedUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
-                    }
-                    /** @psalm-suppress RedundantCondition */
-                    if (!in_array($lu, $validUnits, strict: true)) {
+                    if (
+                        in_array($lu, $disallowedUnits, strict: true)
+                        || !in_array($lu, $validUnits, strict: true)
+                    ) {
                         throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
                     }
                     $largestUnit = $lu;
@@ -1047,11 +1046,10 @@ final class PlainYearMonth implements Stringable
                     throw new \TypeError('smallestUnit option must be a string.');
                 }
                 if (is_string($su)) {
-                    if (in_array($su, $disallowedUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
-                    }
-                    /** @psalm-suppress RedundantCondition */
-                    if (!in_array($su, $validUnits, strict: true)) {
+                    if (
+                        in_array($su, $disallowedUnits, strict: true)
+                        || !in_array($su, $validUnits, strict: true)
+                    ) {
                         throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
                     }
                     $smallestUnit = $su;

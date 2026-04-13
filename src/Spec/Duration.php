@@ -301,7 +301,7 @@ final class Duration implements Stringable
         // Guard against very large digit strings: PHP's (int) cast silently returns 0 for strings
         // that overflow int64 (e.g. "9"×1000), so check float64 first.
         $safeInt = static function (string $digits): int {
-            if ($digits === '') {
+            if ($digits === '' || !is_numeric($digits)) {
                 return 0;
             }
             $f = (float) $digits;
@@ -1530,7 +1530,9 @@ final class Duration implements Stringable
      */
     private static function distributeFracNs(string $fracDigits, int $nsPerUnit): array
     {
-        $totalFracNs = (int) round((float) sprintf('0.%s', $fracDigits) * (float) $nsPerUnit);
+        $asStr = sprintf('0.%s', $fracDigits);
+        $asFloat = is_numeric($asStr) ? (float) $asStr : 0.0;
+        $totalFracNs = (int) round($asFloat * (float) $nsPerUnit);
 
         $dm = intdiv(num1: $totalFracNs, num2: 60_000_000_000);
         $rem = $totalFracNs % 60_000_000_000;

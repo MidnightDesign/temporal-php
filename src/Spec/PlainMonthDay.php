@@ -173,7 +173,7 @@ final class PlainMonthDay implements Stringable
         $overflow = 'constrain';
         if ($options !== null) {
             if (!is_array($options)) {
-                $opts = (array) $options;
+                $opts = get_object_vars($options);
                 if (array_key_exists('overflow', $opts)) {
                     /** @var mixed $ov */
                     $ov = $opts['overflow'];
@@ -234,7 +234,7 @@ final class PlainMonthDay implements Stringable
             return self::fromPropertyBag($item, $overflow);
         }
         // is_object check covers remaining object types not matched above.
-        return self::fromPropertyBag((array) $item, $overflow);
+        return self::fromPropertyBag(get_object_vars($item), $overflow);
     }
 
     // -------------------------------------------------------------------------
@@ -272,7 +272,6 @@ final class PlainMonthDay implements Stringable
         }
 
         if (is_object($fields)) {
-            /** @var array<array-key, mixed> $bag */
             $bag = get_object_vars($fields);
         } else {
             $bag = $fields;
@@ -314,7 +313,7 @@ final class PlainMonthDay implements Stringable
                 }
                 $overflow = $ov;
             } elseif (is_object($options)) {
-                $optsBag = (array) $options;
+                $optsBag = get_object_vars($options);
                 if (array_key_exists('overflow', $optsBag)) {
                     /** @var mixed $ov */
                     $ov = $optsBag['overflow'];
@@ -346,8 +345,12 @@ final class PlainMonthDay implements Stringable
             $monthCode = null;
             $useMonthCode = false;
             if ($hasMonthCode) {
+                /** @var mixed $mc */
                 $mc = $bag['monthCode'];
-                $monthCode = is_string($mc) ? $mc : (string) $mc;
+                if (!is_string($mc)) {
+                    throw new \TypeError('monthCode must be a string.');
+                }
+                $monthCode = $mc;
                 $useMonthCode = true;
             }
 
@@ -602,7 +605,6 @@ final class PlainMonthDay implements Stringable
         if (is_array($fields)) {
             $bag = $fields;
         } else {
-            /** @var array<array-key, mixed> $bag */
             $bag = get_object_vars($fields);
         }
 
@@ -974,8 +976,7 @@ final class PlainMonthDay implements Stringable
             $monthCode = $mc;
         }
         if ($hasMonth) {
-            /** @psalm-suppress PossiblyUndefinedArrayOffset */
-            $month = CalendarMath::toFiniteInt($bag['month'], 'PlainMonthDay::from() month');
+            $month = CalendarMath::toFiniteInt($bag['month'] ?? null, 'PlainMonthDay::from() month');
         }
 
         $day = CalendarMath::toFiniteInt($bag['day'], 'PlainMonthDay::from() day');

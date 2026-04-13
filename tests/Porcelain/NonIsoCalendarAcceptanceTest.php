@@ -429,9 +429,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     // All known calendars accepted
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider knownCalendarProvider
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('knownCalendarProvider')]
     public function testAllKnownCalendarsAcceptedByConstructor(string $calendarId): void
     {
         $d = new PlainDate(2024, 1, 15, $calendarId);

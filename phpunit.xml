@@ -7,6 +7,7 @@
         <testsuite name="default">
             <directory>tests/</directory>
             <exclude>tests/Test262</exclude>
+            <exclude>tests/Porcelain</exclude>
         </testsuite>
         <testsuite name="porcelain">
             <directory>tests/Porcelain</directory>

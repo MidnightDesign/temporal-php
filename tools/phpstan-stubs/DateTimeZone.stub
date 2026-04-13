@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * Override PHPStan's built-in stub for DateTimeZone::getTransitions.
+ *
+ * PHPStan's default stub claims a guaranteed list<array{...}>, but per the
+ * PHP manual the function may return false on failure. Declaring the
+ * true return type lets us guard with a false check without tripping an
+ * "always false" warning, and matches mago's stub which models the same
+ * runtime behavior.
+ */
+class DateTimeZone
+{
+    /**
+     * @param int $timestampBegin
+     * @param int $timestampEnd
+     * @return list<array{ts: int, time: string, offset: int, isdst: bool, abbr: string}>|false
+     */
+    public function getTransitions($timestampBegin = PHP_INT_MIN, $timestampEnd = PHP_INT_MAX)
+    {
+    }
+}

@@ -604,6 +604,7 @@ final class PlainDateTime implements Stringable
         $useMonthCode = false;
 
         if ($hasMonthCode) {
+            /** @var mixed $mc */
             $mc = $fields['monthCode'];
             if (!is_string($mc)) {
                 throw new \TypeError('monthCode must be a string.');
@@ -779,10 +780,10 @@ final class PlainDateTime implements Stringable
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
 
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $suRaw */
         $suRaw = $options['smallestUnit'] ?? null;
         if ($suRaw === null) {
             throw new InvalidArgumentException('Temporal\\PlainDateTime::round() requires smallestUnit.');
@@ -922,7 +923,7 @@ final class PlainDateTime implements Stringable
     public function toString(array|object|null $options = null): string
     {
         if (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
 
         $calendarName = 'auto';
@@ -932,7 +933,7 @@ final class PlainDateTime implements Stringable
 
         if ($options !== null) {
             if (array_key_exists('calendarName', $options)) {
-                /** @psalm-suppress MixedAssignment */
+                /** @var mixed $cn */
                 $cn = $options['calendarName'];
                 if (!is_string($cn)) {
                     throw new \TypeError('calendarName option must be a string.');
@@ -942,7 +943,7 @@ final class PlainDateTime implements Stringable
 
             // fractionalSecondDigits: -2 = 'auto', 0-9 = fixed.
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @psalm-suppress MixedAssignment */
+                /** @var mixed $fsd */
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd !== 'auto') {
                     if ($fsd === null || is_bool($fsd)) {
@@ -1170,7 +1171,7 @@ final class PlainDateTime implements Stringable
         // Validate options bag type.
         if ($options !== null) {
             if (is_object($options)) {
-                $options = (array) $options;
+                $options = get_object_vars($options);
             }
             // Validate disambiguation option if present.
             if (array_key_exists('disambiguation', $options)) {
@@ -1516,7 +1517,7 @@ final class PlainDateTime implements Stringable
 
         if ($hasMonth) {
             /** @var mixed $monthRaw */
-            $monthRaw = $bag['month'];
+            $monthRaw = $bag['month'] ?? null;
             if ($monthRaw === null) {
                 throw new \TypeError('PlainDateTime property bag month field must not be undefined.');
             }
@@ -1658,7 +1659,7 @@ final class PlainDateTime implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : (array) $options;
+            $opts = is_array($options) ? $options : get_object_vars($options);
 
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
@@ -2317,7 +2318,7 @@ final class PlainDateTime implements Stringable
             return 'constrain';
         }
         if (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';

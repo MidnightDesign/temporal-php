@@ -127,9 +127,7 @@ final class CalendarFieldResolutionTest extends TestCase
     // PlainDate roundtrip: ISO -> calendar -> property bag -> ISO
     // -------------------------------------------------------------------------
 
-    /**
-     * @dataProvider roundtripCalendarProvider
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('roundtripCalendarProvider')]
     public function testPlainDateRoundtrip(string $calendarId): void
     {
         $iso = PlainDate::from('2024-06-15');
@@ -147,9 +145,7 @@ final class CalendarFieldResolutionTest extends TestCase
         static::assertSame($iso->isoDay, $back->isoDay, "isoDay roundtrip for {$calendarId}");
     }
 
-    /**
-     * @dataProvider roundtripCalendarProvider
-     */
+    #[\PHPUnit\Framework\Attributes\DataProvider('roundtripCalendarProvider')]
     public function testPlainDateRoundtripWithMonthCode(string $calendarId): void
     {
         $iso = PlainDate::from('2024-06-15');

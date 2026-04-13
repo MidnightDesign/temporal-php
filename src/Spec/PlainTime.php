@@ -91,7 +91,10 @@ final class PlainTime implements Stringable
     // Internal storage
     // -------------------------------------------------------------------------
 
-    /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
+    /**
+     * @var int<0, 86399999999999>
+     * @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor
+     */
     private readonly int $ns;
 
     // -------------------------------------------------------------------------
@@ -347,10 +350,10 @@ final class PlainTime implements Stringable
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
 
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $suRaw */
         $suRaw = $options['smallestUnit'] ?? null;
         if ($suRaw === null) {
             throw new InvalidArgumentException('Temporal\\PlainTime::round() requires smallestUnit.');
@@ -382,14 +385,22 @@ final class PlainTime implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $roundingMode = (string) $options['roundingMode'];
+            /** @var mixed $rmRaw */
+            $rmRaw = $options['roundingMode'];
+            if (!is_string($rmRaw)) {
+                throw new \TypeError('roundingMode must be a string.');
+            }
+            $roundingMode = $rmRaw;
         }
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $rawIncrement = (int) $options['roundingIncrement'];
+            /** @var mixed $riRaw */
+            $riRaw = $options['roundingIncrement'];
+            if (!is_int($riRaw) && !is_float($riRaw)) {
+                throw new \TypeError('roundingIncrement must be a number.');
+            }
+            $rawIncrement = (int) $riRaw;
             if ($rawIncrement < 1) {
                 throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
             }
@@ -450,7 +461,7 @@ final class PlainTime implements Stringable
 
         if ($options !== null) {
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @psalm-suppress MixedAssignment */
+                /** @var mixed $fsd */
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd !== 'auto') {
                     if ($fsd === null || is_bool($fsd)) {
@@ -477,7 +488,12 @@ final class PlainTime implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits.
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = (string) $options['smallestUnit'];
+                /** @var mixed $suRaw */
+                $suRaw = $options['smallestUnit'];
+                if (!is_string($suRaw)) {
+                    throw new \TypeError('smallestUnit must be a string.');
+                }
+                $su = $suRaw;
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
@@ -612,7 +628,7 @@ final class PlainTime implements Stringable
             return 'constrain';
         }
         if (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
@@ -944,7 +960,7 @@ final class PlainTime implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : (array) $options;
+            $opts = is_array($options) ? $options : get_object_vars($options);
 
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */

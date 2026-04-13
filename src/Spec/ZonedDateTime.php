@@ -478,7 +478,7 @@ final class ZonedDateTime implements Stringable
         if (is_array($options)) {
             $opts = $options;
         } elseif (is_object($options)) {
-            $opts = (array) $options;
+            $opts = get_object_vars($options);
         }
 
         // Validate 'disambiguation' option if present.
@@ -544,7 +544,7 @@ final class ZonedDateTime implements Stringable
         if ($opts !== null && array_key_exists('offset', $opts) && is_string($opts['offset'])) {
             $offsetOption = $opts['offset'];
         }
-        $bag = is_array($item) ? $item : (array) $item;
+        $bag = is_array($item) ? $item : get_object_vars($item);
         return self::fromPropertyBag($bag, $overflow, $disambiguation, $offsetOption);
     }
 
@@ -837,7 +837,8 @@ final class ZonedDateTime implements Stringable
             return $comparisonOverrides[$properCase];
         }
         if (function_exists('intltz_get_canonical_id')) {
-            $canon = \IntlTimeZone::getCanonicalID($properCase);
+            $isSystem = false;
+            $canon = \IntlTimeZone::getCanonicalID($properCase, $isSystem);
             if ($canon !== false && $canon !== '') {
                 return $canon;
             }
@@ -875,7 +876,7 @@ final class ZonedDateTime implements Stringable
 
         if ($options !== null) {
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @psalm-suppress MixedAssignment */
+                /** @var mixed $fsd */
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd !== 'auto') {
                     if ($fsd === null || is_bool($fsd)) {
@@ -1096,7 +1097,7 @@ final class ZonedDateTime implements Stringable
         if ($options === null) {
             $opts = [];
         } else {
-            $opts = is_array($options) ? $options : (array) $options;
+            $opts = is_array($options) ? $options : get_object_vars($options);
         }
         /** @psalm-var array<string, mixed> $opts */
 
@@ -1218,10 +1219,10 @@ final class ZonedDateTime implements Stringable
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
 
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $suRaw */
         $suRaw = $options['smallestUnit'] ?? null;
         if ($suRaw === null) {
             throw new InvalidArgumentException('Temporal\\ZonedDateTime::round() requires smallestUnit.');
@@ -1256,14 +1257,22 @@ final class ZonedDateTime implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $roundingMode = (string) $options['roundingMode'];
+            /** @var mixed $rmRaw */
+            $rmRaw = $options['roundingMode'];
+            if (!is_string($rmRaw)) {
+                throw new \TypeError('roundingMode must be a string.');
+            }
+            $roundingMode = $rmRaw;
         }
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $rawIncrement = (int) $options['roundingIncrement'];
+            /** @var mixed $riRaw */
+            $riRaw = $options['roundingIncrement'];
+            if (!is_int($riRaw) && !is_float($riRaw)) {
+                throw new \TypeError('roundingIncrement must be a number.');
+            }
+            $rawIncrement = (int) $riRaw;
             if ($rawIncrement < 1) {
                 throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
             }
@@ -1375,7 +1384,7 @@ final class ZonedDateTime implements Stringable
         // Extract the 'offset' option (default is 'prefer' for with()).
         $offsetOption = 'prefer';
         if ($options !== null) {
-            $optArr = is_array($options) ? $options : (array) $options;
+            $optArr = is_array($options) ? $options : get_object_vars($options);
             if (array_key_exists('offset', $optArr)) {
                 /** @var mixed $offOpt */
                 $offOpt = $optArr['offset'];
@@ -1766,26 +1775,36 @@ final class ZonedDateTime implements Stringable
         $tz = new \DateTimeZone($this->timeZoneId);
 
         if ($dir === 'next') {
-            $transitions = $tz->getTransitions($epochSec, $epochSec + (200 * 365 * 86_400));
-            if ($transitions === [] || count($transitions) < 2) {
+            $transitions = self::safeGetTransitions(
+                $tz,
+                $epochSec,
+                $epochSec + (200 * 365 * 86_400),
+            );
+            if (count($transitions) < 2) {
                 return null;
             }
             // Skip index 0 (initial state at range start). Find first entry
             // with a DIFFERENT UTC offset (TC39 defines transition as offset change).
             $prevOffset = $transitions[0]['offset'];
-            for ($i = 1; $i < count($transitions); $i++) {
-                if ($transitions[$i]['offset'] !== $prevOffset) {
+            $nTransitions = count($transitions);
+            for ($i = 1; $i < $nTransitions; $i++) {
+                $curOffset = $transitions[$i]['offset'];
+                if ($curOffset !== $prevOffset) {
                     $ts = $transitions[$i]['ts'];
                     return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
                 }
-                $prevOffset = $transitions[$i]['offset'];
+                $prevOffset = $curOffset;
             }
             return null;
         }
 
         // 'previous': find the most recent transition strictly BEFORE the current instant.
-        $transitions = $tz->getTransitions($epochSec - (200 * 365 * 86_400), $epochSec);
-        if ($transitions === [] || count($transitions) < 2) {
+        $transitions = self::safeGetTransitions(
+            $tz,
+            $epochSec - (200 * 365 * 86_400),
+            $epochSec,
+        );
+        if (count($transitions) < 2) {
             return null;
         }
         // Walk backwards from the end. Find entries where offset differs from
@@ -1793,13 +1812,12 @@ final class ZonedDateTime implements Stringable
         // Skip index 0 (initial state).
         // A transition at exactly the current epoch nanosecond is NOT "previous".
         $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
-        /** @var ?int $candidateTs */
         $candidateTs = null;
         for ($i = count($transitions) - 1; $i >= 1; $i--) {
             $ts = $transitions[$i]['ts'];
             // Strictly before: ts < epochSec, or ts == epochSec only if there are sub-second ns.
-            $isBefore = $ts < $epochSec || $ts === $epochSec && $subNs > 0;
-            if ($isBefore && $transitions[$i]['offset'] !== $transitions[$i - 1]['offset']) {
+            $isBefore = $ts < $epochSec || ($ts === $epochSec && $subNs > 0);
+            if ($transitions[$i]['offset'] !== $transitions[$i - 1]['offset'] && $isBefore) {
                 $candidateTs = $ts;
                 break;
             }
@@ -1809,6 +1827,32 @@ final class ZonedDateTime implements Stringable
         }
         $transNs = $candidateTs * self::NS_PER_SECOND;
         return new self($transNs, $this->timeZoneId, $this->calendarId);
+    }
+
+    /**
+     * Wraps `DateTimeZone::getTransitions()` to always return a narrowed list.
+     *
+     * The underlying PHP function may return `false` on failure (per the PHP manual);
+     * both phpstan stubs (`tools/phpstan-stubs/DateTimeZone.stub`) and mago model this.
+     * This helper normalizes both to an empty list and narrows each element to an
+     * array of two ints (epoch second + offset second) so the call sites can treat the
+     * result as a typed shape.
+     *
+     * @return list<array{ts: int, offset: int}>
+     */
+    private static function safeGetTransitions(\DateTimeZone $tz, int $begin, int $end): array
+    {
+        $result = $tz->getTransitions($begin, $end);
+        if ($result === false) {
+            return [];
+        }
+        $out = [];
+        foreach ($result as $t) {
+            // intval() is used so that mago (whose stubs treat element values as mixed)
+            // and phpstan (whose stubs treat them as int) both see an int result.
+            $out[] = ['ts' => intval($t['ts']), 'offset' => intval($t['offset'])];
+        }
+        return $out;
     }
 
     /**
@@ -2156,7 +2200,8 @@ final class ZonedDateTime implements Stringable
             return $icuFixups[$id];
         }
         if (function_exists('intltz_get_canonical_id')) {
-            $canon = \IntlTimeZone::getCanonicalID($id);
+            $isSystem = false;
+            $canon = \IntlTimeZone::getCanonicalID($id, $isSystem);
             if ($canon !== false && $canon !== '' && $canon !== $id) {
                 // Apply fixups to the ICU result as well
                 $canon = $icuFixups[$canon] ?? $canon;
@@ -2649,6 +2694,7 @@ final class ZonedDateTime implements Stringable
         $hasMC = array_key_exists('monthCode', $bag);
 
         if ($hasMC) {
+            /** @var mixed $mc */
             $mc = $bag['monthCode'];
             if (!is_string($mc)) {
                 throw new \TypeError('ZonedDateTime monthCode must be a string.');
@@ -2658,7 +2704,7 @@ final class ZonedDateTime implements Stringable
         }
 
         if ($hasMonth) {
-            $newMonth = CalendarMath::toFiniteInt($bag['month'], 'ZonedDateTime month');
+            $newMonth = CalendarMath::toFiniteInt($bag['month'] ?? null, 'ZonedDateTime month');
             if ($hasMC && $newMonth !== $month) {
                 throw new InvalidArgumentException('Conflicting month and monthCode fields.');
             }
@@ -2805,7 +2851,8 @@ final class ZonedDateTime implements Stringable
                     );
                 }
                 if ($key === 'u-ca') {
-                    if ($calCount === 0) {
+                    $isFirst = $calCount === 0;
+                    if ($isFirst) {
                         $calValue = substr(string: $content, offset: strlen($key) + 1);
                         if (!CalendarFactory::isKnownCalendar($calValue)) {
                             throw new InvalidArgumentException("Unknown calendar \"{$calValue}\" in \"{$original}\".");
@@ -2816,7 +2863,7 @@ final class ZonedDateTime implements Stringable
                     if ($critical) {
                         $calHasCritical = true;
                     }
-                    if ($calCount > 1 && $calHasCritical) {
+                    if (!$isFirst && $calHasCritical) {
                         throw new InvalidArgumentException(
                             "Multiple calendar annotations with critical flag in \"{$original}\".",
                         );
@@ -2901,9 +2948,10 @@ final class ZonedDateTime implements Stringable
         $tz = new \DateTimeZone($tzId);
         $approxOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $wallSec)));
         $epoch1 = $wallSec - $approxOffset;
-        $transitions = $tz->getTransitions($epoch1 - 86_400, $epoch1 + 86_400);
-        if (count($transitions) >= 2) {
-            for ($i = 1; $i < count($transitions); $i++) {
+        $transitions = self::safeGetTransitions($tz, $epoch1 - 86_400, $epoch1 + 86_400);
+        $nTransitions = count($transitions);
+        if ($nTransitions >= 2) {
+            for ($i = 1; $i < $nTransitions; $i++) {
                 $tEpoch = $transitions[$i]['ts'];
                 $pre = $transitions[$i - 1]['offset'];
                 $post = $transitions[$i]['offset'];
@@ -2942,12 +2990,13 @@ final class ZonedDateTime implements Stringable
         $offset1 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch1)));
 
         // Check for gap/overlap by looking at timezone transitions near this epoch.
-        $transitions = $tz->getTransitions($epoch1 - 86_400, $epoch1 + 86_400);
+        $transitions = self::safeGetTransitions($tz, $epoch1 - 86_400, $epoch1 + 86_400);
         $transitionEpoch = null;
         $preOffset = null;
         $postOffset = null;
-        if (count($transitions) >= 2) {
-            for ($i = 1; $i < count($transitions); $i++) {
+        $nTransitions = count($transitions);
+        if ($nTransitions >= 2) {
+            for ($i = 1; $i < $nTransitions; $i++) {
                 $tEpoch = $transitions[$i]['ts'];
                 $pre = $transitions[$i - 1]['offset'];
                 $post = $transitions[$i]['offset'];
@@ -3484,7 +3533,7 @@ final class ZonedDateTime implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : (array) $options;
+            $opts = is_array($options) ? $options : get_object_vars($options);
 
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
@@ -4220,7 +4269,7 @@ final class ZonedDateTime implements Stringable
             return 'constrain';
         }
         if (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
@@ -4250,7 +4299,7 @@ final class ZonedDateTime implements Stringable
             return 'compatible';
         }
         if (is_object($options)) {
-            $options = (array) $options;
+            $options = get_object_vars($options);
         }
         if (!array_key_exists('disambiguation', $options)) {
             return 'compatible';

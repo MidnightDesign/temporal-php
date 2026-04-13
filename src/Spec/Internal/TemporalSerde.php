@@ -61,7 +61,7 @@ trait TemporalSerde
         if ($options === null) {
             $opts = [];
         } else {
-            $opts = is_array($options) ? $options : (array) $options;
+            $opts = is_array($options) ? $options : get_object_vars($options);
         }
         /** @psalm-var array<string, mixed> $opts */
         $hasTimeStyle = array_key_exists('timeStyle', $opts) && $opts['timeStyle'] !== null;

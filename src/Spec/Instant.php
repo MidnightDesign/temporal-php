@@ -394,7 +394,7 @@ final class Instant implements Stringable
         if ($options !== null) {
             // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @psalm-suppress MixedAssignment */
+                /** @var mixed $fsd */
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd !== 'auto') {
                     if ($fsd === null || is_bool($fsd)) {
@@ -906,7 +906,7 @@ final class Instant implements Stringable
             $roundTo = [];
         }
 
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $suRaw */
         $suRaw = $roundTo['smallestUnit'] ?? null;
         if ($suRaw === null) {
             throw new InvalidArgumentException('Temporal\\Instant::round() requires smallestUnit.');
@@ -936,19 +936,27 @@ final class Instant implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $roundTo) && $roundTo['roundingMode'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $roundingMode = (string) $roundTo['roundingMode'];
+            /** @var mixed $rmRaw */
+            $rmRaw = $roundTo['roundingMode'];
+            if (!is_string($rmRaw)) {
+                throw new \TypeError('roundingMode must be a string.');
+            }
+            $roundingMode = $rmRaw;
         }
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $roundTo) && $roundTo['roundingIncrement'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $increment = (int) $roundTo['roundingIncrement'];
+            /** @var mixed $riRaw */
+            $riRaw = $roundTo['roundingIncrement'];
+            if (!is_int($riRaw) && !is_float($riRaw)) {
+                throw new \TypeError('roundingIncrement must be a number.');
+            }
+            $increment = (int) $riRaw;
         }
         if ($increment < 1) {
             throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
         }
-        if (($maxDivisor % $increment) !== 0) {
+        if ($increment > $maxDivisor || ($maxDivisor % $increment) !== 0) {
             throw new InvalidArgumentException(
                 "roundingIncrement {$increment} does not evenly divide {$maxDivisor} for unit \"{$suRaw}\".",
             );
@@ -1279,9 +1287,9 @@ final class Instant implements Stringable
 
         // Track whether largestUnit was explicitly provided.
         $luProvided = array_key_exists('largestUnit', $options) && $options['largestUnit'] !== null;
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $luVal */
         $luVal = $luProvided ? $options['largestUnit'] : null;
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $suVal */
         $suVal = array_key_exists('smallestUnit', $options) ? $options['smallestUnit'] : null;
 
         if ($luVal !== null && !is_string($luVal)) {
