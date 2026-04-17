@@ -107,12 +107,30 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
+     * Calendar system for this datetime.
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public string $calendarId {
-        get => $this->spec->calendarId;
+    public Calendar $calendar {
+        get => Calendar::from($this->spec->calendarId);
+    }
+
+    /**
+     * Calendar era identifier (e.g. "ce", "bce", "reiwa"), or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?string $era {
+        get => $this->spec->era;
+    }
+
+    /**
+     * Year within the calendar era, or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?int $eraYear {
+        get => $this->spec->eraYear;
     }
 
     /**
@@ -227,7 +245,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
      * @param int<0, 999>  $millisecond Millisecond (0–999).
      * @param int<0, 999>  $microsecond Microsecond (0–999).
      * @param int<0, 999>  $nanosecond  Nanosecond (0–999).
-     * @param string|null  $calendarId  Calendar identifier, or null for "iso8601".
+     * @param Calendar     $calendar    Calendar system to project through.
      * @throws \InvalidArgumentException if any value is out of range.
      */
     public function __construct(
@@ -240,7 +258,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
         int $millisecond = 0,
         int $microsecond = 0,
         int $nanosecond = 0,
-        ?string $calendarId = null,
+        Calendar $calendar = Calendar::Iso8601,
     ) {
         $this->spec = new SpecPlainDateTime(
             $isoYear,
@@ -252,13 +270,27 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
             $millisecond,
             $microsecond,
             $nanosecond,
-            $calendarId,
+            $calendar->value,
         );
     }
 
     // -------------------------------------------------------------------------
     // Static factory / comparison methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Creates a PlainDateTime from a string, property bag, or another PlainDateTime.
+     *
+     * @param self|string|array<string, mixed> $item
+     */
+    public static function from(self|string|array $item, Overflow $overflow = Overflow::Constrain): self
+    {
+        if ($item instanceof self) {
+            return self::fromSpec(SpecPlainDateTime::from($item->spec));
+        }
+
+        return self::fromSpec(SpecPlainDateTime::from($item, ['overflow' => $overflow->value]));
+    }
 
     /**
      * Parses an ISO 8601 datetime string into a PlainDateTime.
@@ -300,6 +332,9 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
      * @param int<0, 999>|null $millisecond Millisecond override (0–999), or null to keep current.
      * @param int<0, 999>|null $microsecond Microsecond override (0–999), or null to keep current.
      * @param int<0, 999>|null $nanosecond  Nanosecond override (0–999), or null to keep current.
+     * @param string|null      $monthCode   Month code override (e.g. "M01"), or null to keep current.
+     * @param string|null      $era         Era override (e.g. "ce"), or null to keep current.
+     * @param int|null         $eraYear     Era year override, or null to keep current.
      * @param Overflow         $overflow    How to handle out-of-range values.
      * @return self A new PlainDateTime with the overridden fields.
      * @throws \InvalidArgumentException if the resulting datetime is invalid (overflow: reject) or fields conflict.
@@ -314,6 +349,9 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
         ?int $millisecond = null,
         ?int $microsecond = null,
         ?int $nanosecond = null,
+        ?string $monthCode = null,
+        ?string $era = null,
+        ?int $eraYear = null,
         Overflow $overflow = Overflow::Constrain,
     ): self {
         $fields = [];
@@ -344,10 +382,29 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
         if ($nanosecond !== null) {
             $fields['nanosecond'] = $nanosecond;
         }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
+        }
 
         $spec = $this->spec->with($fields, ['overflow' => $overflow->value]);
 
         return self::fromSpec($spec);
+    }
+
+    /**
+     * Returns a new PlainDateTime with a different calendar system.
+     *
+     * The underlying ISO datetime remains the same; only the calendar projection changes.
+     */
+    public function withCalendar(Calendar $calendar): self
+    {
+        return self::fromSpec($this->spec->withCalendar($calendar->value));
     }
 
     /**
@@ -611,7 +668,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
             $spec->millisecond,
             $spec->microsecond,
             $spec->nanosecond,
-            $spec->calendarId,
+            Calendar::from($spec->calendarId),
         );
     }
 
@@ -636,7 +693,7 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
             'millisecond' => $this->millisecond,
             'microsecond' => $this->microsecond,
             'nanosecond' => $this->nanosecond,
-            'calendarId' => $this->calendarId,
+            'calendar' => $this->calendar,
             'iso' => $this->toString(),
         ];
     }

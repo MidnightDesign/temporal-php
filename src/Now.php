@@ -38,56 +38,77 @@ final class Now
     }
 
     /**
-     * Returns today's date in the ISO 8601 calendar.
+     * Returns today's date projected through the given calendar.
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
-     * @throws \TypeError              if $timeZone is explicitly passed as null.
+     * @param Calendar    $calendar Calendar system (default ISO 8601).
      * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
      */
-    public static function plainDate(?string $timeZone = null): PlainDate
+    public static function plainDate(?string $timeZone = null, Calendar $calendar = Calendar::Iso8601): PlainDate
     {
-        // Forward the argument only when explicitly provided, so the spec layer's
-        // func_num_args() check can distinguish "omitted" from "passed null".
-        return PlainDate::fromSpec(func_num_args() > 0 ? SpecNow::plainDateISO($timeZone) : SpecNow::plainDateISO());
+        $spec = $timeZone !== null
+            ? SpecNow::plainDateISO($timeZone)
+            : SpecNow::plainDateISO();
+
+        if ($calendar !== Calendar::Iso8601) {
+            $spec = $spec->withCalendar($calendar->value);
+        }
+
+        return PlainDate::fromSpec($spec);
     }
 
     /**
      * Returns the current wall-clock time (no date) in the ISO 8601 calendar.
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
-     * @throws \TypeError              if $timeZone is explicitly passed as null.
      * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
      */
     public static function plainTime(?string $timeZone = null): PlainTime
     {
-        return PlainTime::fromSpec(func_num_args() > 0 ? SpecNow::plainTimeISO($timeZone) : SpecNow::plainTimeISO());
+        $spec = $timeZone !== null
+            ? SpecNow::plainTimeISO($timeZone)
+            : SpecNow::plainTimeISO();
+
+        return PlainTime::fromSpec($spec);
     }
 
     /**
-     * Returns the current date and time in the ISO 8601 calendar.
+     * Returns the current date and time projected through the given calendar.
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
-     * @throws \TypeError              if $timeZone is explicitly passed as null.
+     * @param Calendar    $calendar Calendar system (default ISO 8601).
      * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
      */
-    public static function plainDateTime(?string $timeZone = null): PlainDateTime
+    public static function plainDateTime(?string $timeZone = null, Calendar $calendar = Calendar::Iso8601): PlainDateTime
     {
-        return PlainDateTime::fromSpec(
-            func_num_args() > 0 ? SpecNow::plainDateTimeISO($timeZone) : SpecNow::plainDateTimeISO(),
-        );
+        $spec = $timeZone !== null
+            ? SpecNow::plainDateTimeISO($timeZone)
+            : SpecNow::plainDateTimeISO();
+
+        if ($calendar !== Calendar::Iso8601) {
+            $spec = $spec->withCalendar($calendar->value);
+        }
+
+        return PlainDateTime::fromSpec($spec);
     }
 
     /**
-     * Returns the current date and time as a ZonedDateTime in the ISO 8601 calendar.
+     * Returns the current date and time as a ZonedDateTime projected through the given calendar.
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
-     * @throws \TypeError              if $timeZone is explicitly passed as null.
+     * @param Calendar    $calendar Calendar system (default ISO 8601).
      * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
      */
-    public static function zonedDateTime(?string $timeZone = null): ZonedDateTime
+    public static function zonedDateTime(?string $timeZone = null, Calendar $calendar = Calendar::Iso8601): ZonedDateTime
     {
-        return ZonedDateTime::fromSpec(
-            func_num_args() > 0 ? SpecNow::zonedDateTimeISO($timeZone) : SpecNow::zonedDateTimeISO(),
-        );
+        $spec = $timeZone !== null
+            ? SpecNow::zonedDateTimeISO($timeZone)
+            : SpecNow::zonedDateTimeISO();
+
+        if ($calendar !== Calendar::Iso8601) {
+            $spec = $spec->withCalendar($calendar->value);
+        }
+
+        return ZonedDateTime::fromSpec($spec);
     }
 }

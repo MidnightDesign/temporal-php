@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\PlainDate;
@@ -127,7 +128,7 @@ final class CalendarFieldResolutionTest extends TestCase
     // PlainDate roundtrip: ISO -> calendar -> property bag -> ISO
     // -------------------------------------------------------------------------
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('roundtripCalendarProvider')]
+    #[DataProvider('roundtripCalendarProvider')]
     public function testPlainDateRoundtrip(string $calendarId): void
     {
         $iso = PlainDate::from('2024-06-15');
@@ -145,7 +146,7 @@ final class CalendarFieldResolutionTest extends TestCase
         static::assertSame($iso->isoDay, $back->isoDay, "isoDay roundtrip for {$calendarId}");
     }
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('roundtripCalendarProvider')]
+    #[DataProvider('roundtripCalendarProvider')]
     public function testPlainDateRoundtripWithMonthCode(string $calendarId): void
     {
         $iso = PlainDate::from('2024-06-15');

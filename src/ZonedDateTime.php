@@ -10,7 +10,7 @@ namespace Temporal;
  * This is the porcelain (user-facing) wrapper around the spec-layer
  * {@see Spec\ZonedDateTime}. It provides typed enums, named parameters, and
  * a simpler API surface for application code while delegating all computation
- * to the spec layer. Only the ISO 8601 calendar is supported.
+ * to the spec layer.
  */
 final class ZonedDateTime implements \Stringable, \JsonSerializable
 {
@@ -50,12 +50,12 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
+     * Calendar system used for date field projection.
      *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    public string $calendarId {
-        get => $this->spec->calendarId;
+    public Calendar $calendar {
+        get => Calendar::from($this->spec->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -63,7 +63,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * ISO calendar year.
+     * Calendar year (projected through the active calendar).
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
@@ -72,7 +72,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Month of the year (1-12).
+     * Month of the year (projected through the active calendar).
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
@@ -81,7 +81,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Day of the month (1-31).
+     * Day of the month (projected through the active calendar).
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
@@ -176,7 +176,25 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Month code in "M01"-"M12" format.
+     * Calendar era identifier (e.g. "ce", "bce", "reiwa"), or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?string $era {
+        get => $this->spec->era;
+    }
+
+    /**
+     * Year within the calendar era, or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?int $eraYear {
+        get => $this->spec->eraYear;
+    }
+
+    /**
+     * Month code in "M01"-"M12" format, or "M01L"-"M12L" for leap months.
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
@@ -204,33 +222,26 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * ISO 8601 week number: 1-53.
+     * ISO 8601 week number: 1-53, or null for non-ISO calendars.
      *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $weekOfYear {
-        get {
-            $w = $this->spec->weekOfYear;
-            assert($w !== null, description: 'weekOfYear is always non-null for ISO calendar');
-            return $w;
-        }
+    public ?int $weekOfYear {
+        get => $this->spec->weekOfYear;
     }
 
     /**
-     * ISO 8601 week-year (may differ from calendar year near year boundaries).
+     * ISO 8601 week-year (may differ from calendar year near year boundaries),
+     * or null for non-ISO calendars.
      *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
+     * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $yearOfWeek {
-        get {
-            $y = $this->spec->yearOfWeek;
-            assert($y !== null, description: 'yearOfWeek is always non-null for ISO calendar');
-            return $y;
-        }
+    public ?int $yearOfWeek {
+        get => $this->spec->yearOfWeek;
     }
 
     /**
-     * Number of days in this date's month (28-31).
+     * Number of days in this date's month.
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
@@ -249,7 +260,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * 365 or 366, depending on whether this date's year is a leap year.
+     * Number of days in this date's year.
      *
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
@@ -258,7 +269,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always 12 (ISO 8601 calendar).
+     * Number of months in this date's year.
      *
      * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
@@ -293,14 +304,14 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     private readonly Spec\ZonedDateTime $spec;
 
     /**
-     * @param int    $epochNanoseconds Nanoseconds since the Unix epoch.
-     * @param string $timeZoneId       Timezone identifier: 'UTC', '+-HH:MM', or an IANA name.
-     * @param string $calendarId       Calendar identifier (default "iso8601").
+     * @param int      $epochNanoseconds Nanoseconds since the Unix epoch.
+     * @param string   $timeZoneId       Timezone identifier: 'UTC', '+-HH:MM', or an IANA name.
+     * @param Calendar $calendar         Calendar system (default ISO 8601).
      * @throws \InvalidArgumentException if the epoch nanoseconds or time zone are invalid.
      */
-    public function __construct(int $epochNanoseconds, string $timeZoneId, string $calendarId = 'iso8601')
+    public function __construct(int $epochNanoseconds, string $timeZoneId, Calendar $calendar = Calendar::Iso8601)
     {
-        $this->spec = new Spec\ZonedDateTime($epochNanoseconds, $timeZoneId, $calendarId);
+        $this->spec = new Spec\ZonedDateTime($epochNanoseconds, $timeZoneId, $calendar->value);
     }
 
     // -------------------------------------------------------------------------
@@ -326,6 +337,28 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
         return self::fromSpec(Spec\ZonedDateTime::from($text, [
             'disambiguation' => $disambiguation->value,
             'offset' => $offset->value,
+        ]));
+    }
+
+    /**
+     * Creates a ZonedDateTime from a string, property bag, or another ZonedDateTime.
+     *
+     * @param self|string|array<string, mixed> $item
+     */
+    public static function from(
+        self|string|array $item,
+        Disambiguation $disambiguation = Disambiguation::Compatible,
+        OffsetOption $offset = OffsetOption::Reject,
+        Overflow $overflow = Overflow::Constrain,
+    ): self {
+        if ($item instanceof self) {
+            return self::fromSpec(Spec\ZonedDateTime::from($item->spec));
+        }
+
+        return self::fromSpec(Spec\ZonedDateTime::from($item, [
+            'disambiguation' => $disambiguation->value,
+            'offset' => $offset->value,
+            'overflow' => $overflow->value,
         ]));
     }
 
@@ -372,6 +405,9 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
         ?int $microsecond = null,
         ?int $nanosecond = null,
         ?string $offset = null,
+        ?string $monthCode = null,
+        ?string $era = null,
+        ?int $eraYear = null,
         Overflow $overflow = Overflow::Constrain,
         Disambiguation $disambiguation = Disambiguation::Compatible,
         OffsetOption $offsetOption = OffsetOption::Prefer,
@@ -391,6 +427,16 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
             ],
             fn($v) => $v !== null,
         );
+
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
+        }
 
         $opts = [
             'overflow' => $overflow->value,
@@ -617,6 +663,16 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
     }
 
     /**
+     * Returns a new ZonedDateTime with a different calendar system.
+     *
+     * The epoch nanoseconds and time zone remain the same; only the calendar projection changes.
+     */
+    public function withCalendar(Calendar $calendar): self
+    {
+        return self::fromSpec($this->spec->withCalendar($calendar->value));
+    }
+
+    /**
      * Returns a new ZonedDateTime with the time portion replaced.
      *
      * If $time is null (or omitted), the time is set to midnight (00:00:00).
@@ -667,7 +723,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
      */
     public static function fromSpec(Spec\ZonedDateTime $spec): self
     {
-        return new self($spec->epochNanoseconds, $spec->timeZoneId, $spec->calendarId);
+        return new self($spec->epochNanoseconds, $spec->timeZoneId, Calendar::from($spec->calendarId));
     }
 
     // -------------------------------------------------------------------------
@@ -684,6 +740,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
         return [
             'epochNanoseconds' => $this->epochNanoseconds,
             'timeZoneId' => $this->timeZoneId,
+            'calendar' => $this->calendar->value,
             'string' => $this->spec->toString(),
             'year' => $this->year,
             'month' => $this->month,

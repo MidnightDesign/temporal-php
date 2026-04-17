@@ -14,13 +14,13 @@ level = "error"
 [linter.rules.literal-named-argument]
 level = "error"
 
-# PlainDateTime/ZonedDateTime test suites require 90+ test methods because each
+# PlainDateTime/ZonedDateTime test suites require 100+ test methods because each
 # virtual property, method, and option path per the TC39 spec must be covered.
 # ZonedDateTime is inherently the most complex class per the spec (29 properties,
-# 25+ methods plus a full disambiguation/offset-option matrix).
+# 25+ methods plus a full disambiguation/offset-option/calendar matrix).
 [linter.rules.too-many-methods]
 level = "error"
-threshold = 120
+threshold = 130
 
 # PlainDate has 13+ virtual properties; PlainDateTime has 22 (9 time fields + 13 calendar)
 # ZonedDateTime has 29 (3 stored + 1 private cache + 25 virtual properties per TC39 spec)
@@ -46,13 +46,13 @@ level = "warning"
 threshold = 35.0
 
 # Duration.assertDuration-style test helpers assert all 10 Duration fields in a
-# single call; ZonedDateTime::with() accepts all 10 TC39-spec wall-clock fields;
-# localToZdt receives the full 6-field local date/time plus timezone and option
-# bag. These are inherent to the TC39 spec and cannot be split without making
-# the call sites worse.
+# single call; ZonedDateTime::with() accepts 13 TC39-spec date/time/calendar
+# fields plus 3 option enums; localToZdt receives the full 6-field local
+# date/time plus timezone and option bag. These are inherent to the TC39 spec
+# and cannot be split without making the call sites worse.
 [linter.rules.excessive-parameter-list]
 level = "warning"
-threshold = 13
+threshold = 16
 
 # Halstead volumes/effort are dominated by the TC39 parsing, add/subtract, and
 # round/diff algorithms in Duration, ZonedDateTime, and PlainDateTime, which must

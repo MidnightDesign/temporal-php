@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
+use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Disambiguation;
 use Temporal\Duration;
@@ -91,7 +92,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     {
         $zdt = new ZonedDateTime(0, 'UTC');
 
-        static::assertSame('iso8601', $zdt->calendarId);
+        static::assertSame(Calendar::Iso8601, $zdt->calendar);
     }
 
     // -------------------------------------------------------------------------
@@ -986,6 +987,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
         static::assertArrayHasKey('epochNanoseconds', $info);
         static::assertArrayHasKey('timeZoneId', $info);
+        static::assertArrayHasKey('calendar', $info);
         static::assertArrayHasKey('string', $info);
         static::assertArrayHasKey('year', $info);
         static::assertArrayHasKey('month', $info);
@@ -1003,6 +1005,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
         static::assertSame(15, $info['day']);
         static::assertSame(13, $info['hour']);
         static::assertSame('UTC', $info['timeZoneId']);
+        static::assertSame('iso8601', $info['calendar']);
     }
 
     // -------------------------------------------------------------------------
@@ -1011,11 +1014,21 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
     public function testParseForwardsDisambiguation(): void
     {
-        // The disambiguation option is forwarded; we verify it doesn't throw
-        // and produces a valid result when set to a non-default value.
-        $zdt = ZonedDateTime::parse('2020-06-15T12:00:00+00:00[UTC]', disambiguation: Disambiguation::Later);
+        // 2024-11-03T01:30 is ambiguous in America/New_York (fall-back DST)
+        $earlier = ZonedDateTime::parse(
+            '2024-11-03T01:30:00-04:00[America/New_York]',
+            disambiguation: Disambiguation::Earlier,
+            offset: OffsetOption::Ignore,
+        );
+        $later = ZonedDateTime::parse(
+            '2024-11-03T01:30:00-04:00[America/New_York]',
+            disambiguation: Disambiguation::Later,
+            offset: OffsetOption::Ignore,
+        );
 
-        static::assertSame(12, $zdt->hour);
+        // Earlier gets EDT (-04:00), Later gets EST (-05:00)
+        static::assertSame('-04:00', $earlier->offset);
+        static::assertSame('-05:00', $later->offset);
     }
 
     // -------------------------------------------------------------------------
@@ -1170,5 +1183,201 @@ final class ZonedDateTimeTest extends TemporalTestCase
         $result = $zdt->round(Unit::Minute, RoundingMode::Trunc);
 
         static::assertSame(7, $result->minute);
+    }
+
+    // -------------------------------------------------------------------------
+    // Calendar enum property
+    // -------------------------------------------------------------------------
+
+    public function testCalendarPropertyReturnsEnum(): void
+    {
+        $zdt = new ZonedDateTime(0, 'UTC');
+
+        static::assertSame(Calendar::Iso8601, $zdt->calendar);
+    }
+
+    public function testCalendarPropertyWithNonIsoCalendar(): void
+    {
+        $zdt = new ZonedDateTime(0, 'UTC', Calendar::Hebrew);
+
+        static::assertSame(Calendar::Hebrew, $zdt->calendar);
+    }
+
+    public function testConstructorAcceptsCalendarEnum(): void
+    {
+        $zdt = new ZonedDateTime(0, 'UTC', Calendar::Japanese);
+
+        static::assertSame('japanese', $zdt->calendar->value);
+    }
+
+    // -------------------------------------------------------------------------
+    // era / eraYear properties
+    // -------------------------------------------------------------------------
+
+    public function testEraAndEraYearNullForIsoCalendar(): void
+    {
+        $zdt = ZonedDateTime::parse('2020-06-15T00:00:00+00:00[UTC]');
+
+        static::assertNull($zdt->era);
+        static::assertNull($zdt->eraYear);
+    }
+
+    public function testEraAndEraYearForGregoryCalendar(): void
+    {
+        $zdt = new ZonedDateTime(0, 'UTC', Calendar::Gregory);
+
+        static::assertSame('ce', $zdt->era);
+        static::assertNotNull($zdt->eraYear);
+    }
+
+    // -------------------------------------------------------------------------
+    // weekOfYear / yearOfWeek nullable
+    // -------------------------------------------------------------------------
+
+    public function testWeekOfYearNonNullForIso(): void
+    {
+        $zdt = ZonedDateTime::parse('2020-01-01T00:00:00+00:00[UTC]');
+
+        static::assertNotNull($zdt->weekOfYear);
+        static::assertNotNull($zdt->yearOfWeek);
+    }
+
+    // -------------------------------------------------------------------------
+    // from() static factory
+    // -------------------------------------------------------------------------
+
+    public function testFromString(): void
+    {
+        $zdt = ZonedDateTime::from('2020-01-01T12:00:00+00:00[UTC]');
+
+        static::assertSame(2020, $zdt->year);
+        static::assertSame(1, $zdt->month);
+        static::assertSame(1, $zdt->day);
+        static::assertSame(12, $zdt->hour);
+        static::assertSame('UTC', $zdt->timeZoneId);
+    }
+
+    public function testFromZonedDateTime(): void
+    {
+        $original = ZonedDateTime::parse('2020-06-15T13:45:30+00:00[UTC]');
+        $copy = ZonedDateTime::from($original);
+
+        static::assertTrue($original->equals($copy));
+        static::assertNotSame($original, $copy);
+    }
+
+    public function testFromInvalidStringThrows(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        ZonedDateTime::from('not-valid');
+    }
+
+    public function testFromForwardsDisambiguation(): void
+    {
+        // 2024-11-03T01:30 is ambiguous in America/New_York (fall-back DST)
+        $earlier = ZonedDateTime::from(
+            '2024-11-03T01:30:00-04:00[America/New_York]',
+            disambiguation: Disambiguation::Earlier,
+            offset: OffsetOption::Ignore,
+        );
+        $later = ZonedDateTime::from(
+            '2024-11-03T01:30:00-04:00[America/New_York]',
+            disambiguation: Disambiguation::Later,
+            offset: OffsetOption::Ignore,
+        );
+
+        // Earlier gets EDT (-04:00), Later gets EST (-05:00)
+        static::assertSame('-04:00', $earlier->offset);
+        static::assertSame('-05:00', $later->offset);
+    }
+
+    public function testFromForwardsOffsetOption(): void
+    {
+        // With offset: Ignore, the -01:00 mismatch is ignored and wall time is used
+        $zdt = ZonedDateTime::from(
+            '2024-06-15T12:00:00-01:00[UTC]',
+            offset: OffsetOption::Ignore,
+        );
+
+        // Wall time 12:00 in UTC
+        static::assertSame(12, $zdt->hour);
+        static::assertSame('+00:00', $zdt->offset);
+    }
+
+    // -------------------------------------------------------------------------
+    // withCalendar()
+    // -------------------------------------------------------------------------
+
+    public function testWithCalendarChangesCalendar(): void
+    {
+        $zdt = new ZonedDateTime(0, 'UTC');
+        $hebrew = $zdt->withCalendar(Calendar::Hebrew);
+
+        static::assertSame('hebrew', $hebrew->calendar->value);
+        // Same instant
+        static::assertSame($zdt->epochNanoseconds, $hebrew->epochNanoseconds);
+        static::assertSame('UTC', $hebrew->timeZoneId);
+    }
+
+    public function testWithCalendarPreservesEpochAndTimeZone(): void
+    {
+        $ns = 1_577_836_800_000_000_000;
+        $zdt = new ZonedDateTime($ns, 'America/New_York');
+        $result = $zdt->withCalendar(Calendar::Japanese);
+
+        static::assertSame($ns, $result->epochNanoseconds);
+        static::assertSame('America/New_York', $result->timeZoneId);
+        static::assertSame(Calendar::Japanese, $result->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // with() calendar-specific fields
+    // -------------------------------------------------------------------------
+
+    public function testWithMonthCode(): void
+    {
+        $zdt = ZonedDateTime::parse('2020-06-15T12:00:00+00:00[UTC]');
+        $result = $zdt->with(monthCode: 'M03', day: 1);
+
+        static::assertSame(3, $result->month);
+        static::assertSame(1, $result->day);
+    }
+
+    // -------------------------------------------------------------------------
+    // fromSpec() uses Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testFromSpecWithNonIsoCalendar(): void
+    {
+        $spec = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'hebrew');
+        $zdt = ZonedDateTime::fromSpec($spec);
+
+        static::assertSame('hebrew', $zdt->calendar->value);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: from() forwards overflow option
+    // -------------------------------------------------------------------------
+
+    public function testFromPropertyBagForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        ZonedDateTime::from(
+            ['year' => 2020, 'month' => 2, 'day' => 30, 'timeZone' => 'UTC'],
+            overflow: Overflow::Reject,
+        );
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: with() forwards era/eraYear
+    // -------------------------------------------------------------------------
+
+    public function testWithForwardsEraAndEraYear(): void
+    {
+        $zdt = ZonedDateTime::parse('2024-06-15T12:00:00+00:00[UTC][u-ca=gregory]');
+        $zdt2 = $zdt->with(era: 'ce', eraYear: 2020);
+
+        static::assertSame(2020, $zdt2->year);
     }
 }

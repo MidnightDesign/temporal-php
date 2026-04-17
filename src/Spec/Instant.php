@@ -1035,10 +1035,10 @@ final class Instant implements Stringable
                 // Colon-separated: :MM[:SS[.frac]]
                 $minutes = (int) substr(string: $rest, offset: 1, length: 2);
                 $rest = substr(string: $rest, offset: 3);
-                if ($rest !== '' && $rest[0] === ':') {
+                if (str_starts_with($rest, ':')) {
                     $seconds = (int) substr(string: $rest, offset: 1, length: 2);
                     $rest = substr(string: $rest, offset: 3);
-                    if ($rest !== '' && ($rest[0] === '.' || $rest[0] === ',')) {
+                    if (str_starts_with($rest, '.') || str_starts_with($rest, ',')) {
                         $fracNs = self::parseFraction($rest);
                     }
                 }
@@ -1049,7 +1049,7 @@ final class Instant implements Stringable
                 if (strlen($rest) >= 2) {
                     $seconds = (int) substr(string: $rest, offset: 0, length: 2);
                     $rest = substr(string: $rest, offset: 2);
-                    if ($rest !== '' && ($rest[0] === '.' || $rest[0] === ',')) {
+                    if (str_starts_with($rest, '.') || str_starts_with($rest, ',')) {
                         $fracNs = self::parseFraction($rest);
                     }
                 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
+use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Overflow;
 use Temporal\PlainMonthDay;
@@ -41,9 +42,9 @@ final class PlainMonthDayTest extends TemporalTestCase
     // Virtual properties
     // -------------------------------------------------------------------------
 
-    public function testCalendarIdIsIso8601(): void
+    public function testCalendarIsIso8601(): void
     {
-        static::assertSame('iso8601', new PlainMonthDay(12, 25)->calendarId);
+        static::assertSame(Calendar::Iso8601, new PlainMonthDay(12, 25)->calendar);
     }
 
     public function testMonthCode(): void
@@ -310,7 +311,84 @@ final class PlainMonthDayTest extends TemporalTestCase
 
         static::assertSame(12, $info['month']);
         static::assertSame(25, $info['day']);
-        static::assertSame('iso8601', $info['calendarId']);
+        static::assertSame(Calendar::Iso8601, $info['calendar']);
         static::assertSame('12-25', $info['iso']);
+    }
+
+    // -------------------------------------------------------------------------
+    // Constructor with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testConstructorWithCalendarEnum(): void
+    {
+        $md = new PlainMonthDay(12, 25, Calendar::Iso8601);
+
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
+        static::assertSame(Calendar::Iso8601, $md->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // from()
+    // -------------------------------------------------------------------------
+
+    public function testFromString(): void
+    {
+        $md = PlainMonthDay::from('--12-25');
+
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
+    }
+
+    public function testFromAnotherPlainMonthDay(): void
+    {
+        $original = new PlainMonthDay(12, 25);
+        $copy = PlainMonthDay::from($original);
+
+        static::assertTrue($original->equals($copy));
+        static::assertNotSame($original, $copy);
+    }
+
+    public function testFromPropertyBag(): void
+    {
+        $md = PlainMonthDay::from(['monthCode' => 'M12', 'day' => 25]);
+
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
+    }
+
+    // -------------------------------------------------------------------------
+    // with() expanded fields
+    // -------------------------------------------------------------------------
+
+    public function testWithMonthCode(): void
+    {
+        $md = new PlainMonthDay(6, 15);
+        $result = $md->with(monthCode: 'M03');
+
+        static::assertSame(3, $result->month);
+        static::assertSame(15, $result->day);
+    }
+
+    // -------------------------------------------------------------------------
+    // fromSpec round-trip with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testFromSpecPreservesCalendar(): void
+    {
+        $spec = new \Temporal\Spec\PlainMonthDay(12, 25);
+        $md = PlainMonthDay::fromSpec($spec);
+
+        static::assertSame(Calendar::Iso8601, $md->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: from() forwards overflow option
+    // -------------------------------------------------------------------------
+
+    public function testFromPropertyBagForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        PlainMonthDay::from(['monthCode' => 'M02', 'day' => 30], Overflow::Reject);
     }
 }

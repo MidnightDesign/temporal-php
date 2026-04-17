@@ -38,12 +38,12 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
+     * Calendar system used by this month-day.
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public string $calendarId {
-        get => $this->spec->calendarId;
+    public Calendar $calendar {
+        get => Calendar::from($this->spec->calendarId);
     }
 
     /**
@@ -64,20 +64,34 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
     /**
      * Creates a new PlainMonthDay from ISO month and day.
      *
-     * @param int<1, 12>  $isoMonth        ISO month of the year (1–12).
-     * @param int<1, 31>  $isoDay          ISO day of the month (1–31, depending on month).
-     * @param string|null $calendarId      Calendar identifier, or null for "iso8601".
-     * @param int         $referenceISOYear Reference ISO year for round-trip fidelity (default 1972).
+     * @param int<1, 12> $isoMonth        ISO month of the year (1–12).
+     * @param int<1, 31> $isoDay          ISO day of the month (1–31, depending on month).
+     * @param Calendar   $calendar        Calendar system (default ISO 8601).
+     * @param int        $referenceISOYear Reference ISO year for round-trip fidelity (default 1972).
      * @throws \InvalidArgumentException if the month-day is invalid or out of range.
      */
-    public function __construct(int $isoMonth, int $isoDay, ?string $calendarId = null, int $referenceISOYear = 1972)
+    public function __construct(int $isoMonth, int $isoDay, Calendar $calendar = Calendar::Iso8601, int $referenceISOYear = 1972)
     {
-        $this->spec = new SpecPlainMonthDay($isoMonth, $isoDay, $calendarId, $referenceISOYear);
+        $this->spec = new SpecPlainMonthDay($isoMonth, $isoDay, $calendar->value, $referenceISOYear);
     }
 
     // -------------------------------------------------------------------------
     // Static factory methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Creates a PlainMonthDay from a string, property bag, or another PlainMonthDay.
+     *
+     * @param self|string|array<string, mixed> $item
+     */
+    public static function from(self|string|array $item, Overflow $overflow = Overflow::Constrain): self
+    {
+        if ($item instanceof self) {
+            return self::fromSpec(SpecPlainMonthDay::from($item->spec));
+        }
+
+        return self::fromSpec(SpecPlainMonthDay::from($item, ['overflow' => $overflow->value]));
+    }
 
     /**
      * Parses an ISO 8601 month-day string into a PlainMonthDay.
@@ -106,14 +120,21 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      * @return self A new PlainMonthDay with the overridden fields.
      * @throws \InvalidArgumentException if the resulting month-day is invalid (overflow: reject) or fields conflict.
      */
-    public function with(?int $month = null, ?int $day = null, Overflow $overflow = Overflow::Constrain): self
-    {
+    public function with(
+        ?int $month = null,
+        ?int $day = null,
+        ?string $monthCode = null,
+        Overflow $overflow = Overflow::Constrain,
+    ): self {
         $fields = [];
         if ($month !== null) {
             $fields['month'] = $month;
         }
         if ($day !== null) {
             $fields['day'] = $day;
+        }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
         }
 
         $spec = $this->spec->with($fields, ['overflow' => $overflow->value]);
@@ -205,7 +226,7 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      */
     public static function fromSpec(SpecPlainMonthDay $spec): self
     {
-        return new self($spec->isoMonth, $spec->isoDay, $spec->calendarId, $spec->referenceISOYear);
+        return new self($spec->isoMonth, $spec->isoDay, Calendar::from($spec->calendarId), $spec->referenceISOYear);
     }
 
     // -------------------------------------------------------------------------
@@ -222,7 +243,7 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
         return [
             'month' => $this->month,
             'day' => $this->day,
-            'calendarId' => $this->calendarId,
+            'calendar' => $this->calendar,
             'iso' => $this->toString(),
         ];
     }

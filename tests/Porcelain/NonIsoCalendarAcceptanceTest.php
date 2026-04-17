@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Temporal\Spec\Duration;
 use Temporal\Spec\PlainDate;
@@ -429,7 +430,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     // All known calendars accepted
     // -------------------------------------------------------------------------
 
-    #[\PHPUnit\Framework\Attributes\DataProvider('knownCalendarProvider')]
+    #[DataProvider('knownCalendarProvider')]
     public function testAllKnownCalendarsAcceptedByConstructor(string $calendarId): void
     {
         $d = new PlainDate(2024, 1, 15, $calendarId);

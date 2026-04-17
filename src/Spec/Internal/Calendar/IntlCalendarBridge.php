@@ -50,9 +50,6 @@ final class IntlCalendarBridge implements CalendarProtocol
         'roc' => 'roc',
     ];
 
-    /** Calendars that use Gregorian solar year (ISO leap year rule). */
-    private const GREGORIAN_BASED = ['gregory', 'buddhist', 'roc', 'japanese', 'indian'];
-
     private readonly \IntlCalendar $intlCal;
 
     /** Calendars whose year/month/day share the ISO 8601 proleptic Gregorian structure. */
@@ -335,7 +332,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     #[\Override]
     public function inLeapYear(int $isoYear, int $isoMonth, int $isoDay): bool
     {
-        // 'indian' from GREGORIAN_BASED is handled by PureIndianCalendar; IntlCalendarBridge never sees it.
+        // 'indian' is handled by PureIndianCalendar; IntlCalendarBridge never sees it.
         if ($this->isGregorianBased) {
             return CalendarMath::isLeapYear($isoYear);
         }
@@ -800,6 +797,7 @@ final class IntlCalendarBridge implements CalendarProtocol
                 'gregory', 'japanese' => $isoY,
                 'buddhist' => $isoY + 543,
                 'roc' => $isoY - self::ROC_YEAR_OFFSET,
+                default => $isoY,
             };
         }
         return match ($this->calendarId) {

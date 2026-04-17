@@ -38,12 +38,30 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Calendar identifier (e.g. "iso8601", "hebrew", "japanese").
+     * Calendar system used by this year-month.
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public string $calendarId {
-        get => $this->spec->calendarId;
+    public Calendar $calendar {
+        get => Calendar::from($this->spec->calendarId);
+    }
+
+    /**
+     * Calendar era identifier (e.g. "ce", "bce", "reiwa"), or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?string $era {
+        get => $this->spec->era;
+    }
+
+    /**
+     * Year within the calendar era, or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?int $eraYear {
+        get => $this->spec->eraYear;
     }
 
     /**
@@ -101,20 +119,34 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
     /**
      * Creates a new PlainYearMonth from ISO year and month.
      *
-     * @param int         $isoYear     ISO year.
-     * @param int<1, 12>  $isoMonth    ISO month of the year (1–12).
-     * @param string|null $calendarId  Calendar identifier, or null for "iso8601".
-     * @param int         $referenceISODay Reference ISO day for round-trip fidelity (default 1).
+     * @param int        $isoYear        ISO year.
+     * @param int<1, 12> $isoMonth       ISO month of the year (1–12).
+     * @param Calendar   $calendar       Calendar system (default ISO 8601).
+     * @param int        $referenceISODay Reference ISO day for round-trip fidelity (default 1).
      * @throws \InvalidArgumentException if the year-month is invalid or out of range.
      */
-    public function __construct(int $isoYear, int $isoMonth, ?string $calendarId = null, int $referenceISODay = 1)
+    public function __construct(int $isoYear, int $isoMonth, Calendar $calendar = Calendar::Iso8601, int $referenceISODay = 1)
     {
-        $this->spec = new SpecPlainYearMonth($isoYear, $isoMonth, $calendarId, $referenceISODay);
+        $this->spec = new SpecPlainYearMonth($isoYear, $isoMonth, $calendar->value, $referenceISODay);
     }
 
     // -------------------------------------------------------------------------
     // Static factory / comparison methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Creates a PlainYearMonth from a string, property bag, or another PlainYearMonth.
+     *
+     * @param self|string|array<string, mixed> $item
+     */
+    public static function from(self|string|array $item, Overflow $overflow = Overflow::Constrain): self
+    {
+        if ($item instanceof self) {
+            return self::fromSpec(SpecPlainYearMonth::from($item->spec));
+        }
+
+        return self::fromSpec(SpecPlainYearMonth::from($item, ['overflow' => $overflow->value]));
+    }
 
     /**
      * Parses an ISO 8601 year-month string into a PlainYearMonth.
@@ -152,14 +184,28 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
      * @return self A new PlainYearMonth with the overridden fields.
      * @throws \InvalidArgumentException if the resulting year-month is invalid or fields conflict.
      */
-    public function with(?int $year = null, ?int $month = null): self
-    {
+    public function with(
+        ?int $year = null,
+        ?int $month = null,
+        ?string $monthCode = null,
+        ?string $era = null,
+        ?int $eraYear = null,
+    ): self {
         $fields = [];
         if ($year !== null) {
             $fields['year'] = $year;
         }
         if ($month !== null) {
             $fields['month'] = $month;
+        }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
         }
         $spec = $this->spec->with($fields);
 
@@ -330,7 +376,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
      */
     public static function fromSpec(SpecPlainYearMonth $spec): self
     {
-        return new self($spec->isoYear, $spec->isoMonth, $spec->calendarId, $spec->referenceISODay);
+        return new self($spec->isoYear, $spec->isoMonth, Calendar::from($spec->calendarId), $spec->referenceISODay);
     }
 
     // -------------------------------------------------------------------------
@@ -347,7 +393,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
         return [
             'year' => $this->year,
             'month' => $this->month,
-            'calendarId' => $this->calendarId,
+            'calendar' => $this->calendar,
             'iso' => $this->toString(),
         ];
     }

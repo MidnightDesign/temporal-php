@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
+use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
 use Temporal\PlainYearMonth;
 use Temporal\RoundingMode;
+use Temporal\Overflow;
 use Temporal\Unit;
 
 final class PlainYearMonthTest extends TemporalTestCase
@@ -29,9 +31,17 @@ final class PlainYearMonthTest extends TemporalTestCase
     // Virtual properties
     // -------------------------------------------------------------------------
 
-    public function testCalendarIdIsIso8601(): void
+    public function testCalendarIsIso8601(): void
     {
-        static::assertSame('iso8601', new PlainYearMonth(2020, 6)->calendarId);
+        static::assertSame(Calendar::Iso8601, new PlainYearMonth(2020, 6)->calendar);
+    }
+
+    public function testEraIsNullForIso8601(): void
+    {
+        $ym = new PlainYearMonth(2020, 6);
+
+        static::assertNull($ym->era);
+        static::assertNull($ym->eraYear);
     }
 
     public function testMonthCode(): void
@@ -455,7 +465,7 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         static::assertSame(2020, $info['year']);
         static::assertSame(6, $info['month']);
-        static::assertSame('iso8601', $info['calendarId']);
+        static::assertSame(Calendar::Iso8601, $info['calendar']);
         static::assertSame('2020-06', $info['iso']);
     }
 
@@ -520,5 +530,94 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         static::assertSame(6, $trunc->months);
         static::assertSame(9, $ceil->months);
+    }
+
+    // -------------------------------------------------------------------------
+    // Constructor with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testConstructorWithCalendarEnum(): void
+    {
+        $ym = new PlainYearMonth(2020, 6, Calendar::Iso8601);
+
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
+        static::assertSame(Calendar::Iso8601, $ym->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // from()
+    // -------------------------------------------------------------------------
+
+    public function testFromString(): void
+    {
+        $ym = PlainYearMonth::from('2020-06');
+
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
+    }
+
+    public function testFromAnotherPlainYearMonth(): void
+    {
+        $original = new PlainYearMonth(2020, 6);
+        $copy = PlainYearMonth::from($original);
+
+        static::assertTrue($original->equals($copy));
+        static::assertNotSame($original, $copy);
+    }
+
+    public function testFromPropertyBag(): void
+    {
+        $ym = PlainYearMonth::from(['year' => 2020, 'monthCode' => 'M06']);
+
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
+    }
+
+    // -------------------------------------------------------------------------
+    // with() expanded fields
+    // -------------------------------------------------------------------------
+
+    public function testWithMonthCode(): void
+    {
+        $ym = new PlainYearMonth(2020, 6);
+        $result = $ym->with(monthCode: 'M03');
+
+        static::assertSame(3, $result->month);
+        static::assertSame(2020, $result->year);
+    }
+
+    // -------------------------------------------------------------------------
+    // fromSpec round-trip with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testFromSpecPreservesCalendar(): void
+    {
+        $spec = new \Temporal\Spec\PlainYearMonth(2020, 6);
+        $ym = PlainYearMonth::fromSpec($spec);
+
+        static::assertSame(Calendar::Iso8601, $ym->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: from() forwards overflow option
+    // -------------------------------------------------------------------------
+
+    public function testFromPropertyBagForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        PlainYearMonth::from(['year' => 2020, 'month' => 13], Overflow::Reject);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: with() forwards era/eraYear
+    // -------------------------------------------------------------------------
+
+    public function testWithForwardsEraAndEraYear(): void
+    {
+        $ym = PlainYearMonth::from('2024-06-01[u-ca=gregory]');
+        $ym2 = $ym->with(era: 'ce', eraYear: 2020);
+
+        static::assertSame(2020, $ym2->year);
     }
 }

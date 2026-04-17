@@ -107,26 +107,24 @@ final class Duration implements Stringable
             throw new InvalidArgumentException('Duration time fields exceed the maximum representable range.');
         }
 
-        if ($allInt) {
+        if (is_int($nanoseconds) && is_int($microseconds) && is_int($milliseconds)
+            && is_int($days) && is_int($hours) && is_int($minutes)
+        ) {
             // All-integer path: propagate carry ns → µs → ms → s → check full total.
-            // Cast to int: $allInt guarantees all fields are int, but analyzers can't narrow that.
-            $nsI = (int) $nanoseconds;
-            $usI = (int) $microseconds;
-            $msI = (int) $milliseconds;
-            $carryNs = intdiv(num1: $nsI, num2: 1_000);
-            $usEff = $usI + $carryNs;
+            $carryNs = intdiv(num1: $nanoseconds, num2: 1_000);
+            $usEff = $microseconds + $carryNs;
             $carryUs = intdiv(num1: $usEff, num2: 1_000);
-            $msEff = $msI + $carryUs;
+            $msEff = $milliseconds + $carryUs;
             $carryMs = intdiv(num1: $msEff, num2: 1_000);
             $sEff = $secI + $carryMs;
-            $intSecFull = ((int) $days * 86_400) + ((int) $hours * 3_600) + ((int) $minutes * 60) + $sEff;
+            $intSecFull = ($days * 86_400) + ($hours * 3_600) + ($minutes * 60) + $sEff;
             if ($intSecFull > 9_007_199_254_740_991 || $intSecFull < -9_007_199_254_740_991) {
                 throw new InvalidArgumentException('Duration time fields exceed the maximum representable range.');
             }
             // At the exact boundary (effective seconds == MAX_SAFE_INT), the remaining
             // sub-second nanoseconds must be < 1 s to stay within MaxTimeDuration.
             if (abs($intSecFull) === 9_007_199_254_740_991) {
-                $remNs = $nsI - ($carryNs * 1_000);
+                $remNs = $nanoseconds - ($carryNs * 1_000);
                 $remUs = $usEff - ($carryUs * 1_000);
                 $remMs = $msEff - ($carryMs * 1_000);
                 $remSubNs = ($remMs * 1_000_000) + ($remUs * 1_000) + $remNs;

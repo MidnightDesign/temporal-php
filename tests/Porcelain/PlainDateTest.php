@@ -6,6 +6,7 @@ namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
 use Temporal\Overflow;
@@ -38,11 +39,11 @@ final class PlainDateTest extends TestCase
     // Virtual properties
     // -------------------------------------------------------------------------
 
-    public function testCalendarIdIsIso8601(): void
+    public function testCalendarIsIso8601(): void
     {
         $pd = new PlainDate(2020, 6, 15);
 
-        static::assertSame('iso8601', $pd->calendarId);
+        static::assertSame(Calendar::Iso8601, $pd->calendar);
     }
 
     public function testDayOfWeek(): void
@@ -507,7 +508,7 @@ final class PlainDateTest extends TestCase
         static::assertSame(2020, $info['year']);
         static::assertSame(6, $info['month']);
         static::assertSame(15, $info['day']);
-        static::assertSame('iso8601', $info['calendarId']);
+        static::assertSame(Calendar::Iso8601, $info['calendar']);
         static::assertSame('2020-06-15', $info['iso']);
     }
 
@@ -527,6 +528,127 @@ final class PlainDateTest extends TestCase
         $pd = new PlainDate(2020, 3, 31);
         $this->expectException(InvalidArgumentException::class);
         $pd->subtract(new Duration(months: 1), Overflow::Reject);
+    }
+
+    // -------------------------------------------------------------------------
+    // Calendar enum in constructor
+    // -------------------------------------------------------------------------
+
+    public function testConstructorAcceptsCalendarEnum(): void
+    {
+        $pd = new PlainDate(2020, 6, 15, Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $pd->calendar);
+    }
+
+    public function testConstructorDefaultsToIso8601Calendar(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+
+        static::assertSame(Calendar::Iso8601, $pd->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // era / eraYear virtual properties
+    // -------------------------------------------------------------------------
+
+    public function testEraIsNullForIsoCalendar(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+
+        static::assertNull($pd->era);
+        static::assertNull($pd->eraYear);
+    }
+
+    public function testEraForGregoryCalendar(): void
+    {
+        $pd = new PlainDate(2020, 6, 15, Calendar::Gregory);
+
+        static::assertSame('ce', $pd->era);
+        static::assertSame(2020, $pd->eraYear);
+    }
+
+    // -------------------------------------------------------------------------
+    // from() static factory
+    // -------------------------------------------------------------------------
+
+    public function testFromString(): void
+    {
+        $pd = PlainDate::from('2020-06-15');
+
+        static::assertSame(2020, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(15, $pd->day);
+    }
+
+    public function testFromPlainDate(): void
+    {
+        $original = new PlainDate(2020, 6, 15, Calendar::Gregory);
+        $copy = PlainDate::from($original);
+
+        static::assertSame(2020, $copy->year);
+        static::assertSame(6, $copy->month);
+        static::assertSame(15, $copy->day);
+        static::assertSame(Calendar::Gregory, $copy->calendar);
+        static::assertNotSame($original, $copy);
+    }
+
+    public function testFromPropertyBag(): void
+    {
+        $pd = PlainDate::from([
+            'year' => 2020,
+            'month' => 6,
+            'day' => 15,
+        ]);
+
+        static::assertSame(2020, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(15, $pd->day);
+    }
+
+    // -------------------------------------------------------------------------
+    // withCalendar()
+    // -------------------------------------------------------------------------
+
+    public function testWithCalendar(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+        $gregory = $pd->withCalendar(Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $gregory->calendar);
+        // Same ISO date, different calendar projection
+        static::assertSame('2020-06-15', $gregory->toString(CalendarDisplay::Never));
+    }
+
+    public function testWithCalendarReturnsNewInstance(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+        $result = $pd->withCalendar(Calendar::Gregory);
+
+        static::assertNotSame($pd, $result);
+    }
+
+    // -------------------------------------------------------------------------
+    // with() calendar-specific fields
+    // -------------------------------------------------------------------------
+
+    public function testWithMonthCode(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+        $result = $pd->with(monthCode: 'M03');
+
+        static::assertSame(3, $result->month);
+        static::assertSame(15, $result->day);
+    }
+
+    public function testWithEraAndEraYear(): void
+    {
+        $pd = new PlainDate(2020, 6, 15, Calendar::Gregory);
+        $result = $pd->with(era: 'ce', eraYear: 2021);
+
+        static::assertSame(2021, $result->year);
+        static::assertSame(6, $result->month);
+        static::assertSame(15, $result->day);
     }
 
     // -------------------------------------------------------------------------
@@ -586,5 +708,41 @@ final class PlainDateTest extends TestCase
 
         // 7 days truncated to nearest 5 = 5
         static::assertSame(5, $dur->days);
+    }
+
+    // -------------------------------------------------------------------------
+    // Calendar::fromId
+    // -------------------------------------------------------------------------
+
+    public function testCalendarFromIdResolvesCanonical(): void
+    {
+        static::assertSame(Calendar::Hebrew, Calendar::fromId('hebrew'));
+    }
+
+    public function testCalendarFromIdIsCaseInsensitive(): void
+    {
+        static::assertSame(Calendar::Hebrew, Calendar::fromId('HEBREW'));
+    }
+
+    public function testCalendarFromIdResolvesAliases(): void
+    {
+        static::assertSame(Calendar::IslamicCivil, Calendar::fromId('islamicc'));
+        static::assertSame(Calendar::EthiopicAmeteAlem, Calendar::fromId('ethiopic-amete-alem'));
+    }
+
+    public function testCalendarFromIdRejectsUnknown(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        Calendar::fromId('bogus');
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: from() forwards overflow option
+    // -------------------------------------------------------------------------
+
+    public function testFromPropertyBagForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        PlainDate::from(['year' => 2020, 'month' => 2, 'day' => 30], Overflow::Reject);
     }
 }
