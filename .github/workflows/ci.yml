@@ -40,6 +40,7 @@ jobs:
         run: ./vendor/bin/phpstan analyse
 
       - name: Static analysis (Psalm)
+        if: matrix.php == '8.4'
         run: ./vendor/bin/psalm
 
       - name: Tests (PHPUnit)
