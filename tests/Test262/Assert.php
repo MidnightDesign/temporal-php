@@ -37,8 +37,14 @@ final class Assert
     public static function assertTrue(mixed $value, string $message = ''): void
     {
         // Match JS's truthiness check: treat falsy PHP values (false, 0, '', null, [], '0') as false.
-        $bool = $value !== false && $value !== 0 && $value !== 0.0 && $value !== ''
-            && $value !== null && $value !== [] && $value !== '0';
+        $bool =
+            $value !== false
+            && $value !== 0
+            && $value !== 0.0
+            && $value !== ''
+            && $value !== null
+            && $value !== []
+            && $value !== '0';
         PHPUnitAssert::assertTrue($bool, $message);
     }
 

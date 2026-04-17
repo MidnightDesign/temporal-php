@@ -8,9 +8,9 @@ use InvalidArgumentException;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
+use Temporal\Overflow;
 use Temporal\PlainYearMonth;
 use Temporal\RoundingMode;
-use Temporal\Overflow;
 use Temporal\Unit;
 
 final class PlainYearMonthTest extends TemporalTestCase

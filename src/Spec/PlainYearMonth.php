@@ -838,7 +838,9 @@ final class PlainYearMonth implements Stringable
         }
 
         $calendarSupportsEras =
-            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
+            $calendarId !== null
+            && $calendarId !== 'iso8601'
+            && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('PlainYearMonth property bag must have a year field.');
@@ -1003,10 +1005,7 @@ final class PlainYearMonth implements Stringable
                     throw new \TypeError('largestUnit option must be a string.');
                 }
                 if (is_string($lu)) {
-                    if (
-                        in_array($lu, $disallowedUnits, strict: true)
-                        || !in_array($lu, $validUnits, strict: true)
-                    ) {
+                    if (in_array($lu, $disallowedUnits, strict: true) || !in_array($lu, $validUnits, strict: true)) {
                         throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
                     }
                     $largestUnit = $lu;
@@ -1046,10 +1045,7 @@ final class PlainYearMonth implements Stringable
                     throw new \TypeError('smallestUnit option must be a string.');
                 }
                 if (is_string($su)) {
-                    if (
-                        in_array($su, $disallowedUnits, strict: true)
-                        || !in_array($su, $validUnits, strict: true)
-                    ) {
+                    if (in_array($su, $disallowedUnits, strict: true) || !in_array($su, $validUnits, strict: true)) {
                         throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
                     }
                     $smallestUnit = $su;

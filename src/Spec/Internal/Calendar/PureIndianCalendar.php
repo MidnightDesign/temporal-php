@@ -276,10 +276,10 @@ final class PureIndianCalendar implements CalendarProtocol
             // floor-division step. This avoids Psalm incorrectly narrowing the
             // bounds of the while-loop condition.
             $calYear += $years;
-            $zeroBasedMonth = ($calMonth - 1) + $months;
+            $zeroBasedMonth = $calMonth - 1 + $months;
             $yearDelta = CalendarMath::floorDiv($zeroBasedMonth, 12);
             $calYear += $yearDelta;
-            $calMonth = ($zeroBasedMonth - ($yearDelta * 12)) + 1;
+            $calMonth = $zeroBasedMonth - ($yearDelta * 12) + 1;
 
             $lengths = self::monthLengths(self::isIndianLeapYear($calYear));
             $maxDay = $lengths[$calMonth];

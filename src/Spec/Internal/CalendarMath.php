@@ -161,8 +161,12 @@ final class CalendarMath
             // hour12=false -> h23, hour12=true -> h12
             /** @var mixed $hour12Raw */
             $hour12Raw = $opts['hour12'];
-            $isTrue = $hour12Raw !== false && $hour12Raw !== 0 && $hour12Raw !== 0.0
-                && $hour12Raw !== '' && $hour12Raw !== '0';
+            $isTrue =
+                $hour12Raw !== false
+                && $hour12Raw !== 0
+                && $hour12Raw !== 0.0
+                && $hour12Raw !== ''
+                && $hour12Raw !== '0';
             $hc = $isTrue ? 'h12' : 'h23';
             $locale = self::applyHourCycle($locale, $hc);
         }
@@ -321,7 +325,12 @@ final class CalendarMath
         // If there's an @keyword section, insert before it
         $atPos = strpos($locale, needle: '@');
         if ($atPos !== false) {
-            return sprintf('%s-u-hc-%s%s', substr($locale, offset: 0, length: $atPos), $hourCycle, substr($locale, $atPos));
+            return sprintf(
+                '%s-u-hc-%s%s',
+                substr($locale, offset: 0, length: $atPos),
+                $hourCycle,
+                substr($locale, $atPos),
+            );
         }
         return sprintf('%s-u-hc-%s', $locale, $hourCycle);
     }
@@ -411,11 +420,13 @@ final class CalendarMath
 
         // If no primary date/time components but auxiliary options were set,
         // add default components based on the default mode.
-        $hasDatePart = ($opts['weekday'] ?? null) !== null
+        $hasDatePart =
+            ($opts['weekday'] ?? null) !== null
             || ($opts['year'] ?? null) !== null
             || ($opts['month'] ?? null) !== null
             || ($opts['day'] ?? null) !== null;
-        $hasTimePart = ($opts['hour'] ?? null) !== null
+        $hasTimePart =
+            ($opts['hour'] ?? null) !== null
             || ($opts['minute'] ?? null) !== null
             || ($opts['second'] ?? null) !== null;
         if (!$hasDatePart && !$hasTimePart) {
@@ -727,8 +738,7 @@ final class CalendarMath
         }
         $dow =
             (
-                $year + intdiv(num1: $year, num2: 4)
-                - intdiv(num1: $year, num2: 100)
+                $year + intdiv(num1: $year, num2: 4) - intdiv(num1: $year, num2: 100)
                 + intdiv(num1: $year, num2: 400)
                 + $t[$month - 1]
                 + $day
@@ -811,20 +821,16 @@ final class CalendarMath
 
         // For $y ≥ 0, intdiv ≡ floorDiv. Slow path only for very-negative years.
         if ($y >= 0) {
-            $jdn = $day
-                + intdiv(num1: (153 * $m) + 2, num2: 5)
-                + (365 * $y)
-                + intdiv(num1: $y, num2: 4)
-                - intdiv(num1: $y, num2: 100)
-                + intdiv(num1: $y, num2: 400)
+            $jdn =
+                $day + intdiv(num1: (153 * $m) + 2, num2: 5) + (365 * $y) + intdiv(num1: $y, num2: 4)
+                    - intdiv(num1: $y, num2: 100)
+                    + intdiv(num1: $y, num2: 400)
                 - 32_045;
         } else {
-            $jdn = $day
-                + intdiv(num1: (153 * $m) + 2, num2: 5)
-                + (365 * $y)
-                + self::floorDiv($y, 4)
-                - self::floorDiv($y, 100)
-                + self::floorDiv($y, 400)
+            $jdn =
+                $day + intdiv(num1: (153 * $m) + 2, num2: 5) + (365 * $y) + self::floorDiv($y, 4)
+                    - self::floorDiv($y, 100)
+                    + self::floorDiv($y, 400)
                 - 32_045;
         }
 

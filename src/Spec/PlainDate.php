@@ -969,7 +969,9 @@ final class PlainDate implements Stringable
 
         // Determine if this calendar supports eras.
         $calendarSupportsEras =
-            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
+            $calendarId !== null
+            && $calendarId !== 'iso8601'
+            && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
 
         // For calendars without eras (ISO, Chinese, Dangi), era+eraYear can't replace year.
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {

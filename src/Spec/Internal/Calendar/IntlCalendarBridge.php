@@ -408,7 +408,8 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($isLeapCode && in_array($this->calendarId, ['chinese', 'dangi'], strict: true)) {
             // For years with known ICU leap month corrections, validate using
             // the corrected data instead of querying ICU's IS_LEAP_MONTH flag.
-            $hasCorrection = $this->calendarId === 'chinese' && array_key_exists($calYear, self::CHINESE_LEAP_MONTH_CORRECTIONS);
+            $hasCorrection =
+                $this->calendarId === 'chinese' && array_key_exists($calYear, self::CHINESE_LEAP_MONTH_CORRECTIONS);
 
             if ($hasCorrection) {
                 $correctLeapIcu = self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear];
@@ -861,7 +862,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     private function calendarMonthsInCalYear(int $calYear): int
     {
         return match ($this->calendarId) {
-            'hebrew' => ((((7 * $calYear) + 1) % 19) + 19) % 19 < 7 ? 13 : 12,
+            'hebrew' => (((((7 * $calYear) + 1) % 19) + 19) % 19) < 7 ? 13 : 12,
             'chinese', 'dangi' => $this->findChineseLeapMonthInYear($calYear) >= 0 ? 13 : 12,
             'coptic', 'ethiopic', 'ethioaa' => 13,
             default => 12,
@@ -1049,6 +1050,7 @@ final class IntlCalendarBridge implements CalendarProtocol
                 $monthCode = sprintf('M%02dL', $icuMonth + 1);
                 throw new InvalidArgumentException("monthCode \"{$monthCode}\" does not exist in this calendar year.");
             }
+
             // Constrain: use the non-leap version of the same ICU month.
         }
 
@@ -1539,7 +1541,8 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function hasChineseLeapMonth(): bool
     {
-        $calYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
+        $calYear =
+            $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
             - ($this->calendarId === 'chinese' ? self::CHINESE_YEAR_OFFSET : self::DANGI_YEAR_OFFSET);
 
         return $this->findChineseLeapMonthInYear($calYear) >= 0;

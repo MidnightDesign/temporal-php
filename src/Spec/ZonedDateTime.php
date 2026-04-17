@@ -1775,11 +1775,7 @@ final class ZonedDateTime implements Stringable
         $tz = new \DateTimeZone($this->timeZoneId);
 
         if ($dir === 'next') {
-            $transitions = self::safeGetTransitions(
-                $tz,
-                $epochSec,
-                $epochSec + (200 * 365 * 86_400),
-            );
+            $transitions = self::safeGetTransitions($tz, $epochSec, $epochSec + (200 * 365 * 86_400));
             if (count($transitions) < 2) {
                 return null;
             }
@@ -1799,11 +1795,7 @@ final class ZonedDateTime implements Stringable
         }
 
         // 'previous': find the most recent transition strictly BEFORE the current instant.
-        $transitions = self::safeGetTransitions(
-            $tz,
-            $epochSec - (200 * 365 * 86_400),
-            $epochSec,
-        );
+        $transitions = self::safeGetTransitions($tz, $epochSec - (200 * 365 * 86_400), $epochSec);
         if (count($transitions) < 2) {
             return null;
         }
@@ -1816,7 +1808,7 @@ final class ZonedDateTime implements Stringable
         for ($i = count($transitions) - 1; $i >= 1; $i--) {
             $ts = $transitions[$i]['ts'];
             // Strictly before: ts < epochSec, or ts == epochSec only if there are sub-second ns.
-            $isBefore = $ts < $epochSec || ($ts === $epochSec && $subNs > 0);
+            $isBefore = $ts < $epochSec || $ts === $epochSec && $subNs > 0;
             if ($transitions[$i]['offset'] !== $transitions[$i - 1]['offset'] && $isBefore) {
                 $candidateTs = $ts;
                 break;
@@ -2074,7 +2066,7 @@ final class ZonedDateTime implements Stringable
         [$aSec, $aSubNs] = $a->getEpochParts();
         [$bSec, $bSubNs] = $b->getEpochParts();
         $cmp = $aSec <=> $bSec;
-        return $cmp !== 0 ? $cmp : ($aSubNs <=> $bSubNs);
+        return $cmp !== 0 ? $cmp : $aSubNs <=> $bSubNs;
     }
 
     /**
@@ -2605,8 +2597,7 @@ final class ZonedDateTime implements Stringable
             throw new \TypeError('ZonedDateTime property bag must have both era and eraYear, or neither.');
         }
 
-        $calendarSupportsEras =
-            $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
+        $calendarSupportsEras = $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('ZonedDateTime property bag must have a year field.');

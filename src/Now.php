@@ -46,9 +46,7 @@ final class Now
      */
     public static function plainDate(?string $timeZone = null, Calendar $calendar = Calendar::Iso8601): PlainDate
     {
-        $spec = $timeZone !== null
-            ? SpecNow::plainDateISO($timeZone)
-            : SpecNow::plainDateISO();
+        $spec = $timeZone !== null ? SpecNow::plainDateISO($timeZone) : SpecNow::plainDateISO();
 
         if ($calendar !== Calendar::Iso8601) {
             $spec = $spec->withCalendar($calendar->value);
@@ -65,9 +63,7 @@ final class Now
      */
     public static function plainTime(?string $timeZone = null): PlainTime
     {
-        $spec = $timeZone !== null
-            ? SpecNow::plainTimeISO($timeZone)
-            : SpecNow::plainTimeISO();
+        $spec = $timeZone !== null ? SpecNow::plainTimeISO($timeZone) : SpecNow::plainTimeISO();
 
         return PlainTime::fromSpec($spec);
     }
@@ -79,11 +75,11 @@ final class Now
      * @param Calendar    $calendar Calendar system (default ISO 8601).
      * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
      */
-    public static function plainDateTime(?string $timeZone = null, Calendar $calendar = Calendar::Iso8601): PlainDateTime
-    {
-        $spec = $timeZone !== null
-            ? SpecNow::plainDateTimeISO($timeZone)
-            : SpecNow::plainDateTimeISO();
+    public static function plainDateTime(
+        ?string $timeZone = null,
+        Calendar $calendar = Calendar::Iso8601,
+    ): PlainDateTime {
+        $spec = $timeZone !== null ? SpecNow::plainDateTimeISO($timeZone) : SpecNow::plainDateTimeISO();
 
         if ($calendar !== Calendar::Iso8601) {
             $spec = $spec->withCalendar($calendar->value);
@@ -99,11 +95,11 @@ final class Now
      * @param Calendar    $calendar Calendar system (default ISO 8601).
      * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
      */
-    public static function zonedDateTime(?string $timeZone = null, Calendar $calendar = Calendar::Iso8601): ZonedDateTime
-    {
-        $spec = $timeZone !== null
-            ? SpecNow::zonedDateTimeISO($timeZone)
-            : SpecNow::zonedDateTimeISO();
+    public static function zonedDateTime(
+        ?string $timeZone = null,
+        Calendar $calendar = Calendar::Iso8601,
+    ): ZonedDateTime {
+        $spec = $timeZone !== null ? SpecNow::zonedDateTimeISO($timeZone) : SpecNow::zonedDateTimeISO();
 
         if ($calendar !== Calendar::Iso8601) {
             $spec = $spec->withCalendar($calendar->value);

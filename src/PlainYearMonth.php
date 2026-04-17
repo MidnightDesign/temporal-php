@@ -125,8 +125,12 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
      * @param int        $referenceISODay Reference ISO day for round-trip fidelity (default 1).
      * @throws \InvalidArgumentException if the year-month is invalid or out of range.
      */
-    public function __construct(int $isoYear, int $isoMonth, Calendar $calendar = Calendar::Iso8601, int $referenceISODay = 1)
-    {
+    public function __construct(
+        int $isoYear,
+        int $isoMonth,
+        Calendar $calendar = Calendar::Iso8601,
+        int $referenceISODay = 1,
+    ) {
         $this->spec = new SpecPlainYearMonth($isoYear, $isoMonth, $calendar->value, $referenceISODay);
     }
 

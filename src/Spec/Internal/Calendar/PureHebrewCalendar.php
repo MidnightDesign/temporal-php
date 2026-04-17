@@ -92,8 +92,7 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function hebrewNewYearDay(int $year): int
     {
-        return self::$newYearDayCache[$year]
-            ??= self::hebrewDelay1($year) + self::hebrewDelay2($year);
+        return self::$newYearDayCache[$year] ??= self::hebrewDelay1($year) + self::hebrewDelay2($year);
     }
 
     /**
@@ -109,8 +108,7 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function daysInHebrewYear(int $year): int
     {
-        return self::$daysInYearCache[$year]
-            ??= self::hebrewNewYearDay($year + 1) - self::hebrewNewYearDay($year);
+        return self::$daysInYearCache[$year] ??= self::hebrewNewYearDay($year + 1) - self::hebrewNewYearDay($year);
     }
 
     /**
@@ -191,7 +189,9 @@ final class PureHebrewCalendar implements CalendarProtocol
             10 => 29, // Tammuz
             11 => 30, // Av
             12 => 29, // Elul
-            default => throw new InvalidArgumentException("Invalid ordinal month {$ordinalMonth} for non-leap Hebrew year."),
+            default => throw new InvalidArgumentException(
+                "Invalid ordinal month {$ordinalMonth} for non-leap Hebrew year.",
+            ),
         };
     }
 

@@ -1295,10 +1295,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     public function testFromForwardsOffsetOption(): void
     {
         // With offset: Ignore, the -01:00 mismatch is ignored and wall time is used
-        $zdt = ZonedDateTime::from(
-            '2024-06-15T12:00:00-01:00[UTC]',
-            offset: OffsetOption::Ignore,
-        );
+        $zdt = ZonedDateTime::from('2024-06-15T12:00:00-01:00[UTC]', offset: OffsetOption::Ignore);
 
         // Wall time 12:00 in UTC
         static::assertSame(12, $zdt->hour);
@@ -1363,10 +1360,12 @@ final class ZonedDateTimeTest extends TemporalTestCase
     public function testFromPropertyBagForwardsOverflowReject(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        ZonedDateTime::from(
-            ['year' => 2020, 'month' => 2, 'day' => 30, 'timeZone' => 'UTC'],
-            overflow: Overflow::Reject,
-        );
+        ZonedDateTime::from([
+            'year' => 2020,
+            'month' => 2,
+            'day' => 30,
+            'timeZone' => 'UTC',
+        ], overflow: Overflow::Reject);
     }
 
     // -------------------------------------------------------------------------

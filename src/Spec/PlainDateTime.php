@@ -1457,7 +1457,9 @@ final class PlainDateTime implements Stringable
 
         // Determine if this calendar supports eras.
         $calendarSupportsEras =
-            $calendarId !== null && $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
+            $calendarId !== null
+            && $calendarId !== 'iso8601'
+            && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('PlainDateTime property bag must have a year field.');

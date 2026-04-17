@@ -1268,12 +1268,7 @@ final class PlainMonthDay implements Stringable
                     if ($overflow !== 'constrain') {
                         continue;
                     }
-                    $candidate = self::tryConstrainedCandidate(
-                        $calendar,
-                        $tryCalYear,
-                        $monthCode,
-                        $day,
-                    );
+                    $candidate = self::tryConstrainedCandidate($calendar, $tryCalYear, $monthCode, $day);
                     if ($candidate !== null) {
                         $constrainedCandidates[] = $candidate;
                     }
