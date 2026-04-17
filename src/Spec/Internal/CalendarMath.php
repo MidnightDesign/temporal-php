@@ -839,16 +839,30 @@ final class CalendarMath
     public static function fromJulianDay(int $jdn): array
     {
         $a = $jdn + 32_044;
-        $b = self::floorDiv((4 * $a) + 3, 146_097);
-        $c = $a - self::floorDiv(146_097 * $b, 4);
-        $d = self::floorDiv((4 * $c) + 3, 1_461);
-        $e = $c - self::floorDiv(1_461 * $d, 4);
-        $m = self::floorDiv((5 * $e) + 2, 153);
+
+        // Inline floorDiv: for $a ≥ 0 (jdn ≥ -32044, covers all realistic dates),
+        // intdiv ≡ floorDiv. Slow path only for extremely-negative jdn.
+        if ($a >= 0) {
+            $b = intdiv(num1: (4 * $a) + 3, num2: 146_097);
+            $c = $a - intdiv(num1: 146_097 * $b, num2: 4);
+            $d = intdiv(num1: (4 * $c) + 3, num2: 1_461);
+            $e = $c - intdiv(num1: 1_461 * $d, num2: 4);
+            $m = intdiv(num1: (5 * $e) + 2, num2: 153);
+        } else {
+            $b = self::floorDiv((4 * $a) + 3, 146_097);
+            $c = $a - self::floorDiv(146_097 * $b, 4);
+            $d = self::floorDiv((4 * $c) + 3, 1_461);
+            $e = $c - self::floorDiv(1_461 * $d, 4);
+            $m = self::floorDiv((5 * $e) + 2, 153);
+        }
+
         /** @var int<1, 31> Richards algorithm guarantees day is 1–31 */
         $day = $e - intdiv(num1: (153 * $m) + 2, num2: 5) + 1;
+        $mDiv10 = intdiv(num1: $m, num2: 10);
         /** @var int<1, 12> Richards algorithm guarantees month is 1–12 */
-        $month = $m + 3 - (12 * intdiv(num1: $m, num2: 10));
-        $year = (100 * $b) + $d - 4800 + intdiv(num1: $m, num2: 10);
+        $month = $m + 3 - (12 * $mDiv10);
+        $year = (100 * $b) + $d - 4800 + $mDiv10;
+
         return [$year, $month, $day];
     }
 

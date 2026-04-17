@@ -60,33 +60,39 @@ final class Duration implements Stringable
         public readonly int|float $microseconds = 0,
         public readonly int|float $nanoseconds = 0,
     ) {
+        $years = $this->years;
+        $months = $this->months;
+        $weeks = $this->weeks;
+        $days = $this->days;
+        $hours = $this->hours;
+        $minutes = $this->minutes;
+        $seconds = $this->seconds;
+        $milliseconds = $this->milliseconds;
+        $microseconds = $this->microseconds;
+        $nanoseconds = $this->nanoseconds;
+
+        $allInt = is_int($years) && is_int($months) && is_int($weeks) && is_int($days)
+            && is_int($hours) && is_int($minutes) && is_int($seconds)
+            && is_int($milliseconds) && is_int($microseconds) && is_int($nanoseconds);
+
         // TC39: each Duration field must be an integer value (not fractional).
-        // Reject any float with a non-zero fractional part.
-        foreach ([
-            $this->years,
-            $this->months,
-            $this->weeks,
-            $this->days,
-            $this->hours,
-            $this->minutes,
-            $this->seconds,
-            $this->milliseconds,
-            $this->microseconds,
-            $this->nanoseconds,
-        ] as $field) {
-            if (is_float($field) && !is_infinite($field) && fmod(num1: $field, num2: 1.0) !== 0.0) {
-                throw new InvalidArgumentException(
-                    'Duration fields must be integer-valued; fractional values are not allowed.',
-                );
+        // Skip the fmod check entirely in the common all-int case.
+        if (!$allInt) {
+            foreach ([$years, $months, $weeks, $days, $hours, $minutes, $seconds, $milliseconds, $microseconds, $nanoseconds] as $field) {
+                if (is_float($field) && !is_infinite($field) && fmod(num1: $field, num2: 1.0) !== 0.0) {
+                    throw new InvalidArgumentException(
+                        'Duration fields must be integer-valued; fractional values are not allowed.',
+                    );
+                }
             }
         }
 
         // TC39 §7.5.10 IsValidDuration — calendar fields capped at 2^32.
         /** @infection-ignore-all GreaterThanOrEqual |x| >= 2^32 vs > 2^32-1 are identical for integers */
         if (
-            abs($this->years) >= 4_294_967_296
-            || abs($this->months) >= 4_294_967_296
-            || abs($this->weeks) >= 4_294_967_296
+            abs($years) >= 4_294_967_296
+            || abs($months) >= 4_294_967_296
+            || abs($weeks) >= 4_294_967_296
         ) {
             throw new InvalidArgumentException(
                 'Duration years, months, and weeks must each be less than 2^32 in absolute value.',
@@ -95,46 +101,32 @@ final class Duration implements Stringable
 
         // TC39 §7.5.11 IsValidDuration: the combined total of days + time fields must not
         // exceed MaxTimeDuration = 2^53 × 10^9 - 1 nanoseconds.
-        //
-        // Strategy:
-        //   A. Reject if the seconds field alone exceeds MAX_SAFE_INT.
-        //   B. When all fields are integers (the common case): use exact integer carry
-        //      arithmetic to compute the effective full-seconds total, then check it.
-        //      This correctly handles large-ms/µs/ns values that would round to exactly
-        //      2^53 in float64 (e.g. seconds=8_998_192_055_486_252 + ms=MAX_SAFE_INT).
-        //   C. When any field is a float: use the float total check (with >) which works
-        //      for values that are clearly above or below the limit.
-
         /** @infection-ignore-all */
-        $secI = is_int($this->seconds) ? $this->seconds : (int) $this->seconds;
+        $secI = is_int($seconds) ? $seconds : (int) $seconds;
         if ($secI > 9_007_199_254_740_991 || $secI < -9_007_199_254_740_991) {
             throw new InvalidArgumentException('Duration time fields exceed the maximum representable range.');
         }
 
-        if (
-            is_int($this->days)
-            && is_int($this->hours)
-            && is_int($this->minutes)
-            && is_int($this->seconds)
-            && is_int($this->milliseconds)
-            && is_int($this->microseconds)
-            && is_int($this->nanoseconds)
-        ) {
+        if ($allInt) {
             // All-integer path: propagate carry ns → µs → ms → s → check full total.
-            $carryNs = intdiv(num1: $this->nanoseconds, num2: 1_000);
-            $usEff = $this->microseconds + $carryNs;
+            // Cast to int: $allInt guarantees all fields are int, but analyzers can't narrow that.
+            $nsI = (int) $nanoseconds;
+            $usI = (int) $microseconds;
+            $msI = (int) $milliseconds;
+            $carryNs = intdiv(num1: $nsI, num2: 1_000);
+            $usEff = $usI + $carryNs;
             $carryUs = intdiv(num1: $usEff, num2: 1_000);
-            $msEff = $this->milliseconds + $carryUs;
+            $msEff = $msI + $carryUs;
             $carryMs = intdiv(num1: $msEff, num2: 1_000);
             $sEff = $secI + $carryMs;
-            $intSecFull = ($this->days * 86_400) + ($this->hours * 3_600) + ($this->minutes * 60) + $sEff;
+            $intSecFull = ((int) $days * 86_400) + ((int) $hours * 3_600) + ((int) $minutes * 60) + $sEff;
             if ($intSecFull > 9_007_199_254_740_991 || $intSecFull < -9_007_199_254_740_991) {
                 throw new InvalidArgumentException('Duration time fields exceed the maximum representable range.');
             }
             // At the exact boundary (effective seconds == MAX_SAFE_INT), the remaining
             // sub-second nanoseconds must be < 1 s to stay within MaxTimeDuration.
             if (abs($intSecFull) === 9_007_199_254_740_991) {
-                $remNs = $this->nanoseconds - ($carryNs * 1_000);
+                $remNs = $nsI - ($carryNs * 1_000);
                 $remUs = $usEff - ($carryUs * 1_000);
                 $remMs = $msEff - ($carryMs * 1_000);
                 $remSubNs = ($remMs * 1_000_000) + ($remUs * 1_000) + $remNs;
@@ -144,25 +136,26 @@ final class Duration implements Stringable
             }
         } else {
             // Float path: any field is a float (large µs/ns may exceed PHP int64).
-            // Use > (not >=) because valid-max durations also round to 2^53 in float64.
             $MAX_SAFE_F = 9_007_199_254_740_992.0; // 2^53 exactly as float64
             $subNs =
-                ((float) $this->milliseconds * 1_000_000.0)
-                + ((float) $this->microseconds * 1_000.0)
-                + (float) $this->nanoseconds;
+                ((float) $milliseconds * 1_000_000.0)
+                + ((float) $microseconds * 1_000.0)
+                + (float) $nanoseconds;
             $totalSec =
-                ((float) $this->days * 86_400.0)
-                + ((float) $this->hours * 3_600.0)
-                + ((float) $this->minutes * 60.0)
-                + (float) $this->seconds
+                ((float) $days * 86_400.0)
+                + ((float) $hours * 3_600.0)
+                + ((float) $minutes * 60.0)
+                + (float) $seconds
                 + ($subNs / 1_000_000_000.0);
             if (abs($totalSec) > $MAX_SAFE_F) {
                 throw new InvalidArgumentException('Duration time fields exceed the maximum representable range.');
             }
         }
 
+        // Sign check: all non-zero fields must share the same sign.
+        // Inlined to avoid fields() array allocation per construction.
         $positive = null;
-        foreach ($this->fields() as $v) {
+        foreach ([$years, $months, $weeks, $days, $hours, $minutes, $seconds, $milliseconds, $microseconds, $nanoseconds] as $v) {
             if ($v === 0 || $v === 0.0) {
                 continue;
             }
@@ -1089,8 +1082,7 @@ final class Duration implements Stringable
         $hasFracSec = false;
         $utcSec = 0;
 
-        /** @psalm-suppress RedundantCondition */
-        if ($hasInlineOffset && $hasTzBracket) {
+        if ($hasInlineOffset) {
             // ZonedDateTime string: validate local date range.
 
             // Local date must be at or after -271821-04-20 (epochDays ≥ -100 000 000).
@@ -1142,8 +1134,7 @@ final class Duration implements Stringable
             }
         }
 
-        /** @psalm-suppress RedundantCondition */
-        $isZDT = $hasInlineOffset && $hasTzBracket;
+        $isZDT = $hasInlineOffset;
         return [
             'year' => $year,
             'month' => $month,

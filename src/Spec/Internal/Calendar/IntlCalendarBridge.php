@@ -55,8 +55,21 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     private readonly \IntlCalendar $intlCal;
 
+    /** Calendars whose year/month/day share the ISO 8601 proleptic Gregorian structure. */
+    private readonly bool $isGregorianBased;
+    /** Calendars with 13 months (coptic/ethiopic family). */
+    private readonly bool $isCopticLike;
+
     /** @var array<int, int> Memoized findChineseLeapMonthInYear results, keyed by calYear. */
     private array $chineseLeapMonthCache = [];
+
+    /** JDN that $intlCal was last set to via setIsoDate, or null if set via another path. */
+    private ?int $lastSetJdn = null;
+
+    /** ISO year last passed to setIsoDate — valid iff $lastSetJdn !== null. */
+    private int $lastSetIsoYear = 0;
+    private int $lastSetIsoMonth = 0;
+    private int $lastSetIsoDay = 0;
 
     public function __construct(
         private readonly string $calendarId,
@@ -72,6 +85,14 @@ final class IntlCalendarBridge implements CalendarProtocol
             $cal->setGregorianChange(PHP_FLOAT_MIN);
         }
         $this->intlCal = $cal;
+        $this->isGregorianBased = match ($calendarId) {
+            'gregory', 'japanese', 'buddhist', 'roc' => true,
+            default => false,
+        };
+        $this->isCopticLike = match ($calendarId) {
+            'coptic', 'ethiopic', 'ethioaa' => true,
+            default => false,
+        };
     }
 
     #[\Override]
@@ -146,7 +167,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function month(int $isoYear, int $isoMonth, int $isoDay): int
     {
         // Gregorian-based calendars share ISO month structure.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        if ($this->isGregorianBased) {
             return $isoMonth;
         }
 
@@ -163,7 +184,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function day(int $isoYear, int $isoMonth, int $isoDay): int
     {
         // Gregorian-based calendars share ISO day structure.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        if ($this->isGregorianBased) {
             return $isoDay;
         }
 
@@ -234,7 +255,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function monthCode(int $isoYear, int $isoMonth, int $isoDay): string
     {
         // Gregorian-based calendars: month code matches ISO month.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        if ($this->isGregorianBased) {
             return sprintf('M%02d', $isoMonth);
         }
 
@@ -251,7 +272,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function dayOfYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         // Gregorian-based calendars: compute directly.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        if ($this->isGregorianBased) {
             return CalendarMath::isoDayOfYear($isoYear, $isoMonth, $isoDay);
         }
 
@@ -264,7 +285,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function daysInMonth(int $isoYear, int $isoMonth, int $isoDay): int
     {
         // Gregorian-based calendars: compute directly.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        if ($this->isGregorianBased) {
             return CalendarMath::calcDaysInMonth($isoYear, $isoMonth);
         }
 
@@ -277,7 +298,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function daysInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         // Gregorian-based calendars: compute directly.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        if ($this->isGregorianBased) {
             return CalendarMath::isLeapYear($isoYear) ? 366 : 365;
         }
 
@@ -298,7 +319,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function monthsInYear(int $isoYear, int $isoMonth, int $isoDay): int
     {
         // Gregorian-based calendars always have 12 months.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        if ($this->isGregorianBased) {
             return 12;
         }
 
@@ -314,7 +335,8 @@ final class IntlCalendarBridge implements CalendarProtocol
     #[\Override]
     public function inLeapYear(int $isoYear, int $isoMonth, int $isoDay): bool
     {
-        if (in_array($this->calendarId, self::GREGORIAN_BASED, strict: true)) {
+        // 'indian' from GREGORIAN_BASED is handled by PureIndianCalendar; IntlCalendarBridge never sees it.
+        if ($this->isGregorianBased) {
             return CalendarMath::isLeapYear($isoYear);
         }
 
@@ -362,12 +384,7 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         // Non-Gregorian calendars: validate/constrain month range.
         if ($overflow === 'reject') {
-            $this->setCalendarFields($calYear, 1, 1);
-            $maxMonths = match ($this->calendarId) {
-                'hebrew' => $this->isHebrewLeapYear() ? 13 : 12,
-                'chinese', 'dangi' => $this->hasChineseLeapMonth() ? 13 : 12,
-                default => $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_MONTH) + 1,
-            };
+            $maxMonths = $this->calendarMonthsInCalYear($calYear);
             if ($calMonth > $maxMonths) {
                 throw new InvalidArgumentException(
                     "Month {$calMonth} exceeds maximum {$maxMonths} for this calendar year.",
@@ -375,12 +392,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
         } elseif ($calMonth > 12) {
             // For non-Gregorian constrain, check if month exceeds max.
-            $this->setCalendarFields($calYear, 1, 1);
-            $maxMonths = match ($this->calendarId) {
-                'hebrew' => $this->isHebrewLeapYear() ? 13 : 12,
-                'chinese', 'dangi' => $this->hasChineseLeapMonth() ? 13 : 12,
-                default => $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_MONTH) + 1,
-            };
+            $maxMonths = $this->calendarMonthsInCalYear($calYear);
             if ($calMonth > $maxMonths) {
                 $calMonth = $maxMonths;
             }
@@ -472,10 +484,9 @@ final class IntlCalendarBridge implements CalendarProtocol
     ): array {
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
-        // Capture the original calendar day before year/month addition, for 'reject' overflow.
-        $originalCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
-
         if ($years !== 0 || $months !== 0) {
+            // Capture the original calendar day before year/month addition, for 'reject' overflow.
+            $originalCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
             // Use field-level arithmetic: read calendar fields, add to year/month,
             // then resolve back. This avoids Julian cutover issues in ICU.
             $calYear = $this->calendarYear();
@@ -516,13 +527,10 @@ final class IntlCalendarBridge implements CalendarProtocol
             // Handle month overflow/underflow.
             while ($calMonth < 1) {
                 $calYear--;
-                // Compute months in the year we're borrowing from.
-                $this->setCalendarFields($calYear, 1, 1);
-                $calMonth += $this->calendarMonthsInYear();
+                $calMonth += $this->calendarMonthsInCalYear($calYear);
             }
             while (true) {
-                $this->setCalendarFields($calYear, 1, 1);
-                $monthsInYear = $this->calendarMonthsInYear();
+                $monthsInYear = $this->calendarMonthsInCalYear($calYear);
                 if ($calMonth <= $monthsInYear) {
                     break;
                 }
@@ -775,27 +783,31 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function calendarYear(): int
     {
-        // For Gregorian-based calendars, derive from the epoch to avoid Julian cutover.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
-            $epochMs = $this->intlCal->getTime();
-            $jdn = (int) floor($epochMs / (float) self::MS_PER_DAY) + 2_440_588;
-            [$isoY] = CalendarMath::fromJulianDay($jdn);
+        // For Gregorian-based calendars, derive directly from the cached ISO year
+        // if available (setIsoDate path); otherwise fall back to epoch-to-ISO.
+        if (match ($this->calendarId) {
+            'gregory', 'japanese', 'buddhist', 'roc' => true,
+            default => false,
+        }) {
+            if ($this->lastSetJdn !== null) {
+                $isoY = $this->lastSetIsoYear;
+            } else {
+                $epochMs = $this->intlCal->getTime();
+                $jdn = (int) floor($epochMs / (float) self::MS_PER_DAY) + 2_440_588;
+                [$isoY] = CalendarMath::fromJulianDay($jdn);
+            }
             return match ($this->calendarId) {
                 'gregory', 'japanese' => $isoY,
                 'buddhist' => $isoY + 543,
                 'roc' => $isoY - self::ROC_YEAR_OFFSET,
             };
         }
-        if (in_array($this->calendarId, ['coptic', 'ethiopic'], strict: true)) {
-            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR);
-        }
-        if ($this->calendarId === 'chinese') {
-            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET;
-        }
-        if ($this->calendarId === 'dangi') {
-            return $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::DANGI_YEAR_OFFSET;
-        }
-        return $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
+        return match ($this->calendarId) {
+            'coptic', 'ethiopic' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR),
+            'chinese' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET,
+            'dangi' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::DANGI_YEAR_OFFSET,
+            default => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
+        };
     }
 
     /**
@@ -807,8 +819,14 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function calendarMonth(): int
     {
-        // Gregorian-based calendars: derive from epoch.
-        if (in_array($this->calendarId, ['gregory', 'japanese', 'buddhist', 'roc'], strict: true)) {
+        // Gregorian-based calendars: use cached ISO month if available.
+        if (match ($this->calendarId) {
+            'gregory', 'japanese', 'buddhist', 'roc' => true,
+            default => false,
+        }) {
+            if ($this->lastSetJdn !== null) {
+                return $this->lastSetIsoMonth;
+            }
             $epochMs = $this->intlCal->getTime();
             $jdn = (int) floor($epochMs / (float) self::MS_PER_DAY) + 2_440_588;
             [, $isoM] = CalendarMath::fromJulianDay($jdn);
@@ -823,14 +841,32 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     /**
      * Returns the months-in-year for the current calendar date.
-     * Must call setIsoDate() first.
+     * Must call setIsoDate() or setCalendarFields() first for Hebrew/Chinese/Dangi.
      */
     private function calendarMonthsInYear(): int
     {
         return match ($this->calendarId) {
             'hebrew' => $this->isHebrewLeapYear() ? 13 : 12,
             'chinese', 'dangi' => $this->hasChineseLeapMonth() ? 13 : 12,
-            default => $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_MONTH) + 1,
+            // These Ethiopic/Coptic-family calendars always have 13 months (12 × 30 + 5/6 epagomenal).
+            'coptic', 'ethiopic', 'ethioaa' => 13,
+            // All other calendars (gregory, japanese, buddhist, roc, indian, persian,
+            // islamic-*) always have 12 months per year.
+            default => 12,
+        };
+    }
+
+    /**
+     * Stateless variant of calendarMonthsInYear — takes calYear directly.
+     * Avoids needing to setCalendarFields() before querying.
+     */
+    private function calendarMonthsInCalYear(int $calYear): int
+    {
+        return match ($this->calendarId) {
+            'hebrew' => ((((7 * $calYear) + 1) % 19) + 19) % 19 < 7 ? 13 : 12,
+            'chinese', 'dangi' => $this->findChineseLeapMonthInYear($calYear) >= 0 ? 13 : 12,
+            'coptic', 'ethiopic', 'ethioaa' => 13,
+            default => 12,
         };
     }
 
@@ -858,7 +894,7 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function defaultMonthCodeToMonth(string $monthCode): int
     {
-        $maxMonth = in_array($this->calendarId, ['coptic', 'ethiopic', 'ethioaa'], strict: true) ? 13 : 12;
+        $maxMonth = $this->isCopticLike ? 13 : 12;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
             throw new InvalidArgumentException(
                 "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
@@ -1150,6 +1186,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     private function setCalendarFields(int $calYear, int $calMonth, int $calDay): void
     {
         $this->gregorianMaxDay = null;
+        $this->lastSetJdn = null;
 
         // For calendars using Gregorian months (same 1-12 months as ISO, just
         // a year offset), compute ISO date directly to avoid ICU's Julian cutover.
@@ -1205,6 +1242,7 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     private function setCalendarFieldsFromMonthCode(int $calYear, string $monthCode, int $calDay): void
     {
+        $this->lastSetJdn = null;
         // For Gregorian-based calendars, use direct ISO conversion to avoid Julian cutover.
         $isoYear = match ($this->calendarId) {
             'gregory', 'japanese' => $calYear,
@@ -1289,7 +1327,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             $this->intlCal->set(self::FIELD_IS_LEAP_MONTH, $isLeapCode ? 1 : 0);
         } else {
             // Standard calendars: M01-M12 → ICU 0-11; M13 → ICU 12 (coptic/ethiopic/ethioaa)
-            $maxMonth = in_array($this->calendarId, ['coptic', 'ethiopic', 'ethioaa'], strict: true) ? 13 : 12;
+            $maxMonth = $this->isCopticLike ? 13 : 12;
             if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
                 throw new InvalidArgumentException(
                     "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
@@ -1361,6 +1399,7 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function setChineseCalendarFromOrdinal(int $calYear, int $calMonth, int $calDay): void
     {
+        $this->lastSetJdn = null;
         // Find the leap month in this year (if any).
         $leapIcuMonth = $this->findChineseLeapMonthInYear($calYear);
 
@@ -1405,12 +1444,31 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     private function setIsoDate(int $isoYear, int $isoMonth, int $isoDay): void
     {
+        // Fast short-circuit before toJulianDay.
+        if (
+            $this->lastSetJdn !== null
+            && $this->lastSetIsoYear === $isoYear
+            && $this->lastSetIsoMonth === $isoMonth
+            && $this->lastSetIsoDay === $isoDay
+        ) {
+            return;
+        }
         $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
+        if ($this->lastSetJdn === $jdn) {
+            $this->lastSetIsoYear = $isoYear;
+            $this->lastSetIsoMonth = $isoMonth;
+            $this->lastSetIsoDay = $isoDay;
+            return;
+        }
         $epochMs = ($jdn - 2_440_588) * self::MS_PER_DAY;
         $this->intlCal->setTime((float) $epochMs);
         // Force ICU internal field resolution. Without this, getActualMaximum()
         // may return stale values for Chinese/Dangi leap months.
         $_ = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+        $this->lastSetJdn = $jdn;
+        $this->lastSetIsoYear = $isoYear;
+        $this->lastSetIsoMonth = $isoMonth;
+        $this->lastSetIsoDay = $isoDay;
     }
 
     // -------------------------------------------------------------------------

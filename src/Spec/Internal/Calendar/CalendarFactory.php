@@ -19,6 +19,9 @@ final class CalendarFactory
     /** @var array<string, CalendarProtocol> */
     private static array $instances = [];
 
+    /** @var array<string, string> Memoized canonicalize() results. */
+    private static array $canonicalCache = [];
+
     /**
      * All calendar identifiers recognized by TC39 Temporal (ECMA-402).
      *
@@ -68,6 +71,10 @@ final class CalendarFactory
      */
     public static function canonicalize(string $id): string
     {
+        if (isset(self::$canonicalCache[$id])) {
+            return self::$canonicalCache[$id];
+        }
+
         $lower = strtolower($id);
 
         if (array_key_exists($lower, self::ALIASES)) {
@@ -78,7 +85,7 @@ final class CalendarFactory
             throw new InvalidArgumentException("Unknown calendar \"{$id}\".");
         }
 
-        return $lower;
+        return self::$canonicalCache[$id] = $lower;
     }
 
     /**
