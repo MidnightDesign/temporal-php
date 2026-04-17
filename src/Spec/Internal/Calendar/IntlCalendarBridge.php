@@ -55,6 +55,9 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     private readonly \IntlCalendar $intlCal;
 
+    /** @var array<int, int> Memoized findChineseLeapMonthInYear results, keyed by calYear. */
+    private array $chineseLeapMonthCache = [];
+
     public function __construct(
         private readonly string $calendarId,
     ) {
@@ -955,9 +958,13 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function findChineseLeapMonthInYear(int $calYear): int
     {
+        if (array_key_exists($calYear, $this->chineseLeapMonthCache)) {
+            return $this->chineseLeapMonthCache[$calYear];
+        }
+
         // Apply ICU 76.1 correction for known leap month discrepancies.
         if ($this->calendarId === 'chinese' && array_key_exists($calYear, self::CHINESE_LEAP_MONTH_CORRECTIONS)) {
-            return self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear];
+            return $this->chineseLeapMonthCache[$calYear] = self::CHINESE_LEAP_MONTH_CORRECTIONS[$calYear];
         }
 
         $savedTime = $this->intlCal->getTime();
@@ -982,7 +989,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         }
 
         $this->intlCal->setTime($savedTime);
-        return $result;
+        return $this->chineseLeapMonthCache[$calYear] = $result;
     }
 
     /**
@@ -1476,33 +1483,10 @@ final class IntlCalendarBridge implements CalendarProtocol
      */
     private function hasChineseLeapMonth(): bool
     {
-        $savedTime = $this->intlCal->getTime();
-        $year = $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
-        $era = $this->intlCal->get(\IntlCalendar::FIELD_ERA);
+        $calYear = $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
+            - ($this->calendarId === 'chinese' ? self::CHINESE_YEAR_OFFSET : self::DANGI_YEAR_OFFSET);
 
-        $found = false;
-        // Scan all months in the year checking IS_LEAP_MONTH.
-        for ($m = 0; $m <= 11; $m++) {
-            $this->intlCal->clear();
-            $this->intlCal->set(\IntlCalendar::FIELD_ERA, $era);
-            $this->intlCal->set(\IntlCalendar::FIELD_YEAR, $year);
-            $this->intlCal->set(\IntlCalendar::FIELD_MONTH, $m);
-            $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, 15); // mid-month for safety
-            $_ = $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
-
-            // Now advance to the end of this month + 1 day to check if a leap month follows.
-            $daysInMonth = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
-            $this->intlCal->set(\IntlCalendar::FIELD_DAY_OF_MONTH, $daysInMonth);
-            $this->intlCal->add(\IntlCalendar::FIELD_DAY_OF_MONTH, 1);
-            if ($this->intlCal->get(self::FIELD_IS_LEAP_MONTH) === 1) {
-                $found = true;
-                break;
-            }
-        }
-
-        $this->intlCal->setTime($savedTime);
-
-        return $found;
+        return $this->findChineseLeapMonthInYear($calYear) >= 0;
     }
 
     /**

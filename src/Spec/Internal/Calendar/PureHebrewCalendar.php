@@ -27,6 +27,21 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private const int EPOCH = 347_998;
 
+    /** @var array<int, int> Memoized hebrewDelay1 results, keyed by year. */
+    private static array $delay1Cache = [];
+
+    /** @var array<int, int> Memoized hebrewNewYearDay results, keyed by year. */
+    private static array $newYearDayCache = [];
+
+    /** @var array<int, int> Memoized daysInHebrewYear results, keyed by year. */
+    private static array $daysInYearCache = [];
+
+    /** @var array<int, string> Memoized yearType results, keyed by year. */
+    private static array $yearTypeCache = [];
+
+    /** @var array<int, array{0: int, 1: int, 2: int}> Memoized isoToHebrew results, keyed by JDN. */
+    private static array $isoToHebrewCache = [];
+
     #[\Override]
     public function id(): string
     {
@@ -43,13 +58,16 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function hebrewDelay1(int $year): int
     {
+        if (array_key_exists($year, self::$delay1Cache)) {
+            return self::$delay1Cache[$year];
+        }
         $months = (int) floor(((235 * $year) - 234) / 19);
         $parts = 12_084 + (13_753 * $months);
         $day = ($months * 29) + (int) floor($parts / 25_920);
         if (((((3 * ($day + 1)) % 7) + 7) % 7) < 3) {
             $day++;
         }
-        return $day;
+        return self::$delay1Cache[$year] = $day;
     }
 
     /**
@@ -74,7 +92,8 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function hebrewNewYearDay(int $year): int
     {
-        return self::hebrewDelay1($year) + self::hebrewDelay2($year);
+        return self::$newYearDayCache[$year]
+            ??= self::hebrewDelay1($year) + self::hebrewDelay2($year);
     }
 
     /**
@@ -90,7 +109,8 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function daysInHebrewYear(int $year): int
     {
-        return self::hebrewNewYearDay($year + 1) - self::hebrewNewYearDay($year);
+        return self::$daysInYearCache[$year]
+            ??= self::hebrewNewYearDay($year + 1) - self::hebrewNewYearDay($year);
     }
 
     /**
@@ -106,8 +126,11 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function yearType(int $year): string
     {
+        if (array_key_exists($year, self::$yearTypeCache)) {
+            return self::$yearTypeCache[$year];
+        }
         $d = self::daysInHebrewYear($year);
-        return match ($d % 10) {
+        return self::$yearTypeCache[$year] = match ($d % 10) {
             3 => 'deficient', // 353 or 383
             4 => 'regular', // 354 or 384
             5 => 'complete', // 355 or 385
@@ -230,6 +253,9 @@ final class PureHebrewCalendar implements CalendarProtocol
     private static function isoToHebrew(int $isoYear, int $isoMonth, int $isoDay): array
     {
         $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
+        if (array_key_exists($jdn, self::$isoToHebrewCache)) {
+            return self::$isoToHebrewCache[$jdn];
+        }
 
         // Estimate the Hebrew year (could be off by 1).
         $approxYear = (int) floor((float) ($jdn - self::EPOCH) / 365.25) + 1;
@@ -258,7 +284,7 @@ final class PureHebrewCalendar implements CalendarProtocol
             $remaining -= $dim;
         }
 
-        return [$year, $month, $remaining];
+        return self::$isoToHebrewCache[$jdn] = [$year, $month, $remaining];
     }
 
     /**

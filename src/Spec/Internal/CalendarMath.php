@@ -790,24 +790,45 @@ final class CalendarMath
         return ['week' => $week, 'year' => $year];
     }
 
+    /** @var array<int, int> Memoized toJulianDay results, keyed by encoded (year, month, day). */
+    private static array $toJulianDayCache = [];
+
     /**
      * Converts a proleptic Gregorian calendar date to a Julian Day Number.
      * Algorithm: Richards (2013).
      */
     public static function toJulianDay(int $year, int $month, int $day): int
     {
+        // Packed int key (month ≤ 12 < 32, day ≤ 31 < 32) is injective over all (year, month, day).
+        $key = ($year * 512) + ($month * 32) + $day;
+        if (array_key_exists($key, self::$toJulianDayCache)) {
+            return self::$toJulianDayCache[$key];
+        }
+
         $a = intdiv(num1: 14 - $month, num2: 12);
         $y = $year + 4800 - $a;
         $m = $month + (12 * $a) - 3;
-        return (
-            $day
-            + intdiv(num1: (153 * $m) + 2, num2: 5)
-            + (365 * $y)
-            + self::floorDiv($y, 4)
-            - self::floorDiv($y, 100)
-            + self::floorDiv($y, 400)
-            - 32_045
-        );
+
+        // For $y ≥ 0, intdiv ≡ floorDiv. Slow path only for very-negative years.
+        if ($y >= 0) {
+            $jdn = $day
+                + intdiv(num1: (153 * $m) + 2, num2: 5)
+                + (365 * $y)
+                + intdiv(num1: $y, num2: 4)
+                - intdiv(num1: $y, num2: 100)
+                + intdiv(num1: $y, num2: 400)
+                - 32_045;
+        } else {
+            $jdn = $day
+                + intdiv(num1: (153 * $m) + 2, num2: 5)
+                + (365 * $y)
+                + self::floorDiv($y, 4)
+                - self::floorDiv($y, 100)
+                + self::floorDiv($y, 400)
+                - 32_045;
+        }
+
+        return self::$toJulianDayCache[$key] = $jdn;
     }
 
     /**
