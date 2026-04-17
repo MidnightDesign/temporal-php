@@ -12,4 +12,4 @@ $string = $duration->toString(['fractionalSecondDigits' => 2.5]);
 Assert::sameValue($string, 'P1Y2M3W4DT5H6M7.98S', 'fractionalSecondDigits 2.5 floors to 2');
 $string = $duration->toString(['fractionalSecondDigits' => 9.7]);
 Assert::sameValue($string, 'P1Y2M3W4DT5H6M7.987650000S', 'fractionalSecondDigits 9.7 floors to 9 and is not out of range');
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->toString(['fractionalSecondDigits' => -0.6]), 'fractionalSecondDigits -0.6 floors to -1 and is out of range');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->toString(['fractionalSecondDigits' => -0.6]); }, 'fractionalSecondDigits -0.6 floors to -1 and is out of range');

@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]', '09:00:00Z[UTC]', '09:00:00Z'];
 $instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->withPlainTime($arg), 'String with UTC designator should not be valid as a PlainTime');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, 'String with UTC designator should not be valid as a PlainTime');
 }

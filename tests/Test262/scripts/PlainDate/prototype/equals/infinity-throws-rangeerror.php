@@ -12,7 +12,7 @@ $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $base = ['year' => 2000, 'month' => 5, 'day' => 2];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day'] as $prop) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals(array_merge($base, [$prop => $inf])), "{$prop} property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$prop, &$inf) { return $instance->equals(array_merge($base, [$prop => $inf])); }, "{$prop} property cannot be {$inf}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

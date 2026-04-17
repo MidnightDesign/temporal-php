@@ -14,23 +14,23 @@ Assert::sameValue($zdt1->subtract(\Temporal\Spec\Duration::from(['microseconds' 
 // SKIP (int64 overflow): Assert::sameValue($zdt1->subtract(\Temporal\Spec\Duration::from(['microseconds' => -9_007_199_254_740_991]))->epochNanoseconds, 10590165902488603578, ...);
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => 9_007_199_254_740_991])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => -9_007_199_254_740_991])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['seconds' => -9_007_199_254_740_991])), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => 9_007_199_254_740_991])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => -9_007_199_254_740_991])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['seconds' => -9_007_199_254_740_991])); }, '');
 $bigNumber = 9_007_199_254_740_990_976;
 Assert::sameValue($zdt1->subtract(\Temporal\Spec\Duration::from(['nanoseconds' => $bigNumber]))->epochNanoseconds, -7_424_232_606_993_378_398, '');
 // SKIP (int64 overflow): Assert::sameValue($zdt1->subtract(\Temporal\Spec\Duration::from(['nanoseconds' => -$bigNumber]))->epochNanoseconds, 10590165902488603554, ...);
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1, &$bigNumber) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1, &$bigNumber) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1, &$bigNumber) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt1, &$bigNumber) { return $zdt1->subtract(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])); }, '');
 $zdt2 = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::sameValue($zdt2->subtract(\Temporal\Spec\Duration::from(['nanoseconds' => $bigNumber]))->epochNanoseconds, -9_007_199_254_740_990_976, '');
 Assert::sameValue($zdt2->subtract(\Temporal\Spec\Duration::from(['nanoseconds' => -$bigNumber]))->epochNanoseconds, 9_007_199_254_740_990_976, '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt2->subtract(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt2->subtract(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt2->subtract(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $zdt2->subtract(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt2, &$bigNumber) { return $zdt2->subtract(\Temporal\Spec\Duration::from(['microseconds' => $bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt2, &$bigNumber) { return $zdt2->subtract(\Temporal\Spec\Duration::from(['microseconds' => -$bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt2, &$bigNumber) { return $zdt2->subtract(\Temporal\Spec\Duration::from(['milliseconds' => $bigNumber])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt2, &$bigNumber) { return $zdt2->subtract(\Temporal\Spec\Duration::from(['milliseconds' => -$bigNumber])); }, '');

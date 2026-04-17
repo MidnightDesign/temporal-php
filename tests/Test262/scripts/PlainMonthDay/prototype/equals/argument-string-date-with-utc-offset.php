@@ -15,5 +15,5 @@ Assert::sameValue($result, true, "\"{$arg}\" is a valid UTC offset with time for
 }
 $invalidStrings = ['09-15Z', '09-15Z[UTC]', '09-15+01:00', '09-15+01:00[Europe/Vienna]', '--09-15Z', '--09-15Z[UTC]', '--09-15+01:00', '--09-15+01:00[Europe/Vienna]', '2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]', '09-15[u-ca=chinese]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), "\"{$arg}\" UTC offset without time is not valid for PlainMonthDay");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "\"{$arg}\" UTC offset without time is not valid for PlainMonthDay");
 }

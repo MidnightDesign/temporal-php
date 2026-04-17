@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01[UTC][UTC]', '1970-01-01T00:00[UTC][UTC]', '1970-01-01T00:00[!UTC][UTC]', '1970-01-01T00:00[UTC][!UTC]', '1970-01-01T00:00[UTC][u-ca=iso8601][UTC]', '1970-01-01T00:00[UTC][foo=bar][UTC]'];
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->since($arg), "reject more than one time zone annotation: {$arg}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, "reject more than one time zone annotation: {$arg}");
 }

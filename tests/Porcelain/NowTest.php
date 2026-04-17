@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use PHPUnit\Framework\TestCase;
+use Temporal\Calendar;
 use Temporal\Instant;
 use Temporal\Now;
 use Temporal\PlainDate;
@@ -93,10 +94,18 @@ final class NowTest extends TestCase
         static::assertSame((int) $dt->format('j'), $date->day);
     }
 
-    public function testPlainDateExplicitNullThrowsTypeError(): void
+    public function testPlainDateExplicitNullUsesSystemDefault(): void
     {
-        $this->expectException(\TypeError::class);
-        Now::plainDate(null);
+        $original = date_default_timezone_get();
+
+        try {
+            date_default_timezone_set('UTC');
+            $date = Now::plainDate(null);
+
+            static::assertSame(Calendar::Iso8601, $date->calendar);
+        } finally {
+            date_default_timezone_set($original);
+        }
     }
 
     public function testPlainDateEmptyStringThrowsInvalidArgument(): void
@@ -135,10 +144,18 @@ final class NowTest extends TestCase
         }
     }
 
-    public function testPlainTimeExplicitNullThrowsTypeError(): void
+    public function testPlainTimeExplicitNullUsesSystemDefault(): void
     {
-        $this->expectException(\TypeError::class);
-        Now::plainTime(null);
+        $original = date_default_timezone_get();
+
+        try {
+            date_default_timezone_set('UTC');
+            $time = Now::plainTime(null);
+
+            static::assertGreaterThanOrEqual(0, $time->hour);
+        } finally {
+            date_default_timezone_set($original);
+        }
     }
 
     public function testPlainTimeEmptyStringThrowsInvalidArgument(): void
@@ -180,10 +197,18 @@ final class NowTest extends TestCase
         }
     }
 
-    public function testPlainDateTimeExplicitNullThrowsTypeError(): void
+    public function testPlainDateTimeExplicitNullUsesSystemDefault(): void
     {
-        $this->expectException(\TypeError::class);
-        Now::plainDateTime(null);
+        $original = date_default_timezone_get();
+
+        try {
+            date_default_timezone_set('UTC');
+            $pdt = Now::plainDateTime(null);
+
+            static::assertSame(Calendar::Iso8601, $pdt->calendar);
+        } finally {
+            date_default_timezone_set($original);
+        }
     }
 
     public function testPlainDateTimeEmptyStringThrowsInvalidArgument(): void
@@ -225,13 +250,18 @@ final class NowTest extends TestCase
         }
     }
 
-    public function testZonedDateTimeExplicitNullThrowsTypeError(): void
+    public function testZonedDateTimeExplicitNullUsesSystemDefault(): void
     {
-        if (!class_exists(\Temporal\ZonedDateTime::class)) {
-            static::markTestSkipped('Porcelain ZonedDateTime class not yet implemented.');
+        $original = date_default_timezone_get();
+
+        try {
+            date_default_timezone_set('UTC');
+            $zdt = Now::zonedDateTime(null);
+
+            static::assertSame(Calendar::Iso8601, $zdt->calendar);
+        } finally {
+            date_default_timezone_set($original);
         }
-        $this->expectException(\TypeError::class);
-        Now::zonedDateTime(null);
     }
 
     public function testZonedDateTimeEmptyStringThrowsInvalidArgument(): void
@@ -244,6 +274,52 @@ final class NowTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
+    // Calendar parameter
+    // -------------------------------------------------------------------------
+
+    public function testPlainDateWithCalendar(): void
+    {
+        $date = Now::plainDate('UTC', Calendar::Hebrew);
+
+        static::assertSame(Calendar::Hebrew, $date->calendar);
+    }
+
+    public function testPlainDateDefaultCalendarIsIso(): void
+    {
+        $date = Now::plainDate('UTC');
+
+        static::assertSame(Calendar::Iso8601, $date->calendar);
+    }
+
+    public function testPlainDateTimeWithCalendar(): void
+    {
+        $pdt = Now::plainDateTime('UTC', Calendar::Japanese);
+
+        static::assertSame(Calendar::Japanese, $pdt->calendar);
+    }
+
+    public function testPlainDateTimeDefaultCalendarIsIso(): void
+    {
+        $pdt = Now::plainDateTime('UTC');
+
+        static::assertSame(Calendar::Iso8601, $pdt->calendar);
+    }
+
+    public function testZonedDateTimeWithCalendar(): void
+    {
+        $zdt = Now::zonedDateTime('UTC', Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $zdt->calendar);
+    }
+
+    public function testZonedDateTimeDefaultCalendarIsIso(): void
+    {
+        $zdt = Now::zonedDateTime('UTC');
+
+        static::assertSame(Calendar::Iso8601, $zdt->calendar);
+    }
+
+    // -------------------------------------------------------------------------
     // Not instantiable
     // -------------------------------------------------------------------------
 
@@ -252,5 +328,11 @@ final class NowTest extends TestCase
         $ref = new \ReflectionClass(Now::class);
 
         static::assertFalse($ref->isInstantiable());
+
+        // Cover the private constructor body via reflection.
+        $constructor = $ref->getConstructor();
+        static::assertNotNull($constructor);
+        $instance = $ref->newInstanceWithoutConstructor();
+        $constructor->invoke($instance);
     }
 }

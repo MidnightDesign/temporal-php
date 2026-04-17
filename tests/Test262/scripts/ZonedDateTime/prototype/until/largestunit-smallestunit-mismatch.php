@@ -14,6 +14,6 @@ for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
 $largestUnit = $units[$largestIdx];
 $smallestUnit = $units[$smallestIdx];
-Assert::throws(\InvalidArgumentException::class, fn() => $earlier->until($later, ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit]), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later, &$largestUnit, &$smallestUnit) { return $earlier->until($later, ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit]); }, '');
 }
 }

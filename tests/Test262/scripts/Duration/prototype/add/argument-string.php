@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $duration = \Temporal\Spec\Duration::from(['days' => 1, 'minutes' => 5]);
 $result = $duration->add('P2DT5M');
 TemporalHelpers::assertDuration($result, 0, 0, 0, 3, 0, 10, 0, 0, 0, 0, 'String argument should be supported');
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->add('2DT5M'), 'Invalid string argument should throw');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->add('2DT5M'); }, 'Invalid string argument should throw');

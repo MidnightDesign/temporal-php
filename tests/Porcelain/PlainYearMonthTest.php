@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
+use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
-use Temporal\PlainDate;
+use Temporal\Overflow;
 use Temporal\PlainYearMonth;
 use Temporal\RoundingMode;
-
 use Temporal\Unit;
 
 final class PlainYearMonthTest extends TemporalTestCase
@@ -23,44 +23,57 @@ final class PlainYearMonthTest extends TemporalTestCase
     {
         $ym = new PlainYearMonth(2020, 6);
 
-        self::assertSame(2020, $ym->year);
-        self::assertSame(6, $ym->month);
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
     }
 
     // -------------------------------------------------------------------------
     // Virtual properties
     // -------------------------------------------------------------------------
 
-    public function testCalendarIdIsIso8601(): void
+    public function testCalendarIsIso8601(): void
     {
-        self::assertSame('iso8601', (new PlainYearMonth(2020, 6))->calendarId);
+        static::assertSame(Calendar::Iso8601, new PlainYearMonth(2020, 6)->calendar);
+    }
+
+    public function testEraIsNullForIso8601(): void
+    {
+        $ym = new PlainYearMonth(2020, 6);
+
+        static::assertNull($ym->era);
+        static::assertNull($ym->eraYear);
     }
 
     public function testMonthCode(): void
     {
-        self::assertSame('M01', (new PlainYearMonth(2020, 1))->monthCode);
-        self::assertSame('M06', (new PlainYearMonth(2020, 6))->monthCode);
-        self::assertSame('M12', (new PlainYearMonth(2020, 12))->monthCode);
+        static::assertSame('M01', new PlainYearMonth(2020, 1)->monthCode);
+        static::assertSame('M06', new PlainYearMonth(2020, 6)->monthCode);
+        static::assertSame('M12', new PlainYearMonth(2020, 12)->monthCode);
     }
 
     public function testDaysInMonth(): void
     {
-        self::assertSame(31, (new PlainYearMonth(2020, 1))->daysInMonth);
-        self::assertSame(29, (new PlainYearMonth(2020, 2))->daysInMonth);
-        self::assertSame(28, (new PlainYearMonth(2019, 2))->daysInMonth);
-        self::assertSame(30, (new PlainYearMonth(2020, 4))->daysInMonth);
+        static::assertSame(31, new PlainYearMonth(2020, 1)->daysInMonth);
+        static::assertSame(29, new PlainYearMonth(2020, 2)->daysInMonth);
+        static::assertSame(28, new PlainYearMonth(2019, 2)->daysInMonth);
+        static::assertSame(30, new PlainYearMonth(2020, 4)->daysInMonth);
     }
 
     public function testDaysInYear(): void
     {
-        self::assertSame(366, (new PlainYearMonth(2020, 1))->daysInYear);
-        self::assertSame(365, (new PlainYearMonth(2019, 1))->daysInYear);
+        static::assertSame(366, new PlainYearMonth(2020, 1)->daysInYear);
+        static::assertSame(365, new PlainYearMonth(2019, 1)->daysInYear);
+    }
+
+    public function testMonthsInYear(): void
+    {
+        static::assertSame(12, new PlainYearMonth(2020, 1)->monthsInYear);
     }
 
     public function testInLeapYear(): void
     {
-        self::assertTrue((new PlainYearMonth(2020, 1))->inLeapYear);
-        self::assertFalse((new PlainYearMonth(2019, 1))->inLeapYear);
+        static::assertTrue(new PlainYearMonth(2020, 1)->inLeapYear);
+        static::assertFalse(new PlainYearMonth(2019, 1)->inLeapYear);
     }
 
     // -------------------------------------------------------------------------
@@ -71,8 +84,8 @@ final class PlainYearMonthTest extends TemporalTestCase
     {
         $ym = PlainYearMonth::parse('2020-06');
 
-        self::assertSame(2020, $ym->year);
-        self::assertSame(6, $ym->month);
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
     }
 
     public function testParseWithDay(): void
@@ -80,8 +93,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         // Parsing a full date string should still yield the year-month
         $ym = PlainYearMonth::parse('2020-06-15');
 
-        self::assertSame(2020, $ym->year);
-        self::assertSame(6, $ym->month);
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
     }
 
     public function testParseInvalidStringThrows(): void
@@ -94,8 +107,8 @@ final class PlainYearMonthTest extends TemporalTestCase
     {
         $ym = PlainYearMonth::parse('-001000-01');
 
-        self::assertSame(-1000, $ym->year);
-        self::assertSame(1, $ym->month);
+        static::assertSame(-1000, $ym->year);
+        static::assertSame(1, $ym->month);
     }
 
     // -------------------------------------------------------------------------
@@ -107,7 +120,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $a = new PlainYearMonth(2020, 6);
         $b = new PlainYearMonth(2020, 6);
 
-        self::assertSame(0, PlainYearMonth::compare($a, $b));
+        static::assertSame(0, PlainYearMonth::compare($a, $b));
     }
 
     public function testCompareEarlierVsLater(): void
@@ -115,8 +128,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $a = new PlainYearMonth(2020, 1);
         $b = new PlainYearMonth(2020, 12);
 
-        self::assertLessThan(0, PlainYearMonth::compare($a, $b));
-        self::assertGreaterThan(0, PlainYearMonth::compare($b, $a));
+        static::assertLessThan(0, PlainYearMonth::compare($a, $b));
+        static::assertGreaterThan(0, PlainYearMonth::compare($b, $a));
     }
 
     public function testCompareByYear(): void
@@ -124,7 +137,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $a = new PlainYearMonth(2019, 12);
         $b = new PlainYearMonth(2020, 1);
 
-        self::assertLessThan(0, PlainYearMonth::compare($a, $b));
+        static::assertLessThan(0, PlainYearMonth::compare($a, $b));
     }
 
     // -------------------------------------------------------------------------
@@ -136,8 +149,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $result = $ym->with(year: 2021);
 
-        self::assertSame(2021, $result->year);
-        self::assertSame(6, $result->month);
+        static::assertSame(2021, $result->year);
+        static::assertSame(6, $result->month);
     }
 
     public function testWithMonth(): void
@@ -145,8 +158,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $result = $ym->with(month: 1);
 
-        self::assertSame(2020, $result->year);
-        self::assertSame(1, $result->month);
+        static::assertSame(2020, $result->year);
+        static::assertSame(1, $result->month);
     }
 
     public function testWithReturnsNewInstance(): void
@@ -154,8 +167,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $result = $ym->with(year: 2021);
 
-        self::assertNotSame($ym, $result);
-        self::assertSame(2020, $ym->year);
+        static::assertNotSame($ym, $result);
+        static::assertSame(2020, $ym->year);
     }
 
     // -------------------------------------------------------------------------
@@ -167,8 +180,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 10);
         $result = $ym->add(new Duration(months: 5));
 
-        self::assertSame(2021, $result->year);
-        self::assertSame(3, $result->month);
+        static::assertSame(2021, $result->year);
+        static::assertSame(3, $result->month);
     }
 
     public function testAddYears(): void
@@ -176,8 +189,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $result = $ym->add(new Duration(years: 2));
 
-        self::assertSame(2022, $result->year);
-        self::assertSame(6, $result->month);
+        static::assertSame(2022, $result->year);
+        static::assertSame(6, $result->month);
     }
 
     public function testAddYearsAndMonths(): void
@@ -185,8 +198,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $result = $ym->add(new Duration(years: 1, months: 8));
 
-        self::assertSame(2022, $result->year);
-        self::assertSame(2, $result->month);
+        static::assertSame(2022, $result->year);
+        static::assertSame(2, $result->month);
     }
 
     public function testSubtractMonths(): void
@@ -194,8 +207,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 3);
         $result = $ym->subtract(new Duration(months: 5));
 
-        self::assertSame(2019, $result->year);
-        self::assertSame(10, $result->month);
+        static::assertSame(2019, $result->year);
+        static::assertSame(10, $result->month);
     }
 
     public function testSubtractYears(): void
@@ -203,8 +216,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $result = $ym->subtract(new Duration(years: 3));
 
-        self::assertSame(2017, $result->year);
-        self::assertSame(6, $result->month);
+        static::assertSame(2017, $result->year);
+        static::assertSame(6, $result->month);
     }
 
     public function testAddDoesNotMutateOriginal(): void
@@ -212,7 +225,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $ym->add(new Duration(months: 1));
 
-        self::assertSame(6, $ym->month);
+        static::assertSame(6, $ym->month);
     }
 
     // -------------------------------------------------------------------------
@@ -226,8 +239,8 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         $dur = $b->since($a);
 
-        self::assertSame(0, $dur->years);
-        self::assertSame(3, $dur->months);
+        static::assertSame(0, $dur->years);
+        static::assertSame(3, $dur->months);
     }
 
     public function testUntilMonths(): void
@@ -237,8 +250,8 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         $dur = $a->until($b);
 
-        self::assertSame(0, $dur->years);
-        self::assertSame(3, $dur->months);
+        static::assertSame(0, $dur->years);
+        static::assertSame(3, $dur->months);
     }
 
     public function testSinceWithLargestUnitYear(): void
@@ -248,8 +261,8 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         $dur = $b->since($a, largestUnit: Unit::Year);
 
-        self::assertSame(2, $dur->years);
-        self::assertSame(3, $dur->months);
+        static::assertSame(2, $dur->years);
+        static::assertSame(3, $dur->months);
     }
 
     public function testUntilWithLargestUnitYear(): void
@@ -259,8 +272,8 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         $dur = $a->until($b, largestUnit: Unit::Year);
 
-        self::assertSame(2, $dur->years);
-        self::assertSame(3, $dur->months);
+        static::assertSame(2, $dur->years);
+        static::assertSame(3, $dur->months);
     }
 
     public function testSinceNegative(): void
@@ -270,7 +283,7 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         $dur = $b->since($a);
 
-        self::assertSame(-5, $dur->months);
+        static::assertSame(-5, $dur->months);
     }
 
     public function testUntilNegative(): void
@@ -280,7 +293,7 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         $dur = $a->until($b);
 
-        self::assertSame(-5, $dur->months);
+        static::assertSame(-5, $dur->months);
     }
 
     public function testSinceWithSmallestUnitYear(): void
@@ -290,8 +303,8 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         $dur = $b->since($a, smallestUnit: Unit::Year);
 
-        self::assertSame(2, $dur->years);
-        self::assertSame(0, $dur->months);
+        static::assertSame(2, $dur->years);
+        static::assertSame(0, $dur->months);
     }
 
     // -------------------------------------------------------------------------
@@ -303,7 +316,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $a = new PlainYearMonth(2020, 6);
         $b = new PlainYearMonth(2020, 6);
 
-        self::assertTrue($a->equals($b));
+        static::assertTrue($a->equals($b));
     }
 
     public function testEqualsFalse(): void
@@ -311,7 +324,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $a = new PlainYearMonth(2020, 6);
         $b = new PlainYearMonth(2020, 7);
 
-        self::assertFalse($a->equals($b));
+        static::assertFalse($a->equals($b));
     }
 
     public function testEqualsDifferentYear(): void
@@ -319,7 +332,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $a = new PlainYearMonth(2020, 6);
         $b = new PlainYearMonth(2021, 6);
 
-        self::assertFalse($a->equals($b));
+        static::assertFalse($a->equals($b));
     }
 
     // -------------------------------------------------------------------------
@@ -330,35 +343,35 @@ final class PlainYearMonthTest extends TemporalTestCase
     {
         $ym = new PlainYearMonth(2020, 6);
 
-        self::assertSame('2020-06', $ym->toString());
+        static::assertSame('2020-06', $ym->toString());
     }
 
     public function testToStringCalendarAlways(): void
     {
         $ym = new PlainYearMonth(2020, 6);
 
-        self::assertSame('2020-06-01[u-ca=iso8601]', $ym->toString(CalendarDisplay::Always));
+        static::assertSame('2020-06-01[u-ca=iso8601]', $ym->toString(CalendarDisplay::Always));
     }
 
     public function testToStringCalendarNever(): void
     {
         $ym = new PlainYearMonth(2020, 6);
 
-        self::assertSame('2020-06', $ym->toString(CalendarDisplay::Never));
+        static::assertSame('2020-06', $ym->toString(CalendarDisplay::Never));
     }
 
     public function testToStringCalendarCritical(): void
     {
         $ym = new PlainYearMonth(2020, 6);
 
-        self::assertSame('2020-06-01[!u-ca=iso8601]', $ym->toString(CalendarDisplay::Critical));
+        static::assertSame('2020-06-01[!u-ca=iso8601]', $ym->toString(CalendarDisplay::Critical));
     }
 
     public function testToStringNegativeYear(): void
     {
         $ym = new PlainYearMonth(-1000, 1);
 
-        self::assertSame('-001000-01', $ym->toString());
+        static::assertSame('-001000-01', $ym->toString());
     }
 
     // -------------------------------------------------------------------------
@@ -370,9 +383,9 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $date = $ym->toPlainDate(15);
 
-        self::assertSame(2020, $date->year);
-        self::assertSame(6, $date->month);
-        self::assertSame(15, $date->day);
+        static::assertSame(2020, $date->year);
+        static::assertSame(6, $date->month);
+        static::assertSame(15, $date->day);
     }
 
     public function testToPlainDateFirstDay(): void
@@ -380,9 +393,9 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 2);
         $date = $ym->toPlainDate(1);
 
-        self::assertSame(2020, $date->year);
-        self::assertSame(2, $date->month);
-        self::assertSame(1, $date->day);
+        static::assertSame(2020, $date->year);
+        static::assertSame(2, $date->month);
+        static::assertSame(1, $date->day);
     }
 
     public function testToPlainDateLastDayLeapYear(): void
@@ -390,7 +403,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 2);
         $date = $ym->toPlainDate(29);
 
-        self::assertSame(29, $date->day);
+        static::assertSame(29, $date->day);
     }
 
     // -------------------------------------------------------------------------
@@ -401,14 +414,14 @@ final class PlainYearMonthTest extends TemporalTestCase
     {
         $ym = new PlainYearMonth(2020, 6);
 
-        self::assertSame('2020-06', (string) $ym);
+        static::assertSame('2020-06', (string) $ym);
     }
 
     public function testJsonSerialize(): void
     {
         $ym = new PlainYearMonth(2020, 6);
 
-        self::assertSame('"2020-06"', json_encode($ym));
+        static::assertSame('"2020-06"', json_encode($ym));
     }
 
     // -------------------------------------------------------------------------
@@ -420,8 +433,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $spec = $ym->toSpec();
 
-        self::assertSame(2020, $spec->year);
-        self::assertSame(6, $spec->month);
+        static::assertSame(2020, $spec->year);
+        static::assertSame(6, $spec->month);
     }
 
     public function testFromSpecCreatesInstance(): void
@@ -429,8 +442,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $spec = new \Temporal\Spec\PlainYearMonth(2020, 6);
         $ym = PlainYearMonth::fromSpec($spec);
 
-        self::assertSame(2020, $ym->year);
-        self::assertSame(6, $ym->month);
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
     }
 
     public function testToSpecRoundTrip(): void
@@ -438,7 +451,7 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $restored = PlainYearMonth::fromSpec($ym->toSpec());
 
-        self::assertTrue($ym->equals($restored));
+        static::assertTrue($ym->equals($restored));
     }
 
     // -------------------------------------------------------------------------
@@ -450,10 +463,10 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ym = new PlainYearMonth(2020, 6);
         $info = $ym->__debugInfo();
 
-        self::assertSame(2020, $info['year']);
-        self::assertSame(6, $info['month']);
-        self::assertSame('iso8601', $info['calendarId']);
-        self::assertSame('2020-06', $info['iso']);
+        static::assertSame(2020, $info['year']);
+        static::assertSame(6, $info['month']);
+        static::assertSame(Calendar::Iso8601, $info['calendar']);
+        static::assertSame('2020-06', $info['iso']);
     }
 
     // -------------------------------------------------------------------------
@@ -466,8 +479,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $b = new PlainYearMonth(2020, 9);
         $dur = $b->since($a, largestUnit: Unit::Month);
 
-        self::assertSame(0, $dur->years);
-        self::assertSame(27, $dur->months);
+        static::assertSame(0, $dur->years);
+        static::assertSame(27, $dur->months);
     }
 
     public function testSinceForwardsRoundingMode(): void
@@ -479,8 +492,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $ceil = $b->since($a, smallestUnit: Unit::Month, roundingIncrement: 3, roundingMode: RoundingMode::Ceil);
 
         // 7 months truncated to nearest 3 = 6; ceiled to nearest 3 = 9
-        self::assertSame(6, $trunc->months);
-        self::assertSame(9, $ceil->months);
+        static::assertSame(6, $trunc->months);
+        static::assertSame(9, $ceil->months);
     }
 
     // -------------------------------------------------------------------------
@@ -493,8 +506,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $b = new PlainYearMonth(2020, 9);
         $dur = $a->until($b, largestUnit: Unit::Month);
 
-        self::assertSame(0, $dur->years);
-        self::assertSame(27, $dur->months);
+        static::assertSame(0, $dur->years);
+        static::assertSame(27, $dur->months);
     }
 
     public function testUntilForwardsSmallestUnit(): void
@@ -503,8 +516,8 @@ final class PlainYearMonthTest extends TemporalTestCase
         $b = new PlainYearMonth(2020, 9);
         $dur = $a->until($b, smallestUnit: Unit::Year);
 
-        self::assertSame(2, $dur->years);
-        self::assertSame(0, $dur->months);
+        static::assertSame(2, $dur->years);
+        static::assertSame(0, $dur->months);
     }
 
     public function testUntilForwardsRoundingMode(): void
@@ -515,7 +528,96 @@ final class PlainYearMonthTest extends TemporalTestCase
         $trunc = $a->until($b, smallestUnit: Unit::Month, roundingIncrement: 3, roundingMode: RoundingMode::Trunc);
         $ceil = $a->until($b, smallestUnit: Unit::Month, roundingIncrement: 3, roundingMode: RoundingMode::Ceil);
 
-        self::assertSame(6, $trunc->months);
-        self::assertSame(9, $ceil->months);
+        static::assertSame(6, $trunc->months);
+        static::assertSame(9, $ceil->months);
+    }
+
+    // -------------------------------------------------------------------------
+    // Constructor with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testConstructorWithCalendarEnum(): void
+    {
+        $ym = new PlainYearMonth(2020, 6, Calendar::Iso8601);
+
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
+        static::assertSame(Calendar::Iso8601, $ym->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // from()
+    // -------------------------------------------------------------------------
+
+    public function testFromString(): void
+    {
+        $ym = PlainYearMonth::from('2020-06');
+
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
+    }
+
+    public function testFromAnotherPlainYearMonth(): void
+    {
+        $original = new PlainYearMonth(2020, 6);
+        $copy = PlainYearMonth::from($original);
+
+        static::assertTrue($original->equals($copy));
+        static::assertNotSame($original, $copy);
+    }
+
+    public function testFromPropertyBag(): void
+    {
+        $ym = PlainYearMonth::from(['year' => 2020, 'monthCode' => 'M06']);
+
+        static::assertSame(2020, $ym->year);
+        static::assertSame(6, $ym->month);
+    }
+
+    // -------------------------------------------------------------------------
+    // with() expanded fields
+    // -------------------------------------------------------------------------
+
+    public function testWithMonthCode(): void
+    {
+        $ym = new PlainYearMonth(2020, 6);
+        $result = $ym->with(monthCode: 'M03');
+
+        static::assertSame(3, $result->month);
+        static::assertSame(2020, $result->year);
+    }
+
+    // -------------------------------------------------------------------------
+    // fromSpec round-trip with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testFromSpecPreservesCalendar(): void
+    {
+        $spec = new \Temporal\Spec\PlainYearMonth(2020, 6);
+        $ym = PlainYearMonth::fromSpec($spec);
+
+        static::assertSame(Calendar::Iso8601, $ym->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: from() forwards overflow option
+    // -------------------------------------------------------------------------
+
+    public function testFromPropertyBagForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        PlainYearMonth::from(['year' => 2020, 'month' => 13], Overflow::Reject);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: with() forwards era/eraYear
+    // -------------------------------------------------------------------------
+
+    public function testWithForwardsEraAndEraYear(): void
+    {
+        $ym = PlainYearMonth::from('2024-06-01[u-ca=gregory]');
+        $ym2 = $ym->with(era: 'ce', eraYear: 2020);
+
+        static::assertSame(2020, $ym2->year);
     }
 }

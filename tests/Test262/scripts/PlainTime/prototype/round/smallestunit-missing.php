@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $plainTime = new \Temporal\Spec\PlainTime(12, 34, 56, 123, 987, 500);
-Assert::throws(\TypeError::class, fn() => $plainTime->round(), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $plainTime->round(new \stdClass()), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $plainTime->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']), '');
+Assert::throws(\TypeError::class, function () use (&$plainTime) { return $plainTime->round(); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$plainTime) { return $plainTime->round(new \stdClass()); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$plainTime) { return $plainTime->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']); }, '');

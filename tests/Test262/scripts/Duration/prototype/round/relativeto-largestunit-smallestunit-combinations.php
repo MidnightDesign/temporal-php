@@ -15,7 +15,16 @@ $exactResults = ['years' => ['years' => [6], 'months' => [5, 6], 'weeks' => [5, 
 foreach ($exactResults as $largestUnit => $entry) {
 foreach ($entry as $smallestUnit => $expected) {
 foreach ([$plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
-[$y, $mon, $w, $d, $h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 10, 0);
+[$y, $mon, $w, $d, $h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 10, null);
+$mon = $mon ?? 0;
+$w = $w ?? 0;
+$d = $d ?? 0;
+$h = $h ?? 0;
+$min = $min ?? 0;
+$s = $s ?? 0;
+$ms = $ms ?? 0;
+$µs = $µs ?? 0;
+$ns = $ns ?? 0;
 TemporalHelpers::assertDuration($duration->round(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'relativeTo' => $relativeTo]), $y, $mon, $w, $d, $h, $min, $s, $ms, $µs, $ns, "Combination of largestUnit {$largestUnit} and smallestUnit {$smallestUnit}, relative to {$relativeTo}");
 }
 }

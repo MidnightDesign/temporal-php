@@ -20,4 +20,8 @@
     <plugins>
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin" />
     </plugins>
+
+    <stubs>
+        <file name="tools/psalm-stubs/IntlCalendar.phpstub" />
+    </stubs>
 </psalm>

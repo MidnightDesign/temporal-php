@@ -9,7 +9,6 @@
     "testFramework": "phpunit",
     "logs": {
         "text": "build/infection.txt",
-        "html": "build/infection.html",
         "summary": "build/infection-summary.txt"
     },
     "minMsi": 100,

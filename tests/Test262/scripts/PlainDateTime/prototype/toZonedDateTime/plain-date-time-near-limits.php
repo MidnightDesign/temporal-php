@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $dt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
-Assert::throws(\InvalidArgumentException::class, fn() => $dt->toZonedDateTime('UTC'), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt) { return $dt->toZonedDateTime('UTC'); }, '');
 $dt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 1, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, fn() => $dt->toZonedDateTime('UTC'), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt) { return $dt->toZonedDateTime('UTC'); }, '');
 $dt = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 0, 0, 0, 0, 0, 1);
-Assert::throws(\InvalidArgumentException::class, fn() => $dt->toZonedDateTime('UTC'), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt) { return $dt->toZonedDateTime('UTC'); }, '');
 $dt = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 1, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, fn() => $dt->toZonedDateTime('UTC'), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt) { return $dt->toZonedDateTime('UTC'); }, '');

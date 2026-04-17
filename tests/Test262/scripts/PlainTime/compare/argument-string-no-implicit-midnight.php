@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $arg = '2019-10-01';
 $midnight = new \Temporal\Spec\PlainTime();
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare($arg, $midnight), 'Date-only string throws, does not implicitly convert to midnight (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::compare($midnight, $arg), 'Date-only string throws, does not implicitly convert to midnight (second argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$midnight) { return \Temporal\Spec\PlainTime::compare($arg, $midnight); }, 'Date-only string throws, does not implicitly convert to midnight (first argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$midnight, &$arg) { return \Temporal\Spec\PlainTime::compare($midnight, $arg); }, 'Date-only string throws, does not implicitly convert to midnight (second argument)');

@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_005, 'UTC');
-Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -INF]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -1]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0.9]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1_000_000_000 + 1]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => INF]), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -INF]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -1]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0.9]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1_000_000_000 + 1]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => INF]); }, '');

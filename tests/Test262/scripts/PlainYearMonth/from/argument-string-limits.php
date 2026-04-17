@@ -13,5 +13,5 @@ foreach ($validStrings as $arg) {
 }
 $invalidStrings = ['-271821-03-31', '-271821-03-31T23:59:59.999999999', '+275760-10', '+275760-10-01', '+275760-10-01T00:00'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from($arg), "\"{$arg}\" is outside the representable range of PlainYearMonth");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::from($arg); }, "\"{$arg}\" is outside the representable range of PlainYearMonth");
 }

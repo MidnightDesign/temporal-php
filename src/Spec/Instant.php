@@ -29,6 +29,7 @@ final class Instant implements Stringable
      * Unlike the JS spec, which returns a Number, PHP returns int since a
      * 64-bit integer has sufficient range for all practical timestamps.
      *
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $epochMilliseconds {
@@ -393,7 +394,7 @@ final class Instant implements Stringable
         if ($options !== null) {
             // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @psalm-suppress MixedAssignment */
+                /** @var mixed $fsd */
                 $fsd = $options['fractionalSecondDigits'];
                 if ($fsd !== 'auto') {
                     if ($fsd === null || is_bool($fsd)) {
@@ -447,19 +448,41 @@ final class Instant implements Stringable
             }
         }
 
-        // Resolve timezone offset (null = UTC / 'Z' suffix).
-        $tzOffsetMinutes = null;
+        // Resolve timezone offset in seconds (null = UTC / 'Z' suffix).
+        $tzOffsetSec = null;
+        $ianaTimeZone = null;
         if ($options !== null && array_key_exists('timeZone', $options)) {
             $tzStr = (string) $options['timeZone'];
-            $tzOffsetMinutes = self::resolveTimeZoneOffsetMinutes($tzStr);
+            $resolved = self::resolveTimeZoneOffsetSeconds($tzStr);
+            if ($resolved !== null) {
+                $tzOffsetSec = $resolved;
+            } else {
+                // IANA timezone: extract the timezone name from the string.
+                // For bracket annotations, extract the bracket content.
+                if (preg_match('/\[([^\]]+)\]/', $tzStr, $bm2) === 1) {
+                    $ianaTimeZone = $bm2[1];
+                } else {
+                    $ianaTimeZone = $tzStr;
+                }
+            }
         }
 
         // Determine the rounding increment in nanoseconds.
         if ($isMinute) {
             $increment = 60_000_000_000;
         } elseif ($digits >= 0) {
-            // exponent (9 - $digits) is always 0-9, so ** always returns int here.
-            $increment = (int) 10 ** (9 - $digits); // @phpstan-ignore cast.useless
+            $increment = match ($digits) {
+                0 => 1_000_000_000,
+                1 => 100_000_000,
+                2 => 10_000_000,
+                3 => 1_000_000,
+                4 => 100_000,
+                5 => 10_000,
+                6 => 1_000,
+                7 => 100,
+                8 => 10,
+                default => 1,
+            };
         }
         // For 'auto' ($digits === -2), increment stays 1 (no rounding).
 
@@ -470,20 +493,26 @@ final class Instant implements Stringable
 
         // Extract whole UTC seconds and sub-second nanoseconds.
         $secs = CalendarMath::floorDiv($ns, self::NS_PER_SECOND);
+
+        // For IANA timezones, compute the offset at this epoch.
+        if ($ianaTimeZone !== null) {
+            $tzOffsetSec = self::ianaOffsetSeconds($ianaTimeZone, $secs);
+        }
         $subNs = $ns - ($secs * self::NS_PER_SECOND); // always 0–999_999_999
 
         // Apply timezone offset to get local datetime.
-        $localSecs = $tzOffsetMinutes !== null ? $secs + ($tzOffsetMinutes * 60) : $secs;
+        $localSecs = $tzOffsetSec !== null ? $secs + $tzOffsetSec : $secs;
         $dt = new DateTimeImmutable(sprintf('@%d', $localSecs))->setTimezone(new DateTimeZone('UTC'));
 
-        // Build the UTC-offset suffix: 'Z' or ±HH:MM.
-        if ($tzOffsetMinutes === null) {
+        // Build the UTC-offset suffix: 'Z' or ±HH:MM (always rounded to minutes for Instant).
+        if ($tzOffsetSec === null) {
             $tzSuffix = 'Z';
         } else {
-            $absMin = abs($tzOffsetMinutes);
+            $roundedMin = (int) round((float) $tzOffsetSec / 60.0);
+            $absMin = abs($roundedMin);
             $tzH = intdiv(num1: $absMin, num2: 60);
             $tzM = $absMin % 60;
-            $tzSign = $tzOffsetMinutes < 0 ? '-' : '+';
+            $tzSign = $roundedMin < 0 ? '-' : '+';
             $tzSuffix = sprintf('%s%02d:%02d', $tzSign, $tzH, $tzM);
         }
 
@@ -572,7 +601,7 @@ final class Instant implements Stringable
      * Returns 0 for 'UTC' or 'Z', the offset minutes for ±HH:MM strings,
      * and the bracket annotation offset for datetime strings with [±HH:MM] or [UTC].
      */
-    private static function resolveTimeZoneOffsetMinutes(string $tz): int
+    private static function resolveTimeZoneOffsetSeconds(string $tz): ?int
     {
         // 'UTC' (case-insensitive)
         if (strtoupper($tz) === 'UTC') {
@@ -581,21 +610,31 @@ final class Instant implements Stringable
         // Pure UTC-offset strings: ±HH:MM or ±HHMM
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tz, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
-            return $sign * (((int) $m[2] * 60) + (int) $m[3]);
+            return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $tz, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
-            return $sign * (((int) $m[2] * 60) + (int) $m[3]);
+            return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         // Datetime strings: bracket annotation takes precedence.
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
+            /** @var non-empty-string $bracket */
             $bracket = $bm[1];
             if (strtoupper($bracket) === 'UTC') {
                 return 0;
             }
             if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $bracket, $om) === 1) {
                 $sign = $om[1] === '+' ? 1 : -1;
-                return $sign * (((int) $om[2] * 60) + (int) $om[3]);
+                return $sign * (((int) $om[2] * 3600) + ((int) $om[3] * 60));
+            }
+            // IANA timezone in bracket: return null to signal epoch-dependent resolution.
+            try {
+                new \DateTimeZone($bracket);
+                return null; // Caller will use ianaOffsetSeconds
+            } catch (\Exception $e) {
+                // Not a valid timezone; ignore the error and fall through to
+                // the inline-offset path below.
+                unset($e);
             }
         }
         // Datetime strings without bracket: use inline offset or Z.
@@ -605,9 +644,29 @@ final class Instant implements Stringable
             }
             /** @var array{non-falsy-string, non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $om */
             $sign = $om[2] === '+' ? 1 : -1;
-            return $sign * (((int) $om[3] * 60) + (int) $om[4]);
+            return $sign * (((int) $om[3] * 3600) + ((int) $om[4] * 60));
         }
-        return 0;
+        // IANA timezone name: look up the offset at the current epoch.
+        // This method doesn't have access to the instant's epoch, so we
+        // validate the timezone now and defer the offset computation to the caller.
+        self::validateTimeZoneString($tz);
+        return null; // Signal to caller that it's an IANA timezone needing epoch-relative offset.
+    }
+
+    /**
+     * Resolves an IANA timezone to an offset in seconds at a given epoch second.
+     */
+    private static function ianaOffsetSeconds(string $tz, int $epochSec): int
+    {
+        if ($tz === '') {
+            return 0;
+        }
+        try {
+            $phpTz = new \DateTimeZone($tz);
+            return $phpTz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
+        } catch (\Exception) {
+            return 0;
+        }
     }
 
     #[\Override]
@@ -616,7 +675,10 @@ final class Instant implements Stringable
         return $this->toString();
     }
 
-    /** @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec */
+    /**
+     * @psalm-suppress UnusedParam toJSON ignores its argument per TC39 spec
+     * @psalm-api
+     */
     public function toJSON(mixed $options = null): string
     {
         return $this->toString();
@@ -638,11 +700,14 @@ final class Instant implements Stringable
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
         $locale = CalendarMath::resolveLocale($locales);
+        /** @var array<string, mixed> $opts */
         $opts = is_array($options) ? $options : [];
-        /** @psalm-var array<string, mixed> $opts */
 
-        $timeZone = isset($opts['timeZone']) && is_string($opts['timeZone']) ? $opts['timeZone'] : 'UTC';
+        /** @var mixed $tzOpt */
+        $tzOpt = $opts['timeZone'] ?? null;
+        $timeZone = is_string($tzOpt) ? $tzOpt : 'UTC';
 
+        $opts['_locale'] = $locale;
         $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
         $seconds = intdiv(num1: $this->epochNanoseconds, num2: self::NS_PER_SECOND);
         $result = $formatter->format($seconds);
@@ -693,6 +758,7 @@ final class Instant implements Stringable
         if ($isDatetime) {
             // Bracket annotation takes precedence over the inline offset.
             if (preg_match('/\[(!?[^\]]+)\]/', $tz, $bm) === 1) {
+                /** @var non-empty-string $bracket */
                 $bracket = $bm[1];
                 // Sub-minute offset in bracket: reject.
                 if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bracket) === 1) {
@@ -706,9 +772,15 @@ final class Instant implements Stringable
                 if (preg_match('/^[+\-]\d{2}:\d{2}$/', $bracket) === 1) {
                     return $bracket;
                 }
-                throw new InvalidArgumentException(
-                    "Invalid time zone string \"{$tz}\": unsupported bracket timezone \"{$bracket}\".",
-                );
+                // Try as IANA timezone name.
+                try {
+                    new \DateTimeZone($bracket);
+                    return ZonedDateTime::normalizeTimezoneId($bracket);
+                } catch (\Exception) {
+                    throw new InvalidArgumentException(
+                        "Invalid time zone string \"{$tz}\": unsupported bracket timezone \"{$bracket}\".",
+                    );
+                }
             }
             // No bracket: inline offset (Z or ±HH:MM) required.
             // Reject sub-minute inline offset.
@@ -745,7 +817,15 @@ final class Instant implements Stringable
             );
         }
 
-        throw new InvalidArgumentException("Invalid time zone string \"{$tz}\": not a recognized timezone identifier.");
+        // IANA timezone name: validate via PHP DateTimeZone.
+        try {
+            new \DateTimeZone($tz);
+            return ZonedDateTime::normalizeTimezoneId($tz);
+        } catch (\Exception) {
+            throw new InvalidArgumentException(
+                "Invalid time zone string \"{$tz}\": not a recognized timezone identifier.",
+            );
+        }
     }
 
     /**
@@ -826,7 +906,7 @@ final class Instant implements Stringable
             $roundTo = [];
         }
 
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $suRaw */
         $suRaw = $roundTo['smallestUnit'] ?? null;
         if ($suRaw === null) {
             throw new InvalidArgumentException('Temporal\\Instant::round() requires smallestUnit.');
@@ -856,19 +936,27 @@ final class Instant implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $roundTo) && $roundTo['roundingMode'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $roundingMode = (string) $roundTo['roundingMode'];
+            /** @var mixed $rmRaw */
+            $rmRaw = $roundTo['roundingMode'];
+            if (!is_string($rmRaw)) {
+                throw new \TypeError('roundingMode must be a string.');
+            }
+            $roundingMode = $rmRaw;
         }
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $roundTo) && $roundTo['roundingIncrement'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $increment = (int) $roundTo['roundingIncrement'];
+            /** @var mixed $riRaw */
+            $riRaw = $roundTo['roundingIncrement'];
+            if (!is_int($riRaw) && !is_float($riRaw)) {
+                throw new \TypeError('roundingIncrement must be a number.');
+            }
+            $increment = (int) $riRaw;
         }
         if ($increment < 1) {
             throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
         }
-        if (($maxDivisor % $increment) !== 0) {
+        if ($increment > $maxDivisor || ($maxDivisor % $increment) !== 0) {
             throw new InvalidArgumentException(
                 "roundingIncrement {$increment} does not evenly divide {$maxDivisor} for unit \"{$suRaw}\".",
             );
@@ -947,10 +1035,10 @@ final class Instant implements Stringable
                 // Colon-separated: :MM[:SS[.frac]]
                 $minutes = (int) substr(string: $rest, offset: 1, length: 2);
                 $rest = substr(string: $rest, offset: 3);
-                if ($rest !== '' && $rest[0] === ':') {
+                if (str_starts_with($rest, ':')) {
                     $seconds = (int) substr(string: $rest, offset: 1, length: 2);
                     $rest = substr(string: $rest, offset: 3);
-                    if ($rest !== '' && ($rest[0] === '.' || $rest[0] === ',')) {
+                    if (str_starts_with($rest, '.') || str_starts_with($rest, ',')) {
                         $fracNs = self::parseFraction($rest);
                     }
                 }
@@ -961,7 +1049,7 @@ final class Instant implements Stringable
                 if (strlen($rest) >= 2) {
                     $seconds = (int) substr(string: $rest, offset: 0, length: 2);
                     $rest = substr(string: $rest, offset: 2);
-                    if ($rest !== '' && ($rest[0] === '.' || $rest[0] === ',')) {
+                    if (str_starts_with($rest, '.') || str_starts_with($rest, ',')) {
                         $fracNs = self::parseFraction($rest);
                     }
                 }
@@ -1004,8 +1092,7 @@ final class Instant implements Stringable
     {
         $digits = substr($fractionRaw, offset: 1); // strip leading '.' or ','
         /** @var int<0, 999999999> — 9 decimal digits, range 000000000–999999999 */
-        $ns = (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
-        return $ns;
+        return (int) str_pad(substr($digits, offset: 0, length: 9), length: 9, pad_string: '0');
     }
 
     /**
@@ -1034,14 +1121,24 @@ final class Instant implements Stringable
 
         // Directed rounding (AsIfPositive: trunc/floor → r1; ceil/expand → r2):
         $r2 = $r1 + 1;
-        $rounded = match ($mode) {
-            'trunc', 'floor' => $r1,
-            'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
-            'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
-            'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
-            'halfEven' => ($d1 * 2) < $increment ? $r1 : (($d1 * 2) > $increment ? $r2 : (($r1 % 2) === 0 ? $r1 : $r2)),
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-        };
+        if ($mode === 'halfEven') {
+            $cmp = $d1 * 2;
+            if ($cmp < $increment) {
+                $rounded = $r1;
+            } elseif ($cmp > $increment) {
+                $rounded = $r2;
+            } else {
+                $rounded = ($r1 % 2) === 0 ? $r1 : $r2;
+            }
+        } else {
+            $rounded = match ($mode) {
+                'trunc', 'floor' => $r1,
+                'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
+                'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
+                'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
+                default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+            };
+        }
 
         return $rounded * $increment;
     }
@@ -1094,6 +1191,8 @@ final class Instant implements Stringable
         $us = (int) $microseconds;
         $ns = (int) $nanoseconds;
 
+        // Exact integer computation. PHP promotes int to float on overflow,
+        // but the range check above already guards against that.
         $result =
             $epochNs
             + $ns
@@ -1102,11 +1201,6 @@ final class Instant implements Stringable
             + ($s * self::NS_PER_SECOND)
             + ($m * 60 * self::NS_PER_SECOND)
             + ($h * 3_600 * self::NS_PER_SECOND);
-
-        // PHP promotes int to float on overflow; use float-result sentinel in that case.
-        if (is_float($result)) { // @phpstan-ignore function.impossibleType
-            return new self($floatResult < 0.0 ? PHP_INT_MIN : PHP_INT_MAX);
-        }
 
         return new self($result);
     }
@@ -1193,9 +1287,9 @@ final class Instant implements Stringable
 
         // Track whether largestUnit was explicitly provided.
         $luProvided = array_key_exists('largestUnit', $options) && $options['largestUnit'] !== null;
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $luVal */
         $luVal = $luProvided ? $options['largestUnit'] : null;
-        /** @psalm-suppress MixedAssignment */
+        /** @var mixed $suVal */
         $suVal = array_key_exists('smallestUnit', $options) ? $options['smallestUnit'] : null;
 
         if ($luVal !== null && !is_string($luVal)) {

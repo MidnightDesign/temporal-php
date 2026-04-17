@@ -15,5 +15,5 @@ TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2, "\"{$arg}\" is a va
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from($arg), "\"{$arg}\" UTC offset without time is not valid for PlainDate");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDate::from($arg); }, "\"{$arg}\" UTC offset without time is not valid for PlainDate");
 }

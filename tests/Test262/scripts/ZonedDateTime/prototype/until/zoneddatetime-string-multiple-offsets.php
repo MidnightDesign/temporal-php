@@ -14,4 +14,4 @@ $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 $result = $instance->until($str);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 30, 0, 0, 0, 'ISO offset, sub-minute offset trailing-zeroes');
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35:00.000000000]';
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->until($str), 'Trailing zeroes not allowed for sub-minute time zone identifiers');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$str) { return $instance->until($str); }, 'Trailing zeroes not allowed for sub-minute time zone identifiers');

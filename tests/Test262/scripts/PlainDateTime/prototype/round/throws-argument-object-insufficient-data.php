@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
-Assert::throws(\InvalidArgumentException::class, fn() => $dt->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']), 'throws without required smallestUnit parameter');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt) { return $dt->round(['roundingIncrement' => 1, 'roundingMode' => 'ceil']); }, 'throws without required smallestUnit parameter');

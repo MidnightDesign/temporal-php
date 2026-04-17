@@ -11,6 +11,6 @@ $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown c
 foreach ($invalidStrings as $__entry__) {
 [$cal, $description] = array_pad($__entry__, 2, null);
 $arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $cal];
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::compare($arg, new \Temporal\Spec\PlainDate(1976, 11, 18)), "{$description} is not a valid calendar ID (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::compare(new \Temporal\Spec\PlainDate(1976, 11, 18), $arg), "{$description} is not a valid calendar ID (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDate::compare($arg, new \Temporal\Spec\PlainDate(1976, 11, 18)); }, "{$description} is not a valid calendar ID (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDate::compare(new \Temporal\Spec\PlainDate(1976, 11, 18), $arg); }, "{$description} is not a valid calendar ID (second argument)");
 }

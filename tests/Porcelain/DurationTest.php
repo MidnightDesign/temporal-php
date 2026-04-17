@@ -7,9 +7,8 @@ namespace Temporal\Tests\Porcelain;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Temporal\Duration;
-use Temporal\RoundingMode;
 use Temporal\PlainDate;
-
+use Temporal\RoundingMode;
 use Temporal\Unit;
 
 final class DurationTest extends TemporalTestCase
@@ -22,31 +21,31 @@ final class DurationTest extends TemporalTestCase
     {
         $d = new Duration();
 
-        $this->assertDurationIs(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, $d);
+        static::assertDurationIs(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, $d);
     }
 
     public function testAllPositive(): void
     {
         $d = new Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
-        $this->assertDurationIs(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, $d);
+        static::assertDurationIs(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, $d);
     }
 
     public function testAllNegative(): void
     {
         $d = new Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
 
-        self::assertSame(-1, $d->years);
-        self::assertSame(-5, $d->hours);
-        self::assertSame(-10, $d->nanoseconds);
+        static::assertSame(-1, $d->years);
+        static::assertSame(-5, $d->hours);
+        static::assertSame(-10, $d->nanoseconds);
     }
 
     public function testSingleField(): void
     {
         $d = new Duration(days: 7);
 
-        self::assertSame(7, $d->days);
-        self::assertSame(0, $d->years);
+        static::assertSame(7, $d->days);
+        static::assertSame(0, $d->years);
     }
 
     public function testMixedSignsThrow(): void
@@ -62,27 +61,27 @@ final class DurationTest extends TemporalTestCase
 
     public function testSignPositive(): void
     {
-        self::assertSame(1, new Duration(years: 1)->sign);
+        static::assertSame(1, new Duration(years: 1)->sign);
     }
 
     public function testSignNegative(): void
     {
-        self::assertSame(-1, new Duration(hours: -3)->sign);
+        static::assertSame(-1, new Duration(hours: -3)->sign);
     }
 
     public function testSignZero(): void
     {
-        self::assertSame(0, new Duration()->sign);
+        static::assertSame(0, new Duration()->sign);
     }
 
     public function testBlankTrue(): void
     {
-        self::assertTrue(new Duration()->blank);
+        static::assertTrue(new Duration()->blank);
     }
 
     public function testBlankFalse(): void
     {
-        self::assertFalse(new Duration(nanoseconds: 1)->blank);
+        static::assertFalse(new Duration(nanoseconds: 1)->blank);
     }
 
     // -------------------------------------------------------------------------
@@ -93,23 +92,23 @@ final class DurationTest extends TemporalTestCase
     {
         $d = Duration::parse('P1Y2M3DT4H5M6S');
 
-        $this->assertDurationIs(1, 2, 0, 3, 4, 5, 6, 0, 0, 0, $d);
+        static::assertDurationIs(1, 2, 0, 3, 4, 5, 6, 0, 0, 0, $d);
     }
 
     public function testParseNegative(): void
     {
         $d = Duration::parse('-P1DT2H');
 
-        self::assertSame(-1, $d->days);
-        self::assertSame(-2, $d->hours);
+        static::assertSame(-1, $d->days);
+        static::assertSame(-2, $d->hours);
     }
 
     public function testParseFractionalSeconds(): void
     {
         $d = Duration::parse('PT1.5S');
 
-        self::assertSame(1, $d->seconds);
-        self::assertSame(500, $d->milliseconds);
+        static::assertSame(1, $d->seconds);
+        static::assertSame(500, $d->milliseconds);
     }
 
     public function testParseInvalidThrows(): void
@@ -136,7 +135,7 @@ final class DurationTest extends TemporalTestCase
     #[DataProvider('roundTripProvider')]
     public function testParseRoundTrip(string $iso): void
     {
-        self::assertSame($iso, Duration::parse($iso)->toString());
+        static::assertSame($iso, Duration::parse($iso)->toString());
     }
 
     // -------------------------------------------------------------------------
@@ -148,7 +147,7 @@ final class DurationTest extends TemporalTestCase
         $a = new Duration(hours: 1);
         $b = new Duration(hours: 1);
 
-        self::assertSame(0, Duration::compare($a, $b));
+        static::assertSame(0, Duration::compare($a, $b));
     }
 
     public function testCompareLess(): void
@@ -156,7 +155,7 @@ final class DurationTest extends TemporalTestCase
         $a = new Duration(hours: 1);
         $b = new Duration(hours: 2);
 
-        self::assertSame(-1, Duration::compare($a, $b));
+        static::assertSame(-1, Duration::compare($a, $b));
     }
 
     public function testCompareGreater(): void
@@ -164,7 +163,7 @@ final class DurationTest extends TemporalTestCase
         $a = new Duration(hours: 2);
         $b = new Duration(hours: 1);
 
-        self::assertSame(1, Duration::compare($a, $b));
+        static::assertSame(1, Duration::compare($a, $b));
     }
 
     public function testCompareWithCalendarUnitsRequiresRelativeTo(): void
@@ -184,7 +183,7 @@ final class DurationTest extends TemporalTestCase
         $relativeTo = new PlainDate(2024, 1, 1);
 
         // January has 31 days, so P1M from Jan 1 = 31 days = P31D => equal
-        self::assertSame(0, Duration::compare($a, $b, $relativeTo));
+        static::assertSame(0, Duration::compare($a, $b, $relativeTo));
     }
 
     // -------------------------------------------------------------------------
@@ -197,13 +196,13 @@ final class DurationTest extends TemporalTestCase
 
         $n = $d->negated();
 
-        self::assertSame(-1, $n->years);
-        self::assertSame(-2, $n->hours);
+        static::assertSame(-1, $n->years);
+        static::assertSame(-2, $n->hours);
     }
 
     public function testNegatedBlank(): void
     {
-        self::assertTrue(new Duration()->negated()->blank);
+        static::assertTrue(new Duration()->negated()->blank);
     }
 
     public function testNegatedReturnsNewInstance(): void
@@ -211,8 +210,8 @@ final class DurationTest extends TemporalTestCase
         $d = new Duration(days: 3);
         $n = $d->negated();
 
-        self::assertSame(3, $d->days);
-        self::assertSame(-3, $n->days);
+        static::assertSame(3, $d->days);
+        static::assertSame(-3, $n->days);
     }
 
     // -------------------------------------------------------------------------
@@ -224,20 +223,20 @@ final class DurationTest extends TemporalTestCase
         $d = new Duration(days: -3, minutes: -15);
         $a = $d->abs();
 
-        self::assertSame(3, $a->days);
-        self::assertSame(15, $a->minutes);
+        static::assertSame(3, $a->days);
+        static::assertSame(15, $a->minutes);
     }
 
     public function testAbsFromPositive(): void
     {
         $d = new Duration(years: 2);
 
-        self::assertTrue($d->abs()->equals($d));
+        static::assertTrue($d->abs()->equals($d));
     }
 
     public function testAbsBlank(): void
     {
-        self::assertTrue(new Duration()->abs()->blank);
+        static::assertTrue(new Duration()->abs()->blank);
     }
 
     // -------------------------------------------------------------------------
@@ -249,7 +248,7 @@ final class DurationTest extends TemporalTestCase
         $a = new Duration(hours: 1, minutes: 30);
         $b = new Duration(hours: 1, minutes: 30);
 
-        self::assertTrue($a->equals($b));
+        static::assertTrue($a->equals($b));
     }
 
     public function testEqualsFalse(): void
@@ -257,7 +256,7 @@ final class DurationTest extends TemporalTestCase
         $a = new Duration(hours: 1);
         $b = new Duration(hours: 2);
 
-        self::assertFalse($a->equals($b));
+        static::assertFalse($a->equals($b));
     }
 
     // -------------------------------------------------------------------------
@@ -270,8 +269,8 @@ final class DurationTest extends TemporalTestCase
 
         $updated = $d->with(years: 5);
 
-        self::assertSame(5, $updated->years);
-        self::assertSame(2, $updated->months);
+        static::assertSame(5, $updated->years);
+        static::assertSame(2, $updated->months);
     }
 
     public function testWithMultipleFields(): void
@@ -280,7 +279,25 @@ final class DurationTest extends TemporalTestCase
 
         $updated = $d->with(years: 5, days: 6);
 
-        $this->assertDurationIs(5, 2, 0, 6, 0, 0, 0, 0, 0, 0, $updated);
+        static::assertDurationIs(5, 2, 0, 6, 0, 0, 0, 0, 0, 0, $updated);
+    }
+
+    public function testWithAllFields(): void
+    {
+        $d = new Duration(years: 1);
+
+        $updated = $d->with(
+            months: 2,
+            weeks: 3,
+            hours: 4,
+            minutes: 5,
+            seconds: 6,
+            milliseconds: 7,
+            microseconds: 8,
+            nanoseconds: 9,
+        );
+
+        static::assertDurationIs(1, 2, 3, 0, 4, 5, 6, 7, 8, 9, $updated);
     }
 
     public function testWithNoFieldsThrows(): void
@@ -298,7 +315,7 @@ final class DurationTest extends TemporalTestCase
 
         $d->with(years: 5);
 
-        self::assertSame(1, $d->years);
+        static::assertSame(1, $d->years);
     }
 
     // -------------------------------------------------------------------------
@@ -312,8 +329,8 @@ final class DurationTest extends TemporalTestCase
 
         $result = $a->add($b);
 
-        self::assertSame(4, $result->hours);
-        self::assertSame(15, $result->minutes);
+        static::assertSame(4, $result->hours);
+        static::assertSame(15, $result->minutes);
     }
 
     public function testAddWithCalendarFieldsThrows(): void
@@ -333,7 +350,7 @@ final class DurationTest extends TemporalTestCase
 
         $result = $a->subtract($b);
 
-        self::assertSame(2, $result->hours);
+        static::assertSame(2, $result->hours);
     }
 
     public function testSubtractResultingInNegative(): void
@@ -343,7 +360,7 @@ final class DurationTest extends TemporalTestCase
 
         $result = $a->subtract($b);
 
-        self::assertSame(-2, $result->hours);
+        static::assertSame(-2, $result->hours);
     }
 
     // -------------------------------------------------------------------------
@@ -356,9 +373,9 @@ final class DurationTest extends TemporalTestCase
 
         $rounded = $d->round(smallestUnit: Unit::Minute);
 
-        self::assertSame(1, $rounded->hours);
-        self::assertSame(31, $rounded->minutes);
-        self::assertSame(0, $rounded->seconds);
+        static::assertSame(1, $rounded->hours);
+        static::assertSame(31, $rounded->minutes);
+        static::assertSame(0, $rounded->seconds);
     }
 
     public function testRoundLargestUnit(): void
@@ -367,9 +384,9 @@ final class DurationTest extends TemporalTestCase
 
         $rounded = $d->round(largestUnit: Unit::Hour, smallestUnit: Unit::Second);
 
-        self::assertSame(1, $rounded->hours);
-        self::assertSame(1, $rounded->minutes);
-        self::assertSame(1, $rounded->seconds);
+        static::assertSame(1, $rounded->hours);
+        static::assertSame(1, $rounded->minutes);
+        static::assertSame(1, $rounded->seconds);
     }
 
     public function testRoundWithTruncMode(): void
@@ -378,8 +395,8 @@ final class DurationTest extends TemporalTestCase
 
         $rounded = $d->round(smallestUnit: Unit::Minute, roundingMode: RoundingMode::Trunc);
 
-        self::assertSame(1, $rounded->hours);
-        self::assertSame(30, $rounded->minutes);
+        static::assertSame(1, $rounded->hours);
+        static::assertSame(30, $rounded->minutes);
     }
 
     public function testRoundRequiresAtLeastOneUnit(): void
@@ -399,21 +416,21 @@ final class DurationTest extends TemporalTestCase
     {
         $d = new Duration(hours: 1, minutes: 30);
 
-        self::assertSame(1.5, $d->total(Unit::Hour));
+        static::assertSame(1.5, $d->total(Unit::Hour));
     }
 
     public function testTotalMinutes(): void
     {
         $d = new Duration(hours: 2);
 
-        self::assertSame(120, $d->total(Unit::Minute));
+        static::assertSame(120, $d->total(Unit::Minute));
     }
 
     public function testTotalSeconds(): void
     {
         $d = new Duration(minutes: 1, seconds: 30);
 
-        self::assertSame(90, $d->total(Unit::Second));
+        static::assertSame(90, $d->total(Unit::Second));
     }
 
     public function testTotalWithCalendarUnitRequiresRelativeTo(): void
@@ -429,7 +446,7 @@ final class DurationTest extends TemporalTestCase
     {
         $d = new Duration(milliseconds: 1, microseconds: 500);
 
-        self::assertSame(1_500_000, $d->total(Unit::Nanosecond));
+        static::assertSame(1_500_000, $d->total(Unit::Nanosecond));
     }
 
     // -------------------------------------------------------------------------
@@ -438,52 +455,52 @@ final class DurationTest extends TemporalTestCase
 
     public function testToStringBlank(): void
     {
-        self::assertSame('PT0S', new Duration()->toString());
+        static::assertSame('PT0S', new Duration()->toString());
     }
 
     public function testToStringSimple(): void
     {
-        self::assertSame('P1Y', new Duration(years: 1)->toString());
+        static::assertSame('P1Y', new Duration(years: 1)->toString());
     }
 
     public function testToStringFull(): void
     {
         $d = new Duration(1, 2, 3, 4, 5, 6, 7);
 
-        self::assertSame('P1Y2M3W4DT5H6M7S', $d->toString());
+        static::assertSame('P1Y2M3W4DT5H6M7S', $d->toString());
     }
 
     public function testToStringNegative(): void
     {
-        self::assertSame('-P1DT2H', new Duration(days: -1, hours: -2)->toString());
+        static::assertSame('-P1DT2H', new Duration(days: -1, hours: -2)->toString());
     }
 
     public function testToStringWithFractionalSecondDigits(): void
     {
         $d = new Duration(seconds: 1, milliseconds: 500);
 
-        self::assertSame('PT1.500000000S', $d->toString(fractionalSecondDigits: 9));
+        static::assertSame('PT1.500000000S', $d->toString(fractionalSecondDigits: 9));
     }
 
     public function testToStringWithSmallestUnit(): void
     {
         $d = new Duration(seconds: 1, milliseconds: 500, microseconds: 300);
 
-        self::assertSame('PT1.500S', $d->toString(smallestUnit: Unit::Millisecond));
+        static::assertSame('PT1.500S', $d->toString(smallestUnit: Unit::Millisecond));
     }
 
     public function testMagicToString(): void
     {
         $d = new Duration(hours: 2);
 
-        self::assertSame('PT2H', (string) $d);
+        static::assertSame('PT2H', (string) $d);
     }
 
     public function testJsonSerialize(): void
     {
         $d = new Duration(hours: 2);
 
-        self::assertSame('"PT2H"', json_encode($d));
+        static::assertSame('"PT2H"', json_encode($d));
     }
 
     // -------------------------------------------------------------------------
@@ -495,9 +512,9 @@ final class DurationTest extends TemporalTestCase
         $d = new Duration(years: 1, months: 2, days: 3);
         $spec = $d->toSpec();
 
-        self::assertSame(1, $spec->years);
-        self::assertSame(2, $spec->months);
-        self::assertSame(3, $spec->days);
+        static::assertSame(1, $spec->years);
+        static::assertSame(2, $spec->months);
+        static::assertSame(3, $spec->days);
     }
 
     public function testFromSpecRoundTrip(): void
@@ -517,7 +534,7 @@ final class DurationTest extends TemporalTestCase
         $spec = $d->toSpec();
         $restored = Duration::fromSpec($spec);
 
-        $this->assertDurationIs(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, $restored);
+        static::assertDurationIs(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, $restored);
     }
 
     // -------------------------------------------------------------------------
@@ -529,10 +546,10 @@ final class DurationTest extends TemporalTestCase
         $d = new Duration(hours: 2, minutes: 30);
         $info = $d->__debugInfo();
 
-        self::assertSame('PT2H30M', $info['string']);
-        self::assertSame(2, $info['hours']);
-        self::assertSame(30, $info['minutes']);
-        self::assertSame(0, $info['years']);
+        static::assertSame('PT2H30M', $info['string']);
+        static::assertSame(2, $info['hours']);
+        static::assertSame(30, $info['minutes']);
+        static::assertSame(0, $info['years']);
     }
 
     // -------------------------------------------------------------------------
@@ -547,8 +564,8 @@ final class DurationTest extends TemporalTestCase
         $halfExpand = $d->round(smallestUnit: Unit::Minute, roundingMode: RoundingMode::HalfExpand);
         $ceil = $d->round(smallestUnit: Unit::Minute, roundingMode: RoundingMode::Ceil);
 
-        self::assertSame(30, $halfExpand->minutes);
-        self::assertSame(31, $ceil->minutes);
+        static::assertSame(30, $halfExpand->minutes);
+        static::assertSame(31, $ceil->minutes);
     }
 
     public function testRoundForwardsRoundingIncrement(): void
@@ -557,7 +574,7 @@ final class DurationTest extends TemporalTestCase
 
         $rounded = $d->round(smallestUnit: Unit::Minute, roundingMode: RoundingMode::Trunc, roundingIncrement: 5);
 
-        self::assertSame(5, $rounded->minutes);
+        static::assertSame(5, $rounded->minutes);
     }
 
     // -------------------------------------------------------------------------
@@ -572,8 +589,7 @@ final class DurationTest extends TemporalTestCase
         $ceil = $d->toString(fractionalSecondDigits: 0, roundingMode: RoundingMode::Ceil);
         $trunc = $d->toString(fractionalSecondDigits: 0, roundingMode: RoundingMode::Trunc);
 
-        self::assertSame('PT2S', $ceil);
-        self::assertSame('PT1S', $trunc);
+        static::assertSame('PT2S', $ceil);
+        static::assertSame('PT1S', $trunc);
     }
-
 }

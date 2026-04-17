@@ -11,6 +11,6 @@ $epoch = new \Temporal\Spec\Instant(0);
 $invalidStrings = [['1970-01-01T00:00Z[U-CA=iso8601]', 'invalid capitalized key'], ['1970-01-01T00:00Z[u-CA=iso8601]', 'invalid partially-capitalized key'], ['1970-01-01T00:00Z[FOO=bar]', 'invalid capitalized unrecognized key']];
 foreach ($invalidStrings as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($arg, $epoch), "annotation keys must be lowercase: {$arg} - {$descr} (first argument)");
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::compare($epoch, $arg), "annotation keys must be lowercase: {$arg} - {$descr} (second argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$epoch) { return \Temporal\Spec\Instant::compare($arg, $epoch); }, "annotation keys must be lowercase: {$arg} - {$descr} (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$epoch, &$arg) { return \Temporal\Spec\Instant::compare($epoch, $arg); }, "annotation keys must be lowercase: {$arg} - {$descr} (second argument)");
 }

@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $invalidStrings = ['-000000-10-31T17:45Z', '-000000-10-31T17:45+00:00[UTC]'];
 foreach ($invalidStrings as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $datetime), 'reject minus zero as extended year (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]), 'reject minus zero as extended year (second argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone], $datetime); }, 'reject minus zero as extended year (first argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$timeZone) { return \Temporal\Spec\ZonedDateTime::compare($datetime, ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]); }, 'reject minus zero as extended year (second argument)');
 }

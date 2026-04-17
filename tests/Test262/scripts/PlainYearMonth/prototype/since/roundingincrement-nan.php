@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
-Assert::throws(\InvalidArgumentException::class, fn() => $later->since($earlier, ['roundingIncrement' => NAN]), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier) { return $later->since($earlier, ['roundingIncrement' => NAN]); }, '');

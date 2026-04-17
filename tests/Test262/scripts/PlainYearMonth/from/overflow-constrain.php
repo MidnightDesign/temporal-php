@@ -36,9 +36,9 @@ $result = \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => 11], $
 TemporalHelpers::assertPlainYearMonth($result, 2021, 11, 'M11', 'month 11 with overflow constrain');
 $result = \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => 12], $opt);
 TemporalHelpers::assertPlainYearMonth($result, 2021, 12, 'M12', 'month 12 with overflow constrain');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => -99_999], $opt), 'negative month -99999 is out of range even with overflow constrain');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => -1], $opt), 'negative month -1 is out of range even with overflow constrain');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => 0], $opt), 'month zero is out of range even with overflow constrain');
+Assert::throws(\InvalidArgumentException::class, function () use (&$opt) { return \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => -99_999], $opt); }, 'negative month -99999 is out of range even with overflow constrain');
+Assert::throws(\InvalidArgumentException::class, function () use (&$opt) { return \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => -1], $opt); }, 'negative month -1 is out of range even with overflow constrain');
+Assert::throws(\InvalidArgumentException::class, function () use (&$opt) { return \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => 0], $opt); }, 'month zero is out of range even with overflow constrain');
 $result = \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => 13], $opt);
 TemporalHelpers::assertPlainYearMonth($result, 2021, 12, 'M12', 'month 13 is constrained to 12');
 $result = \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => 99_999], $opt);

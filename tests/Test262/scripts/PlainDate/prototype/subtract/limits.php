@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $min = \Temporal\Spec\PlainDate::from('-271821-04-19');
 $max = \Temporal\Spec\PlainDate::from('+275760-09-13');
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => $min->subtract(['days' => 1], ['overflow' => $overflow]), "min with {$overflow}");
-Assert::throws(\InvalidArgumentException::class, fn() => $max->subtract(['days' => -1], ['overflow' => $overflow]), "max with {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$overflow) { return $min->subtract(['days' => 1], ['overflow' => $overflow]); }, "min with {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$max, &$overflow) { return $max->subtract(['days' => -1], ['overflow' => $overflow]); }, "max with {$overflow}");
 }

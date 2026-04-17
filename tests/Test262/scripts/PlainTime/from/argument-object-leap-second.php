@@ -14,6 +14,6 @@ TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from(['hour' => 12, '
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from(['hour' => 23, 'minute' => 59, 'second' => 60, 'millisecond' => 170], $options), 23, 59, 59, 170, 0, 0);
 }
 $options = ['overflow' => 'reject'];
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from(['hour' => 23, 'minute' => 59, 'second' => 60], $options), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from(['hour' => 12, 'minute' => 30, 'second' => 60], $options), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainTime::from(['hour' => 23, 'minute' => 59, 'second' => 60, 'millisecond' => 170], $options), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\PlainTime::from(['hour' => 23, 'minute' => 59, 'second' => 60], $options); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\PlainTime::from(['hour' => 12, 'minute' => 30, 'second' => 60], $options); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\PlainTime::from(['hour' => 23, 'minute' => 59, 'second' => 60, 'millisecond' => 170], $options); }, '');

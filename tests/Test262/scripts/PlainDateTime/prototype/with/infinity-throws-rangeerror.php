@@ -12,7 +12,7 @@ $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 3
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->with([$prop => $inf], ['overflow' => $overflow]), "{$prop} property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$prop, &$inf, &$overflow) { return $instance->with([$prop => $inf], ['overflow' => $overflow]); }, "{$prop} property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
 }

@@ -361,10 +361,10 @@ final class TemporalHelpers
         /** @psalm-suppress MixedMethodCall, UnsafeInstantiation, MixedArgumentTypeCoercion */
         // @mago-ignore analysis:unknown-class-instantiation
         $instance = new $class(...$ctorArgs);
-        /** @psalm-suppress MixedMethodCall */
+        /** @var callable $callable */
+        $callable = [$instance, $method];
         /** @var mixed $result */
-        // @phpstan-ignore method.dynamicName
-        $result = $instance->$method(...$methodArgs);
+        $result = $callable(...$methodArgs);
         PHPUnitAssert::assertInstanceOf($class, $result, "Return value should be an instance of {$class}");
         $checkFn($result);
     }
@@ -391,10 +391,10 @@ final class TemporalHelpers
         array $args,
         callable $checkFn,
     ): void {
-        /** @psalm-suppress MixedMethodCall */
+        /** @var callable $callable */
+        $callable = [$class, $method];
         /** @var mixed $result */
-        // @phpstan-ignore staticMethod.dynamicName
-        $result = $class::$method(...$args);
+        $result = $callable(...$args);
         PHPUnitAssert::assertInstanceOf($class, $result, "Return value should be an instance of {$class}");
         $checkFn($result);
     }

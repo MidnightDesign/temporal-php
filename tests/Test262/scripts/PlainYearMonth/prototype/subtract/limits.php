@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $min = \Temporal\Spec\PlainYearMonth::from('-271821-04');
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, fn() => $min->subtract(['months' => 1], ['overflow' => $overflow]), $overflow);
+Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$overflow) { return $min->subtract(['months' => 1], ['overflow' => $overflow]); }, $overflow);
 }

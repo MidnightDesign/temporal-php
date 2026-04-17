@@ -14,4 +14,4 @@ foreach ($tests as $__entry__) {
 $string = $datetime->toString(['smallestUnit' => $smallestUnit, 'fractionalSecondDigits' => 5]);
 Assert::sameValue($string, $expected, "smallestUnit: \"{$smallestUnit}\" overrides fractionalSecondDigits");
 }
-Assert::throws(\InvalidArgumentException::class, fn() => $datetime->toString(['smallestUnit' => 'hour', 'fractionalSecondDigits' => 5]), 'hour is an invalid smallestUnit but still overrides fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString(['smallestUnit' => 'hour', 'fractionalSecondDigits' => 5]); }, 'hour is an invalid smallestUnit but still overrides fractionalSecondDigits');

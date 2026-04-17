@@ -13,6 +13,11 @@ $expected = [['hour', [14]], ['minute', [13, 46]], ['second', [13, 46, 23]], ['m
 $roundingMode = 'halfTrunc';
 foreach ($expected as $__entry__) {
 [$smallestUnit, $expected] = array_pad($__entry__, 2, null);
-[$h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 6, 0);
+[$h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 6, null);
+$min = $min ?? 0;
+$s = $s ?? 0;
+$ms = $ms ?? 0;
+$µs = $µs ?? 0;
+$ns = $ns ?? 0;
 TemporalHelpers::assertPlainTime($instance->round(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $h, $min, $s, $ms, $µs, $ns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
 }

@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $invalidStrings = ['1970-01-01T00:00Z[!foo=bar]', '1970-01-01T00:00Z[UTC][!foo=bar]', '1970-01-01T00:00Z[u-ca=iso8601][!foo=bar]', '1970-01-01T00:00Z[UTC][!foo=bar][u-ca=iso8601]', '1970-01-01T00:00Z[foo=bar][!_foo-bar0=Dont-Ignore-This-99999999999]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::from($arg), "reject unknown annotation with critical flag: {$arg}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, "reject unknown annotation with critical flag: {$arg}");
 }

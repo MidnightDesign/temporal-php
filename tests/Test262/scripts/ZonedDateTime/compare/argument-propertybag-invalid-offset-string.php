@@ -12,6 +12,6 @@ $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, $timeZon
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000];
 foreach ($badOffsets as $offset) {
 $arg = ['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => $timeZone];
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), "\"{$offset} is not a valid offset string (second argument)");
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), "\"{$offset} is not a valid offset string (second argument)");
+Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, "\"{$offset} is not a valid offset string (second argument)");
+Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, "\"{$offset} is not a valid offset string (second argument)");
 }

@@ -15,7 +15,7 @@ use Temporal\Spec\PlainTime as SpecPlainTime;
 final class PlainTime implements \Stringable, \JsonSerializable
 {
     /**
-     * @var int<0, 23>
+     * @var int
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $hour {
@@ -23,7 +23,7 @@ final class PlainTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * @var int<0, 59>
+     * @var int
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $minute {
@@ -31,7 +31,7 @@ final class PlainTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * @var int<0, 59>
+     * @var int
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $second {
@@ -39,7 +39,7 @@ final class PlainTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * @var int<0, 999>
+     * @var int
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $millisecond {
@@ -47,7 +47,7 @@ final class PlainTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * @var int<0, 999>
+     * @var int
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $microsecond {
@@ -55,7 +55,7 @@ final class PlainTime implements \Stringable, \JsonSerializable
     }
 
     /**
-     * @var int<0, 999>
+     * @var int
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $nanosecond {
@@ -67,12 +67,12 @@ final class PlainTime implements \Stringable, \JsonSerializable
     /**
      * Creates a new PlainTime from individual time components.
      *
-     * @param int<0, 23>  $hour        0–23
-     * @param int<0, 59>  $minute      0–59
-     * @param int<0, 59>  $second      0–59
-     * @param int<0, 999> $millisecond 0–999
-     * @param int<0, 999> $microsecond 0–999
-     * @param int<0, 999> $nanosecond  0–999
+     * @param int $hour        0–23
+     * @param int $minute      0–59
+     * @param int $second      0–59
+     * @param int $millisecond 0–999
+     * @param int $microsecond 0–999
+     * @param int $nanosecond  0–999
      * @throws \InvalidArgumentException if any parameter is out of range.
      */
     public function __construct(

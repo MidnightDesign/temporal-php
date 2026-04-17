@@ -14,15 +14,15 @@ $oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $options = ['unit' => 'days'];
 Assert::sameValue($oneDay->total($options), 1, 'days do not require relativeTo');
 Assert::sameValue($oneDay->total('days'), 1, 'days do not require relativeTo (string shorthand)');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneWeek->total($options), 'total days of weeks requires relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneWeek->total('days'), 'total days of weeks requires relativeTo (string shorthand)');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneMonth->total($options), 'total days of months requires relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneMonth->total('days'), 'total days of months requires relativeTo (string shorthand)');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->total($options), 'total days of years requires relativeTo');
-Assert::throws(\InvalidArgumentException::class, fn() => $oneYear->total('days'), 'total days of years requires relativeTo (string shorthand)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneWeek, &$options) { return $oneWeek->total($options); }, 'total days of weeks requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneWeek) { return $oneWeek->total('days'); }, 'total days of weeks requires relativeTo (string shorthand)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneMonth, &$options) { return $oneMonth->total($options); }, 'total days of months requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneMonth) { return $oneMonth->total('days'); }, 'total days of months requires relativeTo (string shorthand)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneYear, &$options) { return $oneYear->total($options); }, 'total days of years requires relativeTo');
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneYear) { return $oneYear->total('days'); }, 'total days of years requires relativeTo (string shorthand)');
 foreach (['months', 'weeks'] as $unit) {
 foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->total(['unit' => $unit]), "{$duration} total {$unit} requires relativeTo");
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->total($unit), "{$duration} total {$unit} requires relativeTo (string shorthand)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$unit) { return $duration->total(['unit' => $unit]); }, "{$duration} total {$unit} requires relativeTo");
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$unit) { return $duration->total($unit); }, "{$duration} total {$unit} requires relativeTo (string shorthand)");
 }
 }

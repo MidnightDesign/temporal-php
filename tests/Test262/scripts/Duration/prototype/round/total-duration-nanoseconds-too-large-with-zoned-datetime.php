@@ -14,5 +14,5 @@ $durations = [\Temporal\Spec\Duration::from(['seconds' => 9_007_199_254_740_991]
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $options = ['smallestUnit' => 'day', 'largestUnit' => 'day', 'relativeTo' => $zonedDateTime];
 foreach ($durations as $duration) {
-Assert::throws(\InvalidArgumentException::class, fn() => $duration->round($options), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$options) { return $duration->round($options); }, '');
 }

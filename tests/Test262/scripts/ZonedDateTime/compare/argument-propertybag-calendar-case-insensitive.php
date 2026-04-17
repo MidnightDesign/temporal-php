@@ -15,5 +15,5 @@ Assert::sameValue($result1, 0, 'Calendar is case-insensitive (first argument)');
 $result2 = \Temporal\Spec\ZonedDateTime::compare($datetime, $arg);
 Assert::sameValue($result2, 0, 'Calendar is case-insensitive (second argument)');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($arg, $datetime), 'calendar ID is capital dotted I is not lowercased (first argument)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::compare($datetime, $arg), 'calendar ID is capital dotted I is not lowercased (second argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$datetime) { return \Temporal\Spec\ZonedDateTime::compare($arg, $datetime); }, 'calendar ID is capital dotted I is not lowercased (first argument)');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($datetime, $arg); }, 'calendar ID is capital dotted I is not lowercased (second argument)');

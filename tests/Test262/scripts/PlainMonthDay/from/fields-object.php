@@ -10,7 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [[['monthCode' => 'M10', 'day' => 1], 'option bag with monthCode'], [['monthCode' => 'M10', 'day' => 1, 'year' => 2015], 'option bag with year, monthCode'], [['month' => 10, 'day' => 1], 'option bag with year, month'], [['month' => 10, 'day' => 1, 'year' => 2015], 'option bag with year, month'], [['month' => 10, 'day' => 1, 'days' => 31], 'option bag with plural \'days\''], [new \Temporal\Spec\PlainMonthDay(10, 1), 'PlainMonthDay object'], [\Temporal\Spec\PlainDate::from('2019-10-01'), 'PlainDate object'], [['monthCode' => 'M10', 'day' => 1, 'calendar' => 'iso8601'], 'option bag with monthCode and explicit ISO calendar'], [['month' => 10, 'day' => 1, 'calendar' => 'iso8601'], 'option bag with month and explicit ISO calendar']];
 foreach ($tests as $__entry__) {
-[$argument, $description] = array_pad($__entry__, 2, 0);
+[$argument, $description] = array_pad($__entry__, 2, null);
+$description = $description ?? $argument;
 $plainMonthDay = \Temporal\Spec\PlainMonthDay::from($argument);
 Assert::notSameValue($plainMonthDay, $argument, "from {$description} converts");
 TemporalHelpers::assertPlainMonthDay($plainMonthDay, 'M10', 1, "from {$description}");

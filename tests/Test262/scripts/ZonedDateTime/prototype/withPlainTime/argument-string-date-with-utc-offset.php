@@ -16,5 +16,5 @@ Assert::sameValue($result->epochNanoseconds, 45_296_987_654_321, "\"{$arg}\" is 
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->withPlainTime($arg), "\"{$arg}\" UTC offset without time is not valid for PlainTime");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "\"{$arg}\" UTC offset without time is not valid for PlainTime");
 }

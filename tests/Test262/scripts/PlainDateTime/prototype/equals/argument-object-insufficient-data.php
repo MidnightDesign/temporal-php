@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $dt = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
-Assert::throws(\TypeError::class, fn() => $dt->equals(['year' => 1976]), 'object must contain required properties');
+Assert::throws(\TypeError::class, function () use (&$dt) { return $dt->equals(['year' => 1976]); }, 'object must contain required properties');

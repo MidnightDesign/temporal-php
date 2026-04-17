@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\PlainDateTime(2001, 9, 9, 1, 46, 40, 987, 654, 321);
-TemporalHelpers::checkStringOptionWrongType('disambiguation', 'compatible', fn($disambiguation) => $datetime->toZonedDateTime('UTC', ['disambiguation' => $disambiguation]), fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));
+TemporalHelpers::checkStringOptionWrongType('disambiguation', 'compatible', function ($disambiguation) use (&$datetime) { return $datetime->toZonedDateTime('UTC', ['disambiguation' => $disambiguation]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));

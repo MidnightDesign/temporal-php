@@ -46,14 +46,28 @@ final class RunnerTest extends TestCase
             require $path;
         } catch (NotYetImplementedException $e) {
             static::markTestIncomplete($e->getMessage());
-        } catch (\ParseError $e) {
-            // Syntax errors in generated scripts must fail loudly — they indicate
-            // a transpiler bug, not a legitimately unimplemented test.
+        } catch (\Throwable $e) {
+            self::handleScriptThrowable($e);
+        }
+    }
+
+    /**
+     * Dispatches throwables from generated test262 scripts:
+     *
+     *   - `\ParseError`        → fail loudly (transpiler bug, not a legitimate incomplete test).
+     *   - Other `\Error` (e.g. `\TypeError`, `\ArgumentCountError`, `\UnhandledMatchError`,
+     *     `\AssertionError`): these indicate the generated PHP cannot run — mark the test as
+     *     incomplete rather than pass/fail, since the JS fixture cannot be translated 1:1.
+     *   - `\Exception` subclasses: re-throw so PHPUnit records the real assertion / runtime error.
+     */
+    private static function handleScriptThrowable(\Throwable $e): void
+    {
+        if ($e instanceof \ParseError) {
             static::fail(sprintf('Syntax error in generated script: %s', $e->getMessage()));
-        } catch (\Error $e) {
-            // PHP errors (e.g. "Value of type null is not callable") from untranslatable JS
-            // code patterns indicate the script cannot run in PHP — mark as incomplete.
+        }
+        if ($e instanceof \Error) {
             static::markTestIncomplete(sprintf('PHP error: %s', $e->getMessage()));
         }
+        throw $e;
     }
 }

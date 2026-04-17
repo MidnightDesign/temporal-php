@@ -18,5 +18,5 @@ $test($time, [['minute', '12:34'], ['second', '12:34:56'], ['millisecond', '12:3
 $test(new \Temporal\Spec\PlainTime(12, 34), [['minute', '12:34'], ['second', '12:34:00'], ['millisecond', '12:34:00.000'], ['microsecond', '12:34:00.000000'], ['nanosecond', '12:34:00.000000000']], 'whole minutes toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour'];
 foreach ($notValid as $smallestUnit) {
-Assert::throws(\InvalidArgumentException::class, fn() => $time->toString(['smallestUnit' => $smallestUnit]), "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
+Assert::throws(\InvalidArgumentException::class, function () use (&$time, &$smallestUnit) { return $time->toString(['smallestUnit' => $smallestUnit]); }, "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
 }

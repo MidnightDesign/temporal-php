@@ -11,16 +11,16 @@ $oneHour = 1 * 60 * 60 * (1000 ** 3);
 $minDt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 1, 0, 0, 0, 0, 0);
 $minValidDt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 20, 0, 0, 0, 0, 0, 0);
 $maxDt = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 0, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, fn() => $minDt->toZonedDateTime('+00'), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $minDt->toZonedDateTime('+01'), '');
-Assert::throws(\InvalidArgumentException::class, fn() => $minDt->toZonedDateTime('-01'), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minDt) { return $minDt->toZonedDateTime('+00'); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minDt) { return $minDt->toZonedDateTime('+01'); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minDt) { return $minDt->toZonedDateTime('-01'); }, '');
 foreach (['earlier', 'later'] as $disambiguation) {
 $zdt = $minValidDt->toZonedDateTime('+00', ['disambiguation' => $disambiguation]);
 }
 foreach (['earlier', 'later'] as $disambiguation) {
 $zdt = $minValidDt->toZonedDateTime('-01', ['disambiguation' => $disambiguation]);
 }
-Assert::throws(\InvalidArgumentException::class, fn() => $minValidDt->toZonedDateTime('+01'), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minValidDt) { return $minValidDt->toZonedDateTime('+01'); }, '');
 foreach (['earlier', 'later'] as $disambiguation) {
 $zdt = $maxDt->toZonedDateTime('+00');
 // SKIP (int64 overflow): Assert::sameValue($zdt->epochNanoseconds, 8640000000000000000000, ...);
@@ -30,4 +30,4 @@ $zdt = $maxDt->toZonedDateTime('+00');
 foreach (['earlier', 'later'] as $disambiguation) {
 $zdt = $maxDt->toZonedDateTime('+01');
 }
-Assert::throws(\InvalidArgumentException::class, fn() => $maxDt->toZonedDateTime('-01'), '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$maxDt) { return $maxDt->toZonedDateTime('-01'); }, '');

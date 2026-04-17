@@ -20,17 +20,63 @@ final class PlainDate implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Always "iso8601" — the only supported calendar.
+     * Calendar year (projected through the active calendar).
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public string $calendarId {
-        get => $this->spec->calendarId;
+    public int $year {
+        get => $this->spec->year;
     }
 
     /**
-     * Month code in "M01"–"M12" format.
+     * Month of the year (projected through the active calendar).
      *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $month {
+        get => $this->spec->month;
+    }
+
+    /**
+     * Day of the month (projected through the active calendar).
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public int $day {
+        get => $this->spec->day;
+    }
+
+    /**
+     * Calendar system for this date.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public Calendar $calendar {
+        get => Calendar::from($this->spec->calendarId);
+    }
+
+    /**
+     * Calendar era identifier (e.g. "ce", "bce", "reiwa"), or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?string $era {
+        get => $this->spec->era;
+    }
+
+    /**
+     * Year within the calendar era, or null for calendars without eras.
+     *
+     * @psalm-suppress PropertyNotSetInConstructor
+     */
+    public ?int $eraYear {
+        get => $this->spec->eraYear;
+    }
+
+    /**
+     * Month code in "M01"–"M12" format (or "M01L"–"M12L" for leap months).
+     *
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public string $monthCode {
@@ -48,9 +94,8 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Ordinal day of the year: 1–366.
+     * Ordinal day of the year (1-based). Range depends on the calendar system.
      *
-     * @var int<1, 366>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $dayOfYear {
@@ -58,28 +103,27 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * ISO 8601 week number: 1–53.
+     * ISO 8601 week number: 1–53, or null for non-ISO calendars.
      *
-     * @var int<1, 53>
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $weekOfYear {
+    public ?int $weekOfYear {
         get => $this->spec->weekOfYear;
     }
 
     /**
-     * ISO 8601 week-year (may differ from calendar year near year boundaries).
+     * ISO 8601 week-year (may differ from calendar year near year boundaries),
+     * or null for non-ISO calendars.
      *
      * @psalm-suppress PropertyNotSetInConstructor
      */
-    public int $yearOfWeek {
+    public ?int $yearOfWeek {
         get => $this->spec->yearOfWeek;
     }
 
     /**
-     * Number of days in this date's month (28–31).
+     * Number of days in this date's month.
      *
-     * @var int<28, 31>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInMonth {
@@ -87,9 +131,9 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always 7 (ISO 8601 calendar).
+     * Days in a week (always 7).
      *
-     * @var int<7, 7>
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInWeek {
@@ -97,9 +141,8 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * 365 or 366, depending on whether this date's year is a leap year.
+     * Number of days in this date's year.
      *
-     * @var int<365, 366>
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $daysInYear {
@@ -107,9 +150,9 @@ final class PlainDate implements \Stringable, \JsonSerializable
     }
 
     /**
-     * Always 12 (ISO 8601 calendar).
+     * Number of months in this date's year.
      *
-     * @var int<12, 12>
+     * @psalm-api
      * @psalm-suppress PropertyNotSetInConstructor
      */
     public int $monthsInYear {
@@ -132,24 +175,36 @@ final class PlainDate implements \Stringable, \JsonSerializable
     private readonly SpecPlainDate $spec;
 
     /**
-     * Creates a new PlainDate from year, month, and day.
+     * Creates a new PlainDate from ISO year, month, and day.
      *
-     * @param int          $year  ISO year.
-     * @param int<1, 12>  $month Month of the year (1–12).
-     * @param int<1, 31>  $day   Day of the month (1–31, depending on month/year).
+     * @param int          $isoYear  ISO year.
+     * @param int<1, 12>   $isoMonth ISO month of the year (1–12).
+     * @param int<1, 31>   $isoDay   ISO day of the month (1–31, depending on month/year).
+     * @param Calendar     $calendar Calendar system to project through.
      * @throws \InvalidArgumentException if the date is invalid or out of range.
      */
-    public function __construct(
-        public readonly int $year,
-        public readonly int $month,
-        public readonly int $day,
-    ) {
-        $this->spec = new SpecPlainDate($year, $month, $day);
+    public function __construct(int $isoYear, int $isoMonth, int $isoDay, Calendar $calendar = Calendar::Iso8601)
+    {
+        $this->spec = new SpecPlainDate($isoYear, $isoMonth, $isoDay, $calendar->value);
     }
 
     // -------------------------------------------------------------------------
     // Static factory / comparison methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Creates a PlainDate from a string, property bag, or another PlainDate.
+     *
+     * @param self|string|array<string, mixed> $item
+     */
+    public static function from(self|string|array $item, Overflow $overflow = Overflow::Constrain): self
+    {
+        if ($item instanceof self) {
+            return self::fromSpec(SpecPlainDate::from($item->spec));
+        }
+
+        return self::fromSpec(SpecPlainDate::from($item, ['overflow' => $overflow->value]));
+    }
 
     /**
      * Parses an ISO 8601 date string into a PlainDate.
@@ -185,6 +240,9 @@ final class PlainDate implements \Stringable, \JsonSerializable
      * @param int|null         $year      Year override, or null to keep current.
      * @param int<1, 12>|null  $month     Month override (1–12), or null to keep current.
      * @param int<1, 31>|null  $day       Day override, or null to keep current.
+     * @param string|null      $monthCode Month code override (e.g. "M01"), or null to keep current.
+     * @param string|null      $era       Era override (e.g. "ce"), or null to keep current.
+     * @param int|null         $eraYear   Era year override, or null to keep current.
      * @param Overflow         $overflow  How to handle out-of-range values.
      * @return self A new PlainDate with the overridden fields.
      * @throws \InvalidArgumentException if the resulting date is invalid (overflow: reject) or fields conflict.
@@ -193,6 +251,9 @@ final class PlainDate implements \Stringable, \JsonSerializable
         ?int $year = null,
         ?int $month = null,
         ?int $day = null,
+        ?string $monthCode = null,
+        ?string $era = null,
+        ?int $eraYear = null,
         Overflow $overflow = Overflow::Constrain,
     ): self {
         $fields = [];
@@ -205,10 +266,29 @@ final class PlainDate implements \Stringable, \JsonSerializable
         if ($day !== null) {
             $fields['day'] = $day;
         }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
+        }
 
         $spec = $this->spec->with($fields, ['overflow' => $overflow->value]);
 
         return self::fromSpec($spec);
+    }
+
+    /**
+     * Returns a new PlainDate with a different calendar system.
+     *
+     * The underlying ISO date remains the same; only the calendar projection changes.
+     */
+    public function withCalendar(Calendar $calendar): self
+    {
+        return self::fromSpec($this->spec->withCalendar($calendar->value));
     }
 
     /**
@@ -426,7 +506,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
      */
     public static function fromSpec(SpecPlainDate $spec): self
     {
-        return new self($spec->year, $spec->month, $spec->day);
+        return new self($spec->isoYear, $spec->isoMonth, $spec->isoDay, Calendar::from($spec->calendarId));
     }
 
     // -------------------------------------------------------------------------
@@ -444,7 +524,7 @@ final class PlainDate implements \Stringable, \JsonSerializable
             'year' => $this->year,
             'month' => $this->month,
             'day' => $this->day,
-            'calendarId' => $this->calendarId,
+            'calendar' => $this->calendar,
             'iso' => $this->toString(),
         ];
     }

@@ -13,4 +13,4 @@ $arg = '2016-12-31T23:59:60+00:00[UTC]';
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'leap second is a valid ISO string for ZonedDateTime');
 $arg = '2000-05-02T12:34:56+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, fn() => $instance->equals($arg), 'leap second in time zone name not valid');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, 'leap second in time zone name not valid');

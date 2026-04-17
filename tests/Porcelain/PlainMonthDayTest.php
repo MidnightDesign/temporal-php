@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Temporal\Tests\Porcelain;
 
 use InvalidArgumentException;
+use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Overflow;
-use Temporal\PlainDate;
 use Temporal\PlainMonthDay;
-
 
 final class PlainMonthDayTest extends TemporalTestCase
 {
@@ -21,8 +20,8 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame(12, $md->month);
-        self::assertSame(25, $md->day);
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
     }
 
     public function testConstructorRejectsInvalidDay(): void
@@ -35,24 +34,24 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = new PlainMonthDay(2, 29);
 
-        self::assertSame(2, $md->month);
-        self::assertSame(29, $md->day);
+        static::assertSame(2, $md->month);
+        static::assertSame(29, $md->day);
     }
 
     // -------------------------------------------------------------------------
     // Virtual properties
     // -------------------------------------------------------------------------
 
-    public function testCalendarIdIsIso8601(): void
+    public function testCalendarIsIso8601(): void
     {
-        self::assertSame('iso8601', (new PlainMonthDay(12, 25))->calendarId);
+        static::assertSame(Calendar::Iso8601, new PlainMonthDay(12, 25)->calendar);
     }
 
     public function testMonthCode(): void
     {
-        self::assertSame('M01', (new PlainMonthDay(1, 1))->monthCode);
-        self::assertSame('M06', (new PlainMonthDay(6, 15))->monthCode);
-        self::assertSame('M12', (new PlainMonthDay(12, 31))->monthCode);
+        static::assertSame('M01', new PlainMonthDay(1, 1)->monthCode);
+        static::assertSame('M06', new PlainMonthDay(6, 15)->monthCode);
+        static::assertSame('M12', new PlainMonthDay(12, 31)->monthCode);
     }
 
     // -------------------------------------------------------------------------
@@ -63,8 +62,8 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = PlainMonthDay::parse('--12-25');
 
-        self::assertSame(12, $md->month);
-        self::assertSame(25, $md->day);
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
     }
 
     public function testParseFullDate(): void
@@ -72,8 +71,8 @@ final class PlainMonthDayTest extends TemporalTestCase
         // Parsing a full date string should still extract the month-day
         $md = PlainMonthDay::parse('2020-06-15');
 
-        self::assertSame(6, $md->month);
-        self::assertSame(15, $md->day);
+        static::assertSame(6, $md->month);
+        static::assertSame(15, $md->day);
     }
 
     public function testParseInvalidStringThrows(): void
@@ -86,8 +85,8 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = PlainMonthDay::parse('--02-29');
 
-        self::assertSame(2, $md->month);
-        self::assertSame(29, $md->day);
+        static::assertSame(2, $md->month);
+        static::assertSame(29, $md->day);
     }
 
     // -------------------------------------------------------------------------
@@ -99,8 +98,8 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(6, 15);
         $result = $md->with(month: 3);
 
-        self::assertSame(3, $result->month);
-        self::assertSame(15, $result->day);
+        static::assertSame(3, $result->month);
+        static::assertSame(15, $result->day);
     }
 
     public function testWithDay(): void
@@ -108,8 +107,8 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(6, 15);
         $result = $md->with(day: 1);
 
-        self::assertSame(6, $result->month);
-        self::assertSame(1, $result->day);
+        static::assertSame(6, $result->month);
+        static::assertSame(1, $result->day);
     }
 
     public function testWithConstrainsDay(): void
@@ -118,7 +117,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(1, 31);
         $result = $md->with(month: 2);
 
-        self::assertSame(29, $result->day);
+        static::assertSame(29, $result->day);
     }
 
     public function testWithRejectOverflow(): void
@@ -134,8 +133,8 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(6, 15);
         $result = $md->with(month: 3);
 
-        self::assertNotSame($md, $result);
-        self::assertSame(6, $md->month);
+        static::assertNotSame($md, $result);
+        static::assertSame(6, $md->month);
     }
 
     // -------------------------------------------------------------------------
@@ -147,7 +146,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         $a = new PlainMonthDay(12, 25);
         $b = new PlainMonthDay(12, 25);
 
-        self::assertTrue($a->equals($b));
+        static::assertTrue($a->equals($b));
     }
 
     public function testEqualsFalseDifferentMonth(): void
@@ -155,7 +154,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         $a = new PlainMonthDay(12, 25);
         $b = new PlainMonthDay(11, 25);
 
-        self::assertFalse($a->equals($b));
+        static::assertFalse($a->equals($b));
     }
 
     public function testEqualsFalseDifferentDay(): void
@@ -163,7 +162,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         $a = new PlainMonthDay(12, 25);
         $b = new PlainMonthDay(12, 26);
 
-        self::assertFalse($a->equals($b));
+        static::assertFalse($a->equals($b));
     }
 
     // -------------------------------------------------------------------------
@@ -174,38 +173,35 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame('12-25', $md->toString());
+        static::assertSame('12-25', $md->toString());
     }
 
     public function testToStringCalendarAlways(): void
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame('1972-12-25[u-ca=iso8601]', $md->toString(CalendarDisplay::Always));
+        static::assertSame('1972-12-25[u-ca=iso8601]', $md->toString(CalendarDisplay::Always));
     }
 
     public function testToStringCalendarNever(): void
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame('12-25', $md->toString(CalendarDisplay::Never));
+        static::assertSame('12-25', $md->toString(CalendarDisplay::Never));
     }
 
     public function testToStringCalendarCritical(): void
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame(
-            '1972-12-25[!u-ca=iso8601]',
-            $md->toString(CalendarDisplay::Critical),
-        );
+        static::assertSame('1972-12-25[!u-ca=iso8601]', $md->toString(CalendarDisplay::Critical));
     }
 
     public function testToStringSingleDigitMonth(): void
     {
         $md = new PlainMonthDay(1, 5);
 
-        self::assertSame('01-05', $md->toString());
+        static::assertSame('01-05', $md->toString());
     }
 
     // -------------------------------------------------------------------------
@@ -217,9 +213,9 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(12, 25);
         $date = $md->toPlainDate(2020);
 
-        self::assertSame(2020, $date->year);
-        self::assertSame(12, $date->month);
-        self::assertSame(25, $date->day);
+        static::assertSame(2020, $date->year);
+        static::assertSame(12, $date->month);
+        static::assertSame(25, $date->day);
     }
 
     public function testToPlainDateFeb29LeapYear(): void
@@ -227,9 +223,9 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(2, 29);
         $date = $md->toPlainDate(2020);
 
-        self::assertSame(2020, $date->year);
-        self::assertSame(2, $date->month);
-        self::assertSame(29, $date->day);
+        static::assertSame(2020, $date->year);
+        static::assertSame(2, $date->month);
+        static::assertSame(29, $date->day);
     }
 
     public function testToPlainDateFeb29NonLeapYear(): void
@@ -238,9 +234,9 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(2, 29);
         $date = $md->toPlainDate(2019);
 
-        self::assertSame(2019, $date->year);
-        self::assertSame(2, $date->month);
-        self::assertSame(28, $date->day);
+        static::assertSame(2019, $date->year);
+        static::assertSame(2, $date->month);
+        static::assertSame(28, $date->day);
     }
 
     public function testToPlainDateDifferentYears(): void
@@ -250,10 +246,10 @@ final class PlainMonthDayTest extends TemporalTestCase
         $date2020 = $md->toPlainDate(2020);
         $date2025 = $md->toPlainDate(2025);
 
-        self::assertSame(2020, $date2020->year);
-        self::assertSame(2025, $date2025->year);
-        self::assertSame(6, $date2020->month);
-        self::assertSame(15, $date2020->day);
+        static::assertSame(2020, $date2020->year);
+        static::assertSame(2025, $date2025->year);
+        static::assertSame(6, $date2020->month);
+        static::assertSame(15, $date2020->day);
     }
 
     // -------------------------------------------------------------------------
@@ -264,14 +260,14 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame('12-25', (string) $md);
+        static::assertSame('12-25', (string) $md);
     }
 
     public function testJsonSerialize(): void
     {
         $md = new PlainMonthDay(12, 25);
 
-        self::assertSame('"12-25"', json_encode($md));
+        static::assertSame('"12-25"', json_encode($md));
     }
 
     // -------------------------------------------------------------------------
@@ -283,8 +279,8 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(12, 25);
         $spec = $md->toSpec();
 
-        self::assertSame(12, $spec->isoMonth);
-        self::assertSame(25, $spec->day);
+        static::assertSame(12, $spec->isoMonth);
+        static::assertSame(25, $spec->day);
     }
 
     public function testFromSpecCreatesInstance(): void
@@ -292,8 +288,8 @@ final class PlainMonthDayTest extends TemporalTestCase
         $spec = new \Temporal\Spec\PlainMonthDay(12, 25);
         $md = PlainMonthDay::fromSpec($spec);
 
-        self::assertSame(12, $md->month);
-        self::assertSame(25, $md->day);
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
     }
 
     public function testToSpecRoundTrip(): void
@@ -301,7 +297,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(12, 25);
         $restored = PlainMonthDay::fromSpec($md->toSpec());
 
-        self::assertTrue($md->equals($restored));
+        static::assertTrue($md->equals($restored));
     }
 
     // -------------------------------------------------------------------------
@@ -313,10 +309,86 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = new PlainMonthDay(12, 25);
         $info = $md->__debugInfo();
 
-        self::assertSame(12, $info['month']);
-        self::assertSame(25, $info['day']);
-        self::assertSame('iso8601', $info['calendarId']);
-        self::assertSame('12-25', $info['iso']);
+        static::assertSame(12, $info['month']);
+        static::assertSame(25, $info['day']);
+        static::assertSame(Calendar::Iso8601, $info['calendar']);
+        static::assertSame('12-25', $info['iso']);
     }
 
+    // -------------------------------------------------------------------------
+    // Constructor with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testConstructorWithCalendarEnum(): void
+    {
+        $md = new PlainMonthDay(12, 25, Calendar::Iso8601);
+
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
+        static::assertSame(Calendar::Iso8601, $md->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // from()
+    // -------------------------------------------------------------------------
+
+    public function testFromString(): void
+    {
+        $md = PlainMonthDay::from('--12-25');
+
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
+    }
+
+    public function testFromAnotherPlainMonthDay(): void
+    {
+        $original = new PlainMonthDay(12, 25);
+        $copy = PlainMonthDay::from($original);
+
+        static::assertTrue($original->equals($copy));
+        static::assertNotSame($original, $copy);
+    }
+
+    public function testFromPropertyBag(): void
+    {
+        $md = PlainMonthDay::from(['monthCode' => 'M12', 'day' => 25]);
+
+        static::assertSame(12, $md->month);
+        static::assertSame(25, $md->day);
+    }
+
+    // -------------------------------------------------------------------------
+    // with() expanded fields
+    // -------------------------------------------------------------------------
+
+    public function testWithMonthCode(): void
+    {
+        $md = new PlainMonthDay(6, 15);
+        $result = $md->with(monthCode: 'M03');
+
+        static::assertSame(3, $result->month);
+        static::assertSame(15, $result->day);
+    }
+
+    // -------------------------------------------------------------------------
+    // fromSpec round-trip with Calendar enum
+    // -------------------------------------------------------------------------
+
+    public function testFromSpecPreservesCalendar(): void
+    {
+        $spec = new \Temporal\Spec\PlainMonthDay(12, 25);
+        $md = PlainMonthDay::fromSpec($spec);
+
+        static::assertSame(Calendar::Iso8601, $md->calendar);
+    }
+
+    // -------------------------------------------------------------------------
+    // Mutation coverage: from() forwards overflow option
+    // -------------------------------------------------------------------------
+
+    public function testFromPropertyBagForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        PlainMonthDay::from(['monthCode' => 'M02', 'day' => 30], Overflow::Reject);
+    }
 }
