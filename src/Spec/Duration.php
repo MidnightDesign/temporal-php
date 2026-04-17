@@ -94,8 +94,8 @@ final class Duration implements Stringable
             && is_int($microseconds)
             && is_int($nanoseconds);
 
-        // TC39: each Duration field must be an integer value (not fractional).
-        // Skip the fmod check entirely in the common all-int case.
+        // TC39: each Duration field must be finite and integer-valued.
+        // Skip validation entirely in the common all-int case.
         if (!$allInt) {
             foreach ([
                 $years,
@@ -109,10 +109,17 @@ final class Duration implements Stringable
                 $microseconds,
                 $nanoseconds,
             ] as $field) {
-                if (is_float($field) && !is_infinite($field) && fmod(num1: $field, num2: 1.0) !== 0.0) {
-                    throw new InvalidArgumentException(
-                        'Duration fields must be integer-valued; fractional values are not allowed.',
-                    );
+                if (is_float($field)) {
+                    if (!is_finite($field)) {
+                        throw new InvalidArgumentException(
+                            'Duration fields must be finite; Infinity and NaN are not allowed.',
+                        );
+                    }
+                    if (fmod(num1: $field, num2: 1.0) !== 0.0) {
+                        throw new InvalidArgumentException(
+                            'Duration fields must be integer-valued; fractional values are not allowed.',
+                        );
+                    }
                 }
             }
         }
