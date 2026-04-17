@@ -835,6 +835,19 @@ final class ZonedDateTime implements Stringable
             // In IANA TZDB 2022b+ Asia/Choibalsan is a link to Asia/Ulaanbaatar,
             // but some ICU versions ship older data where it is still self-canonical.
             'Asia/Choibalsan' => 'Asia/Ulaanbaatar',
+            // POSIX-style abbreviations: some ICU versions treat these as
+            // self-canonical instead of resolving to their IANA targets.
+            'CET' => 'Europe/Brussels',
+            'CST6CDT' => 'America/Chicago',
+            'EET' => 'Europe/Athens',
+            'EST' => 'America/Panama',
+            'EST5EDT' => 'America/New_York',
+            'HST' => 'Pacific/Honolulu',
+            'MET' => 'Europe/Brussels',
+            'MST' => 'America/Phoenix',
+            'MST7MDT' => 'America/Denver',
+            'PST8PDT' => 'America/Los_Angeles',
+            'WET' => 'Europe/Lisbon',
         ];
         if (array_key_exists($properCase, $comparisonOverrides)) {
             return $comparisonOverrides[$properCase];
