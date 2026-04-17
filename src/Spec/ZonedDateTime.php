@@ -850,7 +850,17 @@ final class ZonedDateTime implements Stringable
             'WET' => 'Europe/Lisbon',
         ];
         if (array_key_exists($properCase, $comparisonOverrides)) {
-            return $comparisonOverrides[$properCase];
+            // Resolve the target through ICU too, so both sides use the same
+            // canonical form even when ICU further resolves the target zone.
+            $target = $comparisonOverrides[$properCase];
+            if (function_exists('intltz_get_canonical_id')) {
+                $isSystem = false;
+                $canon = \IntlTimeZone::getCanonicalID($target, $isSystem);
+                if ($canon !== false && $canon !== '') {
+                    return $canon;
+                }
+            }
+            return $target;
         }
         if (function_exists('intltz_get_canonical_id')) {
             $isSystem = false;
