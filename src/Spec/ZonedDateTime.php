@@ -832,6 +832,9 @@ final class ZonedDateTime implements Stringable
         /** @var array<string, string> $comparisonOverrides */
         static $comparisonOverrides = [
             'Antarctica/South_Pole' => 'Antarctica/McMurdo',
+            // In IANA TZDB 2022b+ Asia/Choibalsan is a link to Asia/Ulaanbaatar,
+            // but some ICU versions ship older data where it is still self-canonical.
+            'Asia/Choibalsan' => 'Asia/Ulaanbaatar',
         ];
         if (array_key_exists($properCase, $comparisonOverrides)) {
             return $comparisonOverrides[$properCase];
@@ -1795,7 +1798,9 @@ final class ZonedDateTime implements Stringable
         }
 
         // 'previous': find the most recent transition strictly BEFORE the current instant.
-        $transitions = self::safeGetTransitions($tz, $epochSec - (200 * 365 * 86_400), $epochSec);
+        // Use epochSec+1 as end bound so that a transition at exactly epochSec is always
+        // included — some PHP/ICU versions exclude the boundary second from getTransitions().
+        $transitions = self::safeGetTransitions($tz, $epochSec - (200 * 365 * 86_400), $epochSec + 1);
         if (count($transitions) < 2) {
             return null;
         }
