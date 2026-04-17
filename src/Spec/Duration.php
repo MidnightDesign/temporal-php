@@ -27,7 +27,18 @@ final class Duration implements Stringable
      */
     public int $sign {
         get {
-            foreach ($this->fields() as $v) {
+            foreach ([
+                $this->years,
+                $this->months,
+                $this->weeks,
+                $this->days,
+                $this->hours,
+                $this->minutes,
+                $this->seconds,
+                $this->milliseconds,
+                $this->microseconds,
+                $this->nanoseconds,
+            ] as $v) {
                 if ($v !== 0) {
                     return $v > 0 ? 1 : -1;
                 }
@@ -1556,27 +1567,6 @@ final class Duration implements Stringable
     // -------------------------------------------------------------------------
     // Helpers
     // -------------------------------------------------------------------------
-
-    /**
-     * Returns all 10 field values in declaration order.
-     *
-     * @return list<int|float>
-     */
-    private function fields(): array
-    {
-        return [
-            $this->years,
-            $this->months,
-            $this->weeks,
-            $this->days,
-            $this->hours,
-            $this->minutes,
-            $this->seconds,
-            $this->milliseconds,
-            $this->microseconds,
-            $this->nanoseconds,
-        ];
-    }
 
     /**
      * Distributes a decimal fraction of a time unit into smaller units.
