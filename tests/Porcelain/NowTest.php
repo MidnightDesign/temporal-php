@@ -328,5 +328,11 @@ final class NowTest extends TestCase
         $ref = new \ReflectionClass(Now::class);
 
         static::assertFalse($ref->isInstantiable());
+
+        // Cover the private constructor body via reflection.
+        $constructor = $ref->getConstructor();
+        static::assertNotNull($constructor);
+        $instance = $ref->newInstanceWithoutConstructor();
+        $constructor->invoke($instance);
     }
 }

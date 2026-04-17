@@ -153,6 +153,14 @@ final class PlainTimeTest extends TemporalTestCase
         static::assertPlainTimeIs(10, 45, 30, 100, 200, 999, $updated);
     }
 
+    public function testWithSubSecondFields(): void
+    {
+        $t = new PlainTime(10, 20, 30);
+        $updated = $t->with(second: 59, millisecond: 111, microsecond: 222, nanosecond: 333);
+
+        static::assertPlainTimeIs(10, 20, 59, 111, 222, 333, $updated);
+    }
+
     public function testWithNoFieldsReturnsCopy(): void
     {
         $t = new PlainTime(10, 20, 30);

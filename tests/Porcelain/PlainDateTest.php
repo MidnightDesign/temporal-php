@@ -745,4 +745,54 @@ final class PlainDateTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         PlainDate::from(['year' => 2020, 'month' => 2, 'day' => 30], Overflow::Reject);
     }
+
+    // -------------------------------------------------------------------------
+    // toPlainDateTime / toZonedDateTime with PlainTime argument
+    // -------------------------------------------------------------------------
+
+    public function testToPlainDateTimeWithTime(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+        $time = new \Temporal\PlainTime(13, 30, 45);
+        $dt = $pd->toPlainDateTime($time);
+
+        static::assertSame(2020, $dt->year);
+        static::assertSame(6, $dt->month);
+        static::assertSame(15, $dt->day);
+        static::assertSame(13, $dt->hour);
+        static::assertSame(30, $dt->minute);
+        static::assertSame(45, $dt->second);
+    }
+
+    public function testToPlainDateTimeWithoutTimeUsesMidnight(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+        $dt = $pd->toPlainDateTime();
+
+        static::assertSame(0, $dt->hour);
+        static::assertSame(0, $dt->minute);
+        static::assertSame(0, $dt->second);
+    }
+
+    public function testToZonedDateTimeWithTime(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+        $time = new \Temporal\PlainTime(10, 30);
+        $zdt = $pd->toZonedDateTime('UTC', $time);
+
+        static::assertSame(2020, $zdt->year);
+        static::assertSame(6, $zdt->month);
+        static::assertSame(15, $zdt->day);
+        static::assertSame(10, $zdt->hour);
+        static::assertSame(30, $zdt->minute);
+    }
+
+    public function testToZonedDateTimeWithoutTimeUsesMidnight(): void
+    {
+        $pd = new PlainDate(2020, 6, 15);
+        $zdt = $pd->toZonedDateTime('UTC');
+
+        static::assertSame(0, $zdt->hour);
+        static::assertSame(0, $zdt->minute);
+    }
 }

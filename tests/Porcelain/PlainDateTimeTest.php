@@ -1054,4 +1054,34 @@ final class PlainDateTimeTest extends TemporalTestCase
         $this->expectException(InvalidArgumentException::class);
         PlainDateTime::from(['year' => 2020, 'month' => 2, 'day' => 30], Overflow::Reject);
     }
+
+    // -------------------------------------------------------------------------
+    // toZonedDateTime
+    // -------------------------------------------------------------------------
+
+    public function testToZonedDateTime(): void
+    {
+        $dt = new PlainDateTime(2020, 6, 15, 13, 45, 30);
+        $zdt = $dt->toZonedDateTime('UTC');
+
+        static::assertSame(2020, $zdt->year);
+        static::assertSame(6, $zdt->month);
+        static::assertSame(15, $zdt->day);
+        static::assertSame(13, $zdt->hour);
+        static::assertSame(45, $zdt->minute);
+        static::assertSame(30, $zdt->second);
+        static::assertSame('UTC', $zdt->timeZoneId);
+    }
+
+    public function testToZonedDateTimeForwardsDisambiguation(): void
+    {
+        // 2020-11-01 01:30 is ambiguous in America/New_York (fall-back DST)
+        $dt = new PlainDateTime(2020, 11, 1, 1, 30);
+
+        $earlier = $dt->toZonedDateTime('America/New_York', \Temporal\Disambiguation::Earlier);
+        $later = $dt->toZonedDateTime('America/New_York', \Temporal\Disambiguation::Later);
+
+        static::assertSame('-04:00', $earlier->offset);
+        static::assertSame('-05:00', $later->offset);
+    }
 }

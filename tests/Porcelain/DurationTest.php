@@ -282,6 +282,24 @@ final class DurationTest extends TemporalTestCase
         static::assertDurationIs(5, 2, 0, 6, 0, 0, 0, 0, 0, 0, $updated);
     }
 
+    public function testWithAllFields(): void
+    {
+        $d = new Duration(years: 1);
+
+        $updated = $d->with(
+            months: 2,
+            weeks: 3,
+            hours: 4,
+            minutes: 5,
+            seconds: 6,
+            milliseconds: 7,
+            microseconds: 8,
+            nanoseconds: 9,
+        );
+
+        static::assertDurationIs(1, 2, 3, 0, 4, 5, 6, 7, 8, 9, $updated);
+    }
+
     public function testWithNoFieldsThrows(): void
     {
         $d = new Duration(years: 1);
