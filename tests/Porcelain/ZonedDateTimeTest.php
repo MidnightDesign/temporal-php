@@ -1048,27 +1048,37 @@ final class ZonedDateTimeTest extends TemporalTestCase
     // Mutation coverage: with() forwards disambiguation option
     // -------------------------------------------------------------------------
 
-    public function testWithForwardsDisambiguationEarlier(): void
+    public function testWithForwardsDisambiguationLater(): void
     {
-        // Set up a ZonedDateTime and then change hour to an ambiguous time
+        // Fall-back: 1:30 AM is ambiguous in New York on Nov 1 2020.
+        // With offset=ignore, disambiguation decides. Default (compatible)
+        // picks -04:00 (first), but Later picks -05:00 (second).
         $zdt = ZonedDateTime::parse('2020-11-01T00:00:00-04:00[America/New_York]');
-        $result = $zdt->with(hour: 1, minute: 30, disambiguation: Disambiguation::Earlier);
+        $result = $zdt->with(
+            hour: 1,
+            minute: 30,
+            disambiguation: Disambiguation::Later,
+            offsetOption: OffsetOption::Ignore,
+        );
 
         static::assertSame(1, $result->hour);
         static::assertSame(30, $result->minute);
-        static::assertSame('-04:00', $result->offset);
+        static::assertSame('-05:00', $result->offset);
     }
 
     // -------------------------------------------------------------------------
     // Mutation coverage: with() forwards offset option
     // -------------------------------------------------------------------------
 
-    public function testWithForwardsOffsetOptionPrefer(): void
+    public function testWithForwardsOffsetOptionIgnore(): void
     {
-        $zdt = ZonedDateTime::parse('2020-06-15T12:00:00+00:00[UTC]');
-        $result = $zdt->with(hour: 14, offsetOption: OffsetOption::Prefer);
+        // During DST overlap, stored offset is -05:00 (second occurrence).
+        // Default (prefer) keeps -05:00; Ignore discards it and picks
+        // -04:00 (first occurrence via default compatible disambiguation).
+        $zdt = ZonedDateTime::parse('2020-11-01T01:30:00-05:00[America/New_York]');
+        $result = $zdt->with(minute: 0, offsetOption: OffsetOption::Ignore);
 
-        static::assertSame(14, $result->hour);
+        static::assertSame('-04:00', $result->offset);
     }
 
     // -------------------------------------------------------------------------
