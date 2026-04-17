@@ -8,7 +8,7 @@ Temporal is the modern replacement for JavaScript's `Date`, providing a precise,
 
 - PHP 8.4+
 - Composer
-- `ext-intl` (required for `toLocaleString()` on spec-layer `Instant` and `ZonedDateTime`)
+- `ext-intl` (required for `toLocaleString()` on spec-layer `Instant`, `ZonedDateTime`, and `Duration`)
 
 ## Installation
 
@@ -23,7 +23,7 @@ This library has two API tiers:
 | Layer | Namespace | Purpose |
 |-------|-----------|---------|
 | **Porcelain** | `Temporal\` | PHP-idiomatic API with strict types, enums, and named arguments |
-| **Spec** | `Temporal\Spec\` | TC39-faithful implementation, validated by 4600+ test262 scripts |
+| **Spec** | `Temporal\Spec\` | TC39-faithful implementation, validated by 6600+ test262 scripts |
 
 Use the porcelain layer for application code. The spec layer exists to pass the TC39 conformance suite and is considered internal.
 
@@ -35,6 +35,7 @@ A calendar date without time or time zone.
 
 ```php
 use Temporal\PlainDate;
+use Temporal\Calendar;
 use Temporal\Duration;
 use Temporal\Overflow;
 use Temporal\Unit;
@@ -48,8 +49,10 @@ $date->month;        // 3
 $date->day;          // 15
 
 // Calendar-derived properties
-$date->calendarId;   // 'iso8601'
+$date->calendar;     // Calendar::Iso8601
 $date->monthCode;    // 'M03'
+$date->era;          // null (non-null for Japanese, Buddhist, etc.)
+$date->eraYear;      // null
 $date->dayOfWeek;    // 1-7 (Monday-Sunday)
 $date->dayOfYear;    // 1-366
 $date->weekOfYear;   // 1-53
@@ -80,6 +83,11 @@ $dt  = $date->toPlainDateTime(new PlainTime(9, 30));    // 09:30
 $zdt = $date->toZonedDateTime('America/New_York');
 $ym  = $date->toPlainYearMonth();
 $md  = $date->toPlainMonthDay();
+
+// Calendar projections
+$hebrew = $date->withCalendar(Calendar::Hebrew);
+$hebrew->year;       // 5784
+$hebrew->monthCode;  // 'M06'
 
 // Serialization
 echo $date;                // '2024-03-15'
@@ -337,12 +345,44 @@ $dt      = Now::plainDateTime();
 $zdt     = Now::zonedDateTime();
 ```
 
+### Calendars
+
+Full ECMA-402 multi-calendar support. The `Calendar` enum covers all 16 calendars defined by the spec:
+
+```php
+use Temporal\PlainDate;
+use Temporal\Calendar;
+
+// Project any date into a non-ISO calendar
+$date   = PlainDate::parse('2024-03-15');
+$hebrew = $date->withCalendar(Calendar::Hebrew);
+$hebrew->year;      // 5784
+$hebrew->monthCode; // 'M06'
+$hebrew->era;       // 'am'
+
+// Japanese calendar with era
+$jp = $date->withCalendar(Calendar::Japanese);
+$jp->era;           // 'reiwa'
+$jp->eraYear;       // 6
+
+// Construct with a calendar (constructor takes ISO year/month/day)
+$buddhist = new PlainDate(2024, 3, 15, Calendar::Buddhist);
+$buddhist->era;     // 'be'
+$buddhist->eraYear; // 2567
+
+// withCalendar() is available on PlainDate, PlainDateTime, and ZonedDateTime
+// Calendar is also accepted by Now::plainDate(), Now::plainDateTime(), Now::zonedDateTime()
+```
+
+Available calendars: `Iso8601`, `Buddhist`, `Chinese`, `Coptic`, `Dangi`, `EthiopicAmeteAlem`, `Ethiopic`, `Gregory`, `Hebrew`, `Indian`, `IslamicCivil`, `IslamicTabular`, `IslamicUmalqura`, `Japanese`, `Persian`, `Roc`.
+
 ### Enums
 
 All option strings are replaced by backed enums:
 
 | Enum | Cases |
 |------|-------|
+| `Calendar` | `Iso8601`, `Buddhist`, `Chinese`, `Coptic`, `Dangi`, `Ethiopic`, `Gregory`, `Hebrew`, `Indian`, `Japanese`, `Persian`, `Roc`, ... (16 total) |
 | `RoundingMode` | `Ceil`, `Floor`, `Expand`, `Trunc`, `HalfCeil`, `HalfFloor`, `HalfExpand`, `HalfTrunc`, `HalfEven` |
 | `Overflow` | `Constrain`, `Reject` |
 | `Unit` | `Year`, `Month`, `Week`, `Day`, `Hour`, `Minute`, `Second`, `Millisecond`, `Microsecond`, `Nanosecond` |
@@ -410,7 +450,7 @@ docker compose exec php composer test262:build
 docker compose exec php composer test262:run
 ```
 
-Currently **4610 test262 tests passing** (0 failures, 1135 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access).
+Currently **6615 test262 tests passing** (0 failures, 1466 incomplete due to JS-only features like Symbol, Proxy, and property descriptor access).
 
 ---
 
