@@ -7,10 +7,7 @@
         "@default": true
     },
     "testFramework": "phpunit",
-    "logs": {
-        "text": "build/infection.txt",
-        "summary": "build/infection-summary.txt"
-    },
+    "logs": {},
     "minMsi": 100,
     "minCoveredMsi": 100,
     "staticAnalysisTool": "phpstan",
