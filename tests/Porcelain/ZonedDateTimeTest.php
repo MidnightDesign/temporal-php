@@ -1258,14 +1258,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
     public function testFromFields(): void
     {
-        $zdt = ZonedDateTime::fromFields(
-            timeZone: 'UTC',
-            year: 2020,
-            month: 6,
-            day: 15,
-            hour: 12,
-            minute: 30,
-        );
+        $zdt = ZonedDateTime::fromFields(timeZone: 'UTC', year: 2020, month: 6, day: 15, hour: 12, minute: 30);
 
         static::assertSame(2020, $zdt->year);
         static::assertSame(6, $zdt->month);

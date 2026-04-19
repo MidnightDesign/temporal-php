@@ -965,11 +965,7 @@ final class PlainDateTimeTest extends TemporalTestCase
 
     public function testFromPropertyBag(): void
     {
-        $dt = PlainDateTime::fromFields(
-            year: 2020,
-            month: 6,
-            day: 15,
-        );
+        $dt = PlainDateTime::fromFields(year: 2020, month: 6, day: 15);
 
         static::assertSame(2020, $dt->year);
         static::assertSame(6, $dt->month);

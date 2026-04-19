@@ -364,5 +364,4 @@ final class PlainMonthDayTest extends TemporalTestCase
 
         static::assertSame(Calendar::Iso8601, $md->calendar);
     }
-
 }

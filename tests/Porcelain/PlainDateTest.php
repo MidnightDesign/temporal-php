@@ -574,11 +574,7 @@ final class PlainDateTest extends TestCase
 
     public function testFromPropertyBag(): void
     {
-        $pd = PlainDate::fromFields(
-            year: 2020,
-            month: 6,
-            day: 15,
-        );
+        $pd = PlainDate::fromFields(year: 2020, month: 6, day: 15);
 
         static::assertSame(2020, $pd->year);
         static::assertSame(6, $pd->month);
