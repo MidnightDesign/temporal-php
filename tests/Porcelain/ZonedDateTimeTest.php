@@ -1298,19 +1298,21 @@ final class ZonedDateTimeTest extends TemporalTestCase
         );
     }
 
-    public function testFromFieldsForwardsOffsetOptionReject(): void
+    public function testFromFieldsForwardsOffsetOptionIgnore(): void
     {
-        // Offset '+05:30' does not match UTC; Reject throws.
-        $this->expectException(InvalidArgumentException::class);
-
-        ZonedDateTime::fromFields(
+        // Offset '+05:30' does not match UTC. The spec's default offset option is
+        // 'reject', which would throw; `OffsetOption::Ignore` must be forwarded
+        // for this call to succeed.
+        $zdt = ZonedDateTime::fromFields(
             timeZone: 'UTC',
             year: 2020,
             month: 1,
             day: 1,
             offset: '+05:30',
-            offsetOption: OffsetOption::Reject,
+            offsetOption: OffsetOption::Ignore,
         );
+
+        static::assertSame('+00:00', $zdt->offset);
     }
 
     // -------------------------------------------------------------------------

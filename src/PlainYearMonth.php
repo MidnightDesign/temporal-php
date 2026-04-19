@@ -143,13 +143,17 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
      *
      * Supply either `year` or `era` + `eraYear`, and either `month` or `monthCode`.
      *
+     * No `overflow` parameter: `$month` is already bounded by `int<1, 12>`, and
+     * `PlainYearMonth` has no `day` field, so there is no out-of-range value the
+     * porcelain API accepts that would behave differently under constrain vs.
+     * reject.
+     *
      * @param int|null                $year
      * @param int<1, 12>|null         $month
      * @param non-empty-string|null   $monthCode
      * @param Calendar                $calendar
      * @param non-empty-string|null   $era
      * @param int|null                $eraYear
-     * @param Overflow                $overflow
      */
     public static function fromFields(
         ?int $year = null,
@@ -158,7 +162,6 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
         Calendar $calendar = Calendar::Iso8601,
         ?string $era = null,
         ?int $eraYear = null,
-        Overflow $overflow = Overflow::Constrain,
     ): self {
         $fields = ['calendar' => $calendar->value];
         if ($year !== null) {
@@ -177,7 +180,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
             $fields['eraYear'] = $eraYear;
         }
 
-        return self::fromSpec(SpecPlainYearMonth::from($fields, ['overflow' => $overflow->value]));
+        return self::fromSpec(SpecPlainYearMonth::from($fields));
     }
 
     /**

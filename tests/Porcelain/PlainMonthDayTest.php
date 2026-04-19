@@ -354,6 +354,16 @@ final class PlainMonthDayTest extends TemporalTestCase
         PlainMonthDay::fromFields(month: 2, day: 30, overflow: Overflow::Reject);
     }
 
+    public function testFromFieldsForwardsYear(): void
+    {
+        // Hebrew monthCode "M05L" is valid only in leap years. Year 5783 is not
+        // a leap year, so passing it forces rejection; without `year`, the spec
+        // falls back to a reference leap year and would accept.
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainMonthDay::fromFields(monthCode: 'M05L', day: 1, calendar: Calendar::Hebrew, year: 5783);
+    }
+
     // -------------------------------------------------------------------------
     // with() expanded fields
     // -------------------------------------------------------------------------

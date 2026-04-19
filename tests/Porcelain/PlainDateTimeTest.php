@@ -987,6 +987,28 @@ final class PlainDateTimeTest extends TemporalTestCase
         PlainDateTime::fromFields(year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
     }
 
+    public function testFromFieldsForwardsAllTimeFields(): void
+    {
+        $dt = PlainDateTime::fromFields(
+            year: 2020,
+            month: 6,
+            day: 15,
+            hour: 13,
+            minute: 45,
+            second: 30,
+            millisecond: 123,
+            microsecond: 456,
+            nanosecond: 789,
+        );
+
+        static::assertSame(13, $dt->hour);
+        static::assertSame(45, $dt->minute);
+        static::assertSame(30, $dt->second);
+        static::assertSame(123, $dt->millisecond);
+        static::assertSame(456, $dt->microsecond);
+        static::assertSame(789, $dt->nanosecond);
+    }
+
     // -------------------------------------------------------------------------
     // withCalendar()
     // -------------------------------------------------------------------------
