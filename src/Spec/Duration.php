@@ -752,10 +752,9 @@ final class Duration implements Stringable
      *
      * Returns an int when the result is a whole number, float otherwise.
      *
-     * Only works for time-only durations (years/months/weeks = 0) and time units
-     * (not years/months/weeks without relativeTo). A relativeTo option in an array
-     * bag is inspected; invalid bags throw TypeError, absent required options throw
-     * InvalidArgumentException.
+     * Calendar units (years, months, weeks) and calendar-based target units require a
+     * relativeTo option (PlainDate, ZonedDateTime, ISO string, or property-bag array);
+     * invalid bags throw TypeError, absent required options throw InvalidArgumentException.
      *
      * @param string|array<array-key, mixed>|object $totalOf Unit string or options bag with 'unit' key.
      * @return int|float
@@ -1998,14 +1997,14 @@ final class Duration implements Stringable
      *
      * For time-only durations (no calendar fields): convert to nanoseconds and compare.
      * For calendar fields without relativeTo: throws InvalidArgumentException.
-     * For calendar fields with valid relativeTo: throws NotYetImplementedException.
+     * For calendar fields with valid relativeTo: normalizes both sides via the relative
+     * anchor (DST-aware when relativeTo is a ZonedDateTime with an IANA timezone).
      *
      * @param self|string|array<array-key, mixed>|object $one     Duration, ISO 8601 string, or property-bag array.
      * @param self|string|array<array-key, mixed>|object $two     Duration, ISO 8601 string, or property-bag array.
      * @param array<array-key, mixed>|object|null $options null or options array (may contain 'relativeTo').
      * @return int -1, 0, or 1.
      * @throws InvalidArgumentException when calendar units are present without relativeTo.
-     * @throws \Temporal\Exception\NotYetImplementedException when calendar arithmetic is needed.
      * @psalm-api
      */
     public static function compare(
@@ -2078,8 +2077,7 @@ final class Duration implements Stringable
      * @param string|array<array-key, mixed>|object $roundTo string (smallestUnit) or options array.
      * @return self
      * @throws \TypeError if $roundTo is not a string or array.
-     * @throws InvalidArgumentException if options are invalid.
-     * @throws \Temporal\Exception\NotYetImplementedException if calendar arithmetic is needed.
+     * @throws InvalidArgumentException if options are invalid or calendar units are used without a relativeTo anchor.
      * @psalm-api
      */
     public function round(string|array|object $roundTo): self
