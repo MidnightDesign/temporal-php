@@ -8,7 +8,6 @@ use InvalidArgumentException;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
-use Temporal\Overflow;
 use Temporal\PlainYearMonth;
 use Temporal\RoundingMode;
 use Temporal\Unit;
@@ -546,32 +545,22 @@ final class PlainYearMonthTest extends TemporalTestCase
     }
 
     // -------------------------------------------------------------------------
-    // from()
+    // fromFields()
     // -------------------------------------------------------------------------
-
-    public function testFromString(): void
-    {
-        $ym = PlainYearMonth::from('2020-06');
-
-        static::assertSame(2020, $ym->year);
-        static::assertSame(6, $ym->month);
-    }
-
-    public function testFromAnotherPlainYearMonth(): void
-    {
-        $original = new PlainYearMonth(2020, 6);
-        $copy = PlainYearMonth::from($original);
-
-        static::assertTrue($original->equals($copy));
-        static::assertNotSame($original, $copy);
-    }
 
     public function testFromPropertyBag(): void
     {
-        $ym = PlainYearMonth::from(['year' => 2020, 'monthCode' => 'M06']);
+        $ym = PlainYearMonth::fromFields(year: 2020, monthCode: 'M06');
 
         static::assertSame(2020, $ym->year);
         static::assertSame(6, $ym->month);
+    }
+
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $ym = PlainYearMonth::fromFields(year: 2024, month: 6, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $ym->calendar);
     }
 
     // -------------------------------------------------------------------------
@@ -600,22 +589,12 @@ final class PlainYearMonthTest extends TemporalTestCase
     }
 
     // -------------------------------------------------------------------------
-    // Mutation coverage: from() forwards overflow option
-    // -------------------------------------------------------------------------
-
-    public function testFromPropertyBagForwardsOverflowReject(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        PlainYearMonth::from(['year' => 2020, 'month' => 13], Overflow::Reject);
-    }
-
-    // -------------------------------------------------------------------------
     // Mutation coverage: with() forwards era/eraYear
     // -------------------------------------------------------------------------
 
     public function testWithForwardsEraAndEraYear(): void
     {
-        $ym = PlainYearMonth::from('2024-06-01[u-ca=gregory]');
+        $ym = PlainYearMonth::parse('2024-06-01[u-ca=gregory]');
         $ym2 = $ym->with(era: 'ce', eraYear: 2020);
 
         static::assertSame(2020, $ym2->year);

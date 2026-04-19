@@ -960,43 +960,53 @@ final class PlainDateTimeTest extends TemporalTestCase
     }
 
     // -------------------------------------------------------------------------
-    // from() static factory
+    // fromFields() static factory
     // -------------------------------------------------------------------------
-
-    public function testFromString(): void
-    {
-        $dt = PlainDateTime::from('2020-06-15T12:30:00');
-
-        static::assertSame(2020, $dt->year);
-        static::assertSame(6, $dt->month);
-        static::assertSame(15, $dt->day);
-        static::assertSame(12, $dt->hour);
-        static::assertSame(30, $dt->minute);
-    }
-
-    public function testFromPlainDateTime(): void
-    {
-        $original = new PlainDateTime(2020, 6, 15, 12, 30, 0, 0, 0, 0, Calendar::Gregory);
-        $copy = PlainDateTime::from($original);
-
-        static::assertSame(2020, $copy->year);
-        static::assertSame(12, $copy->hour);
-        static::assertSame(Calendar::Gregory, $copy->calendar);
-        static::assertNotSame($original, $copy);
-    }
 
     public function testFromPropertyBag(): void
     {
-        $dt = PlainDateTime::from([
-            'year' => 2020,
-            'month' => 6,
-            'day' => 15,
-        ]);
+        $dt = PlainDateTime::fromFields(year: 2020, month: 6, day: 15);
 
         static::assertSame(2020, $dt->year);
         static::assertSame(6, $dt->month);
         static::assertSame(15, $dt->day);
         static::assertSame(0, $dt->hour);
+    }
+
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $dt = PlainDateTime::fromFields(year: 2024, month: 1, day: 15, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $dt->calendar);
+    }
+
+    public function testFromFieldsForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainDateTime::fromFields(year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
+    }
+
+    public function testFromFieldsForwardsAllTimeFields(): void
+    {
+        $dt = PlainDateTime::fromFields(
+            year: 2020,
+            month: 6,
+            day: 15,
+            hour: 13,
+            minute: 45,
+            second: 30,
+            millisecond: 123,
+            microsecond: 456,
+            nanosecond: 789,
+        );
+
+        static::assertSame(13, $dt->hour);
+        static::assertSame(45, $dt->minute);
+        static::assertSame(30, $dt->second);
+        static::assertSame(123, $dt->millisecond);
+        static::assertSame(456, $dt->microsecond);
+        static::assertSame(789, $dt->nanosecond);
     }
 
     // -------------------------------------------------------------------------
@@ -1043,16 +1053,6 @@ final class PlainDateTimeTest extends TemporalTestCase
         static::assertSame(2021, $result->year);
         static::assertSame(6, $result->month);
         static::assertSame(12, $result->hour);
-    }
-
-    // -------------------------------------------------------------------------
-    // Mutation coverage: from() forwards overflow option
-    // -------------------------------------------------------------------------
-
-    public function testFromPropertyBagForwardsOverflowReject(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        PlainDateTime::from(['year' => 2020, 'month' => 2, 'day' => 30], Overflow::Reject);
     }
 
     // -------------------------------------------------------------------------

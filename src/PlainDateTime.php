@@ -279,17 +279,81 @@ final class PlainDateTime implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Creates a PlainDateTime from a string, property bag, or another PlainDateTime.
+     * Creates a PlainDateTime from calendar fields.
      *
-     * @param self|string|array<string, mixed> $item
+     * Supply either `year` or `era` + `eraYear`, and either `month` or `monthCode`.
+     * Time fields default to 0; unsupplied calendar fields are omitted.
+     *
+     * @param int|null                $year
+     * @param int<1, 12>|null         $month
+     * @param non-empty-string|null   $monthCode
+     * @param int<1, 31>|null         $day
+     * @param int<0, 23>|null         $hour
+     * @param int<0, 59>|null         $minute
+     * @param int<0, 59>|null         $second
+     * @param int<0, 999>|null        $millisecond
+     * @param int<0, 999>|null        $microsecond
+     * @param int<0, 999>|null        $nanosecond
+     * @param Calendar                $calendar
+     * @param non-empty-string|null   $era
+     * @param int|null                $eraYear
+     * @param Overflow                $overflow
      */
-    public static function from(self|string|array $item, Overflow $overflow = Overflow::Constrain): self
-    {
-        if ($item instanceof self) {
-            return self::fromSpec(SpecPlainDateTime::from($item->spec));
+    public static function fromFields(
+        ?int $year = null,
+        ?int $month = null,
+        ?string $monthCode = null,
+        ?int $day = null,
+        ?int $hour = null,
+        ?int $minute = null,
+        ?int $second = null,
+        ?int $millisecond = null,
+        ?int $microsecond = null,
+        ?int $nanosecond = null,
+        Calendar $calendar = Calendar::Iso8601,
+        ?string $era = null,
+        ?int $eraYear = null,
+        Overflow $overflow = Overflow::Constrain,
+    ): self {
+        $fields = ['calendar' => $calendar->value];
+        if ($year !== null) {
+            $fields['year'] = $year;
+        }
+        if ($month !== null) {
+            $fields['month'] = $month;
+        }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($day !== null) {
+            $fields['day'] = $day;
+        }
+        if ($hour !== null) {
+            $fields['hour'] = $hour;
+        }
+        if ($minute !== null) {
+            $fields['minute'] = $minute;
+        }
+        if ($second !== null) {
+            $fields['second'] = $second;
+        }
+        if ($millisecond !== null) {
+            $fields['millisecond'] = $millisecond;
+        }
+        if ($microsecond !== null) {
+            $fields['microsecond'] = $microsecond;
+        }
+        if ($nanosecond !== null) {
+            $fields['nanosecond'] = $nanosecond;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
         }
 
-        return self::fromSpec(SpecPlainDateTime::from($item, ['overflow' => $overflow->value]));
+        return self::fromSpec(SpecPlainDateTime::from($fields, ['overflow' => $overflow->value]));
     }
 
     /**

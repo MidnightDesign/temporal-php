@@ -326,38 +326,110 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
      *
      * @param string         $text           ISO 8601 ZonedDateTime string.
      * @param Disambiguation $disambiguation How to resolve ambiguous wall-clock times.
-     * @param OffsetOption   $offset         How to handle a provided UTC offset.
+     * @param OffsetOption   $offsetOption   How to handle a provided UTC offset.
      * @throws \InvalidArgumentException if the string cannot be parsed.
      */
     public static function parse(
         string $text,
         Disambiguation $disambiguation = Disambiguation::Compatible,
-        OffsetOption $offset = OffsetOption::Reject,
+        OffsetOption $offsetOption = OffsetOption::Reject,
     ): self {
         return self::fromSpec(Spec\ZonedDateTime::from($text, [
             'disambiguation' => $disambiguation->value,
-            'offset' => $offset->value,
+            'offset' => $offsetOption->value,
         ]));
     }
 
     /**
-     * Creates a ZonedDateTime from a string, property bag, or another ZonedDateTime.
+     * Creates a ZonedDateTime from calendar fields anchored to a time zone.
      *
-     * @param self|string|array<string, mixed> $item
+     * Supply either `year` or `era` + `eraYear`, and either `month` or `monthCode`.
+     * Time fields default to 0. The `offset` parameter is a UTC offset string
+     * (e.g. "+05:30") used for disambiguation, not a display preference.
+     *
+     * @param non-empty-string        $timeZone
+     * @param int|null                $year
+     * @param int<1, 12>|null         $month
+     * @param non-empty-string|null   $monthCode
+     * @param int<1, 31>|null         $day
+     * @param int<0, 23>|null         $hour
+     * @param int<0, 59>|null         $minute
+     * @param int<0, 59>|null         $second
+     * @param int<0, 999>|null        $millisecond
+     * @param int<0, 999>|null        $microsecond
+     * @param int<0, 999>|null        $nanosecond
+     * @param Calendar                $calendar
+     * @param non-empty-string|null   $era
+     * @param int|null                $eraYear
+     * @param non-empty-string|null   $offset
+     * @param Disambiguation          $disambiguation
+     * @param OffsetOption            $offsetOption
+     * @param Overflow                $overflow
      */
-    public static function from(
-        self|string|array $item,
+    public static function fromFields(
+        string $timeZone,
+        ?int $year = null,
+        ?int $month = null,
+        ?string $monthCode = null,
+        ?int $day = null,
+        ?int $hour = null,
+        ?int $minute = null,
+        ?int $second = null,
+        ?int $millisecond = null,
+        ?int $microsecond = null,
+        ?int $nanosecond = null,
+        Calendar $calendar = Calendar::Iso8601,
+        ?string $era = null,
+        ?int $eraYear = null,
+        ?string $offset = null,
         Disambiguation $disambiguation = Disambiguation::Compatible,
-        OffsetOption $offset = OffsetOption::Reject,
+        OffsetOption $offsetOption = OffsetOption::Reject,
         Overflow $overflow = Overflow::Constrain,
     ): self {
-        if ($item instanceof self) {
-            return self::fromSpec(Spec\ZonedDateTime::from($item->spec));
+        $fields = ['timeZone' => $timeZone, 'calendar' => $calendar->value];
+        if ($year !== null) {
+            $fields['year'] = $year;
+        }
+        if ($month !== null) {
+            $fields['month'] = $month;
+        }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($day !== null) {
+            $fields['day'] = $day;
+        }
+        if ($hour !== null) {
+            $fields['hour'] = $hour;
+        }
+        if ($minute !== null) {
+            $fields['minute'] = $minute;
+        }
+        if ($second !== null) {
+            $fields['second'] = $second;
+        }
+        if ($millisecond !== null) {
+            $fields['millisecond'] = $millisecond;
+        }
+        if ($microsecond !== null) {
+            $fields['microsecond'] = $microsecond;
+        }
+        if ($nanosecond !== null) {
+            $fields['nanosecond'] = $nanosecond;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
+        }
+        if ($offset !== null) {
+            $fields['offset'] = $offset;
         }
 
-        return self::fromSpec(Spec\ZonedDateTime::from($item, [
+        return self::fromSpec(Spec\ZonedDateTime::from($fields, [
             'disambiguation' => $disambiguation->value,
-            'offset' => $offset->value,
+            'offset' => $offsetOption->value,
             'overflow' => $overflow->value,
         ]));
     }

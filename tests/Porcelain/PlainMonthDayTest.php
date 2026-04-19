@@ -329,32 +329,39 @@ final class PlainMonthDayTest extends TemporalTestCase
     }
 
     // -------------------------------------------------------------------------
-    // from()
+    // fromFields()
     // -------------------------------------------------------------------------
-
-    public function testFromString(): void
-    {
-        $md = PlainMonthDay::from('--12-25');
-
-        static::assertSame(12, $md->month);
-        static::assertSame(25, $md->day);
-    }
-
-    public function testFromAnotherPlainMonthDay(): void
-    {
-        $original = new PlainMonthDay(12, 25);
-        $copy = PlainMonthDay::from($original);
-
-        static::assertTrue($original->equals($copy));
-        static::assertNotSame($original, $copy);
-    }
 
     public function testFromPropertyBag(): void
     {
-        $md = PlainMonthDay::from(['monthCode' => 'M12', 'day' => 25]);
+        $md = PlainMonthDay::fromFields(monthCode: 'M12', day: 25);
 
         static::assertSame(12, $md->month);
         static::assertSame(25, $md->day);
+    }
+
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $md = PlainMonthDay::fromFields(monthCode: 'M06', day: 15, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $md->calendar);
+    }
+
+    public function testFromFieldsForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainMonthDay::fromFields(month: 2, day: 30, overflow: Overflow::Reject);
+    }
+
+    public function testFromFieldsForwardsYear(): void
+    {
+        // Hebrew monthCode "M05L" is valid only in leap years. Year 5783 is not
+        // a leap year, so passing it forces rejection; without `year`, the spec
+        // falls back to a reference leap year and would accept.
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainMonthDay::fromFields(monthCode: 'M05L', day: 1, calendar: Calendar::Hebrew, year: 5783);
     }
 
     // -------------------------------------------------------------------------
@@ -380,15 +387,5 @@ final class PlainMonthDayTest extends TemporalTestCase
         $md = PlainMonthDay::fromSpec($spec);
 
         static::assertSame(Calendar::Iso8601, $md->calendar);
-    }
-
-    // -------------------------------------------------------------------------
-    // Mutation coverage: from() forwards overflow option
-    // -------------------------------------------------------------------------
-
-    public function testFromPropertyBagForwardsOverflowReject(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        PlainMonthDay::from(['monthCode' => 'M02', 'day' => 30], Overflow::Reject);
     }
 }
