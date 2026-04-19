@@ -1268,6 +1268,51 @@ final class ZonedDateTimeTest extends TemporalTestCase
         static::assertSame('UTC', $zdt->timeZoneId);
     }
 
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $zdt = ZonedDateTime::fromFields(timeZone: 'UTC', year: 2024, month: 1, day: 15, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $zdt->calendar);
+    }
+
+    public function testFromFieldsForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        ZonedDateTime::fromFields(timeZone: 'UTC', year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
+    }
+
+    public function testFromFieldsForwardsDisambiguationReject(): void
+    {
+        // 2024-10-27 02:30 in Europe/Berlin is ambiguous (fall-back DST).
+        $this->expectException(InvalidArgumentException::class);
+
+        ZonedDateTime::fromFields(
+            timeZone: 'Europe/Berlin',
+            year: 2024,
+            month: 10,
+            day: 27,
+            hour: 2,
+            minute: 30,
+            disambiguation: Disambiguation::Reject,
+        );
+    }
+
+    public function testFromFieldsForwardsOffsetOptionReject(): void
+    {
+        // Offset '+05:30' does not match UTC; Reject throws.
+        $this->expectException(InvalidArgumentException::class);
+
+        ZonedDateTime::fromFields(
+            timeZone: 'UTC',
+            year: 2020,
+            month: 1,
+            day: 1,
+            offset: '+05:30',
+            offsetOption: OffsetOption::Reject,
+        );
+    }
+
     // -------------------------------------------------------------------------
     // withCalendar()
     // -------------------------------------------------------------------------

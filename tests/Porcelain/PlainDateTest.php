@@ -581,6 +581,20 @@ final class PlainDateTest extends TestCase
         static::assertSame(15, $pd->day);
     }
 
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $pd = PlainDate::fromFields(year: 2024, month: 1, day: 15, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $pd->calendar);
+    }
+
+    public function testFromFieldsForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainDate::fromFields(year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
+    }
+
     // -------------------------------------------------------------------------
     // withCalendar()
     // -------------------------------------------------------------------------

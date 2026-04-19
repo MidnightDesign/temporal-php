@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
+use Temporal\Overflow;
 use Temporal\PlainYearMonth;
 use Temporal\RoundingMode;
 use Temporal\Unit;
@@ -554,6 +555,25 @@ final class PlainYearMonthTest extends TemporalTestCase
 
         static::assertSame(2020, $ym->year);
         static::assertSame(6, $ym->month);
+    }
+
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $ym = PlainYearMonth::fromFields(year: 2024, month: 6, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $ym->calendar);
+    }
+
+    public function testFromFieldsForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainYearMonth::fromFields(
+            year: 2020,
+            monthCode: 'M13',
+            calendar: Calendar::Gregory,
+            overflow: Overflow::Reject,
+        );
     }
 
     // -------------------------------------------------------------------------

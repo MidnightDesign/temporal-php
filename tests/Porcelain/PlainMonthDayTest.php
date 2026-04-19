@@ -340,6 +340,20 @@ final class PlainMonthDayTest extends TemporalTestCase
         static::assertSame(25, $md->day);
     }
 
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $md = PlainMonthDay::fromFields(monthCode: 'M06', day: 15, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $md->calendar);
+    }
+
+    public function testFromFieldsForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainMonthDay::fromFields(month: 2, day: 30, overflow: Overflow::Reject);
+    }
+
     // -------------------------------------------------------------------------
     // with() expanded fields
     // -------------------------------------------------------------------------

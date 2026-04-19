@@ -973,6 +973,20 @@ final class PlainDateTimeTest extends TemporalTestCase
         static::assertSame(0, $dt->hour);
     }
 
+    public function testFromFieldsForwardsCalendar(): void
+    {
+        $dt = PlainDateTime::fromFields(year: 2024, month: 1, day: 15, calendar: Calendar::Gregory);
+
+        static::assertSame(Calendar::Gregory, $dt->calendar);
+    }
+
+    public function testFromFieldsForwardsOverflowReject(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainDateTime::fromFields(year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
+    }
+
     // -------------------------------------------------------------------------
     // withCalendar()
     // -------------------------------------------------------------------------
