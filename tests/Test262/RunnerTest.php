@@ -8,7 +8,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Temporal\Exception\NotYetImplementedException;
 
 /**
  * Discovers and runs all generated PHP test scripts under tests/Test262/scripts/.
@@ -44,8 +43,6 @@ final class RunnerTest extends TestCase
         try {
             /** @psalm-suppress UnresolvableInclude */
             require $path;
-        } catch (NotYetImplementedException $e) {
-            static::markTestIncomplete($e->getMessage());
         } catch (\Throwable $e) {
             self::handleScriptThrowable($e);
         }
