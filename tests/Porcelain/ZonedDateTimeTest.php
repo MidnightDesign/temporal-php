@@ -1282,6 +1282,29 @@ final class ZonedDateTimeTest extends TemporalTestCase
         ZonedDateTime::fromFields(timeZone: 'UTC', year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
     }
 
+    public function testFromFieldsForwardsAllTimeFields(): void
+    {
+        $zdt = ZonedDateTime::fromFields(
+            timeZone: 'UTC',
+            year: 2020,
+            month: 6,
+            day: 15,
+            hour: 13,
+            minute: 45,
+            second: 30,
+            millisecond: 123,
+            microsecond: 456,
+            nanosecond: 789,
+        );
+
+        static::assertSame(13, $zdt->hour);
+        static::assertSame(45, $zdt->minute);
+        static::assertSame(30, $zdt->second);
+        static::assertSame(123, $zdt->millisecond);
+        static::assertSame(456, $zdt->microsecond);
+        static::assertSame(789, $zdt->nanosecond);
+    }
+
     public function testFromFieldsForwardsDisambiguationReject(): void
     {
         // 2024-10-27 02:30 in Europe/Berlin is ambiguous (fall-back DST).
