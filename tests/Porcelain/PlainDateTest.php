@@ -569,37 +569,16 @@ final class PlainDateTest extends TestCase
     }
 
     // -------------------------------------------------------------------------
-    // from() static factory
+    // fromFields() static factory
     // -------------------------------------------------------------------------
-
-    public function testFromString(): void
-    {
-        $pd = PlainDate::from('2020-06-15');
-
-        static::assertSame(2020, $pd->year);
-        static::assertSame(6, $pd->month);
-        static::assertSame(15, $pd->day);
-    }
-
-    public function testFromPlainDate(): void
-    {
-        $original = new PlainDate(2020, 6, 15, Calendar::Gregory);
-        $copy = PlainDate::from($original);
-
-        static::assertSame(2020, $copy->year);
-        static::assertSame(6, $copy->month);
-        static::assertSame(15, $copy->day);
-        static::assertSame(Calendar::Gregory, $copy->calendar);
-        static::assertNotSame($original, $copy);
-    }
 
     public function testFromPropertyBag(): void
     {
-        $pd = PlainDate::from([
-            'year' => 2020,
-            'month' => 6,
-            'day' => 15,
-        ]);
+        $pd = PlainDate::fromFields(
+            year: 2020,
+            month: 6,
+            day: 15,
+        );
 
         static::assertSame(2020, $pd->year);
         static::assertSame(6, $pd->month);
@@ -734,16 +713,6 @@ final class PlainDateTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         Calendar::fromId('bogus');
-    }
-
-    // -------------------------------------------------------------------------
-    // Mutation coverage: from() forwards overflow option
-    // -------------------------------------------------------------------------
-
-    public function testFromPropertyBagForwardsOverflowReject(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        PlainDate::from(['year' => 2020, 'month' => 2, 'day' => 30], Overflow::Reject);
     }
 
     // -------------------------------------------------------------------------

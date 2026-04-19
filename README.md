@@ -22,10 +22,21 @@ This library has two API tiers:
 
 | Layer | Namespace | Purpose |
 |-------|-----------|---------|
-| **Porcelain** | `Temporal\` | PHP-idiomatic API with strict types, enums, and named arguments |
+| **Porcelain** | `Temporal\` | PHP-native API with strict types, backed enums, and named arguments |
 | **Spec** | `Temporal\Spec\` | TC39-faithful implementation, validated by 6600+ test262 scripts |
 
 Use the porcelain layer for application code. The spec layer exists to pass the TC39 conformance suite and is considered internal.
+
+### Deliberate deviations from TC39
+
+The porcelain layer adapts TC39 semantics to PHP-native conventions rather than mirroring the JavaScript API shape 1:1. The spec layer (`Temporal\Spec\`) remains TC39-faithful for anyone needing that.
+
+Notable differences:
+
+- **No polymorphic `from()` method.** PHP has named arguments, backed enums, and tight types — three features that remove the need for a single factory that dispatches on input shape. Use `parse()` for ISO 8601 strings and `fromFields()` for calendar fields.
+- **`fromFields()` takes named arguments, not a property bag.** Each parameter has its own type (`int<1, 12>` for `month`, `Calendar` for `calendar`, etc.) so PHPStan/Psalm can validate call sites fully. Only five classes expose `fromFields()` — the ones whose constructors cannot express every field combination (`PlainDate`, `PlainDateTime`, `PlainYearMonth`, `PlainMonthDay`, `ZonedDateTime`). For `PlainTime`, `Instant`, and `Duration`, the constructor already covers every field.
+- **Option strings replaced by backed enums.** `Overflow::Reject` instead of `'reject'`, `Calendar::Gregory` instead of `'gregory'`, etc.
+- **Time zones and calendars are first-class.** `ZonedDateTime::fromFields()` takes `timeZone` as a required positional parameter; all calendar fields accept the `Calendar` enum rather than an identifier string.
 
 ## Usage
 
@@ -42,6 +53,15 @@ use Temporal\Unit;
 
 $date = new PlainDate(2024, 3, 15);
 $date = PlainDate::parse('2024-03-15');
+
+// Named-argument factory for calendar-specific fields
+// (useful when you need `monthCode`, `era`, or `eraYear`)
+$hebrewDate = PlainDate::fromFields(
+    year: 5784,
+    monthCode: 'M05L',  // leap month, ISO's `month` can't express this
+    day: 15,
+    calendar: Calendar::Hebrew,
+);
 
 // Read-only fields
 $date->year;         // 2024

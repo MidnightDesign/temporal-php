@@ -84,17 +84,51 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Creates a PlainMonthDay from a string, property bag, or another PlainMonthDay.
+     * Creates a PlainMonthDay from calendar fields.
      *
-     * @param self|string|array<string, mixed> $item
+     * Supply either `month` or `monthCode`. The optional `year` field lets
+     * non-ISO calendars disambiguate leap-month days.
+     *
+     * @param int<1, 12>|null         $month
+     * @param non-empty-string|null   $monthCode
+     * @param int<1, 31>|null         $day
+     * @param Calendar                $calendar
+     * @param int|null                $year
+     * @param non-empty-string|null   $era
+     * @param int|null                $eraYear
+     * @param Overflow                $overflow
      */
-    public static function from(self|string|array $item, Overflow $overflow = Overflow::Constrain): self
-    {
-        if ($item instanceof self) {
-            return self::fromSpec(SpecPlainMonthDay::from($item->spec));
+    public static function fromFields(
+        ?int $month = null,
+        ?string $monthCode = null,
+        ?int $day = null,
+        Calendar $calendar = Calendar::Iso8601,
+        ?int $year = null,
+        ?string $era = null,
+        ?int $eraYear = null,
+        Overflow $overflow = Overflow::Constrain,
+    ): self {
+        $fields = ['calendar' => $calendar->value];
+        if ($month !== null) {
+            $fields['month'] = $month;
+        }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($day !== null) {
+            $fields['day'] = $day;
+        }
+        if ($year !== null) {
+            $fields['year'] = $year;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
         }
 
-        return self::fromSpec(SpecPlainMonthDay::from($item, ['overflow' => $overflow->value]));
+        return self::fromSpec(SpecPlainMonthDay::from($fields, ['overflow' => $overflow->value]));
     }
 
     /**

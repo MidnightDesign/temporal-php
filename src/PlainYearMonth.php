@@ -139,17 +139,45 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable
     // -------------------------------------------------------------------------
 
     /**
-     * Creates a PlainYearMonth from a string, property bag, or another PlainYearMonth.
+     * Creates a PlainYearMonth from calendar fields.
      *
-     * @param self|string|array<string, mixed> $item
+     * Supply either `year` or `era` + `eraYear`, and either `month` or `monthCode`.
+     *
+     * @param int|null                $year
+     * @param int<1, 12>|null         $month
+     * @param non-empty-string|null   $monthCode
+     * @param Calendar                $calendar
+     * @param non-empty-string|null   $era
+     * @param int|null                $eraYear
+     * @param Overflow                $overflow
      */
-    public static function from(self|string|array $item, Overflow $overflow = Overflow::Constrain): self
-    {
-        if ($item instanceof self) {
-            return self::fromSpec(SpecPlainYearMonth::from($item->spec));
+    public static function fromFields(
+        ?int $year = null,
+        ?int $month = null,
+        ?string $monthCode = null,
+        Calendar $calendar = Calendar::Iso8601,
+        ?string $era = null,
+        ?int $eraYear = null,
+        Overflow $overflow = Overflow::Constrain,
+    ): self {
+        $fields = ['calendar' => $calendar->value];
+        if ($year !== null) {
+            $fields['year'] = $year;
+        }
+        if ($month !== null) {
+            $fields['month'] = $month;
+        }
+        if ($monthCode !== null) {
+            $fields['monthCode'] = $monthCode;
+        }
+        if ($era !== null) {
+            $fields['era'] = $era;
+        }
+        if ($eraYear !== null) {
+            $fields['eraYear'] = $eraYear;
         }
 
-        return self::fromSpec(SpecPlainYearMonth::from($item, ['overflow' => $overflow->value]));
+        return self::fromSpec(SpecPlainYearMonth::from($fields, ['overflow' => $overflow->value]));
     }
 
     /**

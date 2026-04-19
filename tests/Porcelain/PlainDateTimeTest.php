@@ -960,38 +960,16 @@ final class PlainDateTimeTest extends TemporalTestCase
     }
 
     // -------------------------------------------------------------------------
-    // from() static factory
+    // fromFields() static factory
     // -------------------------------------------------------------------------
-
-    public function testFromString(): void
-    {
-        $dt = PlainDateTime::from('2020-06-15T12:30:00');
-
-        static::assertSame(2020, $dt->year);
-        static::assertSame(6, $dt->month);
-        static::assertSame(15, $dt->day);
-        static::assertSame(12, $dt->hour);
-        static::assertSame(30, $dt->minute);
-    }
-
-    public function testFromPlainDateTime(): void
-    {
-        $original = new PlainDateTime(2020, 6, 15, 12, 30, 0, 0, 0, 0, Calendar::Gregory);
-        $copy = PlainDateTime::from($original);
-
-        static::assertSame(2020, $copy->year);
-        static::assertSame(12, $copy->hour);
-        static::assertSame(Calendar::Gregory, $copy->calendar);
-        static::assertNotSame($original, $copy);
-    }
 
     public function testFromPropertyBag(): void
     {
-        $dt = PlainDateTime::from([
-            'year' => 2020,
-            'month' => 6,
-            'day' => 15,
-        ]);
+        $dt = PlainDateTime::fromFields(
+            year: 2020,
+            month: 6,
+            day: 15,
+        );
 
         static::assertSame(2020, $dt->year);
         static::assertSame(6, $dt->month);
@@ -1043,16 +1021,6 @@ final class PlainDateTimeTest extends TemporalTestCase
         static::assertSame(2021, $result->year);
         static::assertSame(6, $result->month);
         static::assertSame(12, $result->hour);
-    }
-
-    // -------------------------------------------------------------------------
-    // Mutation coverage: from() forwards overflow option
-    // -------------------------------------------------------------------------
-
-    public function testFromPropertyBagForwardsOverflowReject(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        PlainDateTime::from(['year' => 2020, 'month' => 2, 'day' => 30], Overflow::Reject);
     }
 
     // -------------------------------------------------------------------------

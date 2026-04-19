@@ -329,29 +329,12 @@ final class PlainMonthDayTest extends TemporalTestCase
     }
 
     // -------------------------------------------------------------------------
-    // from()
+    // fromFields()
     // -------------------------------------------------------------------------
-
-    public function testFromString(): void
-    {
-        $md = PlainMonthDay::from('--12-25');
-
-        static::assertSame(12, $md->month);
-        static::assertSame(25, $md->day);
-    }
-
-    public function testFromAnotherPlainMonthDay(): void
-    {
-        $original = new PlainMonthDay(12, 25);
-        $copy = PlainMonthDay::from($original);
-
-        static::assertTrue($original->equals($copy));
-        static::assertNotSame($original, $copy);
-    }
 
     public function testFromPropertyBag(): void
     {
-        $md = PlainMonthDay::from(['monthCode' => 'M12', 'day' => 25]);
+        $md = PlainMonthDay::fromFields(monthCode: 'M12', day: 25);
 
         static::assertSame(12, $md->month);
         static::assertSame(25, $md->day);
@@ -382,13 +365,4 @@ final class PlainMonthDayTest extends TemporalTestCase
         static::assertSame(Calendar::Iso8601, $md->calendar);
     }
 
-    // -------------------------------------------------------------------------
-    // Mutation coverage: from() forwards overflow option
-    // -------------------------------------------------------------------------
-
-    public function testFromPropertyBagForwardsOverflowReject(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        PlainMonthDay::from(['monthCode' => 'M02', 'day' => 30], Overflow::Reject);
-    }
 }
