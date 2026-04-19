@@ -223,27 +223,19 @@ final class NowTest extends TestCase
 
     public function testZonedDateTimeReturnsPorcelainZonedDateTime(): void
     {
-        if (!class_exists(\Temporal\ZonedDateTime::class)) {
-            static::markTestSkipped('Porcelain ZonedDateTime class not yet implemented.');
-        }
         $zdt = Now::zonedDateTime('UTC');
 
-        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
         static::assertInstanceOf(\Temporal\ZonedDateTime::class, $zdt);
     }
 
     public function testZonedDateTimeWithoutArgumentUsesSystemDefault(): void
     {
-        if (!class_exists(\Temporal\ZonedDateTime::class)) {
-            static::markTestSkipped('Porcelain ZonedDateTime class not yet implemented.');
-        }
         $original = date_default_timezone_get();
 
         try {
             date_default_timezone_set('UTC');
             // Should not throw -- omitted argument uses system default.
             $zdt = Now::zonedDateTime();
-            /** @phpstan-ignore staticMethod.alreadyNarrowedType */
             static::assertInstanceOf(\Temporal\ZonedDateTime::class, $zdt);
         } finally {
             date_default_timezone_set($original);
@@ -266,9 +258,6 @@ final class NowTest extends TestCase
 
     public function testZonedDateTimeEmptyStringThrowsInvalidArgument(): void
     {
-        if (!class_exists(\Temporal\ZonedDateTime::class)) {
-            static::markTestSkipped('Porcelain ZonedDateTime class not yet implemented.');
-        }
         $this->expectException(\InvalidArgumentException::class);
         Now::zonedDateTime('');
     }
