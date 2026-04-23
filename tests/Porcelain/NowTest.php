@@ -233,9 +233,9 @@ final class NowTest extends TestCase
         $original = date_default_timezone_get();
 
         try {
-            date_default_timezone_set('UTC');
+            date_default_timezone_set('America/New_York');
             $zdt = Now::zonedDateTime();
-            static::assertSame('UTC', $zdt->timeZoneId);
+            static::assertSame('America/New_York', $zdt->timeZoneId);
         } finally {
             date_default_timezone_set($original);
         }
@@ -246,10 +246,10 @@ final class NowTest extends TestCase
         $original = date_default_timezone_get();
 
         try {
-            date_default_timezone_set('UTC');
+            date_default_timezone_set('America/New_York');
             $zdt = Now::zonedDateTime(null);
 
-            static::assertSame(Calendar::Iso8601, $zdt->calendar);
+            static::assertSame('America/New_York', $zdt->timeZoneId);
         } finally {
             date_default_timezone_set($original);
         }
