@@ -1320,6 +1320,7 @@ final class PlainMonthDay implements Stringable
     private static function extractCalendarId(string $cal): string
     {
         if (str_contains($cal, '[')) {
+            $m = null;
             if (preg_match('/\[!?u-ca=([^\]]+)\]/', $cal, $m) === 1) {
                 return strtolower($m[1]);
             }

@@ -1898,6 +1898,7 @@ final class ZonedDateTime implements Stringable
             throw new InvalidArgumentException("Invalid calendar \"{$s}\": minus-zero year.");
         }
         // Check for [u-ca=X] annotation.
+        $m = null;
         if (preg_match('/\[u-ca=([^\]]+)\]/', $s, $m) === 1) {
             return CalendarFactory::canonicalize($m[1]);
         }
@@ -1958,6 +1959,7 @@ final class ZonedDateTime implements Stringable
                 );
             }
             // Bracket annotation takes precedence.
+            $bm = null;
             if (preg_match('/\[(!?[^\]]+)\]/', $id, $bm) === 1) {
                 $bracket = $bm[1];
                 if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bracket) === 1) {
@@ -1991,6 +1993,7 @@ final class ZonedDateTime implements Stringable
             if (preg_match('/[Zz](?:\[|$)/', $id) === 1) {
                 return 'UTC';
             }
+            $om = null;
             if (preg_match('/([+\-]\d{2}:\d{2})(?:\[|$)/', $id, $om) === 1) {
                 return $om[1];
             }
@@ -2005,6 +2008,7 @@ final class ZonedDateTime implements Stringable
             return $id;
         }
         // ±HHMM → ±HH:MM
+        $m = null;
         if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $id, $m) === 1) {
             return sprintf('%s%s:%s', $m[1], $m[2], $m[3]);
         }
@@ -2240,6 +2244,7 @@ final class ZonedDateTime implements Stringable
             return 0;
         }
         // Fixed offset ±HH:MM.
+        $m = null;
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $this->resolvedTimeZoneId, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
             return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
@@ -2843,6 +2848,7 @@ final class ZonedDateTime implements Stringable
      */
     private static function extractTzFromAnnotations(string $section, string $original): array
     {
+        $matches = null;
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
 
         $tzId = null;
@@ -2987,6 +2993,7 @@ final class ZonedDateTime implements Stringable
             return $wallSec;
         }
         // Fixed offset ±HH:MM.
+        $m = null;
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
             $offsetSec = $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
@@ -3074,6 +3081,7 @@ final class ZonedDateTime implements Stringable
         if ($tzId === 'UTC') {
             return 0;
         }
+        $m = null;
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
             return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));

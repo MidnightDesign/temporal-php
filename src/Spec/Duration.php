@@ -854,6 +854,7 @@ final class Duration implements Stringable
                 if ($unit === 'days' && $rtIsZDT && $parsedRt['_localTimeSec'] !== 0) {
                     // Check if the timezone is IANA (not UTC/fixed-offset).
                     $tzBracket = null;
+                    $_m = null;
                     if (preg_match('/\[([^\]=]+)\]\s*$/', $rtRaw, $_m) === 1) {
                         $tzBracket = $_m[1];
                     }
@@ -1040,6 +1041,7 @@ final class Duration implements Stringable
             throw new InvalidArgumentException('relativeTo string must not have fractional hours or minutes.');
         }
         // Validate calendar annotation.
+        $calMatch = null;
         if (preg_match('/\[u-ca=([^\]]+)\]/', $s, $calMatch) === 1) {
             if (!CalendarFactory::isKnownCalendar($calMatch[1])) {
                 throw new InvalidArgumentException("Unknown calendar \"{$calMatch[1]}\".");
@@ -1067,6 +1069,7 @@ final class Duration implements Stringable
             }
             // Numeric offset: validate that the offset format is ±HH:MM[:SS[.frac]] followed by
             // end-of-string, '[', or whitespace (not extra digits).  Invalid formats (e.g. +00:0000) must throw.
+            $offMatch = null;
             if (
                 preg_match(
                     '/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:\[|$)/i',
@@ -1081,6 +1084,7 @@ final class Duration implements Stringable
         }
 
         // Validate the timezone bracket annotation.
+        $bracketMatch = null;
         if (preg_match('/\[([^\]]+)\]/', $s, $bracketMatch) === 1 && !str_starts_with($bracketMatch[1], 'u-ca=')) {
             $bracket = $bracketMatch[1];
             // Sub-minute bracket offset (has seconds component): invalid.
@@ -1091,13 +1095,16 @@ final class Duration implements Stringable
             }
             // Bracket is a numeric UTC offset (±HH:MM or ±HHMM): must match the inline offset
             // UNLESS the inline offset is Z (UTC instant — any timezone bracket is allowed).
+            $bOff = null;
             if (preg_match('/^([+\-])(\d{2}):?(\d{2})$/', $bracket, $bOff) === 1) {
                 $bMin = ((int) $bOff[2] * 60) + (int) $bOff[3];
                 $bMin = $bOff[1] === '-' ? -$bMin : $bMin;
+                $iOff = null;
                 if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] === 'Z' || $iOff[1] === 'z') {
                         // Z inline offset: any bracket timezone is allowed (no matching required).
                     } else {
+                        $iOffParts = null;
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
                         /**
                          * @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $iOffParts
@@ -1112,8 +1119,10 @@ final class Duration implements Stringable
                     }
                 }
             } elseif (strtoupper($bracket) === 'UTC') {
+                $iOff = null;
                 if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
+                        $iOffParts = null;
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
                         /** @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $iOffParts */
                         $iMin = ((int) $iOffParts[2] * 60) + (int) $iOffParts[3];
@@ -1128,6 +1137,7 @@ final class Duration implements Stringable
         }
 
         // Extract date part: ±YYYY-MM-DD or YYYYMMDD.
+        $dateMatch = null;
         if (
             preg_match('/^([+\-]?\d{4,6})-(\d{2})-(\d{2})/', $s, $dateMatch) !== 1
             && preg_match('/^(\d{4})(\d{2})(\d{2})/', $s, $dateMatch) !== 1
@@ -1157,6 +1167,7 @@ final class Duration implements Stringable
             }
 
             // Extract local time (hours, minutes, seconds) and detect sub-second fraction.
+            $tm = null;
             if (preg_match('/T(\d{2}):?(\d{2})(?::?(\d{2})(\.\d+)?)?/i', $s, $tm) === 1) {
                 $localTimeSec =
                     ((int) $tm[1] * 3_600) + ((int) $tm[2] * 60) + (array_key_exists(3, $tm) ? (int) $tm[3] : 0);
@@ -1166,8 +1177,10 @@ final class Duration implements Stringable
 
             // Extract the inline UTC offset in seconds.
             $offsetSec = 0;
+            $iOff = null;
             if (preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                 if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
+                    $offParts = null;
                     preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $offParts);
                     /** @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $offParts */
                     $offsetSec = ((int) $offParts[2] * 3_600) + ((int) $offParts[3] * 60);
@@ -2832,6 +2845,7 @@ final class Duration implements Stringable
                 throw new \TypeError('relativeTo offset must be a string.');
             }
             // Allow ±HH:MM or ±HH:MM:00[.000...] (seconds and sub-seconds zero).
+            $offM = null;
             if (preg_match('/^([+\-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?$/', $offVal, $offM) !== 1) {
                 throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\".");
             }
@@ -2866,6 +2880,7 @@ final class Duration implements Stringable
             $epochSec--;
         }
         $tzId = $zdt->timeZoneId;
+        $m = null;
         if ($tzId === 'UTC') {
             $offsetSec = 0;
         } elseif (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m) === 1) {
@@ -3370,6 +3385,7 @@ final class Duration implements Stringable
             throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");
         }
         // Reject bracket annotation with a seconds component (e.g. [+23:59:60]).
+        $bm = null;
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
             if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bm[1]) === 1) {
                 throw new InvalidArgumentException(
@@ -3510,6 +3526,7 @@ final class Duration implements Stringable
         }
         if (is_string($rt)) {
             // Parse the string to check for IANA timezone.
+            $m = null;
             if (preg_match('/\[([^\]=]+)\]\s*$/', $rt, $m) === 1) {
                 $tzId = $m[1];
                 if ($tzId !== 'UTC' && preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) !== 1) {

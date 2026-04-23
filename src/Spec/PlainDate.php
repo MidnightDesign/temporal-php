@@ -1802,6 +1802,7 @@ final class PlainDate implements Stringable
         //   YYYY-MM  YYYY-MM-DD  YYYY-MM-DDTHH...  MM-DD
         // These all START with digits and contain a '-' within the first 7 chars.
         if (str_contains($cal, '[')) {
+            $m = null;
             if (preg_match('/\[!?u-ca=([^\]]+)\]/', $cal, $m) === 1) {
                 return strtolower($m[1]);
             }

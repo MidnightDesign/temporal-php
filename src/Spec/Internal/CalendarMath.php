@@ -146,6 +146,7 @@ final class CalendarMath
         }
 
         // Convert fixed-offset timezone to ICU-compatible format (GMT±HH:MM).
+        $m = null;
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $timeZone, $m) === 1) {
             if ($m[2] === '00' && $m[3] === '00') {
                 $timeZone = 'GMT';
@@ -489,6 +490,7 @@ final class CalendarMath
         $calHasCritical = false;
         $calendarId = null;
 
+        $matches = null;
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {
