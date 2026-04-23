@@ -894,6 +894,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     private function defaultMonthCodeToMonth(string $monthCode): int
     {
         $maxMonth = $this->isCopticLike ? 13 : 12;
+        $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
             throw new InvalidArgumentException(
                 "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
@@ -924,6 +925,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
             return 6;
         }
+        $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
             throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for hebrew calendar.");
         }
@@ -949,6 +951,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         $isLeapCode = str_ends_with($monthCode, 'L');
         $baseCode = $isLeapCode ? substr($monthCode, offset: 0, length: -1) : $monthCode;
 
+        $m = null;
         if (preg_match('/^M(\d{2})$/', $baseCode, $m) !== 1) {
             throw new InvalidArgumentException(
                 "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
@@ -1286,6 +1289,7 @@ final class IntlCalendarBridge implements CalendarProtocol
                 }
                 $this->intlCal->set(\IntlCalendar::FIELD_MONTH, 5);
             } else {
+                $m = null;
                 if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
                     throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for hebrew calendar.");
                 }
@@ -1303,6 +1307,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             // Chinese/Dangi: MxxL → ICU month xx-1 with IS_LEAP_MONTH=1
             $isLeapCode = str_ends_with($monthCode, 'L');
             $baseCode = $isLeapCode ? substr($monthCode, offset: 0, length: -1) : $monthCode;
+            $m = null;
             if (preg_match('/^M(\d{2})$/', $baseCode, $m) !== 1) {
                 throw new InvalidArgumentException(
                     "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
@@ -1328,6 +1333,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         } else {
             // Standard calendars: M01-M12 → ICU 0-11; M13 → ICU 12 (coptic/ethiopic/ethioaa)
             $maxMonth = $this->isCopticLike ? 13 : 12;
+            $m = null;
             if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
                 throw new InvalidArgumentException(
                     "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",

@@ -112,10 +112,12 @@ final class CalendarMath
         }
 
         foreach (self::COMPONENT_OPTIONS as $opt) {
-            if (($opts[$opt] ?? null) !== null) {
-                $style = $hasDateStyle ? 'dateStyle' : 'timeStyle';
-                throw new \TypeError(sprintf('toLocaleString(): %s and %s cannot be used together.', $style, $opt));
+            if (($opts[$opt] ?? null) === null) {
+                continue;
             }
+
+            $style = $hasDateStyle ? 'dateStyle' : 'timeStyle';
+            throw new \TypeError(sprintf('toLocaleString(): %s and %s cannot be used together.', $style, $opt));
         }
     }
 
@@ -144,6 +146,7 @@ final class CalendarMath
         }
 
         // Convert fixed-offset timezone to ICU-compatible format (GMT±HH:MM).
+        $m = null;
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $timeZone, $m) === 1) {
             if ($m[2] === '00' && $m[3] === '00') {
                 $timeZone = 'GMT';
@@ -257,10 +260,12 @@ final class CalendarMath
         // Check for individual component options that require a custom pattern
         $hasComponents = false;
         foreach (self::COMPONENT_OPTIONS as $opt) {
-            if (($opts[$opt] ?? null) !== null) {
-                $hasComponents = true;
-                break;
+            if (($opts[$opt] ?? null) === null) {
+                continue;
             }
+
+            $hasComponents = true;
+            break;
         }
 
         if ($hasComponents) {
@@ -485,6 +490,7 @@ final class CalendarMath
         $calHasCritical = false;
         $calendarId = null;
 
+        $matches = null;
         preg_match_all('/\[(!?)([^\]]*)\]/', $section, $matches, PREG_SET_ORDER);
 
         foreach ($matches as $match) {

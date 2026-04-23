@@ -497,7 +497,7 @@ final class ZonedDateTime implements \Stringable, \JsonSerializable
                 'nanosecond' => $nanosecond,
                 'offset' => $offset,
             ],
-            fn($v) => $v !== null,
+            static fn($v) => $v !== null,
         );
 
         if ($monthCode !== null) {

@@ -230,6 +230,7 @@ final class PureHebrewCalendar implements CalendarProtocol
             return 6;
         }
 
+        $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
             throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for hebrew calendar.");
         }

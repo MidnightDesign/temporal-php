@@ -30,10 +30,12 @@ final class RunnerTest extends TestCase
         ));
         /** @var \SplFileInfo $file */
         foreach ($it as $file) {
-            if ($file->getExtension() === 'php') {
-                $name = ltrim(str_replace(search: $dir, replace: '', subject: $file->getPathname()), characters: '/');
-                yield $name => [$file->getPathname()];
+            if ($file->getExtension() !== 'php') {
+                continue;
             }
+
+            $name = ltrim(str_replace(search: $dir, replace: '', subject: $file->getPathname()), characters: '/');
+            yield $name => [$file->getPathname()];
         }
     }
 

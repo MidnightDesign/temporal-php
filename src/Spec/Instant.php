@@ -459,6 +459,7 @@ final class Instant implements Stringable
             } else {
                 // IANA timezone: extract the timezone name from the string.
                 // For bracket annotations, extract the bracket content.
+                $bm2 = null;
                 if (preg_match('/\[([^\]]+)\]/', $tzStr, $bm2) === 1) {
                     $ianaTimeZone = $bm2[1];
                 } else {
@@ -562,6 +563,7 @@ final class Instant implements Stringable
             throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");
         }
         // Reject bracket annotation with a seconds component (e.g. [+23:59:60]).
+        $bm = null;
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
             if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bm[1]) === 1) {
                 throw new InvalidArgumentException(
@@ -608,6 +610,7 @@ final class Instant implements Stringable
             return 0;
         }
         // Pure UTC-offset strings: ±HH:MM or ±HHMM
+        $m = null;
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tz, $m) === 1) {
             $sign = $m[1] === '+' ? 1 : -1;
             return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
@@ -617,12 +620,14 @@ final class Instant implements Stringable
             return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         // Datetime strings: bracket annotation takes precedence.
+        $bm = null;
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
             /** @var non-empty-string $bracket */
             $bracket = $bm[1];
             if (strtoupper($bracket) === 'UTC') {
                 return 0;
             }
+            $om = null;
             if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $bracket, $om) === 1) {
                 $sign = $om[1] === '+' ? 1 : -1;
                 return $sign * (((int) $om[2] * 3600) + ((int) $om[3] * 60));
@@ -638,6 +643,7 @@ final class Instant implements Stringable
             }
         }
         // Datetime strings without bracket: use inline offset or Z.
+        $om = null;
         if (preg_match('/[Tt].*?(Z|([+\-])(\d{2}):(\d{2}))/i', $tz, $om) === 1) {
             if ($om[1] === 'Z' || $om[1] === 'z') {
                 return 0;
@@ -757,6 +763,7 @@ final class Instant implements Stringable
 
         if ($isDatetime) {
             // Bracket annotation takes precedence over the inline offset.
+            $bm = null;
             if (preg_match('/\[(!?[^\]]+)\]/', $tz, $bm) === 1) {
                 /** @var non-empty-string $bracket */
                 $bracket = $bm[1];
@@ -793,6 +800,7 @@ final class Instant implements Stringable
             if (preg_match('/[Zz](?:\[|$)/', $tz) === 1) {
                 return 'UTC';
             }
+            $om = null;
             if (preg_match('/([+\-]\d{2}:\d{2})(?:\[|$)/', $tz, $om) === 1) {
                 return $om[1];
             }
@@ -807,6 +815,7 @@ final class Instant implements Stringable
             return $tz;
         }
         // ±HHMM (compact form) → normalize to ±HH:MM.
+        $m = null;
         if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $tz, $m) === 1) {
             return sprintf('%s%s:%s', $m[1], $m[2], $m[3]);
         }
@@ -1384,23 +1393,23 @@ final class Instant implements Stringable
 
         if ($luIdx >= 1) { // at least microseconds
             $us = intdiv(num1: $ns, num2: 1_000);
-            $ns = $ns - ($us * 1_000);
+            $ns -= $us * 1_000;
         }
         if ($luIdx >= 2) { // at least milliseconds
             $ms = intdiv(num1: $us, num2: 1_000);
-            $us = $us - ($ms * 1_000);
+            $us -= $ms * 1_000;
         }
         if ($luIdx >= 3) { // at least seconds
             $s = intdiv(num1: $ms, num2: 1_000);
-            $ms = $ms - ($s * 1_000);
+            $ms -= $s * 1_000;
         }
         if ($luIdx >= 4) { // at least minutes
             $min = intdiv(num1: $s, num2: 60);
-            $s = $s - ($min * 60);
+            $s -= $min * 60;
         }
         if ($luIdx >= 5) { // hours
             $h = intdiv(num1: $min, num2: 60);
-            $min = $min - ($h * 60);
+            $min -= $h * 60;
         }
 
         return new Duration(0, 0, 0, 0, $sign * $h, $sign * $min, $sign * $s, $sign * $ms, $sign * $us, $sign * $ns);

@@ -238,6 +238,7 @@ final class PureIndianCalendar implements CalendarProtocol
     #[\Override]
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
+        $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
             throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"indian\".");
         }
@@ -398,6 +399,7 @@ final class PureIndianCalendar implements CalendarProtocol
     #[\Override]
     public function monthCodeToMonth(string $monthCode, int $calYear): int
     {
+        $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
             throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"indian\".");
         }

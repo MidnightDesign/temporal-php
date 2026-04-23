@@ -109,17 +109,19 @@ final class Duration implements Stringable
                 $microseconds,
                 $nanoseconds,
             ] as $field) {
-                if (is_float($field)) {
-                    if (!is_finite($field)) {
-                        throw new InvalidArgumentException(
-                            'Duration fields must be finite; Infinity and NaN are not allowed.',
-                        );
-                    }
-                    if (fmod(num1: $field, num2: 1.0) !== 0.0) {
-                        throw new InvalidArgumentException(
-                            'Duration fields must be integer-valued; fractional values are not allowed.',
-                        );
-                    }
+                if (!is_float($field)) {
+                    continue;
+                }
+
+                if (!is_finite($field)) {
+                    throw new InvalidArgumentException(
+                        'Duration fields must be finite; Infinity and NaN are not allowed.',
+                    );
+                }
+                if (fmod(num1: $field, num2: 1.0) !== 0.0) {
+                    throw new InvalidArgumentException(
+                        'Duration fields must be integer-valued; fractional values are not allowed.',
+                    );
                 }
             }
         }
@@ -498,10 +500,12 @@ final class Duration implements Stringable
         ];
         $hasAny = false;
         foreach ($PLURAL_FIELDS as $f) {
-            if (array_key_exists($f, $fields)) {
-                $hasAny = true;
-                break;
+            if (!array_key_exists($f, $fields)) {
+                continue;
             }
+
+            $hasAny = true;
+            break;
         }
         if (!$hasAny) {
             throw new \TypeError(
@@ -622,7 +626,7 @@ final class Duration implements Stringable
 
         $subNs = ($remMs * 1_000_000) + ($remUs * 1_000) + $remNs;
         $totalSeconds = (int) $abs->seconds + $carryMs + $carryUs + $carryNs + (int) ($subNs / 1_000_000_000);
-        $subNs = $subNs % 1_000_000_000;
+        $subNs %= 1_000_000_000;
 
         // Initialize local copies of time units that may be updated by carry after rounding.
         $absMinutes = (int) $abs->minutes;
@@ -655,13 +659,13 @@ final class Duration implements Stringable
             // E.g. {h:1, min:59, sec:59, ms:900} rounds to PT2H0S; {sec:59, ms:900} stays PT60S.
             if ($carrySecond !== 0 && ($absMinutes !== 0 || $absHours !== 0)) {
                 $absMinutes += intdiv(num1: $totalSeconds, num2: 60);
-                $totalSeconds = $totalSeconds % 60;
+                $totalSeconds %= 60;
                 if ($absMinutes >= 60 && $absHours !== 0) {
                     $absHours += intdiv(num1: $absMinutes, num2: 60);
-                    $absMinutes = $absMinutes % 60;
+                    $absMinutes %= 60;
                     if ($absHours >= 24 && $absDays !== 0) {
                         $absDays += intdiv(num1: $absHours, num2: 24);
-                        $absHours = $absHours % 24;
+                        $absHours %= 24;
                     }
                 }
             }
@@ -850,6 +854,7 @@ final class Duration implements Stringable
                 if ($unit === 'days' && $rtIsZDT && $parsedRt['_localTimeSec'] !== 0) {
                     // Check if the timezone is IANA (not UTC/fixed-offset).
                     $tzBracket = null;
+                    $_m = null;
                     if (preg_match('/\[([^\]=]+)\]\s*$/', $rtRaw, $_m) === 1) {
                         $tzBracket = $_m[1];
                     }
@@ -1036,6 +1041,7 @@ final class Duration implements Stringable
             throw new InvalidArgumentException('relativeTo string must not have fractional hours or minutes.');
         }
         // Validate calendar annotation.
+        $calMatch = null;
         if (preg_match('/\[u-ca=([^\]]+)\]/', $s, $calMatch) === 1) {
             if (!CalendarFactory::isKnownCalendar($calMatch[1])) {
                 throw new InvalidArgumentException("Unknown calendar \"{$calMatch[1]}\".");
@@ -1063,6 +1069,7 @@ final class Duration implements Stringable
             }
             // Numeric offset: validate that the offset format is ±HH:MM[:SS[.frac]] followed by
             // end-of-string, '[', or whitespace (not extra digits).  Invalid formats (e.g. +00:0000) must throw.
+            $offMatch = null;
             if (
                 preg_match(
                     '/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?)(?:\[|$)/i',
@@ -1077,6 +1084,7 @@ final class Duration implements Stringable
         }
 
         // Validate the timezone bracket annotation.
+        $bracketMatch = null;
         if (preg_match('/\[([^\]]+)\]/', $s, $bracketMatch) === 1 && !str_starts_with($bracketMatch[1], 'u-ca=')) {
             $bracket = $bracketMatch[1];
             // Sub-minute bracket offset (has seconds component): invalid.
@@ -1087,13 +1095,16 @@ final class Duration implements Stringable
             }
             // Bracket is a numeric UTC offset (±HH:MM or ±HHMM): must match the inline offset
             // UNLESS the inline offset is Z (UTC instant — any timezone bracket is allowed).
+            $bOff = null;
             if (preg_match('/^([+\-])(\d{2}):?(\d{2})$/', $bracket, $bOff) === 1) {
                 $bMin = ((int) $bOff[2] * 60) + (int) $bOff[3];
                 $bMin = $bOff[1] === '-' ? -$bMin : $bMin;
+                $iOff = null;
                 if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] === 'Z' || $iOff[1] === 'z') {
                         // Z inline offset: any bracket timezone is allowed (no matching required).
                     } else {
+                        $iOffParts = null;
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
                         /**
                          * @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $iOffParts
@@ -1108,8 +1119,10 @@ final class Duration implements Stringable
                     }
                 }
             } elseif (strtoupper($bracket) === 'UTC') {
+                $iOff = null;
                 if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                     if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
+                        $iOffParts = null;
                         preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $iOffParts);
                         /** @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $iOffParts */
                         $iMin = ((int) $iOffParts[2] * 60) + (int) $iOffParts[3];
@@ -1124,6 +1137,7 @@ final class Duration implements Stringable
         }
 
         // Extract date part: ±YYYY-MM-DD or YYYYMMDD.
+        $dateMatch = null;
         if (
             preg_match('/^([+\-]?\d{4,6})-(\d{2})-(\d{2})/', $s, $dateMatch) !== 1
             && preg_match('/^(\d{4})(\d{2})(\d{2})/', $s, $dateMatch) !== 1
@@ -1153,6 +1167,7 @@ final class Duration implements Stringable
             }
 
             // Extract local time (hours, minutes, seconds) and detect sub-second fraction.
+            $tm = null;
             if (preg_match('/T(\d{2}):?(\d{2})(?::?(\d{2})(\.\d+)?)?/i', $s, $tm) === 1) {
                 $localTimeSec =
                     ((int) $tm[1] * 3_600) + ((int) $tm[2] * 60) + (array_key_exists(3, $tm) ? (int) $tm[3] : 0);
@@ -1162,8 +1177,10 @@ final class Duration implements Stringable
 
             // Extract the inline UTC offset in seconds.
             $offsetSec = 0;
+            $iOff = null;
             if (preg_match('/T\d{2}:?\d{2}(?::?\d{2}(?:\.\d+)?)?([+\-]\d{2}:?\d{2}|Z)/i', $s, $iOff) === 1) {
                 if ($iOff[1] !== 'Z' && $iOff[1] !== 'z') {
+                    $offParts = null;
                     preg_match('/^([+\-])(\d{2}):?(\d{2})/', $iOff[1], $offParts);
                     /** @var array{non-falsy-string, '+'|'-', non-falsy-string, non-falsy-string} $offParts */
                     $offsetSec = ((int) $offParts[2] * 3_600) + ((int) $offParts[3] * 60);
@@ -1592,9 +1609,9 @@ final class Duration implements Stringable
         $dm = intdiv(num1: $totalFracNs, num2: 60_000_000_000);
         $rem = $totalFracNs % 60_000_000_000;
         $ds = intdiv(num1: $rem, num2: 1_000_000_000);
-        $rem = $rem % 1_000_000_000;
+        $rem %= 1_000_000_000;
         $dms = intdiv(num1: $rem, num2: 1_000_000);
-        $rem = $rem % 1_000_000;
+        $rem %= 1_000_000;
         $dus = intdiv(num1: $rem, num2: 1_000);
         $dns = $rem % 1_000;
 
@@ -1629,10 +1646,12 @@ final class Duration implements Stringable
 
         $hasAny = false;
         foreach ($PLURAL_FIELDS as $f) {
-            if (array_key_exists($f, $item)) {
-                $hasAny = true;
-                break;
+            if (!array_key_exists($f, $item)) {
+                continue;
             }
+
+            $hasAny = true;
+            break;
         }
         if (!$hasAny) {
             throw new \TypeError(
@@ -2183,10 +2202,7 @@ final class Duration implements Stringable
         }
 
         // For pure-time rounds: validate relativeTo and check overflow for non-blank durations.
-        // ($needsRelativeTo is always false here due to the throw above; suppress the tautology.)
-        /** @psalm-suppress RedundantCondition */
-        // @phpstan-ignore booleanNot.alwaysTrue
-        if (!$needsRelativeTo && $relativeToProvided && !$this->blank) {
+        if ($relativeToProvided && !$this->blank) {
             /** @var mixed $rtRaw */
             $rtRaw = $roundTo['relativeTo'] ?? null;
             if (is_string($rtRaw)) {
@@ -2274,15 +2290,15 @@ final class Duration implements Stringable
 
         // Balance up to get exact integers.
         $absUs += intdiv(num1: $absNs, num2: 1_000);
-        $absNs = $absNs % 1_000;
+        $absNs %= 1_000;
         $absMs += intdiv(num1: $absUs, num2: 1_000);
-        $absUs = $absUs % 1_000;
+        $absUs %= 1_000;
         $absS += intdiv(num1: $absMs, num2: 1_000);
-        $absMs = $absMs % 1_000;
+        $absMs %= 1_000;
         $absM += intdiv(num1: $absS, num2: 60);
-        $absS = $absS % 60;
+        $absS %= 60;
         $absH += intdiv(num1: $absM, num2: 60);
-        $absM = $absM % 60;
+        $absM %= 60;
 
         // Balance hours into days: DST-aware when ZDT IANA relativeTo is present.
         if ($zdtInfoRound !== null) {
@@ -2319,7 +2335,7 @@ final class Duration implements Stringable
             $absNs = $timeOnlyNs - ($absUs * 1_000);
         } else {
             $absD += intdiv(num1: $absH, num2: 24);
-            $absH = $absH % 24;
+            $absH %= 24;
         }
 
         // Compute totalNs, guarding against int64 overflow for large day counts.
@@ -2826,6 +2842,7 @@ final class Duration implements Stringable
                 throw new \TypeError('relativeTo offset must be a string.');
             }
             // Allow ±HH:MM or ±HH:MM:00[.000...] (seconds and sub-seconds zero).
+            $offM = null;
             if (preg_match('/^([+\-])(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d+))?)?$/', $offVal, $offM) !== 1) {
                 throw new InvalidArgumentException("Invalid relativeTo offset string \"{$offVal}\".");
             }
@@ -2860,6 +2877,7 @@ final class Duration implements Stringable
             $epochSec--;
         }
         $tzId = $zdt->timeZoneId;
+        $m = null;
         if ($tzId === 'UTC') {
             $offsetSec = 0;
         } elseif (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m) === 1) {
@@ -2895,17 +2913,17 @@ final class Duration implements Stringable
         $ns = (int) abs((float) $d->nanoseconds);
 
         $us += intdiv(num1: $ns, num2: 1_000);
-        $ns = $ns % 1_000;
+        $ns %= 1_000;
         $ms += intdiv(num1: $us, num2: 1_000);
-        $us = $us % 1_000;
+        $us %= 1_000;
         $s += intdiv(num1: $ms, num2: 1_000);
-        $ms = $ms % 1_000;
+        $ms %= 1_000;
         $m += intdiv(num1: $s, num2: 60);
-        $s = $s % 60;
+        $s %= 60;
         $h += intdiv(num1: $m, num2: 60);
-        $m = $m % 60;
+        $m %= 60;
         $days = (int) abs((float) $d->days) + intdiv(num1: $h, num2: 24);
-        $h = $h % 24;
+        $h %= 24;
 
         $subNs =
             ($h * 3_600_000_000_000)
@@ -3295,9 +3313,7 @@ final class Duration implements Stringable
         // Convert to the target largest unit using float division, then distribute downward.
         // This matches JS's approach of computing the balance via float64 arithmetic.
         $floatMax = (float) PHP_INT_MAX;
-        $toIntSafe = static function (float $v) use ($floatMax): int|float {
-            return abs($v) < $floatMax ? (int) $v : $v;
-        };
+        $toIntSafe = static fn(float $v): int|float => abs($v) < $floatMax ? (int) $v : $v;
 
         $days = 0;
         $ns = $totalAbsNs;
@@ -3366,6 +3382,7 @@ final class Duration implements Stringable
             throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");
         }
         // Reject bracket annotation with a seconds component (e.g. [+23:59:60]).
+        $bm = null;
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
             if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bm[1]) === 1) {
                 throw new InvalidArgumentException(
@@ -3506,6 +3523,7 @@ final class Duration implements Stringable
         }
         if (is_string($rt)) {
             // Parse the string to check for IANA timezone.
+            $m = null;
             if (preg_match('/\[([^\]=]+)\]\s*$/', $rt, $m) === 1) {
                 $tzId = $m[1];
                 if ($tzId !== 'UTC' && preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) !== 1) {
@@ -4083,7 +4101,7 @@ final class Duration implements Stringable
         // remaining days stay as plain days (no weeks distribution).
         if ($luIdx === 7 || $suIdx === 7) {
             $weeks = intdiv(num1: $remainingDays, num2: 7);
-            $remainingDays = $remainingDays % 7;
+            $remainingDays %= 7;
         }
 
         // $years and $months are unsigned counters; apply sign. $weeks and $remainingDays
