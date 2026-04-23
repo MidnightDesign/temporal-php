@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Temporal;
 
 use Temporal\Spec\PlainTime as SpecPlainTime;
+use Temporal\Trait\HasTimeOfDayProperties;
+use Temporal\Trait\HasTimeOfDaySpec;
 
 /**
  * A wall-clock time without a date or time zone.
@@ -12,55 +14,9 @@ use Temporal\Spec\PlainTime as SpecPlainTime;
  * This is the porcelain wrapper around {@see SpecPlainTime}, providing a
  * type-safe PHP API with enums instead of raw option arrays.
  */
-final class PlainTime implements \Stringable, \JsonSerializable
+final class PlainTime implements \Stringable, \JsonSerializable, HasTimeOfDaySpec
 {
-    /**
-     * @var int
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $hour {
-        get => $this->spec->hour;
-    }
-
-    /**
-     * @var int
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $minute {
-        get => $this->spec->minute;
-    }
-
-    /**
-     * @var int
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $second {
-        get => $this->spec->second;
-    }
-
-    /**
-     * @var int
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $millisecond {
-        get => $this->spec->millisecond;
-    }
-
-    /**
-     * @var int
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $microsecond {
-        get => $this->spec->microsecond;
-    }
-
-    /**
-     * @var int
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $nanosecond {
-        get => $this->spec->nanosecond;
-    }
+    use HasTimeOfDayProperties;
 
     private readonly SpecPlainTime $spec;
 

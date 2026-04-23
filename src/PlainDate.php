@@ -5,6 +5,10 @@ declare(strict_types=1);
 namespace Temporal;
 
 use Temporal\Spec\PlainDate as SpecPlainDate;
+use Temporal\Trait\HasDayOfMonthProperties;
+use Temporal\Trait\HasDayOfMonthSpec;
+use Temporal\Trait\HasYearMonthProperties;
+use Temporal\Trait\HasYearMonthSpec;
 
 /**
  * A calendar date without a time or time zone.
@@ -13,160 +17,10 @@ use Temporal\Spec\PlainDate as SpecPlainDate;
  * {@see SpecPlainDate}. It provides typed enums, named parameters, and
  * value-object semantics while delegating all calendar math to the spec layer.
  */
-final class PlainDate implements \Stringable, \JsonSerializable
+final class PlainDate implements \Stringable, \JsonSerializable, HasYearMonthSpec, HasDayOfMonthSpec
 {
-    // -------------------------------------------------------------------------
-    // Virtual (get-only) properties — delegated to the spec instance
-    // -------------------------------------------------------------------------
-
-    /**
-     * Calendar year (projected through the active calendar).
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $year {
-        get => $this->spec->year;
-    }
-
-    /**
-     * Month of the year (projected through the active calendar).
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $month {
-        get => $this->spec->month;
-    }
-
-    /**
-     * Day of the month (projected through the active calendar).
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $day {
-        get => $this->spec->day;
-    }
-
-    /**
-     * Calendar system for this date.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public Calendar $calendar {
-        get => Calendar::from($this->spec->calendarId);
-    }
-
-    /**
-     * Calendar era identifier (e.g. "ce", "bce", "reiwa"), or null for calendars without eras.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public ?string $era {
-        get => $this->spec->era;
-    }
-
-    /**
-     * Year within the calendar era, or null for calendars without eras.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public ?int $eraYear {
-        get => $this->spec->eraYear;
-    }
-
-    /**
-     * Month code in "M01"–"M12" format (or "M01L"–"M12L" for leap months).
-     *
-     * @psalm-api
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public string $monthCode {
-        get => $this->spec->monthCode;
-    }
-
-    /**
-     * ISO 8601 day of week: 1 = Monday, 7 = Sunday.
-     *
-     * @var int<1, 7>
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $dayOfWeek {
-        get => $this->spec->dayOfWeek;
-    }
-
-    /**
-     * Ordinal day of the year (1-based). Range depends on the calendar system.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $dayOfYear {
-        get => $this->spec->dayOfYear;
-    }
-
-    /**
-     * ISO 8601 week number: 1–53, or null for non-ISO calendars.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public ?int $weekOfYear {
-        get => $this->spec->weekOfYear;
-    }
-
-    /**
-     * ISO 8601 week-year (may differ from calendar year near year boundaries),
-     * or null for non-ISO calendars.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public ?int $yearOfWeek {
-        get => $this->spec->yearOfWeek;
-    }
-
-    /**
-     * Number of days in this date's month.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $daysInMonth {
-        get => $this->spec->daysInMonth;
-    }
-
-    /**
-     * Days in a week (always 7).
-     *
-     * @psalm-api
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $daysInWeek {
-        get => $this->spec->daysInWeek;
-    }
-
-    /**
-     * Number of days in this date's year.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $daysInYear {
-        get => $this->spec->daysInYear;
-    }
-
-    /**
-     * Number of months in this date's year.
-     *
-     * @psalm-api
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public int $monthsInYear {
-        get => $this->spec->monthsInYear;
-    }
-
-    /**
-     * True if this date's year is a leap year.
-     *
-     * @psalm-suppress PropertyNotSetInConstructor
-     */
-    public bool $inLeapYear {
-        get => $this->spec->inLeapYear;
-    }
+    use HasYearMonthProperties;
+    use HasDayOfMonthProperties;
 
     // -------------------------------------------------------------------------
     // Constructor

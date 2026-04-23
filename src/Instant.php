@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Temporal;
 
+use Temporal\Trait\HasEpochProperties;
+use Temporal\Trait\HasEpochSpec;
+
 /**
  * A fixed point in time with nanosecond precision.
  *
@@ -12,25 +15,9 @@ namespace Temporal;
  * simpler API surface for application code while delegating all computation
  * to the spec layer.
  */
-final class Instant implements \Stringable, \JsonSerializable
+final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
 {
-    /**
-     * Nanoseconds since the Unix epoch (1970-01-01T00:00:00Z).
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $epochNanoseconds {
-        get => $this->spec->epochNanoseconds;
-    }
-
-    /**
-     * Milliseconds since the Unix epoch (floor-divided from nanoseconds).
-     *
-     * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
-     */
-    public int $epochMilliseconds {
-        get => $this->spec->epochMilliseconds;
-    }
+    use HasEpochProperties;
 
     /** The underlying spec-layer instance. */
     private readonly Spec\Instant $spec;
