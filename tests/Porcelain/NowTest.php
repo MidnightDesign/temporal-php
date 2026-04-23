@@ -223,28 +223,19 @@ final class NowTest extends TestCase
 
     public function testZonedDateTimeReturnsPorcelainZonedDateTime(): void
     {
-        if (!class_exists(\Temporal\ZonedDateTime::class)) {
-            static::markTestSkipped('Porcelain ZonedDateTime class not yet implemented.');
-        }
         $zdt = Now::zonedDateTime('UTC');
 
-        /** @phpstan-ignore staticMethod.alreadyNarrowedType */
-        static::assertInstanceOf(\Temporal\ZonedDateTime::class, $zdt);
+        static::assertSame('UTC', $zdt->timeZoneId);
     }
 
     public function testZonedDateTimeWithoutArgumentUsesSystemDefault(): void
     {
-        if (!class_exists(\Temporal\ZonedDateTime::class)) {
-            static::markTestSkipped('Porcelain ZonedDateTime class not yet implemented.');
-        }
         $original = date_default_timezone_get();
 
         try {
-            date_default_timezone_set('UTC');
-            // Should not throw -- omitted argument uses system default.
+            date_default_timezone_set('America/New_York');
             $zdt = Now::zonedDateTime();
-            /** @phpstan-ignore staticMethod.alreadyNarrowedType */
-            static::assertInstanceOf(\Temporal\ZonedDateTime::class, $zdt);
+            static::assertSame('America/New_York', $zdt->timeZoneId);
         } finally {
             date_default_timezone_set($original);
         }
@@ -255,10 +246,10 @@ final class NowTest extends TestCase
         $original = date_default_timezone_get();
 
         try {
-            date_default_timezone_set('UTC');
+            date_default_timezone_set('America/New_York');
             $zdt = Now::zonedDateTime(null);
 
-            static::assertSame(Calendar::Iso8601, $zdt->calendar);
+            static::assertSame('America/New_York', $zdt->timeZoneId);
         } finally {
             date_default_timezone_set($original);
         }
@@ -266,9 +257,6 @@ final class NowTest extends TestCase
 
     public function testZonedDateTimeEmptyStringThrowsInvalidArgument(): void
     {
-        if (!class_exists(\Temporal\ZonedDateTime::class)) {
-            static::markTestSkipped('Porcelain ZonedDateTime class not yet implemented.');
-        }
         $this->expectException(\InvalidArgumentException::class);
         Now::zonedDateTime('');
     }
