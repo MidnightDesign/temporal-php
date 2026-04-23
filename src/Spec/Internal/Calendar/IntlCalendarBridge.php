@@ -98,6 +98,14 @@ final class IntlCalendarBridge implements CalendarProtocol
      * @var array<string, int>
      */
     private array $maxCalDayCache = [];
+    /**
+     * Memoized calendarToIsoFromMonthCode successes, keyed by
+     * "calYear:monthCode:calDay:overflow". Only successful returns are cached;
+     * exception paths re-run the computation.
+     *
+     * @var array<string, array{0: int, 1: int<1, 12>, 2: int<1, 31>}>
+     */
+    private array $calendarToIsoFromMonthCodeCache = [];
 
     private const FIELD_CACHE_CAP = 1024;
 
@@ -518,6 +526,22 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     #[\Override]
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
+    {
+        $cacheKey = "{$calYear}:{$monthCode}:{$calDay}:{$overflow}";
+        if (array_key_exists($cacheKey, $this->calendarToIsoFromMonthCodeCache)) {
+            return $this->calendarToIsoFromMonthCodeCache[$cacheKey];
+        }
+        $result = $this->calendarToIsoFromMonthCodeUncached($calYear, $monthCode, $calDay, $overflow);
+        if (count($this->calendarToIsoFromMonthCodeCache) >= self::FIELD_CACHE_CAP) {
+            $this->calendarToIsoFromMonthCodeCache = [];
+        }
+        return $this->calendarToIsoFromMonthCodeCache[$cacheKey] = $result;
+    }
+
+    /**
+     * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>}
+     */
+    private function calendarToIsoFromMonthCodeUncached(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
         $isLeapCode = str_ends_with($monthCode, 'L');
 
