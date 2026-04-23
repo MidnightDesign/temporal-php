@@ -56,6 +56,12 @@ final class IntlCalendarBridge implements CalendarProtocol
     private readonly bool $isGregorianBased;
     /** Calendars with 13 months (coptic/ethiopic family). */
     private readonly bool $isCopticLike;
+    /**
+     * Calendars where ICU's getActualMaximum() returns stale values after
+     * setTime() unless the internal fields are explicitly resolved. Applies
+     * to chinese/dangi leap-month handling.
+     */
+    private readonly bool $needsForcedFieldResolution;
 
     /** @var array<int, int> Memoized findChineseLeapMonthInYear results, keyed by calYear. */
     private array $chineseLeapMonthCache = [];
@@ -88,6 +94,10 @@ final class IntlCalendarBridge implements CalendarProtocol
         };
         $this->isCopticLike = match ($calendarId) {
             'coptic', 'ethiopic', 'ethioaa' => true,
+            default => false,
+        };
+        $this->needsForcedFieldResolution = match ($calendarId) {
+            'chinese', 'dangi' => true,
             default => false,
         };
     }
@@ -1460,17 +1470,13 @@ final class IntlCalendarBridge implements CalendarProtocol
             return;
         }
         $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
-        if ($this->lastSetJdn === $jdn) {
-            $this->lastSetIsoYear = $isoYear;
-            $this->lastSetIsoMonth = $isoMonth;
-            $this->lastSetIsoDay = $isoDay;
-            return;
-        }
         $epochMs = ($jdn - 2_440_588) * self::MS_PER_DAY;
         $this->intlCal->setTime((float) $epochMs);
-        // Force ICU internal field resolution. Without this, getActualMaximum()
-        // may return stale values for Chinese/Dangi leap months.
-        $_ = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+        if ($this->needsForcedFieldResolution) {
+            // Without this, getActualMaximum() may return stale values for
+            // Chinese/Dangi leap months.
+            $_ = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+        }
         $this->lastSetJdn = $jdn;
         $this->lastSetIsoYear = $isoYear;
         $this->lastSetIsoMonth = $isoMonth;
