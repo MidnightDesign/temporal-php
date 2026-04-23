@@ -3313,7 +3313,7 @@ final class Duration implements Stringable
         // Convert to the target largest unit using float division, then distribute downward.
         // This matches JS's approach of computing the balance via float64 arithmetic.
         $floatMax = (float) PHP_INT_MAX;
-        $toIntSafe = static fn (float $v): int|float => abs($v) < $floatMax ? (int) $v : $v;
+        $toIntSafe = static fn(float $v): int|float => abs($v) < $floatMax ? (int) $v : $v;
 
         $days = 0;
         $ns = $totalAbsNs;
