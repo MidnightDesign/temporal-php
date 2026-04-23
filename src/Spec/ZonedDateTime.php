@@ -3892,7 +3892,7 @@ final class ZonedDateTime implements Stringable
                     // Keep wall-clock timeDiffNs on failure
                     unset($e);
                 }
-            } elseif ($isIanaTz && $years === 0 && $months === 0 && $weeks === 0 && $days === 0) {
+            } elseif ($isIanaTz) {
                 // Same date, no date diff: use raw epoch diff for the time part.
                 $absDiffNsSameDay = $sign < 0 ? -$diffNs : $diffNs;
                 if ($absDiffNsSameDay >= 0) {

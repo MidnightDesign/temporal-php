@@ -2202,10 +2202,7 @@ final class Duration implements Stringable
         }
 
         // For pure-time rounds: validate relativeTo and check overflow for non-blank durations.
-        // ($needsRelativeTo is always false here due to the throw above; suppress the tautology.)
-        /** @psalm-suppress RedundantCondition */
-        // @phpstan-ignore booleanNot.alwaysTrue
-        if (!$needsRelativeTo && $relativeToProvided && !$this->blank) {
+        if ($relativeToProvided && !$this->blank) {
             /** @var mixed $rtRaw */
             $rtRaw = $roundTo['relativeTo'] ?? null;
             if (is_string($rtRaw)) {
