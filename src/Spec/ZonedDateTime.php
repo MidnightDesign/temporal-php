@@ -2286,8 +2286,14 @@ final class ZonedDateTime implements Stringable
             return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         // IANA timezone: use PHP to find the offset at the given instant.
-        /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated to be non-empty in constructor */
-        $tz = new \DateTimeZone($this->resolvedTimeZoneId);
+        /** @var array<string, \DateTimeZone> $tzCache */
+        static $tzCache = [];
+        $tz = $tzCache[$this->resolvedTimeZoneId] ?? null;
+        if ($tz === null) {
+            /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated to be non-empty in constructor */
+            $tz = new \DateTimeZone($this->resolvedTimeZoneId);
+            $tzCache[$this->resolvedTimeZoneId] = $tz;
+        }
         return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
     }
 
