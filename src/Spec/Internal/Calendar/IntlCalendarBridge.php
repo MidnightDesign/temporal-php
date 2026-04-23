@@ -90,6 +90,14 @@ final class IntlCalendarBridge implements CalendarProtocol
     private array $monthsInYearCache = [];
     /** @var array<string, bool> */
     private array $inLeapYearCache = [];
+    /**
+     * Max day of the calendar month, keyed by "calYear:calMonth". Populated
+     * opportunistically from ICU after setCalendarFields; depends only on the
+     * calendar year/month (calendar day doesn't shift the maximum).
+     *
+     * @var array<string, int>
+     */
+    private array $maxCalDayCache = [];
 
     private const FIELD_CACHE_CAP = 1024;
 
@@ -648,7 +656,16 @@ final class IntlCalendarBridge implements CalendarProtocol
 
             // Resolve new date with day constraining.
             $this->setCalendarFields($calYear, $calMonth, $originalCalDay);
-            $newMaxDay = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            $maxKey = "{$calYear}:{$calMonth}";
+            if (array_key_exists($maxKey, $this->maxCalDayCache)) {
+                $newMaxDay = $this->maxCalDayCache[$maxKey];
+            } else {
+                $newMaxDay = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
+                if (count($this->maxCalDayCache) >= self::FIELD_CACHE_CAP) {
+                    $this->maxCalDayCache = [];
+                }
+                $this->maxCalDayCache[$maxKey] = $newMaxDay;
+            }
 
             if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
                 throw new InvalidArgumentException(
