@@ -225,7 +225,7 @@ final class NowTest extends TestCase
     {
         $zdt = Now::zonedDateTime('UTC');
 
-        static::assertInstanceOf(\Temporal\ZonedDateTime::class, $zdt);
+        static::assertSame('UTC', $zdt->timeZoneId);
     }
 
     public function testZonedDateTimeWithoutArgumentUsesSystemDefault(): void
@@ -234,9 +234,8 @@ final class NowTest extends TestCase
 
         try {
             date_default_timezone_set('UTC');
-            // Should not throw -- omitted argument uses system default.
             $zdt = Now::zonedDateTime();
-            static::assertInstanceOf(\Temporal\ZonedDateTime::class, $zdt);
+            static::assertSame('UTC', $zdt->timeZoneId);
         } finally {
             date_default_timezone_set($original);
         }
