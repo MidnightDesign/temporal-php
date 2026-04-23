@@ -14,6 +14,9 @@ level = "error"
 [linter.rules.literal-named-argument]
 level = "error"
 
+[linter.rules.prefer-early-continue]
+level = "error"
+
 # PlainDateTime/ZonedDateTime test suites require 100+ test methods because each
 # virtual property, method, and option path per the TC39 spec must be covered.
 # ZonedDateTime is inherently the most complex class per the spec (29 properties,
