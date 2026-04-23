@@ -544,7 +544,7 @@ final class PlainTime implements Stringable
         $h = intdiv(num1: $nsToFormat, num2: self::NS_PER_HOUR);
         $rem = $nsToFormat % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
-        $rem = $rem % self::NS_PER_MINUTE;
+        $rem %= self::NS_PER_MINUTE;
         $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
         // Sub-second nanoseconds (0–999_999_999).
         $subNs = $rem % self::NS_PER_SECOND;
@@ -597,11 +597,11 @@ final class PlainTime implements Stringable
         $h = intdiv(num1: $nsTotal, num2: self::NS_PER_HOUR);
         $rem = $nsTotal % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
-        $rem = $rem % self::NS_PER_MINUTE;
+        $rem %= self::NS_PER_MINUTE;
         $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem = $rem % self::NS_PER_SECOND;
+        $rem %= self::NS_PER_SECOND;
         $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
-        $rem = $rem % self::NS_PER_MS;
+        $rem %= self::NS_PER_MS;
         $us = intdiv(num1: $rem, num2: self::NS_PER_US);
         $ns = $rem % self::NS_PER_US;
         return new self($h, $min, $sec, $ms, $us, $ns);
@@ -1113,23 +1113,23 @@ final class PlainTime implements Stringable
 
         if ($luRank >= 6) {
             $hours = intdiv(num1: $remaining, num2: self::NS_PER_HOUR);
-            $remaining = $remaining % self::NS_PER_HOUR;
+            $remaining %= self::NS_PER_HOUR;
         }
         if ($luRank >= 5) {
             $minutes = intdiv(num1: $remaining, num2: self::NS_PER_MINUTE);
-            $remaining = $remaining % self::NS_PER_MINUTE;
+            $remaining %= self::NS_PER_MINUTE;
         }
         if ($luRank >= 4) {
             $seconds = intdiv(num1: $remaining, num2: self::NS_PER_SECOND);
-            $remaining = $remaining % self::NS_PER_SECOND;
+            $remaining %= self::NS_PER_SECOND;
         }
         if ($luRank >= 3) {
             $ms = intdiv(num1: $remaining, num2: self::NS_PER_MS);
-            $remaining = $remaining % self::NS_PER_MS;
+            $remaining %= self::NS_PER_MS;
         }
         if ($luRank >= 2) {
             $us = intdiv(num1: $remaining, num2: self::NS_PER_US);
-            $remaining = $remaining % self::NS_PER_US;
+            $remaining %= self::NS_PER_US;
         }
         $ns = $remaining;
 

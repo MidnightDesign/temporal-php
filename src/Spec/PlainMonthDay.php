@@ -1287,9 +1287,11 @@ final class PlainMonthDay implements Stringable
             // Find the maximum constrained day.
             $maxConstrainedDay = 0;
             foreach ($constrainedCandidates as $c) {
-                if ($c['day'] > $maxConstrainedDay) {
-                    $maxConstrainedDay = $c['day'];
+                if ($c['day'] <= $maxConstrainedDay) {
+                    continue;
                 }
+
+                $maxConstrainedDay = $c['day'];
             }
             // Now find the reference year for the constrained monthCode+day.
             return self::resolveNonIsoReferenceYear($calendar, $calendarId, $monthCode, $maxConstrainedDay, 'reject');

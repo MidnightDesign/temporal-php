@@ -1372,10 +1372,12 @@ final class ZonedDateTime implements Stringable
         ];
         $hasField = false;
         foreach ($recognized as $f) {
-            if (array_key_exists($f, $fields)) {
-                $hasField = true;
-                break;
+            if (!array_key_exists($f, $fields)) {
+                continue;
             }
+
+            $hasField = true;
+            break;
         }
         if (!$hasField) {
             throw new \TypeError('ZonedDateTime::with() requires at least one recognized property.');
@@ -4022,7 +4024,7 @@ final class ZonedDateTime implements Stringable
             // Use DST-aware day length for IANA timezones.
             $nsPerDayForOverflow = (int) $nsPerDayF;
             $overflowDays = intdiv(num1: $absTimeNs, num2: $nsPerDayForOverflow);
-            $absTimeNs = $absTimeNs % $nsPerDayForOverflow;
+            $absTimeNs %= $nsPerDayForOverflow;
             $days += $overflowDays;
 
             // Re-balance calendar units when day overflow pushes past month boundaries.
@@ -4070,11 +4072,11 @@ final class ZonedDateTime implements Stringable
             $h = intdiv(num1: $absTimeNs, num2: 3_600_000_000_000);
             $rem = $absTimeNs % 3_600_000_000_000;
             $min = intdiv(num1: $rem, num2: 60_000_000_000);
-            $rem = $rem % 60_000_000_000;
+            $rem %= 60_000_000_000;
             $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-            $rem = $rem % self::NS_PER_SECOND;
+            $rem %= self::NS_PER_SECOND;
             $msR = intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND);
-            $rem = $rem % self::NS_PER_MILLISECOND;
+            $rem %= self::NS_PER_MILLISECOND;
             $usR = intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND);
             $nsR = $rem % self::NS_PER_MICROSECOND;
 

@@ -1384,23 +1384,23 @@ final class Instant implements Stringable
 
         if ($luIdx >= 1) { // at least microseconds
             $us = intdiv(num1: $ns, num2: 1_000);
-            $ns = $ns - ($us * 1_000);
+            $ns -= $us * 1_000;
         }
         if ($luIdx >= 2) { // at least milliseconds
             $ms = intdiv(num1: $us, num2: 1_000);
-            $us = $us - ($ms * 1_000);
+            $us -= $ms * 1_000;
         }
         if ($luIdx >= 3) { // at least seconds
             $s = intdiv(num1: $ms, num2: 1_000);
-            $ms = $ms - ($s * 1_000);
+            $ms -= $s * 1_000;
         }
         if ($luIdx >= 4) { // at least minutes
             $min = intdiv(num1: $s, num2: 60);
-            $s = $s - ($min * 60);
+            $s -= $min * 60;
         }
         if ($luIdx >= 5) { // hours
             $h = intdiv(num1: $min, num2: 60);
-            $min = $min - ($h * 60);
+            $min -= $h * 60;
         }
 
         return new Duration(0, 0, 0, 0, $sign * $h, $sign * $min, $sign * $s, $sign * $ms, $sign * $us, $sign * $ns);

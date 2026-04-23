@@ -109,17 +109,19 @@ final class Duration implements Stringable
                 $microseconds,
                 $nanoseconds,
             ] as $field) {
-                if (is_float($field)) {
-                    if (!is_finite($field)) {
-                        throw new InvalidArgumentException(
-                            'Duration fields must be finite; Infinity and NaN are not allowed.',
-                        );
-                    }
-                    if (fmod(num1: $field, num2: 1.0) !== 0.0) {
-                        throw new InvalidArgumentException(
-                            'Duration fields must be integer-valued; fractional values are not allowed.',
-                        );
-                    }
+                if (!is_float($field)) {
+                    continue;
+                }
+
+                if (!is_finite($field)) {
+                    throw new InvalidArgumentException(
+                        'Duration fields must be finite; Infinity and NaN are not allowed.',
+                    );
+                }
+                if (fmod(num1: $field, num2: 1.0) !== 0.0) {
+                    throw new InvalidArgumentException(
+                        'Duration fields must be integer-valued; fractional values are not allowed.',
+                    );
                 }
             }
         }
@@ -498,10 +500,12 @@ final class Duration implements Stringable
         ];
         $hasAny = false;
         foreach ($PLURAL_FIELDS as $f) {
-            if (array_key_exists($f, $fields)) {
-                $hasAny = true;
-                break;
+            if (!array_key_exists($f, $fields)) {
+                continue;
             }
+
+            $hasAny = true;
+            break;
         }
         if (!$hasAny) {
             throw new \TypeError(
@@ -622,7 +626,7 @@ final class Duration implements Stringable
 
         $subNs = ($remMs * 1_000_000) + ($remUs * 1_000) + $remNs;
         $totalSeconds = (int) $abs->seconds + $carryMs + $carryUs + $carryNs + (int) ($subNs / 1_000_000_000);
-        $subNs = $subNs % 1_000_000_000;
+        $subNs %= 1_000_000_000;
 
         // Initialize local copies of time units that may be updated by carry after rounding.
         $absMinutes = (int) $abs->minutes;
@@ -655,13 +659,13 @@ final class Duration implements Stringable
             // E.g. {h:1, min:59, sec:59, ms:900} rounds to PT2H0S; {sec:59, ms:900} stays PT60S.
             if ($carrySecond !== 0 && ($absMinutes !== 0 || $absHours !== 0)) {
                 $absMinutes += intdiv(num1: $totalSeconds, num2: 60);
-                $totalSeconds = $totalSeconds % 60;
+                $totalSeconds %= 60;
                 if ($absMinutes >= 60 && $absHours !== 0) {
                     $absHours += intdiv(num1: $absMinutes, num2: 60);
-                    $absMinutes = $absMinutes % 60;
+                    $absMinutes %= 60;
                     if ($absHours >= 24 && $absDays !== 0) {
                         $absDays += intdiv(num1: $absHours, num2: 24);
-                        $absHours = $absHours % 24;
+                        $absHours %= 24;
                     }
                 }
             }
@@ -1592,9 +1596,9 @@ final class Duration implements Stringable
         $dm = intdiv(num1: $totalFracNs, num2: 60_000_000_000);
         $rem = $totalFracNs % 60_000_000_000;
         $ds = intdiv(num1: $rem, num2: 1_000_000_000);
-        $rem = $rem % 1_000_000_000;
+        $rem %= 1_000_000_000;
         $dms = intdiv(num1: $rem, num2: 1_000_000);
-        $rem = $rem % 1_000_000;
+        $rem %= 1_000_000;
         $dus = intdiv(num1: $rem, num2: 1_000);
         $dns = $rem % 1_000;
 
@@ -1629,10 +1633,12 @@ final class Duration implements Stringable
 
         $hasAny = false;
         foreach ($PLURAL_FIELDS as $f) {
-            if (array_key_exists($f, $item)) {
-                $hasAny = true;
-                break;
+            if (!array_key_exists($f, $item)) {
+                continue;
             }
+
+            $hasAny = true;
+            break;
         }
         if (!$hasAny) {
             throw new \TypeError(
@@ -2274,15 +2280,15 @@ final class Duration implements Stringable
 
         // Balance up to get exact integers.
         $absUs += intdiv(num1: $absNs, num2: 1_000);
-        $absNs = $absNs % 1_000;
+        $absNs %= 1_000;
         $absMs += intdiv(num1: $absUs, num2: 1_000);
-        $absUs = $absUs % 1_000;
+        $absUs %= 1_000;
         $absS += intdiv(num1: $absMs, num2: 1_000);
-        $absMs = $absMs % 1_000;
+        $absMs %= 1_000;
         $absM += intdiv(num1: $absS, num2: 60);
-        $absS = $absS % 60;
+        $absS %= 60;
         $absH += intdiv(num1: $absM, num2: 60);
-        $absM = $absM % 60;
+        $absM %= 60;
 
         // Balance hours into days: DST-aware when ZDT IANA relativeTo is present.
         if ($zdtInfoRound !== null) {
@@ -2319,7 +2325,7 @@ final class Duration implements Stringable
             $absNs = $timeOnlyNs - ($absUs * 1_000);
         } else {
             $absD += intdiv(num1: $absH, num2: 24);
-            $absH = $absH % 24;
+            $absH %= 24;
         }
 
         // Compute totalNs, guarding against int64 overflow for large day counts.
@@ -2895,17 +2901,17 @@ final class Duration implements Stringable
         $ns = (int) abs((float) $d->nanoseconds);
 
         $us += intdiv(num1: $ns, num2: 1_000);
-        $ns = $ns % 1_000;
+        $ns %= 1_000;
         $ms += intdiv(num1: $us, num2: 1_000);
-        $us = $us % 1_000;
+        $us %= 1_000;
         $s += intdiv(num1: $ms, num2: 1_000);
-        $ms = $ms % 1_000;
+        $ms %= 1_000;
         $m += intdiv(num1: $s, num2: 60);
-        $s = $s % 60;
+        $s %= 60;
         $h += intdiv(num1: $m, num2: 60);
-        $m = $m % 60;
+        $m %= 60;
         $days = (int) abs((float) $d->days) + intdiv(num1: $h, num2: 24);
-        $h = $h % 24;
+        $h %= 24;
 
         $subNs =
             ($h * 3_600_000_000_000)
@@ -3295,9 +3301,7 @@ final class Duration implements Stringable
         // Convert to the target largest unit using float division, then distribute downward.
         // This matches JS's approach of computing the balance via float64 arithmetic.
         $floatMax = (float) PHP_INT_MAX;
-        $toIntSafe = static function (float $v) use ($floatMax): int|float {
-            return abs($v) < $floatMax ? (int) $v : $v;
-        };
+        $toIntSafe = static fn (float $v): int|float => abs($v) < $floatMax ? (int) $v : $v;
 
         $days = 0;
         $ns = $totalAbsNs;
@@ -4083,7 +4087,7 @@ final class Duration implements Stringable
         // remaining days stay as plain days (no weeks distribution).
         if ($luIdx === 7 || $suIdx === 7) {
             $weeks = intdiv(num1: $remainingDays, num2: 7);
-            $remainingDays = $remainingDays % 7;
+            $remainingDays %= 7;
         }
 
         // $years and $months are unsigned counters; apply sign. $weeks and $remainingDays

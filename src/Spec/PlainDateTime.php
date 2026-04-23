@@ -471,10 +471,12 @@ final class PlainDateTime implements Stringable
         ];
         $hasRecognized = false;
         foreach ($recognized as $key) {
-            if (array_key_exists($key, $fields)) {
-                $hasRecognized = true;
-                break;
+            if (!array_key_exists($key, $fields)) {
+                continue;
             }
+
+            $hasRecognized = true;
+            break;
         }
         if (!$hasRecognized) {
             throw new \TypeError('PlainDateTime::with() requires at least one recognized temporal property.');
@@ -874,11 +876,11 @@ final class PlainDateTime implements Stringable
         $h = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
-        $rem = $rem % self::NS_PER_MINUTE;
+        $rem %= self::NS_PER_MINUTE;
         $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem = $rem % self::NS_PER_SECOND;
+        $rem %= self::NS_PER_SECOND;
         $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
-        $rem = $rem % self::NS_PER_MS;
+        $rem %= self::NS_PER_MS;
         $us = intdiv(num1: $rem, num2: self::NS_PER_US);
         $ns = $rem % self::NS_PER_US;
 
@@ -1049,9 +1051,9 @@ final class PlainDateTime implements Stringable
         $hour = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
-        $rem = $rem % self::NS_PER_MINUTE;
+        $rem %= self::NS_PER_MINUTE;
         $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem = $rem % self::NS_PER_SECOND;
+        $rem %= self::NS_PER_SECOND;
 
         $subNs = $rem;
 
@@ -1955,7 +1957,7 @@ final class PlainDateTime implements Stringable
                     );
                     if ($normLargest === 'year') {
                         $roundedYears = intdiv(num1: $roundedMonths, num2: 12);
-                        $roundedMonths = $roundedMonths - ($roundedYears * 12);
+                        $roundedMonths -= $roundedYears * 12;
                         return new Duration(years: $outputSign * $roundedYears, months: $outputSign * $roundedMonths);
                     }
                     return new Duration(months: $outputSign * $roundedMonths);
@@ -2022,7 +2024,7 @@ final class PlainDateTime implements Stringable
 
             // Handle day overflow from rounding time (e.g., 23:59 rounds up to 24:00).
             $overflowDays = intdiv(num1: $absTimeNs, num2: self::NS_PER_DAY);
-            $absTimeNs = $absTimeNs % self::NS_PER_DAY;
+            $absTimeNs %= self::NS_PER_DAY;
 
             // When time overflow produces extra days, recompute the calendar diff
             // from the updated position to properly rebalance months/years.
@@ -2069,11 +2071,11 @@ final class PlainDateTime implements Stringable
             $h = intdiv(num1: $absTimeNs, num2: self::NS_PER_HOUR);
             $rem = $absTimeNs % self::NS_PER_HOUR;
             $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
-            $rem = $rem % self::NS_PER_MINUTE;
+            $rem %= self::NS_PER_MINUTE;
             $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-            $rem = $rem % self::NS_PER_SECOND;
+            $rem %= self::NS_PER_SECOND;
             $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
-            $rem = $rem % self::NS_PER_MS;
+            $rem %= self::NS_PER_MS;
             $us = intdiv(num1: $rem, num2: self::NS_PER_US);
             $ns = $rem % self::NS_PER_US;
 
@@ -2147,7 +2149,7 @@ final class PlainDateTime implements Stringable
             }
             $perUnit = $timeUnitNs[$unit];
             $val = intdiv(num1: $rem, num2: $perUnit);
-            $rem = $rem % $perUnit;
+            $rem %= $perUnit;
             match ($unit) {
                 'hour' => $h = $val,
                 'minute' => $min = $val,
@@ -2247,7 +2249,7 @@ final class PlainDateTime implements Stringable
             $newTimeNs -= $overflowDays * self::NS_PER_DAY;
         } else {
             $overflowDays = intdiv(num1: $newTimeNs, num2: self::NS_PER_DAY);
-            $newTimeNs = $newTimeNs % self::NS_PER_DAY;
+            $newTimeNs %= self::NS_PER_DAY;
         }
 
         $days += $overflowDays;
@@ -2276,11 +2278,11 @@ final class PlainDateTime implements Stringable
         $h = intdiv(num1: $newTimeNs, num2: self::NS_PER_HOUR);
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
-        $rem = $rem % self::NS_PER_MINUTE;
+        $rem %= self::NS_PER_MINUTE;
         $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem = $rem % self::NS_PER_SECOND;
+        $rem %= self::NS_PER_SECOND;
         $msR = intdiv(num1: $rem, num2: self::NS_PER_MS);
-        $rem = $rem % self::NS_PER_MS;
+        $rem %= self::NS_PER_MS;
         $usR = intdiv(num1: $rem, num2: self::NS_PER_US);
         $nsR = $rem % self::NS_PER_US;
 

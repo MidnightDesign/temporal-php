@@ -84,9 +84,11 @@ final class DurationEquals extends Constraint
         $lines = [];
 
         foreach (self::FIELDS as $field) {
-            if ($expected[$field] !== $actual[$field]) {
-                $lines[] = sprintf('  %s: expected %d, actual %d', $field, $expected[$field], $actual[$field]);
+            if ($expected[$field] === $actual[$field]) {
+                continue;
             }
+
+            $lines[] = sprintf('  %s: expected %d, actual %d', $field, $expected[$field], $actual[$field]);
         }
 
         return implode("\n", $lines);
@@ -104,7 +106,7 @@ final class DurationEquals extends Constraint
 
         $parts = [];
         foreach ($nonZero as $name => $value) {
-            $parts[] = "$name: $value";
+            $parts[] = "{$name}: {$value}";
         }
 
         return sprintf('Duration {%s}', implode(', ', $parts));

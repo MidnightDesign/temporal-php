@@ -1336,7 +1336,7 @@ final class PlainDate implements Stringable
                 $receiverIsLater,
             );
             $roundedYears = intdiv(num1: $roundedMonths, num2: 12);
-            $roundedMonths = $roundedMonths - ($roundedYears * 12);
+            $roundedMonths -= $roundedYears * 12;
             return new Duration(years: $sinceSign * $roundedYears, months: $sinceSign * $roundedMonths);
         }
         // smallestUnit=day: return years + months + rounded days.
