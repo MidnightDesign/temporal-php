@@ -514,16 +514,9 @@ final class PureHebrewCalendar implements CalendarProtocol
         string $largestUnit,
         bool $receiverIsLater = false,
     ): array {
-        // Day/week: pure JDN subtraction.
-        if ($largestUnit === 'day' || $largestUnit === 'week') {
-            $totalDays =
-                CalendarMath::toJulianDay($isoY2, $isoM2, $isoD2) - CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
-            if ($largestUnit === 'week') {
-                $weeks = intdiv($totalDays, num2: 7);
-                $days = $totalDays - ($weeks * 7);
-                return [0, 0, $weeks, $days];
-            }
-            return [0, 0, 0, $totalDays];
+        $dayOrWeek = CalendarMath::dayOrWeekDateUntil($isoY1, $isoM1, $isoD1, $isoY2, $isoM2, $isoD2, $largestUnit);
+        if ($dayOrWeek !== null) {
+            return $dayOrWeek;
         }
 
         $jdn1 = CalendarMath::toJulianDay($isoY1, $isoM1, $isoD1);
