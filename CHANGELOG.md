@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 Until 1.0.0 the public API may change between minor versions.
 
+## [Unreleased]
+
+### Changed
+
+- **Spec layer (`Temporal\Spec\`) reframed as a public API layer, not internal.** The 0.1.0 release notes described it as "considered internal"; that was a misframing. The layer is PSR-4 public and will be covered by the Backwards Compatibility Promise on the same terms as the porcelain layer starting at 1.0.0.
+- README now has a **Versioning and backwards compatibility** section that spells out the SemVer contract for each layer, the `toSpec()`/`fromSpec()` round-trip guarantee, and the `Temporal\Spec\Internal\` exclusion — resolving the "formal BC policy for the seam" note from 0.1.0.
+
 ## [0.1.0] - 2026-04-19
 
 Initial public release.
@@ -38,4 +45,5 @@ The porcelain layer adapts TC39 semantics to PHP-native conventions rather than 
 - The `Temporal\Spec\` namespace is public PSR-4 but documented as internal; a formal BC policy for the seam will land before 1.0.0.
 - Mutation testing currently reports ~72% MSI; see [issue #2](https://github.com/MidnightDesign/temporal-php/issues/2).
 
+[Unreleased]: https://github.com/MidnightDesign/temporal-php/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/MidnightDesign/temporal-php/releases/tag/v0.1.0

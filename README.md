@@ -25,7 +25,7 @@ This library has two API tiers:
 | **Porcelain** | `Temporal\` | PHP-native API with strict types, backed enums, and named arguments |
 | **Spec** | `Temporal\Spec\` | TC39-faithful implementation, validated by 6600+ test262 scripts |
 
-Use the porcelain layer for application code. The spec layer exists to pass the TC39 conformance suite and is considered internal.
+Most application code should use the porcelain layer. The spec layer is a fully supported alternative when you need TC39-faithful semantics — for example, producing output that matches JavaScript Temporal byte-for-byte. Both layers are covered by the [Backwards Compatibility Promise](#versioning-and-backwards-compatibility).
 
 ### Deliberate deviations from TC39
 
@@ -421,6 +421,21 @@ Every porcelain class has `toSpec()` and `fromSpec()` for dropping to the TC39-f
 $specDate = $date->toSpec();            // Temporal\Spec\PlainDate
 $date     = PlainDate::fromSpec($spec); // back to porcelain
 ```
+
+---
+
+## Versioning and backwards compatibility
+
+This project follows [Semantic Versioning](https://semver.org). Until 1.0.0 the public API may change between minor versions.
+
+From 1.0.0 onward, both API layers are supported under the same contract:
+
+- **Porcelain (`Temporal\`)** — public methods, property names and types, enum cases, and constructor parameters are stable within a major version.
+- **Spec (`Temporal\Spec\`)** — same contract as porcelain. This layer tracks the TC39 Temporal specification; if an upstream Stage 4 change alters observable semantics, that change ships only in a major version of this library.
+- **Seam** — for every porcelain class, `X::fromSpec($x->toSpec())` equals `$x` within a major version. You can move values between layers without lossy conversion.
+- **Internal (`Temporal\Spec\Internal\`)** — genuine implementation detail (calendar bridges, serde, arithmetic helpers). May change at any time without a major version bump. Do not import from it.
+
+Bug fixes that correct incorrect output are not breaking changes, even when an observed value changes. Deprecations are announced in the changelog at least one minor version before removal and marked with `@deprecated`.
 
 ---
 
