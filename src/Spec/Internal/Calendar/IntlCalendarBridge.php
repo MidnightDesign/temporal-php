@@ -601,12 +601,20 @@ final class IntlCalendarBridge implements CalendarProtocol
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         if ($years !== 0 || $months !== 0) {
-            // Capture the original calendar day before year/month addition, for 'reject' overflow.
-            $originalCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
-            // Use field-level arithmetic: read calendar fields, add to year/month,
-            // then resolve back. This avoids Julian cutover issues in ICU.
-            $calYear = $this->calendarYear();
-            $calMonth = $this->calendarMonth();
+            // Capture the original calendar day and year/month. Use field-level
+            // arithmetic: read calendar fields, add to year/month, resolve back.
+            // This avoids Julian cutover issues in ICU for the gregorian path
+            // (japanese/buddhist/roc retain ICU's 1582 cutover; only the bare
+            // gregorian IntlCalendar was made proleptic in the constructor).
+            if ($this->isGregorianBased) {
+                $originalCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+                $calYear = $this->calendarYear();
+                $calMonth = $this->calendarMonth();
+            } else {
+                $originalCalDay = $this->day($isoYear, $isoMonth, $isoDay);
+                $calYear = $this->year($isoYear, $isoMonth, $isoDay);
+                $calMonth = $this->month($isoYear, $isoMonth, $isoDay);
+            }
 
             // For calendars with leap months, year addition must preserve monthCode
             // (not ordinal position), because leap months shift ordinals between years.
