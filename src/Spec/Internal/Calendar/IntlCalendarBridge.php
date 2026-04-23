@@ -822,10 +822,8 @@ final class IntlCalendarBridge implements CalendarProtocol
             // Year-only trial: check if the calendar day was constrained
             // (e.g. day 30 -> day 29 in a shorter month). If so, the trial
             // didn't preserve the exact date, so use strict inequality.
-            $this->setIsoDate($isoY1, $isoM1, $isoD1);
-            $origCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
-            $this->setIsoDate($tY, $tM, $tD);
-            $trialCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+            $origCalDay = $this->day($isoY1, $isoM1, $isoD1);
+            $trialCalDay = $this->day($tY, $tM, $tD);
             $dayConstrained = $trialCalDay < $origCalDay;
 
             // For leap-month calendars, also check monthCode constraining.
@@ -836,10 +834,8 @@ final class IntlCalendarBridge implements CalendarProtocol
                 $trialMonthCode = $this->monthCode($tY, $tM, $tD);
                 if ($origMonthCode !== $trialMonthCode) {
                     $monthConstrained = true;
-                    $this->setIsoDate($isoY1, $isoM1, $isoD1);
-                    $origOrd = $this->calendarMonth();
-                    $this->setIsoDate($tY, $tM, $tD);
-                    $trialOrd = $this->calendarMonth();
+                    $origOrd = $this->month($isoY1, $isoM1, $isoD1);
+                    $trialOrd = $this->month($tY, $tM, $tD);
                     $constrainedOrdEarlier = $trialOrd < $origOrd;
                 }
             }
@@ -869,11 +865,8 @@ final class IntlCalendarBridge implements CalendarProtocol
         }
 
         // Month trials: check if day was constrained and adjust.
-        $this->setIsoDate($isoY1, $isoM1, $isoD1);
-        $origCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
-
-        $this->setIsoDate($tY, $tM, $tD);
-        $trialCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
+        $origCalDay = $this->day($isoY1, $isoM1, $isoD1);
+        $trialCalDay = $this->day($tY, $tM, $tD);
 
         if ($trialCalDay < $origCalDay) {
             // Day was constrained. Adjust the JDN to pretend the original day
