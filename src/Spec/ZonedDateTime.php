@@ -789,6 +789,16 @@ final class ZonedDateTime implements Stringable
      */
     private static function canonicalizeTimezoneForComparison(string $id): string
     {
+        /** @var array<string, string> $cache */
+        static $cache = [];
+        if (array_key_exists($id, $cache)) {
+            return $cache[$id];
+        }
+        return $cache[$id] = self::canonicalizeTimezoneForComparisonUncached($id);
+    }
+
+    private static function canonicalizeTimezoneForComparisonUncached(string $id): string
+    {
         // UTC aliases all compare equal.
         /** @var list<string> $utcAliases */
         static $utcAliases = [
@@ -1935,6 +1945,22 @@ final class ZonedDateTime implements Stringable
      */
     public static function normalizeTimezoneId(string $id, bool $rejectDatetimeStrings = false): string
     {
+        /** @var array<string, string> $cache */
+        static $cache = [];
+        $cacheKey = ($rejectDatetimeStrings ? "R\0" : "N\0") . $id;
+        if (array_key_exists($cacheKey, $cache)) {
+            return $cache[$cacheKey];
+        }
+        $result = self::normalizeTimezoneIdUncached($id, $rejectDatetimeStrings);
+        if (count($cache) >= 1024) {
+            $cache = [];
+        }
+        $cache[$cacheKey] = $result;
+        return $result;
+    }
+
+    private static function normalizeTimezoneIdUncached(string $id, bool $rejectDatetimeStrings): string
+    {
         if ($id === '') {
             throw new InvalidArgumentException('ZonedDateTime timeZoneId must not be empty.');
         }
@@ -2192,6 +2218,16 @@ final class ZonedDateTime implements Stringable
      * inconsistencies where ICU and IANA disagree on canonical targets.
      */
     private static function resolveCanonicalTimezoneId(string $id): string
+    {
+        /** @var array<string, string> $cache */
+        static $cache = [];
+        if (array_key_exists($id, $cache)) {
+            return $cache[$id];
+        }
+        return $cache[$id] = self::resolveCanonicalTimezoneIdUncached($id);
+    }
+
+    private static function resolveCanonicalTimezoneIdUncached(string $id): string
     {
         // Known ICU inconsistencies where an IANA link target is reported as
         // self-canonical instead of resolving to its true primary zone.
