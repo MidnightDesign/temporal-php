@@ -736,27 +736,35 @@ final class IntlCalendarBridge implements CalendarProtocol
                 $calYear++;
             }
 
-            // Resolve new date with day constraining.
-            $this->setCalendarFields($calYear, $calMonth, $originalCalDay);
+            // Resolve new date with day constraining. When maxCalDayCache
+            // already knows the month's max, we can clamp in advance and avoid
+            // the "set original day, discover overflow, reset to max" double
+            // setCalendarFields dance.
             $maxKey = ($calYear * 32) + $calMonth;
             if (array_key_exists($maxKey, $this->maxCalDayCache)) {
                 $newMaxDay = $this->maxCalDayCache[$maxKey];
+                if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
+                    throw new InvalidArgumentException(
+                        "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
+                    );
+                }
+                $finalCalDay = $originalCalDay > $newMaxDay ? $newMaxDay : $originalCalDay;
+                $this->setCalendarFields($calYear, $calMonth, $finalCalDay);
             } else {
+                $this->setCalendarFields($calYear, $calMonth, $originalCalDay);
                 $newMaxDay = $this->intlCal->getActualMaximum(\IntlCalendar::FIELD_DAY_OF_MONTH);
                 if (count($this->maxCalDayCache) >= self::FIELD_CACHE_CAP) {
                     $this->maxCalDayCache = [];
                 }
                 $this->maxCalDayCache[$maxKey] = $newMaxDay;
-            }
-
-            if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
-                throw new InvalidArgumentException(
-                    "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
-                );
-            }
-
-            if ($originalCalDay > $newMaxDay) {
-                $this->setCalendarFields($calYear, $calMonth, $newMaxDay);
+                if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
+                    throw new InvalidArgumentException(
+                        "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
+                    );
+                }
+                if ($originalCalDay > $newMaxDay) {
+                    $this->setCalendarFields($calYear, $calMonth, $newMaxDay);
+                }
             }
             // State was set by setCalendarFields; trailing getTime reads that.
             $epochMs = $this->intlCal->getTime();
