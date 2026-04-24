@@ -640,19 +640,12 @@ final class IntlCalendarBridge implements CalendarProtocol
         // equal the ISO fields, daysInMonth is pure ISO math, and monthsInYear
         // is 12.
         if ($this->isGregorianBased) {
-            $finalIsoYear = $isoYear + $years;
-            $calMonth = $isoMonth + $months;
-            while ($calMonth < 1) {
-                $finalIsoYear--;
-                $calMonth += 12;
-            }
-            while ($calMonth > 12) {
-                $calMonth -= 12;
-                $finalIsoYear++;
-            }
+            $totalMonths = $isoMonth + $months - 1;
+            $yearAdd = CalendarMath::floorDiv($totalMonths, 12);
+            $calMonth = $totalMonths - ($yearAdd * 12) + 1;
+            $finalIsoYear = $isoYear + $years + $yearAdd;
             $cutoverSafe = $this->calendarId === 'gregory' || $isoYear >= 1583 && $finalIsoYear >= 1583;
             if ($cutoverSafe) {
-                /** @var int<1, 12> $calMonth */
                 $newMaxDay = CalendarMath::calcDaysInMonth($finalIsoYear, $calMonth);
                 if ($overflow === 'reject' && $isoDay > $newMaxDay) {
                     throw new InvalidArgumentException(
@@ -1571,7 +1564,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     /**
      * Reads back epoch ms from IntlCalendar, converts to ISO, and applies overflow handling.
      *
-     * @return array{0: int, 1: int, 2: int} [isoYear, isoMonth, isoDay]
+     * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>} [isoYear, isoMonth, isoDay]
      */
     private function resolveAndConstrain(int $calDay, string $overflow): array
     {
