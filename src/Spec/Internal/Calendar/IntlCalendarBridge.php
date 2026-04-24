@@ -625,32 +625,38 @@ final class IntlCalendarBridge implements CalendarProtocol
         int $days,
         string $overflow,
     ): array {
-        // Gregory fast path: the bare Gregorian IntlCalendar is forced proleptic
-        // in the constructor (setGregorianChange(PHP_FLOAT_MIN)), so calYear ==
-        // isoYear, calMonth == isoMonth, calDay == isoDay. Skip every intlCal
-        // round-trip in the year/month branch. Japanese/buddhist/roc retain
-        // ICU's 1582 Julian cutover, so they stay on the ICU path below.
-        if ($this->calendarId === 'gregory') {
-            $calYear = $isoYear + $years;
+        // Gregorian-based fast path: skip every intlCal round-trip when both
+        // the input and the resulting ISO year are >= 1583 (past the 1582
+        // Julian cutover that japanese/buddhist/roc still honor in ICU). For
+        // bare 'gregory' the cutover was disabled in the constructor, so the
+        // fast path always applies. Within this window the calendar fields
+        // equal the ISO fields, daysInMonth is pure ISO math, and monthsInYear
+        // is 12.
+        if ($this->isGregorianBased) {
+            $finalIsoYear = $isoYear + $years;
             $calMonth = $isoMonth + $months;
             while ($calMonth < 1) {
-                $calYear--;
+                $finalIsoYear--;
                 $calMonth += 12;
             }
             while ($calMonth > 12) {
                 $calMonth -= 12;
-                $calYear++;
+                $finalIsoYear++;
             }
-            /** @var int<1, 12> $calMonth */
-            $newMaxDay = CalendarMath::calcDaysInMonth($calYear, $calMonth);
-            if ($overflow === 'reject' && $isoDay > $newMaxDay) {
-                throw new InvalidArgumentException(
-                    "Day {$isoDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
-                );
+            $cutoverSafe = $this->calendarId === 'gregory'
+                || ($isoYear >= 1583 && $finalIsoYear >= 1583);
+            if ($cutoverSafe) {
+                /** @var int<1, 12> $calMonth */
+                $newMaxDay = CalendarMath::calcDaysInMonth($finalIsoYear, $calMonth);
+                if ($overflow === 'reject' && $isoDay > $newMaxDay) {
+                    throw new InvalidArgumentException(
+                        "Day {$isoDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
+                    );
+                }
+                $finalDay = $isoDay > $newMaxDay ? $newMaxDay : $isoDay;
+                $jdn = CalendarMath::toJulianDay($finalIsoYear, $calMonth, $finalDay) + ($weeks * 7) + $days;
+                return CalendarMath::fromJulianDay($jdn);
             }
-            $finalDay = $isoDay > $newMaxDay ? $newMaxDay : $isoDay;
-            $jdn = CalendarMath::toJulianDay($calYear, $calMonth, $finalDay) + ($weeks * 7) + $days;
-            return CalendarMath::fromJulianDay($jdn);
         }
 
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
