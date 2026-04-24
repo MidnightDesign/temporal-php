@@ -625,6 +625,34 @@ final class IntlCalendarBridge implements CalendarProtocol
         int $days,
         string $overflow,
     ): array {
+        // Gregory fast path: the bare Gregorian IntlCalendar is forced proleptic
+        // in the constructor (setGregorianChange(PHP_FLOAT_MIN)), so calYear ==
+        // isoYear, calMonth == isoMonth, calDay == isoDay. Skip every intlCal
+        // round-trip in the year/month branch. Japanese/buddhist/roc retain
+        // ICU's 1582 Julian cutover, so they stay on the ICU path below.
+        if ($this->calendarId === 'gregory') {
+            $calYear = $isoYear + $years;
+            $calMonth = $isoMonth + $months;
+            while ($calMonth < 1) {
+                $calYear--;
+                $calMonth += 12;
+            }
+            while ($calMonth > 12) {
+                $calMonth -= 12;
+                $calYear++;
+            }
+            /** @var int<1, 12> $calMonth */
+            $newMaxDay = CalendarMath::calcDaysInMonth($calYear, $calMonth);
+            if ($overflow === 'reject' && $isoDay > $newMaxDay) {
+                throw new InvalidArgumentException(
+                    "Day {$isoDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
+                );
+            }
+            $finalDay = $isoDay > $newMaxDay ? $newMaxDay : $isoDay;
+            $jdn = CalendarMath::toJulianDay($calYear, $calMonth, $finalDay) + ($weeks * 7) + $days;
+            return CalendarMath::fromJulianDay($jdn);
+        }
+
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         if ($years !== 0 || $months !== 0) {
