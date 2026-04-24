@@ -1945,18 +1945,30 @@ final class ZonedDateTime implements Stringable
      */
     public static function normalizeTimezoneId(string $id, bool $rejectDatetimeStrings = false): string
     {
-        /** @var array<string, string> $cache */
-        static $cache = [];
-        $cacheKey = ($rejectDatetimeStrings ? "R\0" : "N\0") . $id;
-        if (array_key_exists($cacheKey, $cache)) {
-            return $cache[$cacheKey];
+        // Split caches per flag so the hot path skips the "R\0"/"N\0" prefix
+        // concat that the single-cache variant used to build the lookup key.
+        /** @var array<string, string> $cacheR */
+        static $cacheR = [];
+        /** @var array<string, string> $cacheN */
+        static $cacheN = [];
+        if ($rejectDatetimeStrings) {
+            if (array_key_exists($id, $cacheR)) {
+                return $cacheR[$id];
+            }
+            $result = self::normalizeTimezoneIdUncached($id, true);
+            if (count($cacheR) >= 1024) {
+                $cacheR = [];
+            }
+            return $cacheR[$id] = $result;
         }
-        $result = self::normalizeTimezoneIdUncached($id, $rejectDatetimeStrings);
-        if (count($cache) >= 1024) {
-            $cache = [];
+        if (array_key_exists($id, $cacheN)) {
+            return $cacheN[$id];
         }
-        $cache[$cacheKey] = $result;
-        return $result;
+        $result = self::normalizeTimezoneIdUncached($id, false);
+        if (count($cacheN) >= 1024) {
+            $cacheN = [];
+        }
+        return $cacheN[$id] = $result;
     }
 
     private static function normalizeTimezoneIdUncached(string $id, bool $rejectDatetimeStrings): string
