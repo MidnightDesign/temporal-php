@@ -659,8 +659,6 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
         }
 
-        $this->setIsoDate($isoYear, $isoMonth, $isoDay);
-
         if ($years !== 0 || $months !== 0) {
             // Capture the original calendar day and year/month. Use field-level
             // arithmetic: read calendar fields, add to year/month, resolve back.
@@ -668,6 +666,9 @@ final class IntlCalendarBridge implements CalendarProtocol
             // (japanese/buddhist/roc retain ICU's 1582 cutover; only the bare
             // gregorian IntlCalendar was made proleptic in the constructor).
             if ($this->isGregorianBased) {
+                // Fallback path only runs pre-1583 for buddhist/roc/japanese; the
+                // ICU state is needed to read the Julian-adjusted FIELD_DAY_OF_MONTH.
+                $this->setIsoDate($isoYear, $isoMonth, $isoDay);
                 $originalCalDay = $this->intlCal->get(\IntlCalendar::FIELD_DAY_OF_MONTH);
                 $calYear = $this->calendarYear();
                 $calMonth = $this->calendarMonth();
@@ -675,6 +676,18 @@ final class IntlCalendarBridge implements CalendarProtocol
                 $originalCalDay = $this->day($isoYear, $isoMonth, $isoDay);
                 $calYear = $this->year($isoYear, $isoMonth, $isoDay);
                 $calMonth = $this->month($isoYear, $isoMonth, $isoDay);
+                // chinese/dangi/hebrew year-addition reads ICU fields directly below.
+                // setCalendarFields later calls intlCal->clear() which wipes state,
+                // so other non-gregorian calendars don't need setIsoDate at all.
+                if (
+                    $years !== 0 && (
+                        $this->calendarId === 'chinese'
+                        || $this->calendarId === 'dangi'
+                        || $this->calendarId === 'hebrew'
+                    )
+                ) {
+                    $this->setIsoDate($isoYear, $isoMonth, $isoDay);
+                }
             }
 
             // For calendars with leap months, year addition must preserve monthCode
@@ -745,15 +758,16 @@ final class IntlCalendarBridge implements CalendarProtocol
             if ($originalCalDay > $newMaxDay) {
                 $this->setCalendarFields($calYear, $calMonth, $newMaxDay);
             }
+            // State was set by setCalendarFields; trailing getTime reads that.
+            $epochMs = $this->intlCal->getTime();
+            $jdn = (int) floor($epochMs / (float) self::MS_PER_DAY) + 2_440_588;
+        } else {
+            // No year/month change: the starting ISO date is the current JDN —
+            // compute it directly without touching ICU.
+            $jdn = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay);
         }
 
-        // Add weeks and days using JDN arithmetic (proleptic, no Julian cutover issue).
-        $epochMs = $this->intlCal->getTime();
-        $jdn = (int) floor($epochMs / (float) self::MS_PER_DAY) + 2_440_588;
-        $totalDays = ($weeks * 7) + $days;
-        $jdn += $totalDays;
-
-        return CalendarMath::fromJulianDay($jdn);
+        return CalendarMath::fromJulianDay($jdn + ($weeks * 7) + $days);
     }
 
     #[\Override]
