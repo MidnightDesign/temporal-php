@@ -208,8 +208,11 @@ final class IntlCalendarBridge implements CalendarProtocol
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
 
         $v = match (true) {
-            $this->calendarId === 'coptic', $this->calendarId === 'ethiopic' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR),
-            $this->calendarId === 'chinese' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::CHINESE_YEAR_OFFSET,
+            $this->calendarId === 'coptic',
+            $this->calendarId === 'ethiopic',
+                => $this->intlCal->get(self::FIELD_EXTENDED_YEAR),
+            $this->calendarId === 'chinese' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
+                - self::CHINESE_YEAR_OFFSET,
             $this->calendarId === 'dangi' => $this->intlCal->get(self::FIELD_EXTENDED_YEAR) - self::DANGI_YEAR_OFFSET,
             default => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
         };
@@ -544,8 +547,12 @@ final class IntlCalendarBridge implements CalendarProtocol
     /**
      * @return array{0: int, 1: int<1, 12>, 2: int<1, 31>}
      */
-    private function calendarToIsoFromMonthCodeUncached(int $calYear, string $monthCode, int $calDay, string $overflow): array
-    {
+    private function calendarToIsoFromMonthCodeUncached(
+        int $calYear,
+        string $monthCode,
+        int $calDay,
+        string $overflow,
+    ): array {
         $isLeapCode = str_ends_with($monthCode, 'L');
 
         // For Chinese/Dangi leap month codes, first verify the leap month exists
@@ -643,8 +650,7 @@ final class IntlCalendarBridge implements CalendarProtocol
                 $calMonth -= 12;
                 $finalIsoYear++;
             }
-            $cutoverSafe = $this->calendarId === 'gregory'
-                || ($isoYear >= 1583 && $finalIsoYear >= 1583);
+            $cutoverSafe = $this->calendarId === 'gregory' || $isoYear >= 1583 && $finalIsoYear >= 1583;
             if ($cutoverSafe) {
                 /** @var int<1, 12> $calMonth */
                 $newMaxDay = CalendarMath::calcDaysInMonth($finalIsoYear, $calMonth);
@@ -680,7 +686,8 @@ final class IntlCalendarBridge implements CalendarProtocol
                 // setCalendarFields later calls intlCal->clear() which wipes state,
                 // so other non-gregorian calendars don't need setIsoDate at all.
                 if (
-                    $years !== 0 && (
+                    $years !== 0
+                    && (
                         $this->calendarId === 'chinese'
                         || $this->calendarId === 'dangi'
                         || $this->calendarId === 'hebrew'
