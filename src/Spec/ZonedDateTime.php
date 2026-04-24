@@ -2168,20 +2168,20 @@ final class ZonedDateTime implements Stringable
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
 
-        // Create a UTC DateTimeImmutable at local seconds to extract Y/m/d H:i:s.
-        $dt = new \DateTimeImmutable(sprintf('@%d', $localSec));
-
-        $year = (int) $dt->format('Y');
-        /** @var int<1, 12> format('n') always returns 1–12 */
-        $month = (int) $dt->format('n');
-        /** @var int<1, 31> format('j') always returns 1–31 */
-        $day = (int) $dt->format('j');
-        /** @var int<0, 23> format('G') always returns 0–23 */
-        $hour = (int) $dt->format('G');
-        /** @var int<0, 59> format('i') always returns 00–59 */
-        $minute = (int) $dt->format('i');
-        /** @var int<0, 59> format('s') always returns 00–59 */
-        $second = (int) $dt->format('s');
+        // Split seconds-since-epoch into whole days + remainder, floor-divided
+        // so negative local seconds produce the correct pre-1970 date. The JDN
+        // roundtrip hits CalendarMath's cached fromJulianDay — cheaper than a
+        // DateTimeImmutable + 6 format() calls.
+        $localDay = CalendarMath::floorDiv($localSec, 86_400);
+        $timeOfDaySec = $localSec - ($localDay * 86_400);
+        [$year, $month, $day] = CalendarMath::fromJulianDay($localDay + 2_440_588);
+        /** @var int<0, 23> $hour */
+        $hour = intdiv(num1: $timeOfDaySec, num2: 3600);
+        $rem = $timeOfDaySec - ($hour * 3600);
+        /** @var int<0, 59> $minute */
+        $minute = intdiv(num1: $rem, num2: 60);
+        /** @var int<0, 59> $second */
+        $second = $rem - ($minute * 60);
 
         /** @var int<0, 999> $ms — $subNs < 10^9, dividing by 10^6 gives 0–999 */
         $ms = intdiv(num1: $subNs, num2: self::NS_PER_MILLISECOND);
