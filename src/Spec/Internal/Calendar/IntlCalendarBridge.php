@@ -759,7 +759,6 @@ final class IntlCalendarBridge implements CalendarProtocol
         // Read calendar fields.
         $this->setIsoDate($isoY1, $isoM1, $isoD1);
         $calY1 = $this->calendarYear();
-        $this->calendarMonth();
 
         $this->setIsoDate($isoY2, $isoM2, $isoD2);
         $calY2 = $this->calendarYear();
