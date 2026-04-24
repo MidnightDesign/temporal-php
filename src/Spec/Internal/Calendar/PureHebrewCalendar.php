@@ -42,6 +42,9 @@ final class PureHebrewCalendar implements CalendarProtocol
     /** @var array<int, array{0: int, 1: int, 2: int}> Memoized isoToHebrew results, keyed by JDN. */
     private static array $isoToHebrewCache = [];
 
+    /** @var array<int, int> Memoized monthLength results, keyed by (year * 16) + ordinalMonth. */
+    private static array $monthLengthCache = [];
+
     #[\Override]
     public function id(): string
     {
@@ -148,6 +151,10 @@ final class PureHebrewCalendar implements CalendarProtocol
      */
     private static function monthLength(int $year, int $ordinalMonth): int
     {
+        $key = ($year * 16) + $ordinalMonth;
+        if (array_key_exists($key, self::$monthLengthCache)) {
+            return self::$monthLengthCache[$key];
+        }
         $type = self::yearType($year);
         $isLeap = self::isLeapYear($year);
         $totalMonths = $isLeap ? 13 : 12;
@@ -158,7 +165,7 @@ final class PureHebrewCalendar implements CalendarProtocol
 
         // Map ordinal to logical month identity
         if ($isLeap) {
-            return match ($ordinalMonth) {
+            $v = match ($ordinalMonth) {
                 1 => 30, // Tishrei
                 2 => $type === 'complete' ? 30 : 29, // Cheshvan
                 3 => $type === 'deficient' ? 29 : 30, // Kislev
@@ -174,9 +181,10 @@ final class PureHebrewCalendar implements CalendarProtocol
                 // Elul (ordinal 13) and any value beyond the validated range.
                 default => 29,
             };
+            return self::$monthLengthCache[$key] = $v;
         }
 
-        return match ($ordinalMonth) {
+        $v = match ($ordinalMonth) {
             1 => 30, // Tishrei
             2 => $type === 'complete' ? 30 : 29, // Cheshvan
             3 => $type === 'deficient' ? 29 : 30, // Kislev
@@ -193,6 +201,7 @@ final class PureHebrewCalendar implements CalendarProtocol
                 "Invalid ordinal month {$ordinalMonth} for non-leap Hebrew year.",
             ),
         };
+        return self::$monthLengthCache[$key] = $v;
     }
 
     /**
