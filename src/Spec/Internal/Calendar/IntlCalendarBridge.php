@@ -68,34 +68,37 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     /**
      * Per-iso-date caches for pure-function calendar projections. Keyed by
-     * "isoYear:isoMonth:isoDay". Capped to bound memory in long-running
-     * processes; capped arrays are cleared when they exceed the threshold.
+     * packed int (isoYear * 512) + (isoMonth * 32) + isoDay — same layout as
+     * {@see CalendarMath::toJulianDay()}, avoids string formatting per lookup.
+     * Capped to bound memory in long-running processes; capped arrays are
+     * cleared when they exceed the threshold.
      *
-     * @var array<string, int>
+     * @var array<int, int>
      */
     private array $yearCache = [];
-    /** @var array<string, int> */
+    /** @var array<int, int> */
     private array $monthCache = [];
-    /** @var array<string, int> */
+    /** @var array<int, int> */
     private array $dayCache = [];
-    /** @var array<string, string> */
+    /** @var array<int, string> */
     private array $monthCodeCache = [];
-    /** @var array<string, int> */
+    /** @var array<int, int> */
     private array $dayOfYearCache = [];
-    /** @var array<string, int> */
+    /** @var array<int, int> */
     private array $daysInMonthCache = [];
-    /** @var array<string, int> */
+    /** @var array<int, int> */
     private array $daysInYearCache = [];
-    /** @var array<string, int> */
+    /** @var array<int, int> */
     private array $monthsInYearCache = [];
-    /** @var array<string, bool> */
+    /** @var array<int, bool> */
     private array $inLeapYearCache = [];
     /**
-     * Max day of the calendar month, keyed by "calYear:calMonth". Populated
-     * opportunistically from ICU after setCalendarFields; depends only on the
-     * calendar year/month (calendar day doesn't shift the maximum).
+     * Max day of the calendar month, keyed by packed int (calYear * 32) +
+     * calMonth. Populated opportunistically from ICU after setCalendarFields;
+     * depends only on the calendar year/month (calendar day doesn't shift the
+     * maximum).
      *
-     * @var array<string, int>
+     * @var array<int, int>
      */
     private array $maxCalDayCache = [];
     /**
@@ -198,7 +201,7 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     private function yearFromIcu(int $isoYear, int $isoMonth, int $isoDay): int
     {
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->yearCache)) {
             return $this->yearCache[$key];
         }
@@ -223,7 +226,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return $isoMonth;
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->monthCache)) {
             return $this->monthCache[$key];
         }
@@ -247,7 +250,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return $isoDay;
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->dayCache)) {
             return $this->dayCache[$key];
         }
@@ -335,7 +338,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return sprintf('M%02d', $isoMonth);
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->monthCodeCache)) {
             return $this->monthCodeCache[$key];
         }
@@ -359,7 +362,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return CalendarMath::isoDayOfYear($isoYear, $isoMonth, $isoDay);
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->dayOfYearCache)) {
             return $this->dayOfYearCache[$key];
         }
@@ -379,7 +382,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return CalendarMath::calcDaysInMonth($isoYear, $isoMonth);
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->daysInMonthCache)) {
             return $this->daysInMonthCache[$key];
         }
@@ -399,7 +402,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return CalendarMath::isLeapYear($isoYear) ? 366 : 365;
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->daysInYearCache)) {
             return $this->daysInYearCache[$key];
         }
@@ -431,7 +434,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return 12;
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->monthsInYearCache)) {
             return $this->monthsInYearCache[$key];
         }
@@ -455,7 +458,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($this->isGregorianBased) {
             return CalendarMath::isLeapYear($isoYear);
         }
-        $key = "{$isoYear}:{$isoMonth}:{$isoDay}";
+        $key = ($isoYear * 512) + ($isoMonth * 32) + $isoDay;
         if (array_key_exists($key, $this->inLeapYearCache)) {
             return $this->inLeapYearCache[$key];
         }
@@ -688,7 +691,7 @@ final class IntlCalendarBridge implements CalendarProtocol
 
             // Resolve new date with day constraining.
             $this->setCalendarFields($calYear, $calMonth, $originalCalDay);
-            $maxKey = "{$calYear}:{$calMonth}";
+            $maxKey = ($calYear * 32) + $calMonth;
             if (array_key_exists($maxKey, $this->maxCalDayCache)) {
                 $newMaxDay = $this->maxCalDayCache[$maxKey];
             } else {
