@@ -789,6 +789,16 @@ final class ZonedDateTime implements Stringable
      */
     private static function canonicalizeTimezoneForComparison(string $id): string
     {
+        /** @var array<string, string> $cache */
+        static $cache = [];
+        if (array_key_exists($id, $cache)) {
+            return $cache[$id];
+        }
+        return $cache[$id] = self::canonicalizeTimezoneForComparisonUncached($id);
+    }
+
+    private static function canonicalizeTimezoneForComparisonUncached(string $id): string
+    {
         // UTC aliases all compare equal.
         /** @var list<string> $utcAliases */
         static $utcAliases = [
@@ -1935,6 +1945,34 @@ final class ZonedDateTime implements Stringable
      */
     public static function normalizeTimezoneId(string $id, bool $rejectDatetimeStrings = false): string
     {
+        // Split caches per flag so the hot path skips the "R\0"/"N\0" prefix
+        // concat that the single-cache variant used to build the lookup key.
+        /** @var array<string, string> $cacheR */
+        static $cacheR = [];
+        /** @var array<string, string> $cacheN */
+        static $cacheN = [];
+        if ($rejectDatetimeStrings) {
+            if (array_key_exists($id, $cacheR)) {
+                return $cacheR[$id];
+            }
+            $result = self::normalizeTimezoneIdUncached($id, true);
+            if (count($cacheR) >= 1024) {
+                $cacheR = [];
+            }
+            return $cacheR[$id] = $result;
+        }
+        if (array_key_exists($id, $cacheN)) {
+            return $cacheN[$id];
+        }
+        $result = self::normalizeTimezoneIdUncached($id, false);
+        if (count($cacheN) >= 1024) {
+            $cacheN = [];
+        }
+        return $cacheN[$id] = $result;
+    }
+
+    private static function normalizeTimezoneIdUncached(string $id, bool $rejectDatetimeStrings): string
+    {
         if ($id === '') {
             throw new InvalidArgumentException('ZonedDateTime timeZoneId must not be empty.');
         }
@@ -2130,20 +2168,20 @@ final class ZonedDateTime implements Stringable
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
 
-        // Create a UTC DateTimeImmutable at local seconds to extract Y/m/d H:i:s.
-        $dt = new \DateTimeImmutable(sprintf('@%d', $localSec));
-
-        $year = (int) $dt->format('Y');
-        /** @var int<1, 12> format('n') always returns 1–12 */
-        $month = (int) $dt->format('n');
-        /** @var int<1, 31> format('j') always returns 1–31 */
-        $day = (int) $dt->format('j');
-        /** @var int<0, 23> format('G') always returns 0–23 */
-        $hour = (int) $dt->format('G');
-        /** @var int<0, 59> format('i') always returns 00–59 */
-        $minute = (int) $dt->format('i');
-        /** @var int<0, 59> format('s') always returns 00–59 */
-        $second = (int) $dt->format('s');
+        // Split seconds-since-epoch into whole days + remainder, floor-divided
+        // so negative local seconds produce the correct pre-1970 date. The JDN
+        // roundtrip hits CalendarMath's cached fromJulianDay — cheaper than a
+        // DateTimeImmutable + 6 format() calls.
+        $localDay = CalendarMath::floorDiv($localSec, 86_400);
+        $timeOfDaySec = $localSec - ($localDay * 86_400);
+        [$year, $month, $day] = CalendarMath::fromJulianDay($localDay + 2_440_588);
+        /** @var int<0, 23> $hour */
+        $hour = intdiv(num1: $timeOfDaySec, num2: 3600);
+        $rem = $timeOfDaySec - ($hour * 3600);
+        /** @var int<0, 59> $minute */
+        $minute = intdiv(num1: $rem, num2: 60);
+        /** @var int<0, 59> $second */
+        $second = $rem - ($minute * 60);
 
         /** @var int<0, 999> $ms — $subNs < 10^9, dividing by 10^6 gives 0–999 */
         $ms = intdiv(num1: $subNs, num2: self::NS_PER_MILLISECOND);
@@ -2192,6 +2230,16 @@ final class ZonedDateTime implements Stringable
      * inconsistencies where ICU and IANA disagree on canonical targets.
      */
     private static function resolveCanonicalTimezoneId(string $id): string
+    {
+        /** @var array<string, string> $cache */
+        static $cache = [];
+        if (array_key_exists($id, $cache)) {
+            return $cache[$id];
+        }
+        return $cache[$id] = self::resolveCanonicalTimezoneIdUncached($id);
+    }
+
+    private static function resolveCanonicalTimezoneIdUncached(string $id): string
     {
         // Known ICU inconsistencies where an IANA link target is reported as
         // self-canonical instead of resolving to its true primary zone.
@@ -2250,8 +2298,14 @@ final class ZonedDateTime implements Stringable
             return $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
         }
         // IANA timezone: use PHP to find the offset at the given instant.
-        /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated to be non-empty in constructor */
-        $tz = new \DateTimeZone($this->resolvedTimeZoneId);
+        /** @var array<string, \DateTimeZone> $tzCache */
+        static $tzCache = [];
+        $tz = $tzCache[$this->resolvedTimeZoneId] ?? null;
+        if ($tz === null) {
+            /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated to be non-empty in constructor */
+            $tz = new \DateTimeZone($this->resolvedTimeZoneId);
+            $tzCache[$this->resolvedTimeZoneId] = $tz;
+        }
         return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
     }
 
