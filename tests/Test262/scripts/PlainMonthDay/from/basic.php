@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$options = [['overflow' => 'constrain'], ['overflow' => 'reject'], new \stdClass(), null];
+$options = [['overflow' => 'constrain'], ['overflow' => 'reject'], [], null];
 foreach ($options as $opt) {
 Assert::incomplete('untranslatable: JSON.stringify');
 }

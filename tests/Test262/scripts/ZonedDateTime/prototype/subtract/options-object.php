@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-$result1 = $instance->subtract(['years' => 1], new \stdClass());
+$result1 = $instance->subtract(['years' => 1], []);
 Assert::sameValue($result1->epochNanoseconds, -31_536_000_000_000_000, 'UTC');
 $result2 = $instance->subtract(['years' => 1], function () {  });
 Assert::sameValue($result2->epochNanoseconds, -31_536_000_000_000_000, 'UTC');

@@ -11,5 +11,5 @@ $tests = [['years' => 0.5], ['months' => 0.5], ['weeks' => 0.5], ['days' => 0.5]
 foreach ($tests as $input) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$input) { return \Temporal\Spec\Duration::from($input); }, '');
 }
-Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Duration::from(new \stdClass()), '');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Duration::from([]), '');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Duration::from(['month' => 12]), '');

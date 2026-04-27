@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
-$result1 = $instance->toString(new \stdClass());
+$result1 = $instance->toString([]);
 Assert::sameValue($result1, '2000-05-02T00:00:00', 'options may be an empty plain object');
 $result2 = $instance->toString(function () {  });
 Assert::sameValue($result2, '2000-05-02T00:00:00', 'options may be a function object');

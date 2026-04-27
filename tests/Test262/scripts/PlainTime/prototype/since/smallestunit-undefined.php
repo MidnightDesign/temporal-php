@@ -12,7 +12,7 @@ $earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 0);
 $later = new \Temporal\Spec\PlainTime(13, 35, 57, 987, 654, 321);
 $explicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 1, 1, 1, 987, 654, 321, 'default smallestUnit is nanosecond');
-$implicit = $later->since($earlier, new \stdClass());
+$implicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 1, 1, 1, 987, 654, 321, 'default smallestUnit is nanosecond');
 $lambda = $later->since($earlier, function () {  });
 TemporalHelpers::assertDuration($lambda, 0, 0, 0, 0, 1, 1, 1, 987, 654, 321, 'default smallestUnit is nanosecond');

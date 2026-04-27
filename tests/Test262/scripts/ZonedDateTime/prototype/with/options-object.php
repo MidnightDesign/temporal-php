@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-$result1 = $instance->with(['day' => 5], new \stdClass());
+$result1 = $instance->with(['day' => 5], []);
 Assert::sameValue($result1->epochNanoseconds, 345_600_000_000_000, 'UTC');
 $result2 = $instance->with(['day' => 5], function () {  });
 Assert::sameValue($result2->epochNanoseconds, 345_600_000_000_000, 'UTC');

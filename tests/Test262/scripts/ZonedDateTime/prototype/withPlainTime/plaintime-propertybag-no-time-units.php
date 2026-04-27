@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
-$props = new \stdClass();
+$props = [];
 Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->withPlainTime($props); }, 'TypeError if no properties are present');
 $props['minute'] = 30;
 $result = $instance->withPlainTime($props);

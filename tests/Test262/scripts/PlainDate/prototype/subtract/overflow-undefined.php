@@ -12,7 +12,7 @@ $date = new \Temporal\Spec\PlainDate(2000, 5, 31);
 $duration = new \Temporal\Spec\Duration(3, 1);
 $explicit = $date->subtract($duration, []);
 TemporalHelpers::assertPlainDate($explicit, 1997, 4, 'M04', 30, 'default overflow is constrain');
-$implicit = $date->subtract($duration, new \stdClass());
+$implicit = $date->subtract($duration, []);
 TemporalHelpers::assertPlainDate($implicit, 1997, 4, 'M04', 30, 'default overflow is constrain');
 $lambda = $date->subtract($duration, function () {  });
 TemporalHelpers::assertPlainDate($lambda, 1997, 4, 'M04', 30, 'default overflow is constrain');

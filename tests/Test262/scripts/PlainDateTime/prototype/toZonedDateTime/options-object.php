@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
-$result1 = $instance->toZonedDateTime('UTC', new \stdClass());
+$result1 = $instance->toZonedDateTime('UTC', []);
 Assert::sameValue($result1->epochNanoseconds, 957_225_600_000_000_000, 'options may be an empty plain object');
 $result2 = $instance->toZonedDateTime('UTC', function () {  });
 Assert::sameValue($result2->epochNanoseconds, 957_225_600_000_000_000, 'options may be a function object');

@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12);
 $explicit = $datetime->with(['minute' => 67], []);
 TemporalHelpers::assertPlainDateTime($explicit, 2000, 5, 'M05', 2, 12, 59, 0, 0, 0, 0, 'default overflow is constrain');
-$implicit = $datetime->with(['minute' => 67], new \stdClass());
+$implicit = $datetime->with(['minute' => 67], []);
 TemporalHelpers::assertPlainDateTime($implicit, 2000, 5, 'M05', 2, 12, 59, 0, 0, 0, 0, 'default overflow is constrain');
 $lambda = $datetime->with(['minute' => 67], function () {  });
 TemporalHelpers::assertPlainDateTime($lambda, 2000, 5, 'M05', 2, 12, 59, 0, 0, 0, 0, 'default overflow is constrain');

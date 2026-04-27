@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainTime(0, 30, 0, 0, 0, 0);
-$props = new \stdClass();
+$props = [];
 Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->equals($props); }, 'TypeError if no properties are present');
 $props['minute'] = 30;
 $result = $instance->equals($props);

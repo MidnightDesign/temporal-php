@@ -12,7 +12,7 @@ $earlier = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $later = new \Temporal\Spec\PlainDate(2001, 6, 3);
 $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default largestUnit is day');
-$implicit = $earlier->until($later, new \stdClass());
+$implicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default largestUnit is day');
 $lambda = $earlier->until($later, function () {  });
 TemporalHelpers::assertDuration($lambda, 0, 0, 0, 397, 0, 0, 0, 0, 0, 0, 'default largestUnit is day');

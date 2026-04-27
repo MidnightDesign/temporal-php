@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $explicit = $date->with(['month' => 15], []);
 TemporalHelpers::assertPlainDate($explicit, 2000, 12, 'M12', 2, 'default overflow is constrain');
-$implicit = $date->with(['month' => 15], new \stdClass());
+$implicit = $date->with(['month' => 15], []);
 TemporalHelpers::assertPlainDate($implicit, 2000, 12, 'M12', 2, 'default overflow is constrain');
 $fun = $date->with(['month' => 15], function () {  });
 TemporalHelpers::assertPlainDate($fun, 2000, 12, 'M12', 2, 'default overflow is constrain');

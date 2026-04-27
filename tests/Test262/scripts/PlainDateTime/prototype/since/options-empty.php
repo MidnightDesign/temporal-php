@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $feb20 = new \Temporal\Spec\PlainDateTime(2020, 2, 1, 0, 0);
 $feb21 = new \Temporal\Spec\PlainDateTime(2021, 2, 1, 0, 0);
-TemporalHelpers::assertDuration($feb21->since($feb20, new \stdClass()), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0, 'empty plain object options');
+TemporalHelpers::assertDuration($feb21->since($feb20, []), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0, 'empty plain object options');
 TemporalHelpers::assertDuration($feb21->since($feb20, function () {  }), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0, 'empty function object options');

@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
-TemporalHelpers::assertPlainDateTime($datetime->with(['day' => 40], new \stdClass()), 1976, 11, 'M11', 30, 15, 23, 30, 123, 456, 789, 'options may be empty object');
+TemporalHelpers::assertPlainDateTime($datetime->with(['day' => 40], []), 1976, 11, 'M11', 30, 15, 23, 30, 123, 456, 789, 'options may be empty object');
 TemporalHelpers::assertPlainDateTime($datetime->with(['day' => 40], function () {  }), 1976, 11, 'M11', 30, 15, 23, 30, 123, 456, 789, 'read empty options from function object');

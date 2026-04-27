@@ -300,11 +300,15 @@ const OP_PREC = {
 };
 
 class Emitter {
-  constructor(source) {
+  constructor(source, objectMode = false) {
     this.source = source;
     this.lines = [];
     this.incomplete = false;   // set when we emit Assert::incomplete
     this.skipOverflow = false; // for the current assertion being built
+    // When true, JS object literals become PHP stdClass objects instead of arrays.
+    // Used to generate the `<name>-objects.php` companion variants that exercise
+    // the `is_object($x)` branches of Spec\* property-bag consumers.
+    this.objectMode = objectMode;
     // Variables known to hold PHP arrays (assigned from JS object literals).
     // Member access on these uses ['key'] instead of ->key.
     this.objectVars = new Set();
@@ -429,10 +433,11 @@ class Emitter {
         this.emitIncomplete('untranslatable: destructuring assignment');
         return;
       }
-      // Track non-empty object literals: they become PHP arrays ['key' => val] and use ['key'] access.
-      // Empty {} → new \stdClass() → property access uses -> not ['key'], so don't add to objectVars.
-      if (decl.id.type === 'Identifier' && decl.init?.type === 'ObjectExpression'
-          && decl.init.properties.length > 0) {
+      // Track object literals: in array mode they become PHP arrays ['key' => val]
+      // and use ['key'] access; in objectMode they become (object) [...] (stdClass)
+      // and use ->key access. The objectMode flag on the emitter governs which one
+      // is emitted at MemberExpression time.
+      if (decl.id.type === 'Identifier' && decl.init?.type === 'ObjectExpression') {
         this.objectVars.add(decl.id.name);
       }
       // Track arrays whose every element is a non-empty object literal.
@@ -1027,10 +1032,13 @@ class Emitter {
       if (obj === null) return null;
       // .length on arrays → count($arr)
       if (node.property.name === 'length') return `count(${obj})`;
-      // Variables assigned from object literals ({...}) become PHP arrays.
-      // Use ['key'] array access instead of ->key property access.
+      // Variables assigned from object literals ({...}) become PHP arrays in array
+      // mode (member access uses ['key']) or stdClass instances in objectMode
+      // (member access uses ->key).
       if (node.object.type === 'Identifier' && this.objectVars.has(node.object.name)) {
-        return `${obj}['${node.property.name}']`;
+        return this.objectMode
+          ? `${obj}->${node.property.name}`
+          : `${obj}['${node.property.name}']`;
       }
       // Rename deprecated TC39 properties to their PHP equivalents
       const PROPERTY_RENAMES = Object.create(null, { calendar: { value: 'calendarId' } });
@@ -1251,11 +1259,21 @@ class Emitter {
         && callee.property.name === 'concat') {
       const arr = this.transpileExpr(callee.object);
       if (arr === null) return null;
-      const parts = [arr];
+      // In objectMode, callers/args may be objectVars-tracked stdClass instances
+      // that array_merge() can't consume; cast those to (array) first.
+      const castIfObject = (argNode, php) => {
+        if (this.objectMode
+            && argNode.type === 'Identifier'
+            && this.objectVars.has(argNode.name)) {
+          return `(array) ${php}`;
+        }
+        return php;
+      };
+      const parts = [castIfObject(callee.object, arr)];
       for (const arg of node.arguments) {
         const a = this.transpileExpr(arg);
         if (a === null) return null;
-        parts.push(a);
+        parts.push(castIfObject(arg, a));
       }
       return `array_merge(${parts.join(', ')})`;
     }
@@ -1731,16 +1749,20 @@ class Emitter {
   }
 
   transpileObject(node) {
-    // {key: value, ...} → ['key' => value, ...]
+    // {key: value, ...} → ['key' => value, ...] (or `(object) [...]` in objectMode)
     // Properties whose value is the identifier `undefined` are OMITTED: JS
     // `{ key: undefined }` means the key is present but treated as default, which
-    // PHP represents as the key being absent from the array.
+    // PHP represents as the key being absent from the array / object.
     // Shorthand properties `{ key }` are equivalent to `{ key: key }` and are
     // translated as `['key' => $key]`.
-    // Empty object literal {} → new \stdClass() to preserve JS object semantics.
-    // Non-empty {} → PHP associative array ['key' => value].
+    // Empty object literal {} → `[]` (or `(object) []` in objectMode). We deliberately
+    // do NOT emit `new \stdClass()` for empty {}, because that special case used to
+    // make `Foo.from(str, {})` hit the `is_object` branch while `Foo.from(str, {key})`
+    // hit `is_array`, masking the array-side empty-bag path.
     // Spread elements { ...base, key: val } → array_merge($base, ['key' => $val]).
-    if (node.properties.length === 0) return 'new \\stdClass()';
+    if (node.properties.length === 0) {
+      return this.objectMode ? '(object) []' : '[]';
+    }
 
     const hasSpreads = node.properties.some(p => p.type === 'SpreadElement');
 
@@ -1782,10 +1804,14 @@ class Emitter {
       for (const prop of node.properties) {
         if (!buildProp(prop, parts)) return null;
       }
-      return '[' + parts.join(', ') + ']';
+      const arr = '[' + parts.join(', ') + ']';
+      return this.objectMode ? '(object) ' + arr : arr;
     }
 
     // Has spreads: collect chunks and join with array_merge().
+    // In objectMode, spread sources may themselves be stdClass instances (tracked
+    // in objectVars when they originated from an object literal). array_merge()
+    // would fail on stdClass, so cast such args to (array) before merging.
     const chunks = [];
     let currentParts = [];
     const flushCurrent = () => {
@@ -1799,14 +1825,25 @@ class Emitter {
         flushCurrent();
         const val = this.transpileExpr(prop.argument);
         if (val === null) return null;
-        chunks.push(val);
+        // In objectMode, cast objectVars-tracked spread sources to (array) so
+        // array_merge() doesn't fail on stdClass arguments.
+        const needsCast = this.objectMode
+          && prop.argument.type === 'Identifier'
+          && this.objectVars.has(prop.argument.name);
+        chunks.push(needsCast ? '(array) ' + val : val);
         continue;
       }
       if (!buildProp(prop, currentParts)) return null;
     }
     flushCurrent();
-    if (chunks.length === 1) return chunks[0];
-    return 'array_merge(' + chunks.join(', ') + ')';
+    if (chunks.length === 1) {
+      // Single chunk: in objectMode wrap a chunk that is itself a literal array
+      // with (object); spread-sourced chunks are already cast to (array) above
+      // and we want to project them back to objects too.
+      return this.objectMode ? '(object) ' + chunks[0] : chunks[0];
+    }
+    const merged = 'array_merge(' + chunks.join(', ') + ')';
+    return this.objectMode ? '(object) ' + merged : merged;
   }
 
   // ── assert.* helpers ──────────────────────────────────────────────────────
@@ -2057,6 +2094,23 @@ class Emitter {
 // ---------------------------------------------------------------------------
 
 /**
+ * Returns true if the AST subtree contains any ObjectExpression node.
+ * Used to decide whether a fixture warrants a `<name>-objects.php` companion
+ * variant that exercises stdClass-shaped property bags.
+ */
+function hasObjectLiteral(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'ObjectExpression') return true;
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    const child = node[key];
+    if (Array.isArray(child)) { if (child.some(hasObjectLiteral)) return true; }
+    else if (hasObjectLiteral(child)) return true;
+  }
+  return false;
+}
+
+/**
  * Returns true if the AST subtree contains any BigInt literal (n suffix).
  * Used to detect function bodies that involve BigInt arithmetic which may
  * overflow PHP int64 at runtime even if individual literals fit in int64.
@@ -2236,34 +2290,55 @@ function processFile(jsPath, dataDir, scriptsDir) {
     '',
   ];
 
-  const emitter = new Emitter(stripped);
-
-  if (unsupportedIncludes.length > 0) {
-    emitter.emitIncomplete(`needs TemporalHelpers (includes: ${includes.join(', ')})`);
-  } else {
-    let ast;
+  // Parse once and reuse the AST for both passes (and for object-literal detection).
+  let ast = null;
+  let parseError = null;
+  if (unsupportedIncludes.length === 0) {
     try {
       ast = parse(stripped, ACORN_OPTIONS);
     } catch (e) {
-      emitter.emitIncomplete(`parse error: ${e.message}`);
-    }
-    if (ast) emitter.transpileProgram(ast);
-  }
-
-  let body = emitter.lines.join('\n');
-
-  // If the script makes no assertions, PHPUnit marks it as "risky".
-  // Add a dummy assertion so tests that only verify "this should not throw" are counted.
-  // Incomplete scripts already call Assert::incomplete() which counts as an assertion.
-  if (!emitter.incomplete && emitter.lines.length > 0) {
-    const hasAssertions = /Assert::(sameValue|throws|compareArray|assertTrue|assertSame|methodExists|methodLength|notMethodExists|countAssertion)|TemporalHelpers::(assert|check)|PHPUnit\\\\Framework\\\\Assert::/.test(body);
-    if (!hasAssertions) {
-      body += '\n\\PHPUnit\\Framework\\Assert::assertTrue(true, \'Script completed without throwing\');';
+      parseError = e.message;
     }
   }
 
-  fs.writeFileSync(outPath, header.join('\n') + body + '\n');
-  console.log(`  Transpiled → tests/Test262/scripts/${phpRelPath} (${emitter.lines.length} lines)`);
+  const renderPass = (objectMode) => {
+    const emitter = new Emitter(stripped, objectMode);
+    if (unsupportedIncludes.length > 0) {
+      emitter.emitIncomplete(`needs TemporalHelpers (includes: ${includes.join(', ')})`);
+    } else if (parseError !== null) {
+      emitter.emitIncomplete(`parse error: ${parseError}`);
+    } else if (ast) {
+      emitter.transpileProgram(ast);
+    }
+
+    let body = emitter.lines.join('\n');
+    // If the script makes no assertions, PHPUnit marks it as "risky".
+    // Add a dummy assertion so tests that only verify "this should not throw" are counted.
+    // Incomplete scripts already call Assert::incomplete() which counts as an assertion.
+    if (!emitter.incomplete && emitter.lines.length > 0) {
+      const hasAssertions = /Assert::(sameValue|throws|compareArray|assertTrue|assertSame|methodExists|methodLength|notMethodExists|countAssertion)|TemporalHelpers::(assert|check)|PHPUnit\\\\Framework\\\\Assert::/.test(body);
+      if (!hasAssertions) {
+        body += '\n\\PHPUnit\\Framework\\Assert::assertTrue(true, \'Script completed without throwing\');';
+      }
+    }
+    return { emitter, body };
+  };
+
+  // Pass 1: array mode (existing behaviour).
+  const pass1 = renderPass(false);
+  fs.writeFileSync(outPath, header.join('\n') + pass1.body + '\n');
+  console.log(`  Transpiled → tests/Test262/scripts/${phpRelPath} (${pass1.emitter.lines.length} lines)`);
+
+  // Pass 2: object mode. Only emit if the source actually has any ObjectExpression
+  // — otherwise the variant would be byte-identical to pass 1 and just bloat the
+  // suite. We still emit incomplete-only variants (so failures aren't silently lost).
+  if (ast && hasObjectLiteral(ast)) {
+    const pass2 = renderPass(true);
+    const objectsRelPath = phpRelPath.replace(/\.php$/, '-objects.php');
+    const objectsOutPath = path.join(scriptsDir, objectsRelPath);
+    fs.writeFileSync(objectsOutPath, header.join('\n') + pass2.body + '\n');
+    console.log(`  Transpiled → tests/Test262/scripts/${objectsRelPath} (${pass2.emitter.lines.length} lines, objects)`);
+  }
 }
 
 // ---------------------------------------------------------------------------

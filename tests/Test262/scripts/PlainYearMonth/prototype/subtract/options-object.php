@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainYearMonth(2019, 10);
-$result1 = $instance->subtract(['months' => 1], new \stdClass());
+$result1 = $instance->subtract(['months' => 1], []);
 TemporalHelpers::assertPlainYearMonth($result1, 2019, 9, 'M09', 'options may be an empty plain object');
 $result2 = $instance->subtract(['months' => 1], function () {  });
 TemporalHelpers::assertPlainYearMonth($result2, 2019, 9, 'M09', 'options may be a function object');

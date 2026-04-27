@@ -13,7 +13,7 @@ $leapYear = 1390;
 $commonYear = 1391;
 $leapYearDaysInMonth = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 30];
 $commonYearDaysInMonth = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-$daysInMonth = new \stdClass();
+$daysInMonth = [];
 $__unknown__ = $leapYearDaysInMonth;
 $__unknown__ = $commonYearDaysInMonth;
 foreach ([$leapYear, $commonYear] as $year) {

@@ -12,7 +12,7 @@ $earlier = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
 $later = new \Temporal\Spec\Instant(1_000_090_061_987_654_321);
 $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');
-$implicit = $earlier->until($later, new \stdClass());
+$implicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');
 $lambda = $earlier->until($later, function () {  });
 TemporalHelpers::assertDuration($lambda, 0, 0, 0, 0, 0, 0, 90_061, 987, 654, 321, 'default largestUnit is second');

@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainTime();
-$result1 = $instance->with(['minute' => 45], new \stdClass());
+$result1 = $instance->with(['minute' => 45], []);
 TemporalHelpers::assertPlainTime($result1, 0, 45, 0, 0, 0, 0, 'options may be an empty plain object');
 $result2 = $instance->with(['minute' => 45], function () {  });
 TemporalHelpers::assertPlainTime($result2, 0, 45, 0, 0, 0, 0, 'options may be a function object');
