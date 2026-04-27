@@ -267,22 +267,23 @@ final class PlainDate implements Stringable
      */
     public static function from(string|array|object $item, array|object|null $options = null): self
     {
+        // Normalize options to array|null up front so option-handling has one path.
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         // Validate and extract overflow option (must be done before processing item).
         $overflow = 'constrain';
-        if ($options !== null) {
-            if (is_array($options) && array_key_exists('overflow', $options)) {
-                /** @var mixed $ov */
-                $ov = $options['overflow'];
-                if (!is_string($ov)) {
-                    throw new \TypeError('overflow option must be a string.');
-                }
-                if ($ov !== 'constrain' && $ov !== 'reject') {
-                    throw new InvalidArgumentException(
-                        "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                    );
-                }
-                $overflow = $ov;
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
+            /** @var mixed $ov */
+            $ov = $opts['overflow'];
+            if (!is_string($ov)) {
+                throw new \TypeError('overflow option must be a string.');
             }
+            if ($ov !== 'constrain' && $ov !== 'reject') {
+                throw new InvalidArgumentException(
+                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
+                );
+            }
+            $overflow = $ov;
         }
 
         if ($item instanceof self) {
@@ -291,13 +292,10 @@ final class PlainDate implements Stringable
         if (is_string($item)) {
             return self::fromString($item);
         }
-        if (is_array($item)) {
-            return self::fromPropertyBag($item, $overflow);
+        if (is_object($item)) {
+            $item = get_object_vars($item);
         }
-        throw new \TypeError(sprintf(
-            'PlainDate::from() expects a PlainDate, ISO 8601 string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        return self::fromPropertyBag($item, $overflow);
     }
 
     /**
@@ -346,11 +344,13 @@ final class PlainDate implements Stringable
             throw new \TypeError('PlainDate::with() fields must not contain a calendar or timeZone property.');
         }
 
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         // Validate and extract overflow option.
         $overflow = 'constrain';
-        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
             /** @var mixed $ov */
-            $ov = $options['overflow'];
+            $ov = $opts['overflow'];
             if (!is_string($ov)) {
                 throw new \TypeError('overflow option must be a string.');
             }
@@ -616,6 +616,8 @@ final class PlainDate implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         // TC39: years 0–9999 → 4 digits; years outside → ±YYYYYY (6 digits with sign prefix).
         if ($this->isoYear < 0) {
             $yearStr = sprintf('-%06d', abs($this->isoYear));
@@ -627,9 +629,9 @@ final class PlainDate implements Stringable
         $base = sprintf('%s-%02d-%02d', $yearStr, $this->isoMonth, $this->isoDay);
 
         $calendarName = 'auto';
-        if ($options !== null && is_array($options) && array_key_exists('calendarName', $options)) {
+        if ($opts !== null && array_key_exists('calendarName', $opts)) {
             /** @var mixed $cn */
-            $cn = $options['calendarName'];
+            $cn = $opts['calendarName'];
             if (!is_string($cn)) {
                 throw new \TypeError('calendarName option must be a string.');
             }
@@ -1696,10 +1698,12 @@ final class PlainDate implements Stringable
      */
     private function addDuration(int $sign, Duration $dur, array|object|null $options): self
     {
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         $overflow = 'constrain';
-        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
             /** @var mixed $ov */
-            $ov = $options['overflow'];
+            $ov = $opts['overflow'];
             if (!is_string($ov)) {
                 throw new \TypeError('overflow option must be a string.');
             }

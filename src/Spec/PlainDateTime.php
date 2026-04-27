@@ -392,13 +392,10 @@ final class PlainDateTime implements Stringable
         if (is_string($item)) {
             return self::fromString($item);
         }
-        if (is_array($item)) {
-            return self::fromPropertyBag($item, $overflow);
+        if (is_object($item)) {
+            $item = get_object_vars($item);
         }
-        throw new \TypeError(sprintf(
-            'PlainDateTime::from() expects a PlainDateTime, ISO 8601 datetime string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        return self::fromPropertyBag($item, $overflow);
     }
 
     /**
@@ -1170,34 +1167,30 @@ final class PlainDateTime implements Stringable
      */
     public function toZonedDateTime(string $timeZone, array|object|null $options = null): ZonedDateTime
     {
-        // Validate options bag type.
-        if ($options !== null) {
-            if (is_object($options)) {
-                $options = get_object_vars($options);
-            }
-            // Validate disambiguation option if present.
-            if (array_key_exists('disambiguation', $options)) {
-                /** @var mixed $disamb */
-                $disamb = $options['disambiguation'];
-                if (
-                    !is_string($disamb)
-                    || !in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)
-                ) {
-                    throw new InvalidArgumentException(
-                        'PlainDateTime::toZonedDateTime() disambiguation must be one of: compatible, earlier, later, reject.',
-                    );
-                }
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
+        // Validate disambiguation option if present.
+        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
+            /** @var mixed $disamb */
+            $disamb = $opts['disambiguation'];
+            if (
+                !is_string($disamb)
+                || !in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)
+            ) {
+                throw new InvalidArgumentException(
+                    'PlainDateTime::toZonedDateTime() disambiguation must be one of: compatible, earlier, later, reject.',
+                );
             }
         }
 
         $normalTzId = ZonedDateTime::normalizeTimezoneId($timeZone);
         $disambiguation = 'compatible';
         if (
-            is_array($options)
-            && array_key_exists('disambiguation', $options)
-            && is_string($options['disambiguation'])
+            $opts !== null
+            && array_key_exists('disambiguation', $opts)
+            && is_string($opts['disambiguation'])
         ) {
-            $disambiguation = $options['disambiguation'];
+            $disambiguation = $opts['disambiguation'];
         }
 
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable

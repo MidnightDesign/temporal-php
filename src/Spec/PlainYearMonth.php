@@ -229,37 +229,23 @@ final class PlainYearMonth implements Stringable
      */
     public static function from(string|array|object $item, array|object|null $options = null): self
     {
+        // Normalize options to array|null up front so option-handling has one path.
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         // Validate overflow option before processing item (per spec ordering).
         $overflow = 'constrain';
-        if ($options !== null) {
-            if (!is_array($options)) {
-                $opts = get_object_vars($options);
-                if (array_key_exists('overflow', $opts)) {
-                    /** @var mixed $ov */
-                    $ov = $opts['overflow'];
-                    if (!is_string($ov)) {
-                        throw new \TypeError('overflow option must be a string.');
-                    }
-                    if ($ov !== 'constrain' && $ov !== 'reject') {
-                        throw new InvalidArgumentException(
-                            "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                        );
-                    }
-                    $overflow = $ov;
-                }
-            } elseif (array_key_exists('overflow', $options)) {
-                /** @var mixed $ov */
-                $ov = $options['overflow'];
-                if (!is_string($ov)) {
-                    throw new \TypeError('overflow option must be a string.');
-                }
-                if ($ov !== 'constrain' && $ov !== 'reject') {
-                    throw new InvalidArgumentException(
-                        "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                    );
-                }
-                $overflow = $ov;
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
+            /** @var mixed $ov */
+            $ov = $opts['overflow'];
+            if (!is_string($ov)) {
+                throw new \TypeError('overflow option must be a string.');
             }
+            if ($ov !== 'constrain' && $ov !== 'reject') {
+                throw new InvalidArgumentException(
+                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
+                );
+            }
+            $overflow = $ov;
         }
 
         if ($item instanceof self) {
@@ -268,13 +254,10 @@ final class PlainYearMonth implements Stringable
         if (is_string($item)) {
             return self::fromString($item);
         }
-        if (is_array($item)) {
-            return self::fromPropertyBag($item, $overflow);
+        if (is_object($item)) {
+            $item = get_object_vars($item);
         }
-        throw new \TypeError(sprintf(
-            'PlainYearMonth::from() expects a PlainYearMonth, ISO 8601 string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        return self::fromPropertyBag($item, $overflow);
     }
 
     /**
@@ -335,11 +318,13 @@ final class PlainYearMonth implements Stringable
             );
         }
 
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         // Validate overflow option.
         $overflow = 'constrain';
-        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
             /** @var mixed $ov */
-            $ov = $options['overflow'];
+            $ov = $opts['overflow'];
             if (!is_string($ov)) {
                 throw new \TypeError('overflow option must be a string.');
             }
@@ -580,13 +565,15 @@ final class PlainYearMonth implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         $yearStr = self::formatYear($this->isoYear);
         $base = sprintf('%s-%02d', $yearStr, $this->isoMonth);
 
         $calendarName = 'auto';
-        if ($options !== null && is_array($options) && array_key_exists('calendarName', $options)) {
+        if ($opts !== null && array_key_exists('calendarName', $opts)) {
             /** @var mixed $cn */
-            $cn = $options['calendarName'];
+            $cn = $opts['calendarName'];
             if (!is_string($cn)) {
                 throw new \TypeError('calendarName option must be a string.');
             }
@@ -628,11 +615,7 @@ final class PlainYearMonth implements Stringable
      */
     public function toPlainDate(array|object $fields): PlainDate
     {
-        if (is_array($fields)) {
-            $bag = $fields;
-        } else {
-            $bag = get_object_vars($fields);
-        }
+        $bag = is_object($fields) ? get_object_vars($fields) : $fields;
 
         if (!array_key_exists('day', $bag)) {
             throw new \TypeError('PlainYearMonth::toPlainDate() argument must have a day property.');
@@ -1419,14 +1402,16 @@ final class PlainYearMonth implements Stringable
      */
     private function addDuration(int $sign, Duration $dur, array|object|null $options): self
     {
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         // Validate overflow option. Per TC39 spec §9.5.7:
         // GetOption calls ToString(value) first, then validates the string.
         // So non-string values get coerced to string, and the resulting string is validated.
         // This means null → "null" → RangeError, true → "true" → RangeError, etc.
         // The overflow value itself is not consulted for arithmetic (PlainYearMonth has no day field to constrain).
-        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
             /** @var mixed $ov */
-            $ov = $options['overflow'];
+            $ov = $opts['overflow'];
             if ($ov === null || is_bool($ov) || is_int($ov) || is_float($ov)) {
                 // Coerce to string per spec, then fail validation.
                 $ovStr = (string) $ov;
@@ -1471,9 +1456,9 @@ final class PlainYearMonth implements Stringable
 
         // Extract the actual overflow value for the calendar protocol.
         $overflow = 'constrain';
-        if ($options !== null && is_array($options) && array_key_exists('overflow', $options)) {
+        if ($opts !== null && array_key_exists('overflow', $opts)) {
             /** @var mixed $ovVal */
-            $ovVal = $options['overflow'];
+            $ovVal = $opts['overflow'];
             if (is_string($ovVal) && ($ovVal === 'constrain' || $ovVal === 'reject')) {
                 $overflow = $ovVal;
             }

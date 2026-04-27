@@ -248,16 +248,13 @@ final class Duration implements Stringable
                 $item->nanoseconds,
             );
         }
-        if (is_array($item)) {
-            return self::parseDurationLike($item);
-        }
         if (is_string($item)) {
             return self::fromString($item);
         }
-        throw new \TypeError(sprintf(
-            'Duration::from() expects a Duration, ISO 8601 string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        if (is_object($item)) {
+            $item = get_object_vars($item);
+        }
+        return self::parseDurationLike($item);
     }
 
     /**
@@ -544,16 +541,13 @@ final class Duration implements Stringable
      */
     public function toString(array|object|null $options = null): string
     {
+        $options = is_object($options) ? get_object_vars($options) : $options;
+
         // $digits: null = auto, 0–9 = exact digit count.
         $digits = null;
         $roundingMode = 'trunc';
 
         if ($options !== null) {
-            if (!is_array($options)) {
-                // Treat non-array objects (e.g. Closures) as empty options bags → all defaults.
-                $options = [];
-            }
-
             // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
                 /** @var mixed $fsd */
@@ -768,8 +762,8 @@ final class Duration implements Stringable
      */
     public function total(string|array|object $totalOf): int|float
     {
-        if (!is_string($totalOf) && !is_array($totalOf)) {
-            throw new InvalidArgumentException('total() expects a unit string or an options bag array.');
+        if (is_object($totalOf)) {
+            $totalOf = get_object_vars($totalOf);
         }
 
         if (is_array($totalOf)) {
@@ -2045,6 +2039,8 @@ final class Duration implements Stringable
         string|array|object $two,
         array|object|null $options = null,
     ): int {
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         $d1 = self::from($one);
         $d2 = self::from($two);
 
@@ -2057,7 +2053,7 @@ final class Duration implements Stringable
             || $d2->weeks !== 0;
 
         // Always validate relativeTo before any early return (invalid values must throw).
-        $relativeToProvided = self::extractRelativeTo($options);
+        $relativeToProvided = self::extractRelativeTo($opts);
 
         // TC39 §7.3.22: if both Duration records have identical internal slots, return 0.
         // This applies even for calendar durations (relativeTo is not required for identical inputs).
@@ -2073,7 +2069,7 @@ final class Duration implements Stringable
         }
         if ($hasCalendar) {
             /** @var mixed $rt */
-            $rt = is_array($options) ? $options['relativeTo'] ?? null : null;
+            $rt = $opts !== null ? $opts['relativeTo'] ?? null : null;
             $ns1 = $d1->totalNsFromRelativeTo($rt);
             $ns2 = $d2->totalNsFromRelativeTo($rt);
             return $ns1 <=> $ns2;
@@ -2081,7 +2077,7 @@ final class Duration implements Stringable
 
         // When relativeTo is a ZDT with IANA timezone, compare using actual epoch offsets.
         /** @var mixed $rtForCompare */
-        $rtForCompare = is_array($options) ? $options['relativeTo'] ?? null : null;
+        $rtForCompare = $opts !== null ? $opts['relativeTo'] ?? null : null;
         $zdtInfoCompare = $rtForCompare !== null ? self::resolveRelativeToZdt($rtForCompare) : null;
 
         if ($zdtInfoCompare !== null) {
@@ -2118,8 +2114,7 @@ final class Duration implements Stringable
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
         } elseif (is_object($roundTo)) {
-            // Non-array objects (e.g. closures) are treated as empty options bags per TC39.
-            $roundTo = [];
+            $roundTo = get_object_vars($roundTo);
         }
 
         /** @var mixed $suRaw */
@@ -2725,10 +2720,10 @@ final class Duration implements Stringable
      */
     private static function extractRelativeTo(array|object|null $options): bool
     {
-        if (!is_array($options)) {
-            return false;
+        if (is_object($options)) {
+            $options = get_object_vars($options);
         }
-        if (!array_key_exists('relativeTo', $options)) {
+        if ($options === null || !array_key_exists('relativeTo', $options)) {
             return false;
         }
         /** @var mixed $rt */

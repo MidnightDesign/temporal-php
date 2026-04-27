@@ -185,14 +185,11 @@ final class PlainTime implements Stringable
             self::extractOverflow($options);
             return self::fromString($item);
         }
-        if (is_array($item)) {
-            $overflow = self::extractOverflow($options);
-            return self::fromPropertyBag($item, $overflow);
+        if (is_object($item)) {
+            $item = get_object_vars($item);
         }
-        throw new \TypeError(sprintf(
-            'PlainTime::from() expects a PlainTime, ISO 8601 time string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        $overflow = self::extractOverflow($options);
+        return self::fromPropertyBag($item, $overflow);
     }
 
     /**
@@ -450,9 +447,7 @@ final class PlainTime implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        if (is_object($options)) {
-            $options = [];
-        }
+        $options = is_object($options) ? get_object_vars($options) : $options;
 
         // $digits: -2 = 'auto', -1 = minute format (no seconds), 0-9 = fixed digits.
         $digits = -2;
