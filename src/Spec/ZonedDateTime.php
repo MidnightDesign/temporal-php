@@ -1348,12 +1348,28 @@ final class ZonedDateTime implements Stringable
     /**
      * Returns a new ZonedDateTime with the specified fields overridden.
      *
-     * @param array<array-key,mixed> $fields   Property bag with fields to override.
+     * @param array<array-key,mixed>|object $fields   Property bag with fields to override.
      * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => ..., 'disambiguation' => ...]
      * @psalm-api
      */
-    public function with(array $fields, array|object|null $options = null): self
+    public function with(array|object $fields, array|object|null $options = null): self
     {
+        // Reject Temporal objects (IsPartialTemporalObject step 2).
+        if (
+            $fields instanceof PlainDate
+            || $fields instanceof PlainDateTime
+            || $fields instanceof PlainTime
+            || $fields instanceof PlainYearMonth
+            || $fields instanceof PlainMonthDay
+            || $fields instanceof self
+            || $fields instanceof Instant
+            || $fields instanceof Duration
+        ) {
+            throw new \TypeError('ZonedDateTime::with() argument must not be a Temporal object.');
+        }
+
+        $fields = is_object($fields) ? get_object_vars($fields) : $fields;
+
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
             throw new \TypeError('ZonedDateTime::with() fields must not contain a calendar or timeZone property.');
         }

@@ -332,14 +332,30 @@ final class PlainDate implements Stringable
      * Time fields are silently ignored. The 'calendar' and 'timeZone' keys
      * must not be present.
      *
-     * @param array<array-key,mixed> $fields   Property bag with fields to override.
+     * @param array<array-key,mixed>|object $fields   Property bag with fields to override.
      * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
      * @throws InvalidArgumentException if the resulting date is invalid (overflow: reject).
      * @psalm-api
      */
-    public function with(array $fields, array|object|null $options = null): self
+    public function with(array|object $fields, array|object|null $options = null): self
     {
+        // Reject Temporal objects (IsPartialTemporalObject step 2).
+        if (
+            $fields instanceof self
+            || $fields instanceof PlainDateTime
+            || $fields instanceof PlainTime
+            || $fields instanceof PlainYearMonth
+            || $fields instanceof PlainMonthDay
+            || $fields instanceof ZonedDateTime
+            || $fields instanceof Instant
+            || $fields instanceof Duration
+        ) {
+            throw new \TypeError('PlainDate::with() argument must not be a Temporal object.');
+        }
+
+        $fields = is_object($fields) ? get_object_vars($fields) : $fields;
+
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
             throw new \TypeError('PlainDate::with() fields must not contain a calendar or timeZone property.');
         }
@@ -688,16 +704,19 @@ final class PlainDate implements Stringable
      *
      * Accepts a timezone string or an array with 'timeZone' and optional 'plainTime' keys.
      *
-     * @param string|array<array-key, mixed> $item Timezone string or property bag with 'timeZone' (and optional 'plainTime').
+     * @param string|array<array-key, mixed>|object $item Timezone string or property bag with 'timeZone' (and optional 'plainTime').
      * @throws InvalidArgumentException if the timezone is invalid or the result is out of range.
      * @psalm-api
      */
-    public function toZonedDateTime(string|array $item): ZonedDateTime
+    public function toZonedDateTime(string|array|object $item): ZonedDateTime
     {
         if (is_string($item)) {
             // String argument = timezone ID; use startOfDay semantics (TC39 spec).
             $tzId = ZonedDateTime::normalizeTimezoneId($item);
             return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0, startOfDay: true);
+        }
+        if (is_object($item)) {
+            $item = get_object_vars($item);
         }
         // Property bag: must have 'timeZone' key.
         if (!array_key_exists('timeZone', $item)) {

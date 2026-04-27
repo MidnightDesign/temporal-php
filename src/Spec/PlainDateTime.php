@@ -438,14 +438,30 @@ final class PlainDateTime implements Stringable
      * Recognized time fields: hour, minute, second, millisecond, microsecond, nanosecond.
      * The 'calendar' and 'timeZone' keys must not be present.
      *
-     * @param array<array-key,mixed> $fields   Property bag with fields to override.
+     * @param array<array-key,mixed>|object $fields   Property bag with fields to override.
      * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => 'constrain'|'reject']
      * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
      * @throws InvalidArgumentException if the resulting datetime is invalid (overflow: reject).
      * @psalm-api
      */
-    public function with(array $fields, array|object|null $options = null): self
+    public function with(array|object $fields, array|object|null $options = null): self
     {
+        // Reject Temporal objects (IsPartialTemporalObject step 2).
+        if (
+            $fields instanceof self
+            || $fields instanceof PlainDate
+            || $fields instanceof PlainTime
+            || $fields instanceof PlainYearMonth
+            || $fields instanceof PlainMonthDay
+            || $fields instanceof ZonedDateTime
+            || $fields instanceof Instant
+            || $fields instanceof Duration
+        ) {
+            throw new \TypeError('PlainDateTime::with() argument must not be a Temporal object.');
+        }
+
+        $fields = is_object($fields) ? get_object_vars($fields) : $fields;
+
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
             throw new \TypeError('PlainDateTime::with() fields must not contain a calendar or timeZone property.');
         }

@@ -476,11 +476,27 @@ final class Duration implements Stringable
     /**
      * Returns a Duration with the specified fields replaced.
      *
-     * @param array<array-key, mixed> $fields
-     * @throws \TypeError if $fields is not an array or has no recognized plural Duration field.
+     * @param array<array-key, mixed>|object $fields
+     * @throws \TypeError if $fields is not an array/object or has no recognized plural Duration field.
      */
-    public function with(array $fields): self
+    public function with(array|object $fields): self
     {
+        // Reject Temporal objects (IsPartialTemporalObject step 2).
+        if (
+            $fields instanceof self
+            || $fields instanceof PlainDate
+            || $fields instanceof PlainDateTime
+            || $fields instanceof PlainTime
+            || $fields instanceof PlainYearMonth
+            || $fields instanceof PlainMonthDay
+            || $fields instanceof ZonedDateTime
+            || $fields instanceof Instant
+        ) {
+            throw new \TypeError('Duration::with() argument must not be a Temporal object.');
+        }
+
+        $fields = is_object($fields) ? get_object_vars($fields) : $fields;
+
         // TC39 ToTemporalPartialDurationRecord: at least one recognized plural field required.
         /** @var list<string> $PLURAL_FIELDS */
         static $PLURAL_FIELDS = [
@@ -788,10 +804,15 @@ final class Duration implements Stringable
                 $rt = ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
             } elseif (is_string($rt)) {
                 $rt = $this->parseRelativeToString($rt);
-            } elseif (is_array($rt)) {
-                self::validateRelativeToPropertyBag($rt);
             } else {
-                throw new \TypeError('relativeTo must be a string or property bag.');
+                if (is_object($rt)) {
+                    $rt = get_object_vars($rt);
+                }
+                if (is_array($rt)) {
+                    self::validateRelativeToPropertyBag($rt);
+                } else {
+                    throw new \TypeError('relativeTo must be a string or property bag.');
+                }
             }
             // Both 'month' and 'monthCode' are valid month specifiers per TC39.
             $hasYear = array_key_exists('year', $rt);
@@ -820,10 +841,15 @@ final class Duration implements Stringable
                 $rt = ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
             } elseif (is_string($rt)) {
                 $rt = $this->parseRelativeToString($rt);
-            } elseif (is_array($rt)) {
-                self::validateRelativeToPropertyBag($rt);
             } else {
-                throw new \TypeError('relativeTo must be a string or property bag.');
+                if (is_object($rt)) {
+                    $rt = get_object_vars($rt);
+                }
+                if (is_array($rt)) {
+                    self::validateRelativeToPropertyBag($rt);
+                } else {
+                    throw new \TypeError('relativeTo must be a string or property bag.');
+                }
             }
             $hasYear = array_key_exists('year', $rt);
             $hasMonth = array_key_exists('month', $rt) || array_key_exists('monthCode', $rt);
@@ -899,10 +925,13 @@ final class Duration implements Stringable
                 // PlainDate objects are always valid for pure-time computations; no extra validation needed.
             } elseif ($rtRaw instanceof \Temporal\Spec\ZonedDateTime) {
                 // ZonedDateTime objects are valid relativeTo values for pure-time computations.
-            } elseif (is_array($rtRaw)) {
-                self::validateRelativeToPropertyBag($rtRaw);
             } elseif ($rtRaw !== null) {
-                throw new \TypeError('relativeTo must be a string or property bag array.');
+                $rtForVal = is_object($rtRaw) ? get_object_vars($rtRaw) : $rtRaw;
+                if (is_array($rtForVal)) {
+                    self::validateRelativeToPropertyBag($rtForVal);
+                } else {
+                    throw new \TypeError('relativeTo must be a string or property bag array.');
+                }
             }
         }
 
@@ -2741,6 +2770,9 @@ final class Duration implements Stringable
             $dummy->parseRelativeToString($rt); // throws on invalid
             return true;
         }
+        if (is_object($rt)) {
+            $rt = get_object_vars($rt);
+        }
         if (is_array($rt)) {
             self::validateRelativeToPropertyBag($rt);
             return true;
@@ -2767,7 +2799,10 @@ final class Duration implements Stringable
             $parsed = $this->parseRelativeToString($rt);
             return ['year' => (int) $parsed['year'], 'month' => (int) $parsed['month'], 'day' => (int) $parsed['day']];
         }
-        // Array property bag — extract year/month/day.
+        // Property bag — normalize generic objects to arrays first.
+        if (is_object($rt)) {
+            $rt = get_object_vars($rt);
+        }
         assert(is_array($rt), description: 'non-string $rt must be a property-bag array at this point');
         $bag = $rt;
         /** @var mixed $yearRaw */
@@ -3501,6 +3536,10 @@ final class Duration implements Stringable
      */
     private static function resolveRelativeToZdt(mixed $rt): ?array
     {
+        // Normalize plain-object property bags (but keep Temporal instances intact).
+        if (is_object($rt) && !$rt instanceof ZonedDateTime && !$rt instanceof PlainDate) {
+            $rt = get_object_vars($rt);
+        }
         if ($rt instanceof ZonedDateTime) {
             $tzId = $rt->timeZoneId;
             if ($tzId === '' || $tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) === 1) {
