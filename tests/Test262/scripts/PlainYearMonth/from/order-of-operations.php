@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expectedOptionsReading = ['get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
-$expected = array_merge(['get fields.calendar', 'get fields.month', 'get fields.month.valueOf', 'call fields.month.valueOf', 'get fields.monthCode', 'get fields.monthCode.toString', 'call fields.monthCode.toString', 'get fields.year', 'get fields.year.valueOf', 'call fields.year.valueOf'], $expectedOptionsReading);
+$expectedOpsForPrimitiveOptions = ['get fields.calendar', 'get fields.month', 'get fields.month.valueOf', 'call fields.month.valueOf', 'get fields.monthCode', 'get fields.monthCode.toString', 'call fields.monthCode.toString', 'get fields.year', 'get fields.year.valueOf', 'call fields.year.valueOf'];
+$expected = array_merge($expectedOpsForPrimitiveOptions, $expectedOptionsReading);
 $actual = [];
 Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
