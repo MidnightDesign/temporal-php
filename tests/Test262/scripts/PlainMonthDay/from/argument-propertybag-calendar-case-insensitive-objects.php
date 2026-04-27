@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $arg = (object) ['monthCode' => 'M11', 'day' => 18, 'calendar' => 'IsO8601'];
 $result = \Temporal\Spec\PlainMonthDay::from($arg);
 TemporalHelpers::assertPlainMonthDay($result, 'M11', 18, 'Calendar is case-insensitive');
-$arg['calendar'] = 'İSO8601';
+$arg->calendar = 'İSO8601';
 Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainMonthDay::from($arg); }, 'calendar ID is capital dotted I is not lowercased');

@@ -825,12 +825,24 @@ class Emitter {
     if (node.type === 'AssignmentPattern') {
       return this.transpilePattern(node.left);
     }
-    // MemberExpression LHS: `obj.prop = val` → `$obj['prop'] = val`
-    if (node.type === 'MemberExpression'
-        && !node.computed
-        && node.object.type === 'Identifier'
-        && node.property.type === 'Identifier') {
-      return `$${node.object.name}['${node.property.name}']`;
+    // MemberExpression LHS: `obj.prop = val` and `obj[expr] = val`. In array mode
+    // both produce array access (`$obj['prop']`, `$obj[$expr]`). In objectMode,
+    // tracked objectVars produce property access (`$obj->prop`, `$obj->{$expr}`).
+    if (node.type === 'MemberExpression' && node.object.type === 'Identifier') {
+      const objName = node.object.name;
+      const useProp = this.objectMode && this.objectVars.has(objName);
+      if (!node.computed && node.property.type === 'Identifier') {
+        return useProp
+          ? `$${objName}->${node.property.name}`
+          : `$${objName}['${node.property.name}']`;
+      }
+      if (node.computed) {
+        const idx = this.transpileExpr(node.property);
+        if (idx === null) return null;
+        return useProp
+          ? `$${objName}->{${idx}}`
+          : `$${objName}[${idx}]`;
+      }
     }
     return '$__unknown__';
   }
@@ -2094,6 +2106,33 @@ class Emitter {
 // ---------------------------------------------------------------------------
 
 /**
+ * Returns true if the AST subtree contains a JS-dynamic-toString assignment
+ * (e.g. `arg.toString = function () { return "..."; };`). Such fixtures test
+ * the spec's "object → ToPrimitive('string')" coercion path which has no
+ * equivalent in PHP — neither arrays nor stdClass support runtime-mutable
+ * string coercion — so the entire script is unrepresentable.
+ */
+function hasDynamicToStringAssignment(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'AssignmentExpression'
+      && node.left?.type === 'MemberExpression'
+      && !node.left.computed
+      && node.left.property?.type === 'Identifier'
+      && node.left.property.name === 'toString'
+      && (node.right?.type === 'FunctionExpression'
+          || node.right?.type === 'ArrowFunctionExpression')) {
+    return true;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    const child = node[key];
+    if (Array.isArray(child)) { if (child.some(hasDynamicToStringAssignment)) return true; }
+    else if (hasDynamicToStringAssignment(child)) return true;
+  }
+  return false;
+}
+
+/**
  * Returns true if the AST subtree contains any ObjectExpression node.
  * Used to decide whether a fixture warrants a `<name>-objects.php` companion
  * variant that exercises stdClass-shaped property bags.
@@ -2301,12 +2340,21 @@ function processFile(jsPath, dataDir, scriptsDir) {
     }
   }
 
+  // Whole-script bail: fixtures that exercise JS-specific dynamic toString
+  // assignment cannot be expressed in PHP at all (see hasDynamicToStringAssignment
+  // for the rationale). Marking incomplete BEFORE any other emission keeps the
+  // pre-assignment assertions (which assume JS object-coercion semantics) from
+  // running and producing spurious failures.
+  const dynamicToString = ast && hasDynamicToStringAssignment(ast);
+
   const renderPass = (objectMode) => {
     const emitter = new Emitter(stripped, objectMode);
     if (unsupportedIncludes.length > 0) {
       emitter.emitIncomplete(`needs TemporalHelpers (includes: ${includes.join(', ')})`);
     } else if (parseError !== null) {
       emitter.emitIncomplete(`parse error: ${parseError}`);
+    } else if (dynamicToString) {
+      emitter.emitIncomplete('JS dynamic .toString assignment has no PHP equivalent (test exercises ToPrimitive("string") coercion which neither array nor stdClass supports)');
     } else if (ast) {
       emitter.transpileProgram(ast);
     }

@@ -14,7 +14,7 @@ $units = ['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'mi
 foreach ($units as $unit) {
 $plural = "{$unit}s";
 $options = (object) [];
-$__unknown__ = 1;
+$options->{$plural} = 1;
 Assert::throws(\TypeError::class, function () use (&$instance, &$options) { return $instance->with($options); }, "plural unit (\"{$plural}\" vs \"{$unit}\") is not acceptable");
 }
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with((object) ['nonsense' => true]); }, 'throw if no recognized properties present');

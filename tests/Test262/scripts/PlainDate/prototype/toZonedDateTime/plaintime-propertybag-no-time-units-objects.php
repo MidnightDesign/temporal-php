@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $props = (object) [];
 Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->toZonedDateTime((object) ['plainTime' => $props, 'timeZone' => 'UTC']); }, 'TypeError if no properties are present');
-$props['minute'] = 30;
+$props->minute = 30;
 $result = $instance->toZonedDateTime((object) ['plainTime' => $props, 'timeZone' => 'UTC']);
 Assert::sameValue($result->epochNanoseconds, 946_686_600_000_000_000, 'missing time units default to 0');

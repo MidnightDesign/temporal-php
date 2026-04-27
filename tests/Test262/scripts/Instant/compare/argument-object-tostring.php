@@ -7,6 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$epoch = new \Temporal\Spec\Instant(0);
-$arg = [];
-Assert::incomplete('JS object-to-string coercion not replicable in PHP');
+Assert::incomplete('JS dynamic .toString assignment has no PHP equivalent (test exercises ToPrimitive("string") coercion which neither array nor stdClass supports)');

@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $props = (object) [];
 Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->toPlainDateTime($props); }, 'TypeError if no properties are present');
-$props['minute'] = 30;
+$props->minute = 30;
 $result = $instance->toPlainDateTime($props);
 TemporalHelpers::assertPlainDateTime($result, 2000, 1, 'M01', 1, 0, 30, 0, 0, 0, 0, 'missing time units default to 0');

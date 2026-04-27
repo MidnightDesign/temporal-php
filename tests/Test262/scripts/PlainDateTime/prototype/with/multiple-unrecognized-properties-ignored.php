@@ -13,6 +13,6 @@ $units = ['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'mi
 foreach ($units as $unit) {
 $plural = "{$unit}s";
 $arg = ['month' => 12];
-$__unknown__ = 1;
+$arg[$plural] = 1;
 TemporalHelpers::assertPlainDateTime($datetime->with($arg), 1976, 12, 'M12', 18, 15, 23, 30, 123, 456, 789, "unrecognized property ({$plural}) gets ignored");
 }

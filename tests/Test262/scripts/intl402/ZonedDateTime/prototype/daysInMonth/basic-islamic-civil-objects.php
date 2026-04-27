@@ -14,8 +14,8 @@ $commonYear = 1391;
 $leapYearDaysInMonth = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 30];
 $commonYearDaysInMonth = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
 $daysInMonth = (object) [];
-$__unknown__ = $leapYearDaysInMonth;
-$__unknown__ = $commonYearDaysInMonth;
+$daysInMonth->{$leapYear} = $leapYearDaysInMonth;
+$daysInMonth->{$commonYear} = $commonYearDaysInMonth;
 foreach ([$leapYear, $commonYear] as $year) {
 for ($month = 1; $month < 13; $month++) {
 $date = \Temporal\Spec\ZonedDateTime::from((object) ['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);

@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 $instance = new \Temporal\Spec\PlainTime(0, 30, 0, 0, 0, 0);
 $props = (object) [];
 Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->equals($props); }, 'TypeError if no properties are present');
-$props['minute'] = 30;
+$props->minute = 30;
 $result = $instance->equals($props);
 Assert::sameValue($result, true, 'missing time units default to 0');

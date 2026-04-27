@@ -8,9 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-$instance = new \Temporal\Spec\Instant(0);
-$arg = [];
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, '[object Object] is not a valid ISO string');
-$arg['toString'] = function () { return '1970-01-01T00:00Z'; };
-$result = $instance->since($arg);
-TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'result of toString is interpreted as ISO string');
+Assert::incomplete('JS dynamic .toString assignment has no PHP equivalent (test exercises ToPrimitive("string") coercion which neither array nor stdClass supports)');

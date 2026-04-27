@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $props = (object) [];
 Assert::throws(\TypeError::class, function () use (&$props) { return \Temporal\Spec\PlainTime::from($props); }, 'TypeError if at least one property is not present');
-$props['minute'] = 30;
+$props->minute = 30;
 $result = \Temporal\Spec\PlainTime::from($props);
 TemporalHelpers::assertPlainTime($result, 0, 30, 0, 0, 0, 0, 'missing time units default to 0');
