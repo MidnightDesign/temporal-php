@@ -1242,7 +1242,7 @@ final class PlainYearMonth implements Stringable
 
         $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
 
-        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign);
+        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign, intdiv($floorCount, $increment));
 
         $roundedAbs = $roundUp ? $floorCount + $increment : $floorCount;
 
@@ -1320,7 +1320,7 @@ final class PlainYearMonth implements Stringable
         $remDays = abs($subJdn - $anchorJdn);
 
         $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
-        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign);
+        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign, intdiv($floorCount, $increment));
 
         $roundedAbs = $roundUp ? $floorCount + $increment : $floorCount;
 
@@ -1392,7 +1392,7 @@ final class PlainYearMonth implements Stringable
         $remDays = abs($remJdn - $monthAnchorJdn);
 
         $progress = $intervalDays > 0 ? $remDays / $intervalDays : 0.0;
-        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign);
+        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign, intdiv($floorCount, $increment));
 
         $roundedAbsMonths = $roundUp ? $nextCount : $floorCount;
 

@@ -1462,7 +1462,7 @@ final class PlainDate implements Stringable
         $progress = $intervalDays > 0 ? $absRemDays / $intervalDays : 0.0;
 
         // Apply rounding (for negative diffs, flip floor/ceil per spec §11.5.12).
-        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign);
+        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign, intdiv($floorCount, $increment));
 
         $roundedAbsMonths = $roundUp ? $floorCount + $increment : $floorCount;
 
@@ -1520,7 +1520,7 @@ final class PlainDate implements Stringable
         $absRemDistance = abs($targetJdn - $anchorJdn);
 
         $progress = $intervalDays > 0 ? $absRemDistance / $intervalDays : 0.0;
-        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign);
+        $roundUp = CalendarMath::applyRoundingProgress($progress, $mode, $sign, intdiv($floorCount, $increment));
 
         $roundedAbsYears = $roundUp ? $floorCount + $increment : $floorCount;
 

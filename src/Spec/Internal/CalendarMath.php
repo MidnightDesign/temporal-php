@@ -585,9 +585,13 @@ final class CalendarMath
     /**
      * Determines whether to round up based on fractional progress through the current unit.
      *
+     * `$absFloorUnits` is the number of whole units already accumulated (the absolute floor
+     * count, i.e. the integer multiple of the increment at the bucket's lower boundary).
+     * It is only consulted by `halfEven`, which rounds 0.5 ties to the nearest even value.
+     *
      * For negative diffs, floor and ceil are swapped so they retain their directional meaning.
      */
-    public static function applyRoundingProgress(float $progress, string $mode, int $sign): bool
+    public static function applyRoundingProgress(float $progress, string $mode, int $sign, int $absFloorUnits = 0): bool
     {
         // For negative diffs, flip floor/ceil so they retain their directional meaning.
         $effectiveMode = $mode;
@@ -605,7 +609,7 @@ final class CalendarMath
             'ceil', 'expand' => $progress > 0.0,
             'halfExpand', 'halfCeil' => $progress >= 0.5,
             'halfTrunc', 'halfFloor' => $progress > 0.5,
-            'halfEven' => $progress > 0.5, // at exactly 0.5, leave at floor (calendar units differ from numeric even/odd)
+            'halfEven' => $progress > 0.5 || ($progress === 0.5 && ($absFloorUnits % 2) !== 0),
             default => false,
         };
     }
