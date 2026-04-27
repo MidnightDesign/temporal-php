@@ -1393,6 +1393,12 @@ final class Duration implements Stringable
         int $nsPerDay,
         ?array $zdtInfo = null,
     ): int|float {
+        // Balance time (fracNs) into wholeDays so the month-counting loop crosses calendar boundaries
+        // contained in the time portion (e.g. an until() result of N hours that spans a full month).
+        $extraDays = intdiv(num1: $fracNs, num2: $nsPerDay);
+        $wholeDays += $extraDays;
+        $fracNs -= $extraDays * $nsPerDay;
+
         $absWholeDays = abs($wholeDays);
         $dir = $wholeDays >= 0 ? '+' : '-';
         $sign = $wholeDays >= 0 ? 1 : -1;
@@ -1471,6 +1477,14 @@ final class Duration implements Stringable
         ?array $zdtInfo = null,
     ): int|float {
         unset($zdtInfo); // Not currently used; reserved for future ZDT-aware year total.
+        // Balance time (fracNs) into wholeDays so the year-counting loop crosses calendar boundaries
+        // contained in the time portion (e.g. an until() result of 13152 hours = 548 days that spans
+        // a full year). Without this, time-only durations always report 0 whole years.
+        $nsPerDay = 86_400_000_000_000;
+        $extraDays = intdiv(num1: $fracNs, num2: $nsPerDay);
+        $wholeDays += $extraDays;
+        $fracNs -= $extraDays * $nsPerDay;
+
         $absWholeDays = abs($wholeDays);
         $dir = $wholeDays >= 0 ? '+' : '-';
         $sign = $wholeDays >= 0 ? 1 : -1;
