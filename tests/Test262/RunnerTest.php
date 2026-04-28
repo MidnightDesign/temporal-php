@@ -42,11 +42,41 @@ final class RunnerTest extends TestCase
     #[DataProvider('scripts')]
     public function testScript(string $path): void
     {
+        self::maybeSkipForIcuVersion($path);
         try {
             /** @psalm-suppress UnresolvableInclude */
             require $path;
         } catch (\Throwable $e) {
             self::handleScriptThrowable($e);
+        }
+    }
+
+    /**
+     * Skips fixtures whose expected values depend on ICU/CLDR data that was updated
+     * after the host's ICU version. The Chinese calendar's leap-year placement is the
+     * known case: TC39's `daysInYear/basic-chinese.{js,php}` was authored against ICU
+     * 76+ (October 2024) data, and Ubuntu 24.04's bundled libicu74 produces a
+     * different sequence of leap years for some years in the 1969–2048 sample range.
+     *
+     * Production users on libicu74 will see the same divergence — see README's
+     * "ICU compatibility" note.
+     */
+    private static function maybeSkipForIcuVersion(string $path): void
+    {
+        if (!str_contains($path, 'basic-chinese') || !str_contains($path, '/daysInYear/')) {
+            return;
+        }
+        // Read INTL_ICU_VERSION via constant() so PHPStan doesn't const-fold it to the
+        // analyzer's host value and prove the version_compare branch unreachable. Static
+        // analysis sees this as a `mixed` lookup; production sees the real linked-libicu
+        // version.
+        /** @var string $icu */
+        $icu = constant('INTL_ICU_VERSION');
+        if (version_compare($icu, version2: '76', operator: '<')) {
+            static::markTestIncomplete(sprintf(
+                'Chinese-calendar daysInYear fixtures require ICU ≥ 76 (host has %s); leap-year placement diverges below that.',
+                $icu,
+            ));
         }
     }
 
