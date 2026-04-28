@@ -12,7 +12,7 @@ $validValues = [new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12), '2000-05-02T12
 foreach ($validValues as $value) {
 $explicit = \Temporal\Spec\PlainDateTime::from($value, []);
 TemporalHelpers::assertPlainDateTime($explicit, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, 'overflow is ignored');
-$implicit = \Temporal\Spec\PlainDateTime::from($value, new \stdClass());
+$implicit = \Temporal\Spec\PlainDateTime::from($value, []);
 TemporalHelpers::assertPlainDateTime($implicit, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, 'overflow is ignored');
 $lambda = \Temporal\Spec\PlainDateTime::from($value, function () {  });
 TemporalHelpers::assertPlainDateTime($lambda, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, 'overflow is ignored');
@@ -20,7 +20,7 @@ TemporalHelpers::assertPlainDateTime($lambda, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0,
 $propertyBag = ['year' => 2000, 'month' => 13, 'day' => 34, 'hour' => 12];
 $explicit = \Temporal\Spec\PlainDateTime::from($propertyBag, []);
 TemporalHelpers::assertPlainDateTime($explicit, 2000, 12, 'M12', 31, 12, 0, 0, 0, 0, 0, 'default overflow is constrain');
-$implicit = \Temporal\Spec\PlainDateTime::from($propertyBag, new \stdClass());
+$implicit = \Temporal\Spec\PlainDateTime::from($propertyBag, []);
 TemporalHelpers::assertPlainDateTime($implicit, 2000, 12, 'M12', 31, 12, 0, 0, 0, 0, 0, 'default overflow is constrain');
 $lambda = \Temporal\Spec\PlainDateTime::from($propertyBag, function () {  });
 TemporalHelpers::assertPlainDateTime($lambda, 2000, 12, 'M12', 31, 12, 0, 0, 0, 0, 0, 'default overflow is constrain');

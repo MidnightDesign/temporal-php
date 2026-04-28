@@ -11,7 +11,7 @@ $datetime = new \Temporal\Spec\ZonedDateTime(-1, 'UTC');
 $duration = new \Temporal\Spec\Duration(0, 2);
 $explicit = $datetime->add($duration, []);
 Assert::sameValue($explicit->epochNanoseconds, 5_097_599_999_999_999, 'default overflow is constrain');
-$implicit = $datetime->add($duration, new \stdClass());
+$implicit = $datetime->add($duration, []);
 Assert::sameValue($implicit->epochNanoseconds, 5_097_599_999_999_999, 'default overflow is constrain');
 $lambda = $datetime->add($duration, function () {  });
 Assert::sameValue($lambda->epochNanoseconds, 5_097_599_999_999_999, 'default overflow is constrain');

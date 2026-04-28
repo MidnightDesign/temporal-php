@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $jan31 = new \Temporal\Spec\PlainDateTime(2020, 1, 31, 15, 0);
-TemporalHelpers::assertPlainDateTime($jan31->subtract(['months' => 2], new \stdClass()), 2019, 11, 'M11', 30, 15, 0, 0, 0, 0, 0, 'options may be empty object');
+TemporalHelpers::assertPlainDateTime($jan31->subtract(['months' => 2], []), 2019, 11, 'M11', 30, 15, 0, 0, 0, 0, 0, 'options may be empty object');
 TemporalHelpers::assertPlainDateTime($jan31->subtract(['months' => 2], function () {  }), 2019, 11, 'M11', 30, 15, 0, 0, 0, 0, 0, 'options may be function object');

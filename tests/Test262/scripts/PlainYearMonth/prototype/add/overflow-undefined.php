@@ -12,7 +12,7 @@ $yearmonth = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $duration = new \Temporal\Spec\Duration(1, 1);
 $explicit = $yearmonth->add($duration, []);
 TemporalHelpers::assertPlainYearMonth($explicit, 2001, 6, 'M06', 'default overflow is constrain');
-$implicit = $yearmonth->add($duration, new \stdClass());
+$implicit = $yearmonth->add($duration, []);
 TemporalHelpers::assertPlainYearMonth($implicit, 2001, 6, 'M06', 'default overflow is constrain');
 $lambda = $yearmonth->add($duration, function () {  });
 TemporalHelpers::assertPlainYearMonth($lambda, 2001, 6, 'M06', 'default overflow is constrain');

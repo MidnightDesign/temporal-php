@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $overflowFields = ['year' => 2000, 'month' => 13, 'day' => 2, 'timeZone' => 'UTC'];
 $overflowExplicit = \Temporal\Spec\ZonedDateTime::from($overflowFields);
 Assert::sameValue($overflowExplicit->month, 12, 'default overflow is constrain');
-$overflowPropertyImplicit = \Temporal\Spec\ZonedDateTime::from($overflowFields, new \stdClass());
+$overflowPropertyImplicit = \Temporal\Spec\ZonedDateTime::from($overflowFields, []);
 Assert::sameValue($overflowPropertyImplicit->month, 12, 'default overflow is constrain');
 $overflowImplicit = \Temporal\Spec\ZonedDateTime::from($overflowFields);
 Assert::sameValue($overflowImplicit->month, 12, 'default overflow is constrain');
@@ -21,12 +21,12 @@ foreach ([[$disambiguationEarlierFields, 972_808_496_987_654_321], [$disambiguat
 [$fields, $expected] = array_pad($__entry__, 2, null);
 $explicit = \Temporal\Spec\ZonedDateTime::from($fields);
 Assert::sameValue($explicit->epochNanoseconds, $expected, 'default disambiguation is compatible');
-$propertyImplicit = \Temporal\Spec\ZonedDateTime::from($fields, new \stdClass());
+$propertyImplicit = \Temporal\Spec\ZonedDateTime::from($fields, []);
 Assert::sameValue($propertyImplicit->epochNanoseconds, $expected, 'default disambiguation is compatible');
 $implicit = \Temporal\Spec\ZonedDateTime::from($fields);
 Assert::sameValue($implicit->epochNanoseconds, $expected, 'default disambiguation is compatible');
 }
 $offsetFields = ['year' => 2000, 'month' => 5, 'day' => 2, 'offset' => '+23:59', 'timeZone' => 'UTC'];
 Assert::throws(\InvalidArgumentException::class, function () use (&$offsetFields) { return \Temporal\Spec\ZonedDateTime::from($offsetFields); }, 'default offset is reject');
-Assert::throws(\InvalidArgumentException::class, function () use (&$offsetFields) { return \Temporal\Spec\ZonedDateTime::from($offsetFields, new \stdClass()); }, 'default offset is reject');
+Assert::throws(\InvalidArgumentException::class, function () use (&$offsetFields) { return \Temporal\Spec\ZonedDateTime::from($offsetFields, []); }, 'default offset is reject');
 Assert::throws(\InvalidArgumentException::class, function () use (&$offsetFields) { return \Temporal\Spec\ZonedDateTime::from($offsetFields); }, 'default offset is reject');

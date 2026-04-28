@@ -12,7 +12,7 @@ foreach ($tests as $__entry__) {
 [$instant, $expected] = array_pad($__entry__, 2, null);
 $explicit = $instant->toString([]);
 Assert::sameValue($explicit, $expected, 'default fractionalSecondDigits is auto (property present but undefined)');
-$implicit = $instant->toString(new \stdClass());
+$implicit = $instant->toString([]);
 Assert::sameValue($implicit, $expected, 'default fractionalSecondDigits is auto (property not present)');
 $lambda = $instant->toString(function () {  });
 Assert::sameValue($lambda, $expected, 'default fractionalSecondDigits is auto (property not present, function object)');

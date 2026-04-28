@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $yearmonth = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $explicit = $yearmonth->with(['month' => 15], []);
 TemporalHelpers::assertPlainYearMonth($explicit, 2000, 12, 'M12', 'default overflow is constrain');
-$implicit = $yearmonth->with(['month' => 15], new \stdClass());
+$implicit = $yearmonth->with(['month' => 15], []);
 TemporalHelpers::assertPlainYearMonth($implicit, 2000, 12, 'M12', 'default overflow is constrain');
 $lambda = $yearmonth->with(['month' => 15], function () {  });
 TemporalHelpers::assertPlainYearMonth($lambda, 2000, 12, 'M12', 'default overflow is constrain');

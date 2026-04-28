@@ -14,6 +14,6 @@ foreach ([[$springForwardDatetime, 954_671_400_000_000_000], [$fallBackDatetime,
 [$datetime, $expected] = array_pad($__entry__, 2, null);
 $explicit = $datetime->toZonedDateTime($timeZone, []);
 Assert::sameValue($explicit->epochNanoseconds, $expected, 'default disambiguation is compatible');
-$implicit = $datetime->toZonedDateTime($timeZone, new \stdClass());
+$implicit = $datetime->toZonedDateTime($timeZone, []);
 Assert::sameValue($implicit->epochNanoseconds, $expected, 'default disambiguation is compatible');
 }

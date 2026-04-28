@@ -12,7 +12,7 @@ $earlier = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
 $later = new \Temporal\Spec\Instant(1_000_090_061_988_655_322);
 $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 0, 0, 90_061, 1, 1, 1, 'default roundingIncrement is 1');
-$implicit = $earlier->until($later, new \stdClass());
+$implicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 0, 0, 90_061, 1, 1, 1, 'default roundingIncrement is 1');
 $lambda = $earlier->until($later, function () {  });
 TemporalHelpers::assertDuration($lambda, 0, 0, 0, 0, 0, 0, 90_061, 1, 1, 1, 'default roundingIncrement is 1');

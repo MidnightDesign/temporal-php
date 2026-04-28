@@ -14,7 +14,7 @@ TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from($badFields), 201
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from($badFields, ['overflow' => 'constrain']), 2019, 1, 'M01', 31, 'bad fields with constrain');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 1976, 'month' => 11, 'monthCode' => 'M12', 'day' => 18]), 'month and monthCode must agree');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2019, 'day' => 15]), 'missing month');
-Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(new \stdClass()), 'no properties');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from([]), 'no properties');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(['month' => 12]), 'missing year, day');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 1976, 'months' => 11, 'day' => 18]), 'misspelled month');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDate::from(['month' => 11, 'day' => 18]), 'year undefined');

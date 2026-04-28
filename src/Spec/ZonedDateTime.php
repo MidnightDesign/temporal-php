@@ -479,12 +479,7 @@ final class ZonedDateTime implements Stringable
      */
     public static function from(string|array|object $item, array|object|null $options = null): self
     {
-        $opts = null;
-        if (is_array($options)) {
-            $opts = $options;
-        } elseif (is_object($options)) {
-            $opts = get_object_vars($options);
-        }
+        $opts = is_object($options) ? get_object_vars($options) : $options;
 
         // Validate 'disambiguation' option if present.
         if ($opts !== null && array_key_exists('disambiguation', $opts)) {
@@ -549,7 +544,7 @@ final class ZonedDateTime implements Stringable
         if ($opts !== null && array_key_exists('offset', $opts) && is_string($opts['offset'])) {
             $offsetOption = $opts['offset'];
         }
-        $bag = is_array($item) ? $item : get_object_vars($item);
+        $bag = is_object($item) ? get_object_vars($item) : $item;
         return self::fromPropertyBag($bag, $overflow, $disambiguation, $offsetOption);
     }
 
@@ -876,9 +871,7 @@ final class ZonedDateTime implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        if (is_object($options)) {
-            $options = [];
-        }
+        $options = is_object($options) ? get_object_vars($options) : $options;
 
         $digits = -2; // -2 = 'auto'
         $offsetMode = 'auto';
@@ -1355,12 +1348,28 @@ final class ZonedDateTime implements Stringable
     /**
      * Returns a new ZonedDateTime with the specified fields overridden.
      *
-     * @param array<array-key,mixed> $fields   Property bag with fields to override.
+     * @param array<array-key,mixed>|object $fields   Property bag with fields to override.
      * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => ..., 'disambiguation' => ...]
      * @psalm-api
      */
-    public function with(array $fields, array|object|null $options = null): self
+    public function with(array|object $fields, array|object|null $options = null): self
     {
+        // Reject Temporal objects (IsPartialTemporalObject step 2).
+        if (
+            $fields instanceof PlainDate
+            || $fields instanceof PlainDateTime
+            || $fields instanceof PlainTime
+            || $fields instanceof PlainYearMonth
+            || $fields instanceof PlainMonthDay
+            || $fields instanceof self
+            || $fields instanceof Instant
+            || $fields instanceof Duration
+        ) {
+            throw new \TypeError('ZonedDateTime::with() argument must not be a Temporal object.');
+        }
+
+        $fields = is_object($fields) ? get_object_vars($fields) : $fields;
+
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
             throw new \TypeError('ZonedDateTime::with() fields must not contain a calendar or timeZone property.');
         }
@@ -1752,10 +1761,14 @@ final class ZonedDateTime implements Stringable
             throw new \TypeError('ZonedDateTime::getTimeZoneTransition() requires a direction argument.');
         }
 
+        if (is_object($direction)) {
+            $direction = get_object_vars($direction);
+        }
+
         $dir = null;
         if (is_string($direction)) {
             $dir = $direction;
-        } elseif (is_array($direction)) {
+        } else {
             if (array_key_exists('direction', $direction)) {
                 /** @var mixed $dv */
                 $dv = $direction['direction'];
@@ -1768,10 +1781,6 @@ final class ZonedDateTime implements Stringable
                     "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
                 );
             }
-        } else {
-            throw new InvalidArgumentException(
-                "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
-            );
         }
 
         if ($dir !== 'next' && $dir !== 'previous') {
@@ -2317,11 +2326,13 @@ final class ZonedDateTime implements Stringable
      */
     private static function parseZdtString(string $text, array|object|null $options = null): self
     {
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+
         // Resolve the 'offset' option (default: 'reject').
         $offsetOption = 'reject';
-        if (is_array($options) && array_key_exists('offset', $options)) {
+        if ($opts !== null && array_key_exists('offset', $opts)) {
             /** @var mixed $ov */
-            $ov = $options['offset'];
+            $ov = $opts['offset'];
             if (
                 is_string($ov) && in_array(needle: $ov, haystack: ['use', 'ignore', 'prefer', 'reject'], strict: true)
             ) {
@@ -2331,9 +2342,9 @@ final class ZonedDateTime implements Stringable
 
         // Resolve the 'disambiguation' option (default: 'compatible').
         $disambiguation = 'compatible';
-        if (is_array($options) && array_key_exists('disambiguation', $options)) {
+        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
             /** @var mixed $dv */
-            $dv = $options['disambiguation'];
+            $dv = $opts['disambiguation'];
             if (is_string($dv) && in_array($dv, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 $disambiguation = $dv;
             }

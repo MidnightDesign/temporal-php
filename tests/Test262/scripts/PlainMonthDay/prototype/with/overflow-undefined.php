@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $monthday = new \Temporal\Spec\PlainMonthDay(5, 2);
 $explicit = $monthday->with(['day' => 33], []);
 TemporalHelpers::assertPlainMonthDay($explicit, 'M05', 31, 'default overflow is constrain');
-$implicit = $monthday->with(['day' => 33], new \stdClass());
+$implicit = $monthday->with(['day' => 33], []);
 TemporalHelpers::assertPlainMonthDay($implicit, 'M05', 31, 'default overflow is constrain');
 $lambda = $monthday->with(['day' => 33], function () {  });
 TemporalHelpers::assertPlainMonthDay($lambda, 'M05', 31, 'default overflow is constrain');

@@ -9,12 +9,12 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
-Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(new \stdClass()); }, 'empty object not acceptable');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with([]); }, 'empty object not acceptable');
 $units = ['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($units as $unit) {
 $plural = "{$unit}s";
-$options = new \stdClass();
-$__unknown__ = 1;
+$options = [];
+$options[$plural] = 1;
 Assert::throws(\TypeError::class, function () use (&$instance, &$options) { return $instance->with($options); }, "plural unit (\"{$plural}\" vs \"{$unit}\") is not acceptable");
 }
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(['nonsense' => true]); }, 'throw if no recognized properties present');

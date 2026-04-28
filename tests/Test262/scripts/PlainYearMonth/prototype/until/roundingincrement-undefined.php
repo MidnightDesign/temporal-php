@@ -12,7 +12,7 @@ $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');
-$implicit = $earlier->until($later, new \stdClass());
+$implicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($implicit, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');
 $lambda = $earlier->until($later, function () {  });
 TemporalHelpers::assertDuration($lambda, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'default roundingIncrement is 1');

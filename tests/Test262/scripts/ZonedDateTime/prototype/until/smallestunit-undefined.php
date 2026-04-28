@@ -12,7 +12,7 @@ $earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
 $explicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 25, 1, 1, 987, 654, 321, 'default smallestUnit is nanosecond');
-$implicit = $earlier->until($later, new \stdClass());
+$implicit = $earlier->until($later, []);
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 25, 1, 1, 987, 654, 321, 'default smallestUnit is nanosecond');
 $lambda = $earlier->until($later, function () {  });
 TemporalHelpers::assertDuration($lambda, 0, 0, 0, 0, 25, 1, 1, 987, 654, 321, 'default smallestUnit is nanosecond');

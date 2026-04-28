@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDate(2000, 1, 1);
-$props = new \stdClass();
+$props = [];
 Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->toPlainDateTime($props); }, 'TypeError if no properties are present');
 $props['minute'] = 30;
 $result = $instance->toPlainDateTime($props);

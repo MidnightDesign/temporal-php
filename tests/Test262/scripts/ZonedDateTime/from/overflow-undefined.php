@@ -11,7 +11,7 @@ $validValues = [new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC
 foreach ($validValues as $value) {
 $explicit = \Temporal\Spec\ZonedDateTime::from($value, []);
 Assert::sameValue($explicit->epochNanoseconds, 1_000_000_000_987_654_321, 'overflow is ignored');
-$implicit = \Temporal\Spec\ZonedDateTime::from($value, new \stdClass());
+$implicit = \Temporal\Spec\ZonedDateTime::from($value, []);
 Assert::sameValue($implicit->epochNanoseconds, 1_000_000_000_987_654_321, 'overflow is ignored');
 $lambda = \Temporal\Spec\ZonedDateTime::from($value, function () {  });
 Assert::sameValue($lambda->epochNanoseconds, 1_000_000_000_987_654_321, 'overflow is ignored');

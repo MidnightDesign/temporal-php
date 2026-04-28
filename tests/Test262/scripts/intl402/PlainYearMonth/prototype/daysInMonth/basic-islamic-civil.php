@@ -13,9 +13,9 @@ $leapYear = 1390;
 $commonYear = 1391;
 $leapYearDaysInMonth = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 30];
 $commonYearDaysInMonth = [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
-$daysInMonth = new \stdClass();
-$__unknown__ = $leapYearDaysInMonth;
-$__unknown__ = $commonYearDaysInMonth;
+$daysInMonth = [];
+$daysInMonth[$leapYear] = $leapYearDaysInMonth;
+$daysInMonth[$commonYear] = $commonYearDaysInMonth;
 foreach ([$leapYear, $commonYear] as $year) {
 for ($month = 1; $month < 13; $month++) {
 $date = \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'month' => $month, 'calendar' => $calendar]);

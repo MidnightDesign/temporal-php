@@ -12,7 +12,7 @@ $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 31, 12);
 $duration = new \Temporal\Spec\Duration(3, 1);
 $explicit = $datetime->add($duration, []);
 TemporalHelpers::assertPlainDateTime($explicit, 2003, 6, 'M06', 30, 12, 0, 0, 0, 0, 0, 'default overflow is constrain');
-$implicit = $datetime->add($duration, new \stdClass());
+$implicit = $datetime->add($duration, []);
 TemporalHelpers::assertPlainDateTime($implicit, 2003, 6, 'M06', 30, 12, 0, 0, 0, 0, 0, 'default overflow is constrain');
 $lambda = $datetime->add($duration, function () {  });
 TemporalHelpers::assertPlainDateTime($lambda, 2003, 6, 'M06', 30, 12, 0, 0, 0, 0, 0, 'default overflow is constrain');

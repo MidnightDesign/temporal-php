@@ -380,10 +380,7 @@ final class Instant implements Stringable
      */
     public function toString(array|object|null $options = null): string
     {
-        // TC39: any object (including closures) is a valid options bag treated as empty.
-        if (is_object($options)) {
-            $options = [];
-        }
+        $options = is_object($options) ? get_object_vars($options) : $options;
 
         // $digits: -2 = 'auto' (strip trailing zeros), -1 = minute format, 0-9 = fixed.
         $digits = -2;
@@ -707,7 +704,7 @@ final class Instant implements Stringable
     {
         $locale = CalendarMath::resolveLocale($locales);
         /** @var array<string, mixed> $opts */
-        $opts = is_array($options) ? $options : [];
+        $opts = is_object($options) ? get_object_vars($options) : $options ?? [];
 
         /** @var mixed $tzOpt */
         $tzOpt = $opts['timeZone'] ?? null;
@@ -911,8 +908,7 @@ final class Instant implements Stringable
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
         } elseif (is_object($roundTo)) {
-            // TC39: any object is a valid options bag treated as empty if no properties.
-            $roundTo = [];
+            $roundTo = get_object_vars($roundTo);
         }
 
         /** @var mixed $suRaw */
@@ -1287,9 +1283,8 @@ final class Instant implements Stringable
         ];
 
         // ---- Parse options ----
-        // TC39: any object (including closures) is a valid options bag treated as empty.
         if (is_object($options)) {
-            $options = [];
+            $options = get_object_vars($options);
         } elseif ($options === null) {
             $options = [];
         }

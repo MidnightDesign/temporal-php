@@ -12,7 +12,7 @@ $earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_988_655_322, 'UTC');
 $explicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($explicit, 0, 0, 0, 0, 25, 1, 1, 1, 1, 1, 'default roundingIncrement is 1');
-$implicit = $later->since($earlier, new \stdClass());
+$implicit = $later->since($earlier, []);
 TemporalHelpers::assertDuration($implicit, 0, 0, 0, 0, 25, 1, 1, 1, 1, 1, 'default roundingIncrement is 1');
 $lambda = $later->since($earlier, function () {  });
 TemporalHelpers::assertDuration($lambda, 0, 0, 0, 0, 25, 1, 1, 1, 1, 1, 'default roundingIncrement is 1');

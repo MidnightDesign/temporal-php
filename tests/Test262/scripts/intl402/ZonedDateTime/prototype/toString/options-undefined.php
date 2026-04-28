@@ -13,7 +13,7 @@ foreach ([[$datetime1, '2000-05-02T12:34:56.98765+00:00[UTC]'], [$datetime2, '20
 [$datetime, $expected] = array_pad($__entry__, 2, null);
 $explicit = $datetime->toString();
 Assert::sameValue($explicit, $expected, 'default show options are auto, precision is auto, and no rounding');
-$propertyImplicit = $datetime->toString(new \stdClass());
+$propertyImplicit = $datetime->toString([]);
 Assert::sameValue($propertyImplicit, $expected, 'default show options are auto, precision is auto, and no rounding');
 $implicit = $datetime->toString();
 Assert::sameValue($implicit, $expected, 'default show options are auto, precision is auto, and no rounding');

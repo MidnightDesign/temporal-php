@@ -18,6 +18,6 @@ TemporalHelpers::assertPlainMonthDay($md->with(['year' => 2000, 'month' => 12]),
 TemporalHelpers::assertPlainMonthDay($md->with(['year' => 2000]), 'M01', 15, 'with({year})');
 Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(['day' => 1, 'calendar' => 'iso8601']); }, 'with({calendar})');
 Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(['day' => 1, 'timeZone' => 'UTC']); }, 'with({timeZone})');
-Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(new \stdClass()); }, 'with({})');
+Assert::throws(\TypeError::class, function () use (&$md) { return $md->with([]); }, 'with({})');
 Assert::throws(\TypeError::class, function () use (&$md) { return $md->with(['months' => 12]); }, 'with({months})');
 TemporalHelpers::assertPlainMonthDay($md->with(['monthCode' => 'M12', 'days' => 1]), 'M12', 15, 'with({monthCode, days})');

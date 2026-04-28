@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $explicit = $datetime->with(['second' => 67], []);
 Assert::sameValue($explicit->epochNanoseconds, 1_000_000_019_987_654_321, 'default overflow is constrain');
-$implicit = $datetime->with(['second' => 67], new \stdClass());
+$implicit = $datetime->with(['second' => 67], []);
 Assert::sameValue($implicit->epochNanoseconds, 1_000_000_019_987_654_321, 'default overflow is constrain');
 $lambda = $datetime->with(['second' => 67], function () {  });
 Assert::sameValue($lambda->epochNanoseconds, 1_000_000_019_987_654_321, 'default overflow is constrain');

@@ -185,14 +185,11 @@ final class PlainTime implements Stringable
             self::extractOverflow($options);
             return self::fromString($item);
         }
-        if (is_array($item)) {
-            $overflow = self::extractOverflow($options);
-            return self::fromPropertyBag($item, $overflow);
+        if (is_object($item)) {
+            $item = get_object_vars($item);
         }
-        throw new \TypeError(sprintf(
-            'PlainTime::from() expects a PlainTime, ISO 8601 time string, or property-bag array; got %s.',
-            get_debug_type($item),
-        ));
+        $overflow = self::extractOverflow($options);
+        return self::fromPropertyBag($item, $overflow);
     }
 
     /**
@@ -220,13 +217,28 @@ final class PlainTime implements Stringable
      * Only time fields (hour, minute, second, millisecond, microsecond, nanosecond)
      * are recognized; unrecognized keys are silently ignored.
      *
-     * @param array<array-key, mixed> $fields
+     * @param array<array-key, mixed>|object $fields
      * @param array<array-key, mixed>|object|null        $options Options bag or null; supports 'overflow' key.
      * @throws InvalidArgumentException if a field value is infinite or out of range.
      * @psalm-api
      */
-    public function with(array $fields, array|object|null $options = null): self
+    public function with(array|object $fields, array|object|null $options = null): self
     {
+        // Reject Temporal objects (IsPartialTemporalObject step 2).
+        if (
+            $fields instanceof self
+            || $fields instanceof PlainDate
+            || $fields instanceof PlainDateTime
+            || $fields instanceof PlainYearMonth
+            || $fields instanceof PlainMonthDay
+            || $fields instanceof ZonedDateTime
+            || $fields instanceof Instant
+            || $fields instanceof Duration
+        ) {
+            throw new \TypeError('PlainTime::with() argument must not be a Temporal object.');
+        }
+
+        $fields = is_object($fields) ? get_object_vars($fields) : $fields;
         $overflow = self::extractOverflow($options);
 
         $h = $this->hour;
@@ -450,9 +462,7 @@ final class PlainTime implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        if (is_object($options)) {
-            $options = [];
-        }
+        $options = is_object($options) ? get_object_vars($options) : $options;
 
         // $digits: -2 = 'auto', -1 = minute format (no seconds), 0-9 = fixed digits.
         $digits = -2;
