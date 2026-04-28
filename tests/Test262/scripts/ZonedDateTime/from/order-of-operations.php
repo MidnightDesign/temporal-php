@@ -8,4 +8,25 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$createOptionsObserver = function ($__unknown__) use (&$actual, &$overflow, &$disambiguation, &$offset) {
+return TemporalHelpers::propertyBagObserver($actual, ['overflow' => $overflow, 'disambiguation' => $disambiguation, 'offset' => $offset, 'extra' => 'property'], 'options');
+};
+$expectedOptionsReading = ['get options.disambiguation', 'get options.disambiguation.toString', 'call options.disambiguation.toString', 'get options.offset', 'get options.offset.toString', 'call options.offset.toString', 'get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
+$expectedOpsForPrimitiveOptions = ['get item.calendar', 'get item.day', 'get item.day.valueOf', 'call item.day.valueOf', 'get item.hour', 'get item.hour.valueOf', 'call item.hour.valueOf', 'get item.microsecond', 'get item.microsecond.valueOf', 'call item.microsecond.valueOf', 'get item.millisecond', 'get item.millisecond.valueOf', 'call item.millisecond.valueOf', 'get item.minute', 'get item.minute.valueOf', 'call item.minute.valueOf', 'get item.month', 'get item.month.valueOf', 'call item.month.valueOf', 'get item.monthCode', 'get item.monthCode.toString', 'call item.monthCode.toString', 'get item.nanosecond', 'get item.nanosecond.valueOf', 'call item.nanosecond.valueOf', 'get item.offset', 'get item.offset.toString', 'call item.offset.toString', 'get item.second', 'get item.second.valueOf', 'call item.second.valueOf', 'get item.timeZone', 'get item.year', 'get item.year.valueOf', 'call item.year.valueOf'];
+$expected = array_merge($expectedOpsForPrimitiveOptions, $expectedOptionsReading);
+$actual = [];
+$from = TemporalHelpers::propertyBagObserver($actual, ['year' => 2001, 'month' => 5, 'monthCode' => 'M05', 'day' => 2, 'hour' => 6, 'minute' => 54, 'second' => 32, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321, 'offset' => '+00:00', 'calendar' => 'iso8601', 'timeZone' => 'UTC'], 'item', ['calendar', 'timeZone']);
+$options = $createOptionsObserver();
+\Temporal\Spec\ZonedDateTime::from($from, $options);
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
+\Temporal\Spec\ZonedDateTime::from(new \Temporal\Spec\ZonedDateTime(0, 'UTC'), $options);
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expectedOptionsReading, "order of operations when cloning a ZonedDateTime instance");
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
+\Temporal\Spec\ZonedDateTime::from('2001-05-02T06:54:32.987654321+00:00[UTC]', $options);
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expectedOptionsReading, "order of operations when parsing a string");
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
+// JS-only (JS rejects non-object options via ToObject; PHP accepts null as "absent"): assert.throws(TypeError, () => Temporal.ZonedDateTime.from(from, null));
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expectedOpsForPrimitiveOptions, "item fields are read before TypeError is thrown for primitive options");
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

@@ -12,5 +12,7 @@ $instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ([INF, -INF] as $inf) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf) { return $instance->toPlainDate(['year' => $inf]); }, "year property cannot be {$inf}");
 $calls = [];
-Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
+$obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, 'year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$obj) { return $instance->toPlainDate(['year' => $obj]); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, ["get year.valueOf", "call year.valueOf"], "it fails after fetching the primitive value");
 }

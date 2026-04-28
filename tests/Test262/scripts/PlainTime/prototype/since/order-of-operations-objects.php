@@ -12,4 +12,12 @@ $expectedOpsForPrimitiveOptions = ['get other.hour', 'get other.hour.valueOf', '
 $expected = array_merge($expectedOpsForPrimitiveOptions, ['get options.largestUnit', 'get options.largestUnit.toString', 'call options.largestUnit.toString', 'get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString']);
 $actual = [];
 $instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$other = TemporalHelpers::propertyBagObserver($actual, (object) ['hour' => 1.7, 'minute' => 1.7, 'second' => 1.7, 'millisecond' => 1.7, 'microsecond' => 1.7, 'nanosecond' => 1.7, 'calendar' => 'iso8601'], 'other', ['calendar']);
+$options = TemporalHelpers::propertyBagObserver($actual, (object) ['roundingIncrement' => 1, 'roundingMode' => 'trunc', 'largestUnit' => 'hours', 'smallestUnit' => 'nanoseconds', 'additional' => true], 'options');
+$result = $instance->since($other, $options);
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
+// JS-only (JS rejects non-object options via ToObject; PHP accepts null as "absent"): assert.throws(TypeError, () => instance.since(other, null));
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expectedOpsForPrimitiveOptions, "other time fields are read before TypeError is thrown for primitive options");
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

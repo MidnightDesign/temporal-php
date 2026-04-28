@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, ['overflow' => 'reject'], 'options');
+Assert::throws(\InvalidArgumentException::class, function () use (&$options) { \Temporal\Spec\PlainTime::from(['hour' => 24], $options); }, 'overflow reject exception thrown');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

@@ -565,6 +565,57 @@ final class TemporalHelpers
     }
 
     /**
+     * Passthrough stand-in for the JS TemporalHelpers.toPrimitiveObserver.
+     *
+     * The JS version returns an object whose `valueOf` and `toString` getters log
+     * "get" events and whose returned functions log "call" events to a shared array,
+     * so that order-of-operations tests can verify the spec's prescribed sequence
+     * of property accesses on argument objects.
+     *
+     * PHP does not distinguish property-get from method-call on a normal object
+     * (no JS-style ToPrimitive coercion for object args), so we return the primitive
+     * directly. Tests that care purely about the call sequence — `assert.compareArray`
+     * on the calls array, and explicit `.splice(0)` clears — are dropped at the
+     * transpiler level, which leaves the constructor / from() / etc. behavior under
+     * test still exercised.
+     *
+     * @psalm-suppress UnusedParam
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     *
+     * @param list<string> $calls Ignored — we do not track property-access order.
+     */
+    public static function toPrimitiveObserver(array &$calls, mixed $primitiveValue, string $propertyName): mixed
+    {
+        return $primitiveValue;
+    }
+
+    /**
+     * Passthrough stand-in for the JS TemporalHelpers.propertyBagObserver.
+     *
+     * The JS version wraps `propertyBag` in a Proxy that logs `get`/`has`/`ownKeys`
+     * events and wraps each property's value via {@see toPrimitiveObserver}. Same
+     * rationale as toPrimitiveObserver: PHP has no observable equivalent, and the
+     * compareArray order-checks at the call sites are dropped by the transpiler.
+     *
+     * @psalm-suppress UnusedParam
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     *
+     * @param list<string>      $calls            Ignored.
+     * @param array<string, mixed>|object $propertyBag    Returned unchanged.
+     * @param list<string>|null $skipToPrimitive  Ignored.
+     *
+     * @return array<string, mixed>|object
+     */
+    public static function propertyBagObserver(
+        array &$calls,
+        array|object $propertyBag,
+        string $objectName,
+        ?array $skipToPrimitive = null,
+    ): array|object {
+        return $propertyBag;
+    }
+
+    /**
      * Asserts that two ZonedDateTimes are equal (same epoch, timezone, and calendar).
      *
      * Argument order matches JS TemporalHelpers.assertZonedDateTimesEqual(actual, expected, msg).

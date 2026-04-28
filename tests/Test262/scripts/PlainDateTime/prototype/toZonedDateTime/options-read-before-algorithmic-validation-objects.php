@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.disambiguation', 'get options.disambiguation.toString', 'call options.disambiguation.toString'];
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, (object) ['disambiguation' => 'reject'], 'options');
+$instance = new \Temporal\Spec\PlainDateTime(-271_821, 4, 20, 0);
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->toZonedDateTime('+23:59', $options); }, 'exception thrown when wall time out of range for exact time');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

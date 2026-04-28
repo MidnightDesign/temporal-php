@@ -11,4 +11,12 @@ use Temporal\Tests\Test262\TemporalHelpers;
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(INF, 1), '');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(1970, INF), '');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(1970, 1, 'iso8601', INF), '');
-Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
+$O = function ($primitiveValue, $propertyName) use (&$calls) { return function ($calls) use (&$primitiveValue, &$propertyName) { return TemporalHelpers::toPrimitiveObserver($calls, $primitiveValue, $propertyName); }; };
+$tests = [['infinite year', [$O(INF, 'year'), $O(1, 'month'), fn() => 'iso8601', $O(1, 'day')], ['get year.valueOf', 'call year.valueOf']], ['infinite month', [$O(1970, 'year'), $O(INF, 'month'), fn() => 'iso8601', $O(1, 'day')], ['get year.valueOf', 'call year.valueOf', 'get month.valueOf', 'call month.valueOf']], ['infinite day', [$O(1970, 'year'), $O(1, 'month'), fn() => 'iso8601', $O(INF, 'day')], ['get year.valueOf', 'call year.valueOf', 'get month.valueOf', 'call month.valueOf', 'get day.valueOf', 'call day.valueOf']]];
+foreach ($tests as $__entry__) {
+[$description, $args, $expected] = array_pad($__entry__, 3, null);
+$actual = [];
+$args_ = array_map(fn($o) => $o($actual), $args);
+Assert::throws(\InvalidArgumentException::class, function () use (&$args_) { return new \Temporal\Spec\PlainYearMonth(...$args_); }, $description);
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, `${description} order of operations`);
+}

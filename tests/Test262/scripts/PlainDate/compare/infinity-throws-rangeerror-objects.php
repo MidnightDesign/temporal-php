@@ -15,6 +15,12 @@ foreach (['year', 'month', 'day'] as $prop) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$inf, &$other) { return \Temporal\Spec\PlainDate::compare((object) array_merge((array) $base, [$prop => $inf]), $other); }, "{$prop} property cannot be {$inf}");
 Assert::throws(\InvalidArgumentException::class, function () use (&$other, &$base, &$prop, &$inf) { return \Temporal\Spec\PlainDate::compare($other, (object) array_merge((array) $base, [$prop => $inf])); }, "{$prop} property cannot be {$inf}");
 $calls1 = [];
-Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
+$obj1 = TemporalHelpers::toPrimitiveObserver($calls1, $inf, $prop);
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$obj1, &$other) { return \Temporal\Spec\PlainDate::compare((object) array_merge((array) $base, [$prop => $obj1]), $other); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls1, [`get ${prop}.valueOf`, `call ${prop}.valueOf`], "it fails after fetching the primitive value");
+$calls2 = [];
+$obj2 = TemporalHelpers::toPrimitiveObserver($calls2, $inf, $prop);
+Assert::throws(\InvalidArgumentException::class, function () use (&$other, &$base, &$prop, &$obj2) { return \Temporal\Spec\PlainDate::compare($other, (object) array_merge((array) $base, [$prop => $obj2])); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls2, [`get ${prop}.valueOf`, `call ${prop}.valueOf`], "it fails after fetching the primitive value");
 }
 }

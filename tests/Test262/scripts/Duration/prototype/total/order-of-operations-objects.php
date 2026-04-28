@@ -8,4 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$createOptionsObserver = function ($__unknown__) use (&$actual, &$unit, &$roundingMode, &$roundingIncrement, &$relativeTo) {
+return TemporalHelpers::propertyBagObserver($actual, (object) ['unit' => $unit, 'roundingMode' => $roundingMode, 'roundingIncrement' => $roundingIncrement, 'relativeTo' => $relativeTo], 'options');
+};
+Assert::incomplete('untranslatable: Object.defineProperty');

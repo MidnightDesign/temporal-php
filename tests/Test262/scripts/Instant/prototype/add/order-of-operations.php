@@ -11,4 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\Instant(10);
 $expected = ['get fields.days', 'get fields.hours', 'get fields.hours.valueOf', 'call fields.hours.valueOf', 'get fields.microseconds', 'get fields.microseconds.valueOf', 'call fields.microseconds.valueOf', 'get fields.milliseconds', 'get fields.milliseconds.valueOf', 'call fields.milliseconds.valueOf', 'get fields.minutes', 'get fields.minutes.valueOf', 'call fields.minutes.valueOf', 'get fields.months', 'get fields.nanoseconds', 'get fields.nanoseconds.valueOf', 'call fields.nanoseconds.valueOf', 'get fields.seconds', 'get fields.seconds.valueOf', 'call fields.seconds.valueOf', 'get fields.weeks', 'get fields.years'];
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$fields = TemporalHelpers::propertyBagObserver($actual, ['hours' => 1, 'minutes' => 1, 'seconds' => 1, 'milliseconds' => 1, 'microseconds' => 1, 'nanoseconds' => 1], 'fields');
+$result = $instance->add($fields);
+Assert::sameValue($result->epochNanoseconds, 3_661_001_001_011, 'epochNanoseconds result');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");

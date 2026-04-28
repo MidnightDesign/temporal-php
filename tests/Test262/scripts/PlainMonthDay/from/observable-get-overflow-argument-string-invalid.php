@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, ['overflow' => 'constrain'], 'options');
+Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\PlainMonthDay::from('13-34', $options); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, [], "options read after string parsing");

@@ -12,4 +12,5 @@ foreach ($fields as $field) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$field) { return \Temporal\Spec\Duration::from([$field => -INF]); }, '');
 }
 $calls = 0;
-Assert::incomplete('untranslatable object property');
+// JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): obj = { valueOf() { calls++; return -Infinity; } }
+// JS-only (references JS-only ToPrimitive tracker variable): fields.forEach((field) => { calls = 0; assert.throws(RangeError, () => Temporal.Duration.from({ [field]: obj })); assert.sameValue(calls, 1, "it fails after fe…

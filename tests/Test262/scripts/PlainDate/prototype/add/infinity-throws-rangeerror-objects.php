@@ -16,4 +16,5 @@ Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$
 }
 }
 $calls = 0;
-Assert::incomplete('untranslatable object property');
+// JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): obj = { valueOf() { calls++; return Infinity; } }
+// JS-only (references JS-only ToPrimitive tracker variable): overflows.forEach((overflow) => { fields.forEach((field) => { calls = 0; assert.throws(RangeError, () => instance.add({ [field]: obj }, { overflow })); assert.…

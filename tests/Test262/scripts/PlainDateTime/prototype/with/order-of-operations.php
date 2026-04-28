@@ -13,5 +13,5 @@ $expected = array_merge($expectedOpsForPrimitiveOptions, ['get options.overflow'
 $actual = [];
 $calendar = 'iso8601';
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321, $calendar);
-$actual->splice(0);
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
 Assert::incomplete('TemporalHelpers.observeProperty() is not yet implemented');
