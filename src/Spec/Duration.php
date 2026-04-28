@@ -926,12 +926,14 @@ final class Duration implements Stringable
             } elseif ($rtRaw instanceof \Temporal\Spec\ZonedDateTime) {
                 // ZonedDateTime objects are valid relativeTo values for pure-time computations.
             } elseif ($rtRaw !== null) {
-                $rtForVal = is_object($rtRaw) ? get_object_vars($rtRaw) : $rtRaw;
-                if (is_array($rtForVal)) {
-                    self::validateRelativeToPropertyBag($rtForVal);
+                if (is_object($rtRaw)) {
+                    $rtForVal = get_object_vars($rtRaw);
+                } elseif (is_array($rtRaw)) {
+                    $rtForVal = $rtRaw;
                 } else {
                     throw new \TypeError('relativeTo must be a string or property bag array.');
                 }
+                self::validateRelativeToPropertyBag($rtForVal);
             }
         }
 

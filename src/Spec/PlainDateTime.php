@@ -1189,10 +1189,7 @@ final class PlainDateTime implements Stringable
         if ($opts !== null && array_key_exists('disambiguation', $opts)) {
             /** @var mixed $disamb */
             $disamb = $opts['disambiguation'];
-            if (
-                !is_string($disamb)
-                || !in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)
-            ) {
+            if (!is_string($disamb) || !in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 throw new InvalidArgumentException(
                     'PlainDateTime::toZonedDateTime() disambiguation must be one of: compatible, earlier, later, reject.',
                 );
@@ -1201,11 +1198,7 @@ final class PlainDateTime implements Stringable
 
         $normalTzId = ZonedDateTime::normalizeTimezoneId($timeZone);
         $disambiguation = 'compatible';
-        if (
-            $opts !== null
-            && array_key_exists('disambiguation', $opts)
-            && is_string($opts['disambiguation'])
-        ) {
+        if ($opts !== null && array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
             $disambiguation = $opts['disambiguation'];
         }
 

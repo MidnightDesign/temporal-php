@@ -609,7 +609,7 @@ final class CalendarMath
             'ceil', 'expand' => $progress > 0.0,
             'halfExpand', 'halfCeil' => $progress >= 0.5,
             'halfTrunc', 'halfFloor' => $progress > 0.5,
-            'halfEven' => $progress > 0.5 || ($progress === 0.5 && ($absFloorUnits % 2) !== 0),
+            'halfEven' => $progress > 0.5 || $progress === 0.5 && ($absFloorUnits % 2) !== 0,
             default => false,
         };
     }

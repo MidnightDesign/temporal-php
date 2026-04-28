@@ -704,7 +704,7 @@ final class Instant implements Stringable
     {
         $locale = CalendarMath::resolveLocale($locales);
         /** @var array<string, mixed> $opts */
-        $opts = is_object($options) ? get_object_vars($options) : ($options ?? []);
+        $opts = is_object($options) ? get_object_vars($options) : $options ?? [];
 
         /** @var mixed $tzOpt */
         $tzOpt = $opts['timeZone'] ?? null;
