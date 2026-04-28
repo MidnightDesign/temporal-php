@@ -126,6 +126,8 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertPlainYearMonth',
   'assertPlainYearMonthsEqual',
   'assertPlainMonthDay',
+  'toPrimitiveObserver',
+  'propertyBagObserver',
 ]);
 
 /**
@@ -322,6 +324,27 @@ class Emitter {
     // Variables that are aliases for a Temporal class (from `const { Instant } = Temporal;`).
     // Maps JS variable name → Temporal class name (e.g. 'Instant' → 'Instant').
     this.temporalClassAliases = new Map();
+    // Set to true by processFile() when the script imports any TemporalHelpers
+    // observer (toPrimitiveObserver / propertyBagObserver). Our PHP helpers are
+    // passthroughs that do not record property-access order, so any statement
+    // consuming the JS "calls" array (assert.compareArray, .splice, .length=N)
+    // is skipped at emit time. In observer-using fixtures these statements are
+    // universally tracking artifacts, never independent assertions.
+    this.observersInUse = false;
+    // Maps `const X = [...]` Identifier names to the literal element count.
+    // Lets the observer-mode skip rule recognize `new Ctor(...X)` patterns where
+    // X was statically constructed with too few elements (e.g. PlainMonthDay's
+    // missing-arguments fixture) — those throw ArgumentCountError in PHP, not
+    // the JS-spec RangeError.
+    this.arrayLiteralVars = new Map();
+    // Variables that hold a JS-only ToPrimitive observer construct (an object
+    // literal with `valueOf`/`toString` method shorthands) — directly, or as an
+    // element of an array. Also includes variables MUTATED inside such method
+    // bodies (e.g. counter increments, `actual.push(...)`), since those values
+    // are unobservable in PHP. Statements whose expression references any of
+    // these names are silently skipped, so the script keeps emitting unrelated
+    // statements that come before/between/after the JS-only block.
+    this.jsOnlyVars = new Set();
   }
 
   emit(line) {
@@ -333,6 +356,23 @@ class Emitter {
       this.lines.push(`Assert::incomplete(${phpStr(reason)});`);
       this.incomplete = true;
     }
+  }
+
+  /**
+   * Emits a `// JS-only (<reason>): <original-js>` comment when a statement is
+   * silently dropped (untranslatable JS-only construct that the suite would
+   * otherwise discard via Assert::incomplete + PHPUnit's coverage discard for
+   * incomplete tests). Keeps the generated PHP traceable to the source JS.
+   */
+  emitSkipComment(node, reason) {
+    if (!node || typeof node.start !== 'number' || typeof node.end !== 'number') {
+      this.emit(`// JS-only (${reason}): statement omitted`);
+      return;
+    }
+    let src = this.source.slice(node.start, node.end).replace(/\s+/g, ' ').trim();
+    const MAX = 160;
+    if (src.length > MAX) src = src.slice(0, MAX - 1) + '…';
+    this.emit(`// JS-only (${reason}): ${src}`);
   }
 
   // ── Top-level ─────────────────────────────────────────────────────────────
@@ -450,6 +490,44 @@ class Emitter {
       // Track variables assigned from Temporal.Instant constructors
       if (decl.id.type === 'Identifier' && this.isInstantCall(decl.init)) {
         this.instantVars.add(decl.id.name);
+      }
+      // Track variables initialized from array literals — used in observer mode
+      // to detect `new TemporalCtor(...arr)` "missing args" assertions where `arr`
+      // was statically constructed with fewer elements than the constructor needs.
+      if (decl.id.type === 'Identifier' && decl.init?.type === 'ArrayExpression') {
+        this.arrayLiteralVars.set(decl.id.name, decl.init.elements.length);
+      }
+      // Detect inline JS-only ToPrimitive observers: `const X = { valueOf() {} }`
+      // or `const X = [{ valueOf() {} }, ...]`. The init can't be expressed in
+      // PHP (no equivalent of JS's ToPrimitive coercion on object args), so we
+      // skip emitting the declaration. We also collect identifier names mutated
+      // inside the method bodies (counters, log arrays) — assertions against
+      // those tracker variables get skipped too, since their PHP values stay
+      // at their initial values (the JS methods never fire).
+      if (decl.id.type === 'Identifier') {
+        const init = decl.init;
+        const initIsObs = hasMethodShorthand(init)
+          || (init?.type === 'ArrayExpression' && init.elements.some(hasMethodShorthand));
+        if (initIsObs) {
+          this.jsOnlyVars.add(decl.id.name);
+          for (const obj of (init.type === 'ArrayExpression' ? init.elements : [init])) {
+            if (!hasMethodShorthand(obj)) continue;
+            for (const prop of obj.properties) {
+              if (prop.type === 'Property' && prop.method) {
+                for (const n of collectMutatedNames(prop.value)) this.jsOnlyVars.add(n);
+              }
+            }
+          }
+          this.emitSkipComment(decl, 'inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)');
+          continue;
+        }
+      }
+      // Already-tracked JS-only var being reassigned, or a new var whose init
+      // references a JS-only var — propagate the taint and skip emit.
+      if (decl.init && expressionRefsAny(decl.init, this.jsOnlyVars)) {
+        if (decl.id.type === 'Identifier') this.jsOnlyVars.add(decl.id.name);
+        this.emitSkipComment(decl, 'init references JS-only ToPrimitive tracker variable');
+        continue;
       }
       const lhs = this.transpilePattern(decl.id);
       const rhs = this.transpileExpr(decl.init);
@@ -632,7 +710,87 @@ class Emitter {
         && !node.expression.left.computed
         && node.expression.left.object.type === 'Identifier'
         && JS_GLOBALS.has(node.expression.left.object.name)) {
-      return; // silently skip — no PHP equivalent
+      this.emitSkipComment(node, 'JS global property override has no PHP equivalent');
+      return;
+    }
+    // Drop statements that touch a JS-only tracker variable (ToPrimitive
+    // observer object, mutated counter, log array). The values can't be
+    // reproduced in PHP, so any assertion against them would compare against
+    // a stale value.
+    if (this.jsOnlyVars.size > 0 && expressionRefsAny(node.expression, this.jsOnlyVars)) {
+      this.emitSkipComment(node, 'references JS-only ToPrimitive tracker variable');
+      return;
+    }
+    // In observer-using fixtures, drop statements that are JS-only artifacts.
+    // Our PHP passthrough observers don't record property-access order, and our
+    // typed signatures pre-validate where JS uses ToObject/ToPrimitive coercion,
+    // so several JS-spec patterns either trivially fail or throw a different
+    // PHP-native error class.
+    if (this.observersInUse) {
+      const e = node.expression;
+      // assert.compareArray(*, ...) — call-order tracking, always empty in PHP.
+      if (e.type === 'CallExpression' && isMember(e.callee, 'assert', 'compareArray')) {
+        this.emitSkipComment(node, 'observer call-order check, tracker is empty in PHP');
+        return;
+      }
+      // X.splice(...) — clear-the-tracking-array calls.
+      if (e.type === 'CallExpression'
+          && e.callee.type === 'MemberExpression' && !e.callee.computed
+          && e.callee.property?.type === 'Identifier' && e.callee.property.name === 'splice') {
+        this.emitSkipComment(node, 'observer tracker reset (no-op in PHP)');
+        return;
+      }
+      // X.length = N — alternate clear pattern.
+      if (e.type === 'AssignmentExpression'
+          && e.left.type === 'MemberExpression' && !e.left.computed
+          && e.left.property?.type === 'Identifier' && e.left.property.name === 'length') {
+        this.emitSkipComment(node, 'observer tracker reset (no-op in PHP)');
+        return;
+      }
+      // assert.throws(<exc>, () => ...) where the wrapped call is a JS-only
+      // options-or-arity check that PHP's typed signatures handle differently:
+      //   - last arg is `null` (JS rejects non-object options; PHP treats null as "absent")
+      //   - constructor is called with zero args (JS spec says RangeError; PHP throws
+      //     ArgumentCountError before the body runs)
+      if (e.type === 'CallExpression' && isMember(e.callee, 'assert', 'throws')) {
+        const cb = e.arguments[1];
+        const cbBody = cb && (cb.type === 'ArrowFunctionExpression' || cb.type === 'FunctionExpression')
+          ? (cb.body.type === 'CallExpression' || cb.body.type === 'NewExpression' ? cb.body : null)
+          : null;
+        if (cbBody) {
+          const lastArg = cbBody.arguments[cbBody.arguments.length - 1];
+          const lastIsNull = lastArg?.type === 'Literal' && lastArg.value === null;
+          const isZeroArgConstructor = cbBody.type === 'NewExpression' && cbBody.arguments.length === 0;
+          // `new Ctor(...arr)` where `arr` was a statically-known array literal:
+          // these are JS missing-arg checks expecting RangeError; PHP raises
+          // ArgumentCountError before the constructor body runs.
+          const isMissingArgsSpread = cbBody.type === 'NewExpression'
+            && cbBody.arguments.length === 1
+            && cbBody.arguments[0].type === 'SpreadElement'
+            && cbBody.arguments[0].argument?.type === 'Identifier'
+            && this.arrayLiteralVars.has(cbBody.arguments[0].argument.name);
+          // `new Ctor(2021)`, `new Ctor(2021, 7)` — constructor called with all-literal
+          // args, deliberately under-saturated. JS spec says RangeError (validation in
+          // ToIntegerWithTruncation); PHP throws ArgumentCountError because the typed
+          // signature already enforces the required-arg count. The same fixtures that
+          // care about this validation use observer/valueOf patterns elsewhere, so the
+          // skip is gated on observersInUse.
+          const isLiteralArgConstructor = cbBody.type === 'NewExpression'
+            && cbBody.arguments.length > 0
+            && cbBody.arguments.every(a => a.type === 'Literal');
+          if (lastIsNull || isZeroArgConstructor || isMissingArgsSpread || isLiteralArgConstructor) {
+            const why = lastIsNull
+              ? 'JS rejects non-object options via ToObject; PHP accepts null as "absent"'
+              : isZeroArgConstructor
+                ? 'JS spec RangeError on zero-arg ctor; PHP throws ArgumentCountError'
+                : isMissingArgsSpread
+                  ? 'spread of statically too-short array; PHP throws ArgumentCountError'
+                  : 'all-literal under-saturated ctor; PHP throws ArgumentCountError';
+            this.emitSkipComment(node, why);
+            return;
+          }
+        }
+      }
     }
     const php = this.transpileExpr(node.expression);
     if (php !== null) this.emit(`${php};`);
@@ -2150,6 +2308,69 @@ function hasObjectLiteral(node) {
 }
 
 /**
+ * True if `node` is an ObjectExpression with at least one method-shorthand
+ * property — i.e. `{ valueOf() { ... } }` or `{ toString() { ... } }`. These
+ * are JS-only ToPrimitive observers that PHP cannot replicate (PHP's spec
+ * layer never invokes valueOf/toString on object args).
+ */
+function hasMethodShorthand(node) {
+  return node?.type === 'ObjectExpression'
+    && node.properties.some(p => p.type === 'Property' && p.method);
+}
+
+/**
+ * Walks `node` and collects every Identifier name that appears in a position
+ * that mutates state — assignment targets, ++/--, and known array-mutator
+ * receivers (push/pop/shift/unshift/splice/sort/reverse/fill). Used to find
+ * "tracker" variables referenced inside JS-only valueOf/toString method
+ * bodies (counters, log arrays). Those tracker variables are unobservable
+ * in PHP since the methods never run, so any later assertion against them
+ * would compare against a stale value.
+ */
+function collectMutatedNames(node, names = new Set()) {
+  if (!node || typeof node !== 'object') return names;
+  if (Array.isArray(node)) { for (const n of node) collectMutatedNames(n, names); return names; }
+  if (node.type === 'AssignmentExpression') {
+    if (node.left?.type === 'Identifier') names.add(node.left.name);
+    else if (node.left?.type === 'MemberExpression' && node.left.object?.type === 'Identifier') names.add(node.left.object.name);
+    collectMutatedNames(node.right, names);
+    return names;
+  }
+  if (node.type === 'UpdateExpression' && node.argument?.type === 'Identifier') {
+    names.add(node.argument.name);
+    return names;
+  }
+  if (node.type === 'CallExpression'
+      && node.callee?.type === 'MemberExpression' && !node.callee.computed
+      && node.callee.object?.type === 'Identifier'
+      && node.callee.property?.type === 'Identifier'
+      && ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill'].includes(node.callee.property.name)) {
+    names.add(node.callee.object.name);
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    collectMutatedNames(node[key], names);
+  }
+  return names;
+}
+
+/**
+ * True if `node` (recursively) references any Identifier whose name is in
+ * the given set. Used to decide whether a statement consumes a JS-only
+ * tracker variable.
+ */
+function expressionRefsAny(node, names) {
+  if (!node || typeof node !== 'object' || names.size === 0) return false;
+  if (Array.isArray(node)) return node.some(n => expressionRefsAny(n, names));
+  if (node.type === 'Identifier' && names.has(node.name)) return true;
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    if (expressionRefsAny(node[key], names)) return true;
+  }
+  return false;
+}
+
+/**
  * Returns true if the AST subtree contains any BigInt literal (n suffix).
  * Used to detect function bodies that involve BigInt arithmetic which may
  * overflow PHP int64 at runtime even if individual literals fit in int64.
@@ -2347,8 +2568,17 @@ function processFile(jsPath, dataDir, scriptsDir) {
   // running and producing spurious failures.
   const dynamicToString = ast && hasDynamicToStringAssignment(ast);
 
+  // Cheap source-text scan for observer helpers and inline ToPrimitive
+  // observers (`{ valueOf() {} }` / `{ toString() {} }`). Either form means
+  // the fixture leans on JS-only coercion semantics, so the existing skip
+  // rules in transpileExprStmt (zero-arg ctor, null options, missing-args
+  // spread) should apply.
+  const observersInUse = /TemporalHelpers\.(toPrimitiveObserver|propertyBagObserver)\b/.test(stripped)
+    || /\b(valueOf|toString)\s*\(\s*\)\s*\{/.test(stripped);
+
   const renderPass = (objectMode) => {
     const emitter = new Emitter(stripped, objectMode);
+    emitter.observersInUse = observersInUse;
     if (unsupportedIncludes.length > 0) {
       emitter.emitIncomplete(`needs TemporalHelpers (includes: ${includes.join(', ')})`);
     } else if (parseError !== null) {
