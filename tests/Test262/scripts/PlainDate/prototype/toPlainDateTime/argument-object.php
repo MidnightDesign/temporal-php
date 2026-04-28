@@ -9,4 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
-Assert::incomplete('untranslatable object property');
+// JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): calendar = { toString() { return "iso8601" } }
+$withOverflow = $plainDate->toPlainDateTime(['hour' => 25, 'minute' => 70, 'second' => 23]);
+TemporalHelpers::assertPlainDateTime($withOverflow, 2000, 5, 'M05', 2, 23, 59, 23, 0, 0, 0, 'with overflow');
+Assert::sameValue($withOverflow->calendarId, $plainDate->calendarId, 'with overflow calendar');
+// JS-only (init references JS-only ToPrimitive tracker variable): withCalendar = plainDate.toPlainDateTime({ hour: 13, calendar })
+// JS-only (references JS-only ToPrimitive tracker variable): TemporalHelpers.assertPlainDateTime(withCalendar, 2000, 5, "M05", 2, 13, 0, 0, 0, 0, 0, "with calendar");
+// JS-only (references JS-only ToPrimitive tracker variable): assert.sameValue(withCalendar.calendarId, plainDate.calendarId, "with calendar calendar");

@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, (object) ['overflow' => 'constrain'], 'options');
+$instance = new \Temporal\Spec\PlainDateTime(2025, 8, 31, 23, 59, 59);
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->add(new \Temporal\Spec\Duration(0, 0, 0, 104_249_991_374, 1), $options); }, 'RangeError thrown when time addition overflows days component');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

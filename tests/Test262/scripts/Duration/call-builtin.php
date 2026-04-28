@@ -8,5 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
+// JS-only (JS global property override has no PHP equivalent): Number.isFinite = () => { throw new Test262Error("should not call Number.isFinite") };
+// JS-only (JS global property override has no PHP equivalent): Math.sign = () => { throw new Test262Error("should not call Math.sign") };
 $duration = new \Temporal\Spec\Duration(1, 1);
 TemporalHelpers::assertDuration($duration, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0);

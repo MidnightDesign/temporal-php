@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $actual = [];
 $expected = ['get (argument 0).valueOf', 'call (argument 0).valueOf', 'get (argument 1).valueOf', 'call (argument 1).valueOf', 'get (argument 2).valueOf', 'call (argument 2).valueOf', 'get (argument 3).valueOf', 'call (argument 3).valueOf', 'get (argument 4).valueOf', 'call (argument 4).valueOf', 'get (argument 5).valueOf', 'call (argument 5).valueOf', 'get (argument 6).valueOf', 'call (argument 6).valueOf', 'get (argument 7).valueOf', 'call (argument 7).valueOf', 'get (argument 8).valueOf', 'call (argument 8).valueOf'];
-Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
+$dateTimeArgs = array_map(fn($value, $idx) => TemporalHelpers::toPrimitiveObserver($actual, $value, "(argument {$idx})"), [2020, 12, 24, 12, 34, 56, 123, 456, 789]);
+$dateTime = new \Temporal\Spec\PlainDateTime(...[...$dateTimeArgs, 'iso8601']);
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected);
+TemporalHelpers::assertPlainDateTime($dateTime, 2020, 12, 'M12', 24, 12, 34, 56, 123, 456, 789);

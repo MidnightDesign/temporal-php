@@ -13,5 +13,7 @@ $base = ['era' => 'ad', 'month' => 5, 'day' => 2, 'hour' => 15, 'timeZone' => 'U
 foreach ([INF, -INF] as $inf) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$inf) { return $instance->since(array_merge($base, ['eraYear' => $inf])); }, "eraYear property cannot be {$inf}");
 $calls = [];
-Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
+$obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, 'eraYear');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$obj) { return $instance->since(array_merge($base, ['eraYear' => $obj])); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, ["get eraYear.valueOf", "call eraYear.valueOf"], "it fails after fetching the primitive value");
 }

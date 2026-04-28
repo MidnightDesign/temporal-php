@@ -11,4 +11,7 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.disambiguation', 'get options.disambiguation.toString', 'call options.disambiguation.toString'];
 $actual = [];
 $instance = new \Temporal\Spec\PlainDateTime(2000, 4, 2, 2, 30);
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, (object) ['disambiguation' => 'reject'], 'options');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->toZonedDateTime('America/Vancouver', $options); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations with disambiguation: reject");
+// JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);

@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString'];
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, ['smallestUnit' => 'hour', 'roundingIncrement' => 25, 'roundingMode' => 'expand'], 'options');
+$instance = new \Temporal\Spec\PlainDateTime(2025, 8, 14, 12);
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->round($options); }, 'exception thrown when roundingIncrement invalid for smallestUnit');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

@@ -15,6 +15,8 @@ foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2, &$base, &$prop, &$inf) { return \Temporal\Spec\Duration::compare($duration1, $duration2, (object) ['relativeTo' => (object) array_merge((array) $base, [$prop => $inf])]); }, "{$prop} property cannot be {$inf} in relativeTo");
 $calls = [];
-Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
+$obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, $prop);
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2, &$base, &$prop, &$obj) { return \Temporal\Spec\Duration::compare($duration1, $duration2, (object) ['relativeTo' => (object) array_merge((array) $base, [$prop => $obj])]); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, [`get ${prop}.valueOf`, `call ${prop}.valueOf`], "it fails after fetching the primitive value");
 }
 }

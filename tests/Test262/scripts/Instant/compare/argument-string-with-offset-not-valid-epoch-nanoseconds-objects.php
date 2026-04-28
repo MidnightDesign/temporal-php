@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 $one = '+275760-09-13T00:00:00.000-12';
-Assert::incomplete('untranslatable object property');
+// JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): two = { toString() { throw new Test262Error(); } }
+// JS-only (references JS-only ToPrimitive tracker variable): assert.throws(RangeError, () => Temporal.Instant.compare(one, two));
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

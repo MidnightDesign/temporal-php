@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.relativeTo', 'get options.unit', 'get options.unit.toString', 'call options.unit.toString'];
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, (object) ['unit' => 'weeks'], 'options');
+$instance = new \Temporal\Spec\Duration(1);
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->total($options); }, 'exception thrown when total of calendar unit requested without relativeTo');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

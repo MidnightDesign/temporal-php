@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $actual = [];
-Assert::incomplete('TemporalHelpers.propertyBagObserver() is not yet implemented');
+$options = TemporalHelpers::propertyBagObserver($actual, ['disambiguation' => 'compatible', 'offset' => 'ignore', 'overflow' => 'reject'], 'options');
+Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\ZonedDateTime::from('2020-13-34T25:60:60+99:99[UTC]', $options); }, '');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, [], "options read after string parsing");

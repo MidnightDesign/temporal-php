@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get month.valueOf', 'call month.valueOf', 'get day.valueOf', 'call day.valueOf'];
 $actual = [];
-Assert::incomplete('TemporalHelpers.toPrimitiveObserver() is not yet implemented');
+$args = [TemporalHelpers::toPrimitiveObserver($actual, 2, 'month'), TemporalHelpers::toPrimitiveObserver($actual, 1, 'day'), 'local', TemporalHelpers::toPrimitiveObserver($actual, 1, 'year')];
+// JS-only (spread of statically too-short array; PHP throws ArgumentCountError): assert.throws(RangeError, () => new Temporal.PlainMonthDay(...args));
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

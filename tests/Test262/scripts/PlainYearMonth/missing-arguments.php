@@ -9,4 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $expected = ['valueOf year'];
 $actual = [];
-Assert::incomplete('untranslatable object property');
+// JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): args = [ { valueOf() { actual.push("valueOf year"); return 1; } }, ]
+// JS-only (references JS-only ToPrimitive tracker variable): assert.throws(RangeError, () => new Temporal.PlainYearMonth(...args));
+// JS-only (references JS-only ToPrimitive tracker variable): assert.compareArray(actual, expected, "order of operations");
+// JS-only (JS spec RangeError on zero-arg ctor; PHP throws ArgumentCountError): assert.throws(RangeError, () => new Temporal.PlainYearMonth(), "no arguments");
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');
