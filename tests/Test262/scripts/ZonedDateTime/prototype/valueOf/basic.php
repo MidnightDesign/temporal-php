@@ -9,5 +9,13 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(100, 'UTC');
 $zonedDateTime2 = new \Temporal\Spec\ZonedDateTime(987_654_321, 'UTC');
-Assert::throws(\TypeError::class, function () use (&$zonedDateTime) { return $zonedDateTime->valueOf(); }, 'valueOf');
-Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');
+// JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => zonedDateTime.valueOf(), "valueOf")
+// JS-only (PHP comparison operator '<' does not trigger valueOf()): assert.throws(TypeError, () => zonedDateTime < zonedDateTime, "<")
+// JS-only (PHP comparison operator '<=' does not trigger valueOf()): assert.throws(TypeError, () => zonedDateTime <= zonedDateTime, "<=")
+// JS-only (PHP comparison operator '>' does not trigger valueOf()): assert.throws(TypeError, () => zonedDateTime > zonedDateTime, ">")
+// JS-only (PHP comparison operator '>=' does not trigger valueOf()): assert.throws(TypeError, () => zonedDateTime >= zonedDateTime, ">=")
+Assert::sameValue($zonedDateTime === $zonedDateTime, true, '===');
+Assert::sameValue($zonedDateTime === $zonedDateTime2, false, '===');
+Assert::sameValue($zonedDateTime !== $zonedDateTime, false, '!==');
+Assert::sameValue($zonedDateTime !== $zonedDateTime2, true, '!==');
+Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

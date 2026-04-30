@@ -7,4 +7,4 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::methodLength('\Temporal\Spec\PlainMonthDay', 'valueOf', 0);
+Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

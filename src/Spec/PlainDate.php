@@ -799,18 +799,6 @@ final class PlainDate implements Stringable
         return new self($this->isoYear, $this->isoMonth, $this->isoDay, $calId);
     }
 
-    /**
-     * Always throws TypeError — PlainDate must not be used in arithmetic context.
-     *
-     * @throws \TypeError always.
-     * @psalm-return never
-     * @psalm-api
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError('PlainDate objects are not orderable');
-    }
-
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

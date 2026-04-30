@@ -537,18 +537,6 @@ final class PlainMonthDay implements Stringable
     }
 
     /**
-     * Always throws TypeError — PlainMonthDay must not be used in arithmetic context.
-     *
-     * @throws \TypeError always.
-     * @psalm-return never
-     * @psalm-api
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError('PlainMonthDay objects are not orderable');
-    }
-
-    /**
      * Converts this PlainMonthDay to a PlainDate by supplying the year.
      *
      * The day is constrained to the valid range for that year's month (default overflow behaviour).

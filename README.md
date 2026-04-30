@@ -29,7 +29,7 @@ Most application code should use the porcelain layer. The spec layer is a fully 
 
 ### Deliberate deviations from TC39
 
-The porcelain layer adapts TC39 semantics to PHP-native conventions rather than mirroring the JavaScript API shape 1:1. The spec layer (`Temporal\Spec\`) remains TC39-faithful for anyone needing that.
+The porcelain layer adapts TC39 semantics to PHP-native conventions rather than mirroring the JavaScript API shape 1:1. The spec layer (`Temporal\Spec\`) remains TC39-faithful for anyone needing that, with one small exception (see `valueOf()` below).
 
 Notable differences:
 
@@ -37,6 +37,7 @@ Notable differences:
 - **`fromFields()` takes named arguments, not a property bag.** Each parameter has its own type (`int<1, 12>` for `month`, `Calendar` for `calendar`, etc.) so PHPStan/Psalm can validate call sites fully. Only five classes expose `fromFields()` — the ones whose constructors cannot express every field combination (`PlainDate`, `PlainDateTime`, `PlainYearMonth`, `PlainMonthDay`, `ZonedDateTime`). For `PlainTime`, `Instant`, and `Duration`, the constructor already covers every field.
 - **Option strings replaced by backed enums.** `Overflow::Reject` instead of `'reject'`, `Calendar::Gregory` instead of `'gregory'`, etc.
 - **Time zones and calendars are first-class.** `ZonedDateTime::fromFields()` takes `timeZone` as a required positional parameter; all calendar fields accept the `Calendar` enum rather than an identifier string.
+- **No `valueOf()` on spec-layer types.** The TC39 spec defines `valueOf()` to throw `TypeError` so that `<`, `>`, `+`, etc. fail loudly rather than silently coercing. PHP has no equivalent hook — relational operators on objects walk declared properties, arithmetic operators raise `TypeError` from the engine itself, and there is no language path that calls `valueOf()`. A throw-only method that the runtime never invokes is just dead surface, so the spec layer does not expose it. Use `compare()` (or, for `Instant` / `ZonedDateTime`, the underlying `epochNanoseconds`) when you need ordering. Test262 fixtures that target `valueOf()` are emitted as incomplete by the transpiler.
 
 ## Usage
 

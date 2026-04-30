@@ -131,6 +131,20 @@ const IMPLEMENTED_HELPERS = new Set([
 ]);
 
 /**
+ * Methods deliberately omitted from the PHP spec layer — fixtures that touch
+ * them are emitted as incomplete with a reason explaining why, rather than
+ * the generic "not yet implemented" wording (which would imply a TODO).
+ */
+const PHP_INTENTIONALLY_ABSENT_METHODS = new Set([
+  'valueOf',
+]);
+
+/** Reason text shown in Assert::incomplete() when a fixture references a deliberately-absent method. */
+const PHP_ABSENT_METHOD_REASONS = {
+  valueOf: 'PHP spec layer does not expose valueOf(); operators have no hook',
+};
+
+/**
  * PHP methods that exist on each Temporal class (static + instance).
  * Used by emitVerifyProperty() to decide whether to emit a real assertion
  * or Assert::incomplete() for a method that is not yet implemented.
@@ -138,30 +152,30 @@ const IMPLEMENTED_HELPERS = new Set([
 const PHP_IMPLEMENTED_METHODS = {
   Instant:  new Set([
     '__construct', 'from', 'fromEpochMilliseconds', 'fromEpochNanoseconds',
-    'compare', 'equals', 'valueOf', 'toString', 'toJSON', 'toLocaleString',
+    'compare', 'equals', 'toString', 'toJSON', 'toLocaleString',
     'add', 'subtract', 'round', 'since', 'until', 'toZonedDateTimeISO',
   ]),
   Duration: new Set([
     '__construct', 'from', 'negated', 'abs', 'equals', 'with',
-    'add', 'subtract', 'total', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'add', 'subtract', 'total', 'toString', 'toJSON', 'toLocaleString',
     'compare', 'round',
   ]),
   PlainDate: new Set([
     '__construct', 'from', 'compare',
     'with', 'withCalendar', 'add', 'subtract', 'since', 'until',
     'toPlainDateTime', 'toZonedDateTime', 'toPlainYearMonth', 'toPlainMonthDay',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString',
   ]),
   PlainDateTime: new Set([
     '__construct', 'from', 'compare',
     'with', 'withCalendar', 'withPlainTime', 'add', 'subtract', 'since', 'until', 'round',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString',
     'toPlainDate', 'toPlainTime', 'toZonedDateTime',
   ]),
   PlainTime: new Set([
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
-    'round', 'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'round', 'equals', 'toString', 'toJSON', 'toLocaleString',
   ]),
   Now: new Set([
     'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO', 'plainDateTimeISO', 'zonedDateTimeISO',
@@ -169,16 +183,16 @@ const PHP_IMPLEMENTED_METHODS = {
   PlainYearMonth: new Set([
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf', 'toPlainDate',
+    'equals', 'toString', 'toJSON', 'toLocaleString', 'toPlainDate',
   ]),
   PlainMonthDay: new Set([
     '__construct', 'from',
-    'with', 'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf', 'toPlainDate',
+    'with', 'equals', 'toString', 'toJSON', 'toLocaleString', 'toPlainDate',
   ]),
   ZonedDateTime: new Set([
     '__construct', 'from', 'compare',
     'add', 'subtract', 'since', 'until', 'round', 'with',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString',
     'toInstant', 'toPlainDate', 'toPlainTime', 'toPlainDateTime',
     'withTimeZone', 'withCalendar', 'withPlainTime',
     'startOfDay', 'getTimeZoneTransition',
@@ -305,7 +319,12 @@ class Emitter {
   constructor(source, objectMode = false) {
     this.source = source;
     this.lines = [];
-    this.incomplete = false;   // set when we emit Assert::incomplete
+    this.incomplete = false;   // set when we emit Assert::incomplete (terminates the script)
+    // When a single statement is skipped but the script can keep emitting other
+    // assertions, we record the reason here. At the end of transpileProgram we emit
+    // a trailing Assert::incomplete() so the test surfaces as incomplete overall,
+    // without losing the assertions that come after the skipped statement.
+    this.deferredIncompleteReason = null;
     this.skipOverflow = false; // for the current assertion being built
     // When true, JS object literals become PHP stdClass objects instead of arrays.
     // Used to generate the `<name>-objects.php` companion variants that exercise
@@ -359,6 +378,19 @@ class Emitter {
   }
 
   /**
+   * Drops a single statement (with a `// JS-only (...)` comment for traceability)
+   * and records that the script as a whole should be marked incomplete at the end,
+   * rather than aborting now. Use this when a specific assertion is untranslatable
+   * but later assertions in the same fixture can still be translated faithfully —
+   * e.g. test262 `valueOf/basic.js`, where the valueOf-throws and `<`/`>` checks are
+   * skipped but the `===`/`!==` `assert.sameValue` lines can still run in PHP.
+   */
+  emitSkipAndDefer(node, reason) {
+    this.emitSkipComment(node, reason);
+    this.deferredIncompleteReason ??= reason;
+  }
+
+  /**
    * Emits a `// JS-only (<reason>): <original-js>` comment when a statement is
    * silently dropped (untranslatable JS-only construct that the suite would
    * otherwise discard via Assert::incomplete + PHPUnit's coverage discard for
@@ -389,6 +421,14 @@ class Emitter {
     for (const stmt of otherStmts) {
       this.transpileStatement(stmt);
       if (this.incomplete) break;
+    }
+    // If individual statements were skipped via emitSkipAndDefer (but the script
+    // wasn't aborted via emitIncomplete), surface the reason as a trailing
+    // Assert::incomplete so the test still reports as incomplete overall while
+    // the surrounding translatable assertions kept running.
+    if (!this.incomplete && this.deferredIncompleteReason !== null) {
+      this.lines.push(`Assert::incomplete(${phpStr(this.deferredIncompleteReason)});`);
+      this.incomplete = true;
     }
   }
 
@@ -1336,7 +1376,7 @@ class Emitter {
       const method = callee.property.name;
       const key = `${className}::${method}`;
       if (!IMPLEMENTED.has(key)) {
-        this.emitIncomplete(`\\Temporal\\Spec\\${className}::${method}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(className, method));
         return null;
       }
       const args = this.transpileArgs(node.arguments);
@@ -1495,7 +1535,7 @@ class Emitter {
       const { className, method } = temporal;
       const key = `${className}::${method}`;
       if (!IMPLEMENTED.has(key)) {
-        this.emitIncomplete(`\\Temporal\\Spec\\${className}::${method}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(className, method));
         return null;
       }
       // JS auto-coerces objects to strings; PHP does not. If an objectVars variable
@@ -1593,7 +1633,7 @@ class Emitter {
         if (isPhpMethodImplemented(cls, propName)) {
           return `Assert::methodExists('${phpClass}', '${propName}')`;
         }
-        this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${propName}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(cls, propName));
         return null;
       }
 
@@ -1606,7 +1646,7 @@ class Emitter {
         if (isPhpMethodImplemented(cls, propName)) {
           return `Assert::methodExists('${phpClass}', '${propName}')`;
         }
-        this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${propName}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(cls, propName));
         return null;
       }
 
@@ -1619,7 +1659,7 @@ class Emitter {
             if (isPhpMethodImplemented(cls, method)) {
               return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
             }
-            this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${method}() is not yet implemented`);
+            this.emitIncomplete(incompleteReasonFor(cls, method));
             return null;
           }
           return 'Assert::assertTrue(true)';
@@ -1636,7 +1676,7 @@ class Emitter {
             if (isPhpMethodImplemented(cls, method)) {
               return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
             }
-            this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${method}() is not yet implemented`);
+            this.emitIncomplete(incompleteReasonFor(cls, method));
             return null;
           }
           return 'Assert::assertTrue(true)';
@@ -2090,13 +2130,28 @@ class Emitter {
     }
 
     // PHP comparison operators (<, <=, >, >=) do not call valueOf() and thus cannot
-    // throw TypeError the way JS does. Emit incomplete for these cases.
+    // throw TypeError the way JS does. Skip just this assertion (the rest of the
+    // fixture — e.g. `===` / `!==` sameValue lines — may still translate faithfully)
+    // and defer the incomplete-marker to end of script.
     if (fnNode?.type === 'ArrowFunctionExpression' && fnNode.body?.type === 'BinaryExpression') {
       const op = fnNode.body.operator;
       if (op === '<' || op === '<=' || op === '>' || op === '>=') {
-        this.emitIncomplete(`PHP comparison operator '${op}' does not trigger valueOf()`);
+        this.emitSkipAndDefer(node, `PHP comparison operator '${op}' does not trigger valueOf()`);
         return null;
       }
+    }
+
+    // Direct `() => obj.valueOf()` invocations: the spec layer no longer exposes
+    // valueOf() (PHP has no operator hook that would make it useful), so calling it
+    // would raise BadMethodCallException, not TypeError. Skip just this assertion
+    // and defer the incomplete-marker to end of script.
+    if (fnNode?.type === 'ArrowFunctionExpression'
+        && fnNode.body?.type === 'CallExpression'
+        && fnNode.body.callee?.type === 'MemberExpression'
+        && !fnNode.body.callee.computed
+        && fnNode.body.callee.property?.name === 'valueOf') {
+      this.emitSkipAndDefer(node, 'PHP spec layer does not expose valueOf(); operators have no hook');
+      return null;
     }
 
     const fnPhp  = fnNode ? this.transpileExpr(fnNode) : 'fn() => null';
@@ -2495,6 +2550,19 @@ function parseVerifyPropertyTarget(node) {
  */
 function isPhpMethodImplemented(className, method) {
   return PHP_IMPLEMENTED_METHODS[className]?.has(method) ?? false;
+}
+
+/**
+ * Returns the reason text for an Assert::incomplete() when a fixture references
+ * a method that is not exposed by the PHP spec layer. Methods listed in
+ * PHP_INTENTIONALLY_ABSENT_METHODS get a specific "deliberately absent" reason;
+ * everything else gets the generic "not yet implemented" wording.
+ */
+function incompleteReasonFor(className, method) {
+  if (PHP_INTENTIONALLY_ABSENT_METHODS.has(method)) {
+    return PHP_ABSENT_METHOD_REASONS[method] ?? `\\Temporal\\Spec\\${className}::${method}() is intentionally not exposed`;
+  }
+  return `\\Temporal\\Spec\\${className}::${method}() is not yet implemented`;
 }
 
 /** PHP single-quoted string literal. */

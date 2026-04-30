@@ -9,5 +9,13 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $d1 = \Temporal\Spec\Duration::from('P3DT1H');
 $d2 = \Temporal\Spec\Duration::from('P3DT1H');
-Assert::throws(\TypeError::class, function () use (&$d1) { return $d1->valueOf(); }, 'valueOf');
-Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');
+// JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => d1.valueOf(), "valueOf")
+// JS-only (PHP comparison operator '<' does not trigger valueOf()): assert.throws(TypeError, () => d1 < d1, "<")
+// JS-only (PHP comparison operator '<=' does not trigger valueOf()): assert.throws(TypeError, () => d1 <= d1, "<=")
+// JS-only (PHP comparison operator '>' does not trigger valueOf()): assert.throws(TypeError, () => d1 > d1, ">")
+// JS-only (PHP comparison operator '>=' does not trigger valueOf()): assert.throws(TypeError, () => d1 >= d1, ">=")
+Assert::sameValue($d1 === $d1, true, '===');
+Assert::sameValue($d1 === $d2, false, '===');
+Assert::sameValue($d1 !== $d1, false, '!==');
+Assert::sameValue($d1 !== $d2, true, '!==');
+Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

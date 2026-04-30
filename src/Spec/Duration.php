@@ -750,18 +750,6 @@ final class Duration implements Stringable
     }
 
     /**
-     * Throws TypeError to prevent numeric coercion.
-     *
-     * @throws \TypeError always.
-     * @return never
-     * @psalm-api
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError('Use Temporal.Duration.compare() to compare Duration values.');
-    }
-
-    /**
      * Returns the total of this duration as a number in the given unit.
      *
      * Returns an int when the result is a whole number, float otherwise.
