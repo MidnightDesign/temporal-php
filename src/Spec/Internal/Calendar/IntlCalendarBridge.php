@@ -133,6 +133,13 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($cal instanceof \IntlGregorianCalendar) {
             $cal->setGregorianChange(PHP_FLOAT_MIN);
         }
+        // IntlCalendar::createInstance is signature-nullable, but per
+        // ext/intl/calendar/calendar_methods.cpp it can only return null when
+        // (a) the timezone arg is invalid (we pass the literal 'UTC') or
+        // (b) ICU fails under OOM. No analyzer narrows by argument literal,
+        // so suppress the ones that flag this assignment.
+        // @mago-ignore analysis:invalid-property-assignment-value
+        /** @psalm-suppress PossiblyNullPropertyAssignmentValue */
         $this->intlCal = $cal;
         $this->isGregorianBased = match ($calendarId) {
             'gregory', 'japanese', 'buddhist', 'roc' => true,
