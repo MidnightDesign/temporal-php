@@ -1873,18 +1873,6 @@ final class ZonedDateTime implements Stringable
         return $out;
     }
 
-    /**
-     * Always throws TypeError — ZonedDateTime must not be used in numeric context.
-     *
-     * @throws \TypeError always.
-     * @psalm-return never
-     * @psalm-api
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError('Use comparison methods instead of relying on ZonedDateTime object coercion.');
-    }
-
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

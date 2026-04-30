@@ -346,22 +346,6 @@ final class Instant implements Stringable
     }
 
     /**
-     * Throws TypeError unconditionally to prevent numeric comparison.
-     *
-     * Mirrors JS Temporal.Instant.prototype.valueOf() which always throws TypeError.
-     *
-     * @psalm-api used by test262 scripts
-     * @throws \TypeError always
-     * @return never
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError(
-            'Use Temporal\\Instant::compare() or epochNanoseconds to compare Temporal\\Instant values.',
-        );
-    }
-
-    /**
      * Returns an ISO 8601 string in UTC, with optional rounding and precision options.
      *
      * Options (all optional):

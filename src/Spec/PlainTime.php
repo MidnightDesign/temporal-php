@@ -582,18 +582,6 @@ final class PlainTime implements Stringable
         return "{$base}.{$fraction}";
     }
 
-    /**
-     * Always throws TypeError — PlainTime must not be used in arithmetic context.
-     *
-     * @throws \TypeError always.
-     * @psalm-return never
-     * @psalm-api
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError('Use Temporal.PlainTime.compare() to compare Temporal.PlainTime values.');
-    }
-
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

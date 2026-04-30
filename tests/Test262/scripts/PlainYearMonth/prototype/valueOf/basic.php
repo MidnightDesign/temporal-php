@@ -9,5 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $plainYearMonth = \Temporal\Spec\PlainYearMonth::from('1963-02');
 $plainYearMonth2 = \Temporal\Spec\PlainYearMonth::from('1963-02');
-Assert::throws(\TypeError::class, function () use (&$plainYearMonth) { return $plainYearMonth->valueOf(); }, 'valueOf');
-Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');
+Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

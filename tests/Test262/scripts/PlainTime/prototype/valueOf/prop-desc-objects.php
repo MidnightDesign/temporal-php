@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof PlainTime.prototype.valueOf` is `function`');
-Assert::methodExists('\Temporal\Spec\PlainTime', 'valueOf');
+Assert::incomplete('\\Temporal\\Spec\\PlainTime::valueOf() is not yet implemented');

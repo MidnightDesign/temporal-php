@@ -136,32 +136,37 @@ const IMPLEMENTED_HELPERS = new Set([
  * or Assert::incomplete() for a method that is not yet implemented.
  */
 const PHP_IMPLEMENTED_METHODS = {
+  // valueOf() is intentionally NOT listed for any class. PHP has no language hook
+  // equivalent to JS's ToPrimitive, so a throw-only valueOf() cannot prevent the
+  // operators it exists to guard (`<`, `>`, etc.) from giving silent answers. The
+  // spec-layer types simply do not expose the method, and reflection-style fixtures
+  // (Object.getOwnPropertyDescriptor, Function.length) become incomplete.
   Instant:  new Set([
     '__construct', 'from', 'fromEpochMilliseconds', 'fromEpochNanoseconds',
-    'compare', 'equals', 'valueOf', 'toString', 'toJSON', 'toLocaleString',
+    'compare', 'equals', 'toString', 'toJSON', 'toLocaleString',
     'add', 'subtract', 'round', 'since', 'until', 'toZonedDateTimeISO',
   ]),
   Duration: new Set([
     '__construct', 'from', 'negated', 'abs', 'equals', 'with',
-    'add', 'subtract', 'total', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'add', 'subtract', 'total', 'toString', 'toJSON', 'toLocaleString',
     'compare', 'round',
   ]),
   PlainDate: new Set([
     '__construct', 'from', 'compare',
     'with', 'withCalendar', 'add', 'subtract', 'since', 'until',
     'toPlainDateTime', 'toZonedDateTime', 'toPlainYearMonth', 'toPlainMonthDay',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString',
   ]),
   PlainDateTime: new Set([
     '__construct', 'from', 'compare',
     'with', 'withCalendar', 'withPlainTime', 'add', 'subtract', 'since', 'until', 'round',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString',
     'toPlainDate', 'toPlainTime', 'toZonedDateTime',
   ]),
   PlainTime: new Set([
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
-    'round', 'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'round', 'equals', 'toString', 'toJSON', 'toLocaleString',
   ]),
   Now: new Set([
     'instant', 'timeZoneId', 'plainDateISO', 'plainTimeISO', 'plainDateTimeISO', 'zonedDateTimeISO',
@@ -169,16 +174,16 @@ const PHP_IMPLEMENTED_METHODS = {
   PlainYearMonth: new Set([
     '__construct', 'from', 'compare',
     'with', 'add', 'subtract', 'since', 'until',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf', 'toPlainDate',
+    'equals', 'toString', 'toJSON', 'toLocaleString', 'toPlainDate',
   ]),
   PlainMonthDay: new Set([
     '__construct', 'from',
-    'with', 'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf', 'toPlainDate',
+    'with', 'equals', 'toString', 'toJSON', 'toLocaleString', 'toPlainDate',
   ]),
   ZonedDateTime: new Set([
     '__construct', 'from', 'compare',
     'add', 'subtract', 'since', 'until', 'round', 'with',
-    'equals', 'toString', 'toJSON', 'toLocaleString', 'valueOf',
+    'equals', 'toString', 'toJSON', 'toLocaleString',
     'toInstant', 'toPlainDate', 'toPlainTime', 'toPlainDateTime',
     'withTimeZone', 'withCalendar', 'withPlainTime',
     'startOfDay', 'getTimeZoneTransition',
@@ -2097,6 +2102,18 @@ class Emitter {
         this.emitIncomplete(`PHP comparison operator '${op}' does not trigger valueOf()`);
         return null;
       }
+    }
+
+    // Direct `() => obj.valueOf()` invocations: the spec layer no longer exposes
+    // valueOf() (PHP has no operator hook that would make it useful), so calling it
+    // would raise BadMethodCallException, not TypeError. Emit incomplete instead.
+    if (fnNode?.type === 'ArrowFunctionExpression'
+        && fnNode.body?.type === 'CallExpression'
+        && fnNode.body.callee?.type === 'MemberExpression'
+        && !fnNode.body.callee.computed
+        && fnNode.body.callee.property?.name === 'valueOf') {
+      this.emitIncomplete('PHP spec layer does not expose valueOf(); operators have no hook');
+      return null;
     }
 
     const fnPhp  = fnNode ? this.transpileExpr(fnNode) : 'fn() => null';

@@ -9,5 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(100, 'UTC');
 $zonedDateTime2 = new \Temporal\Spec\ZonedDateTime(987_654_321, 'UTC');
-Assert::throws(\TypeError::class, function () use (&$zonedDateTime) { return $zonedDateTime->valueOf(); }, 'valueOf');
-Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');
+Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

@@ -1250,18 +1250,6 @@ final class PlainDateTime implements Stringable
         );
     }
 
-    /**
-     * Always throws TypeError — PlainDateTime must not be used in arithmetic context.
-     *
-     * @throws \TypeError always.
-     * @psalm-return never
-     * @psalm-api
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError('PlainDateTime objects are not orderable');
-    }
-
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------

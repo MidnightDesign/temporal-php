@@ -610,18 +610,6 @@ final class PlainYearMonth implements Stringable
     }
 
     /**
-     * Always throws TypeError — PlainYearMonth must not be used in arithmetic context.
-     *
-     * @throws \TypeError always.
-     * @psalm-return never
-     * @psalm-api
-     */
-    public function valueOf(): never
-    {
-        throw new \TypeError('PlainYearMonth objects are not orderable');
-    }
-
-    /**
      * Converts this PlainYearMonth to a PlainDate by supplying the day.
      *
      * @param array<array-key, mixed>|object $fields Must contain 'day' key.

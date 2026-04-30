@@ -9,5 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $plainTime = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
 $plainTime2 = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
-Assert::throws(\TypeError::class, function () use (&$plainTime) { return $plainTime->valueOf(); }, 'valueOf');
-Assert::incomplete('PHP comparison operator \'<\' does not trigger valueOf()');
+Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');
