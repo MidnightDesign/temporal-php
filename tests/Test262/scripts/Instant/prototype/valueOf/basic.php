@@ -9,4 +9,13 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $instant = new \Temporal\Spec\Instant(100);
 $instant2 = new \Temporal\Spec\Instant(987_654_321);
+// JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => instant.valueOf(), "valueOf")
+// JS-only (PHP comparison operator '<' does not trigger valueOf()): assert.throws(TypeError, () => instant < instant, "<")
+// JS-only (PHP comparison operator '<=' does not trigger valueOf()): assert.throws(TypeError, () => instant <= instant, "<=")
+// JS-only (PHP comparison operator '>' does not trigger valueOf()): assert.throws(TypeError, () => instant > instant, ">")
+// JS-only (PHP comparison operator '>=' does not trigger valueOf()): assert.throws(TypeError, () => instant >= instant, ">=")
+Assert::sameValue($instant === $instant, true, '===');
+Assert::sameValue($instant === $instant2, false, '===');
+Assert::sameValue($instant !== $instant, false, '!==');
+Assert::sameValue($instant !== $instant2, true, '!==');
 Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

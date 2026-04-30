@@ -9,4 +9,13 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $plainTime = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
 $plainTime2 = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
+// JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => plainTime.valueOf(), "valueOf")
+// JS-only (PHP comparison operator '<' does not trigger valueOf()): assert.throws(TypeError, () => plainTime < plainTime, "<")
+// JS-only (PHP comparison operator '<=' does not trigger valueOf()): assert.throws(TypeError, () => plainTime <= plainTime, "<=")
+// JS-only (PHP comparison operator '>' does not trigger valueOf()): assert.throws(TypeError, () => plainTime > plainTime, ">")
+// JS-only (PHP comparison operator '>=' does not trigger valueOf()): assert.throws(TypeError, () => plainTime >= plainTime, ">=")
+Assert::sameValue($plainTime === $plainTime, true, '===');
+Assert::sameValue($plainTime === $plainTime2, false, '===');
+Assert::sameValue($plainTime !== $plainTime, false, '!==');
+Assert::sameValue($plainTime !== $plainTime2, true, '!==');
 Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

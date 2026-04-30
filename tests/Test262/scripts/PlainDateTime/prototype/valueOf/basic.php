@@ -10,4 +10,15 @@ use Temporal\Tests\Test262\Assert;
 $dt1 = new \Temporal\Spec\PlainDateTime(1963, 2, 13, 9, 36, 29, 123, 456, 789);
 $dt1again = new \Temporal\Spec\PlainDateTime(1963, 2, 13, 9, 36, 29, 123, 456, 789);
 $dt2 = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
+// JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => dt1.valueOf(), "always throws")
+Assert::sameValue($dt1 === $dt1, true, 'object equality implies ===');
+Assert::sameValue($dt1 !== $dt1again, true, 'object non-equality, even if all data is the same, implies !==');
+// JS-only (PHP comparison operator '<' does not trigger valueOf()): assert.throws(TypeError, () => dt1 < dt1, "< throws (same objects)")
+// JS-only (PHP comparison operator '<' does not trigger valueOf()): assert.throws(TypeError, () => dt1 < dt2, "< throws (different objects)")
+// JS-only (PHP comparison operator '>' does not trigger valueOf()): assert.throws(TypeError, () => dt1 > dt1, "> throws (same objects)")
+// JS-only (PHP comparison operator '>' does not trigger valueOf()): assert.throws(TypeError, () => dt1 > dt2, "> throws (different objects)")
+// JS-only (PHP comparison operator '<=' does not trigger valueOf()): assert.throws(TypeError, () => dt1 <= dt1, "<= does not throw (same objects)")
+// JS-only (PHP comparison operator '<=' does not trigger valueOf()): assert.throws(TypeError, () => dt1 <= dt2, "<= throws (different objects)")
+// JS-only (PHP comparison operator '>=' does not trigger valueOf()): assert.throws(TypeError, () => dt1 >= dt1, ">= throws (same objects)")
+// JS-only (PHP comparison operator '>=' does not trigger valueOf()): assert.throws(TypeError, () => dt1 >= dt2, ">= throws (different objects)")
 Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');

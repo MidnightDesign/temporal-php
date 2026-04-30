@@ -319,7 +319,12 @@ class Emitter {
   constructor(source, objectMode = false) {
     this.source = source;
     this.lines = [];
-    this.incomplete = false;   // set when we emit Assert::incomplete
+    this.incomplete = false;   // set when we emit Assert::incomplete (terminates the script)
+    // When a single statement is skipped but the script can keep emitting other
+    // assertions, we record the reason here. At the end of transpileProgram we emit
+    // a trailing Assert::incomplete() so the test surfaces as incomplete overall,
+    // without losing the assertions that come after the skipped statement.
+    this.deferredIncompleteReason = null;
     this.skipOverflow = false; // for the current assertion being built
     // When true, JS object literals become PHP stdClass objects instead of arrays.
     // Used to generate the `<name>-objects.php` companion variants that exercise
@@ -373,6 +378,19 @@ class Emitter {
   }
 
   /**
+   * Drops a single statement (with a `// JS-only (...)` comment for traceability)
+   * and records that the script as a whole should be marked incomplete at the end,
+   * rather than aborting now. Use this when a specific assertion is untranslatable
+   * but later assertions in the same fixture can still be translated faithfully —
+   * e.g. test262 `valueOf/basic.js`, where the valueOf-throws and `<`/`>` checks are
+   * skipped but the `===`/`!==` `assert.sameValue` lines can still run in PHP.
+   */
+  emitSkipAndDefer(node, reason) {
+    this.emitSkipComment(node, reason);
+    this.deferredIncompleteReason ??= reason;
+  }
+
+  /**
    * Emits a `// JS-only (<reason>): <original-js>` comment when a statement is
    * silently dropped (untranslatable JS-only construct that the suite would
    * otherwise discard via Assert::incomplete + PHPUnit's coverage discard for
@@ -403,6 +421,14 @@ class Emitter {
     for (const stmt of otherStmts) {
       this.transpileStatement(stmt);
       if (this.incomplete) break;
+    }
+    // If individual statements were skipped via emitSkipAndDefer (but the script
+    // wasn't aborted via emitIncomplete), surface the reason as a trailing
+    // Assert::incomplete so the test still reports as incomplete overall while
+    // the surrounding translatable assertions kept running.
+    if (!this.incomplete && this.deferredIncompleteReason !== null) {
+      this.lines.push(`Assert::incomplete(${phpStr(this.deferredIncompleteReason)});`);
+      this.incomplete = true;
     }
   }
 
@@ -2104,24 +2130,27 @@ class Emitter {
     }
 
     // PHP comparison operators (<, <=, >, >=) do not call valueOf() and thus cannot
-    // throw TypeError the way JS does. Emit incomplete for these cases.
+    // throw TypeError the way JS does. Skip just this assertion (the rest of the
+    // fixture — e.g. `===` / `!==` sameValue lines — may still translate faithfully)
+    // and defer the incomplete-marker to end of script.
     if (fnNode?.type === 'ArrowFunctionExpression' && fnNode.body?.type === 'BinaryExpression') {
       const op = fnNode.body.operator;
       if (op === '<' || op === '<=' || op === '>' || op === '>=') {
-        this.emitIncomplete(`PHP comparison operator '${op}' does not trigger valueOf()`);
+        this.emitSkipAndDefer(node, `PHP comparison operator '${op}' does not trigger valueOf()`);
         return null;
       }
     }
 
     // Direct `() => obj.valueOf()` invocations: the spec layer no longer exposes
     // valueOf() (PHP has no operator hook that would make it useful), so calling it
-    // would raise BadMethodCallException, not TypeError. Emit incomplete instead.
+    // would raise BadMethodCallException, not TypeError. Skip just this assertion
+    // and defer the incomplete-marker to end of script.
     if (fnNode?.type === 'ArrowFunctionExpression'
         && fnNode.body?.type === 'CallExpression'
         && fnNode.body.callee?.type === 'MemberExpression'
         && !fnNode.body.callee.computed
         && fnNode.body.callee.property?.name === 'valueOf') {
-      this.emitIncomplete('PHP spec layer does not expose valueOf(); operators have no hook');
+      this.emitSkipAndDefer(node, 'PHP spec layer does not expose valueOf(); operators have no hook');
       return null;
     }
 

@@ -9,4 +9,13 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 $plainMonthDay = \Temporal\Spec\PlainMonthDay::from('1963-02-13');
 $plainMonthDay2 = \Temporal\Spec\PlainMonthDay::from('1963-02-13');
+// JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => plainMonthDay.valueOf(), "valueOf")
+// JS-only (PHP comparison operator '<' does not trigger valueOf()): assert.throws(TypeError, () => plainMonthDay < plainMonthDay, "<")
+// JS-only (PHP comparison operator '<=' does not trigger valueOf()): assert.throws(TypeError, () => plainMonthDay <= plainMonthDay, "<=")
+// JS-only (PHP comparison operator '>' does not trigger valueOf()): assert.throws(TypeError, () => plainMonthDay > plainMonthDay, ">")
+// JS-only (PHP comparison operator '>=' does not trigger valueOf()): assert.throws(TypeError, () => plainMonthDay >= plainMonthDay, ">=")
+Assert::sameValue($plainMonthDay === $plainMonthDay, true, '===');
+Assert::sameValue($plainMonthDay === $plainMonthDay2, false, '===');
+Assert::sameValue($plainMonthDay !== $plainMonthDay, false, '!==');
+Assert::sameValue($plainMonthDay !== $plainMonthDay2, true, '!==');
 Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');
