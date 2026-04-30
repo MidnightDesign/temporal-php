@@ -131,16 +131,25 @@ const IMPLEMENTED_HELPERS = new Set([
 ]);
 
 /**
+ * Methods deliberately omitted from the PHP spec layer — fixtures that touch
+ * them are emitted as incomplete with a reason explaining why, rather than
+ * the generic "not yet implemented" wording (which would imply a TODO).
+ */
+const PHP_INTENTIONALLY_ABSENT_METHODS = new Set([
+  'valueOf',
+]);
+
+/** Reason text shown in Assert::incomplete() when a fixture references a deliberately-absent method. */
+const PHP_ABSENT_METHOD_REASONS = {
+  valueOf: 'PHP spec layer does not expose valueOf(); operators have no hook',
+};
+
+/**
  * PHP methods that exist on each Temporal class (static + instance).
  * Used by emitVerifyProperty() to decide whether to emit a real assertion
  * or Assert::incomplete() for a method that is not yet implemented.
  */
 const PHP_IMPLEMENTED_METHODS = {
-  // valueOf() is intentionally NOT listed for any class. PHP has no language hook
-  // equivalent to JS's ToPrimitive, so a throw-only valueOf() cannot prevent the
-  // operators it exists to guard (`<`, `>`, etc.) from giving silent answers. The
-  // spec-layer types simply do not expose the method, and reflection-style fixtures
-  // (Object.getOwnPropertyDescriptor, Function.length) become incomplete.
   Instant:  new Set([
     '__construct', 'from', 'fromEpochMilliseconds', 'fromEpochNanoseconds',
     'compare', 'equals', 'toString', 'toJSON', 'toLocaleString',
@@ -1341,7 +1350,7 @@ class Emitter {
       const method = callee.property.name;
       const key = `${className}::${method}`;
       if (!IMPLEMENTED.has(key)) {
-        this.emitIncomplete(`\\Temporal\\Spec\\${className}::${method}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(className, method));
         return null;
       }
       const args = this.transpileArgs(node.arguments);
@@ -1500,7 +1509,7 @@ class Emitter {
       const { className, method } = temporal;
       const key = `${className}::${method}`;
       if (!IMPLEMENTED.has(key)) {
-        this.emitIncomplete(`\\Temporal\\Spec\\${className}::${method}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(className, method));
         return null;
       }
       // JS auto-coerces objects to strings; PHP does not. If an objectVars variable
@@ -1598,7 +1607,7 @@ class Emitter {
         if (isPhpMethodImplemented(cls, propName)) {
           return `Assert::methodExists('${phpClass}', '${propName}')`;
         }
-        this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${propName}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(cls, propName));
         return null;
       }
 
@@ -1611,7 +1620,7 @@ class Emitter {
         if (isPhpMethodImplemented(cls, propName)) {
           return `Assert::methodExists('${phpClass}', '${propName}')`;
         }
-        this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${propName}() is not yet implemented`);
+        this.emitIncomplete(incompleteReasonFor(cls, propName));
         return null;
       }
 
@@ -1624,7 +1633,7 @@ class Emitter {
             if (isPhpMethodImplemented(cls, method)) {
               return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
             }
-            this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${method}() is not yet implemented`);
+            this.emitIncomplete(incompleteReasonFor(cls, method));
             return null;
           }
           return 'Assert::assertTrue(true)';
@@ -1641,7 +1650,7 @@ class Emitter {
             if (isPhpMethodImplemented(cls, method)) {
               return `Assert::methodLength('${phpClass}', '${method}', ${value})`;
             }
-            this.emitIncomplete(`\\Temporal\\Spec\\${cls}::${method}() is not yet implemented`);
+            this.emitIncomplete(incompleteReasonFor(cls, method));
             return null;
           }
           return 'Assert::assertTrue(true)';
@@ -2512,6 +2521,19 @@ function parseVerifyPropertyTarget(node) {
  */
 function isPhpMethodImplemented(className, method) {
   return PHP_IMPLEMENTED_METHODS[className]?.has(method) ?? false;
+}
+
+/**
+ * Returns the reason text for an Assert::incomplete() when a fixture references
+ * a method that is not exposed by the PHP spec layer. Methods listed in
+ * PHP_INTENTIONALLY_ABSENT_METHODS get a specific "deliberately absent" reason;
+ * everything else gets the generic "not yet implemented" wording.
+ */
+function incompleteReasonFor(className, method) {
+  if (PHP_INTENTIONALLY_ABSENT_METHODS.has(method)) {
+    return PHP_ABSENT_METHOD_REASONS[method] ?? `\\Temporal\\Spec\\${className}::${method}() is intentionally not exposed`;
+  }
+  return `\\Temporal\\Spec\\${className}::${method}() is not yet implemented`;
 }
 
 /** PHP single-quoted string literal. */

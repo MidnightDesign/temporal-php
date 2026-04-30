@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 Assert::sameValue('function', 'function', '`typeof ZonedDateTime.prototype.valueOf` is `function`');
-Assert::incomplete('\\Temporal\\Spec\\ZonedDateTime::valueOf() is not yet implemented');
+Assert::incomplete('PHP spec layer does not expose valueOf(); operators have no hook');
