@@ -641,6 +641,9 @@ final class ZonedDateTime implements Stringable
         // Normalize before constructing so datetime strings are accepted here
         // (the constructor rejects them with $rejectDatetimeStrings = true).
         $normalizedTz = self::normalizeTimezoneId($timeZone);
+        if ($this->trueEpochSec !== null) {
+            return self::fromEpochParts($this->trueEpochSec, $this->trueSubNs, $normalizedTz, $this->calendarId);
+        }
         return new self($this->epochNanoseconds, $normalizedTz, $this->calendarId);
     }
 
@@ -655,6 +658,9 @@ final class ZonedDateTime implements Stringable
     public function withCalendar(string $calendar): self
     {
         $calId = self::extractCalendarFromString($calendar);
+        if ($this->trueEpochSec !== null) {
+            return self::fromEpochParts($this->trueEpochSec, $this->trueSubNs, $this->timeZoneId, $calId);
+        }
         return new self($this->epochNanoseconds, $this->timeZoneId, $calId);
     }
 
