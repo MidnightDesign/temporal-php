@@ -347,6 +347,22 @@ final class PlainMonthDayTest extends TemporalTestCase
         static::assertSame(Calendar::Gregory, $md->calendar);
     }
 
+    public function testFromFieldsForwardsEraAndEraYear(): void
+    {
+        $md = PlainMonthDay::fromFields(
+            monthCode: 'M06',
+            day: 15,
+            calendar: Calendar::Gregory,
+            year: 2020,
+            era: 'ce',
+            eraYear: 2020,
+        );
+
+        static::assertSame(6, $md->month);
+        static::assertSame(15, $md->day);
+        static::assertSame(Calendar::Gregory, $md->calendar);
+    }
+
     public function testFromFieldsForwardsOverflowReject(): void
     {
         $this->expectException(InvalidArgumentException::class);

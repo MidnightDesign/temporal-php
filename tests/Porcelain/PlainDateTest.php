@@ -640,6 +640,22 @@ final class PlainDateTest extends TestCase
         static::assertSame(15, $result->day);
     }
 
+    public function testFromFieldsWithEraAndEraYear(): void
+    {
+        $pd = PlainDate::fromFields(
+            year: 2020,
+            month: 6,
+            day: 15,
+            calendar: Calendar::Gregory,
+            era: 'ce',
+            eraYear: 2020,
+        );
+
+        static::assertSame(2020, $pd->year);
+        static::assertSame('ce', $pd->era);
+        static::assertSame(2020, $pd->eraYear);
+    }
+
     // -------------------------------------------------------------------------
     // Mutation coverage: since/until forward smallestUnit, roundingMode, roundingIncrement
     // -------------------------------------------------------------------------
