@@ -4673,19 +4673,27 @@ final class Duration implements Stringable
             // Decompose $totalNs into (calendarDaysFromNs, timePartNs). The int branch
             // is the common case; the float branch is reached only when calendarDays ×
             // NS_PER_DAY exceeds int64 (~106k days, ~292 years).
+            //
+            // Static analyzers (Psalm, Mago) infer $totalNs as `int` from the caller's
+            // own arithmetic and flag the float branch as dead. The runtime contract is
+            // wider — `nudgeToCalendarMonthsOrYears` is widened to `int|float` for exactly
+            // the overflow case the spec layer must support — so the suppressions are
+            // correct. Keeping the suppressions next to the branch they describe rather
+            // than the file head; remove them only if the analyzers learn that PHP's
+            // int*int can overflow to float.
+            /**
+             * @psalm-suppress RedundantCondition
+             */
             if (is_int($totalNs)) {
                 $calendarDaysFromNs = intdiv($totalNs - ($totalNs % $nsPerDay), $nsPerDay);
                 $timePartNs = $totalNs % $nsPerDay;
             } else {
                 // @mago-ignore analysis:unreachable-else-clause
                 // @mago-ignore analysis:no-value
-                // Mago statically infers $totalNs as int from the caller, but the
-                // parameter is widened to int|float for exactly the overflow case the
-                // spec layer must support (calendar progressions across multi-millennium
-                // spans where days × NS_PER_DAY exceeds int64). Mago is wrong about
-                // reachability here.
                 $nsPerDayF = (float) $nsPerDay;
+                /** @psalm-suppress NoValue */
                 $calendarDaysFromNs = (int) (($totalNs - fmod(num1: $totalNs, num2: $nsPerDayF)) / $nsPerDayF);
+                /** @psalm-suppress NoValue */
                 $timePartNs = (int) fmod(num1: $totalNs, num2: $nsPerDayF);
             }
             $actualDaysSec = (int) self::zdtDaysToSec(
