@@ -1572,6 +1572,8 @@ final class PlainDate implements Stringable
     /**
      * Returns [years, months, remainingDays] between two dates.
      *
+     * Caller must pass dates in (earlier, later) order: (y1,m1,d1) ≤ (y2,m2,d2).
+     *
      * $receiverIsY2: true when the caller's receiver corresponds to y2 (the later
      * argument), false when it corresponds to y1 (the earlier argument).  The anchor
      * for the day-remainder calculation is always derived from the RECEIVER's date so
@@ -1590,18 +1592,6 @@ final class PlainDate implements Stringable
         int $d2,
         bool $receiverIsY2 = true,
     ): array {
-        $sign = $y2 > $y1 || $y2 === $y1 && ($m2 > $m1 || $m2 === $m1 && $d2 >= $d1) ? 1 : -1;
-
-        // Track whether the receiver ends up as y1 or y2 after a potential swap.
-        // A swap happens when sign < 0, which flips the receiver position.
-        $receiverIsY2AfterSwap = $receiverIsY2;
-
-        // Work in the positive direction; negate result if sign is negative.
-        if ($sign < 0) {
-            [$y1, $m1, $d1, $y2, $m2, $d2] = [$y2, $m2, $d2, $y1, $m1, $d1];
-            $receiverIsY2AfterSwap = !$receiverIsY2;
-        }
-
         $years = $y2 - $y1;
         $months = $m2 - $m1;
 
@@ -1622,10 +1612,7 @@ final class PlainDate implements Stringable
             }
         }
 
-        // Compute anchor and remaining days from the RECEIVER's perspective.
-        // receiverIsY2AfterSwap=true  → receiver=y2 → anchor = y2 − months (backward from receiver)
-        // receiverIsY2AfterSwap=false → receiver=y1 → anchor = y1 + months (forward from receiver)
-        if ($receiverIsY2AfterSwap) {
+        if ($receiverIsY2) {
             // Anchor from y2 (receiver) going backward.
             $anchorMonth = $m2 - $months;
             $anchorYear = $y2 - $years;
@@ -1653,7 +1640,7 @@ final class PlainDate implements Stringable
                 - CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
         }
 
-        return [$sign * $years, $sign * $months, $sign * $days];
+        return [$years, $months, $days];
     }
 
     /**
