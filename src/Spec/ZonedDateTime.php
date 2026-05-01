@@ -2657,7 +2657,11 @@ final class ZonedDateTime implements Stringable
         }
         /** @var mixed $tzRaw */
         $tzRaw = $bag['timeZone'];
-        if (!is_string($tzRaw)) {
+        // Per TC39 ToTemporalTimeZoneIdentifier: a ZonedDateTime instance contributes its
+        // [[TimeZone]] slot directly. Otherwise the value must be a string.
+        if ($tzRaw instanceof self) {
+            $tzRaw = $tzRaw->timeZoneId;
+        } elseif (!is_string($tzRaw)) {
             throw new \TypeError('ZonedDateTime timeZone must be a string.');
         }
 
