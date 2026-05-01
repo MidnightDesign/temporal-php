@@ -641,10 +641,8 @@ final class ZonedDateTime implements Stringable
         // Normalize before constructing so datetime strings are accepted here
         // (the constructor rejects them with $rejectDatetimeStrings = true).
         $normalizedTz = self::normalizeTimezoneId($timeZone);
-        if ($this->trueEpochSec !== null) {
-            return self::fromEpochParts($this->trueEpochSec, $this->trueSubNs, $normalizedTz, $this->calendarId);
-        }
-        return new self($this->epochNanoseconds, $normalizedTz, $this->calendarId);
+        [$epochSec, $subNs] = $this->getEpochParts();
+        return self::fromEpochParts($epochSec, $subNs, $normalizedTz, $this->calendarId);
     }
 
     /**
@@ -658,10 +656,8 @@ final class ZonedDateTime implements Stringable
     public function withCalendar(string $calendar): self
     {
         $calId = self::extractCalendarFromString($calendar);
-        if ($this->trueEpochSec !== null) {
-            return self::fromEpochParts($this->trueEpochSec, $this->trueSubNs, $this->timeZoneId, $calId);
-        }
-        return new self($this->epochNanoseconds, $this->timeZoneId, $calId);
+        [$epochSec, $subNs] = $this->getEpochParts();
+        return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $calId);
     }
 
     /**
@@ -2673,16 +2669,8 @@ final class ZonedDateTime implements Stringable
         }
 
         // Otherwise expect year/month/day/hour/minute/second fields.
-        $hasEra = array_key_exists('era', $bag) && $bag['era'] !== null;
-        $hasEraYear = array_key_exists('eraYear', $bag) && $bag['eraYear'] !== null;
-        $hasEraAndEraYear = $hasEra && $hasEraYear;
-
-        $calendarSupportsEras = $calendarId !== 'iso8601' && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
-
-        // era and eraYear must come as a pair — but only for calendars that recognize eras.
-        if ($calendarSupportsEras && $hasEra !== $hasEraYear) {
-            throw new \TypeError('ZonedDateTime property bag must have both era and eraYear, or neither.');
-        }
+        $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'ZonedDateTime');
+        $calendarSupportsEras = CalendarMath::supportsEras($calendarId);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('ZonedDateTime property bag must have a year field.');

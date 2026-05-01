@@ -859,25 +859,9 @@ final class PlainMonthDay implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $bag) && $bag['monthCode'] !== null;
         $hasDay = array_key_exists('day', $bag) && $bag['day'] !== null;
         $hasYear = array_key_exists('year', $bag) && $bag['year'] !== null;
-        $hasEra = array_key_exists('era', $bag) && $bag['era'] !== null;
-        $hasEraYear = array_key_exists('eraYear', $bag) && $bag['eraYear'] !== null;
+        $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainMonthDay');
 
         $calendar = $calendarId !== null && $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
-
-        // Per TC39 NonISOResolveFields step 11: era/eraYear pairing is enforced only for
-        // calendars where CalendarSupportsEra is true. For eraless calendars (chinese,
-        // dangi, islamic*, ...), era/eraYear are silently ignored — CalendarExtraFields
-        // returns an empty list and PrepareCalendarFields never reads the fields.
-        if ($calendar !== null && !in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
-            if ($hasEra && !$hasEraYear) {
-                throw new \TypeError('era provided without eraYear.');
-            }
-            if ($hasEraYear && !$hasEra) {
-                throw new \TypeError('eraYear provided without era.');
-            }
-        }
-
-        $hasEraAndEraYear = $hasEra && $hasEraYear;
         $hasYearLike = $hasYear || $calendar !== null && $hasEraAndEraYear;
 
         // For non-ISO calendars, year is required when using month (without monthCode).

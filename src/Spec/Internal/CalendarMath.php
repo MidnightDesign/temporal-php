@@ -46,6 +46,39 @@ final class CalendarMath
     }
 
     /**
+     * Returns true if the calendar exposes era/eraYear as recognized input fields.
+     * Per TC39 Table 2 (Eras): iso8601, chinese, and dangi are eraless; every
+     * other calendar id in the project's supported set has eras.
+     */
+    public static function supportsEras(?string $calendarId): bool
+    {
+        return $calendarId !== null
+            && $calendarId !== 'iso8601'
+            && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
+    }
+
+    /**
+     * Validates the era/eraYear pair on a property bag and returns true iff
+     * both are present (and non-null). Per TC39 NonISOResolveFields step 11,
+     * the pair check fires only for calendars where CalendarSupportsEra is
+     * true; eraless calendars silently ignore both fields. PHP `null` is
+     * treated as absent (= JS undefined), since the transpiler maps both
+     * onto null.
+     *
+     * @param array<array-key, mixed> $bag
+     * @throws \TypeError if only one of era/eraYear is present on an era-supporting calendar.
+     */
+    public static function hasEraAndEraYear(array $bag, ?string $calendarId, string $className): bool
+    {
+        $hasEra = array_key_exists('era', $bag) && $bag['era'] !== null;
+        $hasEraYear = array_key_exists('eraYear', $bag) && $bag['eraYear'] !== null;
+        if (self::supportsEras($calendarId) && $hasEra !== $hasEraYear) {
+            throw new \TypeError("{$className} property bag must have both era and eraYear, or neither.");
+        }
+        return $hasEra && $hasEraYear;
+    }
+
+    /**
      * Validates that a mixed value is finite and converts it to int.
      *
      * @throws InvalidArgumentException if the value is non-finite.
