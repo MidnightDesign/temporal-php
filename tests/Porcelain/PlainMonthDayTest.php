@@ -385,9 +385,14 @@ final class PlainMonthDayTest extends TemporalTestCase
         // Spec: PrepareCalendarFields runs ToPositiveIntegerWithTruncation on
         // `month` regardless of calendar, so a non-ISO calendar must reject 0
         // or negative months. Upstream test262 only covers the ISO path.
+        // The 0 literal violates the int<1, 12> PHPDoc on the porcelain
+        // signature; we suppress the analyzer warnings to verify the runtime
+        // safety net still fires.
         $this->expectException(InvalidArgumentException::class);
 
-        PlainMonthDay::fromFields(month: 0, day: 1, calendar: Calendar::Gregory, year: 2024);
+        /** @psalm-suppress InvalidArgument */
+        // @mago-ignore analysis:invalid-argument
+        PlainMonthDay::fromFields(month: 0, day: 1, calendar: Calendar::Gregory, year: 2024); // @phpstan-ignore argument.type
     }
 
     public function testFromFieldsRejectsNonPositiveDayOnNonIsoCalendar(): void
@@ -396,7 +401,9 @@ final class PlainMonthDayTest extends TemporalTestCase
         // negative-month-or-day fixture, which upstream test262 lacks.
         $this->expectException(InvalidArgumentException::class);
 
-        PlainMonthDay::fromFields(month: 1, day: 0, calendar: Calendar::Gregory, year: 2024);
+        /** @psalm-suppress InvalidArgument */
+        // @mago-ignore analysis:invalid-argument
+        PlainMonthDay::fromFields(month: 1, day: 0, calendar: Calendar::Gregory, year: 2024); // @phpstan-ignore argument.type
     }
 
     public function testFromFieldsRejectsNonPositiveDayOnNonIsoCalendarWithMonthCodeNoYear(): void
@@ -406,7 +413,9 @@ final class PlainMonthDayTest extends TemporalTestCase
         // Distinct code path from the year-provided variant above.
         $this->expectException(InvalidArgumentException::class);
 
-        PlainMonthDay::fromFields(monthCode: 'M01', day: 0, calendar: Calendar::Gregory);
+        /** @psalm-suppress InvalidArgument */
+        // @mago-ignore analysis:invalid-argument
+        PlainMonthDay::fromFields(monthCode: 'M01', day: 0, calendar: Calendar::Gregory); // @phpstan-ignore argument.type
     }
 
     public function testFromFieldsRequiresYearOnEralessCalendarEvenWithEraAndEraYear(): void

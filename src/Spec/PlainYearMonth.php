@@ -428,16 +428,9 @@ final class PlainYearMonth implements Stringable
         if ($hasYear) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainYearMonth::with() year');
         } elseif ($hasEra) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $fields['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $fields['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveEraYear($calendar, $fields['era'], $fields['eraYear'], 'PlainYearMonth::with()');
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -841,16 +834,9 @@ final class PlainYearMonth implements Stringable
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && array_key_exists('era', $bag) && array_key_exists('eraYear', $bag)) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainYearMonth eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveEraYear($calendar, $bag['era'], $bag['eraYear'], 'PlainYearMonth');
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 

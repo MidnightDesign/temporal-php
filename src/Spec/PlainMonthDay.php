@@ -567,16 +567,9 @@ final class PlainMonthDay implements Stringable
 
         // Resolve era + eraYear for non-ISO calendars.
         if ($calendar !== null && $hasEra && $hasEraYear) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'toPlainDate() eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveEraYear($calendar, $bag['era'], $bag['eraYear'], 'toPlainDate()');
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -915,21 +908,14 @@ final class PlainMonthDay implements Stringable
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && $hasEraAndEraYear) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainMonthDay::from() eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    if ($year !== null && $year !== $resolved) {
-                        throw new InvalidArgumentException(
-                            "Conflicting year ({$year}) and era+eraYear (resolved to {$resolved}).",
-                        );
-                    }
-                    $year = $resolved;
+            $resolved = CalendarMath::resolveEraYear($calendar, $bag['era'], $bag['eraYear'], 'PlainMonthDay::from()');
+            if ($resolved !== null) {
+                if ($year !== null && $year !== $resolved) {
+                    throw new InvalidArgumentException(
+                        "Conflicting year ({$year}) and era+eraYear (resolved to {$resolved}).",
+                    );
                 }
+                $year = $resolved;
             }
         }
 
