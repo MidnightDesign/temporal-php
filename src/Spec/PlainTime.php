@@ -407,12 +407,9 @@ final class PlainTime implements Stringable
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
-            /** @var mixed $riRaw */
-            $riRaw = $options['roundingIncrement'];
-            if (!is_int($riRaw) && !is_float($riRaw)) {
-                throw new \TypeError('roundingIncrement must be a number.');
-            }
-            $rawIncrement = (int) $riRaw;
+            // Per TC39 ToTemporalRoundingIncrement: GetOption with type «Number» calls ToNumber,
+            // which coerces booleans/numeric strings. CalendarMath::toFiniteInt mirrors that.
+            $rawIncrement = CalendarMath::toFiniteInt($options['roundingIncrement'], 'roundingIncrement');
             if ($rawIncrement < 1) {
                 throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
             }
