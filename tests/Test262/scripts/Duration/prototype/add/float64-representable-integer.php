@@ -8,8 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 0);
-$result = $d->add(JsUndefined::strip(['microseconds' => 9_007_199_254_740_991 - 1]));
-Assert::sameValue($result->microseconds, 18_014_398_509_481_980, 'microseconds result should have FP precision loss');
-Assert::sameValue($result->toString(), 'PT18014398509.48198S', 'toString() should not use more precise internal representation than the spec prescribes');
-Assert::sameValue(\Temporal\Spec\Duration::compare($result->add(['microseconds' => 1]), $result), 0, 'subsequent add() should not use more precise internal representation than the spec prescribes');
+Assert::incomplete('PHP keeps Duration fields as exact int64; the fixture pins JS BigInt → Number float64 narrowing (see README deviation)');

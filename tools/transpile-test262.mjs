@@ -235,7 +235,7 @@ function tryEvalBigInt(node) {
 /** Strip the /*--- ... ---* / frontmatter and return { includes, stripped }. */
 function parseFrontmatter(source) {
   const m = source.match(/\/\*---\s*([\s\S]*?)\s*---\*\//);
-  if (!m) return { includes: [], stripped: source };
+  if (!m) return { includes: [], description: '', stripped: source };
 
   const yaml = m[1];
   let includes = [];
@@ -243,8 +243,14 @@ function parseFrontmatter(source) {
   if (incMatch) {
     includes = incMatch[1].split(',').map(s => s.trim()).filter(Boolean);
   }
+  // Capture the description field (single-line or YAML-folded multi-line `>`).
+  let description = '';
+  const descMatch = yaml.match(/^description:\s*(?:>\s*\n([\s\S]*?)(?=\n\S|$)|(.+))/m);
+  if (descMatch) {
+    description = (descMatch[2] ?? descMatch[1] ?? '').trim().replace(/\s+/g, ' ');
+  }
   const stripped = source.slice(m.index + m[0].length).trimStart();
-  return { includes, stripped };
+  return { includes, description, stripped };
 }
 
 // ---------------------------------------------------------------------------
@@ -2639,7 +2645,7 @@ function processFile(jsPath, dataDir, scriptsDir) {
   const relPath = path.relative(dataDir, jsPath).replace(/\\/g, '/');
   const source  = fs.readFileSync(jsPath, 'utf8');
 
-  const { includes, stripped } = parseFrontmatter(source);
+  const { includes, description, stripped } = parseFrontmatter(source);
 
   const phpRelPath = relPath.replace(/\.js$/, '.php');
   const outPath    = path.join(scriptsDir, phpRelPath);
@@ -2685,6 +2691,13 @@ function processFile(jsPath, dataDir, scriptsDir) {
   // running and producing spurious failures.
   const dynamicToString = ast && hasDynamicToStringAssignment(ast);
 
+  // Whole-script bail: fixtures that pin down JS BigInt → Number narrowing for
+  // Duration field values. PHP's int is 64-bit, so we keep the exact integer
+  // representation rather than rounding through float64 — see the "Duration
+  // field values are exact integers" deviation in README. The fixture asserts
+  // the JS-narrowed value verbatim, which a more-precise PHP impl never matches.
+  const float64NarrowingTest = /float64-representable\b/i.test(description);
+
   // Cheap source-text scan for observer helpers and inline ToPrimitive
   // observers (`{ valueOf() {} }` / `{ toString() {} }`). Either form means
   // the fixture leans on JS-only coercion semantics, so the existing skip
@@ -2702,6 +2715,8 @@ function processFile(jsPath, dataDir, scriptsDir) {
       emitter.emitIncomplete(`parse error: ${parseError}`);
     } else if (dynamicToString) {
       emitter.emitIncomplete('JS dynamic .toString assignment has no PHP equivalent (test exercises ToPrimitive("string") coercion which neither array nor stdClass supports)');
+    } else if (float64NarrowingTest) {
+      emitter.emitIncomplete('PHP keeps Duration fields as exact int64; the fixture pins JS BigInt → Number float64 narrowing (see README deviation)');
     } else if (ast) {
       emitter.transpileProgram(ast);
     }

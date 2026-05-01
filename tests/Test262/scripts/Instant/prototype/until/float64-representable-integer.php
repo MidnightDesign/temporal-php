@@ -8,5 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$i1 = new \Temporal\Spec\Instant(0);
-Assert::incomplete('Instant epoch nanoseconds exceed PHP int64 range');
+Assert::incomplete('PHP keeps Duration fields as exact int64; the fixture pins JS BigInt → Number float64 narrowing (see README deviation)');

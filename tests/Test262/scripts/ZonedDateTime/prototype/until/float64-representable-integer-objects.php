@@ -8,5 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$z1 = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+Assert::incomplete('PHP keeps Duration fields as exact int64; the fixture pins JS BigInt → Number float64 narrowing (see README deviation)');
