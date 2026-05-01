@@ -399,6 +399,34 @@ final class PlainMonthDayTest extends TemporalTestCase
         PlainMonthDay::fromFields(month: 1, day: 0, calendar: Calendar::Gregory, year: 2024);
     }
 
+    public function testFromFieldsRejectsNonPositiveDayOnNonIsoCalendarWithMonthCodeNoYear(): void
+    {
+        // Spec: ToPositiveIntegerWithTruncation rejects day ≤ 0 in
+        // PrepareCalendarFields, regardless of which other fields are present.
+        // Distinct code path from the year-provided variant above.
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainMonthDay::fromFields(monthCode: 'M01', day: 0, calendar: Calendar::Gregory);
+    }
+
+    public function testFromFieldsRequiresYearOnEralessCalendarEvenWithEraAndEraYear(): void
+    {
+        // Spec: CalendarExtraFields returns era/era-year only when
+        // CalendarSupportsEra is true. For 'chinese' and 'dangi', era and
+        // eraYear are silently ignored; with year/monthCode also missing,
+        // NonISOResolveFields throws TypeError because Year is unset and the
+        // calendar has no era support to fall back on.
+        $this->expectException(\TypeError::class);
+
+        PlainMonthDay::fromFields(
+            month: 5,
+            day: 1,
+            calendar: Calendar::Chinese,
+            era: 'x',
+            eraYear: 1,
+        );
+    }
+
     // -------------------------------------------------------------------------
     // with() expanded fields
     // -------------------------------------------------------------------------
