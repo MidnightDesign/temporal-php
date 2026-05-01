@@ -380,6 +380,25 @@ final class PlainMonthDayTest extends TemporalTestCase
         PlainMonthDay::fromFields(monthCode: 'M05L', day: 1, calendar: Calendar::Hebrew, year: 5783);
     }
 
+    public function testFromFieldsRejectsNonPositiveMonthOnNonIsoCalendar(): void
+    {
+        // Spec: PrepareCalendarFields runs ToPositiveIntegerWithTruncation on
+        // `month` regardless of calendar, so a non-ISO calendar must reject 0
+        // or negative months. Upstream test262 only covers the ISO path.
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainMonthDay::fromFields(month: 0, day: 1, calendar: Calendar::Gregory, year: 2024);
+    }
+
+    public function testFromFieldsRejectsNonPositiveDayOnNonIsoCalendar(): void
+    {
+        // Spec: same positivity rule for `day`. Non-ISO companion to the ISO
+        // negative-month-or-day fixture, which upstream test262 lacks.
+        $this->expectException(InvalidArgumentException::class);
+
+        PlainMonthDay::fromFields(month: 1, day: 0, calendar: Calendar::Gregory, year: 2024);
+    }
+
     // -------------------------------------------------------------------------
     // with() expanded fields
     // -------------------------------------------------------------------------
