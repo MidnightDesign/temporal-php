@@ -992,18 +992,7 @@ final class PlainMonthDay implements Stringable
             }
         }
 
-        // For the stored referenceISOYear: use 1972 if the day is valid for 1972,
-        // otherwise use the provided year (for cases like Feb 29 constrained to 28 in common year).
-        $refYear = 1972;
-        /**
-         * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
-         */
-        $maxDayIn1972 = CalendarMath::calcDaysInMonth(1972, $month);
-        if ($day > $maxDayIn1972) {
-            $refYear = $year;
-        }
-
-        return new self($month, $day, $calendarId, $refYear);
+        return new self($month, $day, $calendarId, 1972);
     }
 
     /**
