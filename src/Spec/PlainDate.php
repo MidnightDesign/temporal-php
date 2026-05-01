@@ -943,22 +943,9 @@ final class PlainDate implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
-        // Validate calendar key if present.
-        $calendarId = null;
-        if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $cal */
-            $cal = $bag['calendar'];
-            if (!is_string($cal)) {
-                throw new \TypeError(sprintf('PlainDate calendar must be a string; got %s.', get_debug_type($cal)));
-            }
-            // Reject minus-zero extended year in date-like calendar strings.
-            if (preg_match('/^-0{6}/', $cal) === 1) {
-                throw new InvalidArgumentException(
-                    "Cannot use negative zero as extended year in calendar string \"{$cal}\".",
-                );
-            }
-            $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($cal));
-        }
+        $calendarId = array_key_exists('calendar', $bag)
+            ? CalendarFactory::resolveBagCalendar($bag['calendar'], 'PlainDate')
+            : null;
 
         $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainDate');
         $calendarSupportsEras = CalendarMath::supportsEras($calendarId);
@@ -1761,56 +1748,6 @@ final class PlainDate implements Stringable
         }
 
         return new self($newYear, $newMonth, $newDay, $this->calendarId);
-    }
-
-    /**
-     * Extracts the calendar ID from a calendar string.
-     *
-     * The calendar field in a property bag may be either a plain ID (e.g. 'iso8601')
-     * or an ISO 8601 date/datetime string carrying a [u-ca=...] annotation. In the
-     * latter case the annotation's value is the calendar ID; when absent, 'iso8601'
-     * is the default.
-     *
-     * Only ASCII-lowercase comparison is used for case-folding. Calendar IDs that
-     * contain non-ASCII characters that would be lowercased differently by Unicode
-     * case-folding (e.g. U+0130 İ) are not lowercased and will not match 'iso8601'.
-     */
-    private static function extractCalendarId(string $cal): string
-    {
-        // A string that looks like an ISO date/datetime (e.g. "2020-01-01", "01-01",
-        // "2020-01", "2016-12-31T23:59:60") is an ISO date string used as a
-        // calendar field. Extract the [u-ca=...] annotation if present; otherwise
-        // the implicit calendar is iso8601.
-        //
-        // Valid date-string forms (per TC39 spec, must START with digits and have
-        // date structure):
-        //   YYYY-MM  YYYY-MM-DD  YYYY-MM-DDTHH...  MM-DD
-        // These all START with digits and contain a '-' within the first 7 chars.
-        if (str_contains($cal, '[')) {
-            $m = null;
-            if (preg_match('/\[!?u-ca=([^\]]+)\]/', $cal, $m) === 1) {
-                return strtolower($m[1]);
-            }
-            // Bracket without u-ca → default iso8601.
-            return 'iso8601';
-        }
-        // Detect date-like strings: must start with ASCII digits and have a dash
-        // within the first 7 chars (to distinguish "2020-01-01" from "iso8601").
-        if (preg_match('/^\d/', $cal) === 1 && preg_match('/^\d{1,6}-/', $cal) === 1) {
-            // ISO date string with no bracket → implicit iso8601.
-            return 'iso8601';
-        }
-        // A plain calendar ID: lowercase for case-insensitive comparison.
-        // Use ASCII-only lowercase to reject non-ASCII characters like U+0130 (İ).
-        $lower = '';
-        $len = strlen($cal);
-        for ($i = 0; $i < $len; $i++) {
-            $c = $cal[$i];
-            $o = ord($c);
-            // Only lowercase ASCII A-Z; leave all other bytes unchanged.
-            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
-        }
-        return $lower;
     }
 
     #[\Override]

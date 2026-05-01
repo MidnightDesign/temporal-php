@@ -828,25 +828,9 @@ final class PlainMonthDay implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow): self
     {
-        // Validate calendar if present.
-        $calendarId = null;
-        if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $calRaw */
-            $calRaw = $bag['calendar'];
-            if (!is_string($calRaw)) {
-                throw new \TypeError(sprintf(
-                    'PlainMonthDay::from() calendar must be a string; got %s.',
-                    get_debug_type($calRaw),
-                ));
-            }
-            // Reject minus-zero extended year in calendar strings.
-            if (preg_match('/^-0{6}/', $calRaw) === 1) {
-                throw new InvalidArgumentException(
-                    "Cannot use negative zero as extended year in calendar string \"{$calRaw}\".",
-                );
-            }
-            $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($calRaw));
-        }
+        $calendarId = array_key_exists('calendar', $bag)
+            ? CalendarFactory::resolveBagCalendar($bag['calendar'], 'PlainMonthDay')
+            : null;
 
         $hasMonth = array_key_exists('month', $bag) && $bag['month'] !== null;
         $hasMonthCode = array_key_exists('monthCode', $bag) && $bag['monthCode'] !== null;
@@ -1209,38 +1193,6 @@ final class PlainMonthDay implements Stringable
         $calYear = $calendar->year(1972, 7, 1);
         [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($calYear, $monthCode, $day, 'constrain');
         return new self($isoM, $isoD, $calendarId, $isoY);
-    }
-
-    /**
-     * Extracts and validates the calendar ID from a calendar string.
-     *
-     * Accepts bare calendar IDs ("iso8601"), ISO date strings ("2020-01-01", "01-01"),
-     * and strings with [u-ca=X] annotations. Returns the lowercase calendar ID.
-     * Throws for unsupported calendars.
-     */
-    private static function extractCalendarId(string $cal): string
-    {
-        if (str_contains($cal, '[')) {
-            $m = null;
-            if (preg_match('/\[!?u-ca=([^\]]+)\]/', $cal, $m) === 1) {
-                return strtolower($m[1]);
-            }
-            // Bracket without u-ca → default iso8601.
-            return 'iso8601';
-        }
-        // Detect date-like strings: starts with digits and has a dash within the first 7 chars.
-        if (preg_match('/^\d/', $cal) === 1 && preg_match('/^\d{1,6}-/', $cal) === 1) {
-            return 'iso8601';
-        }
-        // Plain calendar ID: ASCII-only lowercase.
-        $lower = '';
-        $len = strlen($cal);
-        for ($i = 0; $i < $len; $i++) {
-            $c = $cal[$i];
-            $o = ord($c);
-            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
-        }
-        return $lower;
     }
 
     #[\Override]
