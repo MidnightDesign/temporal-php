@@ -2747,9 +2747,11 @@ final class Duration implements Stringable
         }
         /** @var mixed $rt */
         $rt = $options['relativeTo'];
-        // null is not a valid relativeTo value (it represents JS null, not undefined).
+        // Per TC39 GetTemporalRelativeToOption: undefined relativeTo means no relative
+        // anchor, equivalent to the option being absent. PHP null is the closest match
+        // for JS undefined (the transpiler maps both to null), so we treat it the same.
         if ($rt === null) {
-            throw new \TypeError('relativeTo must be a string or property bag array.');
+            return false;
         }
         if ($rt instanceof \Temporal\Spec\PlainDate || $rt instanceof \Temporal\Spec\ZonedDateTime) {
             return true; // PlainDate and ZonedDateTime objects are valid relativeTo values
