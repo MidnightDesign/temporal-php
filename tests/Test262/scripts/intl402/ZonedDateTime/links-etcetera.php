@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $testCases = ['GMT', 'Etc/Universal', 'Etc/Zulu', 'Etc/Greenwich', 'Etc/GMT-0', 'Etc/GMT+0', 'Etc/GMT0'];
 foreach ($testCases as $id) {
 $instance = new \Temporal\Spec\ZonedDateTime(0, $id);

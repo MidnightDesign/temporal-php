@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = \Temporal\Spec\PlainDate::from('2019-01-08');
 $later = \Temporal\Spec\PlainDate::from('2021-09-07');

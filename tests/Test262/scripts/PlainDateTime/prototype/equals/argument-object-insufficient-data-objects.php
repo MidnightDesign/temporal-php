@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dt = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
 Assert::throws(\TypeError::class, function () use (&$dt) { return $dt->equals((object) ['year' => 1976]); }, 'object must contain required properties');

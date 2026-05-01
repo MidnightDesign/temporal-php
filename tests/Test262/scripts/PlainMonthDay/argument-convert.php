@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainMonthDay(new \Temporal\Spec\PlainMonthDay(11.7, 24.1), 'M11', 24, 'positive fractional');
 TemporalHelpers::assertPlainMonthDay(new \Temporal\Spec\PlainMonthDay('11.7', '24.1'), 'M11', 24, 'fractional strings');

@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $validStrings = ['12:34:56.987654321+00', '12:34:56.987654321+00:00', '12:34:56.987654321+00:00:00,0', '12:34:56.987654321+00:00:00.000000000', '12:34:56.987654321+0000', '12:34:56.987654321+000000,0', '12:34:56.987654321+000000.000000000', '12:34:56.987654321+00:00[UTC]', '12:34:56.987654321+00:00[!UTC]', '12:34:56.987654321+01[Europe/Vienna]', '12:34:56.987654321-02:30[America/St_Johns]', '12:34:56.987654321-02:30:00,0[America/St_Johns]', '12:34:56.987654321-02:30:00.000000000[America/St_Johns]', '12:34:56.987654321-0230[America/St_Johns]', '12:34:56.987654321-023000,0[America/St_Johns]', '12:34:56.987654321-023000.000000000[America/St_Johns]', '1976-11-18T12:34:56.987654321+00:00', '1976-11-18T12:34:56.987654321+00:00[UTC]', '1976-11-18T12:34:56.987654321+00:00[!UTC]', '1976-11-18T12:34:56.987654321-02:30[America/St_Johns]'];
 foreach ($validStrings as $arg) {
-$result = $instance->toZonedDateTime(['plainTime' => $arg, 'timeZone' => 'UTC']);
+$result = $instance->toZonedDateTime(JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC']));
 Assert::sameValue($result->epochNanoseconds, 957_270_896_987_654_321, "\"{$arg}\" is a valid UTC offset with time for PlainTime");
 }
 $invalidStrings = ['2022-09-15Z', '2022-09-15Z[UTC]', '2022-09-15Z[Europe/Vienna]', '2022-09-15+00:00', '2022-09-15+00:00[UTC]', '2022-09-15-02:30', '2022-09-15-02:30[America/St_Johns]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime(['plainTime' => $arg, 'timeZone' => 'UTC']); }, "\"{$arg}\" UTC offset without time is not valid for PlainTime");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime(JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC'])); }, "\"{$arg}\" UTC offset without time is not valid for PlainTime");
 }

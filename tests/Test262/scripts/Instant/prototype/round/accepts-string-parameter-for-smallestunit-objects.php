@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $inst = new \Temporal\Spec\Instant(1_000_000_000_123_456_789);
 foreach (['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $smallestUnit) {
-TemporalHelpers::assertInstantsEqual($inst->round($smallestUnit), $inst->round((object) ['smallestUnit' => $smallestUnit]));
+TemporalHelpers::assertInstantsEqual($inst->round($smallestUnit), $inst->round((object) JsUndefined::strip(['smallestUnit' => $smallestUnit])));
 }

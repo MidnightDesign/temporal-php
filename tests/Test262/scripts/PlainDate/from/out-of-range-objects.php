@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'monthCode' => 'm1', 'day' => 17]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'monthCode' => 'M1', 'day' => 17]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'monthCode' => 'm01', 'day' => 17]), '');
@@ -15,10 +16,10 @@ Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDat
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'monthCode' => 'M19', 'day' => 17]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'monthCode' => 'M99', 'day' => 17]), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'monthCode' => 'M13', 'day' => 17]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'month' => -1, 'day' => 17]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'month' => -INF, 'day' => 17]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'month' => 7, 'day' => -17]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'month' => 7, 'day' => -INF]), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2021, 'month' => -1, 'day' => 17])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2021, 'month' => -INF, 'day' => 17])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2021, 'month' => 7, 'day' => -17])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2021, 'month' => 7, 'day' => -INF])), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'month' => 12, 'day' => 0], (object) ['overflow' => 'reject']), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'month' => 12, 'day' => 32], (object) ['overflow' => 'reject']), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'month' => 1, 'day' => 32], (object) ['overflow' => 'reject']), '');

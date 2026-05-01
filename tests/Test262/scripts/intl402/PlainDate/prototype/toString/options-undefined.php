@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $date1 = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $date2 = new \Temporal\Spec\PlainDate(2000, 5, 2, 'gregory');
 foreach ([[$date1, '2000-05-02'], [$date2, '2000-05-02[u-ca=gregory]']] as $__entry__) {

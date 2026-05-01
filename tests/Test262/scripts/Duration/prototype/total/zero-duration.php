@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zero = new \Temporal\Spec\Duration();
 $relativeToDates = [new \Temporal\Spec\ZonedDateTime(0, 'UTC'), new \Temporal\Spec\PlainDateTime(1970, 1, 1)];
 $units = ['days', 'weeks', 'months', 'years'];
 foreach ($relativeToDates as $relativeTo) {
 foreach ($units as $unit) {
-Assert::sameValue($zero->total(['unit' => $unit, 'relativeTo' => $relativeTo]), 0, '');
+Assert::sameValue($zero->total(JsUndefined::strip(['unit' => $unit, 'relativeTo' => $relativeTo])), 0, '');
 }
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [['2019-12-15T15:23', 'uppercase T'], ['2019-12-15t15:23', 'lowercase T'], ['2019-12-15 15:23', 'space between date and time']];
 $instance = new \Temporal\Spec\PlainYearMonth(2019, 12);
 foreach ($tests as $__entry__) {

@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration();
-$balanceFailCases = [[(object) ['milliseconds' => 4_503_599_627_370_497_024, 'microseconds' => 4.503_599_627_370_495e+21], 'case where floating point inaccuracy brings total below limit, positive'], [(object) ['milliseconds' => -4_503_599_627_370_497_024, 'microseconds' => -4.503_599_627_370_495e+21], 'case where floating point inaccuracy brings total below limit, negative']];
+$balanceFailCases = [[(object) ['milliseconds' => 4_503_599_627_370_497_024, 'microseconds' => 4.503_599_627_370_495e+21], 'case where floating point inaccuracy brings total below limit, positive'], [(object) JsUndefined::strip(['milliseconds' => -4_503_599_627_370_497_024, 'microseconds' => -4.503_599_627_370_495e+21]), 'case where floating point inaccuracy brings total below limit, negative']];
 foreach ($balanceFailCases as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->add($arg); }, $descr . ': ℝ(𝔽(x)) operation after balancing brings total over limit');
 }
-$balanceSuccessCases = [[(object) ['seconds' => 2, 'milliseconds' => 4_503_599_627_370_496_512, 'microseconds' => 4.5_035_996_273_704_934e+21], 'PT9007199254740991.89056S', 'case where floating point inaccuracy brings total below limit, positive'], [(object) ['seconds' => -2, 'milliseconds' => -4_503_599_627_370_496_512, 'microseconds' => -4.5_035_996_273_704_934e+21], '-PT9007199254740991.89056S', 'case where floating point inaccuracy brings total below limit, negative']];
+$balanceSuccessCases = [[(object) ['seconds' => 2, 'milliseconds' => 4_503_599_627_370_496_512, 'microseconds' => 4.5_035_996_273_704_934e+21], 'PT9007199254740991.89056S', 'case where floating point inaccuracy brings total below limit, positive'], [(object) JsUndefined::strip(['seconds' => -2, 'milliseconds' => -4_503_599_627_370_496_512, 'microseconds' => -4.5_035_996_273_704_934e+21]), '-PT9007199254740991.89056S', 'case where floating point inaccuracy brings total below limit, negative']];
 foreach ($balanceSuccessCases as $__entry__) {
 [$arg, $string, $descr] = array_pad($__entry__, 3, null);
 $result = $instance->add($arg);

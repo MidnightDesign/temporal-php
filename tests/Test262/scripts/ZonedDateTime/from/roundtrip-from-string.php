@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\ZonedDateTime::from('2000-01-01T12:34:56.987654321Z[UTC]')->toPlainDateTime(), 2000, 1, 'M01', 1, 12, 34, 56, 987, 654, 321, 'created from string 2000-01-01T12:34:56.987654321Z[UTC]');
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\ZonedDateTime::from('0001-01-01T12:34:56.987654321Z[UTC]')->toPlainDateTime(), 1, 1, 'M01', 1, 12, 34, 56, 987, 654, 321, 'created from string 0001-01-01T12:34:56.987654321Z[UTC]');

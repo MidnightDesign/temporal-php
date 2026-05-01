@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
 Assert::sameValue($zdt->weekOfYear, 47, 'check week of year information');
 for ($i = 29; $i <= 31; ++$i) {

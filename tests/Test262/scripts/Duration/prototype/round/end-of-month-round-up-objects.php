@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\Duration(0, 11);
 $relativeTo = new \Temporal\Spec\PlainDate(2023, 5, 31);
-$result = $instance->round((object) ['relativeTo' => $relativeTo, 'smallestUnit' => 'months', 'roundingMode' => 'ceil']);
+$result = $instance->round((object) JsUndefined::strip(['relativeTo' => $relativeTo, 'smallestUnit' => 'months', 'roundingMode' => 'ceil']));
 TemporalHelpers::assertDuration($result, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $fall = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2018, 'month' => 2, 'day' => 17, 'hour' => 12, 'timeZone' => 'America/Sao_Paulo']);
 Assert::sameValue($fall->hoursInDay, 25, '25-hour day with backward jump at midnight');
 $spring = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2018, 'month' => 11, 'day' => 4, 'hour' => 12, 'timeZone' => 'America/Sao_Paulo']);

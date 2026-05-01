@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 Assert::throws(\TypeError::class, function () use (&$datetime) { return $datetime->with((object) ['year' => 2021, 'calendar' => 'iso8601']); }, 'throws with calendar property');

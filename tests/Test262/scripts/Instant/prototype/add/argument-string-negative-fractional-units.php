@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
 $resultHours = $instance->add('-PT24.567890123H');
 Assert::sameValue($resultHours->epochNanoseconds, 999_911_555_595_557_200, 'negative fractional hours');

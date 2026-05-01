@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 4, 12, 34, 56, 987, 654, 321);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->round((object) ['smallestUnit' => 'second', 'roundingIncrement' => NAN]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->round((object) JsUndefined::strip(['smallestUnit' => 'second', 'roundingIncrement' => NAN])); }, '');

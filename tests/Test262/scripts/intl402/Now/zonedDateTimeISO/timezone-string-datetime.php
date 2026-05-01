@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = '2021-08-19T17:30[America/Vancouver]';
 $result1 = \Temporal\Spec\Now::zonedDateTimeISO($timeZone);
 Assert::sameValue($result1->timeZoneId, 'America/Vancouver', 'date-time + IANA annotation is the IANA time zone');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(100, 'UTC');
 $zonedDateTime2 = new \Temporal\Spec\ZonedDateTime(987_654_321, 'UTC');
 // JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => zonedDateTime.valueOf(), "valueOf")

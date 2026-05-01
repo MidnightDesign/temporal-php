@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dtm = new \Temporal\Spec\PlainDateTime(2000, 10, 29, 1, 45);
 foreach (['compatible', 'earlier', 'later', 'reject'] as $disambiguation) {
-$result = $dtm->toZonedDateTime('UTC', (object) ['disambiguation' => $disambiguation]);
+$result = $dtm->toZonedDateTime('UTC', (object) JsUndefined::strip(['disambiguation' => $disambiguation]));
 Assert::sameValue($result->epochNanoseconds, 972_783_900_000_000_000, 'epoch nanoseconds remains constant');
 Assert::sameValue($result->timeZoneId, 'UTC', 'time zone is adopted');
 }
 foreach (['compatible', 'earlier', 'later', 'reject'] as $disambiguation) {
-$result = $dtm->toZonedDateTime('+03:30', (object) ['disambiguation' => $disambiguation]);
+$result = $dtm->toZonedDateTime('+03:30', (object) JsUndefined::strip(['disambiguation' => $disambiguation]));
 Assert::sameValue($result->epochNanoseconds, 972_771_300_000_000_000, 'epoch nanoseconds remains constant');
 Assert::sameValue($result->timeZoneId, '+03:30', 'time zone is adopted');
 }

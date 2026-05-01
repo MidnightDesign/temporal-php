@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 2, 31, 0);
-Assert::throws(\TypeError::class, function () use (&$d) { return $d->total(['unit' => 'months', 'relativeTo' => []]); }, '');
-Assert::throws(\TypeError::class, function () use (&$d) { return $d->total(['unit' => 'months', 'relativeTo' => ['years' => 2020, 'month' => 1, 'day' => 1]]); }, '');
+Assert::throws(\TypeError::class, function () use (&$d) { return $d->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => []])); }, '');
+Assert::throws(\TypeError::class, function () use (&$d) { return $d->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => ['years' => 2020, 'month' => 1, 'day' => 1]])); }, '');

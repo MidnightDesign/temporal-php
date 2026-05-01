@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $from = new \Temporal\Spec\PlainYearMonth(1970, 1);
 $to = new \Temporal\Spec\PlainYearMonth(1971, 1);
 $options = (object) ['roundingIncrement' => 100_000_000];

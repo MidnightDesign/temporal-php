@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration = \Temporal\Spec\Duration::from((object) ['microseconds' => 9_007_199_254_740_991, 'nanoseconds' => 1000]);
+$duration = \Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => 9_007_199_254_740_991, 'nanoseconds' => 1000]));
 $time = \Temporal\Spec\PlainTime::from((object) ['microsecond' => 1]);
 $result = $time->add($duration);
 TemporalHelpers::assertPlainTime($result, 23, 47, 34, 740, 993, 0);

@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'islamic-rgsa';
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\PlainYearMonth::from((object) ['year' => 1500, 'month' => 1, 'calendar' => $calendar]); }, 'fallback for calendar ID \'islamic-rgsa\' only supported in Intl.DateTimeFormat constructor, not Temporal');
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => 1500, 'month' => 1, 'calendar' => $calendar])); }, 'fallback for calendar ID \'islamic-rgsa\' only supported in Intl.DateTimeFormat constructor, not Temporal');

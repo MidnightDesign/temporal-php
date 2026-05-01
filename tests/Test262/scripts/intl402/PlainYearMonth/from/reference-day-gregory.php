@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $result1 = \Temporal\Spec\PlainYearMonth::from(['year' => 2023, 'monthCode' => 'M01', 'day' => 13, 'calendar' => 'gregory']);
 TemporalHelpers::assertPlainYearMonth($result1, 2023, 1, 'M01', 'reference day is 1 even if day is given', 'ce', 2023, 1);

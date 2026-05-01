@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $neg = function ($x) {
 return ($x === 0 ? $x : -$x);
@@ -65,6 +66,6 @@ foreach ($tests as $__entry_units__) {
 $units = array_slice($__entry_units__, 3);
 foreach ($units as $__entry__) {
 [$largestUnit, $years, $months, $weeks, $days] = array_pad($__entry__, 5, null);
-TemporalHelpers::assertDuration($one->since($two, ['largestUnit' => $largestUnit]), $neg($years), $neg($months), $neg($weeks), $neg($days), 0, 0, 0, 0, 0, 0, $descr);
+TemporalHelpers::assertDuration($one->since($two, JsUndefined::strip(['largestUnit' => $largestUnit])), $neg($years), $neg($months), $neg($weeks), $neg($days), 0, 0, 0, 0, 0, 0, $descr);
 }
 }

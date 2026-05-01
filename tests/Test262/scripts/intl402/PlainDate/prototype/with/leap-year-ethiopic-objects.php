@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'ethiopic';
 $options = (object) ['overflow' => 'reject'];
-$leapDay = \Temporal\Spec\PlainDate::from((object) ['year' => 2015, 'monthCode' => 'M13', 'day' => 6, 'calendar' => $calendar], $options);
+$leapDay = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2015, 'monthCode' => 'M13', 'day' => 6, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($leapDay->with((object) ['year' => 2016]), 2016, 13, 'M13', 5, 'Changing year on leap day to a common year constrains to day 5 of epagomenal month', 'am', 2016);
 Assert::throws(\InvalidArgumentException::class, function () use (&$leapDay, &$options) { $leapDay->with((object) ['year' => 2016], $options); }, 'Changing year on leap day to a common year rejects');
 TemporalHelpers::assertPlainDate($leapDay->with((object) ['year' => 2011], $options), 2011, 13, 'M13', 6, 'Changing year on leap day to another leap year constrains to day 6 of epagomenal month', 'am', 2011);

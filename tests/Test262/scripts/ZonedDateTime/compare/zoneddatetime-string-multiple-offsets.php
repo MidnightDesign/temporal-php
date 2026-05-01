@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(30_000_000_000, '+01:35');
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::compare($str, $datetime), 0, 'Time zone determined from bracket name (first argument)');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $mar31 = \Temporal\Spec\PlainDate::from('2020-03-31');
 TemporalHelpers::assertPlainDate($mar31->subtract(['months' => 1], ['overflow' => 'constrain']), 2020, 2, 'M02', 29);

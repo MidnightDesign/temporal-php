@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['reject', 'constrain'] as $overflow) {
-$string = \Temporal\Spec\PlainMonthDay::from('02-29', (object) ['overflow' => $overflow]);
+$string = \Temporal\Spec\PlainMonthDay::from('02-29', (object) JsUndefined::strip(['overflow' => $overflow]));
 TemporalHelpers::assertPlainMonthDay($string, 'M02', 29, "from {$overflow} string");
-$monthCode = \Temporal\Spec\PlainMonthDay::from((object) ['monthCode' => 'M02', 'day' => 29], (object) ['overflow' => $overflow]);
+$monthCode = \Temporal\Spec\PlainMonthDay::from((object) ['monthCode' => 'M02', 'day' => 29], (object) JsUndefined::strip(['overflow' => $overflow]));
 TemporalHelpers::assertPlainMonthDay($monthCode, 'M02', 29, "from {$overflow} with monthCode");
-$implicit = \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29], (object) ['overflow' => $overflow]);
+$implicit = \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29], (object) JsUndefined::strip(['overflow' => $overflow]));
 TemporalHelpers::assertPlainMonthDay($implicit, 'M02', 29, "from {$overflow} without year");
-$explicit = \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 1996], (object) ['overflow' => $overflow]);
+$explicit = \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 1996], (object) JsUndefined::strip(['overflow' => $overflow]));
 TemporalHelpers::assertPlainMonthDay($explicit, 'M02', 29, "from {$overflow} with leap year");
 }
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 2001], (object) ['overflow' => 'reject']), 'from reject with non-leap year');

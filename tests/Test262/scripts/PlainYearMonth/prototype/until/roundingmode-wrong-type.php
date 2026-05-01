@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
-TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', function ($roundingMode) use (&$earlier, &$later) { return $earlier->until($later, ['smallestUnit' => 'year', 'roundingMode' => $roundingMode]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', function ($roundingMode) use (&$earlier, &$later) { return $earlier->until($later, JsUndefined::strip(['smallestUnit' => 'year', 'roundingMode' => $roundingMode])); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, $descr));

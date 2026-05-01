@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datestring = '2026-03-29T02:30:15+01:00';
 $instant = \Temporal\Spec\Instant::from($datestring);
 $pdt = \Temporal\Spec\PlainDateTime::from($datestring);

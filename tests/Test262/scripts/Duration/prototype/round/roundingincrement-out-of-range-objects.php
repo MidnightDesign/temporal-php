@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1);
-$options = (object) ['smallestUnit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2000, 1, 1)];
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) array_merge((array) $options, ['roundingIncrement' => -INF])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) array_merge((array) $options, ['roundingIncrement' => -1])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) array_merge((array) $options, ['roundingIncrement' => 0])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) array_merge((array) $options, ['roundingIncrement' => 1_000_000_000 + 1])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) array_merge((array) $options, ['roundingIncrement' => INF])); }, '');
+$options = (object) JsUndefined::strip(['smallestUnit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2000, 1, 1)]);
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) JsUndefined::strip(array_merge((array) $options, ['roundingIncrement' => -INF]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) JsUndefined::strip(array_merge((array) $options, ['roundingIncrement' => -1]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) JsUndefined::strip(array_merge((array) $options, ['roundingIncrement' => 0]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) JsUndefined::strip(array_merge((array) $options, ['roundingIncrement' => 1_000_000_000 + 1]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round((object) JsUndefined::strip(array_merge((array) $options, ['roundingIncrement' => INF]))); }, '');

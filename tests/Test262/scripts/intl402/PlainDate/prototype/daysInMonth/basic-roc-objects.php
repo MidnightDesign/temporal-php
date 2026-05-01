@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'roc';
 $options = (object) ['overflow' => 'reject'];
-$sampleYears = (object) [61 => [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], 62 => [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]];
+$sampleYears = (object) JsUndefined::strip([61 => [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], 62 => [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]]);
 foreach ($sampleYears as $year => $daysInMonth) {
 for ($month = 1; $month < count($daysInMonth); $month++) {
-$date = \Temporal\Spec\PlainDate::from((object) ['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar]);
+$date = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar]));
 Assert::sameValue($date->daysInMonth, $daysInMonth[$month - 1], "{$date}");
 }
 }

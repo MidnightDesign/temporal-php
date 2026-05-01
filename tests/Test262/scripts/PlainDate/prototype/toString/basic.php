@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $date1 = new \Temporal\Spec\PlainDate(1976, 11, 18);
 Assert::sameValue($date1->toString(), '1976-11-18', '');
 $date2 = new \Temporal\Spec\PlainDate(1914, 2, 23);

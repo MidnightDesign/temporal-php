@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'japanese';
 $options = ['overflow' => 'reject'];
 $year = 1970;
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\Spec\PlainDateTime::from(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]);
+$date = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]));
 $daysInMonth = $date->daysInMonth;
-$oneDayPastMonthEnd = $date->with(['day' => $daysInMonth + 1]);
+$oneDayPastMonthEnd = $date->with(JsUndefined::strip(['day' => $daysInMonth + 1]));
 Assert::sameValue($oneDayPastMonthEnd->day, $daysInMonth, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with(['day' => $daysInMonth + 1], $options); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with(JsUndefined::strip(['day' => $daysInMonth + 1]), $options); }, '');
 }

@@ -7,24 +7,25 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $expectedTimeZone = 'UTC';
 $instance1 = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance1, &$timeZone) { return $instance1->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]); }, 'bare date-time string is not a time zone');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance1, &$timeZone) { return $instance1->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])); }, 'bare date-time string is not a time zone');
 foreach (['2021-08-19T17:30-07:00:01', '2021-08-19T17:30-07:00:00', '2021-08-19T17:30-07:00:00.1', '2021-08-19T17:30-07:00:00.0', '2021-08-19T17:30-07:00:00.01', '2021-08-19T17:30-07:00:00.00', '2021-08-19T17:30-07:00:00.001', '2021-08-19T17:30-07:00:00.000', '2021-08-19T17:30-07:00:00.0001', '2021-08-19T17:30-07:00:00.0000', '2021-08-19T17:30-07:00:00.00001', '2021-08-19T17:30-07:00:00.00000', '2021-08-19T17:30-07:00:00.000001', '2021-08-19T17:30-07:00:00.000000', '2021-08-19T17:30-07:00:00.0000001', '2021-08-19T17:30-07:00:00.0000000', '2021-08-19T17:30-07:00:00.00000001', '2021-08-19T17:30-07:00:00.00000000', '2021-08-19T17:30-07:00:00.000000001', '2021-08-19T17:30-07:00:00.000000000'] as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance1, &$timeZone) { return $instance1->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]); }, "ISO string {$timeZone} with a sub-minute offset is not a valid time zone");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance1, &$timeZone) { return $instance1->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])); }, "ISO string {$timeZone} with a sub-minute offset is not a valid time zone");
 }
 $timeZone = '2021-08-19T17:30Z';
-$instance1->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance1->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 $expectedTimeZone = '-07:00';
 $instance2 = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30-07:00';
-$instance2->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance2->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 $expectedTimeZone = 'UTC';
 $instance3 = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30[UTC]';
-$instance3->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance3->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 $timeZone = '2021-08-19T17:30Z[UTC]';
-$instance3->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance3->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 $timeZone = '2021-08-19T17:30-07:00[UTC]';
-$instance3->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance3->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));

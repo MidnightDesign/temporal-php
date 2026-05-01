@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $test = function ($timeZoneIdentifier, $expected, $description) use (&$instant) {
-Assert::sameValue($instant->toString((object) ['timeZone' => $timeZoneIdentifier]), $expected, $description);
+Assert::sameValue($instant->toString((object) JsUndefined::strip(['timeZone' => $timeZoneIdentifier])), $expected, $description);
 };
 $instant = new \Temporal\Spec\Instant(0);
 $test('UTC', '1970-01-01T00:00:00+00:00', 'offset of UTC is +00:00');

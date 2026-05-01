@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$datetime, &$duration) { return $datetime->add($duration, (object) ['overflow' => $overflow]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_086_400_987_654_321, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$datetime, &$duration) { return $datetime->add($duration, (object) JsUndefined::strip(['overflow' => $overflow])); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_086_400_987_654_321, $descr));

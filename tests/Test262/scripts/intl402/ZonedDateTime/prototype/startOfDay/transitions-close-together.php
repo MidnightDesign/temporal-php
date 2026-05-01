@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $noronha = new \Temporal\Spec\ZonedDateTime(970_970_400_000_000_000, 'America/Noronha');
 Assert::sameValue($noronha->startOfDay()->epochNanoseconds, $noronha->epochNanoseconds, 'America/Noronha offset transitions close together');
 $boaVistaStart = new \Temporal\Spec\ZonedDateTime(970_977_600_000_000_000, 'America/Boa_Vista');

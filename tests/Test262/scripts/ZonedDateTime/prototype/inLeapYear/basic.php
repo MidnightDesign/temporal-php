@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(new \Temporal\Spec\ZonedDateTime(217_178_610_123_456_789, 'UTC')->inLeapYear, true, 'leap year');
 Assert::sameValue(new \Temporal\Spec\ZonedDateTime(248_714_610_123_456_789, 'UTC')->inLeapYear, false, 'non-leap year');
 Assert::sameValue(new \Temporal\Spec\PlainDateTime(1995, 8, 23, 5, 30, 13)->toZonedDateTime('UTC')->inLeapYear, false, '');

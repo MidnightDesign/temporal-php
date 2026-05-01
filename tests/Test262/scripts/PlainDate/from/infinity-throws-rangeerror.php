@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $base = ['year' => 2000, 'month' => 5, 'day' => 2];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day'] as $prop) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$inf, &$overflow) { return \Temporal\Spec\PlainDate::from(array_merge($base, [$prop => $inf]), ['overflow' => $overflow]); }, "{$prop} property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$inf, &$overflow) { return \Temporal\Spec\PlainDate::from(JsUndefined::strip(array_merge($base, [$prop => $inf])), JsUndefined::strip(['overflow' => $overflow])); }, "{$prop} property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, $prop);
-Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$obj, &$overflow) { return \Temporal\Spec\PlainDate::from(array_merge($base, [$prop => $obj]), ['overflow' => $overflow]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$prop, &$obj, &$overflow) { return \Temporal\Spec\PlainDate::from(JsUndefined::strip(array_merge($base, [$prop => $obj])), JsUndefined::strip(['overflow' => $overflow])); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, [`get ${prop}.valueOf`, `call ${prop}.valueOf`], "it fails after fetching the primitive value");
 }
 }

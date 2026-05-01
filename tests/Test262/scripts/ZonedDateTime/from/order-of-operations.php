@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $createOptionsObserver = function ($__unknown__) use (&$actual, &$overflow, &$disambiguation, &$offset) {
-return TemporalHelpers::propertyBagObserver($actual, ['overflow' => $overflow, 'disambiguation' => $disambiguation, 'offset' => $offset, 'extra' => 'property'], 'options');
+return TemporalHelpers::propertyBagObserver($actual, JsUndefined::strip(['overflow' => $overflow, 'disambiguation' => $disambiguation, 'offset' => $offset, 'extra' => 'property']), 'options');
 };
 $expectedOptionsReading = ['get options.disambiguation', 'get options.disambiguation.toString', 'call options.disambiguation.toString', 'get options.offset', 'get options.offset.toString', 'call options.offset.toString', 'get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
 $expectedOpsForPrimitiveOptions = ['get item.calendar', 'get item.day', 'get item.day.valueOf', 'call item.day.valueOf', 'get item.hour', 'get item.hour.valueOf', 'call item.hour.valueOf', 'get item.microsecond', 'get item.microsecond.valueOf', 'call item.microsecond.valueOf', 'get item.millisecond', 'get item.millisecond.valueOf', 'call item.millisecond.valueOf', 'get item.minute', 'get item.minute.valueOf', 'call item.minute.valueOf', 'get item.month', 'get item.month.valueOf', 'call item.month.valueOf', 'get item.monthCode', 'get item.monthCode.toString', 'call item.monthCode.toString', 'get item.nanosecond', 'get item.nanosecond.valueOf', 'call item.nanosecond.valueOf', 'get item.offset', 'get item.offset.toString', 'call item.offset.toString', 'get item.second', 'get item.second.valueOf', 'call item.second.valueOf', 'get item.timeZone', 'get item.year', 'get item.year.valueOf', 'call item.year.valueOf'];

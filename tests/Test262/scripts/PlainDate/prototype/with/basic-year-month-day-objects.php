@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$cases = (object) ['year2000' => \Temporal\Spec\PlainDate::from((object) ['year' => 2000, 'monthCode' => 'M01', 'day' => 1]), 'year1976' => \Temporal\Spec\PlainDate::from((object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18]), 'year1' => \Temporal\Spec\PlainDate::from((object) ['year' => 1, 'monthCode' => 'M01', 'day' => 1])];
+$cases = (object) JsUndefined::strip(['year2000' => \Temporal\Spec\PlainDate::from((object) ['year' => 2000, 'monthCode' => 'M01', 'day' => 1]), 'year1976' => \Temporal\Spec\PlainDate::from((object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18]), 'year1' => \Temporal\Spec\PlainDate::from((object) ['year' => 1, 'monthCode' => 'M01', 'day' => 1])]);
 foreach ($cases as $name => $inCal) {
 $afterWithDay = $inCal->with((object) ['day' => 1]);
 TemporalHelpers::assertPlainDate($afterWithDay, $inCal->year, $inCal->month, $inCal->monthCode, 1, "{$name} after setting day to 1");

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P1D'), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('p1y1m1dt1h1m1s'), 1, 1, 0, 1, 1, 1, 1, 0, 0, 0);

@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $date1 = \Temporal\Spec\ZonedDateTime::from(['calendar' => 'gregory', 'era' => 'ad', 'eraYear' => 2024, 'year' => 2024, 'month' => 1, 'day' => 1, 'timeZone' => 'UTC']);
 Assert::sameValue($date1->era, 'ce', '\'ad\' is accepted as alias for \'ce\'');
-$date2 = \Temporal\Spec\ZonedDateTime::from(['calendar' => 'gregory', 'era' => 'bc', 'eraYear' => 44, 'year' => -43, 'month' => 3, 'day' => 15, 'timeZone' => 'Europe/Rome']);
+$date2 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['calendar' => 'gregory', 'era' => 'bc', 'eraYear' => 44, 'year' => -43, 'month' => 3, 'day' => 15, 'timeZone' => 'Europe/Rome']));
 Assert::sameValue($date2->era, 'bce', '\'bc\' is accepted as alias for \'bce\'');

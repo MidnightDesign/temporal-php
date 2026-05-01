@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validValues = [new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12), '2000-05-02T12:00'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainDateTime::from($value, (object) ['overflow' => $overflow]); }, fn($result, $descr) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainDateTime::from($value, (object) JsUndefined::strip(['overflow' => $overflow])); }, fn($result, $descr) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, $descr));
 }
 $propertyBag = (object) ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 12];
 Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => null]); }, 'null');

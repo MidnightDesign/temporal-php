@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from(['calendar' => 'chinese', 'monthCode' => 'M05', 'month' => 6, 'day' => 1, 'hour' => 12]), 'Missing year throws TypeError before month/monthCode conflict throws RangeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from(['calendar' => 'chinese', 'year' => 2020, 'day' => 32, 'hour' => 12], ['overflow' => 'reject']), 'Missing month throws TypeError before out-of-range day throws RangeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from(['calendar' => 'chinese', 'year' => 2020, 'monthCode' => 'M05', 'month' => 6, 'hour' => 12]), 'Missing day throws TypeError before month/monthCode conflict throws RangeError');

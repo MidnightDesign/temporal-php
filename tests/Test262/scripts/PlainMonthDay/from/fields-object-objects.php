@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [[(object) ['monthCode' => 'M10', 'day' => 1], 'option bag with monthCode'], [(object) ['monthCode' => 'M10', 'day' => 1, 'year' => 2015], 'option bag with year, monthCode'], [(object) ['month' => 10, 'day' => 1], 'option bag with year, month'], [(object) ['month' => 10, 'day' => 1, 'year' => 2015], 'option bag with year, month'], [(object) ['month' => 10, 'day' => 1, 'days' => 31], 'option bag with plural \'days\''], [new \Temporal\Spec\PlainMonthDay(10, 1), 'PlainMonthDay object'], [\Temporal\Spec\PlainDate::from('2019-10-01'), 'PlainDate object'], [(object) ['monthCode' => 'M10', 'day' => 1, 'calendar' => 'iso8601'], 'option bag with monthCode and explicit ISO calendar'], [(object) ['month' => 10, 'day' => 1, 'calendar' => 'iso8601'], 'option bag with month and explicit ISO calendar']];
 foreach ($tests as $__entry__) {

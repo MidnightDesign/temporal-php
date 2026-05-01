@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, '-10:00');
 Assert::sameValue($zdt->getTimeZoneTransition('next'), null, 'An offset time zone has no next transition');
 Assert::sameValue($zdt->getTimeZoneTransition('previous'), null, 'An offset time zone has no previous transition');

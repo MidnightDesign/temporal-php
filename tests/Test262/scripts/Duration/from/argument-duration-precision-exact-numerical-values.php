@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$cases = [[['milliseconds' => 4_503_599_627_370_497_024, 'microseconds' => 4.503_599_627_370_495e+21], 'PT9007199254740991.975424S', 'case where floating point inaccuracy brings total below limit, positive'], [['milliseconds' => -4_503_599_627_370_497_024, 'microseconds' => -4.503_599_627_370_495e+21], '-PT9007199254740991.975424S', 'case where floating point inaccuracy brings total below limit, negative']];
+use Temporal\Tests\Test262\JsUndefined;
+$cases = [[['milliseconds' => 4_503_599_627_370_497_024, 'microseconds' => 4.503_599_627_370_495e+21], 'PT9007199254740991.975424S', 'case where floating point inaccuracy brings total below limit, positive'], [JsUndefined::strip(['milliseconds' => -4_503_599_627_370_497_024, 'microseconds' => -4.503_599_627_370_495e+21]), '-PT9007199254740991.975424S', 'case where floating point inaccuracy brings total below limit, negative']];
 foreach ($cases as $__entry__) {
 [$arg, $string, $descr] = array_pad($__entry__, 3, null);
 $instance = \Temporal\Spec\Duration::from($arg);

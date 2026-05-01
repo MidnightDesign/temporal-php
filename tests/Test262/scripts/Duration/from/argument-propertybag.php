@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from(['years' => 0, 'months' => 0, 'weeks' => 0, 'days' => 0, 'hours' => 0, 'minutes' => 0, 'seconds' => 0, 'milliseconds' => 0, 'microseconds' => 0, 'nanoseconds' => 0]), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from(['years' => 1, 'months' => 2, 'weeks' => 3, 'days' => 4, 'hours' => 5, 'minutes' => 6, 'seconds' => 7, 'milliseconds' => 8, 'microseconds' => 9, 'nanoseconds' => 10]), 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
-TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from(['years' => -1, 'months' => -2, 'weeks' => -3, 'days' => -4, 'hours' => -5, 'minutes' => -6, 'seconds' => -7, 'milliseconds' => -8, 'microseconds' => -9, 'nanoseconds' => -10]), -1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from(JsUndefined::strip(['years' => -1, 'months' => -2, 'weeks' => -3, 'days' => -4, 'hours' => -5, 'minutes' => -6, 'seconds' => -7, 'milliseconds' => -8, 'microseconds' => -9, 'nanoseconds' => -10])), -1, -2, -3, -4, -5, -6, -7, -8, -9, -10);

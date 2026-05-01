@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $thePast = new \Temporal\Spec\ZonedDateTime(1_234_567_890_123_456_789, '-08:00');
 $theFuture = new \Temporal\Spec\ZonedDateTime(2_345_678_901_234_567_890, '-08:00');

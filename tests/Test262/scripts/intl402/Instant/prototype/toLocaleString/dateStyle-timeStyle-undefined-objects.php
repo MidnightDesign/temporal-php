@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(957_270_896_987_650_000);
 Assert::incomplete('untranslatable new expression');

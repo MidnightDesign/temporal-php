@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $zero = new \Temporal\Spec\Duration();
 $instance = new \Temporal\Spec\Duration(0, 0, 1, (int) (2 ** 53 / 86_400));
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$zero, &$relativeTo) { return \Temporal\Spec\Duration::compare($instance, $zero, (object) ['relativeTo' => $relativeTo]); }, 'weeks + days out of range, positive, first argument');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zero, &$instance, &$relativeTo) { return \Temporal\Spec\Duration::compare($zero, $instance, (object) ['relativeTo' => $relativeTo]); }, 'weeks + days out of range, positive, second argument');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$zero, &$relativeTo) { return \Temporal\Spec\Duration::compare($instance, $zero, (object) JsUndefined::strip(['relativeTo' => $relativeTo])); }, 'weeks + days out of range, positive, first argument');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zero, &$instance, &$relativeTo) { return \Temporal\Spec\Duration::compare($zero, $instance, (object) JsUndefined::strip(['relativeTo' => $relativeTo])); }, 'weeks + days out of range, positive, second argument');
 $negInstance = new \Temporal\Spec\Duration(0, 0, -1, -(int) (2 ** 53 / 86_400));
-Assert::throws(\InvalidArgumentException::class, function () use (&$negInstance, &$zero, &$relativeTo) { return \Temporal\Spec\Duration::compare($negInstance, $zero, (object) ['relativeTo' => $relativeTo]); }, 'weeks + days out of range, negative, first argument');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zero, &$negInstance, &$relativeTo) { return \Temporal\Spec\Duration::compare($zero, $negInstance, (object) ['relativeTo' => $relativeTo]); }, 'weeks + days out of range, negative, second argument');
+Assert::throws(\InvalidArgumentException::class, function () use (&$negInstance, &$zero, &$relativeTo) { return \Temporal\Spec\Duration::compare($negInstance, $zero, (object) JsUndefined::strip(['relativeTo' => $relativeTo])); }, 'weeks + days out of range, negative, first argument');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zero, &$negInstance, &$relativeTo) { return \Temporal\Spec\Duration::compare($zero, $negInstance, (object) JsUndefined::strip(['relativeTo' => $relativeTo])); }, 'weeks + days out of range, negative, second argument');

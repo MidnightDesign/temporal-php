@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 $later = new \Temporal\Spec\PlainDateTime(2019, 10, 29, 10, 46, 38, 271, 986, 102);
 $units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'];
 foreach ($units as $largestUnit) {
-$diff = $later->since($earlier, (object) ['largestUnit' => $largestUnit]);
-TemporalHelpers::assertDurationsEqual($earlier->since($later, (object) ['largestUnit' => $largestUnit]), $diff->negated(), "({$earlier}).since({$later}) == ({$later}).since({$earlier}).negated()");
-TemporalHelpers::assertDurationsEqual($earlier->until($later, (object) ['largestUnit' => $largestUnit]), $diff, "({$earlier}).until({$later}) == ({$later}).since({$earlier})");
+$diff = $later->since($earlier, (object) JsUndefined::strip(['largestUnit' => $largestUnit]));
+TemporalHelpers::assertDurationsEqual($earlier->since($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit])), $diff->negated(), "({$earlier}).since({$later}) == ({$later}).since({$earlier}).negated()");
+TemporalHelpers::assertDurationsEqual($earlier->until($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit])), $diff, "({$earlier}).until({$later}) == ({$later}).since({$earlier})");
 Assert::sameValue($earlier->add($diff)->equals($later), true, "({$earlier}).add({$diff}) == ({$later})");
 Assert::sameValue($later->subtract($diff)->equals($earlier), true, "({$later}).subtract({$diff}) == ({$earlier})");
 Assert::sameValue($earlier->subtract($diff->negated())->equals($later), true, 'symmetrical with regard to negative durations (1)');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $durationString = 'PT0.084000159S';
 $duration = \Temporal\Spec\Duration::from($durationString);
 $precisionString = $duration->toString(['smallestUnit' => 'milliseconds']);

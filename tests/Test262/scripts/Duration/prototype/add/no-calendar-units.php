@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $blank = new \Temporal\Spec\Duration();
 $withYears = new \Temporal\Spec\Duration(1);
 Assert::throws(\InvalidArgumentException::class, function () use (&$withYears, &$blank) { return $withYears->add($blank); }, 'should not add to receiver with years');

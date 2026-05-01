@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 789, 999, 999);
 $tests = [['second', 'P1Y2M3W4DT5H6M7S'], ['millisecond', 'P1Y2M3W4DT5H6M7.789S'], ['microsecond', 'P1Y2M3W4DT5H6M7.789999S'], ['nanosecond', 'P1Y2M3W4DT5H6M7.789999999S']];
 foreach ($tests as $__entry__) {
 [$smallestUnit, $expected] = array_pad($__entry__, 2, null);
-$string = $duration->toString(['smallestUnit' => $smallestUnit, 'fractionalSecondDigits' => 5]);
+$string = $duration->toString(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'fractionalSecondDigits' => 5]));
 Assert::sameValue($string, $expected, "smallestUnit: \"{$smallestUnit}\" overrides fractionalSecondDigits");
 }
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->toString(['smallestUnit' => 'hour', 'fractionalSecondDigits' => 5]); }, 'hour is an invalid smallestUnit but still overrides fractionalSecondDigits');

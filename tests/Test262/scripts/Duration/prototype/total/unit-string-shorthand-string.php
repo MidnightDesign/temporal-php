@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 4, 5, 6, 7, 987, 654, 321);
 $validUnits = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($validUnits as $unit) {
-$full = $instance->total(['unit' => $unit]);
+$full = $instance->total(JsUndefined::strip(['unit' => $unit]));
 $shorthand = $instance->total($unit);
 Assert::sameValue($shorthand, $full, "\"{$unit}\" as first argument to total is equivalent to options bag");
 }

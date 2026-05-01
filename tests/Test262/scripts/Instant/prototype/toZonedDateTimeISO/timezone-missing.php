@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $inst = \Temporal\Spec\Instant::from('1976-11-18T14:23:30.123456789Z');
 Assert::throws(\TypeError::class, function () use (&$inst) { return $inst->toZonedDateTimeISO(); }, '');

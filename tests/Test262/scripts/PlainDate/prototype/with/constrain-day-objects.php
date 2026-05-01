@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = (object) ['overflow' => 'reject'];
 $common0131 = \Temporal\Spec\PlainDate::from((object) ['year' => 2019, 'monthCode' => 'M01', 'day' => 31], $options);

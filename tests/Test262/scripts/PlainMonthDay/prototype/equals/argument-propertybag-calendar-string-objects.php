@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainMonthDay(11, 18);
 $calendar = 'iso8601';
-$arg = (object) ['monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
+$arg = (object) JsUndefined::strip(['monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar]);
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, "Calendar created from string \"{$calendar}\"");

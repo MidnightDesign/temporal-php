@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'japanese';
-$reiwa = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'reiwa', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]);
-$heisei = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'heisei', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]);
-$showa = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'showa', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]);
-$taisho = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'taisho', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]);
-$meiji = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'meiji', 'eraYear' => 6, 'month' => 1, 'calendar' => $calendar]);
-$ce = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'ce', 'eraYear' => 1000, 'month' => 1, 'calendar' => $calendar]);
-$bce = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'bce', 'eraYear' => 1, 'month' => 1, 'calendar' => $calendar]);
+$reiwa = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['era' => 'reiwa', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]));
+$heisei = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['era' => 'heisei', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]));
+$showa = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['era' => 'showa', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]));
+$taisho = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['era' => 'taisho', 'eraYear' => 2, 'month' => 1, 'calendar' => $calendar]));
+$meiji = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['era' => 'meiji', 'eraYear' => 6, 'month' => 1, 'calendar' => $calendar]));
+$ce = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['era' => 'ce', 'eraYear' => 1000, 'month' => 1, 'calendar' => $calendar]));
+$bce = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['era' => 'bce', 'eraYear' => 1, 'month' => 1, 'calendar' => $calendar]));
 TemporalHelpers::assertPlainYearMonth($reiwa, 2020, 1, 'M01', "{$reiwa}", 'reiwa', 2);
 TemporalHelpers::assertPlainYearMonth($heisei, 1990, 1, 'M01', "{$heisei}", 'heisei', 2);
 TemporalHelpers::assertPlainYearMonth($showa, 1927, 1, 'M01', "{$showa}", 'showa', 2);

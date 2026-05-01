@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'islamic-tbla';
 $options = ['overflow' => 'reject'];
-$date14440130 = \Temporal\Spec\PlainDate::from(['year' => 1444, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar], $options);
-$date14450130 = \Temporal\Spec\PlainDate::from(['year' => 1445, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar], $options);
-$date14460130 = \Temporal\Spec\PlainDate::from(['year' => 1446, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar], $options);
+$date14440130 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1444, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
+$date14450130 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1445, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
+$date14460130 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1446, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
 $months1 = new \Temporal\Spec\Duration(0, -1);
 $months2 = new \Temporal\Spec\Duration(0, -2);
 $months3 = new \Temporal\Spec\Duration(0, -3);

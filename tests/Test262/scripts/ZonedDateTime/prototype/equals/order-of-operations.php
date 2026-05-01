@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get other.calendar', 'get other.day', 'get other.day.valueOf', 'call other.day.valueOf', 'get other.hour', 'get other.hour.valueOf', 'call other.hour.valueOf', 'get other.microsecond', 'get other.microsecond.valueOf', 'call other.microsecond.valueOf', 'get other.millisecond', 'get other.millisecond.valueOf', 'call other.millisecond.valueOf', 'get other.minute', 'get other.minute.valueOf', 'call other.minute.valueOf', 'get other.month', 'get other.month.valueOf', 'call other.month.valueOf', 'get other.monthCode', 'get other.monthCode.toString', 'call other.monthCode.toString', 'get other.nanosecond', 'get other.nanosecond.valueOf', 'call other.nanosecond.valueOf', 'get other.offset', 'get other.offset.toString', 'call other.offset.toString', 'get other.second', 'get other.second.valueOf', 'call other.second.valueOf', 'get other.timeZone', 'get other.year', 'get other.year.valueOf', 'call other.year.valueOf'];
 $actual = [];

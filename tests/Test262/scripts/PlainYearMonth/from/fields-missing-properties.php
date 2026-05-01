@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from([]), 'at least one correctly spelled property is required');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from(['month' => 1]), 'year is required');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from(['year' => 2021]), 'month or monthCode is required');

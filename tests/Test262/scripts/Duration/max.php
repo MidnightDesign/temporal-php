@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $cases = [[new \Temporal\Spec\Duration(0, 0, 0, 104_249_991_374, 7, 36, 31, 999, 999, 999), 'max days', 9_007_199_254_740_992], [new \Temporal\Spec\Duration(0, 0, 0, 0, 2_501_999_792_983, 36, 31, 999, 999, 999), 'max hours', 9_007_199_254_740_992], [new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 150_119_987_579_016, 31, 999, 999, 999), 'max minutes', 9_007_199_254_740_992], [new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 999, 999, 999), 'max seconds', 9_007_199_254_740_992], [new \Temporal\Spec\Duration(0, 0, 0, -104_249_991_374, -7, -36, -31, -999, -999, -999), 'min days', -9_007_199_254_740_992], [new \Temporal\Spec\Duration(0, 0, 0, 0, -2_501_999_792_983, -36, -31, -999, -999, -999), 'min hours', -9_007_199_254_740_992], [new \Temporal\Spec\Duration(0, 0, 0, 0, 0, -150_119_987_579_016, -31, -999, -999, -999), 'min minutes', -9_007_199_254_740_992], [new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, -9_007_199_254_740_991, -999, -999, -999), 'min seconds', -9_007_199_254_740_992]];
 foreach ($cases as $__entry__) {

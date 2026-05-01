@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $expectedTimeZone = '+01:46';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
 $properties = (object) ['year' => 1970, 'month' => 1, 'day' => 1, 'hour' => 1, 'minute' => 46];
-Assert::assertTrue($instance->equals((object) array_merge((array) $properties, ['timeZone' => $timeZone])), 'time zone string should produce expected time zone');
+Assert::assertTrue($instance->equals((object) JsUndefined::strip(array_merge((array) $properties, ['timeZone' => $timeZone]))), 'time zone string should produce expected time zone');

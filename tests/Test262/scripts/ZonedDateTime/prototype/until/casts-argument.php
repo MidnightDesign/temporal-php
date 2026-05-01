@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $zdt = \Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30.123456789+01:00[+01:00]');
 TemporalHelpers::assertDuration($zdt->until(['year' => 2019, 'month' => 10, 'day' => 29, 'hour' => 10, 'timeZone' => '+01:00']), 0, 0, 0, 0, 376_434, 36, 29, 876, 543, 211);

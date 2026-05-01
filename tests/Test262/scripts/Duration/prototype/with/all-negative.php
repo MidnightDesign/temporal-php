@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$argAllNegative = ['years' => -9, 'months' => -8, 'weeks' => -7, 'days' => -6, 'hours' => -5, 'minutes' => -4, 'seconds' => -3, 'milliseconds' => -2, 'microseconds' => -1, 'nanoseconds' => -10];
+$argAllNegative = JsUndefined::strip(['years' => -9, 'months' => -8, 'weeks' => -7, 'days' => -6, 'hours' => -5, 'minutes' => -4, 'seconds' => -3, 'milliseconds' => -2, 'microseconds' => -1, 'nanoseconds' => -10]);
 $d1 = new \Temporal\Spec\Duration();
 TemporalHelpers::assertDuration($d1->with($argAllNegative), -9, -8, -7, -6, -5, -4, -3, -2, -1, -10, 'replace all zeroes with all negative');
 $d2 = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);

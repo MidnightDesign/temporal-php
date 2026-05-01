@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $fields = ['hour' => 12, 'minute' => 60];
 $explicit = \Temporal\Spec\PlainTime::from($fields);
 Assert::sameValue($explicit->minute, 59, 'default overflow is constrain');

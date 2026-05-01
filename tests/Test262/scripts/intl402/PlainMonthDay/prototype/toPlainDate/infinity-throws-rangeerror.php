@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2, 'gregory');
 foreach ([INF, -INF] as $inf) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf) { return $instance->toPlainDate(['era' => 'ad', 'eraYear' => $inf]); }, "eraYear property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf) { return $instance->toPlainDate(JsUndefined::strip(['era' => 'ad', 'eraYear' => $inf])); }, "eraYear property cannot be {$inf}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, 'eraYear');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$obj) { return $instance->toPlainDate(['era' => 'ad', 'eraYear' => $obj]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$obj) { return $instance->toPlainDate(JsUndefined::strip(['era' => 'ad', 'eraYear' => $obj])); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, ["get eraYear.valueOf", "call eraYear.valueOf"], "it fails after fetching the primitive value");
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 // JS-only (JS global property override has no PHP equivalent): Number.isFinite = () => { throw new Test262Error("should not call Number.isFinite") };
 // JS-only (JS global property override has no PHP equivalent): Math.sign = () => { throw new Test262Error("should not call Math.sign") };

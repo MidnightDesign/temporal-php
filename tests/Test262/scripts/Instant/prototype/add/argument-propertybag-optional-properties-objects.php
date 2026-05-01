@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $oneProperty = (object) ['hours' => 1];
 $allProperties = (object) ['years' => 0, 'months' => 0, 'weeks' => 0, 'days' => 0, 'hours' => 1, 'minutes' => 0, 'seconds' => 0, 'milliseconds' => 0, 'microseconds' => 0, 'nanoseconds' => 0];

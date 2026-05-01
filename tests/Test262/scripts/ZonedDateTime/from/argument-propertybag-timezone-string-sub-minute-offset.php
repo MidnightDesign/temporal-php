@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 foreach (['-12:12:59.9', '2021-08-19T17:30:45.123456789-12:12:59.9[-12:12:59.9]'] as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone) { return \Temporal\Spec\ZonedDateTime::from(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]); }, "{$timeZone} is not a valid time zone string");
+Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])); }, "{$timeZone} is not a valid time zone string");
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d1 = \Temporal\Spec\Duration::from('P3DT1H');
 $d2 = \Temporal\Spec\Duration::from('P3DT1H');
 // JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => d1.valueOf(), "valueOf")

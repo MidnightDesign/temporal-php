@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 for ($i = 29; $i <= 31; ++$i) {
 $plainDate = new \Temporal\Spec\PlainDate(1975, 12, $i);
 Assert::sameValue($plainDate->yearOfWeek, 1976, "{$plainDate} should be in yearOfWeek 1976");

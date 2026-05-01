@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\PlainYearMonth::class, [2000, 5], 'add', [(object) ['months' => 1]], fn($result) => TemporalHelpers::assertPlainYearMonth($result, 2000, 6, 'M06'));

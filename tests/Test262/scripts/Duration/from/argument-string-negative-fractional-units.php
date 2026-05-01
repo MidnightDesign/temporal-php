@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $resultHours = \Temporal\Spec\Duration::from('-PT24.567890123H');
 TemporalHelpers::assertDuration($resultHours, 0, 0, 0, 0, -24, -34, -4, -404, -442, -800, 'negative fractional hours');

@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'ethiopic';
 $options = ['overflow' => 'reject'];
-$am0 = \Temporal\Spec\PlainYearMonth::from(['era' => 'am', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$am0 = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'am', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($am0, 0, 1, 'M01', 'AM 0 resolves to AA 5500', 'aa', 5500, null);
-$am1n = \Temporal\Spec\PlainYearMonth::from(['era' => 'am', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$am1n = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'am', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($am1n, -1, 1, 'M01', 'AM -1 resolves to AA 5499', 'aa', 5499, null);
-$aa0 = \Temporal\Spec\PlainYearMonth::from(['era' => 'aa', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$aa0 = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'aa', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($aa0, -5500, 1, 'M01', 'AA 0 is not remapped', 'aa', 0, null);
-$aa1n = \Temporal\Spec\PlainYearMonth::from(['era' => 'aa', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$aa1n = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'aa', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($aa1n, -5501, 1, 'M01', 'AA -1 is not remapped', 'aa', -1, null);

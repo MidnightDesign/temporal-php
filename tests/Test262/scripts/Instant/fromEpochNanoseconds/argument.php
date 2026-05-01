@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::fromEpochNanoseconds(), 'undefined');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::fromEpochNanoseconds(), 'undefined');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::fromEpochNanoseconds(null), 'null');

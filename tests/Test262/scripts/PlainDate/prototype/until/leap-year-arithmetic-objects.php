@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date19600216 = \Temporal\Spec\PlainDate::from('1960-02-16');
 $date20190101 = \Temporal\Spec\PlainDate::from('2019-01-01');
@@ -32,6 +33,6 @@ foreach ($tests as $__entry_units__) {
 $units = array_slice($__entry_units__, 3);
 foreach ($units as $__entry__) {
 [$largestUnit, $years, $months, $weeks, $days] = array_pad($__entry__, 5, null);
-TemporalHelpers::assertDuration($one->until($two, (object) ['largestUnit' => $largestUnit]), $years, $months, $weeks, $days, 0, 0, 0, 0, 0, 0, $descr);
+TemporalHelpers::assertDuration($one->until($two, (object) JsUndefined::strip(['largestUnit' => $largestUnit])), $years, $months, $weeks, $days, 0, 0, 0, 0, 0, 0, $descr);
 }
 }

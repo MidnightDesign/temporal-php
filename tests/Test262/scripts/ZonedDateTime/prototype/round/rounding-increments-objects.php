@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $zdt = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
 $expectedHours = new \Temporal\Spec\ZonedDateTime(217_177_200_000_000_000, '+01:00');
@@ -23,10 +24,10 @@ TemporalHelpers::assertZonedDateTimesEqual($zdt->round((object) ['smallestUnit' 
 TemporalHelpers::assertZonedDateTimesEqual($zdt->round((object) ['smallestUnit' => 'microsecond', 'roundingIncrement' => 10]), $expectedMicroseconds);
 TemporalHelpers::assertZonedDateTimesEqual($zdt->round((object) ['smallestUnit' => 'nanosecond', 'roundingIncrement' => 10]), $expectedNanoseconds);
 TemporalHelpers::assertZonedDateTimesEqual($zdt->round((object) ['smallestUnit' => 'day', 'roundingIncrement' => 1]), $expected1Day);
-$unitsAndIncrements = (object) ['hour' => [1, 2, 4, 6, 8, 12], 'minute' => [1, 3, 5, 6, 10, 30], 'second' => [1, 3, 5, 6, 10, 30], 'millisecond' => [1, 5, 10, 20, 25, 50, 100, 500], 'microsecond' => [1, 5, 10, 20, 25, 50, 100, 500], 'nanosecond' => [1, 5, 10, 20, 25, 50, 100, 500]];
+$unitsAndIncrements = (object) JsUndefined::strip(['hour' => [1, 2, 4, 6, 8, 12], 'minute' => [1, 3, 5, 6, 10, 30], 'second' => [1, 3, 5, 6, 10, 30], 'millisecond' => [1, 5, 10, 20, 25, 50, 100, 500], 'microsecond' => [1, 5, 10, 20, 25, 50, 100, 500], 'nanosecond' => [1, 5, 10, 20, 25, 50, 100, 500]]);
 foreach ($unitsAndIncrements as $unit => $increments) {
 foreach ($increments as $increment) {
-$result = $zdt->round((object) ['smallestUnit' => $unit, 'roundingMode' => 'ceil', 'roundingIncrement' => $increment]);
+$result = $zdt->round((object) JsUndefined::strip(['smallestUnit' => $unit, 'roundingMode' => 'ceil', 'roundingIncrement' => $increment]));
 Assert::sameValue($result instanceof \Temporal\Spec\ZonedDateTime, true, "{$unit} {$increment}");
 }
 }

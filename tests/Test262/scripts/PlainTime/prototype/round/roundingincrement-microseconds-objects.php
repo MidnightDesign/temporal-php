@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainTime = new \Temporal\Spec\PlainTime(3, 34, 56, 987, 654, 321);
 TemporalHelpers::assertPlainTime($plainTime->round((object) ['smallestUnit' => 'microseconds', 'roundingIncrement' => 1]), 3, 34, 56, 987, 654, 0, 'microseconds');

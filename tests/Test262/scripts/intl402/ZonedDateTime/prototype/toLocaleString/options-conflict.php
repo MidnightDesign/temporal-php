@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $conflictingOptions = [['weekday', 'short'], ['era', 'short'], ['year', 'numeric'], ['month', 'numeric'], ['day', 'numeric'], ['hour', 'numeric'], ['minute', 'numeric'], ['second', 'numeric'], ['dayPeriod', 'short'], ['fractionalSecondDigits', 3], ['timeZoneName', 'short']];
 $datetime = new \Temporal\Spec\ZonedDateTime(957_270_896_987_650_000, 'UTC');
 Assert::sameValue(is_string($datetime->toLocaleString('en', ['dateStyle' => 'short'])), true, '');
 Assert::sameValue(is_string($datetime->toLocaleString('en', ['timeStyle' => 'short'])), true, '');
 foreach ($conflictingOptions as $__entry__) {
 [$option, $value] = array_pad($__entry__, 2, null);
-Assert::throws(\TypeError::class, function () use (&$datetime, &$option, &$value) { $datetime->toLocaleString('en', [$option => $value, 'dateStyle' => 'short']); }, "datetime.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
-Assert::throws(\TypeError::class, function () use (&$datetime, &$option, &$value) { $datetime->toLocaleString('en', [$option => $value, 'timeStyle' => 'short']); }, "datetime.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
-$datetime->toLocaleString('en', [$option => $value]);
-$datetime->toLocaleString('en', [$option => $value]);
+Assert::throws(\TypeError::class, function () use (&$datetime, &$option, &$value) { $datetime->toLocaleString('en', JsUndefined::strip([$option => $value, 'dateStyle' => 'short'])); }, "datetime.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
+Assert::throws(\TypeError::class, function () use (&$datetime, &$option, &$value) { $datetime->toLocaleString('en', JsUndefined::strip([$option => $value, 'timeStyle' => 'short'])); }, "datetime.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
+$datetime->toLocaleString('en', JsUndefined::strip([$option => $value]));
+$datetime->toLocaleString('en', JsUndefined::strip([$option => $value]));
 }

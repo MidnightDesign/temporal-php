@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dt1 = new \Temporal\Spec\PlainDateTime(1970, 1, 1);
 $dt2 = new \Temporal\Spec\PlainDateTime(2554, 7, 21, 23, 34, 33, 709, 551, 616);
 $result = $dt1->since($dt2, ['largestUnit' => 'microseconds']);

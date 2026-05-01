@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $base = ['year' => 2000, 'month' => 5];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month'] as $prop) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$prop, &$inf) { return $instance->since(array_merge($base, [$prop => $inf])); }, "{$prop} property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$prop, &$inf) { return $instance->since(JsUndefined::strip(array_merge($base, [$prop => $inf]))); }, "{$prop} property cannot be {$inf}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, $prop);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$prop, &$obj) { return $instance->since(array_merge($base, [$prop => $obj])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$prop, &$obj) { return $instance->since(JsUndefined::strip(array_merge($base, [$prop => $obj]))); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, [`get ${prop}.valueOf`, `call ${prop}.valueOf`], "it fails after fetching the primitive value");
 }
 }

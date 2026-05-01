@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $lastFeb20 = \Temporal\Spec\ZonedDateTime::from('2020-02-29T00:00+01:00[+01:00]');
 $lastJan21 = \Temporal\Spec\ZonedDateTime::from('2021-01-31T00:00+01:00[+01:00]');

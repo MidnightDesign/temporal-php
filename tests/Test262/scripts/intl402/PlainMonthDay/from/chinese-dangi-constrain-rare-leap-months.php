@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $monthCodesWithYears = [['monthCode' => 'M01L', 'referenceYear' => 1970], ['monthCode' => 'M02L', 'referenceYear' => 1972], ['monthCode' => 'M08L', 'referenceYear' => 1971], ['monthCode' => 'M09L', 'referenceYear' => 1972], ['monthCode' => 'M10L', 'referenceYear' => 1972], ['monthCode' => 'M11L', 'referenceYear' => 1970], ['monthCode' => 'M12L', 'referenceYear' => 1972]];
 $daysToTest = [30, 31];

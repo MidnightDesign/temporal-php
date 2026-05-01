@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $d = \Temporal\Spec\Duration::from(['years' => 5, 'days' => 1]);
 Assert::sameValue($d->sign, 1, 'original sign');
-$d2 = $d->with(['years' => -1, 'days' => 0, 'minutes' => -1]);
+$d2 = $d->with(JsUndefined::strip(['years' => -1, 'days' => 0, 'minutes' => -1]));
 Assert::sameValue($d2->sign, -1, 'new sign');
 TemporalHelpers::assertDuration($d2, -1, 0, 0, 0, 0, -1, 0, 0, 0, 0);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $epochNanoseconds = [0, 1, -1];
 $timeZones = ['UTC', '+00', '+01', '-01'];
@@ -17,7 +18,7 @@ $zdt = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
 $other = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
 for ($i = 0; $i < count($units); ++$i) {
 for ($j = $i; $j < count($units); ++$j) {
-$options = ['largestUnit' => $units[$i], 'smallestUnit' => $units[$j]];
+$options = JsUndefined::strip(['largestUnit' => $units[$i], 'smallestUnit' => $units[$j]]);
 Assert::incomplete('untranslatable: JSON.stringify');
 }
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dt = new \Temporal\Spec\PlainDateTime(2015, 12, 7, 3, 24, 30, 0, 3, 500);
 Assert::throws(\TypeError::class, function () use (&$dt) { return $dt->withPlainTime([]); }, 'empty object not an acceptable argument');

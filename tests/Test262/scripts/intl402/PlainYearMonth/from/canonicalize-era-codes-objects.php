@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date1 = \Temporal\Spec\PlainYearMonth::from((object) ['calendar' => 'gregory', 'era' => 'ad', 'eraYear' => 2024, 'year' => 2024, 'month' => 1]);
 TemporalHelpers::assertPlainYearMonth($date1, 2024, 1, 'M01', '\'ad\' is accepted as alias for \'ce\'', 'ce', 2024);
-$date2 = \Temporal\Spec\PlainYearMonth::from((object) ['calendar' => 'gregory', 'era' => 'bc', 'eraYear' => 44, 'year' => -43, 'month' => 3]);
+$date2 = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['calendar' => 'gregory', 'era' => 'bc', 'eraYear' => 44, 'year' => -43, 'month' => 3]));
 TemporalHelpers::assertPlainYearMonth($date2, -43, 3, 'M03', '\'bc\' is accepted as alias for \'bce\'', 'bce', 44);

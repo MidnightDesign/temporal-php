@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1976, 'month' => 11, 'day' => 18, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
 $calendars = ['buddhist', 'chinese', 'coptic', 'dangi', 'ethioaa', 'ethiopic', 'gregory', 'hebrew', 'indian', 'islamic-civil', 'islamic-tbla', 'islamic-umalqura', 'japanese', 'persian', 'roc'];
 foreach ($calendars as $cal) {

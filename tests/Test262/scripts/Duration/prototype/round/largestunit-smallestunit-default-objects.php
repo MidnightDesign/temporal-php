@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $relativeTo = \Temporal\Spec\PlainDate::from('2020-01-01');
 $almostYear = \Temporal\Spec\Duration::from((object) ['days' => 364]);
-TemporalHelpers::assertDuration($almostYear->round((object) ['smallestUnit' => 'years', 'relativeTo' => $relativeTo]), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'years');
+TemporalHelpers::assertDuration($almostYear->round((object) JsUndefined::strip(['smallestUnit' => 'years', 'relativeTo' => $relativeTo])), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'years');
 $almostMonth = \Temporal\Spec\Duration::from((object) ['days' => 27]);
-TemporalHelpers::assertDuration($almostMonth->round((object) ['smallestUnit' => 'months', 'relativeTo' => $relativeTo]), 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'months');
+TemporalHelpers::assertDuration($almostMonth->round((object) JsUndefined::strip(['smallestUnit' => 'months', 'relativeTo' => $relativeTo])), 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 'months');
 $almostWeek = \Temporal\Spec\Duration::from((object) ['days' => 6]);
-TemporalHelpers::assertDuration($almostWeek->round((object) ['smallestUnit' => 'weeks', 'relativeTo' => $relativeTo]), 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'weeks');
+TemporalHelpers::assertDuration($almostWeek->round((object) JsUndefined::strip(['smallestUnit' => 'weeks', 'relativeTo' => $relativeTo])), 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 'weeks');
 $almostDay = \Temporal\Spec\Duration::from((object) ['seconds' => 86_399]);
 TemporalHelpers::assertDuration($almostDay->round((object) ['smallestUnit' => 'days']), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'days');
 $almostHour = \Temporal\Spec\Duration::from((object) ['seconds' => 3599]);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2000-01-01'), 2000, 1, 'M01', 1, 'created from string 2000-01-01');
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('0001-01-01'), 1, 1, 'M01', 1, 'created from string 0001-01-01');

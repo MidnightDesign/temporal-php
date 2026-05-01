@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891Z[UTC]', '1970-01-01T00:00:00.1234567890Z[UTC]', '1970-01-01T00+00:00:00.0000000000Z[UTC]'];
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);

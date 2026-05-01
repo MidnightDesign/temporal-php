@@ -7,21 +7,22 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['use', 'ignore', 'prefer', 'reject'] as $offset) {
-$result = \Temporal\Spec\ZonedDateTime::from('1970-01-01T12:00-00:44:30[Africa/Monrovia]', ['offset' => $offset]);
+$result = \Temporal\Spec\ZonedDateTime::from('1970-01-01T12:00-00:44:30[Africa/Monrovia]', JsUndefined::strip(['offset' => $offset]));
 Assert::sameValue($result->epochNanoseconds, 45_870_000_000_000, "accepts the exact offset string (offset: {$offset})");
 Assert::sameValue($result->offset, '-00:44:30', 'offset property is correct');
 }
 foreach (['use', 'ignore', 'prefer', 'reject'] as $offset) {
-$result = \Temporal\Spec\ZonedDateTime::from('1970-01-01T12:00-00:44:30.000000000[Africa/Monrovia]', ['offset' => $offset]);
+$result = \Temporal\Spec\ZonedDateTime::from('1970-01-01T12:00-00:44:30.000000000[Africa/Monrovia]', JsUndefined::strip(['offset' => $offset]));
 Assert::sameValue($result->epochNanoseconds, 45_870_000_000_000, "accepts trailing zeroes after ISO string offset (offset: {$offset})");
 Assert::sameValue($result->offset, '-00:44:30', 'offset property removes trailing zeroes from input');
 }
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('1970-01-01T00:00-00:44:30[-00:45]', ['offset' => 'reject']), 'minute rounding not supported for offset time zones');
 $str = '1970-01-01T12:00-00:45[Africa/Monrovia]';
 foreach (['ignore', 'prefer', 'reject'] as $offset) {
-$result = \Temporal\Spec\ZonedDateTime::from($str, ['offset' => $offset]);
+$result = \Temporal\Spec\ZonedDateTime::from($str, JsUndefined::strip(['offset' => $offset]));
 Assert::sameValue($result->epochNanoseconds, 45_870_000_000_000, "accepts the offset string rounded to minutes (offset={$offset})");
 Assert::sameValue($result->offset, '-00:44:30', 'offset property is still the full precision');
 TemporalHelpers::assertPlainDateTime($result->toPlainDateTime(), 1970, 1, 'M01', 1, 12, 0, 0, 0, 0, 0, 'wall time is preserved');
@@ -41,11 +42,11 @@ Assert::sameValue($useResultRoundedSeconds->epochNanoseconds, 45_900_000_000_000
 Assert::sameValue($useResultRoundedSeconds->offset, '-00:44:30', 'offset property is still the full precision');
 TemporalHelpers::assertPlainDateTime($useResultRoundedSeconds->toPlainDateTime(), 1970, 1, 'M01', 1, 12, 0, 30, 0, 0, 0, 'wall time is shifted by the difference between exact and given offset');
 foreach (['ignore', 'prefer'] as $offset) {
-$resultWrongSeconds = \Temporal\Spec\ZonedDateTime::from($wrongSeconds, ['offset' => $offset]);
+$resultWrongSeconds = \Temporal\Spec\ZonedDateTime::from($wrongSeconds, JsUndefined::strip(['offset' => $offset]));
 Assert::sameValue($resultWrongSeconds->epochNanoseconds, 45_870_000_000_000, "does not use the offset string with wrong :SS (offset={$offset})");
 Assert::sameValue($resultWrongSeconds->offset, '-00:44:30', 'offset property is still the full precision');
 TemporalHelpers::assertPlainDateTime($resultWrongSeconds->toPlainDateTime(), 1970, 1, 'M01', 1, 12, 0, 0, 0, 0, 0, 'wall time is preserved');
-$resultRoundedSeconds = \Temporal\Spec\ZonedDateTime::from($roundedSeconds, ['offset' => $offset]);
+$resultRoundedSeconds = \Temporal\Spec\ZonedDateTime::from($roundedSeconds, JsUndefined::strip(['offset' => $offset]));
 Assert::sameValue($resultRoundedSeconds->epochNanoseconds, 45_870_000_000_000, "does not use the offset string with rounded HH:MM:SS (offset={$offset})");
 Assert::sameValue($resultRoundedSeconds->offset, '-00:44:30', 'offset property is still the full precision');
 TemporalHelpers::assertPlainDateTime($resultRoundedSeconds->toPlainDateTime(), 1970, 1, 'M01', 1, 12, 0, 0, 0, 0, 0, 'wall time is preserved');
@@ -54,7 +55,7 @@ Assert::throws(\InvalidArgumentException::class, function () use (&$wrongSeconds
 Assert::throws(\InvalidArgumentException::class, function () use (&$roundedSeconds) { return \Temporal\Spec\ZonedDateTime::from($roundedSeconds, ['offset' => 'reject']); }, 'rounded HH:MM:SS not accepted in string offset (offset=reject)');
 $properties = ['year' => 1970, 'month' => 1, 'day' => 1, 'hour' => 12, 'offset' => '-00:45', 'timeZone' => 'Africa/Monrovia'];
 foreach (['ignore', 'prefer'] as $offset) {
-$result = \Temporal\Spec\ZonedDateTime::from($properties, ['offset' => $offset]);
+$result = \Temporal\Spec\ZonedDateTime::from($properties, JsUndefined::strip(['offset' => $offset]));
 Assert::sameValue($result->epochNanoseconds, 45_870_000_000_000, "no fuzzy matching is done on offset in property bag (offset={$offset})");
 }
 $result2 = \Temporal\Spec\ZonedDateTime::from($properties, ['offset' => 'use']);

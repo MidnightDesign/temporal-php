@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['years' => 1976, 'months' => 11, 'days' => 18, 'timeZone' => '+01:00']), '');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['years' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => '+01:00']), '');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1976, 'months' => 11, 'day' => 18, 'timeZone' => '+01:00']), '');

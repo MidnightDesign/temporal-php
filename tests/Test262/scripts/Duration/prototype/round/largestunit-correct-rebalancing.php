@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $day_duration = 100;
-$tests = [['days', ['days' => $day_duration]], ['hours', ['hours' => $day_duration * 24]], ['minutes', ['minutes' => $day_duration * 24 * 60]], ['seconds', ['seconds' => $day_duration * 24 * 60 * 60]], ['milliseconds', ['milliseconds' => $day_duration * 24 * 60 * 60 * 1000]], ['microseconds', ['microseconds' => $day_duration * 24 * 60 * 60 * 1000 * 1000]], ['nanoseconds', ['nanoseconds' => $day_duration * 24 * 60 * 60 * 1000 * 1000 * 1000]]];
+$tests = [['days', JsUndefined::strip(['days' => $day_duration])], ['hours', JsUndefined::strip(['hours' => $day_duration * 24])], ['minutes', JsUndefined::strip(['minutes' => $day_duration * 24 * 60])], ['seconds', JsUndefined::strip(['seconds' => $day_duration * 24 * 60 * 60])], ['milliseconds', JsUndefined::strip(['milliseconds' => $day_duration * 24 * 60 * 60 * 1000])], ['microseconds', JsUndefined::strip(['microseconds' => $day_duration * 24 * 60 * 60 * 1000 * 1000])], ['nanoseconds', JsUndefined::strip(['nanoseconds' => $day_duration * 24 * 60 * 60 * 1000 * 1000 * 1000])]];
 foreach ($tests as $__entry__) {
 [$unit, $duration_desc] = array_pad($__entry__, 2, null);
 TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from($duration_desc)->round(['relativeTo' => '2023-02-21', 'largestUnit' => 'month']), 0, 3, 0, 11, 0, 0, 0, 0, 0, 0, "rounding from {$unit}");

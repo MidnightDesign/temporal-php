@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainMonthDay::from(['calendar' => 'hebrew', 'monthCode' => 'M11', 'day' => 4]);
 $resultMonthCode = $instance->with(['monthCode' => 'M10']);
 Assert::sameValue($resultMonthCode->monthCode, 'M10', 'month code is changed');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $common0131 = new \Temporal\Spec\PlainDate(2019, 1, 31);
 $common1231 = new \Temporal\Spec\PlainDate(2019, 12, 31);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expectedOptionsReading = ['get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
 $expectedOpsForPrimitiveOptions = ['get fields.calendar', 'get fields.day', 'get fields.day.valueOf', 'call fields.day.valueOf', 'get fields.hour', 'get fields.hour.valueOf', 'call fields.hour.valueOf', 'get fields.microsecond', 'get fields.microsecond.valueOf', 'call fields.microsecond.valueOf', 'get fields.millisecond', 'get fields.millisecond.valueOf', 'call fields.millisecond.valueOf', 'get fields.minute', 'get fields.minute.valueOf', 'call fields.minute.valueOf', 'get fields.month', 'get fields.month.valueOf', 'call fields.month.valueOf', 'get fields.monthCode', 'get fields.monthCode.toString', 'call fields.monthCode.toString', 'get fields.nanosecond', 'get fields.nanosecond.valueOf', 'call fields.nanosecond.valueOf', 'get fields.second', 'get fields.second.valueOf', 'call fields.second.valueOf', 'get fields.year', 'get fields.year.valueOf', 'call fields.year.valueOf'];

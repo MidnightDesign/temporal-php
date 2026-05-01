@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = ['year' => 2000, 'month' => 1, 'day' => 1];
-$result = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result = $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result, 367, 'missing time units default to 0');

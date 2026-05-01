@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 $later = new \Temporal\Spec\PlainTime(13, 35, 57, 988, 655, 322);
 $validUnits = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($largestUnit) use (&$later, &$earlier) { return $later->since($earlier, (object) ['largestUnit' => $largestUnit]); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(function ($largestUnit) use (&$later, &$earlier) { return $later->since($earlier, (object) JsUndefined::strip(['largestUnit' => $largestUnit])); }, $validUnits);

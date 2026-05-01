@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['reject', 'constrain'] as $overflow) {
-foreach ([['year' => -271_821, 'month' => 3], ['year' => 275_760, 'month' => 10], '-271821-03', '+275760-10'] as $value) {
+foreach ([JsUndefined::strip(['year' => -271_821, 'month' => 3]), ['year' => 275_760, 'month' => 10], '-271821-03', '+275760-10'] as $value) {
 Assert::incomplete('untranslatable: JSON.stringify');
 }
 }

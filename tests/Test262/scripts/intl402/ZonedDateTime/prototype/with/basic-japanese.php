@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'japanese';
-$cases = ['year2000' => ['era' => 'heisei', 'year' => 2000, 'eraYear' => 12, 'month' => 1, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]];
+$cases = JsUndefined::strip(['year2000' => JsUndefined::strip(['era' => 'heisei', 'year' => 2000, 'eraYear' => 12, 'month' => 1, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])]);
 foreach ($cases as $name => $result) {
 $inCal = \Temporal\Spec\ZonedDateTime::from($result);
 $afterWithDay = $inCal->with(['day' => 1]);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = (object) ['overflow' => 'reject'];
 $lastDayOfShowa = \Temporal\Spec\PlainYearMonth::from((object) ['era' => 'showa', 'eraYear' => 64, 'year' => 1989, 'month' => 1, 'monthCode' => 'M01', 'calendar' => 'japanese'], $options);

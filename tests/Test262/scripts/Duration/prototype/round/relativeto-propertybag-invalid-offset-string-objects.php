@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000, '+00:0000'];
 foreach ($badOffsets as $offset) {
-$relativeTo = (object) ['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => $timeZone];
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$relativeTo) { return $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]); }, "\"{$offset}\" is not a valid offset string");
+$relativeTo = (object) JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => $timeZone]);
+Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$relativeTo) { return $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, "\"{$offset}\" is not a valid offset string");
 }

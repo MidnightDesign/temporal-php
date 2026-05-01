@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$one = \Temporal\Spec\Duration::from((object) ['nanoseconds' => -9.007_199_254_740_991e+24]);
+use Temporal\Tests\Test262\JsUndefined;
+$one = \Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => -9.007_199_254_740_991e+24]));
 $two = \Temporal\Spec\Duration::from((object) ['microseconds' => 1_000_000]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$one, &$two) { return $one->subtract($two); }, '');

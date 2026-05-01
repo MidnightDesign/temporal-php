@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $months2022TestData = [['M01', 1, 1], ['M02', 2, 3], ['M03', 3, 1], ['M04', 4, 1], ['M05', 5, 30], ['M06', 6, 29], ['M07', 7, 29], ['M08', 8, 27], ['M09', 9, 26], ['M10', 10, 25], ['M11', 11, 24], ['M12', 12, 23]];
 foreach ($months2022TestData as $__entry__) {
 [$nonLeapMonthCode, $month, $referenceISODay] = array_pad($__entry__, 3, null);
 $leapMonthCode = $nonLeapMonthCode . 'L';
-$fields = (object) ['year' => 2022, 'monthCode' => $leapMonthCode, 'calendar' => 'chinese'];
+$fields = (object) JsUndefined::strip(['year' => 2022, 'monthCode' => $leapMonthCode, 'calendar' => 'chinese']);
 $result = \Temporal\Spec\PlainYearMonth::from($fields, (object) ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainYearMonth($result, 2022, $month, $nonLeapMonthCode, "Chinese intercalary month {$leapMonthCode} is constrained to {$nonLeapMonthCode} in year 2022 (overflow constrain)", null, null, $referenceISODay);
 Assert::throws(\InvalidArgumentException::class, function () use (&$fields) { return \Temporal\Spec\PlainYearMonth::from($fields, (object) ['overflow' => 'reject']); }, "Chinese intercalary month {$leapMonthCode} does not exist in year 2022 (overflow reject)");
@@ -22,7 +23,7 @@ foreach ($leapMonthsTestData as $__entry__) {
 [$monthCode, $year, $month, $referenceISODay, $isoYear, $isoMonth] = array_pad($__entry__, 6, null);
 $isoYear = $isoYear ?? $year;
 $isoMonth = $isoMonth ?? $month;
-$result = \Temporal\Spec\PlainYearMonth::from((object) ['year' => $year, 'monthCode' => $monthCode, 'calendar' => 'chinese']);
+$result = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'calendar' => 'chinese']));
 TemporalHelpers::assertPlainYearMonth($result, $year, $month, $monthCode, "Date of sample Chinese intercalary month {$monthCode}", null, null, $referenceISODay);
 Assert::incomplete('untranslatable: Array.prototype.slice()');
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $d = new \Temporal\Spec\Duration(9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
 TemporalHelpers::assertDuration($d->with(['minutes' => 11, 'hours' => 6]), 9, 8, 7, 6, 6, 11, 3, 2, 1, 0, 'only the properties that are present and defined in the plain object are copied');

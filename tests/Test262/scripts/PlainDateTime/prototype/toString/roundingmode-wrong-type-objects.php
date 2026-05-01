@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 123, 987, 500);
-TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', function ($roundingMode) use (&$datetime) { return $datetime->toString((object) ['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode]); }, fn($result, $descr) => Assert::sameValue($result, '2000-05-02T12:34:56.123987', $descr));
+TemporalHelpers::checkStringOptionWrongType('roundingMode', 'trunc', function ($roundingMode) use (&$datetime) { return $datetime->toString((object) JsUndefined::strip(['smallestUnit' => 'microsecond', 'roundingMode' => $roundingMode])); }, fn($result, $descr) => Assert::sameValue($result, '2000-05-02T12:34:56.123987', $descr));

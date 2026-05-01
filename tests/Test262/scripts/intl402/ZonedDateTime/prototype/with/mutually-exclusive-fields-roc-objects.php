@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = (object) ['overflow' => 'reject'];
 $instance = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 114, 'monthCode' => 'M12', 'day' => 15, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => 'roc'], $options);
 TemporalHelpers::assertPlainDateTime($instance->toPlainDateTime(), 114, 12, 'M12', 15, 12, 34, 0, 0, 0, 0, 'check that all fields are as expected', 'roc', 114);
 TemporalHelpers::assertPlainDateTime($instance->with((object) ['era' => 'broc', 'eraYear' => 1], $options)->toPlainDateTime(), 0, 12, 'M12', 15, 12, 34, 0, 0, 0, 0, 'era and eraYear together exclude year', 'broc', 1);
-TemporalHelpers::assertPlainDateTime($instance->with((object) ['year' => -2], $options)->toPlainDateTime(), -2, 12, 'M12', 15, 12, 34, 0, 0, 0, 0, 'year excludes era and eraYear', 'broc', 3);
+TemporalHelpers::assertPlainDateTime($instance->with((object) JsUndefined::strip(['year' => -2]), $options)->toPlainDateTime(), -2, 12, 'M12', 15, 12, 34, 0, 0, 0, 0, 'year excludes era and eraYear', 'broc', 3);
 TemporalHelpers::assertPlainDateTime($instance->with((object) ['month' => 5], $options)->toPlainDateTime(), 114, 5, 'M05', 15, 12, 34, 0, 0, 0, 0, 'month excludes monthCode', 'roc', 114);
 TemporalHelpers::assertPlainDateTime($instance->with((object) ['monthCode' => 'M05'], $options)->toPlainDateTime(), 114, 5, 'M05', 15, 12, 34, 0, 0, 0, 0, 'monthCode excludes month', 'roc', 114);
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with((object) ['eraYear' => 1]); }, 'eraYear excludes year and era, and cannot be provided without era');

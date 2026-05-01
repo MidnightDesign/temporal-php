@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(2_020.6, 11.7, 24.1, 11.9, 12.8, 13.7, 14.6, 15.5, 1.999_999), 2020, 11, 'M11', 24, 11, 12, 13, 14, 15, 1, 'positive fractional');
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(-2_020.6, 11.7, 24.1, 11.9, 12.8, 13.7, 14.6, 15.5, 1.999_999), -2020, 11, 'M11', 24, 11, 12, 13, 14, 15, 1, 'negative fractional');

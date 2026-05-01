@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $max = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 23, 59, 59, 999, 999, 999);
 $min = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
 Assert::throws(\InvalidArgumentException::class, function () use (&$max) { return $max->toZonedDateTime('UTC'); }, 'outside of Instant range (too big)');

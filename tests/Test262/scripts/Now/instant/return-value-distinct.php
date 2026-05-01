@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant1 = \Temporal\Spec\Now::instant();
 $instant2 = \Temporal\Spec\Now::instant();
 Assert::notSameValue($instant1, $instant2, 'The value of instant1 is expected to not equal the value of `instant2`');

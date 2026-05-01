@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $overflowFields = ['year' => 2000, 'month' => 13, 'day' => 2, 'timeZone' => 'UTC'];
 $overflowExplicit = \Temporal\Spec\ZonedDateTime::from($overflowFields);
 Assert::sameValue($overflowExplicit->month, 12, 'default overflow is constrain');
@@ -15,8 +16,8 @@ Assert::sameValue($overflowPropertyImplicit->month, 12, 'default overflow is con
 $overflowImplicit = \Temporal\Spec\ZonedDateTime::from($overflowFields);
 Assert::sameValue($overflowImplicit->month, 12, 'default overflow is constrain');
 $timeZone = 'America/Vancouver';
-$disambiguationEarlierFields = ['timeZone' => $timeZone, 'year' => 2000, 'month' => 10, 'day' => 29, 'hour' => 1, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
-$disambiguationLaterFields = ['timeZone' => $timeZone, 'year' => 2000, 'month' => 4, 'day' => 2, 'hour' => 2, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
+$disambiguationEarlierFields = JsUndefined::strip(['timeZone' => $timeZone, 'year' => 2000, 'month' => 10, 'day' => 29, 'hour' => 1, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321]);
+$disambiguationLaterFields = JsUndefined::strip(['timeZone' => $timeZone, 'year' => 2000, 'month' => 4, 'day' => 2, 'hour' => 2, 'minute' => 34, 'second' => 56, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321]);
 foreach ([[$disambiguationEarlierFields, 972_808_496_987_654_321], [$disambiguationLaterFields, 954_671_696_987_654_321]] as $__entry__) {
 [$fields, $expected] = array_pad($__entry__, 2, null);
 $explicit = \Temporal\Spec\ZonedDateTime::from($fields);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $cal1 = 'iso8601';
 $cal2 = 'gregory';
 Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2000, 5, $cal1), new \Temporal\Spec\PlainYearMonth(1987, 5, $cal2)), 1, 'year >');

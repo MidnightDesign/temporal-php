@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $result = \Temporal\Spec\ZonedDateTime::from(['era' => 'foobar', 'eraYear' => 1, 'year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => 'UTC', 'calendar' => 'iso8601']);
 Assert::sameValue($result->epochNanoseconds, 0, 'era and eraYear are ignored for calendar not using eras (iso8601)');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from(['era' => 'foobar', 'eraYear' => 1, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => 'UTC', 'calendar' => 'iso8601']), 'era and eraYear cannot replace year for calendar not using eras (iso8601)');

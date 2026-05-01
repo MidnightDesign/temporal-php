@@ -7,16 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'chinese';
-$durationCases = ['months' => ['duration' => ['months' => 6], 'result' => ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 1], 'startDate' => ['year' => 2000, 'month' => 12, 'day' => 1]], 'years' => ['duration' => ['years' => 3, 'months' => 6], 'result' => ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 18], 'startDate' => ['year' => 1997, 'monthCode' => 'M12', 'day' => 1]]];
+$durationCases = JsUndefined::strip(['months' => JsUndefined::strip(['duration' => ['months' => 6], 'result' => ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 1], 'startDate' => ['year' => 2000, 'month' => 12, 'day' => 1]]), 'years' => JsUndefined::strip(['duration' => ['years' => 3, 'months' => 6], 'result' => ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 18], 'startDate' => ['year' => 1997, 'monthCode' => 'M12', 'day' => 1]])]);
 foreach ($durationCases as $unit => $__entry__) {
 $duration = $__entry__['duration'] ?? null;
 $result = $__entry__['result'] ?? null;
 $startDate = $__entry__['startDate'] ?? null;
 $duration = \Temporal\Spec\Duration::from($duration);
-$start = \Temporal\Spec\PlainYearMonth::from(array_merge($startDate, ['calendar' => $calendar]));
+$start = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(array_merge($startDate, ['calendar' => $calendar])));
 $end = $start->add($duration->negated());
-$diff = $start->since($end, ['largestUnit' => $unit]);
+$diff = $start->since($end, JsUndefined::strip(['largestUnit' => $unit]));
 TemporalHelpers::assertDurationsEqual($diff, $duration, "{$unit}");
 }

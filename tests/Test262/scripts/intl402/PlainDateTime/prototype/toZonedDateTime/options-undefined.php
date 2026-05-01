@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetimeEarlier = new \Temporal\Spec\PlainDateTime(2000, 10, 29, 1, 34, 56, 987, 654, 321);
 $datetimeLater = new \Temporal\Spec\PlainDateTime(2000, 4, 2, 2, 34, 56, 987, 654, 321);
 $timeZone = 'America/Vancouver';

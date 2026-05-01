@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dt = \Temporal\Spec\ZonedDateTime::from('2021-03-28T01:00:00Z[Europe/Berlin]');
-Assert::sameValue($dt->add((object) ['nanoseconds' => -1])->getTimeZoneTransition('previous')->toString(), '2020-10-25T02:00:00+01:00[Europe/Berlin]', 'DST transition minus one nanosecond');
+Assert::sameValue($dt->add((object) JsUndefined::strip(['nanoseconds' => -1]))->getTimeZoneTransition('previous')->toString(), '2020-10-25T02:00:00+01:00[Europe/Berlin]', 'DST transition minus one nanosecond');
 Assert::sameValue($dt->getTimeZoneTransition('previous')->toString(), '2020-10-25T02:00:00+01:00[Europe/Berlin]', 'DST transition');
-Assert::sameValue($dt->add((object) ['nanoseconds' => +1])->getTimeZoneTransition('previous')->toString(), '2021-03-28T03:00:00+02:00[Europe/Berlin]', 'DST transition plus one nanosecond');
+Assert::sameValue($dt->add((object) JsUndefined::strip(['nanoseconds' => +1]))->getTimeZoneTransition('previous')->toString(), '2021-03-28T03:00:00+02:00[Europe/Berlin]', 'DST transition plus one nanosecond');

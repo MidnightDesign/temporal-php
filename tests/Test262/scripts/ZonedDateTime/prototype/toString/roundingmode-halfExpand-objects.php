@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_123_987_500, 'UTC');
 $result1 = $datetime->toString((object) ['smallestUnit' => 'microsecond', 'roundingMode' => 'halfExpand']);
 Assert::sameValue($result1, '2001-09-09T01:46:40.123988+00:00[UTC]', 'roundingMode is halfExpand (with 6 digits from smallestUnit)');

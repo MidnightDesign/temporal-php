@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
 $options = (object) ['overflow' => 'reject'];
 $months6 = new \Temporal\Spec\Duration(0, -6);
 $months6n = new \Temporal\Spec\Duration(0, 6);
 $durations = [$months6, $months6n];
-$date57611201 = \Temporal\Spec\PlainDate::from((object) ['year' => 5761, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar], $options);
+$date57611201 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5761, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar]), $options);
 $dates = [$date57611201];
 foreach ($durations as $duration) {
 foreach ($dates as $start) {
@@ -21,17 +22,17 @@ $end = $start->subtract($duration);
 $startYesterday = $start->subtract((object) ['days' => 1]);
 $endYesterday = $startYesterday->subtract($duration);
 Assert::sameValue($endYesterday->day, min($startYesterday->day, $endYesterday->daysInMonth), 'adding months should result in same day');
-$endYesterdayNextDay = $endYesterday->subtract((object) ['days' => -1]);
+$endYesterdayNextDay = $endYesterday->subtract((object) JsUndefined::strip(['days' => -1]));
 while ($endYesterdayNextDay->day !== 1) {
-$endYesterdayNextDay = $endYesterdayNextDay->subtract((object) ['days' => -1]);
+$endYesterdayNextDay = $endYesterdayNextDay->subtract((object) JsUndefined::strip(['days' => -1]));
 }
 TemporalHelpers::assertPlainDate($endYesterdayNextDay, $end->year, $end->month, $end->monthCode, $end->day, "endYesterdayNextDay", $end->era, $end->eraYear);
 $endReverse = $endYesterdayNextDay->subtract((object) ['days' => 1]);
 $startReverse = $endReverse->subtract($duration->negated());
 Assert::sameValue($startReverse->day, min($endReverse->day, $startReverse->daysInMonth), '');
-$startReverseNextDay = $startReverse->subtract((object) ['days' => -1]);
+$startReverseNextDay = $startReverse->subtract((object) JsUndefined::strip(['days' => -1]));
 while ($startReverseNextDay->day !== 1) {
-$startReverseNextDay = $startReverseNextDay->subtract((object) ['days' => -1]);
+$startReverseNextDay = $startReverseNextDay->subtract((object) JsUndefined::strip(['days' => -1]));
 }
 TemporalHelpers::assertPlainDate($startReverseNextDay, $start->year, $start->month, $start->monthCode, $start->day, "startReverseNextDay", $start->era, $start->eraYear);
 }

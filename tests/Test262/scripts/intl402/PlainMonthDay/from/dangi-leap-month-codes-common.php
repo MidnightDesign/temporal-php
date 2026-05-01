@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $monthCodesWithYears = [['monthCode' => 'M02L', 'referenceYear1' => 1947], ['monthCode' => 'M03L', 'referenceYear1' => 1966, 'has30' => true], ['monthCode' => 'M04L', 'referenceYear1' => 1963, 'has30' => true], ['monthCode' => 'M05L', 'referenceYear1' => 1971, 'has30' => true], ['monthCode' => 'M06L', 'referenceYear1' => 1960, 'has30' => true], ['monthCode' => 'M07L', 'referenceYear1' => 1968, 'has30' => true], ['monthCode' => 'M08L', 'referenceYear1' => 1957], ['monthCode' => 'M09L', 'referenceYear1' => 2014], ['monthCode' => 'M10L', 'referenceYear1' => 1984], ['monthCode' => 'M11L', 'referenceYear1' => 2033, 'referenceYear29' => 2034]];
 $calendar = 'dangi';
@@ -15,9 +16,9 @@ $monthCode = $__obj__['monthCode'] ?? null;
 $referenceYear1 = $__obj__['referenceYear1'] ?? null;
 $referenceYear29 = $__obj__['referenceYear29'] ?? $referenceYear1;
 $has30 = $__obj__['has30'] ?? false;
-$pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]);
+$pmd = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01", $referenceYear1);
-$pmd29 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]);
+$pmd29 = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]));
 TemporalHelpers::assertPlainMonthDay($pmd29, $monthCode, 29, "{$monthCode}-29", $referenceYear29);
 if (!$has30) {
 Assert::incomplete('untranslatable: Array.prototype.slice()');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::throws(\TypeError::class, function () use (&$datetime) { return $datetime->toLocaleString('en-US', ['timeZone' => 'Europe/Vienna']); }, 'timeZone option disallowed');
 Assert::throws(\TypeError::class, function () use (&$datetime) { return $datetime->toLocaleString('en-US', ['timeZone' => 'UTC']); }, 'timeZone option disallowed even if it agrees with instance\'s time zone');

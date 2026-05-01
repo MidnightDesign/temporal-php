@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(1);
 $blank = new \Temporal\Spec\Duration();
 $result = $instant->subtract($blank);

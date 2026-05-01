@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $bad = ['year' => 2019, 'month' => 13];
 Assert::throws(\InvalidArgumentException::class, function () use (&$bad) { return \Temporal\Spec\PlainYearMonth::from($bad, ['overflow' => 'reject']); }, '');
 foreach ([-1, 0, 13, 9995] as $month) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$month) { return \Temporal\Spec\PlainYearMonth::from(['year' => 2021, 'month' => $month, 'day' => 5], ['overflow' => 'reject']); }, "Month {$month} is out of range for 2021 with overflow: reject");
+Assert::throws(\InvalidArgumentException::class, function () use (&$month) { return \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 2021, 'month' => $month, 'day' => 5]), ['overflow' => 'reject']); }, "Month {$month} is out of range for 2021 with overflow: reject");
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainMonthDay = new \Temporal\Spec\PlainMonthDay(12, 26);
 $result = $plainMonthDay->toLocaleString('en-u-ca-iso8601', (object) ['timeZone' => 'UTC']);
 Assert::assertTrue(!str_contains($result, '1972'), "PlainMonthDay formatted with no options {$result} should not include reference year");

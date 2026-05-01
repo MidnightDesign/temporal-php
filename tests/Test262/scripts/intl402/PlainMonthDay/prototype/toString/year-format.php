@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'gregory';
 $instance = new \Temporal\Spec\PlainMonthDay(12, 3, $calendar, -100_000);
 Assert::sameValue($instance->toString(), '-100000-12-03[u-ca=gregory]', 'large negative year formatted as 6-digit');

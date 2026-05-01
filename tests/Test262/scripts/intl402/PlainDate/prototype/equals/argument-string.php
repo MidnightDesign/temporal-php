@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::sameValue($instance->equals('2000-05-02[u-ca=gregory]'), false, 'different calendar');

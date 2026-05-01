@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(1_711_475_200_000_000_000);
 Assert::assertTrue(str_contains($instant->toLocaleString('en-u-ca-gregory', (object) ['dateStyle' => 'long']), 'March'), 'dateStyle: long writes month of March out in full');
 Assert::assertTrue(!str_contains($instant->toLocaleString('en-u-ca-gregory', (object) ['dateStyle' => 'short']), 'March'), 'dateStyle: short does not write month of March out in full');

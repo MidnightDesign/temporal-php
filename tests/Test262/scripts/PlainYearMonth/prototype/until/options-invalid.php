@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $feb20 = new \Temporal\Spec\PlainYearMonth(2020, 2);
 $feb21 = new \Temporal\Spec\PlainYearMonth(2021, 2);
 Assert::incomplete('untranslatable: Symbol()');

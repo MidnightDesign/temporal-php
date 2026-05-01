@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = new \Temporal\Spec\PlainDate(2001, 6, 3);
 foreach (['year', 'month', 'week', 'day'] as $largestUnit) {
-$result = $date->until($date, ['largestUnit' => $largestUnit]);
+$result = $date->until($date, JsUndefined::strip(['largestUnit' => $largestUnit]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'The duration from a date to itself is zero');
 }

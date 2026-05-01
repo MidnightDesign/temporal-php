@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\Instant(217_178_610_123_456_789);
 $later = new \Temporal\Spec\Instant(1_572_345_998_271_986_289);
@@ -35,6 +36,6 @@ $ns = $ns ?? 0;
 $nms = $nms ?? 0;
 $nµs = $nµs ?? 0;
 $nns = $nns ?? 0;
-TemporalHelpers::assertDuration($later->since($earlier, (object) ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode}, positive case)");
-TemporalHelpers::assertDuration($earlier->since($later, (object) ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns, "rounds to {$smallestUnit} (rounding mode = {$roundingMode}, negative case)");
+TemporalHelpers::assertDuration($later->since($earlier, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode])), $py, $pm, $pw, $pd, $ph, $pmin, $ps, $pms, $pµs, $pns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode}, positive case)");
+TemporalHelpers::assertDuration($earlier->since($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode])), $ny, $nm, $nw, $nd, $nh, $nmin, $ns, $nms, $nµs, $nns, "rounds to {$smallestUnit} (rounding mode = {$roundingMode}, negative case)");
 }

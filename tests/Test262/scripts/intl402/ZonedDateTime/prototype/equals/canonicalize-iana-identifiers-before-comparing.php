@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calcutta = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/Calcutta]');
 $kolkata = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/Kolkata]');
 $colombo = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/Colombo]');

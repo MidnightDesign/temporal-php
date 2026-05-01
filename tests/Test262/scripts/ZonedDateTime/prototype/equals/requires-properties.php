@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, '-05:00', 'iso8601');
 Assert::assertTrue(!$zdt->equals(['year' => 1969, 'month' => 12, 'day' => 31, 'timeZone' => '-05:00']), '');
 Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->equals(['month' => 12, 'day' => 31, 'timeZone' => '-05:00']); }, '');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
 TemporalHelpers::assertPlainDateTime($datetime->subtract('PT1.03125H'), 2000, 5, 'M05', 1, 22, 58, 7, 500, 0, 0, 'positive fractional units rounded with correct rounding mode');

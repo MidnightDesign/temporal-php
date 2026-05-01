@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 $relativeTo = new \Temporal\Spec\PlainDate(275_760, 9, 13);
-$totalOf = (object) ['unit' => 'years', 'relativeTo' => $relativeTo];
+$totalOf = (object) JsUndefined::strip(['unit' => 'years', 'relativeTo' => $relativeTo]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$totalOf) { return $duration->total($totalOf); }, '');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $valids = [['Africa/CAIRO', 'Africa/Cairo'], ['Asia/Ulan_Bator', 'Asia/Ulaanbaatar'], ['etc/gmt', 'Etc/GMT'], ['1994-11-05T08:15:30-05:00[America/New_York]', 'America/New_York'], ['1994-11-05T08:15:30+05:30[Asia/Calcutta]', 'Asia/Calcutta'], ['1994-11-05T08:15:30+05:30[Asia/Calcutta]', 'Asia/Kolkata'], ['1994-11-05T08:15:30+05:30[Asia/Kolkata]', 'Asia/Calcutta'], ['1994-11-05T08:15:30+05:30[Asia/Kolkata]', 'Asia/Kolkata']];
 foreach ($valids as $__entry__) {

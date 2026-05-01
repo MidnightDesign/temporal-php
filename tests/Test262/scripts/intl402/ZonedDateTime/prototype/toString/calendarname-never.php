@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [[[], '1970-01-01T01:01:01.987654321+00:00[UTC]', 'built-in ISO'], [['gregory'], '1970-01-01T01:01:01.987654321+00:00[UTC]', 'built-in Gregorian']];
 foreach ($tests as $__entry__) {
 [$args, $expected, $description] = array_pad($__entry__, 3, null);

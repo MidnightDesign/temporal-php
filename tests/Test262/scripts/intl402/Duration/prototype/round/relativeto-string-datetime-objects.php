@@ -7,16 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2019-11-01T00:00[America/Vancouver]';
-$result4 = $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result4 = $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result4, 1, 0, 0, 0, 24, 0, 0, 0, 0, 0, 'date-time + IANA annotation is a zoned relativeTo');
 $relativeTo = '2019-11-01T00:00Z[America/Vancouver]';
-$result5 = $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result5 = $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result5, 1, 0, 0, 0, 24, 0, 0, 0, 0, 0, 'date-time + Z + IANA annotation is a zoned relativeTo');
 $relativeTo = '2019-11-01T00:00-07:00[America/Vancouver]';
-$result6 = $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result6 = $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result6, 1, 0, 0, 0, 24, 0, 0, 0, 0, 0, 'date-time + offset + IANA annotation is a zoned relativeTo');
 $relativeTo = '2019-11-01T00:00+04:15[America/Vancouver]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]); }, 'date-time + offset + IANA annotation throws if wall time and exact time mismatch');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, 'date-time + offset + IANA annotation throws if wall time and exact time mismatch');

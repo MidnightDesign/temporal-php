@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650, 0);
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->toString((object) ['fractionalSecondDigits' => null]); }, 'null is not a number and converts to the string \'null\' which is not valid for fractionalSecondDigits');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $DSTEnd = '2019-02-16T23:45[America/Sao_Paulo]';
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTEnd, (object) ['disambiguation' => 'compatible']);
 Assert::sameValue($zdt->offset, '-02:00', 'Offset result when option disambiguation: compatible ambiguous time');

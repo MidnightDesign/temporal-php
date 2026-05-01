@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, '+01:00');
 $laterDateTime = $zdt->add(['days' => 42, 'hours' => 3]);
 $weeksDifference = $laterDateTime->since($zdt, ['largestUnit' => 'weeks']);

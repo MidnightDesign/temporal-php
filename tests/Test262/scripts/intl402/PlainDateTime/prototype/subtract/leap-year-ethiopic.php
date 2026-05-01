@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'ethiopic';
 $options = ['overflow' => 'reject'];
-$leapDay = \Temporal\Spec\PlainDateTime::from(['year' => 2015, 'monthCode' => 'M13', 'day' => 6, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
+$leapDay = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => 2015, 'monthCode' => 'M13', 'day' => 6, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar]), $options);
 $years1 = new \Temporal\Spec\Duration(-1);
 $years1n = new \Temporal\Spec\Duration(1);
 $years4 = new \Temporal\Spec\Duration(-4);

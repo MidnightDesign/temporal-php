@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $args = [2020, 12, 24];
 $dateExplicit = new \Temporal\Spec\PlainDate(...$args);
 Assert::sameValue($dateExplicit->calendarId, 'iso8601', 'calendar string is iso8601');

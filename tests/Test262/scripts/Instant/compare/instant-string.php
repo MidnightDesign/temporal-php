@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $epoch = new \Temporal\Spec\Instant(0);
 $hourBefore = new \Temporal\Spec\Instant(-3_600_000_000_000);
 $str = '1970-01-01T00:00';

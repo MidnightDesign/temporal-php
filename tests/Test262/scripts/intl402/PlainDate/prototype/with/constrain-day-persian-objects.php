@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'persian';
 $options = (object) ['overflow' => 'reject'];
-$common0131 = \Temporal\Spec\PlainDate::from((object) ['year' => 1363, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar], $options);
-$leap0131 = \Temporal\Spec\PlainDate::from((object) ['year' => 1362, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar], $options);
+$common0131 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1363, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar]), $options);
+$leap0131 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1362, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($common0131->with((object) ['monthCode' => 'M02'], $options), 1363, 2, 'M02', 31, 'common-year Ordibehesht does not reject 31', 'ap', 1363);
 TemporalHelpers::assertPlainDate($common0131->with((object) ['monthCode' => 'M03'], $options), 1363, 3, 'M03', 31, 'common-year Khordad does not reject 31', 'ap', 1363);
 TemporalHelpers::assertPlainDate($common0131->with((object) ['monthCode' => 'M04'], $options), 1363, 4, 'M04', 31, 'common-year Tir does not reject 31', 'ap', 1363);

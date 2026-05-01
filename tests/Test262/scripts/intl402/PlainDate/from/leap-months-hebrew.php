@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 5779, 'month' => 6, 'day' => 1, 'calendar' => $calendar]), 5779, 6, 'M05L', 1, 'Leap month resolved from month number', 'am', 5779);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 5779, 'monthCode' => 'M05L', 'day' => 1, 'calendar' => $calendar]), 5779, 6, 'M05L', 1, 'Leap month resolved from month code', 'am', 5779);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 5779, 'month' => 7, 'day' => 1, 'calendar' => $calendar]), 5779, 7, 'M06', 1, 'Month after leap month resolved from month number', 'am', 5779);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(['year' => 5779, 'monthCode' => 'M06', 'day' => 1, 'calendar' => $calendar]), 5779, 7, 'M06', 1, 'Month after leap month resolved from month code', 'am', 5779);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 5779, 'month' => 6, 'day' => 1, 'calendar' => $calendar])), 5779, 6, 'M05L', 1, 'Leap month resolved from month number', 'am', 5779);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 5779, 'monthCode' => 'M05L', 'day' => 1, 'calendar' => $calendar])), 5779, 6, 'M05L', 1, 'Leap month resolved from month code', 'am', 5779);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 5779, 'month' => 7, 'day' => 1, 'calendar' => $calendar])), 5779, 7, 'M06', 1, 'Month after leap month resolved from month number', 'am', 5779);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 5779, 'monthCode' => 'M06', 'day' => 1, 'calendar' => $calendar])), 5779, 7, 'M06', 1, 'Month after leap month resolved from month code', 'am', 5779);

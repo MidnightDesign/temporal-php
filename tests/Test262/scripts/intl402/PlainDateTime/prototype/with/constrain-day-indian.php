@@ -7,26 +7,27 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'indian';
 $options = ['overflow' => 'reject'];
-$common0231 = \Temporal\Spec\PlainDateTime::from(['year' => 1944, 'monthCode' => 'M02', 'day' => 31, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
-$leap0131 = \Temporal\Spec\PlainDateTime::from(['year' => 1946, 'monthCode' => 'M01', 'day' => 31, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
+$common0231 = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => 1944, 'monthCode' => 'M02', 'day' => 31, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar]), $options);
+$leap0131 = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => 1946, 'monthCode' => 'M01', 'day' => 31, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar]), $options);
 foreach ([[3, 'M03'], [4, 'M04'], [5, 'M05'], [6, 'M06']] as $__entry__) {
 [$month, $monthCode] = array_pad($__entry__, 2, null);
-TemporalHelpers::assertPlainDateTime($common0231->with(['monthCode' => $monthCode], $options), 1944, $month, $monthCode, 31, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} does not reject 31 when adding", 'shaka', 1944);
+TemporalHelpers::assertPlainDateTime($common0231->with(JsUndefined::strip(['monthCode' => $monthCode]), $options), 1944, $month, $monthCode, 31, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} does not reject 31 when adding", 'shaka', 1944);
 }
 foreach ([[1, 'M01'], [7, 'M07'], [8, 'M08'], [9, 'M09'], [10, 'M10'], [11, 'M11'], [12, 'M12']] as $__entry__) {
 [$month, $monthCode] = array_pad($__entry__, 2, null);
-TemporalHelpers::assertPlainDateTime($common0231->with(['monthCode' => $monthCode]), 1944, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} constrains to 30 when adding", 'shaka', 1944);
-Assert::throws(\InvalidArgumentException::class, function () use (&$common0231, &$monthCode, &$options) { $common0231->with(['monthCode' => $monthCode], $options); }, "common-year {$monthCode} rejects 31 when adding");
+TemporalHelpers::assertPlainDateTime($common0231->with(JsUndefined::strip(['monthCode' => $monthCode])), 1944, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} constrains to 30 when adding", 'shaka', 1944);
+Assert::throws(\InvalidArgumentException::class, function () use (&$common0231, &$monthCode, &$options) { $common0231->with(JsUndefined::strip(['monthCode' => $monthCode]), $options); }, "common-year {$monthCode} rejects 31 when adding");
 }
 foreach ([[2, 'M02'], [3, 'M03'], [4, 'M04'], [5, 'M05'], [6, 'M06']] as $__entry__) {
 [$month, $monthCode] = array_pad($__entry__, 2, null);
-TemporalHelpers::assertPlainDateTime($leap0131->with(['monthCode' => $monthCode], $options), 1946, $month, $monthCode, 31, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} does not reject 31 when adding", 'shaka', 1946);
+TemporalHelpers::assertPlainDateTime($leap0131->with(JsUndefined::strip(['monthCode' => $monthCode]), $options), 1946, $month, $monthCode, 31, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} does not reject 31 when adding", 'shaka', 1946);
 }
 foreach ([[7, 'M07'], [8, 'M08'], [9, 'M09'], [10, 'M10'], [11, 'M11'], [12, 'M12']] as $__entry__) {
 [$month, $monthCode] = array_pad($__entry__, 2, null);
-TemporalHelpers::assertPlainDateTime($leap0131->with(['monthCode' => $monthCode]), 1946, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} constrains to 30 when adding", 'shaka', 1946);
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap0131, &$monthCode, &$options) { $leap0131->with(['monthCode' => $monthCode], $options); }, "leap-year {$monthCode} rejects 31 when adding");
+TemporalHelpers::assertPlainDateTime($leap0131->with(JsUndefined::strip(['monthCode' => $monthCode])), 1946, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} constrains to 30 when adding", 'shaka', 1946);
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap0131, &$monthCode, &$options) { $leap0131->with(JsUndefined::strip(['monthCode' => $monthCode]), $options); }, "leap-year {$monthCode} rejects 31 when adding");
 }

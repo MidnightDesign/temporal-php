@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(11.9, 12.8, 13.7, 14.6, 15.5, 1.999_999), 11, 12, 13, 14, 15, 1, 'positive fractional');
 TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(null, 1, 2, 3, 4, 5), 0, 1, 2, 3, 4, 5, 'null defaults to zero');

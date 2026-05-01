@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2000-01-01T00:00+05:30[UTC]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]); }, 'round should throw RangeError on a string with UTC offset mismatch');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, 'round should throw RangeError on a string with UTC offset mismatch');
 $instance2 = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance2) { return $instance2->round((object) ['smallestUnit' => 'seconds', 'relativeTo' => '1971-01-01T00:00+02:00[-00:44]']); }, '');

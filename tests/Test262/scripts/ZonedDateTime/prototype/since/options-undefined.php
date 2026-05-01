@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\ZonedDateTime(957_270_896_987_654_321, 'UTC');
 $later = new \Temporal\Spec\ZonedDateTime(959_949_296_987_654_322, 'UTC');
 $explicit = $later->since($earlier);

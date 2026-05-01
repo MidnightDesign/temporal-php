@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'dangi';
 $options = (object) ['overflow' => 'reject'];
-$leapMonth = \Temporal\Spec\PlainDateTime::from((object) ['year' => 2017, 'monthCode' => 'M05L', 'day' => 1, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
+$leapMonth = \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => 2017, 'monthCode' => 'M05L', 'day' => 1, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($leapMonth->with((object) ['year' => 2009], $options), 2009, 6, 'M05L', 1, 12, 34, 0, 0, 0, 0, 'month not constrained when moving to another leap year with M05L');
 TemporalHelpers::assertPlainDateTime($leapMonth->with((object) ['year' => 2020]), 2020, 6, 'M05', 1, 12, 34, 0, 0, 0, 0, 'month constrained when moving to another leap year without M05L');
 Assert::throws(\InvalidArgumentException::class, function () use (&$leapMonth, &$options) { $leapMonth->with((object) ['year' => 2020], $options); }, 'reject when moving to another leap year without M05L');

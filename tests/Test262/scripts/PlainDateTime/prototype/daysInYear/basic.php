@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->daysInYear, 366, 'leap year');
 Assert::sameValue(new \Temporal\Spec\PlainDateTime(1977, 11, 18, 15, 23, 30, 123, 456, 789)->daysInYear, 365, 'non-leap year');
 Assert::sameValue(new \Temporal\Spec\PlainDateTime(1995, 8, 23, 5, 30, 13)->daysInYear, 365, '');

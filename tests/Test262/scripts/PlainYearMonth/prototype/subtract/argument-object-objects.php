@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-11');
-$tests = [[(object) ['months' => 2], 2019, 9, 'M09'], [(object) ['years' => 1], 2018, 11, 'M11'], [(object) ['months' => -2], 2020, 1, 'M01'], [(object) ['years' => -1], 2020, 11, 'M11']];
+$tests = [[(object) ['months' => 2], 2019, 9, 'M09'], [(object) ['years' => 1], 2018, 11, 'M11'], [(object) JsUndefined::strip(['months' => -2]), 2020, 1, 'M01'], [(object) JsUndefined::strip(['years' => -1]), 2020, 11, 'M11']];
 foreach ($tests as $__entry_expected__) {
 [$argument] = array_pad($__entry_expected__, 1, null);
 $expected = array_slice($__entry_expected__, 1);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $neverEqual = new \Temporal\Spec\ZonedDateTime(0, 'Asia/Tokyo');
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'America/Los_Angeles');
 $ids = [['America/Atka', 'America/Adak'], ['America/Knox_IN', 'America/Indiana/Knox'], ['Asia/Ashkhabad', 'Asia/Ashgabat'], ['Asia/Dacca', 'Asia/Dhaka'], ['Asia/Istanbul', 'Europe/Istanbul'], ['Asia/Macao', 'Asia/Macau'], ['Asia/Thimbu', 'Asia/Thimphu'], ['Asia/Ujung_Pandang', 'Asia/Makassar'], ['Asia/Ulan_Bator', 'Asia/Ulaanbaatar']];

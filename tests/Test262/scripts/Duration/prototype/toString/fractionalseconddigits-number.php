@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $wholeSeconds = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7);
 $subSeconds = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650);
 Assert::sameValue($subSeconds->toString(['fractionalSecondDigits' => 0]), 'P1Y2M3W4DT5H6M7S', 'truncates 4 decimal places to 0');

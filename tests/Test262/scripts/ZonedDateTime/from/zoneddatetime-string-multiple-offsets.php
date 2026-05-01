@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 $result = \Temporal\Spec\ZonedDateTime::from($str);
 Assert::sameValue($result->timeZoneId, '+01:35', 'ISO offset, sub-minute offset trailing-zeroes');

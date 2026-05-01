@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $earlier = \Temporal\Spec\PlainTime::from('08:22:36.123456789');
 $later = \Temporal\Spec\PlainTime::from('12:39:40.987654321');
 Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, ['smallestUnit' => 'hours', 'roundingIncrement' => 11]); }, '');

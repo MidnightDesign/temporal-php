@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-foreach ([null, [], ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
+foreach ([JsUndefined::singleton(), [], ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('23:59:60', $options), 23, 59, 59, 0, 0, 0);
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('12:30:60', $options), 12, 30, 59, 0, 0, 0);
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('23:59:60.170', $options), 23, 59, 59, 170, 0, 0);

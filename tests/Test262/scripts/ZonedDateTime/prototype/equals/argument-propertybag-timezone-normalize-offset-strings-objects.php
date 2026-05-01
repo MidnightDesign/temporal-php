@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [(object) ['idToTest' => '+0000', 'description' => 'colon-less'], (object) ['idToTest' => '+00', 'description' => 'hours-only']];
 foreach ($tests as $test) {
 Assert::incomplete('untranslatable: destructuring assignment');

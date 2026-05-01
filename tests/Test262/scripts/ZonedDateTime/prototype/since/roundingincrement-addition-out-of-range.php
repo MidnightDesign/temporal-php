@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $later = new \Temporal\Spec\ZonedDateTime(5, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier) { return $later->since($earlier, ['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 + 1]); }, 'ending bound of 1e8 + 1 days is out of range when added to 1970-01-01');
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->since($later, ['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 + 1]); }, 'ending bound of -1e8 - 1 days is out of range when added to 1970-01-01');
+Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier) { return $later->since($earlier, JsUndefined::strip(['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 + 1])); }, 'ending bound of 1e8 + 1 days is out of range when added to 1970-01-01');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->since($later, JsUndefined::strip(['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 + 1])); }, 'ending bound of -1e8 - 1 days is out of range when added to 1970-01-01');
 $result = $later->since($earlier, ['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000, 'roundingMode' => 'expand']);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 100_000_000, 0, 0, 0, 0, 0, 0, 'ending bound of 1e8 days is not out of range when added to 1970-01-01');
 $result = $earlier->since($later, ['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000, 'roundingMode' => 'expand']);

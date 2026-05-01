@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $one = '+275760-09-13T00:00:00.000-12';
 // JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): two = { toString() { throw new Test262Error(); } }
 // JS-only (references JS-only ToPrimitive tracker variable): assert.throws(RangeError, () => Temporal.Instant.compare(one, two));

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $nonIsoCalendars = ['buddhist', 'chinese', 'coptic', 'dangi', 'ethioaa', 'ethiopic', 'gregory', 'hebrew', 'indian', 'islamic-civil', 'islamic-tbla', 'islamic-umalqura', 'japanese', 'persian', 'roc'];
 foreach ($nonIsoCalendars as $calendar) {
 Assert::sameValue(new \Temporal\Spec\PlainDate(2024, 1, 1, $calendar)->yearOfWeek, null, "{$calendar} does not provide week numbers");

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 TemporalHelpers::assertDuration($dt->since('2019-10-29T10:46:38.271986102'), 0, 0, 0, -15_684, -19, -23, -8, -148, -529, -313, 'casts argument (string)');

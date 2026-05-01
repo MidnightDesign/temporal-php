@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $monthCodesWithYears = [(object) ['monthCode' => 'M03L', 'referenceYear' => 1955], (object) ['monthCode' => 'M04L', 'referenceYear' => 1944], (object) ['monthCode' => 'M05L', 'referenceYear' => 1952], (object) ['monthCode' => 'M06L', 'referenceYear' => 1941], (object) ['monthCode' => 'M07L', 'referenceYear' => 1938]];
 $calendar = 'dangi';
@@ -14,10 +15,10 @@ $day = 30;
 foreach ($monthCodesWithYears as $__obj__) {
 $monthCode = $__obj__['monthCode'] ?? null;
 $referenceYear = $__obj__['referenceYear'] ?? null;
-$pmd = \Temporal\Spec\PlainMonthDay::from((object) ['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day]);
+$pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, $day, $monthCode, $referenceYear);
-$constrain = \Temporal\Spec\PlainMonthDay::from((object) ['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1], (object) ['overflow' => 'constrain']);
+$constrain = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), (object) ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrain, $monthCode, $day, "{$monthCode} (constrained)", $referenceYear);
 Assert::sameValue($constrain->equals($pmd), true, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode, &$day) { \Temporal\Spec\PlainMonthDay::from((object) ['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1], (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode, &$day) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), (object) ['overflow' => 'reject']); }, '');
 }

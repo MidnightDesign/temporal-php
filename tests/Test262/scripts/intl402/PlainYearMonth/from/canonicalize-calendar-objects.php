@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 foreach (['2024-06-08[u-ca=islamicc]', (object) ['year' => 1445, 'month' => 12, 'calendar' => 'islamicc']] as $arg) {
 $result = \Temporal\Spec\PlainYearMonth::from($arg);
 Assert::sameValue($result->calendarId, 'islamic-civil', 'calendar ID is canonicalized');

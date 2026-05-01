@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(100);
 $instant2 = new \Temporal\Spec\Instant(987_654_321);
 // JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => instant.valueOf(), "valueOf")

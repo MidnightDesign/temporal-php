@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $from = new \Temporal\Spec\PlainDate(2021, 7, 16);
 $to = new \Temporal\Spec\PlainDate(2021, 7, 17);
 $units = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($units as $largestUnit) {
 foreach ($units as $smallestUnit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$from, &$to, &$largestUnit, &$smallestUnit) { return $from->since($to, ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit]); }, "Can't use {$largestUnit} and {$smallestUnit} as largestUnit and smallestUnit for PlainDate");
+Assert::throws(\InvalidArgumentException::class, function () use (&$from, &$to, &$largestUnit, &$smallestUnit) { return $from->since($to, JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, "Can't use {$largestUnit} and {$smallestUnit} as largestUnit and smallestUnit for PlainDate");
 }
 }

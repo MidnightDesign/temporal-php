@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainYearMonth(2019, 6);
 foreach (['2020-01-01', '2020-01-01[u-ca=iso8601]', '2020-01-01T00:00:00.000000000', '2020-01-01T00:00:00.000000000[u-ca=iso8601]', '01-01', '01-01[u-ca=iso8601]', '2020-01', '2020-01[u-ca=iso8601]'] as $calendar) {
-$arg = ['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar];
+$arg = JsUndefined::strip(['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar]);
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, "Calendar created from string \"{$calendar}\"");
 }

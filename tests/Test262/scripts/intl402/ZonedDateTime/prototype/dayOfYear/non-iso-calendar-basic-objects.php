@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $options = (object) ['overflow' => 'reject'];
 $sampleYears = (object) ['buddhist' => 2513, 'chinese' => 1969, 'coptic' => 1686, 'dangi' => 1969, 'ethioaa' => 7462, 'ethiopic' => 1962, 'gregory' => 1970, 'hebrew' => 5730, 'indian' => 1891, 'islamic-civil' => 1389, 'islamic-tbla' => 1389, 'islamic-umalqura' => 1389, 'japanese' => 1970, 'persian' => 1348, 'roc' => 59];
 $days1 = new \Temporal\Spec\Duration(0, 0, 0, 1);
 foreach ($sampleYears as $calendar => $year) {
-$date = \Temporal\Spec\ZonedDateTime::from((object) ['year' => $year, 'month' => 1, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
+$date = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']));
 $expectedDay = 1;
 while ($date->year == $year) {
 Assert::sameValue($date->dayOfYear, $expectedDay, '');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $inst = new \Temporal\Spec\Instant(0);
 Assert::throws(\InvalidArgumentException::class, function () use (&$inst) { return $inst->round(['smallestUnit' => 'hour', 'roundingIncrement' => 7]); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$inst) { return $inst->round(['smallestUnit' => 'minute', 'roundingIncrement' => 29]); }, '');

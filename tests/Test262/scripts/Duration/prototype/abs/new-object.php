@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d1 = new \Temporal\Spec\Duration();
 Assert::notSameValue($d1->abs(), $d1, '');
 $d2 = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);

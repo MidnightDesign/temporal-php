@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $invalidStrings = ['-000000-10-31', '-000000-10-31T00:45', '-000000-10-31T00:45+01:00', '-000000-10-31T00:45+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {

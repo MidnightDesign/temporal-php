@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = '2021-08-19T17:30[America/Vancouver]';
-$result1 = \Temporal\Spec\ZonedDateTime::from(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$result1 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 Assert::sameValue($result1->timeZoneId, 'America/Vancouver', 'date-time + IANA annotation is the IANA time zone');
 $timeZone = '2021-08-19T17:30Z[America/Vancouver]';
-$result2 = \Temporal\Spec\ZonedDateTime::from(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$result2 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 Assert::sameValue($result2->timeZoneId, 'America/Vancouver', 'date-time + Z + IANA annotation is the IANA time zone');
 $timeZone = '2021-08-19T17:30-07:00[America/Vancouver]';
-$result3 = \Temporal\Spec\ZonedDateTime::from(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$result3 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 Assert::sameValue($result3->timeZoneId, 'America/Vancouver', 'date-time + offset + IANA annotation is the IANA time zone');

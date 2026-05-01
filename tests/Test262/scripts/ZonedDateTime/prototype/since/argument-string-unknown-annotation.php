@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['1970-01-01T00:00[UTC][foo=bar]', 'with time zone'], ['1970-01-01T00:00[UTC][foo=bar][u-ca=iso8601]', 'before calendar'], ['1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar]', 'after calendar'], ['1970-01-01T00:00[UTC][foo=bar][_foo-bar0=Ignore-This-999999999999]', 'with another unknown annotation']];
 $timeZone = 'UTC';

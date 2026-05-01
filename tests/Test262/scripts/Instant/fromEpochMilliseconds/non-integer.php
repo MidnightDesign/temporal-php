@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(INF), 'Infinity');

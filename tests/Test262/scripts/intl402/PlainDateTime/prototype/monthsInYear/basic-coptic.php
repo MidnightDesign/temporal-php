@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'coptic';
 $options = ['overflow' => 'reject'];
 for ($year = 1686; $year < 1766; $year++) {
-$date = \Temporal\Spec\PlainDateTime::from(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34]);
+$date = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34]));
 Assert::sameValue($date->monthsInYear, 13, '');
 }

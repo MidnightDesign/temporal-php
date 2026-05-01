@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $validUnits = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($validUnits as $smallestUnit) {
-$full = $instance->round((object) ['smallestUnit' => $smallestUnit]);
+$full = $instance->round((object) JsUndefined::strip(['smallestUnit' => $smallestUnit]));
 $shorthand = $instance->round($smallestUnit);
 TemporalHelpers::assertZonedDateTimesEqual($shorthand, $full, "\"{$smallestUnit}\" as first argument to round is equivalent to options bag");
 }

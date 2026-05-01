@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 0, 0, 0, 0);
 $result = $datetime->toString((object) []);
 Assert::sameValue($result, '1976-11-18T15:23:00', "default calendarName option is auto with built-in ISO calendar");

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertDuration(\Temporal\Spec\ZonedDateTime::from('2025-11-02T01:00:00-08:00[America/Vancouver]')->until('2025-11-02T01:01:00-07:00[America/Vancouver]', (object) ['largestUnit' => 'year', 'smallestUnit' => 'nanosecond']), 0, 0, 0, 0, 0, -59, 0, 0, 0, 0, 'same-day, negative epoch-nanoseconds delta, positive wall-clock delta');
 TemporalHelpers::assertDuration(\Temporal\Spec\ZonedDateTime::from('2025-11-02T01:01:00-07:00[America/Vancouver]')->until('2025-11-02T01:00:00-08:00[America/Vancouver]', (object) ['largestUnit' => 'year', 'smallestUnit' => 'nanosecond']), 0, 0, 0, 0, 0, 59, 0, 0, 0, 0, 'same-day, positive epoch-nanoseconds delta, negative wall-clock delta');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $okTests = [[(object) ['monthCode' => 'M08', 'day' => 1, 'calendar' => 'gregory'], 'gregory', 'monthCode and non-ISO Gregorian string calendar'], [(object) ['monthCode' => 'M08', 'day' => 1, 'calendar' => 'hebrew'], 'hebrew', 'monthCode and non-ISO non-Gregorian string calendar']];
 foreach ($okTests as $__entry__) {

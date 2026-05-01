@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $arg = '2016-12-31T23:59:60';
-$result1 = $instance->toZonedDateTime((object) ['plainTime' => $arg, 'timeZone' => 'UTC']);
+$result1 = $instance->toZonedDateTime((object) JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC']));
 Assert::sameValue($result1->epochNanoseconds, 957_311_999_000_000_000, 'leap second is a valid ISO string for PlainTime');
 $arg = (object) ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
-$result2 = $instance->toZonedDateTime((object) ['plainTime' => $arg, 'timeZone' => 'UTC']);
+$result2 = $instance->toZonedDateTime((object) JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC']));
 Assert::sameValue($result2->epochNanoseconds, 957_311_999_000_000_000, 'second: 60 is ignored in property bag for PlainTime');

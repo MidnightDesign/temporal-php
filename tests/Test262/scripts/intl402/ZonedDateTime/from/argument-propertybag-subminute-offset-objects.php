@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1971, 'month' => 1, 'day' => 1, 'hour' => 12, 'timeZone' => 'Africa/Monrovia']);
 Assert::sameValue($zdt->offset, '-00:44:30', '');

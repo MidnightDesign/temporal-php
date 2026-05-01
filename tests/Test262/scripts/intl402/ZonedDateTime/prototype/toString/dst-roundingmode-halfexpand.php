@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdtNonExistent = \Temporal\Spec\PlainDateTime::from('2000-04-02T01:59:59.999999999')->toZonedDateTime('America/Vancouver');
 $roundedString = $zdtNonExistent->toString(['fractionalSecondDigits' => 8, 'roundingMode' => 'halfExpand']);
 Assert::sameValue($roundedString, '2000-04-02T03:00:00.00000000-07:00[America/Vancouver]', '');

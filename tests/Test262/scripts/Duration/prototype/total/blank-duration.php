@@ -7,20 +7,21 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $blank = new \Temporal\Spec\Duration();
 $plainRelativeTo = new \Temporal\Spec\PlainDate(2025, 8, 22);
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(1, 'UTC');
 foreach (['days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $unit) {
 $result = $blank->total($unit);
 Assert::sameValue($result, 0, "total of {$unit} without relativeTo");
-$result = $blank->total(['unit' => $unit, 'relativeTo' => $plainRelativeTo]);
+$result = $blank->total(JsUndefined::strip(['unit' => $unit, 'relativeTo' => $plainRelativeTo]));
 Assert::sameValue($result, 0, "total of {$unit} with PlainDate relativeTo");
-$result = $blank->total(['unit' => $unit, 'relativeTo' => $zonedRelativeTo]);
+$result = $blank->total(JsUndefined::strip(['unit' => $unit, 'relativeTo' => $zonedRelativeTo]));
 Assert::sameValue($result, 0, "total of {$unit} with ZonedDateTime relativeTo");
 }
 foreach (['years', 'months', 'weeks'] as $unit) {
-$result = $blank->total(['unit' => $unit, 'relativeTo' => $plainRelativeTo]);
+$result = $blank->total(JsUndefined::strip(['unit' => $unit, 'relativeTo' => $plainRelativeTo]));
 Assert::sameValue($result, 0, "total of {$unit} with PlainDate relativeTo");
-$result = $blank->total(['unit' => $unit, 'relativeTo' => $zonedRelativeTo]);
+$result = $blank->total(JsUndefined::strip(['unit' => $unit, 'relativeTo' => $zonedRelativeTo]));
 Assert::sameValue($result, 0, "total of {$unit} with ZonedDateTime relativeTo");
 }

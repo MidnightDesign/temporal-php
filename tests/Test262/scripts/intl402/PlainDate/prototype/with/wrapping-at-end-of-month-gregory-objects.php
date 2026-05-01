@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'gregory';
 $options = (object) ['overflow' => 'reject'];
 $year = 1970;
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\Spec\PlainDate::from((object) ['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar]);
+$date = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar]));
 $daysInMonth = $date->daysInMonth;
-$oneDayPastMonthEnd = $date->with((object) ['day' => $daysInMonth + 1]);
+$oneDayPastMonthEnd = $date->with((object) JsUndefined::strip(['day' => $daysInMonth + 1]));
 Assert::sameValue($oneDayPastMonthEnd->day, $daysInMonth, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with((object) ['day' => $daysInMonth + 1], $options); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with((object) JsUndefined::strip(['day' => $daysInMonth + 1]), $options); }, '');
 }

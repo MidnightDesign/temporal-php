@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'roc';
 $options = (object) ['overflow' => 'reject'];
-$common0131 = \Temporal\Spec\PlainDate::from((object) ['year' => 108, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar], $options);
-$leap0131 = \Temporal\Spec\PlainDate::from((object) ['year' => 105, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar], $options);
+$common0131 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 108, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar]), $options);
+$leap0131 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 105, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($common0131->with((object) ['monthCode' => 'M02']), 108, 2, 'M02', 28, 'common-year Feb constrains to 28', 'roc', 108);
 Assert::throws(\InvalidArgumentException::class, function () use (&$common0131, &$options) { $common0131->with((object) ['monthCode' => 'M02'], $options); }, 'common-year Feb rejects with 31');
 TemporalHelpers::assertPlainDate($common0131->with((object) ['monthCode' => 'M03'], $options), 108, 3, 'M03', 31, 'common-year Mar does not reject 31', 'roc', 108);

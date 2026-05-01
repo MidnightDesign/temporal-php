@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
-$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number'], [1, 'bigint']];
+$primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$relativeTo, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($relativeTo) || false ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$relativeTo) { return $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]); }, "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($relativeTo) || $relativeTo instanceof JsUndefined ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$relativeTo) { return $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, "{$description} does not convert to a valid ISO string (first argument)");
 }
 Assert::incomplete('untranslatable: Symbol()');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 123, 987, 500);
 $result1 = $time->toString((object) ['smallestUnit' => 'microsecond', 'roundingMode' => 'halfCeil']);
 Assert::sameValue($result1, '12:34:56.123988', 'roundingMode is halfCeil (with 6 digits from smallestUnit)');

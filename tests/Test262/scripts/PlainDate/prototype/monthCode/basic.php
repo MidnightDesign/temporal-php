@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(new \Temporal\Spec\PlainDate(2021, 7, 15)->monthCode, 'M07', '');
 Assert::sameValue(\Temporal\Spec\PlainDate::from('2019-03-15')->monthCode, 'M03', '');

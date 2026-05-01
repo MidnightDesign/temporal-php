@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
 $result = $datetime->since(new \Temporal\Spec\ZonedDateTime(0, 'UTC'), (object) ['largestUnit' => 'month']);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'islamic-civil';
 $options = ['overflow' => 'reject'];
@@ -14,7 +15,7 @@ $years1 = new \Temporal\Spec\Duration(-1);
 $years1n = new \Temporal\Spec\Duration(1);
 $years2 = new \Temporal\Spec\Duration(-2);
 $years3n = new \Temporal\Spec\Duration(3);
-$date14451230 = \Temporal\Spec\ZonedDateTime::from(['year' => 1445, 'monthCode' => 'M12', 'day' => 30, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
+$date14451230 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 1445, 'monthCode' => 'M12', 'day' => 30, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($date14451230->subtract($years1)->toPlainDateTime(), 1446, 12, 'M12', 29, 12, 34, 0, 0, 0, 0, 'add 1y to leap day and constrain', 'ah', 1446);
 Assert::throws(\InvalidArgumentException::class, function () use (&$date14451230, &$years1, &$options) { $date14451230->subtract($years1, $options); }, 'add 1y to leap day and reject');
 TemporalHelpers::assertPlainDateTime($date14451230->subtract($years2, $options)->toPlainDateTime(), 1447, 12, 'M12', 30, 12, 34, 0, 0, 0, 0, 'add 2y to leap day landing in next leap year', 'ah', 1447);

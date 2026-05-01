@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'persian';
 for ($year = 1348; $year < 1428; $year++) {
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\Spec\PlainYearMonth::from((object) ['year' => $year, 'month' => $month, 'calendar' => $calendar]);
+$date = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'calendar' => $calendar]));
 Assert::sameValue($date->monthCode->endsWith('L'), false, '');
 }
 }

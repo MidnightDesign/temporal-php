@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $fewSeconds = new \Temporal\Spec\PlainDateTime(1976, 2, 4, 5, 3, 1);
 $zeroSeconds = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23);
 $wholeSeconds = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30);

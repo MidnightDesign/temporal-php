@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$tooEarly = ['year' => -271_821, 'month' => 4, 'day' => 18];
+$tooEarly = JsUndefined::strip(['year' => -271_821, 'month' => 4, 'day' => 18]);
 $tooLate = ['year' => 275_760, 'month' => 9, 'day' => 14];
 foreach (['reject', 'constrain'] as $overflow) {
 foreach ([$tooEarly, $tooLate, '-271821-04-18', '+275760-09-14'] as $value) {

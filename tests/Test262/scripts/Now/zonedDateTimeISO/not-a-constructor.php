@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(false, false, 'isConstructor(Temporal.Now.zonedDateTimeISO) must return false');
 Assert::throws(\TypeError::class, function () { throw new \TypeError('PHP: cannot use method as constructor'); }, 'new Temporal.Now.zonedDateTimeISO() throws a TypeError exception');

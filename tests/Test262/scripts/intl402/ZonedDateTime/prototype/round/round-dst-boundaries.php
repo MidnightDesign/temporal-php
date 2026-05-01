@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $roundTo = ['smallestUnit' => 'day'];
 $roundMeDown = \Temporal\Spec\PlainDateTime::from('2000-10-29T11:29:59')->toZonedDateTime('America/Vancouver');
 Assert::sameValue("" . ($roundMeDown->round($roundTo)) . "", '2000-10-29T00:00:00-07:00[America/Vancouver]', '');

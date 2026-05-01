@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $expectedTimeZone = '+01:46';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
-$instance->since((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance->since((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

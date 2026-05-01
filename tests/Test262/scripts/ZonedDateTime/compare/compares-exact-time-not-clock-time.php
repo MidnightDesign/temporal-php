@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $clockBefore = new \Temporal\Spec\ZonedDateTime(946_711_800_000_000_000, '-08:00');
 $clockAfter = new \Temporal\Spec\ZonedDateTime(946_704_600_000_000_000, '-04:00');
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::compare($clockBefore, $clockAfter), 1, '');

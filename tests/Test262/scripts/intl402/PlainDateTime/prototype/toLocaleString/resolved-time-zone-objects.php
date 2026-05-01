@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $options = (object) ['timeZone' => 'Pacific/Apia', 'year' => 'numeric', 'month' => 'numeric', 'day' => 'numeric', 'hour' => 'numeric', 'minute' => 'numeric', 'second' => 'numeric', 'hourCycle' => 'h23'];
 $datetime1 = new \Temporal\Spec\PlainDateTime(2021, 8, 4, 0, 30, 45, 123, 456, 789);
 $result1 = $datetime1->toLocaleString('en', $options);

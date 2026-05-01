@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $minimumProperties = (object) ['hour' => 0];
 $allProperties = (object) ['hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0];
 $resultWithout = \Temporal\Spec\PlainTime::compare($minimumProperties, $minimumProperties);

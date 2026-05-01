@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $date = new \Temporal\Spec\PlainYearMonth(2000, 5, 'gregory');
 Assert::assertTrue($date->toLocaleString('en', ['era' => 'narrow'])->startsWith('5'), 'toLocaleString on a PlainYearMonth with era option should work');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $inst = new \Temporal\Spec\Instant(500_000);
 Assert::throws(\InvalidArgumentException::class, function () use (&$inst) { return $inst->add(new \Temporal\Spec\Duration(1)); }, 'should throw RangeError when the duration has non-zero years (positive)');
 Assert::throws(\InvalidArgumentException::class, function () use (&$inst) { return $inst->add(new \Temporal\Spec\Duration(0, 2)); }, 'should throw RangeError when the duration has non-zero months (positive)');

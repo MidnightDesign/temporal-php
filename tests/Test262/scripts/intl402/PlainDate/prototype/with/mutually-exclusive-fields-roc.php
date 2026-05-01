@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = ['overflow' => 'reject'];
 $instance = \Temporal\Spec\PlainDate::from(['year' => 114, 'monthCode' => 'M12', 'day' => 15, 'calendar' => 'roc'], $options);
 TemporalHelpers::assertPlainDate($instance, 114, 12, 'M12', 15, 'check that all fields are as expected', 'roc', 114);
 TemporalHelpers::assertPlainDate($instance->with(['era' => 'broc', 'eraYear' => 1], $options), 0, 12, 'M12', 15, 'era and eraYear together exclude year', 'broc', 1);
-TemporalHelpers::assertPlainDate($instance->with(['year' => -2], $options), -2, 12, 'M12', 15, 'year excludes era and eraYear', 'broc', 3);
+TemporalHelpers::assertPlainDate($instance->with(JsUndefined::strip(['year' => -2]), $options), -2, 12, 'M12', 15, 'year excludes era and eraYear', 'broc', 3);
 TemporalHelpers::assertPlainDate($instance->with(['month' => 5], $options), 114, 5, 'M05', 15, 'month excludes monthCode', 'roc', 114);
 TemporalHelpers::assertPlainDate($instance->with(['monthCode' => 'M05'], $options), 114, 5, 'M05', 15, 'monthCode excludes month', 'roc', 114);
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(['eraYear' => 1]); }, 'eraYear excludes year and era, and cannot be provided without era');

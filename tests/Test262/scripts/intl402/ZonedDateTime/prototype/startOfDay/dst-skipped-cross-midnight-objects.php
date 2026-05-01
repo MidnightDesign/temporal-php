@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1919, 'month' => 3, 'day' => 31, 'hour' => 12, 'timeZone' => 'America/Toronto']);
 $result = $instance->startOfDay();
 Assert::sameValue($result->hour, 0, '1919-03-31 started at hour 0');

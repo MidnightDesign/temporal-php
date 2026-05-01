@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validValues = [new \Temporal\Spec\PlainTime(12), ['hour' => 12], '12:00'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainTime::from($value, ['overflow' => $overflow]); }, fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainTime::from($value, JsUndefined::strip(['overflow' => $overflow])); }, fn($result, $descr) => TemporalHelpers::assertPlainTime($result, 12, 0, 0, 0, 0, 0, $descr));
 }

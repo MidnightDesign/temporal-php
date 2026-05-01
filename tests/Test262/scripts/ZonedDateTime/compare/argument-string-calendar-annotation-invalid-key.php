@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $invalidStrings = [['1970-01-01T00:00[UTC][U-CA=iso8601]', 'invalid capitalized key'], ['1970-01-01T00:00[UTC][u-CA=iso8601]', 'invalid partially-capitalized key'], ['1970-01-01T00:00[UTC][FOO=bar]', 'invalid capitalized unrecognized key']];
 foreach ($invalidStrings as $__entry__) {

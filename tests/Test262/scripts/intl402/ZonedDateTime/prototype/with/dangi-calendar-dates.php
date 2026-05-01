@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'dangi';
-$cases = ['year2000' => ['year' => 1999, 'month' => 11, 'monthCode' => 'M11', 'day' => 25, 'timeZone' => 'UTC', 'calendar' => $calendar], 'year1900' => ['year' => 1899, 'month' => 12, 'monthCode' => 'M12', 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar], 'year2050' => ['year' => 2049, 'month' => 11, 'day' => 21, 'timeZone' => 'UTC', 'calendar' => $calendar]];
+$cases = JsUndefined::strip(['year2000' => JsUndefined::strip(['year' => 1999, 'month' => 11, 'monthCode' => 'M11', 'day' => 25, 'timeZone' => 'UTC', 'calendar' => $calendar]), 'year1900' => JsUndefined::strip(['year' => 1899, 'month' => 12, 'monthCode' => 'M12', 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar]), 'year2050' => JsUndefined::strip(['year' => 2049, 'month' => 11, 'day' => 21, 'timeZone' => 'UTC', 'calendar' => $calendar])]);
 foreach ($cases as $name => $result) {
 $inCal = \Temporal\Spec\ZonedDateTime::from($result);
 $afterWithDay = $inCal->with(['day' => 1]);

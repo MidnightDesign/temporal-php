@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $roundingMode = 'expand';
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 1, 59, 59, 900);
-Assert::sameValue($duration->toString(['fractionalSecondDigits' => 0, 'roundingMode' => $roundingMode]), 'PT2H0S', '1:59:60 balances to 2 hours');
+Assert::sameValue($duration->toString(JsUndefined::strip(['fractionalSecondDigits' => 0, 'roundingMode' => $roundingMode])), 'PT2H0S', '1:59:60 balances to 2 hours');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, -1, -59, -59, -900);
-Assert::sameValue($duration->toString(['fractionalSecondDigits' => 0, 'roundingMode' => $roundingMode]), '-PT2H0S', '-1:59:60 balances to -2 hours');
+Assert::sameValue($duration->toString(JsUndefined::strip(['fractionalSecondDigits' => 0, 'roundingMode' => $roundingMode])), '-PT2H0S', '-1:59:60 balances to -2 hours');
 $duration = new \Temporal\Spec\Duration(1, 11, 0, 30, 23, 59, 59, 999, 999, 999);
-Assert::sameValue($duration->toString(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode]), 'P1Y11M31DT0.00000000S', 'units balance only up to days (positive)');
+Assert::sameValue($duration->toString(JsUndefined::strip(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode])), 'P1Y11M31DT0.00000000S', 'units balance only up to days (positive)');
 $duration = new \Temporal\Spec\Duration(-1, -11, 0, -30, -23, -59, -59, -999, -999, -999);
-Assert::sameValue($duration->toString(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode]), '-P1Y11M31DT0.00000000S', 'units balance only up to days (negative)');
+Assert::sameValue($duration->toString(JsUndefined::strip(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode])), '-P1Y11M31DT0.00000000S', 'units balance only up to days (negative)');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 59, 900);
-Assert::sameValue($duration->toString(['fractionalSecondDigits' => 0, 'roundingMode' => $roundingMode]), 'PT60S', '60 seconds stays as is');
+Assert::sameValue($duration->toString(JsUndefined::strip(['fractionalSecondDigits' => 0, 'roundingMode' => $roundingMode])), 'PT60S', '60 seconds stays as is');

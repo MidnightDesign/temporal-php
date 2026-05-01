@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt1 = \Temporal\Spec\ZonedDateTime::from('2020-10-04T12:00[Australia/Lord_Howe]');
 Assert::sameValue($zdt1->hoursInDay, 23.5, 'half hour less in day');
 $zdt2 = \Temporal\Spec\ZonedDateTime::from('2020-04-05T12:00[Australia/Lord_Howe]');

@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainRelativeTo = new \Temporal\Spec\PlainDate(2020, 1, 1);
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ([$plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
-TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 0, 1, 0, 168)->round((object) ['smallestUnit' => 'weeks', 'roundingIncrement' => 2, 'relativeTo' => $relativeTo]), 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, "1w168h to 2w with relativeTo {$relativeTo}");
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 0, 1, 0, 168)->round((object) JsUndefined::strip(['smallestUnit' => 'weeks', 'roundingIncrement' => 2, 'relativeTo' => $relativeTo])), 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, "1w168h to 2w with relativeTo {$relativeTo}");
 }
-foreach ([null, $plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
-TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 0, 0, 0, 48)->round((object) ['smallestUnit' => 'days', 'roundingIncrement' => 2, 'relativeTo' => $relativeTo]), 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, "48h to 2d with relativeTo {$relativeTo}");
+foreach ([JsUndefined::singleton(), $plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 0, 0, 0, 48)->round((object) JsUndefined::strip(['smallestUnit' => 'days', 'roundingIncrement' => 2, 'relativeTo' => $relativeTo])), 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, "48h to 2d with relativeTo {$relativeTo}");
 }
-TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 1, 0, 30)->round((object) ['smallestUnit' => 'months', 'roundingIncrement' => 2, 'relativeTo' => new \Temporal\Spec\PlainDate(1970, 3, 1)]), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, "1m30d to 2m with relativeTo 1970-03-01");
-TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 1, 0, 30)->round((object) ['smallestUnit' => 'months', 'roundingIncrement' => 2, 'relativeTo' => new \Temporal\Spec\PlainDate(1970, 7, 31)]), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, "1m30d to 2m with relativeTo 1970-07-31");
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 1, 0, 30)->round((object) JsUndefined::strip(['smallestUnit' => 'months', 'roundingIncrement' => 2, 'relativeTo' => new \Temporal\Spec\PlainDate(1970, 3, 1)])), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, "1m30d to 2m with relativeTo 1970-03-01");
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration(0, 1, 0, 30)->round((object) JsUndefined::strip(['smallestUnit' => 'months', 'roundingIncrement' => 2, 'relativeTo' => new \Temporal\Spec\PlainDate(1970, 7, 31)])), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, "1m30d to 2m with relativeTo 1970-07-31");

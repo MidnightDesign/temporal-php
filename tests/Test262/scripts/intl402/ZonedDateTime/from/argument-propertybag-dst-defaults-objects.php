@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $DSTEnd = (object) ['year' => 2000, 'month' => 10, 'day' => 29, 'hour' => 1, 'minute' => 45, 'timeZone' => 'America/Vancouver'];
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::from($DSTEnd)->offset, '-07:00', 'Ambiguous zoned date time');
 $DSTStart = (object) ['year' => 2000, 'month' => 4, 'day' => 2, 'hour' => 2, 'minute' => 30, 'timeZone' => 'America/Vancouver'];

@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
 $datetime = new \Temporal\Spec\ZonedDateTime(217_123_200_000_000_000, $timeZone);
 $calendar = '2016-12-31T23:59:60+00:00[UTC]';
-$arg = (object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'timeZone' => $timeZone, 'calendar' => $calendar];
+$arg = (object) JsUndefined::strip(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'timeZone' => $timeZone, 'calendar' => $calendar]);
 $result1 = \Temporal\Spec\ZonedDateTime::compare($arg, $datetime);
 Assert::sameValue($result1, 0, 'leap second is a valid ISO string for calendar (first argument)');
 $result2 = \Temporal\Spec\ZonedDateTime::compare($datetime, $arg);

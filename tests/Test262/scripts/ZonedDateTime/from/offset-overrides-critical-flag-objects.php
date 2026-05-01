@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $useResult = \Temporal\Spec\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', (object) ['offset' => 'use']);
 Assert::sameValue($useResult->epochNanoseconds, 1_665_193_020_000_000_000, 'exact time is unchanged with offset = use, despite critical flag');
 $ignoreResult = \Temporal\Spec\ZonedDateTime::from('2022-10-07T18:37-07:00[!UTC]', (object) ['offset' => 'ignore']);

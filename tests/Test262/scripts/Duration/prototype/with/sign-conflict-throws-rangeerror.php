@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d1 = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 $d2 = new \Temporal\Spec\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$d1, &$field) { return $d1->with([$field => -1]); }, "sign in argument { {$field}: -1 } conflicting with sign of duration should throw RangeError");
+Assert::throws(\InvalidArgumentException::class, function () use (&$d1, &$field) { return $d1->with(JsUndefined::strip([$field => -1])); }, "sign in argument { {$field}: -1 } conflicting with sign of duration should throw RangeError");
 Assert::throws(\InvalidArgumentException::class, function () use (&$d2, &$field) { return $d2->with([$field => 1]); }, "sign in argument { {$field}: 1 } conflicting with sign of duration should throw RangeError");
 }

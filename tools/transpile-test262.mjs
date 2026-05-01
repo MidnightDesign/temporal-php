@@ -295,9 +295,12 @@ function typeofToPhp(phpArg, jsType) {
     case 'number':    return `(is_int(${phpArg}) || is_float(${phpArg}))`;
     case 'boolean':   return `is_bool(${phpArg})`;
     case 'object':    return `is_object(${phpArg})`;
-    // PHP null represents JS null (not JS undefined); PHP variables are never
-    // "undefined" in the JS sense, so typeof $x === 'undefined' is always false.
-    case 'undefined': return `false`;
+    // typeof matches JS strictly: `typeof null === 'object'`, not `'undefined'`.
+    // Only the JsUndefined sentinel counts as JS undefined here. (Compare with
+    // the `x === undefined` pattern handled in transpileBinary, which uses the
+    // loose JsUndefined::isUndefined() — that one also matches PHP null because
+    // the spec layer returns null where JS returns undefined.)
+    case 'undefined': return `${phpArg} instanceof JsUndefined`;
     case 'function':  return `is_callable(${phpArg})`;
     // 'symbol' and 'bigint' don't exist in PHP — always false
     case 'symbol':    return 'false';
@@ -1120,6 +1123,13 @@ class Emitter {
 
   transpileIdentifier(node) {
     switch (node.name) {
+      // Default: PHP null. The JsUndefined sentinel only appears when transpileArray
+      // sees `undefined` in element position (parametric test-data tables) or when
+      // transpileBinary recognizes a `typeof x === 'undefined'` / `x === undefined`
+      // pattern — those keep the JS undefined-vs-null distinction alive in test
+      // logic without disturbing the much more common case where `undefined`
+      // appears as a function-default-argument placeholder or comparison target
+      // against an impl-returned PHP null.
       case 'undefined': return 'null';
       case 'RangeError': return '\\InvalidArgumentException';
       case 'TypeError':  return '\\TypeError';
@@ -1172,6 +1182,15 @@ class Emitter {
     const parts = [];
     for (const el of node.elements) {
       if (el === null) { parts.push('null'); continue; }
+      // In array element position, `undefined` becomes the JsUndefined sentinel so
+      // parametric test-data tables that mix `undefined` and `null` (e.g.
+      // `[undefined, null, true, '']`) preserve the distinction for downstream
+      // `typeof` branches. transpileIdentifier defaults `undefined` → `null` for
+      // every other context.
+      if (el.type === 'Identifier' && el.name === 'undefined') {
+        parts.push('JsUndefined::singleton()');
+        continue;
+      }
       const php = this.transpileExpr(el);
       // Overflow BigInt inside an array → sentinel; sameValue() will skip it.
       parts.push(php ?? 'Assert::int64Overflow()');
@@ -1852,6 +1871,22 @@ class Emitter {
         if (phpCheck !== null) return negate ? `!(${phpCheck})` : phpCheck;
       }
     }
+    // Handle `x === undefined` / `x !== undefined` — accept both PHP null (= the
+    // spec layer's representation of JS undefined results) and the JsUndefined
+    // sentinel (= literal `undefined` in parametric test data).
+    {
+      const isUndefIdent = (n) => n?.type === 'Identifier' && n.name === 'undefined';
+      const eqOp = node.operator === '===' || node.operator === '==';
+      const neqOp = node.operator === '!==' || node.operator === '!=';
+      if ((eqOp || neqOp) && (isUndefIdent(node.right) || isUndefIdent(node.left))) {
+        const operand = isUndefIdent(node.right) ? node.left : node.right;
+        const arg = this.transpileExpr(operand);
+        if (arg !== null) {
+          const check = `JsUndefined::isUndefined(${arg})`;
+          return neqOp ? `!${check}` : check;
+        }
+      }
+    }
     // `expr instanceof Temporal.X` → `$expr instanceof \Temporal\Spec\X`
     // (transpileTemporalClassRef returns \Temporal\Spec\X::class; strip ::class for instanceof)
     if (node.operator === 'instanceof') {
@@ -2009,12 +2044,24 @@ class Emitter {
       return true;
     };
 
+    // Wrap with JsUndefined::strip(...) when any property value could resolve to the
+    // JsUndefined sentinel at runtime. Pure-literal bags don't need stripping (no
+    // JsUndefined can enter); spreads and non-literal values potentially can.
+    const needsStrip = node.properties.some(prop => {
+      if (prop.type === 'SpreadElement') return true;
+      if (prop.type !== 'Property') return false;
+      if (prop.shorthand) return true;
+      if (prop.value?.type === 'Identifier' && prop.value.name === 'undefined') return false;
+      return prop.value?.type !== 'Literal';
+    });
+    const wrap = (php) => needsStrip ? `JsUndefined::strip(${php})` : php;
+
     if (!hasSpreads) {
       const parts = [];
       for (const prop of node.properties) {
         if (!buildProp(prop, parts)) return null;
       }
-      const arr = '[' + parts.join(', ') + ']';
+      const arr = wrap('[' + parts.join(', ') + ']');
       return this.objectMode ? '(object) ' + arr : arr;
     }
 
@@ -2050,9 +2097,10 @@ class Emitter {
       // Single chunk: in objectMode wrap a chunk that is itself a literal array
       // with (object); spread-sourced chunks are already cast to (array) above
       // and we want to project them back to objects too.
-      return this.objectMode ? '(object) ' + chunks[0] : chunks[0];
+      const single = wrap(chunks[0]);
+      return this.objectMode ? '(object) ' + single : single;
     }
-    const merged = 'array_merge(' + chunks.join(', ') + ')';
+    const merged = wrap('array_merge(' + chunks.join(', ') + ')');
     return this.objectMode ? '(object) ' + merged : merged;
   }
 
@@ -2614,6 +2662,7 @@ function processFile(jsPath, dataDir, scriptsDir) {
     '// Re-generate: composer test262:build',
     '',
     'use Temporal\\Tests\\Test262\\Assert;',
+    'use Temporal\\Tests\\Test262\\JsUndefined;',
     ...(useTemporalHelpers ? ['use Temporal\\Tests\\Test262\\TemporalHelpers;'] : []),
     '',
   ];

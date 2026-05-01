@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(\Temporal\Spec\Instant::fromEpochMilliseconds(0)->toJSON(), '1970-01-01T00:00:00Z', '');
 $days_in_ms = 24 * 60 * 60 * 1000;
 Assert::sameValue(\Temporal\Spec\Instant::fromEpochMilliseconds(365 * $days_in_ms - 1)->toJSON(), '1970-12-31T23:59:59.999Z', '');

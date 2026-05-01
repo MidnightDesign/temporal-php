@@ -852,10 +852,11 @@ final class PlainTime implements Stringable
         // default to 0.
         $hasAny = false;
         foreach (['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $field) {
-            if (array_key_exists($field, $bag) && $bag[$field] !== null) {
-                $hasAny = true;
-                break;
+            if (!array_key_exists($field, $bag) || $bag[$field] === null) {
+                continue;
             }
+            $hasAny = true;
+            break;
         }
         if (!$hasAny) {
             throw new \TypeError('PlainTime property bag must have at least one time field.');

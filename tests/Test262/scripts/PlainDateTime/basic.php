@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(1, 2, 3, 4, 5, 6, 7, 8, 9), 1, 2, 'M02', 3, 4, 5, 6, 7, 8, 9);
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(1, 2, 3, 4, 5, 6, 7, 8), 1, 2, 'M02', 3, 4, 5, 6, 7, 8, 0);

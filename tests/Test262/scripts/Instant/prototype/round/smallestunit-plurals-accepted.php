@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
 $validUnits = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($smallestUnit) use (&$instant) { return $instant->round(['smallestUnit' => $smallestUnit]); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(function ($smallestUnit) use (&$instant) { return $instant->round(JsUndefined::strip(['smallestUnit' => $smallestUnit])); }, $validUnits);
 TemporalHelpers::checkPluralUnitsAccepted(function ($smallestUnit) use (&$instant) { return $instant->round($smallestUnit); }, $validUnits);

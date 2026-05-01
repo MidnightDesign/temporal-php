@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = \Temporal\Spec\ZonedDateTime::from('2020-11-01T01:30-07:00[America/Los_Angeles]', ['offset' => 'prefer']);
 Assert::sameValue($zdt->offset, '-07:00', 'Offset result when option offset: prefer and offset matches time zone (first 1:30 when DST ends)');
 $zdt = \Temporal\Spec\ZonedDateTime::from('2020-11-01T01:30[America/Los_Angeles]', ['offset' => 'prefer']);

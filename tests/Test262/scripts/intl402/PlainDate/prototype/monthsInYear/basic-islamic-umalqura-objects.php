@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'islamic-umalqura';
 $options = (object) ['overflow' => 'reject'];
 for ($year = 1390; $year < 1470; $year++) {
-$date = \Temporal\Spec\PlainDate::from((object) ['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1]);
+$date = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1]));
 Assert::sameValue($date->monthsInYear, 12, '');
 }

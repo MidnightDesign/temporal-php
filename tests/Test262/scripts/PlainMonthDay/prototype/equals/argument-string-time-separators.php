@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [['1976-05-02T15:23', 'uppercase T'], ['1976-05-02t15:23', 'lowercase T'], ['1976-05-02 15:23', 'space between date and time']];
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ($tests as $__entry__) {

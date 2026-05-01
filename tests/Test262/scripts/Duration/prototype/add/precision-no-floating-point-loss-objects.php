@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration1 = \Temporal\Spec\Duration::from((object) ['seconds' => 4_503_599_627_370_495, 'nanoseconds' => 499_999_999]);
-$duration2 = \Temporal\Spec\Duration::from((object) ['seconds' => 4_503_599_627_370_495 - 86_400, 'nanoseconds' => 499_999_999, 'days' => 1]);
+$duration2 = \Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => 4_503_599_627_370_495 - 86_400, 'nanoseconds' => 499_999_999, 'days' => 1]));
 Assert::incomplete('cannot represent value of \'nanos\' in PHP (BigInt overflow)');

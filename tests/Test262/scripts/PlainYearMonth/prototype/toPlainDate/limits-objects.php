@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $min = \Temporal\Spec\PlainYearMonth::from('-271821-04');
 Assert::throws(\InvalidArgumentException::class, function () use (&$min) { return $min->toPlainDate((object) ['day' => 18]); }, 'min');

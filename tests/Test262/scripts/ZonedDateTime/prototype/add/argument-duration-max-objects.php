@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $maxCases = [['P273790Y8M12D', 'string with max years'], [(object) ['years' => 273_790, 'months' => 8, 'days' => 12], 'property bag with max years'], ['P3285488M12D', 'string with max months'], [(object) ['months' => 3_285_488, 'days' => 12], 'property bag with max months'], ['P14285714W2D', 'string with max weeks'], [(object) ['weeks' => 14_285_714, 'days' => 2], 'property bag with max weeks'], ['P100000000D', 'string with max days'], [(object) ['days' => 100_000_000], 'property bag with max days'], ['PT2400000000H', 'string with max hours'], [(object) ['hours' => 2_400_000_000], 'property bag with max hours'], ['PT144000000000M', 'string with max minutes'], [(object) ['minutes' => 144_000_000_000], 'property bag with max minutes'], ['PT8640000000000S', 'string with max seconds'], [(object) ['seconds' => 8_640_000_000_000], 'property bag with max seconds']];
 foreach ($maxCases as $__entry__) {
@@ -16,7 +17,7 @@ $result = $instance->add($arg);
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
 }
-$minCases = [['-P273790Y8M11D', 'string with min years'], [(object) ['years' => -273_790, 'months' => -8, 'days' => -11], 'property bag with min years'], ['-P3285488M11D', 'string with min months'], [(object) ['months' => -3_285_488, 'days' => -11], 'property bag with min months'], ['-P14285714W2D', 'string with min weeks'], [(object) ['weeks' => -14_285_714, 'days' => -2], 'property bag with min weeks'], ['-P100000000D', 'string with min days'], [(object) ['days' => -100_000_000], 'property bag with min days'], ['-PT2400000000H', 'string with min hours'], [(object) ['hours' => -2_400_000_000], 'property bag with min hours'], ['-PT144000000000M', 'string with min minutes'], [(object) ['minutes' => -144_000_000_000], 'property bag with min minutes'], ['-PT8640000000000S', 'string with min seconds'], [(object) ['seconds' => -8_640_000_000_000], 'property bag with min seconds']];
+$minCases = [['-P273790Y8M11D', 'string with min years'], [(object) JsUndefined::strip(['years' => -273_790, 'months' => -8, 'days' => -11]), 'property bag with min years'], ['-P3285488M11D', 'string with min months'], [(object) JsUndefined::strip(['months' => -3_285_488, 'days' => -11]), 'property bag with min months'], ['-P14285714W2D', 'string with min weeks'], [(object) JsUndefined::strip(['weeks' => -14_285_714, 'days' => -2]), 'property bag with min weeks'], ['-P100000000D', 'string with min days'], [(object) JsUndefined::strip(['days' => -100_000_000]), 'property bag with min days'], ['-PT2400000000H', 'string with min hours'], [(object) JsUndefined::strip(['hours' => -2_400_000_000]), 'property bag with min hours'], ['-PT144000000000M', 'string with min minutes'], [(object) JsUndefined::strip(['minutes' => -144_000_000_000]), 'property bag with min minutes'], ['-PT8640000000000S', 'string with min seconds'], [(object) JsUndefined::strip(['seconds' => -8_640_000_000_000]), 'property bag with min seconds']];
 foreach ($minCases as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
 $result = $instance->add($arg);

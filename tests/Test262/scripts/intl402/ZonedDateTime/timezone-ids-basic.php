@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $valid = [['Europe/Vienna'], ['America/New_York'], ['Africa/CAIRO', 'Africa/Cairo'], ['africa/cairo', 'Africa/Cairo'], ['Asia/Ulaanbaatar'], ['Asia/Ulan_Bator'], ['UTC'], ['GMT']];
 foreach ($valid as $__entry__) {
 [$zone, $id] = array_pad($__entry__, 2, null);

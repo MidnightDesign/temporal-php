@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $result1 = $instance->add(['years' => 1], []);
 Assert::sameValue($result1->epochNanoseconds, 31_536_000_000_000_000, 'UTC');

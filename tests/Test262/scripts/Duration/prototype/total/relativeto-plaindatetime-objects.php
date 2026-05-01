@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 $relativeToDate = new \Temporal\Spec\PlainDate(1970, 1, 1);
 $relativeToDateTime = new \Temporal\Spec\PlainDateTime(1970, 1, 1);
 foreach (['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $unit) {
-$expected = $duration->total((object) ['unit' => $unit, 'relativeTo' => $relativeToDate]);
-$actual = $duration->total((object) ['unit' => $unit, 'relativeTo' => $relativeToDateTime]);
+$expected = $duration->total((object) JsUndefined::strip(['unit' => $unit, 'relativeTo' => $relativeToDate]));
+$actual = $duration->total((object) JsUndefined::strip(['unit' => $unit, 'relativeTo' => $relativeToDateTime]));
 Assert::sameValue($actual, $expected, "unit = {$unit}");
 }

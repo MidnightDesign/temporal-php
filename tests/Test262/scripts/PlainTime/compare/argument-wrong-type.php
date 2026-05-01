@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$primitiveTests = [[null, 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
+use Temporal\Tests\Test262\JsUndefined;
+$primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
 Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)); }, "{$description} does not convert to a valid ISO string (first argument)");

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration1 = new \Temporal\Spec\Duration(0, 0, 0, 0, 1, 120, 1, 123, 456, 789);
 $explicit1 = $duration1->round(['smallestUnit' => 'nanosecond']);

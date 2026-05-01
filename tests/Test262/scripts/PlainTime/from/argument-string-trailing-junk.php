@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $arg = '15:23:30.100junk';
 Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, '');

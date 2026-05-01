@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = \Temporal\Spec\Duration::from(['hours' => 100_000, 'nanoseconds' => 5]);
 $rounded = $duration->round(['smallestUnit' => 'hours', 'roundingMode' => 'ceil']);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime1 = new \Temporal\Spec\ZonedDateTime(957_270_896_987_650_000, 'UTC');
 $datetime2 = new \Temporal\Spec\ZonedDateTime(957_270_896_987_650_000, 'UTC', 'gregory');
 foreach ([[$datetime1, '2000-05-02T12:34:56.98765+00:00[UTC]'], [$datetime2, '2000-05-02T12:34:56.98765+00:00[UTC][u-ca=gregory]']] as $__entry__) {

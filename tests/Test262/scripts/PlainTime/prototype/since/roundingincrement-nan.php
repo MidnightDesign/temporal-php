@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 $later = new \Temporal\Spec\PlainTime(13, 35, 57, 988, 655, 322);
-Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier) { return $later->since($earlier, ['roundingIncrement' => NAN]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier) { return $later->since($earlier, JsUndefined::strip(['roundingIncrement' => NAN])); }, '');

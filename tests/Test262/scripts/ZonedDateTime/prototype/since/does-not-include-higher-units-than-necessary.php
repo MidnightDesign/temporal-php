@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $lastFeb20 = new \Temporal\Spec\ZonedDateTime(1_582_930_800_000_000_000, '+01:00');
 $lastFeb21 = new \Temporal\Spec\ZonedDateTime(1_614_466_800_000_000_000, '+01:00');

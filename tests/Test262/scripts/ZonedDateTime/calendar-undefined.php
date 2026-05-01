@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $args = [957_270_896_987_654_321, 'UTC'];
 $explicit = new \Temporal\Spec\ZonedDateTime(...$args);
 Assert::sameValue($explicit->calendarId, 'iso8601', 'calendar string should be iso8601');

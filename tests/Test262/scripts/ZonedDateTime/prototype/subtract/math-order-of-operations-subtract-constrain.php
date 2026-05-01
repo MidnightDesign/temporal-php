@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$breakoutUnits = fn($op, $zdt, $d, $options) => $zdt[$op](['years' => $d->years], $options)[$op](['months' => $d->months], $options)[$op](['weeks' => $d->weeks], $options)[$op](['days' => $d->days], $options)[$op](['hours' => $d->hours, 'minutes' => $d->minutes, 'seconds' => $d->seconds, 'milliseconds' => $d->milliseconds, 'microseconds' => $d->microseconds, 'nanoseconds' => $d->nanoseconds], $options);
+$breakoutUnits = fn($op, $zdt, $d, $options) => $zdt[$op](JsUndefined::strip(['years' => $d->years]), $options)[$op](JsUndefined::strip(['months' => $d->months]), $options)[$op](JsUndefined::strip(['weeks' => $d->weeks]), $options)[$op](JsUndefined::strip(['days' => $d->days]), $options)[$op](JsUndefined::strip(['hours' => $d->hours, 'minutes' => $d->minutes, 'seconds' => $d->seconds, 'milliseconds' => $d->milliseconds, 'microseconds' => $d->microseconds, 'nanoseconds' => $d->nanoseconds]), $options);
 $zdt = new \Temporal\Spec\ZonedDateTime(1_585_641_600_000_000_000, '-08:00');
 $d = new \Temporal\Spec\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $options = ['overflow' => 'constrain'];

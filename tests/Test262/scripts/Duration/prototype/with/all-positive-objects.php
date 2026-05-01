@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $argAllPositive = (object) ['years' => 9, 'months' => 8, 'weeks' => 7, 'days' => 6, 'hours' => 5, 'minutes' => 4, 'seconds' => 3, 'milliseconds' => 2, 'microseconds' => 1, 'nanoseconds' => 10];
 $d1 = new \Temporal\Spec\Duration();

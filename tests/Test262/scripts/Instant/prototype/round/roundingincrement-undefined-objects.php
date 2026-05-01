@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
 $explicit = $instant->round((object) ['smallestUnit' => 'second']);
 Assert::sameValue($explicit->epochNanoseconds, 1_000_000_001_000_000_000, 'default roundingIncrement is 1');

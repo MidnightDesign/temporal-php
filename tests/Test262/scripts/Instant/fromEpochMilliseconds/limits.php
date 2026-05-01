@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $limit = 8_640_000_000_000_000;
 Assert::throws(\InvalidArgumentException::class, function () use (&$limit) { return \Temporal\Spec\Instant::fromEpochMilliseconds(-$limit - 1); }, '');

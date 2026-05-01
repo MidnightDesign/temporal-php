@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertDuration(\Temporal\Spec\PlainDate::from('2021-07-16')->until('2021-07-16'), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'same day');
 TemporalHelpers::assertDuration(\Temporal\Spec\PlainDate::from('2021-07-16')->until('2021-07-17'), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'one day');

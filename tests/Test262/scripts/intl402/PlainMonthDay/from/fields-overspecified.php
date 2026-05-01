@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $fields = ['calendar' => 'gregory', 'era' => 'ce', 'eraYear' => 2024, 'year' => 2023, 'monthCode' => 'M01', 'day' => 1];
 Assert::throws(\InvalidArgumentException::class, function () use (&$fields) { return \Temporal\Spec\PlainMonthDay::from($fields); }, '');
 $fields = ['calendar' => 'gregory', 'era' => 'ce', 'eraYear' => 2024, 'year' => 2023, 'month' => 1, 'day' => 1];

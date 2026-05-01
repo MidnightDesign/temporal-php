@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendarEras = ['buddhist' => 'be', 'coptic' => 'am', 'ethioaa' => 'aa', 'hebrew' => 'am', 'indian' => 'shaka', 'persian' => 'ap'];
 $options = ['overflow' => 'reject'];
 foreach ($calendarEras as $calendar => $era) {
 foreach ([-1, 0, 1] as $eraYear) {
-$date = \Temporal\Spec\ZonedDateTime::from(['era' => $era, 'eraYear' => $eraYear, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
+$date = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => $era, 'eraYear' => $eraYear, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($date->toPlainDateTime(), $eraYear, 1, 'M01', 1, 12, 34, 0, 0, 0, 0, "era year {$eraYear} is not remapped", $era, $eraYear);
 }
 }

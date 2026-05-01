@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $apr2000 = new \Temporal\Spec\PlainYearMonth(2000, 4, 'gregory');
-TemporalHelpers::assertPlainYearMonth($apr2000->with(['year' => -271_821]), -271_821, 4, 'M04', '', 'bce', 271_822);
+TemporalHelpers::assertPlainYearMonth($apr2000->with(JsUndefined::strip(['year' => -271_821])), -271_821, 4, 'M04', '', 'bce', 271_822);

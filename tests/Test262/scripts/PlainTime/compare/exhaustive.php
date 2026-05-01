@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(\Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 15, 45, 333, 777, 111), new \Temporal\Spec\PlainTime(6, 15, 45, 333, 777, 111)), 1, 'hour >');
 Assert::sameValue(\Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(6, 30, 15, 222, 444, 6), new \Temporal\Spec\PlainTime(22, 30, 15, 222, 444, 6)), -1, 'hour <');
 Assert::sameValue(\Temporal\Spec\PlainTime::compare(new \Temporal\Spec\PlainTime(12, 45, 15, 333, 777, 111), new \Temporal\Spec\PlainTime(12, 15, 22, 333, 777, 111)), 1, 'minute >');

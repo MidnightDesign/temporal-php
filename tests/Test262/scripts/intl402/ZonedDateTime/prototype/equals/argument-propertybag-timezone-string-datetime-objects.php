@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $expectedTimeZone = 'America/Vancouver';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30[America/Vancouver]';
-Assert::assertTrue($instance->equals((object) ['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone]), 'date-time + IANA annotation is the IANA time zone');
+Assert::assertTrue($instance->equals((object) JsUndefined::strip(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone])), 'date-time + IANA annotation is the IANA time zone');
 $timeZone = '2021-08-19T17:30Z[America/Vancouver]';
-Assert::assertTrue($instance->equals((object) ['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone]), 'date-time + Z + IANA annotation is the IANA time zone');
+Assert::assertTrue($instance->equals((object) JsUndefined::strip(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone])), 'date-time + Z + IANA annotation is the IANA time zone');
 $timeZone = '2021-08-19T17:30-07:00[America/Vancouver]';
-Assert::assertTrue($instance->equals((object) ['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone]), 'date-time + offset + IANA annotation is the IANA time zone');
+Assert::assertTrue($instance->equals((object) JsUndefined::strip(['year' => 1969, 'month' => 12, 'day' => 31, 'hour' => 16, 'timeZone' => $timeZone])), 'date-time + offset + IANA annotation is the IANA time zone');

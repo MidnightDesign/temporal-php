@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $timeZone = '2021-08-19T17:30[America/Vancouver]';
 $result1 = $instance->toZonedDateTimeISO($timeZone);

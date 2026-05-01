@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $min = \Temporal\Spec\PlainDate::from('-271821-04-19');
 $max = \Temporal\Spec\PlainDate::from('+275760-09-13');
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$overflow) { return $min->add(['days' => -1], ['overflow' => $overflow]); }, "min with {$overflow}");
-Assert::throws(\InvalidArgumentException::class, function () use (&$max, &$overflow) { return $max->add(['days' => 1], ['overflow' => $overflow]); }, "max with {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$overflow) { return $min->add(JsUndefined::strip(['days' => -1]), JsUndefined::strip(['overflow' => $overflow])); }, "min with {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$max, &$overflow) { return $max->add(['days' => 1], JsUndefined::strip(['overflow' => $overflow])); }, "max with {$overflow}");
 }

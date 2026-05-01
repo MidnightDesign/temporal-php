@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 2, 31, 0);
 Assert::sameValue($d->total((object) ['unit' => 'seconds']), 0.002_031, '');

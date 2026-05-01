@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $result1 = \Temporal\Spec\PlainMonthDay::from((object) ['year' => 2021, 'monthCode' => 'M02', 'day' => 29, 'calendar' => 'gregory']);
 TemporalHelpers::assertPlainMonthDay($result1, 'M02', 28, 'year and monthCode determine if calendar date exists, but reference year should be 1972', 1972);

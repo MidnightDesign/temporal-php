@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891', '1970-01-01T00:00:00.1234567890', '1970-01-01T00+00:00:00.1234567891', '1970-01-01T00+00:00:00.1234567890', '00:00:00.1234567891', '00:00:00.1234567890', '00+00:00:00.1234567891', '00+00:00:00.1234567890'];
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { $instance->toZonedDateTime((object) ['plainTime' => $arg, 'timeZone' => 'UTC']); }, 'no more than 9 decimal places are allowed');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { $instance->toZonedDateTime((object) JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC'])); }, 'no more than 9 decimal places are allowed');
 }

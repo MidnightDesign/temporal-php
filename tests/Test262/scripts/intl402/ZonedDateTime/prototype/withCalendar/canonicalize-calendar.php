@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(1_719_923_640_000_000_000, 'UTC');
 $result = $instance->withCalendar('islamicc');
 Assert::sameValue($result->calendarId, 'islamic-civil', 'calendar ID is canonicalized');

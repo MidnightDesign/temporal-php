@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['-000000-12-07T03:24:30', '-000000-12-07T03:24:30+01:00', '-000000-12-07T03:24:30+00:00[UTC]'];
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime((object) ['plainTime' => $arg, 'timeZone' => 'UTC']); }, 'reject minus zero as extended year');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime((object) JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC'])); }, 'reject minus zero as extended year');
 }

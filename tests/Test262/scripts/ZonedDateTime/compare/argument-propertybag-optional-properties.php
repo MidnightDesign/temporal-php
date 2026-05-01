@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $minimumProperties = ['year' => 2021, 'month' => 10, 'day' => 28, 'timeZone' => 'UTC'];
 $allProperties = ['year' => 2021, 'month' => 10, 'day' => 28, 'hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'offset' => '+00:00', 'timeZone' => 'UTC', 'calendar' => 'iso8601'];
 $resultWithout = \Temporal\Spec\ZonedDateTime::compare($minimumProperties, $minimumProperties);

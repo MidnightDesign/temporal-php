@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $oneYear = new \Temporal\Spec\Duration(1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($oneYear->round((object) ['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2019, 1, 1)]), 0, 0, 0, 365, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($oneYear->round((object) ['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2019, 7, 1)]), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneYear->round((object) JsUndefined::strip(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2019, 1, 1)])), 0, 0, 0, 365, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneYear->round((object) JsUndefined::strip(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2019, 7, 1)])), 0, 0, 0, 366, 0, 0, 0, 0, 0, 0);
 $minusYear = new \Temporal\Spec\Duration(-1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($minusYear->round((object) ['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)]), 0, 0, 0, -365, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($minusYear->round((object) ['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 7, 1)]), 0, 0, 0, -366, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($minusYear->round((object) JsUndefined::strip(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)])), 0, 0, 0, -365, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($minusYear->round((object) JsUndefined::strip(['largestUnit' => 'days', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 7, 1)])), 0, 0, 0, -366, 0, 0, 0, 0, 0, 0);

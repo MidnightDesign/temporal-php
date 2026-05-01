@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $createOptionsObserver = function ($__unknown__) use (&$actual, &$roundingIncrement, &$roundingMode, &$largestUnit, &$smallestUnit) {
-return TemporalHelpers::propertyBagObserver($actual, ['roundingIncrement' => $roundingIncrement, 'roundingMode' => $roundingMode, 'largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'additional' => 'property'], 'options');
+return TemporalHelpers::propertyBagObserver($actual, JsUndefined::strip(['roundingIncrement' => $roundingIncrement, 'roundingMode' => $roundingMode, 'largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'additional' => 'property']), 'options');
 };
 $expectedOpsForPrimitiveOptions = ['get other.calendar', 'get other.day', 'get other.day.valueOf', 'call other.day.valueOf', 'get other.hour', 'get other.hour.valueOf', 'call other.hour.valueOf', 'get other.microsecond', 'get other.microsecond.valueOf', 'call other.microsecond.valueOf', 'get other.millisecond', 'get other.millisecond.valueOf', 'call other.millisecond.valueOf', 'get other.minute', 'get other.minute.valueOf', 'call other.minute.valueOf', 'get other.month', 'get other.month.valueOf', 'call other.month.valueOf', 'get other.monthCode', 'get other.monthCode.toString', 'call other.monthCode.toString', 'get other.nanosecond', 'get other.nanosecond.valueOf', 'call other.nanosecond.valueOf', 'get other.offset', 'get other.offset.toString', 'call other.offset.toString', 'get other.second', 'get other.second.valueOf', 'call other.second.valueOf', 'get other.timeZone', 'get other.year', 'get other.year.valueOf', 'call other.year.valueOf'];
 $expected = array_merge($expectedOpsForPrimitiveOptions, ['get options.largestUnit', 'get options.largestUnit.toString', 'call options.largestUnit.toString', 'get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString']);

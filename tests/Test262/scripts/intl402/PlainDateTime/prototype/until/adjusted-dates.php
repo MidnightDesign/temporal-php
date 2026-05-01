@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['years', 'months', 'weeks', 'days', 'hours'] as $largestUnit) {
 $d1 = new \Temporal\Spec\PlainDateTime(2026, 1, 6, 11, 2, 0, 0, 0, 0, 'gregory');
 $d2 = new \Temporal\Spec\PlainDateTime(2026, 1, 7, 9, 2, 0, 0, 0, 0, 'gregory');
-TemporalHelpers::assertDuration($d1->until($d2, ['largestUnit' => $largestUnit]), 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, "differencing {$d1} and {$d2}");
+TemporalHelpers::assertDuration($d1->until($d2, JsUndefined::strip(['largestUnit' => $largestUnit])), 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, "differencing {$d1} and {$d2}");
 }

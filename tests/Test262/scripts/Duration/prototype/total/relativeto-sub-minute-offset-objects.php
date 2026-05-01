@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
-$action = function ($relativeTo) use (&$instance) { return $instance->total((object) ['unit' => 'days', 'relativeTo' => $relativeTo]); };
+$action = function ($relativeTo) use (&$instance) { return $instance->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo])); };
 $relativeTo = '1970-01-01T00:00-00:45:00[-00:45]';
 $result = $action($relativeTo);
 Assert::sameValue($result, 366, 'ISO string offset accepted with zero seconds (string)');

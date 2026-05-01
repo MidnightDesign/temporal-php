@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['-000000-12-07T03:24:30', '-000000-12-07T03:24:30+01:00', '-000000-12-07T03:24:30+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, 'reject minus zero as extended year');

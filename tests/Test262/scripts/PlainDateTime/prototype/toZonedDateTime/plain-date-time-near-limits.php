@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
 Assert::throws(\InvalidArgumentException::class, function () use (&$dt) { return $dt->toZonedDateTime('UTC'); }, '');
 $dt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 1, 0, 0, 0, 0, 0);

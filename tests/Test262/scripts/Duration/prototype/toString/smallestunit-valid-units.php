@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $test = function ($instance, $expectations, $description) {
 foreach ($expectations as $__entry__) {
 [$smallestUnit, $expectedResult] = array_pad($__entry__, 2, null);
-Assert::sameValue($instance->toString(['smallestUnit' => $smallestUnit]), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
+Assert::sameValue($instance->toString(JsUndefined::strip(['smallestUnit' => $smallestUnit])), $expectedResult, "{$description} with smallestUnit \"{$smallestUnit}\"");
 }
 };
 $duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
@@ -18,5 +19,5 @@ $test($duration, [['seconds', 'P1Y2M3W4DT5H6M7S'], ['milliseconds', 'P1Y2M3W4DT5
 $test(new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7), [['seconds', 'P1Y2M3W4DT5H6M7S'], ['milliseconds', 'P1Y2M3W4DT5H6M7.000S'], ['microseconds', 'P1Y2M3W4DT5H6M7.000000S'], ['nanoseconds', 'P1Y2M3W4DT5H6M7.000000000S']], 'whole seconds toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour', 'minute'];
 foreach ($notValid as $smallestUnit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$smallestUnit) { return $duration->toString(['smallestUnit' => $smallestUnit]); }, "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$smallestUnit) { return $duration->toString(JsUndefined::strip(['smallestUnit' => $smallestUnit])); }, "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
 }

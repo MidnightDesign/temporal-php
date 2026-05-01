@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from((object) ['hour' => 26], (object) ['overflow' => 'constrain']), 23, 0, 0, 0, 0, 0);
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from((object) ['hour' => 22], (object) ['overflow' => 'constrain']), 22, 0, 0, 0, 0, 0);

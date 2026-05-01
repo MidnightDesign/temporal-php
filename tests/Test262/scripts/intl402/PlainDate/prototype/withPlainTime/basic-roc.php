@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $timeRecord = ['hour' => 9, 'minute' => 8, 'second' => 7, 'millisecond' => 6, 'microsecond' => 5, 'nanosecond' => 4];
 $d = new \Temporal\Spec\PlainDateTime(2020, 3, 15, 4, 5, 6, 7, 8, 9, 'roc');

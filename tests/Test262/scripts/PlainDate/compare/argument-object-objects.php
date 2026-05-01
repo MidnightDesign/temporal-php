@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d1 = \Temporal\Spec\PlainDate::from('1976-11-18');
 $d2 = \Temporal\Spec\PlainDate::from('2019-06-30');
 Assert::sameValue(\Temporal\Spec\PlainDate::compare((object) ['year' => 1976, 'month' => 11, 'day' => 18], $d2), -1, 'first argument');

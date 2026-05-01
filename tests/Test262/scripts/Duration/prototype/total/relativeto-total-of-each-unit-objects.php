@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $plainRelativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(63_072_000_000_000_000, 'UTC');
@@ -20,9 +21,9 @@ $fractionalDay = $partialDayMilliseconds / $dayMilliseconds;
 $partialYearDays = $fullDays - ($fullYears * 365 + 2);
 $fractionalYear = $partialYearDays / 365 + ($fractionalDay / 365);
 $fractionalMonths = (10 * $dayMilliseconds + $partialDayMilliseconds) / (31 * $dayMilliseconds);
-$totalResults = (object) ['years' => $fullYears + $fractionalYear, 'months' => $fullMonths + $fractionalMonths, 'weeks' => (int) floor($fullDays / 7) + ((2 + $fractionalDay) / 7), 'days' => $fullDays + $fractionalDay, 'hours' => $fullDays * 24 + ($partialDayMilliseconds / 3_600_000), 'minutes' => $fullDays * 24 * 60 + ($partialDayMilliseconds / 60_000), 'seconds' => $fullDays * 24 * 60 * 60 + ($partialDayMilliseconds / 1000), 'milliseconds' => $fullMilliseconds + 0.005_005, 'microseconds' => $fullMilliseconds * 1000 + 5.005, 'nanoseconds' => $fullMilliseconds * 1_000_000 + 5005];
+$totalResults = (object) JsUndefined::strip(['years' => $fullYears + $fractionalYear, 'months' => $fullMonths + $fractionalMonths, 'weeks' => (int) floor($fullDays / 7) + ((2 + $fractionalDay) / 7), 'days' => $fullDays + $fractionalDay, 'hours' => $fullDays * 24 + ($partialDayMilliseconds / 3_600_000), 'minutes' => $fullDays * 24 * 60 + ($partialDayMilliseconds / 60_000), 'seconds' => $fullDays * 24 * 60 * 60 + ($partialDayMilliseconds / 1000), 'milliseconds' => $fullMilliseconds + 0.005_005, 'microseconds' => $fullMilliseconds * 1000 + 5.005, 'nanoseconds' => $fullMilliseconds * 1_000_000 + 5005]);
 foreach ($totalResults as $unit => $expected) {
 foreach ([$plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
-Assert::sameValue($duration->total((object) ['unit' => $unit, 'relativeTo' => $relativeTo]), $expected, "Duration.total results for {$unit} relative to {$relativeTo}");
+Assert::sameValue($duration->total((object) JsUndefined::strip(['unit' => $unit, 'relativeTo' => $relativeTo])), $expected, "Duration.total results for {$unit} relative to {$relativeTo}");
 }
 }

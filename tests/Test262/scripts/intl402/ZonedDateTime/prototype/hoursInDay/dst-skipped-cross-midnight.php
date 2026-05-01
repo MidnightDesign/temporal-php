@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dayBefore = \Temporal\Spec\ZonedDateTime::from(['year' => 1919, 'month' => 3, 'day' => 30, 'hour' => 12, 'timeZone' => 'America/Toronto']);
 Assert::sameValue($dayBefore->hoursInDay, 23.5, '1919-03-30 had 23.5 hours in America/Toronto');
 $dayAfter = \Temporal\Spec\ZonedDateTime::from(['year' => 1919, 'month' => 3, 'day' => 31, 'hour' => 12, 'timeZone' => 'America/Toronto']);

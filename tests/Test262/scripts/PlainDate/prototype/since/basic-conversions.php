@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainDate = new \Temporal\Spec\PlainDate(1969, 7, 24);
 TemporalHelpers::assertDuration($plainDate->since(['year' => 2019, 'month' => 7, 'day' => 24]), 0, 0, 0, -18_262, 0, 0, 0, 0, 0, 0, 'option bag');

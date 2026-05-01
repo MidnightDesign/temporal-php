@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
 $calendar = '2016-12-31T23:59:60+00:00[UTC]';
-$arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => $calendar];
+$arg = JsUndefined::strip(['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => $calendar]);
 $result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->calendarId, 'iso8601', 'leap second is a valid ISO string for calendar');

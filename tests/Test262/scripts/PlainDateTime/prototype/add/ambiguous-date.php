@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $jan31 = new \Temporal\Spec\PlainDateTime(2020, 1, 31, 15, 0);
 TemporalHelpers::assertPlainDateTime($jan31->add(['months' => 1]), 2020, 2, 'M02', 29, 15, 0, 0, 0, 0, 0, 'constrain when ambiguous result (overflow options not supplied)');

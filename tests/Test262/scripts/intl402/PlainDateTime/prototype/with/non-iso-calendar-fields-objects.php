@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(2024, 8, 8, 12, 34, 56, 987, 654, 321, 'hebrew');
 $resultYear = $instance->with((object) ['year' => 5783]);
 Assert::sameValue($resultYear->year, 5783, 'year is changed');

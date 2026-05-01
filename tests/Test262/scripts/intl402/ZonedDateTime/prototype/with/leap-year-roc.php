@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'roc';
 $options = ['overflow' => 'reject'];
-$leapDay = \Temporal\Spec\ZonedDateTime::from(['year' => 105, 'monthCode' => 'M02', 'day' => 29, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
+$leapDay = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 105, 'monthCode' => 'M02', 'day' => 29, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($leapDay->with(['year' => 101], $options)->toPlainDateTime(), 101, 2, 'M02', 29, 12, 34, 0, 0, 0, 0, 'day not constrained when moving to another leap year', 'roc', 101);
 TemporalHelpers::assertPlainDateTime($leapDay->with(['year' => 107])->toPlainDateTime(), 107, 2, 'M02', 28, 12, 34, 0, 0, 0, 0, 'day constrained when moving to a common year', 'roc', 107);
 Assert::throws(\InvalidArgumentException::class, function () use (&$leapDay, &$options) { $leapDay->with(['year' => 107], $options); }, 'reject when moving to a common year');

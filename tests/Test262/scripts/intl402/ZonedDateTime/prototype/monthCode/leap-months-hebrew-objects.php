@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'hebrew';
 $commonYearMonthCodes = ['M01', 'M02', 'M03', 'M04', 'M05', 'M06', 'M07', 'M08', 'M09', 'M10', 'M11', 'M12'];
 $leapYearMonthCodes = ['M01', 'M02', 'M03', 'M04', 'M05', 'M05L', 'M06', 'M07', 'M08', 'M09', 'M10', 'M11', 'M12'];
 for ($year = 5730; $year < 5735; $year++) {
-$monthsInYear = \Temporal\Spec\ZonedDateTime::from((object) ['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC'])->monthsInYear;
+$monthsInYear = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']))->monthsInYear;
 for ($month = 1; $month < $monthsInYear; $month++) {
-$date = \Temporal\Spec\ZonedDateTime::from((object) ['year' => $year, 'month' => $month, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
+$date = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']));
 if ($date->inLeapYear) {
 Assert::sameValue($date->monthCode, $leapYearMonthCodes[$month - 1], '');
 } else {

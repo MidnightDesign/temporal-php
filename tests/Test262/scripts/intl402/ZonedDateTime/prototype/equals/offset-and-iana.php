@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'America/Los_Angeles');
 Assert::assertTrue($zdt->withTimeZone('+05:30')->equals($zdt->withTimeZone('+0530')), '+05:30 = +0530');
 Assert::assertTrue($zdt->withTimeZone('+0530')->equals($zdt->withTimeZone('+05:30')), '+0530 = +05:30');

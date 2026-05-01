@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $bigIntInstant = new \Temporal\Spec\Instant(217_175_010_123_456_789);
 Assert::assertTrue($bigIntInstant instanceof \Temporal\Spec\Instant, 'BigInt instanceof');
 Assert::sameValue($bigIntInstant->epochMilliseconds, 217_175_010_123, 'BigInt epochMilliseconds');

@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $base = (object) ['era' => 'ad', 'month' => 5, 'day' => 2, 'hour' => 15, 'timeZone' => 'UTC', 'calendar' => 'gregory'];
 foreach ([INF, -INF] as $inf) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$inf, &$overflow) { return \Temporal\Spec\ZonedDateTime::from((object) array_merge((array) $base, ['eraYear' => $inf]), (object) ['overflow' => $overflow]); }, "eraYear property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$inf, &$overflow) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(array_merge((array) $base, ['eraYear' => $inf])), (object) JsUndefined::strip(['overflow' => $overflow])); }, "eraYear property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, 'eraYear');
-Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$obj, &$overflow) { return \Temporal\Spec\ZonedDateTime::from((object) array_merge((array) $base, ['eraYear' => $obj]), (object) ['overflow' => $overflow]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$obj, &$overflow) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(array_merge((array) $base, ['eraYear' => $obj])), (object) JsUndefined::strip(['overflow' => $overflow])); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, ["get eraYear.valueOf", "call eraYear.valueOf"], "it fails after fetching the primitive value");
 }
 }

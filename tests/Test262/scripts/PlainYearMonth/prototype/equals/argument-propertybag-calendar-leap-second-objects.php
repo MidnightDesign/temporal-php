@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainYearMonth(2019, 6);
 $calendar = '2016-12-31T23:59:60';
-$arg = (object) ['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar];
+$arg = (object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M06', 'calendar' => $calendar]);
 $result = $instance->equals($arg);
 Assert::sameValue($result, true, 'leap second is a valid ISO string for calendar');

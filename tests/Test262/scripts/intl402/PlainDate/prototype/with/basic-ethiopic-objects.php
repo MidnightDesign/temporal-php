@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'ethiopic';
-$cases = (object) ['year2000' => (object) ['era' => 'am', 'eraYear' => 1992, 'month' => 4, 'monthCode' => 'M04', 'day' => 22, 'calendar' => $calendar]];
+$cases = (object) JsUndefined::strip(['year2000' => (object) JsUndefined::strip(['era' => 'am', 'eraYear' => 1992, 'month' => 4, 'monthCode' => 'M04', 'day' => 22, 'calendar' => $calendar])]);
 foreach ($cases as $name => $result) {
 $inCal = \Temporal\Spec\PlainDate::from($result);
 $afterWithDay = $inCal->with((object) ['day' => 1]);

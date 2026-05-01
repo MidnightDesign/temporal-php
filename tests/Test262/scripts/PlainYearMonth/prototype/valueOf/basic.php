@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainYearMonth = \Temporal\Spec\PlainYearMonth::from('1963-02');
 $plainYearMonth2 = \Temporal\Spec\PlainYearMonth::from('1963-02');
 // JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => plainYearMonth.valueOf(), "valueOf")

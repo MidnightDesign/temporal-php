@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dayBefore = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1919, 'month' => 3, 'day' => 30, 'hour' => 11, 'minute' => 45, 'timeZone' => 'America/Toronto']);
 TemporalHelpers::assertPlainDateTime($dayBefore->round((object) ['smallestUnit' => 'day'])->toPlainDateTime(), 1919, 3, 'M03', 31, 0, 30, 0, 0, 0, 0, '1919-03-30T11:45 rounds up to start of next day with halfExpand');

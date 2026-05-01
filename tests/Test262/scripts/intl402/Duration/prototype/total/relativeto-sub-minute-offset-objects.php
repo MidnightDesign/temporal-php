@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
-$action = function ($relativeTo) use (&$instance) { return $instance->total((object) ['unit' => 'days', 'relativeTo' => $relativeTo]); };
+$action = function ($relativeTo) use (&$instance) { return $instance->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo])); };
 $relativeTo = '1970-01-01T00:00-00:45:00[-00:45]';
 $result = $action($relativeTo);
 Assert::sameValue($result, 366, 'ISO string offset accepted with zero seconds (string)');
@@ -30,7 +31,7 @@ Assert::throws(\InvalidArgumentException::class, function () use (&$action, &$re
 $relativeTo = (object) ['year' => 1970, 'month' => 1, 'day' => 1, 'offset' => '-00:45', 'timeZone' => 'Africa/Monrovia'];
 Assert::throws(\InvalidArgumentException::class, function () use (&$action, &$relativeTo) { return $action($relativeTo); }, 'rounded HH:MM not accepted as offset in property bag');
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 1);
-$action = function ($relativeTo) use (&$instance) { return $instance->total((object) ['unit' => 'seconds', 'relativeTo' => $relativeTo]); };
+$action = function ($relativeTo) use (&$instance) { return $instance->total((object) JsUndefined::strip(['unit' => 'seconds', 'relativeTo' => $relativeTo])); };
 Assert::sameValue($action('1952-10-15T23:59:59-11:19:40[Pacific/Niue]'), 86_420, '-11:19:40 is accepted as -11:19:40 in Pacific/Niue edge case');
 Assert::sameValue($action('1952-10-15T23:59:59-11:20[Pacific/Niue]'), 86_420, '-11:20 matches the first candidate -11:19:40 in the Pacific/Niue edge case');
 Assert::sameValue($action('1952-10-15T23:59:59-11:20:00[Pacific/Niue]'), 86_400, '-11:20:00 is accepted as -11:20:00 in the Pacific/Niue edge case');

@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $offsetOptions = ['use', 'prefer', 'ignore', 'reject'];
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000];
 foreach ($offsetOptions as $offsetOption) {
 foreach ($badOffsets as $offset) {
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$offset, &$offsetOption) { return $instance->with((object) ['offset' => $offset], (object) ['offset' => $offsetOption]); }, "\"{$offset} is not a valid offset string (with {$offsetOption} offset option)");
+Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$offset, &$offsetOption) { return $instance->with((object) JsUndefined::strip(['offset' => $offset]), (object) JsUndefined::strip(['offset' => $offsetOption])); }, "\"{$offset} is not a valid offset string (with {$offsetOption} offset option)");
 }
 }

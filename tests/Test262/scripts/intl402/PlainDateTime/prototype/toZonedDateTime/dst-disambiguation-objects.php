@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dtmFall = new \Temporal\Spec\PlainDateTime(2000, 10, 29, 1, 45);
 Assert::sameValue($dtmFall->toZonedDateTime('America/Los_Angeles')->epochNanoseconds, 972_809_100_000_000_000, 'epoch nanoseconds in fall back - no disambiguation');
 Assert::sameValue($dtmFall->toZonedDateTime('America/Los_Angeles', (object) ['disambiguation' => 'earlier'])->epochNanoseconds, 972_809_100_000_000_000, 'epoch nanoseconds in fall back - earlier');

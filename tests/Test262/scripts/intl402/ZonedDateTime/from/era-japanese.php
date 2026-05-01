@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'japanese';
-$reiwa = \Temporal\Spec\ZonedDateTime::from(['era' => 'reiwa', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
-$heisei = \Temporal\Spec\ZonedDateTime::from(['era' => 'heisei', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
-$showa = \Temporal\Spec\ZonedDateTime::from(['era' => 'showa', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
-$taisho = \Temporal\Spec\ZonedDateTime::from(['era' => 'taisho', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
-$meiji = \Temporal\Spec\ZonedDateTime::from(['era' => 'meiji', 'eraYear' => 6, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
-$ce = \Temporal\Spec\ZonedDateTime::from(['era' => 'ce', 'eraYear' => 1000, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
-$bce = \Temporal\Spec\ZonedDateTime::from(['era' => 'bce', 'eraYear' => 1, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
+$reiwa = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => 'reiwa', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
+$heisei = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => 'heisei', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
+$showa = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => 'showa', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
+$taisho = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => 'taisho', 'eraYear' => 2, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
+$meiji = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => 'meiji', 'eraYear' => 6, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
+$ce = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => 'ce', 'eraYear' => 1000, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
+$bce = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => 'bce', 'eraYear' => 1, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
 TemporalHelpers::assertPlainDateTime($reiwa->toPlainDateTime(), 2020, 1, 'M01', 1, 12, 34, 0, 0, 0, 0, "{$reiwa}", 'reiwa', 2);
 TemporalHelpers::assertPlainDateTime($heisei->toPlainDateTime(), 1990, 1, 'M01', 1, 12, 34, 0, 0, 0, 0, "{$heisei}", 'heisei', 2);
 TemporalHelpers::assertPlainDateTime($showa->toPlainDateTime(), 1927, 1, 'M01', 1, 12, 34, 0, 0, 0, 0, "{$showa}", 'showa', 2);

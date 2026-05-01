@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(-999_999_999_999_999_990);
 $roundedDown = '1938-04-24T22:13:20.000Z';
 $roundedUp = '1938-04-24T22:13:20.001Z';

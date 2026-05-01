@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = \Temporal\Spec\Instant::from('1976-11-18T15:23:30.123456789Z');
 $later = \Temporal\Spec\Instant::from('2019-10-29T10:46:38.271986102Z');
 $largestUnit = 'hours';
-TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'hours', 'roundingIncrement' => 3, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_434, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_435, 30, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'seconds', 'roundingIncrement' => 15, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_435, 23, 15, 0, 0, 0);
-TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'milliseconds', 'roundingIncrement' => 10, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_435, 23, 8, 150, 0, 0);
-TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'microseconds', 'roundingIncrement' => 10, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_435, 23, 8, 148, 530, 0);
-TemporalHelpers::assertDuration($later->since($earlier, ['largestUnit' => $largestUnit, 'smallestUnit' => 'nanoseconds', 'roundingIncrement' => 10, 'roundingMode' => 'halfExpand']), 0, 0, 0, 0, 376_435, 23, 8, 148, 529, 310);
+TemporalHelpers::assertDuration($later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => 'hours', 'roundingIncrement' => 3, 'roundingMode' => 'halfExpand'])), 0, 0, 0, 0, 376_434, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'roundingMode' => 'halfExpand'])), 0, 0, 0, 0, 376_435, 30, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => 'seconds', 'roundingIncrement' => 15, 'roundingMode' => 'halfExpand'])), 0, 0, 0, 0, 376_435, 23, 15, 0, 0, 0);
+TemporalHelpers::assertDuration($later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => 'milliseconds', 'roundingIncrement' => 10, 'roundingMode' => 'halfExpand'])), 0, 0, 0, 0, 376_435, 23, 8, 150, 0, 0);
+TemporalHelpers::assertDuration($later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => 'microseconds', 'roundingIncrement' => 10, 'roundingMode' => 'halfExpand'])), 0, 0, 0, 0, 376_435, 23, 8, 148, 530, 0);
+TemporalHelpers::assertDuration($later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => 'nanoseconds', 'roundingIncrement' => 10, 'roundingMode' => 'halfExpand'])), 0, 0, 0, 0, 376_435, 23, 8, 148, 529, 310);

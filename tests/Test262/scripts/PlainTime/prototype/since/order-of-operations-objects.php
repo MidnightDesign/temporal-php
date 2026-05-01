@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expectedOpsForPrimitiveOptions = ['get other.hour', 'get other.hour.valueOf', 'call other.hour.valueOf', 'get other.microsecond', 'get other.microsecond.valueOf', 'call other.microsecond.valueOf', 'get other.millisecond', 'get other.millisecond.valueOf', 'call other.millisecond.valueOf', 'get other.minute', 'get other.minute.valueOf', 'call other.minute.valueOf', 'get other.nanosecond', 'get other.nanosecond.valueOf', 'call other.nanosecond.valueOf', 'get other.second', 'get other.second.valueOf', 'call other.second.valueOf'];
 $expected = array_merge($expectedOpsForPrimitiveOptions, ['get options.largestUnit', 'get options.largestUnit.toString', 'call options.largestUnit.toString', 'get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit', 'get options.smallestUnit.toString', 'call options.smallestUnit.toString']);

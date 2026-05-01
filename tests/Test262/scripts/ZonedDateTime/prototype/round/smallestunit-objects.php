@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $bal = new \Temporal\Spec\ZonedDateTime(217_205_999_999_999_999, '+01:00');
 $expected = new \Temporal\Spec\ZonedDateTime(217_206_000_000_000_000, '+01:00');
 foreach (['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond'] as $smallestUnit) {
-TemporalHelpers::assertZonedDateTimesEqual($bal->round((object) ['smallestUnit' => $smallestUnit]), $expected);
+TemporalHelpers::assertZonedDateTimesEqual($bal->round((object) JsUndefined::strip(['smallestUnit' => $smallestUnit])), $expected);
 }

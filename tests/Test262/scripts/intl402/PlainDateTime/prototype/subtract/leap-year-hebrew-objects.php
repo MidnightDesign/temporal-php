@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
 $options = (object) ['overflow' => 'reject'];
 $years1 = new \Temporal\Spec\Duration(-1);
 $years1n = new \Temporal\Spec\Duration(1);
-$adarI = \Temporal\Spec\PlainDateTime::from((object) ['year' => 5782, 'monthCode' => 'M05L', 'day' => 30, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
+$adarI = \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => 5782, 'monthCode' => 'M05L', 'day' => 30, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($adarI->subtract($years1), 5783, 6, 'M06', 29, 12, 34, 0, 0, 0, 0, 'Adding 1 year to 30 Adar I constrains to 29 Adar', 'am', 5783);
 Assert::throws(\InvalidArgumentException::class, function () use (&$adarI, &$years1, &$options) { $adarI->subtract($years1, $options); }, 'Adding 1 year to 30 Adar I rejects (either because the month or day would be constrained)');
 TemporalHelpers::assertPlainDateTime($adarI->subtract($years1n), 5781, 6, 'M06', 29, 12, 34, 0, 0, 0, 0, 'Subtracting 1 year from 30 Adar I constrains to 29 Adar', 'am', 5781);

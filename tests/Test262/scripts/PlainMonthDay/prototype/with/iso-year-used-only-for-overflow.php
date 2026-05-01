@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $outOfRangeCommonYear = -999_999;
 $outOfRangeLeapYear = -1_000_000;
 $md = new \Temporal\Spec\PlainMonthDay(1, 1, 'iso8601', 1972);
-$result = $md->with(['year' => $outOfRangeCommonYear]);
+$result = $md->with(JsUndefined::strip(['year' => $outOfRangeCommonYear]));
 TemporalHelpers::assertPlainMonthDay($result, 'M01', 1, 'ISO year is not checked for range');
 $leap = new \Temporal\Spec\PlainMonthDay(2, 29, 'iso8601', 1972);
-$commonResult = $leap->with(['year' => $outOfRangeCommonYear]);
+$commonResult = $leap->with(JsUndefined::strip(['year' => $outOfRangeCommonYear]));
 TemporalHelpers::assertPlainMonthDay($commonResult, 'M02', 28, 'ISO year is used to apply overflow');
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap, &$outOfRangeCommonYear) { $leap->with(['year' => $outOfRangeCommonYear], ['overflow' => 'reject']); }, 'ISO year is used to apply overflow');
-$leapResult = $leap->with(['year' => $outOfRangeLeapYear]);
+Assert::throws(\InvalidArgumentException::class, function () use (&$leap, &$outOfRangeCommonYear) { $leap->with(JsUndefined::strip(['year' => $outOfRangeCommonYear]), ['overflow' => 'reject']); }, 'ISO year is used to apply overflow');
+$leapResult = $leap->with(JsUndefined::strip(['year' => $outOfRangeLeapYear]));
 TemporalHelpers::assertPlainMonthDay($leapResult, 'M02', 29, 'ISO year is used to apply overflow');

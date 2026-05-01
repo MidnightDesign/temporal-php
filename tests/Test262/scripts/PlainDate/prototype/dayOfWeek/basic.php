@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 for ($i = 1; $i <= 7; ++$i) {
 $plainDate = new \Temporal\Spec\PlainDate(1976, 11, 14 + $i);
 Assert::sameValue($plainDate->dayOfWeek, $i, "{$plainDate} should be on day {$i}");

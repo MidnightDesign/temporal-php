@@ -7,19 +7,20 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainRelativeTo = new \Temporal\Spec\PlainDate(1970, 1, 1);
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-$relativeToTests = [[null, 'no'], [$plainRelativeTo, 'plain'], [$zonedRelativeTo, 'zoned']];
+$relativeToTests = [[JsUndefined::singleton(), 'no'], [$plainRelativeTo, 'plain'], [$zonedRelativeTo, 'zoned']];
 $duration1 = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254, 740, 991, 0);
 foreach ($relativeToTests as $__entry__) {
 [$relativeTo, $descr] = array_pad($__entry__, 2, null);
-$result = $duration1->round(['smallestUnit' => 'days', 'roundingIncrement' => 10_000_000, 'relativeTo' => $relativeTo]);
+$result = $duration1->round(JsUndefined::strip(['smallestUnit' => 'days', 'roundingIncrement' => 10_000_000, 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to 1e7 days with {$descr} relativeTo");
 }
 $duration2 = new \Temporal\Spec\Duration(0, 0, 0, 1);
 foreach ($relativeToTests as $__entry__) {
 [$relativeTo, $descr] = array_pad($__entry__, 2, null);
-$result = $duration2->round(['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 - 1, 'roundingMode' => 'ceil', 'relativeTo' => $relativeTo]);
+$result = $duration2->round(JsUndefined::strip(['smallestUnit' => 'days', 'roundingIncrement' => 100_000_000 - 1, 'roundingMode' => 'ceil', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 99_999_999, 0, 0, 0, 0, 0, 0, "round to 1e8-1 days with {$descr} relativeTo");
 }

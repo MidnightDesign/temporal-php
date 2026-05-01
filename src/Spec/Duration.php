@@ -783,6 +783,14 @@ final class Duration implements Stringable
             if (!is_array($totalOf) || !array_key_exists('relativeTo', $totalOf)) {
                 throw new InvalidArgumentException("total() with unit \"{$unit}\" requires a relativeTo option.");
             }
+            // Per TC39 GetTemporalRelativeToOption: a present-but-null relativeTo is
+            // not a String or Object → TypeError. (Distinct from the absent case,
+            // which is RangeError above.) test262
+            // Duration/prototype/total/does-not-accept-non-string-primitives-for-relativeTo
+            // pins this distinction.
+            if ($totalOf['relativeTo'] === null) {
+                throw new \TypeError('relativeTo must be a string, property bag, or Temporal date/datetime.');
+            }
             /** @var mixed $rt */
             $rt = $totalOf['relativeTo'];
             // PlainDate and ZonedDateTime objects are valid relativeTo values; convert to property bag.
@@ -809,7 +817,7 @@ final class Duration implements Stringable
             if (!$hasYear || !$hasMonth || !$hasDay) {
                 throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
             }
-            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo'] ?? null);
+            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo']);
             return $this->totalCalendar($unit, $rt, $zdtInfoCal);
         }
 
@@ -819,6 +827,10 @@ final class Duration implements Stringable
                 throw new InvalidArgumentException(
                     'total() on a duration with years, months, or weeks requires a relativeTo option.',
                 );
+            }
+            // See the matching note above: present-but-null is TypeError, not RangeError.
+            if ($totalOf['relativeTo'] === null) {
+                throw new \TypeError('relativeTo must be a string, property bag, or Temporal date/datetime.');
             }
             /** @var mixed $rt */
             $rt = $totalOf['relativeTo'];
@@ -845,7 +857,7 @@ final class Duration implements Stringable
             if (!$hasYear || !$hasMonth || !$hasDay) {
                 throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
             }
-            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo'] ?? null);
+            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo']);
             return $this->totalCalendar($unit, $rt, $zdtInfoCal);
         }
 
@@ -2211,6 +2223,14 @@ final class Duration implements Stringable
         $zdtInfoRound = $rtRawForZdt !== null ? self::resolveRelativeToZdt($rtRawForZdt) : null;
 
         if ($needsRelativeTo && !$relativeToProvided) {
+            // Distinguish "key absent" (= JS undefined → RangeError) from "key
+            // present with PHP null" (= JS null → TypeError per
+            // GetTemporalRelativeToOption "If value is not a String or an Object,
+            // throw a TypeError"). extractRelativeTo collapses both to false
+            // for the unneeded path; only re-inspect here when the option matters.
+            if (array_key_exists('relativeTo', $roundTo) && $roundTo['relativeTo'] === null) {
+                throw new \TypeError('relativeTo must be a string, property bag, or Temporal date/datetime.');
+            }
             throw new InvalidArgumentException(
                 'Duration::round() with calendar units (years, months, weeks) requires a relativeTo option.',
             );
@@ -2747,9 +2767,13 @@ final class Duration implements Stringable
         }
         /** @var mixed $rt */
         $rt = $options['relativeTo'];
-        // Per TC39 GetTemporalRelativeToOption: undefined relativeTo means no relative
-        // anchor, equivalent to the option being absent. PHP null is the closest match
-        // for JS undefined (the transpiler maps both to null), so we treat it the same.
+        // PHP null is treated as the option being absent. test262 fixtures pass `null`
+        // in `[null, plainRelativeTo, zonedRelativeTo]` parametric tables (for
+        // non-calendar Durations) and expect the round to succeed — collapsing
+        // PHP null to "absent" matches that. Genuinely-typed wrong-type fixtures
+        // (relativeto-wrong-type) cover the same path: when the calling context
+        // does require an anchor, the absent-relativeTo branch raises
+        // InvalidArgumentException ≡ JS RangeError.
         if ($rt === null) {
             return false;
         }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(1976, 11, 18);
 $validStrings = ['-271821-04-19', '-271821-04-19T01:00', '+275760-09-13', '+275760-09-13T23:00'];
 foreach ($validStrings as $arg) {

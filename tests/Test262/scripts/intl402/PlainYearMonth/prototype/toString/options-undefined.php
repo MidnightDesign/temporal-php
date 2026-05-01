@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $yearmonth1 = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $yearmonth2 = new \Temporal\Spec\PlainYearMonth(2000, 5, 'gregory', 1);
 foreach ([[$yearmonth1, '2000-05'], [$yearmonth2, '2000-05-01[u-ca=gregory]']] as $__entry__) {

@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(0, 10, 29, 10, 46, 38, 271, 986, 102);
 foreach (['earlier', 'later', 'compatible', 'reject'] as $disambiguation) {
-$result = $instance->toZonedDateTime('+06:00', (object) ['disambiguation' => $disambiguation]);
+$result = $instance->toZonedDateTime('+06:00', (object) JsUndefined::strip(['disambiguation' => $disambiguation]));
 }
 $instanceLeap = new \Temporal\Spec\PlainDateTime(0, 2, 29);
 foreach (['earlier', 'later', 'compatible', 'reject'] as $disambiguation) {
-$result = $instanceLeap->toZonedDateTime('-00:01', (object) ['disambiguation' => $disambiguation]);
+$result = $instanceLeap->toZonedDateTime('-00:01', (object) JsUndefined::strip(['disambiguation' => $disambiguation]));
 }
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

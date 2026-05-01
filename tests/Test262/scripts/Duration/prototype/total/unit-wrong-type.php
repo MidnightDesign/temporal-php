@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
-TemporalHelpers::checkStringOptionWrongType('unit', 'hour', function ($unit) use (&$duration) { return $duration->total(['unit' => $unit]); }, fn($result, $descr) => Assert::sameValue($result, 24, $descr));
+TemporalHelpers::checkStringOptionWrongType('unit', 'hour', function ($unit) use (&$duration) { return $duration->total(JsUndefined::strip(['unit' => $unit])); }, fn($result, $descr) => Assert::sameValue($result, 24, $descr));

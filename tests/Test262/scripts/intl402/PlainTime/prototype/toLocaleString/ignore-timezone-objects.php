@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance1 = \Temporal\Spec\PlainTime::from('2026-03-29T02:30:00');
 Assert::sameValue($instance1->toLocaleString('en-US'), $instance1->toLocaleString('en-US', (object) ['timeZone' => 'America/Los_Angeles']), '');
 $result1 = $instance1->toLocaleString('en-US', (object) ['timeZone' => 'America/Los_Angeles']);

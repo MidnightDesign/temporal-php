@@ -96,10 +96,12 @@ final class TemporalHelpers
         PHPUnitAssert::assertSame($month, $date->month, "{$prefix}month");
         PHPUnitAssert::assertSame($monthCode, $date->monthCode, "{$prefix}monthCode");
         PHPUnitAssert::assertSame($day, $date->day, "{$prefix}day");
-        if ($era !== null) {
+        // JsUndefined::isUndefined accepts both PHP null and the JsUndefined sentinel —
+        // either is the test's way of saying "this calendar has no era; skip the check".
+        if (!JsUndefined::isUndefined($era)) {
             PHPUnitAssert::assertSame($era, $date->era, "{$prefix}era");
         }
-        if ($eraYear !== null) {
+        if (!JsUndefined::isUndefined($eraYear)) {
             PHPUnitAssert::assertSame($eraYear, $date->eraYear, "{$prefix}eraYear");
         }
     }

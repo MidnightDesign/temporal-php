@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'coptic';
 $options = ['overflow' => 'reject'];
-$common1230 = \Temporal\Spec\PlainDate::from(['year' => 1738, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar], $options);
-$leap1230 = \Temporal\Spec\PlainDate::from(['year' => 1739, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar], $options);
+$common1230 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1738, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar]), $options);
+$leap1230 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1739, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($common1230->with(['monthCode' => 'M13']), 1738, 13, 'M13', 5, 'Changing month constrains to day 5 of common-year epagomenal month', 'am', 1738);
 Assert::throws(\InvalidArgumentException::class, function () use (&$common1230, &$options) { $common1230->with(['monthCode' => 'M13'], $options); }, 'Changing month to common-year epagomenal month rejects');
 TemporalHelpers::assertPlainDate($leap1230->with(['monthCode' => 'M13']), 1739, 13, 'M13', 6, 'Changing month constrains to day 6 of leap-year epagomenal month', 'am', 1739);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainDate = new \Temporal\Spec\PlainDate(2020, 12, 24, 'iso8601');
 TemporalHelpers::assertPlainDate($plainDate, 2020, 12, 'M12', 24, 'with string');

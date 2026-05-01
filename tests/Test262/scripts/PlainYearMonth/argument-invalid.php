@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [[2020, 0, 24], [2020, 13, 24], [2020, -3, 24], [2020, 12, 32], [2020, 2, 30], [2019, 2, 29], [2019, 2, 0], [2019, 2, -20]];
 foreach ($tests as $__entry__) {
 [$year, $month, $day] = array_pad($__entry__, 3, null);

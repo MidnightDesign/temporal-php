@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = \Temporal\Spec\Instant::from('1969-07-24T16:50:35.123456789Z');
 $later = \Temporal\Spec\Instant::from('2019-10-29T10:46:38.271986102Z');

@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
-$arg = ['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => 'IsO8601'];
+$arg = JsUndefined::strip(['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => 'IsO8601']);
 $result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');
 $arg['calendar'] = 'İSO8601';

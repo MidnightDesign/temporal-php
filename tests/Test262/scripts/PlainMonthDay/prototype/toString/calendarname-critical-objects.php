@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $monthday = new \Temporal\Spec\PlainMonthDay(5, 2);
 $result = $monthday->toString((object) ['calendarName' => 'critical']);
 Assert::sameValue($result, '1972-05-02[!u-ca=iso8601]', "built-in ISO calendar for calendarName = critical");

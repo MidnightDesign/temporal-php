@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 987, 500);
 $expected = [['day', [1976, 11, 'M11', 19]], ['hour', [1976, 11, 'M11', 18, 14]], ['minute', [1976, 11, 'M11', 18, 14, 24]], ['second', [1976, 11, 'M11', 18, 14, 23, 30]], ['millisecond', [1976, 11, 'M11', 18, 14, 23, 30, 124]], ['microsecond', [1976, 11, 'M11', 18, 14, 23, 30, 123, 988]], ['nanosecond', [1976, 11, 'M11', 18, 14, 23, 30, 123, 987, 500]]];
@@ -20,5 +21,5 @@ $s = $s ?? 0;
 $ms = $ms ?? 0;
 $µs = $µs ?? 0;
 $ns = $ns ?? 0;
-TemporalHelpers::assertPlainDateTime($instance->round(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $y, $mon, $mc, $d, $h, $min, $s, $ms, $µs, $ns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
+TemporalHelpers::assertPlainDateTime($instance->round(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode])), $y, $mon, $mc, $d, $h, $min, $s, $ms, $µs, $ns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
 }

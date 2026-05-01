@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $result1 = \Temporal\Spec\PlainYearMonth::from(['calendar' => 'japanese', 'era' => 'heisei', 'eraYear' => 1, 'month' => 1]);
 TemporalHelpers::assertPlainYearMonth($result1, 1989, 1, 'M01', 'era is corrected based on reference day (Heisei begins on January 8)', 'showa', 64);

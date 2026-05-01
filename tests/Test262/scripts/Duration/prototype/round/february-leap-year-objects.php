@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $relativeTo = new \Temporal\Spec\PlainDate(1972, 3, 1);
-$options = (object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo];
+$options = (object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
 $twoDaysLessThanFourYears = new \Temporal\Spec\Duration(3, 11, 0, 27);
 TemporalHelpers::assertDuration($twoDaysLessThanFourYears->round($options), 3, 11, 0, 27, 0, 0, 0, 0, 0, 0, 'Two days less than four years starting in February in a leap year shouldn\'t balance up');
 $oneDayLessThanFourYears = new \Temporal\Spec\Duration(3, 11, 0, 28);

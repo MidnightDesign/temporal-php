@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainTime(12, 34, 56, 0, 0, 0);
 $later = new \Temporal\Spec\PlainTime(13, 35, 57, 987, 654, 321);
-TemporalHelpers::checkStringOptionWrongType('largestUnit', 'second', function ($largestUnit) use (&$earlier, &$later) { return $earlier->until($later, ['largestUnit' => $largestUnit]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 3661, 987, 654, 321, $descr));
+TemporalHelpers::checkStringOptionWrongType('largestUnit', 'second', function ($largestUnit) use (&$earlier, &$later) { return $earlier->until($later, JsUndefined::strip(['largestUnit' => $largestUnit])); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 3661, 987, 654, 321, $descr));

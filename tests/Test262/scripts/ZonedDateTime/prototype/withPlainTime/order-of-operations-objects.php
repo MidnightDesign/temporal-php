@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $actual = [];
 $expected = ['get plainTimeLike.hour', 'get plainTimeLike.hour.valueOf', 'call plainTimeLike.hour.valueOf', 'get plainTimeLike.microsecond', 'get plainTimeLike.microsecond.valueOf', 'call plainTimeLike.microsecond.valueOf', 'get plainTimeLike.millisecond', 'get plainTimeLike.millisecond.valueOf', 'call plainTimeLike.millisecond.valueOf', 'get plainTimeLike.minute', 'get plainTimeLike.minute.valueOf', 'call plainTimeLike.minute.valueOf', 'get plainTimeLike.nanosecond', 'get plainTimeLike.nanosecond.valueOf', 'call plainTimeLike.nanosecond.valueOf', 'get plainTimeLike.second', 'get plainTimeLike.second.valueOf', 'call plainTimeLike.second.valueOf'];

@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $duration = new \Temporal\Spec\Duration(3, 3, 0, 3);
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$date, &$duration) { return $date->subtract($duration, ['overflow' => $overflow]); }, fn($result, $descr) => TemporalHelpers::assertPlainDate($result, 1997, 1, 'M01', 30, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$date, &$duration) { return $date->subtract($duration, JsUndefined::strip(['overflow' => $overflow])); }, fn($result, $descr) => TemporalHelpers::assertPlainDate($result, 1997, 1, 'M01', 30, $descr));

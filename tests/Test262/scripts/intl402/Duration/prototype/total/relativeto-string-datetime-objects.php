@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2019-11-01T00:00[America/Vancouver]';
-$result4 = $instance->total((object) ['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result4 = $instance->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result4, 366.96, 'date-time + IANA annotation is a zoned relativeTo');
 $relativeTo = '2019-11-01T00:00Z[America/Vancouver]';
-$result5 = $instance->total((object) ['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result5 = $instance->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result5, 366.96, 'date-time + Z + IANA annotation is a zoned relativeTo');
 $relativeTo = '2019-11-01T00:00-07:00[America/Vancouver]';
-$result6 = $instance->total((object) ['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result6 = $instance->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result6, 366.96, 'date-time + offset + IANA annotation is a zoned relativeTo');
 $relativeTo = '2019-11-01T00:00+04:15[America/Vancouver]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->total((object) ['unit' => 'days', 'relativeTo' => $relativeTo]); }, 'date-time + offset + IANA annotation throws if wall time and exact time mismatch');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { return $instance->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo])); }, 'date-time + offset + IANA annotation throws if wall time and exact time mismatch');

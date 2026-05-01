@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $min = \Temporal\Spec\PlainDate::from('-271821-04-19');
 TemporalHelpers::assertPlainYearMonth($min->toPlainYearMonth(), -271_821, 4, 'M04', 'min');

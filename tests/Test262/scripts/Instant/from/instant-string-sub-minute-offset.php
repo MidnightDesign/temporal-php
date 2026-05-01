@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $str = '1970-01-01T00:19:32.37+00:19:32.37';
 $result = \Temporal\Spec\Instant::from($str);
 Assert::sameValue($result->epochNanoseconds, 0, 'if present, sub-minute offset is accepted exactly');

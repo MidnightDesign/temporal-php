@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-11');
 $tests = [['days' => 1], ['days' => 29], ['hours' => 1], ['minutes' => 1], ['seconds' => 1], ['milliseconds' => 1], ['microseconds' => 1], ['nanoseconds' => 1], ['days' => 30], ['days' => 31], ['days' => 60], ['days' => 61], ['hours' => 720], ['minutes' => 43_200], ['seconds' => 2_592_000], ['milliseconds' => 2_592_000_000], ['microseconds' => 2_592_000_000_000], ['nanoseconds' => 2_592_000_000_000_000]];
 foreach ($tests as $argument) {

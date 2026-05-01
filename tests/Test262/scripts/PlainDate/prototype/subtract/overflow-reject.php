@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $mar31 = \Temporal\Spec\PlainDate::from('2020-03-31');
 Assert::throws(\InvalidArgumentException::class, function () use (&$mar31) { return $mar31->subtract(['months' => 1], ['overflow' => 'reject']); }, '');

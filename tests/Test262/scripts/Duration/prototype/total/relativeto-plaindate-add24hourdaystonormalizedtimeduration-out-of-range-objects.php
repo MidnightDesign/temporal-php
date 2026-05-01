@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = \Temporal\Spec\Duration::from((object) ['years' => 1, 'seconds' => 2 ** 53 - 1]);
+use Temporal\Tests\Test262\JsUndefined;
+$duration = \Temporal\Spec\Duration::from((object) JsUndefined::strip(['years' => 1, 'seconds' => 2 ** 53 - 1]));
 $relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$relativeTo) { return $duration->total((object) ['relativeTo' => $relativeTo, 'unit' => 'days']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$relativeTo) { return $duration->total((object) JsUndefined::strip(['relativeTo' => $relativeTo, 'unit' => 'days'])); }, '');

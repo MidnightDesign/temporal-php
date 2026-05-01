@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 18_014_398_509_481, 981, 0);
 $result = $d->round(['largestUnit' => 'microseconds']);

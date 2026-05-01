@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $expectedPos = new \Temporal\Spec\Duration(0, 0, 0, 0, 1, 1, 52, 500);
 $expectedNeg = new \Temporal\Spec\Duration(0, 0, 0, 0, -1, -1, -52, -500);
 Assert::sameValue(\Temporal\Spec\Duration::compare('PT1.03125H', $expectedPos), 0, 'positive fractional units rounded with correct rounding mode (first argument)');

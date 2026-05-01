@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-TemporalHelpers::checkStringOptionWrongType('offset', 'reject', function ($offset) use (&$datetime) { return \Temporal\Spec\ZonedDateTime::from($datetime, (object) ['offset' => $offset]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));
+TemporalHelpers::checkStringOptionWrongType('offset', 'reject', function ($offset) use (&$datetime) { return \Temporal\Spec\ZonedDateTime::from($datetime, (object) JsUndefined::strip(['offset' => $offset])); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));
 $propertyBag = (object) ['timeZone' => 'UTC', 'offset' => '+00:00', 'year' => 2001, 'month' => 9, 'day' => 9, 'hour' => 1, 'minute' => 46, 'second' => 40, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
-TemporalHelpers::checkStringOptionWrongType('offset', 'reject', function ($offset) use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) ['offset' => $offset]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));
+TemporalHelpers::checkStringOptionWrongType('offset', 'reject', function ($offset) use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) JsUndefined::strip(['offset' => $offset])); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_987_654_321, $descr));

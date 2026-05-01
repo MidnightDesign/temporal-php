@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->with((object) ['second' => 41], (object) ['overflow' => null]); }, 'null');

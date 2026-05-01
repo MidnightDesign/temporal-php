@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'buddhist';
 $options = ['overflow' => 'reject'];
 $leapYears = [2515, 2519, 2523, 2527, 2531, 2535, 2539, 2543, 2547, 2551, 2555, 2559, 2563, 2567, 2571, 2575, 2579, 2583, 2587, 2591];
 for ($year = 2513; $year < 2593; $year++) {
-$date = \Temporal\Spec\PlainDate::from(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1]);
+$date = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1]));
 Assert::sameValue($date->daysInYear, (str_contains($leapYears, $year) ? 366 : 365), '');
 }

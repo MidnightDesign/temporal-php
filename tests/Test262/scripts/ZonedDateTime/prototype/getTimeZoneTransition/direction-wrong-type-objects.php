@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $rangeErrorValues = [false, 42, 55, null];
 foreach ($rangeErrorValues as $badValue) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$badValue) { return $zdt->getTimeZoneTransition((object) ['direction' => $badValue]); }, 'Non-Symbol throws a RangeError');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$badValue) { return $zdt->getTimeZoneTransition((object) JsUndefined::strip(['direction' => $badValue])); }, 'Non-Symbol throws a RangeError');
 }
 Assert::incomplete('untranslatable: Symbol()');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $a = new \Temporal\Spec\PlainDateTime(2016, 7, 31, 0, 0, 0, 0, 0, 0, 'chinese');
 $b = new \Temporal\Spec\PlainDateTime(2017, 7, 31, 0, 0, 0, 0, 0, 0, 'chinese');
