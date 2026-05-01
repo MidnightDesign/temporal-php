@@ -53,8 +53,8 @@ final class CalendarMath
     public static function supportsEras(?string $calendarId): bool
     {
         return $calendarId !== null
-            && $calendarId !== 'iso8601'
-            && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
+        && $calendarId !== 'iso8601'
+        && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
     }
 
     /**
