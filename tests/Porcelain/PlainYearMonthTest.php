@@ -602,13 +602,7 @@ final class PlainYearMonthTest extends TemporalTestCase
 
     public function testFromFieldsForwardsEraAndEraYear(): void
     {
-        $ym = PlainYearMonth::fromFields(
-            year: 2020,
-            month: 6,
-            calendar: Calendar::Gregory,
-            era: 'ce',
-            eraYear: 2020,
-        );
+        $ym = PlainYearMonth::fromFields(year: 2020, month: 6, calendar: Calendar::Gregory, era: 'ce', eraYear: 2020);
 
         static::assertSame(2020, $ym->year);
         static::assertSame('ce', $ym->era);
