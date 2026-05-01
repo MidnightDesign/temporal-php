@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $descriptions = array_map(fn($time) => "Duration constructor throws RangeError with fractional value in the {$time} position", ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds']);
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(1.1), $descriptions[0]);
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(0, 1.1), $descriptions[1]);

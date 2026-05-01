@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(4_294_967_296), 'years > max');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(-4_294_967_296), 'years < min');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\Duration(0, 4_294_967_296), 'months > max');

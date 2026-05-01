@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = [['1970-01-01[U-CA=iso8601]', 'invalid capitalized key'], ['1970-01-01[u-CA=iso8601]', 'invalid partially-capitalized key'], ['1970-01-01[FOO=bar]', 'invalid capitalized unrecognized key']];
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $__entry__) {

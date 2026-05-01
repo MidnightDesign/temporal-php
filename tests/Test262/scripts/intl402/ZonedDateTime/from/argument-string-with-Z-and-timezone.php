@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = \Temporal\Spec\ZonedDateTime::from('2020-03-08T09:00:00Z[America/Los_Angeles]');
 Assert::sameValue($zdt->hour, 1, 'hour');
 Assert::sameValue($zdt->minute, 0, 'minute');

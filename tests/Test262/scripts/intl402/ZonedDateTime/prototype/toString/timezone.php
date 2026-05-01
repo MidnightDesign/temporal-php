@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZoneId = function ($zdt) use (&$__m) {
 $str = $zdt->toString();
 $m = (preg_match('/(?<=\[)[\w\/_+-]+(?=\])/', $str, $__m) ? $__m : null);

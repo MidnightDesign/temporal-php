@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $minDate = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
 $minDateTime = new \Temporal\Spec\PlainDate(-271_821, 4, 20);
 $maxDate = new \Temporal\Spec\PlainDate(275_760, 9, 13);

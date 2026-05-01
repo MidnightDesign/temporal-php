@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
-$exactResults = (object) ['days' => (object) ['days' => [5], 'hours' => [5, 5], 'minutes' => [5, 5, 5], 'seconds' => [5, 5, 5, 5], 'milliseconds' => [5, 5, 5, 5, 5], 'microseconds' => [5, 5, 5, 5, 5, 5], 'nanoseconds' => [5, 5, 5, 5, 5, 5, 5]], 'hours' => (object) ['hours' => [0, 125], 'minutes' => [0, 125, 5], 'seconds' => [0, 125, 5, 5], 'milliseconds' => [0, 125, 5, 5, 5], 'microseconds' => [0, 125, 5, 5, 5, 5], 'nanoseconds' => [0, 125, 5, 5, 5, 5, 5]], 'minutes' => (object) ['minutes' => [0, 0, 7505], 'seconds' => [0, 0, 7505, 5], 'milliseconds' => [0, 0, 7505, 5, 5], 'microseconds' => [0, 0, 7505, 5, 5, 5], 'nanoseconds' => [0, 0, 7505, 5, 5, 5, 5]], 'seconds' => (object) ['seconds' => [0, 0, 0, 450_305], 'milliseconds' => [0, 0, 0, 450_305, 5], 'microseconds' => [0, 0, 0, 450_305, 5, 5], 'nanoseconds' => [0, 0, 0, 450_305, 5, 5, 5]], 'milliseconds' => (object) ['milliseconds' => [0, 0, 0, 0, 450_305_005], 'microseconds' => [0, 0, 0, 0, 450_305_005, 5], 'nanoseconds' => [0, 0, 0, 0, 450_305_005, 5, 5]], 'microseconds' => (object) ['microseconds' => [0, 0, 0, 0, 0, 450_305_005_005], 'nanoseconds' => [0, 0, 0, 0, 0, 450_305_005_005, 5]], 'nanoseconds' => (object) ['nanoseconds' => [0, 0, 0, 0, 0, 0, 450_305_005_005_005]]];
+$exactResults = (object) JsUndefined::strip(['days' => (object) JsUndefined::strip(['days' => [5], 'hours' => [5, 5], 'minutes' => [5, 5, 5], 'seconds' => [5, 5, 5, 5], 'milliseconds' => [5, 5, 5, 5, 5], 'microseconds' => [5, 5, 5, 5, 5, 5], 'nanoseconds' => [5, 5, 5, 5, 5, 5, 5]]), 'hours' => (object) JsUndefined::strip(['hours' => [0, 125], 'minutes' => [0, 125, 5], 'seconds' => [0, 125, 5, 5], 'milliseconds' => [0, 125, 5, 5, 5], 'microseconds' => [0, 125, 5, 5, 5, 5], 'nanoseconds' => [0, 125, 5, 5, 5, 5, 5]]), 'minutes' => (object) JsUndefined::strip(['minutes' => [0, 0, 7505], 'seconds' => [0, 0, 7505, 5], 'milliseconds' => [0, 0, 7505, 5, 5], 'microseconds' => [0, 0, 7505, 5, 5, 5], 'nanoseconds' => [0, 0, 7505, 5, 5, 5, 5]]), 'seconds' => (object) JsUndefined::strip(['seconds' => [0, 0, 0, 450_305], 'milliseconds' => [0, 0, 0, 450_305, 5], 'microseconds' => [0, 0, 0, 450_305, 5, 5], 'nanoseconds' => [0, 0, 0, 450_305, 5, 5, 5]]), 'milliseconds' => (object) JsUndefined::strip(['milliseconds' => [0, 0, 0, 0, 450_305_005], 'microseconds' => [0, 0, 0, 0, 450_305_005, 5], 'nanoseconds' => [0, 0, 0, 0, 450_305_005, 5, 5]]), 'microseconds' => (object) JsUndefined::strip(['microseconds' => [0, 0, 0, 0, 0, 450_305_005_005], 'nanoseconds' => [0, 0, 0, 0, 0, 450_305_005_005, 5]]), 'nanoseconds' => (object) JsUndefined::strip(['nanoseconds' => [0, 0, 0, 0, 0, 0, 450_305_005_005_005]])]);
 foreach ($exactResults as $largestUnit => $entry) {
 foreach ($entry as $smallestUnit => $expected) {
 [$d, $h, $min, $s, $ms, $µs, $ns] = array_pad($expected, 7, null);
@@ -20,6 +21,6 @@ $s = $s ?? 0;
 $ms = $ms ?? 0;
 $µs = $µs ?? 0;
 $ns = $ns ?? 0;
-TemporalHelpers::assertDuration($duration->round((object) ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit]), 0, 0, 0, $d, $h, $min, $s, $ms, $µs, $ns, "Combination of largestUnit {$largestUnit} and smallestUnit {$smallestUnit}");
+TemporalHelpers::assertDuration($duration->round((object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])), 0, 0, 0, $d, $h, $min, $s, $ms, $µs, $ns, "Combination of largestUnit {$largestUnit} and smallestUnit {$smallestUnit}");
 }
 }

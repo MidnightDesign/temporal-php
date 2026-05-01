@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $later = new \Temporal\Spec\PlainDate(2000, 5, 7);
-TemporalHelpers::checkRoundingIncrementOptionWrongType(function ($roundingIncrement) use (&$earlier, &$later) { return $earlier->until($later, (object) ['roundingIncrement' => $roundingIncrement]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, $descr));
+TemporalHelpers::checkRoundingIncrementOptionWrongType(function ($roundingIncrement) use (&$earlier, &$later) { return $earlier->until($later, (object) JsUndefined::strip(['roundingIncrement' => $roundingIncrement])); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, $descr), fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, $descr));

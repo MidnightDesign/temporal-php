@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainDate = new \Temporal\Spec\PlainDate(2024, 12, 26);
 $result = $plainDate->toLocaleString('en', (object) ['timeZone' => 'UTC']);
 Assert::assertTrue(str_contains($result, '2024'), "PlainDate formatted with no options {$result} should include year");

@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendarsWithEras = ['buddhist', 'coptic', 'ethioaa', 'ethiopic', 'gregory', 'hebrew', 'indian', 'islamic-civil', 'islamic-tbla', 'islamic-umalqura', 'japanese', 'persian', 'roc'];
 foreach ($calendarsWithEras as $calendar) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\PlainDate::from((object) ['month' => 1, 'day' => 1, 'era' => 'xyz', 'eraYear' => 2025, 'calendar' => $calendar]); }, "xyz is not a valid era in calendar {$calendar}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['month' => 1, 'day' => 1, 'era' => 'xyz', 'eraYear' => 2025, 'calendar' => $calendar])); }, "xyz is not a valid era in calendar {$calendar}");
 }

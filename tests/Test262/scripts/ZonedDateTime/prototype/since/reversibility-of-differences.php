@@ -7,19 +7,20 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\ZonedDateTime(217_189_410_123_456_789, '-03:00');
 $later = new \Temporal\Spec\ZonedDateTime(1_572_356_798_271_986_102, '-03:00');
 foreach (['hours', 'minutes', 'seconds'] as $largestUnit) {
-$diff = $later->since($earlier, ['largestUnit' => $largestUnit]);
-TemporalHelpers::assertDurationsEqual($earlier->since($later, ['largestUnit' => $largestUnit]), $diff->negated());
-TemporalHelpers::assertDurationsEqual($earlier->until($later, ['largestUnit' => $largestUnit]), $diff);
+$diff = $later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit]));
+TemporalHelpers::assertDurationsEqual($earlier->since($later, JsUndefined::strip(['largestUnit' => $largestUnit])), $diff->negated());
+TemporalHelpers::assertDurationsEqual($earlier->until($later, JsUndefined::strip(['largestUnit' => $largestUnit])), $diff);
 Assert::assertTrue($earlier->subtract($diff->negated())->equals($later), '');
 Assert::assertTrue($later->add($diff->negated())->equals($earlier), '');
 }
 foreach (['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'] as $largestUnit) {
-$diff1 = $earlier->until($later, ['largestUnit' => $largestUnit]);
-$diff2 = $later->since($earlier, ['largestUnit' => $largestUnit]);
+$diff1 = $earlier->until($later, JsUndefined::strip(['largestUnit' => $largestUnit]));
+$diff2 = $later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit]));
 Assert::assertTrue($earlier->add($diff1)->equals($later), '');
 Assert::assertTrue($later->subtract($diff2)->equals($earlier), '');
 }

@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789)->toZonedDateTime('UTC');
 $overflow = 'reject';
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['month' => 29], ['overflow' => $overflow]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['day' => 31], ['overflow' => $overflow]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['hour' => 29], ['overflow' => $overflow]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['nanosecond' => 9000], ['overflow' => $overflow]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['month' => 29], JsUndefined::strip(['overflow' => $overflow])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['day' => 31], JsUndefined::strip(['overflow' => $overflow])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['hour' => 29], JsUndefined::strip(['overflow' => $overflow])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$overflow) { return $zdt->with(['nanosecond' => 9000], JsUndefined::strip(['overflow' => $overflow])); }, '');

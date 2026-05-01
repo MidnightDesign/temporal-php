@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dateGregorian = \Temporal\Spec\PlainYearMonth::from(['year' => 2024, 'monthCode' => 'M03', 'calendar' => 'gregory']);
 Assert::assertTrue(str_contains($dateGregorian->toLocaleString('en-u-ca-gregory', ['dateStyle' => 'long']), 'March'), 'dateStyle: long writes month of March out in full');
 Assert::assertTrue(!str_contains($dateGregorian->toLocaleString('en-u-ca-gregory', ['dateStyle' => 'short']), 'March'), 'dateStyle: short does not write month of March out in full');

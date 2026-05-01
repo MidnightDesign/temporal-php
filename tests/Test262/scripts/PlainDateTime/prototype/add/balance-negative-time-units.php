@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\PlainDateTime(1996, 5, 2, 1, 1, 1, 1, 1, 1);
 $result1 = $datetime->add(new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, -2));

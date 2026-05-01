@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $SamoaDateChangeStart = new \Temporal\Spec\PlainDateTime(2011, 12, 29, 22)->toZonedDateTime('Pacific/Apia');
 $result = $SamoaDateChangeStart->add((object) ['days' => 1, 'hours' => 1]);

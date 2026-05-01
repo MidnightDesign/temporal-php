@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance1 = \Temporal\Spec\PlainDateTime::from((object) ['year' => 2011, 'month' => 12, 'day' => 30]);
 $result1 = $instance1->toLocaleString('en-US', (object) ['timeZone' => 'Pacific/Apia']);
 Assert::assertTrue(str_contains($result1, '30') && !str_contains($result1, '31'), '');

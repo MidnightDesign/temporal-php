@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 for ($year = 1970; $year < 1975; $year++) {
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\Spec\PlainDateTime::from((object) ['year' => $year, 'month' => $month, 'day' => 1, 'hour' => 12, 'minute' => 34]);
+$date = \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'hour' => 12, 'minute' => 34]));
 Assert::sameValue($date->monthCode->endsWith('L'), false, '');
 }
 }

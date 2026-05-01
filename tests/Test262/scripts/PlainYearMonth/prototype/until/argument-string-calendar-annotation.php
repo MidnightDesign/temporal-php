@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['2019-12-15[u-ca=iso8601]', 'without time or time zone'], ['2019-12-15T15:23[u-ca=iso8601]', 'without time zone'], ['2019-12-15T15:23[UTC][u-ca=iso8601]', 'with time zone'], ['2019-12-15T15:23[!u-ca=iso8601]', 'with ! and no time zone'], ['2019-12-15T15:23[UTC][!u-ca=iso8601]', 'with ! and time zone'], ['2019-12-15T15:23[u-ca=iso8601][u-ca=discord]', 'second annotation ignored']];
 $instance = new \Temporal\Spec\PlainYearMonth(2019, 12);

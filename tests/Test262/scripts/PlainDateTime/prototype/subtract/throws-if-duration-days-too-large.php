@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $secondsPerDay = 24 * 60 * 60;
 $maxSeconds = 2 ** 53 - 1;
 $maxDays = (int) ($maxSeconds / $secondsPerDay);

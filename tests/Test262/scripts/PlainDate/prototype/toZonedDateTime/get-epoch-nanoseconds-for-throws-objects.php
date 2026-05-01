@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $minDate = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
 $minDateTime = new \Temporal\Spec\PlainDate(-271_821, 4, 20);
 $maxDate = new \Temporal\Spec\PlainDate(275_760, 9, 13);
 $midnight = new \Temporal\Spec\PlainTime();
 $oneHourPastMidnight = new \Temporal\Spec\PlainTime(1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$minDate, &$oneHourPastMidnight) { return $minDate->toZonedDateTime((object) ['timeZone' => 'UTC', 'plainTime' => $oneHourPastMidnight]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$minDate, &$oneHourPastMidnight) { return $minDate->toZonedDateTime((object) ['timeZone' => '+00', 'plainTime' => $oneHourPastMidnight]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$minDateTime, &$midnight) { return $minDateTime->toZonedDateTime((object) ['timeZone' => '+01', 'temporalTime' => $midnight]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$maxDate, &$midnight) { return $maxDate->toZonedDateTime((object) ['timeZone' => '-01', 'temporalTime' => $midnight]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minDate, &$oneHourPastMidnight) { return $minDate->toZonedDateTime((object) JsUndefined::strip(['timeZone' => 'UTC', 'plainTime' => $oneHourPastMidnight])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minDate, &$oneHourPastMidnight) { return $minDate->toZonedDateTime((object) JsUndefined::strip(['timeZone' => '+00', 'plainTime' => $oneHourPastMidnight])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$minDateTime, &$midnight) { return $minDateTime->toZonedDateTime((object) JsUndefined::strip(['timeZone' => '+01', 'temporalTime' => $midnight])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$maxDate, &$midnight) { return $maxDate->toZonedDateTime((object) JsUndefined::strip(['timeZone' => '-01', 'temporalTime' => $midnight])); }, '');

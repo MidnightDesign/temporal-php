@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(-271_821, 3), 'min');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainYearMonth(275_760, 10), 'max');

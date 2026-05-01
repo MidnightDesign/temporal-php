@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
 $units = ['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($units as $unit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$dt, &$unit) { return $dt->round((object) ['smallestUnit' => $unit, 'roundingIncrement' => 29]); }, "throws on increments that do not divide evenly into the next highest (unit = {$unit})");
+Assert::throws(\InvalidArgumentException::class, function () use (&$dt, &$unit) { return $dt->round((object) JsUndefined::strip(['smallestUnit' => $unit, 'roundingIncrement' => 29])); }, "throws on increments that do not divide evenly into the next highest (unit = {$unit})");
 }

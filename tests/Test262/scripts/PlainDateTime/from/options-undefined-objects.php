@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $fields = (object) ['year' => 2000, 'month' => 13, 'day' => 2];
 $explicit = \Temporal\Spec\PlainDateTime::from($fields);
 Assert::sameValue($explicit->month, 12, 'default overflow is constrain');

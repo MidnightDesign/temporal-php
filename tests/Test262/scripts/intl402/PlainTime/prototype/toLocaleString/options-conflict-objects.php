@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $conflictingOptions = [['hour', 'numeric'], ['minute', 'numeric'], ['second', 'numeric'], ['dayPeriod', 'short'], ['fractionalSecondDigits', 3]];
 $time = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 Assert::sameValue(is_string($time->toLocaleString('en', (object) ['timeStyle' => 'short'])), true, '');
 Assert::throws(\TypeError::class, function () use (&$time) { $time->toLocaleString('en', (object) ['dateStyle' => 'short']); }, 'dateStyle conflicts with PlainTime');
 foreach ($conflictingOptions as $__entry__) {
 [$option, $value] = array_pad($__entry__, 2, null);
-Assert::throws(\TypeError::class, function () use (&$time, &$option, &$value) { $time->toLocaleString('en', (object) [$option => $value, 'timeStyle' => 'short']); }, "time.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
-$time->toLocaleString('en', (object) [$option => $value]);
-$time->toLocaleString('en', (object) [$option => $value]);
+Assert::throws(\TypeError::class, function () use (&$time, &$option, &$value) { $time->toLocaleString('en', (object) JsUndefined::strip([$option => $value, 'timeStyle' => 'short'])); }, "time.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
+$time->toLocaleString('en', (object) JsUndefined::strip([$option => $value]));
+$time->toLocaleString('en', (object) JsUndefined::strip([$option => $value]));
 }

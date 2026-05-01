@@ -7,18 +7,19 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'buddhist';
 $options = ['overflow' => 'reject'];
 $months6 = new \Temporal\Spec\Duration(0, 6);
 $months6n = new \Temporal\Spec\Duration(0, -6);
 $durations = [$months6, $months6n];
-$date255512 = \Temporal\Spec\PlainDate::from(['year' => 2555, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar], $options);
+$date255512 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 2555, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar]), $options);
 $dates = [$date255512];
 foreach ($durations as $duration) {
 foreach ($dates as $start) {
 $end = $start->add($duration);
-$startYesterday = $start->add(['days' => -1]);
+$startYesterday = $start->add(JsUndefined::strip(['days' => -1]));
 $endYesterday = $startYesterday->add($duration);
 Assert::sameValue($endYesterday->day, min($startYesterday->day, $endYesterday->daysInMonth), 'adding months should result in same day');
 $endYesterdayNextDay = $endYesterday->add(['days' => 1]);
@@ -26,7 +27,7 @@ while ($endYesterdayNextDay->day !== 1) {
 $endYesterdayNextDay = $endYesterdayNextDay->add(['days' => 1]);
 }
 TemporalHelpers::assertPlainDate($endYesterdayNextDay, $end->year, $end->month, $end->monthCode, $end->day, "endYesterdayNextDay", $end->era, $end->eraYear);
-$endReverse = $endYesterdayNextDay->add(['days' => -1]);
+$endReverse = $endYesterdayNextDay->add(JsUndefined::strip(['days' => -1]));
 $startReverse = $endReverse->add($duration->negated());
 Assert::sameValue($startReverse->day, min($endReverse->day, $startReverse->daysInMonth), '');
 $startReverseNextDay = $startReverse->add(['days' => 1]);

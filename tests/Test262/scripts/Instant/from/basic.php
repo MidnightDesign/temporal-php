@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $baseValue = 217_178_580_000_000_000;
 $instant = \Temporal\Spec\Instant::from('1976-11-18T15:23Z');
 Assert::sameValue($instant->epochNanoseconds, $baseValue, 'ISO string with UTC designator and minutes precision');

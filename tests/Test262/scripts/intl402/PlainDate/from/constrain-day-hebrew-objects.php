@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
 $options = (object) ['overflow' => 'reject'];
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from((object) ['year' => 5781, 'monthCode' => 'M03', 'day' => 30, 'calendar' => $calendar]), 5781, 3, 'M03', 29, 'Kislev constrains to 29 in deficient year', 'am', 5781);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$options) { \Temporal\Spec\PlainDate::from((object) ['year' => 5781, 'monthCode' => 'M03', 'day' => 30, 'calendar' => $calendar], $options); }, 'Kislev rejects 30 in deficient year');
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from((object) ['year' => 5782, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar]), 5782, 2, 'M02', 29, 'Cheshvan constrains to 29 in regular year', 'am', 5782);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$options) { \Temporal\Spec\PlainDate::from((object) ['year' => 5782, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar], $options); }, 'Cheshvan rejects 30 in regular year');
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from((object) ['year' => 5781, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar]), 5781, 2, 'M02', 29, 'Cheshvan constrains to 29 in deficient year', 'am', 5781);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$options) { \Temporal\Spec\PlainDate::from((object) ['year' => 5781, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar], $options); }, 'Cheshvan rejects 30 in deficient year');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M03', 'day' => 30, 'calendar' => $calendar])), 5781, 3, 'M03', 29, 'Kislev constrains to 29 in deficient year', 'am', 5781);
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$options) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M03', 'day' => 30, 'calendar' => $calendar]), $options); }, 'Kislev rejects 30 in deficient year');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5782, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar])), 5782, 2, 'M02', 29, 'Cheshvan constrains to 29 in regular year', 'am', 5782);
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$options) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5782, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar]), $options); }, 'Cheshvan rejects 30 in regular year');
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar])), 5781, 2, 'M02', 29, 'Cheshvan constrains to 29 in deficient year', 'am', 5781);
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$options) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar]), $options); }, 'Cheshvan rejects 30 in deficient year');

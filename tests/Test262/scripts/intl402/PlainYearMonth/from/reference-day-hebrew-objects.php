@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $result4 = \Temporal\Spec\PlainYearMonth::from((object) ['year' => 5782, 'monthCode' => 'M04', 'day' => 20, 'calendar' => 'hebrew']);
 TemporalHelpers::assertPlainYearMonth($result4, 5782, 4, 'M04', 'reference day is the first of the calendar month even if day is given', 'am', 5782, 5);

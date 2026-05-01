@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'gregory';
 $options = ['overflow' => 'reject'];
 $leapYears = [1972, 1976, 1980, 1984, 1988, 1992, 1996, 2000, 2004, 2008, 2012, 2016, 2020, 2024, 2028, 2032, 2036, 2040, 2044, 2048];
 for ($year = 1970; $year < 2050; $year++) {
-$date = \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'month' => 1, 'calendar' => $calendar]);
+$date = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar]));
 Assert::sameValue($date->inLeapYear, str_contains($leapYears, $year), '');
 }

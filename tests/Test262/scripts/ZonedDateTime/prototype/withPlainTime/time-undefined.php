@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(957_270_896_987_654_321, 'UTC');
 $explicit = $datetime->withPlainTime();
 Assert::sameValue($explicit->hour, 0, 'default time is midnight');

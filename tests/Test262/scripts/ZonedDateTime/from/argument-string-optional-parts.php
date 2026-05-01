@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30-08[-08:00]'), new \Temporal\Spec\ZonedDateTime(217_207_410_000_000_000, '-08:00'));
 TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from('1976-11-18T15-08:00[-08:00]'), new \Temporal\Spec\ZonedDateTime(217_206_000_000_000_000, '-08:00'));

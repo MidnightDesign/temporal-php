@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = \Temporal\Spec\PlainDate::from('1976-11-18');
 TemporalHelpers::assertPlainDate($date->add((object) ['years' => 43]), 2019, 11, 'M11', 18);
@@ -14,10 +15,10 @@ TemporalHelpers::assertPlainDate($date->add((object) ['months' => 3]), 1977, 2, 
 TemporalHelpers::assertPlainDate($date->add((object) ['days' => 20]), 1976, 12, 'M12', 8);
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-01-31')->add((object) ['months' => 1]), 2019, 2, 'M02', 28);
 TemporalHelpers::assertPlainDate($date->add(\Temporal\Spec\Duration::from('P43Y')), 2019, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-11-18')->add((object) ['years' => -43]), 1976, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1977-02-18')->add((object) ['months' => -3]), 1976, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-12-08')->add((object) ['days' => -20]), 1976, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-02-28')->add((object) ['months' => -1]), 2019, 1, 'M01', 28);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-11-18')->add((object) JsUndefined::strip(['years' => -43])), 1976, 11, 'M11', 18);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1977-02-18')->add((object) JsUndefined::strip(['months' => -3])), 1976, 11, 'M11', 18);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-12-08')->add((object) JsUndefined::strip(['days' => -20])), 1976, 11, 'M11', 18);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-02-28')->add((object) JsUndefined::strip(['months' => -1])), 2019, 1, 'M01', 28);
 $p1y = new \Temporal\Spec\Duration(1);
 $p4y = new \Temporal\Spec\Duration(4);
 $p5m = new \Temporal\Spec\Duration(0, 5);

@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'gregory';
-$date15821004 = \Temporal\Spec\PlainDate::from(['year' => 1582, 'monthCode' => 'M10', 'day' => 4, 'calendar' => $calendar]);
-$date15821007 = \Temporal\Spec\PlainDate::from(['year' => 1582, 'monthCode' => 'M10', 'day' => 7, 'calendar' => $calendar]);
-$date15821011 = \Temporal\Spec\PlainDate::from(['year' => 1582, 'monthCode' => 'M10', 'day' => 11, 'calendar' => $calendar]);
-$date15821012 = \Temporal\Spec\PlainDate::from(['year' => 1582, 'monthCode' => 'M10', 'day' => 12, 'calendar' => $calendar]);
-$date15821015 = \Temporal\Spec\PlainDate::from(['year' => 1582, 'monthCode' => 'M10', 'day' => 15, 'calendar' => $calendar]);
+$date15821004 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1582, 'monthCode' => 'M10', 'day' => 4, 'calendar' => $calendar]));
+$date15821007 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1582, 'monthCode' => 'M10', 'day' => 7, 'calendar' => $calendar]));
+$date15821011 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1582, 'monthCode' => 'M10', 'day' => 11, 'calendar' => $calendar]));
+$date15821012 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1582, 'monthCode' => 'M10', 'day' => 12, 'calendar' => $calendar]));
+$date15821015 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1582, 'monthCode' => 'M10', 'day' => 15, 'calendar' => $calendar]));
 TemporalHelpers::assertDuration($date15821004->until($date15821007, ['largestUnit' => 'days']), 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, '1582-10-04 and 1582-10-07');
 TemporalHelpers::assertDuration($date15821015->until($date15821012, ['largestUnit' => 'days']), 0, 0, 0, -3, 0, 0, 0, 0, 0, 0, '1582-10-15 and 1582-10-12');
 TemporalHelpers::assertDuration($date15821004->until($date15821011, ['largestUnit' => 'weeks']), 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, '1582-10-04 and 1582-10-11');

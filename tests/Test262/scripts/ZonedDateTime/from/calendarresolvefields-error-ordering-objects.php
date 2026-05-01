@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['monthCode' => 'M99L', 'day' => 1, 'timeZone' => 'UTC']), 'Missing year throws TypeError before invalid monthCode throws RangeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2021, 'day' => 32, 'timeZone' => 'UTC'], (object) ['overflow' => 'reject']), 'Missing month throws TypeError before out-of-range day throws RangeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2021, 'monthCode' => 'M99L', 'timeZone' => 'UTC']), 'Missing day throws TypeError before invalid monthCode throws RangeError');

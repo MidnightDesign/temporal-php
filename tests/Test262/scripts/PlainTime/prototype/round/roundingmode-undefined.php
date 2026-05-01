@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainTime = \Temporal\Spec\PlainTime::from('13:46:23.123456789');
 TemporalHelpers::assertPlainTime($plainTime->round(['smallestUnit' => 'hour']), 14, 0, 0, 0, 0, 0, 'hour');

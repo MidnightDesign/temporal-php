@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $nov94 = \Temporal\Spec\PlainYearMonth::from('1994-11');
 Assert::sameValue($nov94->equals((object) ['year' => 2013, 'month' => 6]), false, 'object');
 Assert::sameValue($nov94->equals((object) ['year' => 1994, 'month' => 11]), true, 'object');

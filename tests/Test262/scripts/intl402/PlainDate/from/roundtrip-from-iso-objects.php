@@ -7,18 +7,19 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $testRoundtrip = function ($date, $calendar, $descr) {
-$dateFromYearMonth = \Temporal\Spec\PlainDate::from((object) ['calendar' => $calendar, 'year' => $date->year, 'month' => $date->month, 'day' => $date->day]);
+$dateFromYearMonth = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => $calendar, 'year' => $date->year, 'month' => $date->month, 'day' => $date->day]));
 TemporalHelpers::assertPlainDate($dateFromYearMonth, $date->year, $date->month, $date->monthCode, $date->day, "{$descr} ({$calendar}) - created from year and month", $date->era, $date->eraYear);
-$dateFromYearMonthCode = \Temporal\Spec\PlainDate::from((object) ['calendar' => $calendar, 'year' => $date->year, 'monthCode' => $date->monthCode, 'day' => $date->day]);
+$dateFromYearMonthCode = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => $calendar, 'year' => $date->year, 'monthCode' => $date->monthCode, 'day' => $date->day]));
 TemporalHelpers::assertPlainDate($dateFromYearMonthCode, $date->year, $date->month, $date->monthCode, $date->day, "{$descr} ({$calendar}) - created from year and month code", $date->era, $date->eraYear);
-if ($date->era === null) {
+if (JsUndefined::isUndefined($date->era)) {
 return;
 }
-$dateFromEraMonth = \Temporal\Spec\PlainDate::from((object) ['calendar' => $calendar, 'era' => $date->era, 'eraYear' => $date->eraYear, 'month' => $date->month, 'day' => $date->day]);
+$dateFromEraMonth = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => $calendar, 'era' => $date->era, 'eraYear' => $date->eraYear, 'month' => $date->month, 'day' => $date->day]));
 TemporalHelpers::assertPlainDate($dateFromEraMonth, $date->year, $date->month, $date->monthCode, $date->day, "{$descr} ({$calendar}) - created from era, era year, and month", $date->era, $date->eraYear);
-$dateFromEraMonthCode = \Temporal\Spec\PlainDate::from((object) ['calendar' => $calendar, 'era' => $date->era, 'eraYear' => $date->eraYear, 'monthCode' => $date->monthCode, 'day' => $date->day]);
+$dateFromEraMonthCode = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => $calendar, 'era' => $date->era, 'eraYear' => $date->eraYear, 'monthCode' => $date->monthCode, 'day' => $date->day]));
 TemporalHelpers::assertPlainDate($dateFromEraMonthCode, $date->year, $date->month, $date->monthCode, $date->day, "{$descr} ({$calendar}) - created from era, era year, and month code", $date->era, $date->eraYear);
 };
 $options = (object) ['overflow' => 'reject'];

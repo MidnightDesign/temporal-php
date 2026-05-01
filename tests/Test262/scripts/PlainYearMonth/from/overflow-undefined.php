@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validValues = [new \Temporal\Spec\PlainYearMonth(2000, 5), '2000-05'];
 foreach ($validValues as $value) {

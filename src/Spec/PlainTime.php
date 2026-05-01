@@ -407,12 +407,9 @@ final class PlainTime implements Stringable
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
-            /** @var mixed $riRaw */
-            $riRaw = $options['roundingIncrement'];
-            if (!is_int($riRaw) && !is_float($riRaw)) {
-                throw new \TypeError('roundingIncrement must be a number.');
-            }
-            $rawIncrement = (int) $riRaw;
+            // Per TC39 ToTemporalRoundingIncrement: GetOption with type «Number» calls ToNumber,
+            // which coerces booleans/numeric strings. CalendarMath::toFiniteInt mirrors that.
+            $rawIncrement = CalendarMath::toFiniteInt($options['roundingIncrement'], 'roundingIncrement');
             if ($rawIncrement < 1) {
                 throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
             }
@@ -850,17 +847,22 @@ final class PlainTime implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow): self
     {
-        if (!array_key_exists('hour', $bag)) {
-            throw new \TypeError('PlainTime property bag must have an hour field.');
+        // Per TC39 PrepareCalendarFields with requiredFieldNames=~partial~: at least one
+        // recognized time field must be present with a non-undefined value; missing fields
+        // default to 0.
+        $hasAny = false;
+        foreach (['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $field) {
+            if (!array_key_exists($field, $bag) || $bag[$field] === null) {
+                continue;
+            }
+            $hasAny = true;
+            break;
+        }
+        if (!$hasAny) {
+            throw new \TypeError('PlainTime property bag must have at least one time field.');
         }
 
-        /** @var mixed $hourRaw */
-        $hourRaw = $bag['hour'];
-        if ($hourRaw === null) {
-            throw new \TypeError('PlainTime property bag hour field must not be undefined.');
-        }
-        $h = CalendarMath::toFiniteInt($hourRaw, 'PlainTime hour');
-
+        $h = CalendarMath::extractIntField($bag, 'hour', 0, 'PlainTime');
         $min = CalendarMath::extractIntField($bag, 'minute', 0, 'PlainTime');
         $sec = CalendarMath::extractIntField($bag, 'second', 0, 'PlainTime');
         $ms = CalendarMath::extractIntField($bag, 'millisecond', 0, 'PlainTime');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainDate1 = new \Temporal\Spec\PlainDate(2000, 1, 1, 'iso8601');
 $plainDate2 = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 1, 'day' => 2, 'calendar' => '2024-05-16[u-ca=iso8601]']);

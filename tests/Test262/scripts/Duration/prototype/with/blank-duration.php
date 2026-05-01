@@ -7,27 +7,28 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $blank = new \Temporal\Spec\Duration();
 foreach ([-1, 0, 1] as $val) {
-$result = $blank->with(['years' => $val]);
+$result = $blank->with(JsUndefined::strip(['years' => $val]));
 TemporalHelpers::assertDuration($result, $val, 0, 0, 0, 0, 0, 0, 0, 0, 0, "with years {$val}");
-$result = $blank->with(['months' => $val]);
+$result = $blank->with(JsUndefined::strip(['months' => $val]));
 TemporalHelpers::assertDuration($result, 0, $val, 0, 0, 0, 0, 0, 0, 0, 0, "with months {$val}");
-$result = $blank->with(['weeks' => $val]);
+$result = $blank->with(JsUndefined::strip(['weeks' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, $val, 0, 0, 0, 0, 0, 0, 0, "with weeks {$val}");
-$result = $blank->with(['days' => $val]);
+$result = $blank->with(JsUndefined::strip(['days' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, $val, 0, 0, 0, 0, 0, 0, "with days {$val}");
-$result = $blank->with(['hours' => $val]);
+$result = $blank->with(JsUndefined::strip(['hours' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, $val, 0, 0, 0, 0, 0, "with hours {$val}");
-$result = $blank->with(['minutes' => $val]);
+$result = $blank->with(JsUndefined::strip(['minutes' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, $val, 0, 0, 0, 0, "with minutes {$val}");
-$result = $blank->with(['seconds' => $val]);
+$result = $blank->with(JsUndefined::strip(['seconds' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, $val, 0, 0, 0, "with seconds {$val}");
-$result = $blank->with(['milliseconds' => $val]);
+$result = $blank->with(JsUndefined::strip(['milliseconds' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, $val, 0, 0, "with milliseconds {$val}");
-$result = $blank->with(['microseconds' => $val]);
+$result = $blank->with(JsUndefined::strip(['microseconds' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, $val, 0, "with microseconds {$val}");
-$result = $blank->with(['nanoseconds' => $val]);
+$result = $blank->with(JsUndefined::strip(['nanoseconds' => $val]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, $val, "with nanoseconds {$val}");
 }

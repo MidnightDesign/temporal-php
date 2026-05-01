@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainDateTime = \Temporal\Spec\PlainDateTime::from('2020-02-12T11:42:56.987654321+01:00[Europe/Amsterdam]');
 TemporalHelpers::assertPlainTime($plainDateTime->toPlainTime(), 11, 42, 56, 987, 654, 321);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $utcDateTime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::sameValue($utcDateTime->timeZoneId, 'UTC', 'Time zone name \'UTC\' is preserved');
 $utcIdentifiers = ['Etc/GMT', 'Etc/UTC', 'GMT'];

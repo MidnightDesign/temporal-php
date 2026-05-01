@@ -7,16 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'islamic-umalqura';
 $allMonths = [['M01', 1972], ['M02', 1970], ['M03', 1971], ['M04', 1972], ['M05', 1971], ['M06', 1972], ['M07', 1969], ['M08', 1972], ['M09', 1972], ['M10', 1970], ['M11', 1972], ['M12', 1971]];
 foreach ($allMonths as $__entry__) {
 [$monthCode, $referenceYear30] = array_pad($__entry__, 2, null);
-$pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]);
+$pmd = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01");
-$pmd30 = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]);
+$pmd30 = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]));
 TemporalHelpers::assertPlainMonthDay($pmd30, $monthCode, 30, "{$monthCode}-30", $referenceYear30);
-$constrained = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'constrain']);
+$constrained = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 30, "day 31 should be constrained to 30 for {$monthCode}", $referenceYear30);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31], ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }

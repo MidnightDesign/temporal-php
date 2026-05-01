@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(946_684_799_999_999_999, 'UTC');
 foreach (['ceil', 'halfExpand'] as $roundingMode) {
-Assert::sameValue($zonedDateTime->toString((object) ['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode]), '2000-01-01T00:00:00.00000000+00:00[UTC]', '');
+Assert::sameValue($zonedDateTime->toString((object) JsUndefined::strip(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode])), '2000-01-01T00:00:00.00000000+00:00[UTC]', '');
 }

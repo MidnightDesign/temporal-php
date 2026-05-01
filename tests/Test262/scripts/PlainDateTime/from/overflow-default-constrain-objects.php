@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = (object) ['year' => 2019, 'month' => 1, 'day' => 32];
 $data = [2019, 1, 'M01', 31, 0, 0, 0, 0, 0, 0];

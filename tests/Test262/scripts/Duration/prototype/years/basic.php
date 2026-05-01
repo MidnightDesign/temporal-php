@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 Assert::sameValue($instance->years, 1, '');
 $negInstance = new \Temporal\Spec\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);

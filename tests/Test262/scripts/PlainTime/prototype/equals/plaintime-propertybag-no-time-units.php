@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainTime(0, 30, 0, 0, 0, 0);
 $props = [];
 Assert::throws(\TypeError::class, function () use (&$instance, &$props) { return $instance->equals($props); }, 'TypeError if no properties are present');

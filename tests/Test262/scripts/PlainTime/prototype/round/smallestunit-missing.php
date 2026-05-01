@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainTime = new \Temporal\Spec\PlainTime(12, 34, 56, 123, 987, 500);
 Assert::throws(\TypeError::class, function () use (&$plainTime) { return $plainTime->round(); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$plainTime) { return $plainTime->round([]); }, '');

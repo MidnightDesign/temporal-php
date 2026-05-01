@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1919, 'month' => 3, 'day' => 31, 'hour' => 12, 'timeZone' => 'America/Toronto']);
 $startOfDay = $instance->withPlainTime();

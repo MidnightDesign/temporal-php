@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 foreach ([[], function () {  }, ['roundingMode' => 'ceil']] as $roundTo) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$d, &$roundTo) { return $d->total($roundTo); }, '');

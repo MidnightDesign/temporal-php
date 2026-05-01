@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $hours48 = new \Temporal\Spec\Duration(0, 0, 0, 0, 48);
 Assert::sameValue($oneDay->total('hours'), 24, 'with no relativeTo, days are 24 hours');
 Assert::sameValue($hours48->total((object) ['unit' => 'days']), 2, 'with no relativeTo, 48 hours = 2 days');
 $plainRelativeTo = new \Temporal\Spec\PlainDate(2017, 1, 1);
-Assert::sameValue($oneDay->total((object) ['unit' => 'hours', 'relativeTo' => $plainRelativeTo]), 24, 'with PlainDate relativeTo, days are 24 hours');
-Assert::sameValue($hours48->total((object) ['unit' => 'days', 'relativeTo' => $plainRelativeTo]), 2, 'with PlainDate relativeTo, 48 hours = 2 days');
+Assert::sameValue($oneDay->total((object) JsUndefined::strip(['unit' => 'hours', 'relativeTo' => $plainRelativeTo])), 24, 'with PlainDate relativeTo, days are 24 hours');
+Assert::sameValue($hours48->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $plainRelativeTo])), 2, 'with PlainDate relativeTo, 48 hours = 2 days');
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, '+04:30');
-Assert::sameValue($oneDay->total((object) ['unit' => 'hours', 'relativeTo' => $zonedRelativeTo]), 24, 'with ZonedDateTime relativeTo, days are 24 hours if the duration encompasses no DST change');
-Assert::sameValue($hours48->total((object) ['unit' => 'days', 'relativeTo' => $zonedRelativeTo]), 2, 'with ZonedDateTime relativeTo, 48 hours = 2 days if the duration encompasses no DST change');
+Assert::sameValue($oneDay->total((object) JsUndefined::strip(['unit' => 'hours', 'relativeTo' => $zonedRelativeTo])), 24, 'with ZonedDateTime relativeTo, days are 24 hours if the duration encompasses no DST change');
+Assert::sameValue($hours48->total((object) JsUndefined::strip(['unit' => 'days', 'relativeTo' => $zonedRelativeTo])), 2, 'with ZonedDateTime relativeTo, 48 hours = 2 days if the duration encompasses no DST change');

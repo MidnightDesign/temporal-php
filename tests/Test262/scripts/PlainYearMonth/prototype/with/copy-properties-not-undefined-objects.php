@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainYearMonth = new \Temporal\Spec\PlainYearMonth(2001, 9);
 TemporalHelpers::assertPlainYearMonth($plainYearMonth->with((object) ['month' => 11]), 2001, 11, 'M11', 'only the properties that are present and defined in the plain object are copied');

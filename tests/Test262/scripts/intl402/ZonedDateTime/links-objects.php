@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $asiaTestCases = (object) ['Europe/Nicosia' => 'Asia/Nicosia', 'Asia/Ashkhabad' => 'Asia/Ashgabat', 'Asia/Calcutta' => 'Asia/Kolkata', 'Asia/Choibalsan' => 'Asia/Ulaanbaatar', 'Asia/Chongqing' => 'Asia/Shanghai', 'Asia/Chungking' => 'Asia/Shanghai', 'Asia/Dacca' => 'Asia/Dhaka', 'Asia/Harbin' => 'Asia/Shanghai', 'Asia/Istanbul' => 'Europe/Istanbul', 'Asia/Kashgar' => 'Asia/Urumqi', 'Asia/Katmandu' => 'Asia/Kathmandu', 'Asia/Macao' => 'Asia/Macau', 'Asia/Rangoon' => 'Asia/Yangon', 'Asia/Saigon' => 'Asia/Ho_Chi_Minh', 'Asia/Tel_Aviv' => 'Asia/Jerusalem', 'Asia/Thimbu' => 'Asia/Thimphu', 'Asia/Ujung_Pandang' => 'Asia/Makassar', 'Asia/Ulan_Bator' => 'Asia/Ulaanbaatar'];
 $asiaHistoricalTestCases = ['Antarctica/Syowa', 'Asia/Aden', 'Asia/Bahrain', 'Asia/Kuwait', 'Asia/Phnom_Penh', 'Asia/Vientiane', 'Asia/Muscat'];
 $africaTestCases = (object) ['Africa/Asmera' => 'Africa/Asmara', 'Africa/Timbuktu' => 'Africa/Bamako'];

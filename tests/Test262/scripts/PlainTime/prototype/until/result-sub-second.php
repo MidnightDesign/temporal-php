@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $time1 = \Temporal\Spec\PlainTime::from('10:23:15');
 $time2 = \Temporal\Spec\PlainTime::from('17:15:57.250250250');

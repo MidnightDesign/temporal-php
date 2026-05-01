@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round((object) ['smallestUnit' => 'second', 'roundingIncrement' => NAN]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->round((object) JsUndefined::strip(['smallestUnit' => 'second', 'roundingIncrement' => NAN])); }, '');

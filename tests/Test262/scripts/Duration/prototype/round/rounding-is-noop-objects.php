@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainRelativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1, 'iso8601');
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 23, 59, 59, 999, 999, 997);
-$noopRoundingOperations = [[$d, (object) ['smallestUnit' => 'nanoseconds'], 'smallestUnit ns'], [$d, (object) ['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo], 'smallestUnit ns and plain relativeTo'], [$d, (object) ['smallestUnit' => 'nanoseconds', 'relativeTo' => $zonedRelativeTo], 'smallestUnit ns and zoned relativeTo'], [$d, (object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1], 'round to 1 ns'], [$d, (object) ['largestUnit' => 'hours'], 'largestUnit hours'], [new \Temporal\Spec\Duration(0, 0, 0, 1), (object) ['smallestUnit' => 'nanoseconds'], 'days>0 and smallestUnit ns'], [new \Temporal\Spec\Duration(0, 0, 0, 1), (object) ['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo], 'days>0, smallestUnit ns, and plain relativeTo']];
+$noopRoundingOperations = [[$d, (object) ['smallestUnit' => 'nanoseconds'], 'smallestUnit ns'], [$d, (object) JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo]), 'smallestUnit ns and plain relativeTo'], [$d, (object) JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'relativeTo' => $zonedRelativeTo]), 'smallestUnit ns and zoned relativeTo'], [$d, (object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1], 'round to 1 ns'], [$d, (object) ['largestUnit' => 'hours'], 'largestUnit hours'], [new \Temporal\Spec\Duration(0, 0, 0, 1), (object) ['smallestUnit' => 'nanoseconds'], 'days>0 and smallestUnit ns'], [new \Temporal\Spec\Duration(0, 0, 0, 1), (object) JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'relativeTo' => $plainRelativeTo]), 'days>0, smallestUnit ns, and plain relativeTo']];
 foreach ($noopRoundingOperations as $__entry__) {
 [$duration, $options, $descr] = array_pad($__entry__, 3, null);
 $result = $duration->round($options);

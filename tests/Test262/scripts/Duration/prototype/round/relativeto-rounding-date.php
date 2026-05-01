@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $days = new \Temporal\Spec\Duration(0, 0, 0, 45, 0, 0, 0, 0, 0, 0);
 $yearAndHalf = new \Temporal\Spec\Duration(0, 0, 0, 547, 12, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($days->round(['relativeTo' => new \Temporal\Spec\PlainDate(2019, 1, 1), 'smallestUnit' => 'months']), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($days->negated()->round(['relativeTo' => new \Temporal\Spec\PlainDate(2019, 2, 15), 'smallestUnit' => 'months']), 0, -1, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($yearAndHalf->round(['relativeTo' => new \Temporal\Spec\PlainDate(2018, 1, 1), 'smallestUnit' => 'years']), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($yearAndHalf->round(['relativeTo' => new \Temporal\Spec\PlainDate(2018, 7, 1), 'smallestUnit' => 'years']), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($yearAndHalf->round(['relativeTo' => new \Temporal\Spec\PlainDate(2019, 1, 1), 'smallestUnit' => 'years']), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($yearAndHalf->round(['relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1), 'smallestUnit' => 'years']), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($yearAndHalf->round(['relativeTo' => new \Temporal\Spec\PlainDate(2020, 7, 1), 'smallestUnit' => 'years']), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($days->round(JsUndefined::strip(['relativeTo' => new \Temporal\Spec\PlainDate(2019, 1, 1), 'smallestUnit' => 'months'])), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($days->negated()->round(JsUndefined::strip(['relativeTo' => new \Temporal\Spec\PlainDate(2019, 2, 15), 'smallestUnit' => 'months'])), 0, -1, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($yearAndHalf->round(JsUndefined::strip(['relativeTo' => new \Temporal\Spec\PlainDate(2018, 1, 1), 'smallestUnit' => 'years'])), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($yearAndHalf->round(JsUndefined::strip(['relativeTo' => new \Temporal\Spec\PlainDate(2018, 7, 1), 'smallestUnit' => 'years'])), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($yearAndHalf->round(JsUndefined::strip(['relativeTo' => new \Temporal\Spec\PlainDate(2019, 1, 1), 'smallestUnit' => 'years'])), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($yearAndHalf->round(JsUndefined::strip(['relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1), 'smallestUnit' => 'years'])), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($yearAndHalf->round(JsUndefined::strip(['relativeTo' => new \Temporal\Spec\PlainDate(2020, 7, 1), 'smallestUnit' => 'years'])), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $noopRoundingOperations = [[(object) ['smallestUnit' => 'nanoseconds'], 'smallestUnit ns'], [(object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1], 'round to 1 ns']];
 foreach ($noopRoundingOperations as $__entry__) {

@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendarEraAliases = [['calendar' => 'japanese', 'canonicalizedEra' => 'ce', 'alias' => 'ad'], ['calendar' => 'japanese', 'canonicalizedEra' => 'bce', 'alias' => 'bc']];
 foreach ($calendarEraAliases as $calendarEraAlias) {
-$calendar = \Temporal\Spec\ZonedDateTime::from(['calendar' => $calendarEraAlias['calendar'], 'era' => $calendarEraAlias['alias'], 'eraYear' => 1, 'month' => 1, 'day' => 1, 'timeZone' => 'UTC']);
+$calendar = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['calendar' => $calendarEraAlias['calendar'], 'era' => $calendarEraAlias['alias'], 'eraYear' => 1, 'month' => 1, 'day' => 1, 'timeZone' => 'UTC']));
 Assert::sameValue($calendar->era, $calendarEraAlias['canonicalizedEra'], $calendar->era . ' should canonicalize to ' . $calendarEraAlias['canonicalizedEra']);
 }

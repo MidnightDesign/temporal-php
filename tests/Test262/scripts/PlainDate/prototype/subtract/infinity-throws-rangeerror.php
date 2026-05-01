@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $overflows = ['constrain', 'reject'];
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 $instance = \Temporal\Spec\PlainDate::from(['year' => 2000, 'month' => 5, 'day' => 2]);
 foreach ($overflows as $overflow) {
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field, &$overflow) { return $instance->subtract([$field => INF], ['overflow' => $overflow]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field, &$overflow) { return $instance->subtract(JsUndefined::strip([$field => INF]), JsUndefined::strip(['overflow' => $overflow])); }, '');
 }
 }
 $calls = 0;

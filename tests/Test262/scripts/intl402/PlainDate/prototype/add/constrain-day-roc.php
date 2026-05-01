@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'roc';
 $options = ['overflow' => 'reject'];
-$common0131 = \Temporal\Spec\PlainDate::from(['year' => 108, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar], $options);
-$common1231 = \Temporal\Spec\PlainDate::from(['year' => 108, 'monthCode' => 'M12', 'day' => 31, 'calendar' => $calendar], $options);
-$leap0131 = \Temporal\Spec\PlainDate::from(['year' => 105, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar], $options);
-$leap1231 = \Temporal\Spec\PlainDate::from(['year' => 105, 'monthCode' => 'M12', 'day' => 31, 'calendar' => $calendar], $options);
+$common0131 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 108, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar]), $options);
+$common1231 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 108, 'monthCode' => 'M12', 'day' => 31, 'calendar' => $calendar]), $options);
+$leap0131 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 105, 'monthCode' => 'M01', 'day' => 31, 'calendar' => $calendar]), $options);
+$leap1231 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 105, 'monthCode' => 'M12', 'day' => 31, 'calendar' => $calendar]), $options);
 $months1 = new \Temporal\Spec\Duration(0, 1);
 $months2 = new \Temporal\Spec\Duration(0, 2);
 $months3 = new \Temporal\Spec\Duration(0, 3);

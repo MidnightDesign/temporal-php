@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $minDate = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
 $midnight = new \Temporal\Spec\PlainTime();
-$item = (object) ['timeZone' => '+00', 'plainTime' => $midnight];
+$item = (object) JsUndefined::strip(['timeZone' => '+00', 'plainTime' => $midnight]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$minDate, &$item) { return $minDate->toZonedDateTime($item); }, '');

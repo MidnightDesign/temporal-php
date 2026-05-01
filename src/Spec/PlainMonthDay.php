@@ -859,25 +859,9 @@ final class PlainMonthDay implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $bag) && $bag['monthCode'] !== null;
         $hasDay = array_key_exists('day', $bag) && $bag['day'] !== null;
         $hasYear = array_key_exists('year', $bag) && $bag['year'] !== null;
-        $hasEra = array_key_exists('era', $bag);
-        $hasEraYear = array_key_exists('eraYear', $bag);
+        $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainMonthDay');
 
         $calendar = $calendarId !== null && $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
-
-        // For non-ISO calendars: validate era/eraYear completeness and calendar compatibility.
-        if ($calendar !== null) {
-            if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
-                throw new \TypeError('eraYear and era are invalid for this calendar.');
-            }
-            if ($hasEra && !$hasEraYear) {
-                throw new \TypeError('era provided without eraYear.');
-            }
-            if ($hasEraYear && !$hasEra) {
-                throw new \TypeError('eraYear provided without era.');
-            }
-        }
-
-        $hasEraAndEraYear = $hasEra && $hasEraYear;
         $hasYearLike = $hasYear || $calendar !== null && $hasEraAndEraYear;
 
         // For non-ISO calendars, year is required when using month (without monthCode).

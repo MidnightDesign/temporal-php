@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(\Temporal\Spec\Duration::compare('PT12H', new \Temporal\Spec\Duration()), 1, 'first argument string');
 Assert::sameValue(\Temporal\Spec\Duration::compare(['hours' => 12], new \Temporal\Spec\Duration()), 1, 'first argument object');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Duration::compare(['hour' => 12], new \Temporal\Spec\Duration()), 'first argument missing property');

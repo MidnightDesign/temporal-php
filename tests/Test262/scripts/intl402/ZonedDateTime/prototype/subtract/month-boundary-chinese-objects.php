@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'chinese';
 $options = (object) ['overflow' => 'reject'];
@@ -17,11 +18,11 @@ $months4n = new \Temporal\Spec\Duration(0, 4);
 $months6 = new \Temporal\Spec\Duration(0, -6);
 $months6n = new \Temporal\Spec\Duration(0, 6);
 $durations = [$months1, $months1n, $months4, $months4n, $months6, $months6n];
-$date201901 = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2019, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
-$date201906 = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2019, 'monthCode' => 'M06', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
-$date201911 = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
-$date201912 = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2019, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
-$date200012 = \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2000, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
+$date201901 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M01', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+$date201906 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M06', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+$date201911 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+$date201912 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+$date200012 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2000, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 $dates = [$date201901, $date201906, $date201911, $date201912, $date200012];
 foreach ($durations as $duration) {
 foreach ($dates as $start) {
@@ -29,17 +30,17 @@ $end = $start->subtract($duration);
 $startYesterday = $start->subtract((object) ['days' => 1]);
 $endYesterday = $startYesterday->subtract($duration);
 Assert::sameValue($endYesterday->day, min($startYesterday->day, $endYesterday->daysInMonth), 'adding months should result in same day');
-$endYesterdayNextDay = $endYesterday->subtract((object) ['days' => -1]);
+$endYesterdayNextDay = $endYesterday->subtract((object) JsUndefined::strip(['days' => -1]));
 while ($endYesterdayNextDay->day !== 1) {
-$endYesterdayNextDay = $endYesterdayNextDay->subtract((object) ['days' => -1]);
+$endYesterdayNextDay = $endYesterdayNextDay->subtract((object) JsUndefined::strip(['days' => -1]));
 }
 TemporalHelpers::assertPlainDateTime($endYesterdayNextDay->toPlainDateTime(), $end->year, $end->month, $end->monthCode, $end->day, 12, 34, 0, 0, 0, 0, "endYesterdayNextDay", $end->era, $end->eraYear);
 $endReverse = $endYesterdayNextDay->subtract((object) ['days' => 1]);
 $startReverse = $endReverse->subtract($duration->negated());
 Assert::sameValue($startReverse->day, min($endReverse->day, $startReverse->daysInMonth), '');
-$startReverseNextDay = $startReverse->subtract((object) ['days' => -1]);
+$startReverseNextDay = $startReverse->subtract((object) JsUndefined::strip(['days' => -1]));
 while ($startReverseNextDay->day !== 1) {
-$startReverseNextDay = $startReverseNextDay->subtract((object) ['days' => -1]);
+$startReverseNextDay = $startReverseNextDay->subtract((object) JsUndefined::strip(['days' => -1]));
 }
 TemporalHelpers::assertPlainDateTime($startReverseNextDay->toPlainDateTime(), $start->year, $start->month, $start->monthCode, $start->day, 12, 34, 0, 0, 0, 0, "startReverseNextDay", $start->era, $start->eraYear);
 }

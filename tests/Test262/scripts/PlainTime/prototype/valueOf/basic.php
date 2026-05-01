@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainTime = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
 $plainTime2 = \Temporal\Spec\PlainTime::from('09:36:29.123456789');
 // JS-only (PHP spec layer does not expose valueOf(); operators have no hook): assert.throws(TypeError, () => plainTime.valueOf(), "valueOf")

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $ok = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $invalidStrings = ['-000000-06', '-000000-06-24', '-000000-06-24T15:43:27', '-000000-06-24T15:43:27+01:00', '-000000-06-24T15:43:27+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {

@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'islamic-umalqura';
 $options = ['overflow' => 'reject'];
 $years1 = new \Temporal\Spec\Duration(-1);
 $years1n = new \Temporal\Spec\Duration(1);
 foreach (['M01', 'M03', 'M05', 'M07', 'M12'] as $monthCode) {
-$date1443 = \Temporal\Spec\ZonedDateTime::from(['year' => 1443, 'monthCode' => $monthCode, 'day' => 30, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
+$date1443 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 1443, 'monthCode' => $monthCode, 'day' => 30, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 Assert::incomplete('untranslatable: Number()');
 }

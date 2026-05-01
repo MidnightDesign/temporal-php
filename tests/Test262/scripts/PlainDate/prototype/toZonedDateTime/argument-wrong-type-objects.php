@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$arg) { return $instance->toZonedDateTime((object) ['plainTime' => $arg, 'timeZone' => 'UTC']); }, "{$description} does not convert to a valid ISO string");
+Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$arg) { return $instance->toZonedDateTime((object) JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC'])); }, "{$description} does not convert to a valid ISO string");
 }
 Assert::incomplete('untranslatable: Symbol()');

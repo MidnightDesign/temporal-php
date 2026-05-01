@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'japanese';
 $options = ['overflow' => 'reject'];
-$leapDay = \Temporal\Spec\PlainDateTime::from(['year' => 2016, 'monthCode' => 'M02', 'day' => 29, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar], $options);
+$leapDay = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => 2016, 'monthCode' => 'M02', 'day' => 29, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($leapDay->with(['year' => 2012], $options), 2012, 2, 'M02', 29, 12, 34, 0, 0, 0, 0, 'day not constrained when moving to another leap year', 'heisei', 24);
 TemporalHelpers::assertPlainDateTime($leapDay->with(['year' => 2018]), 2018, 2, 'M02', 28, 12, 34, 0, 0, 0, 0, 'day constrained when moving to a common year', 'heisei', 30);
 Assert::throws(\InvalidArgumentException::class, function () use (&$leapDay, &$options) { $leapDay->with(['year' => 2018], $options); }, 'reject when moving to a common year');

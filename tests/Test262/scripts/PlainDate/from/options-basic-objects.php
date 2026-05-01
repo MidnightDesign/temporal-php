@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 foreach ([(object) ['overflow' => 'constrain'], (object) ['overflow' => 'reject']] as $validOptions) {
 $d = new \Temporal\Spec\PlainDate(1, 2, 3);
 $d2 = \Temporal\Spec\PlainDate::from($d, $validOptions);

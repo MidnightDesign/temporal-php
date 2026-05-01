@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $year1 = new \Temporal\Spec\Duration(1);
 $year1n = new \Temporal\Spec\Duration(-1);
 $month1 = new \Temporal\Spec\Duration(0, 1);

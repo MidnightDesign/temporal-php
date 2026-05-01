@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$field) { return \Temporal\Spec\Duration::from([$field => 1.5]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$field) { return \Temporal\Spec\Duration::from([$field => -1.5]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$field) { return \Temporal\Spec\Duration::from(JsUndefined::strip([$field => -1.5])); }, '');
 }

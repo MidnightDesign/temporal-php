@@ -7,21 +7,22 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $relativeTo = new \Temporal\Spec\PlainDate(2022, 1, 1);
 $roundingMode = 'expand';
 $duration = new \Temporal\Spec\Duration(1, 11, 0, 24);
-$result = $duration->round(['smallestUnit' => 'months', 'roundingMode' => $roundingMode, 'relativeTo' => $relativeTo]);
+$result = $duration->round(JsUndefined::strip(['smallestUnit' => 'months', 'roundingMode' => $roundingMode, 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, '1 year 12 months balances to 2 years');
 $duration = new \Temporal\Spec\Duration(-1, -11, 0, -24);
-$result = $duration->round(['smallestUnit' => 'months', 'roundingMode' => $roundingMode, 'relativeTo' => $relativeTo]);
+$result = $duration->round(JsUndefined::strip(['smallestUnit' => 'months', 'roundingMode' => $roundingMode, 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result, -2, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-1 year -12 months balances to -2 years');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 1, 59, 59, 900);
-$result = $duration->round(['smallestUnit' => 'seconds', 'roundingMode' => $roundingMode]);
+$result = $duration->round(JsUndefined::strip(['smallestUnit' => 'seconds', 'roundingMode' => $roundingMode]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, '1:59:60 balances to 2 hours');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, -1, -59, -59, -900);
-$result = $duration->round(['smallestUnit' => 'seconds', 'roundingMode' => $roundingMode]);
+$result = $duration->round(JsUndefined::strip(['smallestUnit' => 'seconds', 'roundingMode' => $roundingMode]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, -2, 0, 0, 0, 0, 0, '-1:59:60 balances to -2 hours');
 $duration = new \Temporal\Spec\Duration(0, 11, 0, 24);
-$result = $duration->round(['smallestUnit' => 'months', 'roundingMode' => $roundingMode, 'relativeTo' => $relativeTo]);
+$result = $duration->round(JsUndefined::strip(['smallestUnit' => 'months', 'roundingMode' => $roundingMode, 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, '12 months stays as is');

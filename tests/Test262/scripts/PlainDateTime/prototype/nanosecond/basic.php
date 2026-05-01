@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(2026, 3, 6, 12, 34, 56, 987, 654, 321);
 Assert::sameValue($instance->nanosecond, 321, '');

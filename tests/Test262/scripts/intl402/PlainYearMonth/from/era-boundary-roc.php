@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'roc';
 $options = ['overflow' => 'reject'];
-$roc0 = \Temporal\Spec\PlainYearMonth::from(['era' => 'roc', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$roc0 = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'roc', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($roc0, 0, 1, 'M01', 'ROC 0 resolves to BROC 1', 'broc', 1);
-$roc1n = \Temporal\Spec\PlainYearMonth::from(['era' => 'roc', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$roc1n = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'roc', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($roc1n, -1, 1, 'M01', 'ROC -1 resolves to BROC 2', 'broc', 2);
-$broc0 = \Temporal\Spec\PlainYearMonth::from(['era' => 'broc', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$broc0 = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'broc', 'eraYear' => 0, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($broc0, 1, 1, 'M01', 'BROC 0 resolves to ROC 1', 'roc', 1);
-$broc1n = \Temporal\Spec\PlainYearMonth::from(['era' => 'broc', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$broc1n = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['era' => 'broc', 'eraYear' => -1, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainYearMonth($broc1n, 2, 1, 'M01', 'BROC -1 resolves to ROC 2', 'roc', 2);

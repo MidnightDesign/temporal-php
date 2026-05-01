@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = (object) ['year' => 2000, 'month' => 1, 'day' => 1];
-$result = $instance->round((object) ['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result = $instance->round((object) JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'missing time units default to 0');

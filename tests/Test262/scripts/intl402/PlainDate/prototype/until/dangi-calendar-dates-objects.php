@@ -7,16 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'dangi';
-$durationCases = (object) ['days' => (object) ['duration' => (object) ['days' => 280], 'result' => (object) ['year' => 2000, 'month' => 10, 'monthCode' => 'M10', 'day' => 16], 'startDate' => (object) ['year' => 2000, 'month' => 1, 'day' => 1]], 'weeks' => (object) ['duration' => (object) ['weeks' => 40], 'result' => (object) ['year' => 2000, 'month' => 10, 'monthCode' => 'M10', 'day' => 16], 'startDate' => (object) ['year' => 2000, 'month' => 1, 'day' => 1]], 'months' => (object) ['duration' => (object) ['months' => 6], 'result' => (object) ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 1], 'startDate' => (object) ['year' => 2000, 'month' => 12, 'day' => 1]], 'years' => (object) ['duration' => (object) ['years' => 3, 'months' => 6, 'days' => 17], 'result' => (object) ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 18], 'startDate' => (object) ['year' => 1997, 'monthCode' => 'M12', 'day' => 1]]];
+$durationCases = (object) JsUndefined::strip(['days' => (object) JsUndefined::strip(['duration' => (object) ['days' => 280], 'result' => (object) ['year' => 2000, 'month' => 10, 'monthCode' => 'M10', 'day' => 16], 'startDate' => (object) ['year' => 2000, 'month' => 1, 'day' => 1]]), 'weeks' => (object) JsUndefined::strip(['duration' => (object) ['weeks' => 40], 'result' => (object) ['year' => 2000, 'month' => 10, 'monthCode' => 'M10', 'day' => 16], 'startDate' => (object) ['year' => 2000, 'month' => 1, 'day' => 1]]), 'months' => (object) JsUndefined::strip(['duration' => (object) ['months' => 6], 'result' => (object) ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 1], 'startDate' => (object) ['year' => 2000, 'month' => 12, 'day' => 1]]), 'years' => (object) JsUndefined::strip(['duration' => (object) ['years' => 3, 'months' => 6, 'days' => 17], 'result' => (object) ['year' => 2001, 'month' => 6, 'monthCode' => 'M05', 'day' => 18], 'startDate' => (object) ['year' => 1997, 'monthCode' => 'M12', 'day' => 1]])]);
 foreach ($durationCases as $unit => $__entry__) {
 $duration = $__entry__['duration'] ?? null;
 $result = $__entry__['result'] ?? null;
 $startDate = $__entry__['startDate'] ?? null;
 $duration = \Temporal\Spec\Duration::from($duration);
-$start = \Temporal\Spec\PlainDate::from((object) array_merge($startDate, ['calendar' => $calendar]));
+$start = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(array_merge($startDate, ['calendar' => $calendar])));
 $end = $start->add($duration);
-$diff = $start->until($end, (object) ['largestUnit' => $unit]);
+$diff = $start->until($end, (object) JsUndefined::strip(['largestUnit' => $unit]));
 TemporalHelpers::assertDurationsEqual($diff, $duration, "{$unit}");
 }

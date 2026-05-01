@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'iso8601';
-$arg = ['monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
+$arg = JsUndefined::strip(['monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar]);
 $result = \Temporal\Spec\PlainMonthDay::from($arg);
 TemporalHelpers::assertPlainMonthDay($result, 'M11', 18, "Calendar created from string \"{$calendar}\"");
 Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');

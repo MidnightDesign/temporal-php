@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $preMeiji = \Temporal\Spec\PlainDate::from((object) ['calendar' => 'japanese', 'era' => 'ce', 'eraYear' => 1800, 'month' => 6, 'day' => 15]);
 TemporalHelpers::assertPlainDate($preMeiji, 1800, 6, 'M06', 15, 'pre-Meiji date', 'ce', 1800);

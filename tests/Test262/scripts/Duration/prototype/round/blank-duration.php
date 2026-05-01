@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $blank = new \Temporal\Spec\Duration();
 $plainRelativeTo = new \Temporal\Spec\PlainDate(2025, 8, 22);
@@ -14,14 +15,14 @@ $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(1, 'UTC');
 foreach (['days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $smallestUnit) {
 $result = $blank->round($smallestUnit);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} without relativeTo");
-$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $plainRelativeTo]);
+$result = $blank->round(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'relativeTo' => $plainRelativeTo]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with PlainDate relativeTo");
-$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $zonedRelativeTo]);
+$result = $blank->round(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'relativeTo' => $zonedRelativeTo]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with ZonedDateTime relativeTo");
 }
 foreach (['years', 'months', 'weeks'] as $smallestUnit) {
-$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $plainRelativeTo]);
+$result = $blank->round(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'relativeTo' => $plainRelativeTo]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with PlainDate relativeTo");
-$result = $blank->round(['smallestUnit' => $smallestUnit, 'relativeTo' => $zonedRelativeTo]);
+$result = $blank->round(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'relativeTo' => $zonedRelativeTo]));
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "round to {$smallestUnit} with ZonedDateTime relativeTo");
 }

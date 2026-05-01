@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'America/Los_Angeles');
 Assert::sameValue($instance->offsetNanoseconds, -8 * 3_600_000_000_000, '');

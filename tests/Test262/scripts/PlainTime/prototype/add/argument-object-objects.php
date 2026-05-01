@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainTime = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789);
 TemporalHelpers::assertPlainTime($plainTime->add((object) ['hours' => 16]), 7, 23, 30, 123, 456, 789, 'add 16 hours across midnight boundary');
@@ -15,10 +16,10 @@ TemporalHelpers::assertPlainTime($plainTime->add((object) ['seconds' => 800]), 1
 TemporalHelpers::assertPlainTime($plainTime->add((object) ['milliseconds' => 800]), 15, 23, 30, 923, 456, 789, 'add 800 milliseconds');
 TemporalHelpers::assertPlainTime($plainTime->add((object) ['microseconds' => 800]), 15, 23, 30, 124, 256, 789, 'add 800 microseconds');
 TemporalHelpers::assertPlainTime($plainTime->add((object) ['nanoseconds' => 300]), 15, 23, 30, 123, 457, 89, 'add 300 nanoseconds');
-TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('07:23:30.123456789')->add((object) ['hours' => -16]), 15, 23, 30, 123, 456, 789, 'add -16 hours across midnight boundary');
-TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('16:08:30.123456789')->add((object) ['minutes' => -45]), 15, 23, 30, 123, 456, 789, 'add -45 minutes');
-TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:36:50.123456789')->add((object) ['seconds' => -800]), 15, 23, 30, 123, 456, 789, 'add -800 seconds');
-TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:23:30.923456789')->add((object) ['milliseconds' => -800]), 15, 23, 30, 123, 456, 789, 'add -800 milliseconds');
-TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:23:30.124256789')->add((object) ['microseconds' => -800]), 15, 23, 30, 123, 456, 789, 'add -800 microseconds');
-TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:23:30.123457089')->add((object) ['nanoseconds' => -300]), 15, 23, 30, 123, 456, 789, 'add -300 nanoseconds');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('07:23:30.123456789')->add((object) JsUndefined::strip(['hours' => -16])), 15, 23, 30, 123, 456, 789, 'add -16 hours across midnight boundary');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('16:08:30.123456789')->add((object) JsUndefined::strip(['minutes' => -45])), 15, 23, 30, 123, 456, 789, 'add -45 minutes');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:36:50.123456789')->add((object) JsUndefined::strip(['seconds' => -800])), 15, 23, 30, 123, 456, 789, 'add -800 seconds');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:23:30.923456789')->add((object) JsUndefined::strip(['milliseconds' => -800])), 15, 23, 30, 123, 456, 789, 'add -800 milliseconds');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:23:30.124256789')->add((object) JsUndefined::strip(['microseconds' => -800])), 15, 23, 30, 123, 456, 789, 'add -800 microseconds');
+TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from('15:23:30.123457089')->add((object) JsUndefined::strip(['nanoseconds' => -300])), 15, 23, 30, 123, 456, 789, 'add -300 nanoseconds');
 TemporalHelpers::assertPlainTime($plainTime->add((object) ['minute' => 1, 'hours' => 1]), 16, 23, 30, 123, 456, 789, 'misspelled property is ignored');

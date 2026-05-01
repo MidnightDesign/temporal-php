@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $hours25 = new \Temporal\Spec\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($hours25->round((object) ['largestUnit' => 'auto']), 0, 0, 0, 0, 25, 0, 0, 0, 0, 0);

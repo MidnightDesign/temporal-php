@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from((object) ['monthCode' => 'M99L']), 'Missing year throws TypeError before invalid monthCode throws RangeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2021]), 'Missing month/monthCode throws TypeError');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2021, 'monthCode' => 'M99L']), 'Invalid monthCode throws RangeError when all types are valid');

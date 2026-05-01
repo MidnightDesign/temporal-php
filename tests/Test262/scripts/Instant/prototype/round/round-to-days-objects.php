@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $inst = \Temporal\Spec\Instant::from('1976-11-18T14:23:30.123456789Z');
 $expected = \Temporal\Spec\Instant::from('1976-11-19T00:00:00Z');

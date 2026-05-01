@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $props = [];
 Assert::throws(\TypeError::class, function () use (&$props) { return \Temporal\Spec\PlainTime::from($props); }, 'TypeError if at least one property is not present');

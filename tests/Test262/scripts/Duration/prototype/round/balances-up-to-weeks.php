@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $oneMonthOneDay = new \Temporal\Spec\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $oneYearOneMonthOneDay = new \Temporal\Spec\Duration(1, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $severalWeeksInDays = new \Temporal\Spec\Duration(0, 0, 0, 29, 0, 0, 0, 0, 0, 0);
 $relativeTo = new \Temporal\Spec\PlainDate(2024, 1, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$oneMonthOneDay, &$relativeTo) { return $oneMonthOneDay->round(['relativeTo' => $relativeTo, 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil']); }, '');
-TemporalHelpers::assertDuration($oneMonthOneDay->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil']), 0, 0, 99, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($oneMonthOneDay->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 6, 'roundingMode' => 'ceil']), 0, 0, 6, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($oneYearOneMonthOneDay->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil']), 0, 0, 99, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($oneYearOneMonthOneDay->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 57, 'roundingMode' => 'ceil']), 0, 0, 57, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($severalWeeksInDays->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 5, 'roundingMode' => 'ceil']), 0, 0, 5, 0, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($severalWeeksInDays->round(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 8, 'roundingMode' => 'ceil']), 0, 0, 8, 0, 0, 0, 0, 0, 0, 0);
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneMonthOneDay, &$relativeTo) { return $oneMonthOneDay->round(JsUndefined::strip(['relativeTo' => $relativeTo, 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil'])); }, '');
+TemporalHelpers::assertDuration($oneMonthOneDay->round(JsUndefined::strip(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil'])), 0, 0, 99, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneMonthOneDay->round(JsUndefined::strip(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 6, 'roundingMode' => 'ceil'])), 0, 0, 6, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneYearOneMonthOneDay->round(JsUndefined::strip(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 99, 'roundingMode' => 'ceil'])), 0, 0, 99, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneYearOneMonthOneDay->round(JsUndefined::strip(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 57, 'roundingMode' => 'ceil'])), 0, 0, 57, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($severalWeeksInDays->round(JsUndefined::strip(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 5, 'roundingMode' => 'ceil'])), 0, 0, 5, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($severalWeeksInDays->round(JsUndefined::strip(['relativeTo' => $relativeTo, 'largestUnit' => 'weeks', 'smallestUnit' => 'weeks', 'roundingIncrement' => 8, 'roundingMode' => 'ceil'])), 0, 0, 8, 0, 0, 0, 0, 0, 0, 0);

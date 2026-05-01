@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $pym = new \Temporal\Spec\PlainYearMonth(1, 1);
 Assert::sameValue(is_string($pym->toLocaleString(null, (object) ['calendar' => 'iso8601'])), true, '');

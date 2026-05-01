@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['day' => 1, 'month' => -1]), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['month' => 1, 'day' => -1]), '');
+use Temporal\Tests\Test262\JsUndefined;
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['day' => 1, 'month' => -1])), '');
+Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['month' => 1, 'day' => -1])), '');

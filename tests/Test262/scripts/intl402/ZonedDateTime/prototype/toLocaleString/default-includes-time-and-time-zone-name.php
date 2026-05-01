@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(1_735_213_600_321_000_000, 'UTC');
 $result = $zonedDateTime->toLocaleString('en');
 Assert::assertTrue(str_contains($result, '2024'), "ZonedDateTime formatted with no options {$result} should include year");

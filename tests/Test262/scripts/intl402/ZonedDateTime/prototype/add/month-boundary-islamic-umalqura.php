@@ -7,18 +7,19 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'islamic-umalqura';
 $options = ['overflow' => 'reject'];
 $months6 = new \Temporal\Spec\Duration(0, 6);
 $months6n = new \Temporal\Spec\Duration(0, -6);
 $durations = [$months6, $months6n];
-$date14201201 = \Temporal\Spec\ZonedDateTime::from(['year' => 1420, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
+$date14201201 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 1420, 'monthCode' => 'M12', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
 $dates = [$date14201201];
 foreach ($durations as $duration) {
 foreach ($dates as $start) {
 $end = $start->add($duration);
-$startYesterday = $start->add(['days' => -1]);
+$startYesterday = $start->add(JsUndefined::strip(['days' => -1]));
 $endYesterday = $startYesterday->add($duration);
 Assert::sameValue($endYesterday->day, min($startYesterday->day, $endYesterday->daysInMonth), 'adding months should result in same day');
 $endYesterdayNextDay = $endYesterday->add(['days' => 1]);
@@ -26,7 +27,7 @@ while ($endYesterdayNextDay->day !== 1) {
 $endYesterdayNextDay = $endYesterdayNextDay->add(['days' => 1]);
 }
 TemporalHelpers::assertPlainDateTime($endYesterdayNextDay->toPlainDateTime(), $end->year, $end->month, $end->monthCode, $end->day, 12, 34, 0, 0, 0, 0, "endYesterdayNextDay", $end->era, $end->eraYear);
-$endReverse = $endYesterdayNextDay->add(['days' => -1]);
+$endReverse = $endYesterdayNextDay->add(JsUndefined::strip(['days' => -1]));
 $startReverse = $endReverse->add($duration->negated());
 Assert::sameValue($startReverse->day, min($endReverse->day, $startReverse->daysInMonth), '');
 $startReverseNextDay = $startReverse->add(['days' => 1]);

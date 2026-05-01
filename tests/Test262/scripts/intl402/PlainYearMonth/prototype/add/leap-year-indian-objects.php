@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'indian';
 $options = (object) ['overflow' => 'reject'];
-$leap = \Temporal\Spec\PlainYearMonth::from((object) ['year' => 1946, 'monthCode' => 'M01', 'calendar' => $calendar], $options);
+$leap = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => 1946, 'monthCode' => 'M01', 'calendar' => $calendar]), $options);
 $years1 = new \Temporal\Spec\Duration(1);
 $years1n = new \Temporal\Spec\Duration(-1);
 $years4 = new \Temporal\Spec\Duration(4);

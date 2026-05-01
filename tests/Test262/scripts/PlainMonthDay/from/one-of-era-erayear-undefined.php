@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $base = ['year' => 2000, 'month' => 5, 'day' => 2, 'era' => 'ce'];
 TemporalHelpers::assertPlainMonthDay(\Temporal\Spec\PlainMonthDay::from($base), 'M05', 2);

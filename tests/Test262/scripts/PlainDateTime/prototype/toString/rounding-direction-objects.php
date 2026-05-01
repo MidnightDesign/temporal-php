@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(-99, 12, 15, 12, 0, 0, 500);
 Assert::sameValue($instance->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'floor']), '-000099-12-15T12:00:00', 'Rounding down is towards the Big Bang, not the epoch or 1 BCE');
 Assert::sameValue($instance->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'trunc']), '-000099-12-15T12:00:00', 'Rounding down is towards the Big Bang, not the epoch or 1 BCE (roundingMode trunc)');

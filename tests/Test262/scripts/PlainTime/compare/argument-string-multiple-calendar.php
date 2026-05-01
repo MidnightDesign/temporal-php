@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['00:00[u-ca=iso8601][!u-ca=iso8601]', '00:00[!u-ca=iso8601][u-ca=iso8601]', '00:00[UTC][u-ca=iso8601][!u-ca=iso8601]', '00:00[u-ca=iso8601][foo=bar][!u-ca=iso8601]', '1970-01-01T00:00[u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00[!u-ca=iso8601][u-ca=iso8601]', '1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00[u-ca=iso8601][foo=bar][!u-ca=iso8601]'];
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::compare($arg, new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321)); }, "reject more than one calendar annotation if any critical: {$arg} (first argument)");

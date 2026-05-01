@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $twoYears = new \Temporal\Spec\Duration(0, 11, 0, 396, 0, 0, 0, 0, 0, 0);
-Assert::sameValue($twoYears->total((object) ['unit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2017, 1, 1)]), 2, '');
+Assert::sameValue($twoYears->total((object) JsUndefined::strip(['unit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2017, 1, 1)])), 2, '');
 $twoYearsNegative = new \Temporal\Spec\Duration(0, -11, 0, -396, 0, 0, 0, 0, 0, 0);
-Assert::sameValue($twoYearsNegative->total((object) ['unit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2017, 1, 1)]), -2, '');
+Assert::sameValue($twoYearsNegative->total((object) JsUndefined::strip(['unit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2017, 1, 1)])), -2, '');

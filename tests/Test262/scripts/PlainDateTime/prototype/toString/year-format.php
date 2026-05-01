@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(-100_000, 12, 3, 4, 56, 7, 890);
 Assert::sameValue($instance->toString(), '-100000-12-03T04:56:07.89', 'large negative year formatted as 6-digit');
 $instance = new \Temporal\Spec\PlainDateTime(-10_000, 4, 5, 6, 7, 8, 910);

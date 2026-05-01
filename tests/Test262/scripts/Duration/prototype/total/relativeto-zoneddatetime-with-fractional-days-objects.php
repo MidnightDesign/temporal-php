@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration = \Temporal\Spec\Duration::from((object) ['weeks' => 1, 'days' => 0, 'hours' => 1]);
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
-$result = $duration->total((object) ['relativeTo' => $zdt, 'unit' => 'days']);
+$result = $duration->total((object) JsUndefined::strip(['relativeTo' => $zdt, 'unit' => 'days']));
 Assert::sameValue($result, 7 + (1 / 24), '');

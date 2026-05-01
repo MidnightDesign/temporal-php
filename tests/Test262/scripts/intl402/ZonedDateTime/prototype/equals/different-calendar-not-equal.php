@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(0, '-05:00', 'iso8601');
 $instance2 = new \Temporal\Spec\ZonedDateTime(0, '-05:00', 'gregory');
 Assert::assertTrue(!$instance->equals($instance2), 'Instances with different calendars are not equal');

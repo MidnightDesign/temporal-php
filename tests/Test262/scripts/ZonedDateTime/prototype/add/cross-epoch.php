@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $zdt = new \Temporal\Spec\ZonedDateTime(-560_174_321_098_766, 'UTC');
 $one = $zdt->subtract(['hours' => 240, 'nanoseconds' => 800]);

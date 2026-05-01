@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_123_987_500);
-TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'microsecond', function ($smallestUnit) use (&$instant) { return $instant->round((object) ['smallestUnit' => $smallestUnit]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_123_988_000, $descr));
+TemporalHelpers::checkStringOptionWrongType('smallestUnit', 'microsecond', function ($smallestUnit) use (&$instant) { return $instant->round((object) JsUndefined::strip(['smallestUnit' => $smallestUnit])); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_000_000_123_988_000, $descr));

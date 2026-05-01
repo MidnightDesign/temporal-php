@@ -7,16 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $d = new \Temporal\Spec\Duration(1, 0, 0, 0, 1);
 $relativeTo = new \Temporal\Spec\PlainDate(2020, 2, 29);
-TemporalHelpers::assertDuration($d->round((object) ['smallestUnit' => 'years', 'relativeTo' => $relativeTo]), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['smallestUnit' => 'years', 'relativeTo' => $relativeTo])), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 $d = new \Temporal\Spec\Duration(0, 1, 0, 0, 10);
 $relativeTo = new \Temporal\Spec\PlainDate(2020, 1, 31);
-TemporalHelpers::assertDuration($d->round((object) ['smallestUnit' => 'months', 'roundingMode' => 'expand', 'relativeTo' => $relativeTo]), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['smallestUnit' => 'months', 'roundingMode' => 'expand', 'relativeTo' => $relativeTo])), 0, 2, 0, 0, 0, 0, 0, 0, 0, 0);
 $d = new \Temporal\Spec\Duration(2345, 0, 0, 0, 12);
 $relativeTo = new \Temporal\Spec\PlainDate(2020, 2, 29);
-TemporalHelpers::assertDuration($d->round((object) ['smallestUnit' => 'years', 'roundingMode' => 'expand', 'relativeTo' => $relativeTo]), 2346, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['smallestUnit' => 'years', 'roundingMode' => 'expand', 'relativeTo' => $relativeTo])), 2346, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 $d = new \Temporal\Spec\Duration(1);
 $relativeTo = new \Temporal\Spec\PlainDate(2020, 2, 29);
-TemporalHelpers::assertDuration($d->round((object) ['smallestUnit' => 'months', 'relativeTo' => $relativeTo]), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['smallestUnit' => 'months', 'relativeTo' => $relativeTo])), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);

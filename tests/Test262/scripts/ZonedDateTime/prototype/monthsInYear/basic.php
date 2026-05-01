@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(217_178_610_123_456_789, 'UTC');
 Assert::sameValue($zdt->monthsInYear, 12, 'check months in year information');
 Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');

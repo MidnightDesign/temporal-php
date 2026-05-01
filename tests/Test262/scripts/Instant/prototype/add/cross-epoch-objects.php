@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $inst = \Temporal\Spec\Instant::from('1969-12-25T12:23:45.678901234Z');
 $one = $inst->subtract((object) ['hours' => 240, 'nanoseconds' => 800]);

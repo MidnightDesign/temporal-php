@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration1a = new \Temporal\Spec\Duration(1);
 $duration1b = new \Temporal\Spec\Duration(1, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 $duration2a = new \Temporal\Spec\Duration(0, 12);
@@ -17,10 +18,10 @@ $duration4a = new \Temporal\Spec\Duration(0, 0, 0, 42);
 $duration4b = new \Temporal\Spec\Duration(0, 0, 0, 42, 0, 0, 0, 0, 0, 1);
 $relativeTo = new \Temporal\Spec\PlainDate(2021, 12, 15);
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration1a, &$duration1b) { \Temporal\Spec\Duration::compare($duration1a, $duration1b); }, 'cannot compare Duration values without relativeTo if year is non-zero');
-Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration1a, $duration1b, ['relativeTo' => $relativeTo]), 'compare succeeds for year-only Duration provided relativeTo is supplied');
+Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration1a, $duration1b, JsUndefined::strip(['relativeTo' => $relativeTo])), 'compare succeeds for year-only Duration provided relativeTo is supplied');
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration2a, &$duration2b) { \Temporal\Spec\Duration::compare($duration2a, $duration2b); }, 'cannot compare Duration values without relativeTo if month is non-zero');
-Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration2a, $duration2b, ['relativeTo' => $relativeTo]), 'compare succeeds for year-and-month Duration provided relativeTo is supplied');
+Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration2a, $duration2b, JsUndefined::strip(['relativeTo' => $relativeTo])), 'compare succeeds for year-and-month Duration provided relativeTo is supplied');
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration3a, &$duration3b) { \Temporal\Spec\Duration::compare($duration3a, $duration3b); }, 'cannot compare Duration values without relativeTo if week is non-zero');
-Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration3a, $duration3b, ['relativeTo' => $relativeTo]), 'compare succeeds for year-and-month-and-week Duration provided relativeTo is supplied');
+Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration3a, $duration3b, JsUndefined::strip(['relativeTo' => $relativeTo])), 'compare succeeds for year-and-month-and-week Duration provided relativeTo is supplied');
 Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration4a, $duration4b), 'compare succeeds for zero year-month-week non-zero day Duration even without relativeTo');
-Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration4a, $duration4b, ['relativeTo' => $relativeTo]), 'compare succeeds for zero year-month-week non-zero day Duration with relativeTo');
+Assert::sameValue(-1, \Temporal\Spec\Duration::compare($duration4a, $duration4b, JsUndefined::strip(['relativeTo' => $relativeTo])), 'compare succeeds for zero year-month-week non-zero day Duration with relativeTo');

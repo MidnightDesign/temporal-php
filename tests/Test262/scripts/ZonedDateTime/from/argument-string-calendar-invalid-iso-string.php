@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar'], ['1997-12-04[u-ca=11111111]', 'compact ISO date used as calendar name'], ['1997-12-04[u-ca=1111-11-11]', 'extended ISO date used as calendar name']];
 foreach ($invalidStrings as $__entry__) {

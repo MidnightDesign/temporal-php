@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Spec\Instant::class, 'fromEpochNanoseconds', [10], function ($result) { Assert::sameValue($result->epochNanoseconds, 10, 'epochNanoseconds result'); });

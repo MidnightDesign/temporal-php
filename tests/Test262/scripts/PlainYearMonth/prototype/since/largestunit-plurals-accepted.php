@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $validUnits = ['year', 'month'];
-TemporalHelpers::checkPluralUnitsAccepted(function ($largestUnit) use (&$later, &$earlier) { return $later->since($earlier, ['largestUnit' => $largestUnit]); }, $validUnits);
+TemporalHelpers::checkPluralUnitsAccepted(function ($largestUnit) use (&$later, &$earlier) { return $later->since($earlier, JsUndefined::strip(['largestUnit' => $largestUnit])); }, $validUnits);

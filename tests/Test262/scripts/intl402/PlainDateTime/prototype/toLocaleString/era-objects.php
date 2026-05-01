@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $date = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 14, 46, 0, 0, 0, 0, 'gregory');
 Assert::assertTrue($date->toLocaleString('en', (object) ['era' => 'narrow'])->startsWith('5'), 'toLocaleString on a PlainDateTime with era option should work');

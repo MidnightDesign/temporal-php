@@ -7,15 +7,16 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 13, 0, 0, 0, 0, 0);
 $zdt = \Temporal\Spec\ZonedDateTime::from('2024-03-10T00:00:00[America/New_York]');
-TemporalHelpers::assertDuration($d->round((object) ['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil']), 0, 0, 0, 1, 12, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($d->round((object) ['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'days', 'roundingIncrement' => 1, 'roundingMode' => 'ceil']), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil'])), 0, 0, 0, 1, 12, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'days', 'roundingIncrement' => 1, 'roundingMode' => 'ceil'])), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 $zdt = \Temporal\Spec\ZonedDateTime::from('2024-11-03T00:00:00[America/New_York]');
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 25, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($d->round((object) ['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil']), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil'])), 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 24, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($d->round((object) ['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil']), 0, 0, 0, 0, 24, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['relativeTo' => $zdt, 'largestUnit' => 'years', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil'])), 0, 0, 0, 0, 24, 0, 0, 0, 0, 0);
 $d = new \Temporal\Spec\Duration(0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($d->round((object) ['relativeTo' => $zdt, 'largestUnit' => 'hours', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil']), 0, 0, 0, 0, 36, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($d->round((object) JsUndefined::strip(['relativeTo' => $zdt, 'largestUnit' => 'hours', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil'])), 0, 0, 0, 0, 36, 0, 0, 0, 0, 0);

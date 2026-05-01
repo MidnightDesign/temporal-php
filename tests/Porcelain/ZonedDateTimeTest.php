@@ -1400,4 +1400,22 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
         static::assertSame(2020, $zdt2->year);
     }
+
+    public function testFromFieldsForwardsEraAndEraYear(): void
+    {
+        $zdt = ZonedDateTime::fromFields(
+            timeZone: 'UTC',
+            year: 2020,
+            month: 6,
+            day: 15,
+            hour: 12,
+            calendar: Calendar::Gregory,
+            era: 'ce',
+            eraYear: 2020,
+        );
+
+        static::assertSame(2020, $zdt->year);
+        static::assertSame('ce', $zdt->era);
+        static::assertSame(2020, $zdt->eraYear);
+    }
 }

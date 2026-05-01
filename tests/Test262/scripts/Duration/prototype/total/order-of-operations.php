@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $createOptionsObserver = function ($__unknown__) use (&$actual, &$unit, &$roundingMode, &$roundingIncrement, &$relativeTo) {
-return TemporalHelpers::propertyBagObserver($actual, ['unit' => $unit, 'roundingMode' => $roundingMode, 'roundingIncrement' => $roundingIncrement, 'relativeTo' => $relativeTo], 'options');
+return TemporalHelpers::propertyBagObserver($actual, JsUndefined::strip(['unit' => $unit, 'roundingMode' => $roundingMode, 'roundingIncrement' => $roundingIncrement, 'relativeTo' => $relativeTo]), 'options');
 };
 Assert::incomplete('untranslatable: Object.defineProperty');

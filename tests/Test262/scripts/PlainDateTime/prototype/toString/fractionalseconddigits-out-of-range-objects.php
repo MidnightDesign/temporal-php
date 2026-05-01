@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 650, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString((object) ['fractionalSecondDigits' => -INF]); }, '−∞ is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString((object) ['fractionalSecondDigits' => -1]); }, '−1 is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString((object) JsUndefined::strip(['fractionalSecondDigits' => -INF])); }, '−∞ is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString((object) JsUndefined::strip(['fractionalSecondDigits' => -1])); }, '−1 is out of range for fractionalSecondDigits');
 Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString((object) ['fractionalSecondDigits' => 10]); }, '10 is out of range for fractionalSecondDigits');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString((object) ['fractionalSecondDigits' => INF]); }, '∞ is out of range for fractionalSecondDigits');
+Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString((object) JsUndefined::strip(['fractionalSecondDigits' => INF])); }, '∞ is out of range for fractionalSecondDigits');

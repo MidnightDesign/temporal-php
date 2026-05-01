@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $td1pos = new \Temporal\Spec\Duration(0, 0, 0, 0, 5, 5, 5, 5, 5, 5);
 $td2pos = new \Temporal\Spec\Duration(0, 0, 0, 0, 5, 4, 5, 5, 5, 5);
 $td1neg = new \Temporal\Spec\Duration(0, 0, 0, 0, -5, -5, -5, -5, -5, -5);
@@ -25,11 +26,11 @@ $dd1neg = new \Temporal\Spec\Duration(-5, -5, -5, -5, -5, -5, -5, -5, -5, -5);
 $dd2neg = new \Temporal\Spec\Duration(-5, -5, -5, -5, -5, -4, -5, -5, -5, -5);
 $relativeTo = \Temporal\Spec\PlainDate::from('2017-01-01');
 Assert::throws(\InvalidArgumentException::class, function () use (&$dd1pos, &$dd2pos) { return \Temporal\Spec\Duration::compare($dd1pos, $dd2pos); }, 'date units: relativeTo is required');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd1pos, (object) ['relativeTo' => $relativeTo]), 0, 'date units: equal');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd2pos, $dd1pos, (object) ['relativeTo' => $relativeTo]), -1, 'date units: smaller/larger');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd2pos, (object) ['relativeTo' => $relativeTo]), 1, 'date units: larger/smaller');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd1neg, $dd1neg, (object) ['relativeTo' => $relativeTo]), 0, 'date units: negative/negative equal');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd2neg, $dd1neg, (object) ['relativeTo' => $relativeTo]), 1, 'date units: negative/negative smaller/larger');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd1neg, $dd2neg, (object) ['relativeTo' => $relativeTo]), -1, 'date units: negative/negative larger/smaller');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd1neg, $dd2pos, (object) ['relativeTo' => $relativeTo]), -1, 'date units: negative/positive');
-Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd2neg, (object) ['relativeTo' => $relativeTo]), 1, 'date units: positive/negative');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd1pos, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), 0, 'date units: equal');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd2pos, $dd1pos, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), -1, 'date units: smaller/larger');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd2pos, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), 1, 'date units: larger/smaller');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd1neg, $dd1neg, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), 0, 'date units: negative/negative equal');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd2neg, $dd1neg, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), 1, 'date units: negative/negative smaller/larger');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd1neg, $dd2neg, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), -1, 'date units: negative/negative larger/smaller');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd1neg, $dd2pos, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), -1, 'date units: negative/positive');
+Assert::sameValue(\Temporal\Spec\Duration::compare($dd1pos, $dd2neg, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), 1, 'date units: positive/negative');

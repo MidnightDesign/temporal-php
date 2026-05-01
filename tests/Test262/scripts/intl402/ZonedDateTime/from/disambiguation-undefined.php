@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $springForwardFields = ['timeZone' => 'America/Vancouver', 'year' => 2000, 'month' => 4, 'day' => 2, 'hour' => 2, 'minute' => 30];
 $fallBackFields = ['timeZone' => 'America/Vancouver', 'year' => 2000, 'month' => 10, 'day' => 29, 'hour' => 1, 'minute' => 30];
 foreach ([[$springForwardFields, 954_671_400_000_000_000], [$fallBackFields, 972_808_200_000_000_000]] as $__entry__) {

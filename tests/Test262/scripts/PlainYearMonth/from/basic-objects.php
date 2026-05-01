@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $result = \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2021, 'month' => 7]);
 TemporalHelpers::assertPlainYearMonth($result, 2021, 7, 'M07', 'year 2021, month 7');
@@ -17,7 +18,7 @@ TemporalHelpers::assertPlainYearMonth($result, 2021, 7, 'M07', 'year 2021, month
 $result = \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2021, 'monthCode' => 'M12']);
 TemporalHelpers::assertPlainYearMonth($result, 2021, 12, 'M12', 'year 2021, monthCode M12');
 foreach (['constrain', 'reject'] as $overflow) {
-$opt = (object) ['overflow' => $overflow];
+$opt = (object) JsUndefined::strip(['overflow' => $overflow]);
 $result = \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2021, 'month' => 7], $opt);
 TemporalHelpers::assertPlainYearMonth($result, 2021, 7, 'M07', "year 2021, month 7, overflow {$overflow}");
 $result = \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2021, 'month' => 12], $opt);

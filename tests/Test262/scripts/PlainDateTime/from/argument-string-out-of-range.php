@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('2020-13-34T24:60', []), 'constrain has no effect on invalid ISO string (empty options argument)');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('2020-13-34T24:60', function () {  }), 'constrain has no effect on invalid ISO string (nullary empty object function argument)');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('2020-13-34T24:60', ['overflow' => 'constrain']), 'overflow = constrain has no effect on invalid ISO string');

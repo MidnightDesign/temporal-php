@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = new \Temporal\Spec\PlainDate(1976, 11, 18);
-Assert::throws(\InvalidArgumentException::class, function () use (&$date) { return $date->with((object) ['year' => -300_000]); }, 'too-low year rejects even with overflow constrain');
+Assert::throws(\InvalidArgumentException::class, function () use (&$date) { return $date->with((object) JsUndefined::strip(['year' => -300_000])); }, 'too-low year rejects even with overflow constrain');
 Assert::throws(\InvalidArgumentException::class, function () use (&$date) { return $date->with((object) ['year' => 300_000]); }, 'too-high year rejects even with overflow constrain');
 Assert::throws(\InvalidArgumentException::class, function () use (&$date) { return $date->with((object) ['month' => 0]); }, 'non-positive month rejects even with overflow constrain');
 TemporalHelpers::assertPlainDate($date->with((object) ['month' => 13]), 1976, 12, 'M12', 18, 'too-high month is constrained to highest value');

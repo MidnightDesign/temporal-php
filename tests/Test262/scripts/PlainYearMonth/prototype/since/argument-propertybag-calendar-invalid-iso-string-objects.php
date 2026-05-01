@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown calendar'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as $__entry__) {
 [$cal, $description] = array_pad($__entry__, 2, null);
-$arg = (object) ['year' => 1970, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $cal];
+$arg = (object) JsUndefined::strip(['year' => 1970, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $cal]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, "{$description} is not a valid calendar ID");
 }

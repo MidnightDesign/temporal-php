@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(\Temporal\Spec\Duration::from('P3DT1H')->blank, false, '');
 Assert::sameValue(\Temporal\Spec\Duration::from('-PT2H20M30S')->blank, false, '');
 Assert::sameValue(\Temporal\Spec\Duration::from('PT0S')->blank, true, '');

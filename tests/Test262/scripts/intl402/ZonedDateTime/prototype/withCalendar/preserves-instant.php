@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(1_572_342_398_271_986_102, '-07:00', 'gregory');
 $result = $instance->withCalendar('japanese');
 Assert::sameValue($result->epochNanoseconds, 1_572_342_398_271_986_102, 'Exact time is preserved in return value');

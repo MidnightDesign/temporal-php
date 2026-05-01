@@ -7,21 +7,22 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier1 = new \Temporal\Spec\PlainYearMonth(2018, 6);
 $later = new \Temporal\Spec\PlainYearMonth(2019, 12);
 Assert::sameValue($earlier1->until($later)->total((object) ['unit' => 'years', 'relativeTo' => '2018-06-01']), 1.5, '1.5-year duration is on a 0.5 boundary');
 foreach (['trunc', 'floor', 'halfTrunc', 'halfFloor'] as $mode) {
-TemporalHelpers::assertDuration($earlier1->until($later, (object) ['smallestUnit' => 'years', 'roundingMode' => $mode]), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, "1.5 years with {$mode} rounds down to 1");
+TemporalHelpers::assertDuration($earlier1->until($later, (object) JsUndefined::strip(['smallestUnit' => 'years', 'roundingMode' => $mode])), 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, "1.5 years with {$mode} rounds down to 1");
 }
 foreach (['ceil', 'expand', 'halfExpand', 'halfCeil', 'halfEven'] as $mode) {
-TemporalHelpers::assertDuration($earlier1->until($later, (object) ['smallestUnit' => 'years', 'roundingMode' => $mode]), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, "1.5 years with {$mode} rounds up to 2");
+TemporalHelpers::assertDuration($earlier1->until($later, (object) JsUndefined::strip(['smallestUnit' => 'years', 'roundingMode' => $mode])), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, "1.5 years with {$mode} rounds up to 2");
 }
 $earlier2 = new \Temporal\Spec\PlainYearMonth(2017, 6);
 Assert::sameValue($earlier2->until($later)->total((object) ['unit' => 'years', 'relativeTo' => '2017-06-01']), 2.5, '2.5-year duration is on a 0.5 boundary');
 foreach (['trunc', 'floor', 'halfTrunc', 'halfFloor', 'halfEven'] as $mode) {
-TemporalHelpers::assertDuration($earlier2->until($later, (object) ['smallestUnit' => 'years', 'roundingMode' => $mode]), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, "2.5 years with {$mode} rounds down to 2");
+TemporalHelpers::assertDuration($earlier2->until($later, (object) JsUndefined::strip(['smallestUnit' => 'years', 'roundingMode' => $mode])), 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, "2.5 years with {$mode} rounds down to 2");
 }
 foreach (['ceil', 'expand', 'halfExpand', 'halfCeil'] as $mode) {
-TemporalHelpers::assertDuration($earlier2->until($later, (object) ['smallestUnit' => 'years', 'roundingMode' => $mode]), 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, "2.5 years with {$mode} rounds up to 3");
+TemporalHelpers::assertDuration($earlier2->until($later, (object) JsUndefined::strip(['smallestUnit' => 'years', 'roundingMode' => $mode])), 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, "2.5 years with {$mode} rounds up to 3");
 }

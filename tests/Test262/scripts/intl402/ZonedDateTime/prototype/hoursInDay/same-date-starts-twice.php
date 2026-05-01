@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt1 = \Temporal\Spec\ZonedDateTime::from('2010-11-06T00:00:00-02:30[America/St_Johns]');
 $zdt2 = \Temporal\Spec\ZonedDateTime::from('2010-11-07T23:00:00-03:30[America/St_Johns]');
 $zdt3 = \Temporal\Spec\ZonedDateTime::from('2010-11-08T23:00:00-03:30[America/St_Johns]');

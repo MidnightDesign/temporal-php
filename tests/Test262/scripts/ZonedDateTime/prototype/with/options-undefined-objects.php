@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(949_494_896_987_654_321, 'UTC');
 $fields = (object) ['day' => 31];
 $explicit = $datetime->with($fields);

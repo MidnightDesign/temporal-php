@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = '2016-12-31T23:59:60';
-$arg = (object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
+$arg = (object) JsUndefined::strip(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar]);
 $result = \Temporal\Spec\PlainDate::from($arg);
 TemporalHelpers::assertPlainDate($result, 1976, 11, 'M11', 18, 'leap second is a valid ISO string for calendar');

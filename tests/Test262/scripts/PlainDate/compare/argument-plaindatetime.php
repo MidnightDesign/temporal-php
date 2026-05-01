@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $sameDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $earlierDate = new \Temporal\Spec\PlainDate(1920, 7, 3);

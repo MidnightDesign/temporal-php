@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::checkSubclassingIgnored(\Temporal\Spec\PlainDate::class, [2000, 5, 2], 'withCalendar', ['iso8601'], function ($result) { TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2); Assert::sameValue($result->calendarId, 'iso8601', 'calendar result'); });

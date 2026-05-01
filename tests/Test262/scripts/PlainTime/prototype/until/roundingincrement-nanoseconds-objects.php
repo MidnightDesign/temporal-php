@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainTime(3, 12, 34, 123, 456, 789);
 $later = new \Temporal\Spec\PlainTime(13, 47, 57, 988, 655, 322);

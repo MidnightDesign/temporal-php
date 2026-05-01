@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
-TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 5779, 'month' => 6, 'calendar' => $calendar]), 5779, 6, 'M05L', 'Leap month resolved from month number', 'am', 5779, null);
-TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 5779, 'monthCode' => 'M05L', 'calendar' => $calendar]), 5779, 6, 'M05L', 'Leap month resolved from month code', 'am', 5779, null);
-TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 5779, 'month' => 7, 'calendar' => $calendar]), 5779, 7, 'M06', 'Month after leap month resolved from month number', 'am', 5779, null);
-TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(['year' => 5779, 'monthCode' => 'M06', 'calendar' => $calendar]), 5779, 7, 'M06', 'Month after leap month resolved from month code', 'am', 5779, null);
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 5779, 'month' => 6, 'calendar' => $calendar])), 5779, 6, 'M05L', 'Leap month resolved from month number', 'am', 5779, null);
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 5779, 'monthCode' => 'M05L', 'calendar' => $calendar])), 5779, 6, 'M05L', 'Leap month resolved from month code', 'am', 5779, null);
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 5779, 'month' => 7, 'calendar' => $calendar])), 5779, 7, 'M06', 'Month after leap month resolved from month number', 'am', 5779, null);
+TemporalHelpers::assertPlainYearMonth(\Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 5779, 'monthCode' => 'M06', 'calendar' => $calendar])), 5779, 7, 'M06', 'Month after leap month resolved from month code', 'am', 5779, null);

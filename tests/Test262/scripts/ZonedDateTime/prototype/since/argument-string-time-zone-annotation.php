@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $tests = [['1970-01-01T00:00[UTC]', 'named, with no offset'], ['1970-01-01T00:00[!UTC]', 'named, with ! and no offset'], ['1970-01-01T00:00[+00:00]', 'numeric, with no offset'], ['1970-01-01T00:00[!+00:00]', 'numeric, with ! and no offset'], ['1970-01-01T00:00Z[UTC]', 'named, with Z'], ['1970-01-01T00:00Z[!UTC]', 'named, with Z and !'], ['1970-01-01T00:00Z[+00:00]', 'numeric, with Z'], ['1970-01-01T00:00Z[!+00:00]', 'numeric, with Z and !'], ['1970-01-01T00:00+00:00[UTC]', 'named, with offset'], ['1970-01-01T00:00+00:00[!UTC]', 'named, with offset and !'], ['1970-01-01T00:00+00:00[+00:00]', 'numeric, with offset'], ['1970-01-01T00:00+00:00[!+00:00]', 'numeric, with offset and !']];
 $timeZone = 'UTC';

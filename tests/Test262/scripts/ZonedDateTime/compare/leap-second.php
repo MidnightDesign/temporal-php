@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_483_228_799_000_000_000, 'UTC');
 $arg = '2016-12-31T23:59:60+00:00[UTC]';
 $result1 = \Temporal\Spec\ZonedDateTime::compare($arg, $datetime);

@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$duration1 = \Temporal\Spec\Duration::from((object) ['nanoseconds' => 9_007_199_254_740_991]);
+$duration1 = \Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => 9_007_199_254_740_991]));
 $duration2 = \Temporal\Spec\Duration::from((object) ['nanoseconds' => 2, 'days' => 1]);
 Assert::incomplete('untranslatable: BigInt()');

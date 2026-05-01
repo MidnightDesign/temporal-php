@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$duration = \Temporal\Spec\Duration::from((object) ['seconds' => 9_007_199_254_740_991, 'milliseconds' => 999]);
+use Temporal\Tests\Test262\JsUndefined;
+$duration = \Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => 9_007_199_254_740_991, 'milliseconds' => 999]));
 $options = (object) ['smallestUnit' => 'seconds', 'roundingMode' => 'ceil'];
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$options) { return $duration->toString($options); }, '');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $arg = 'iSo8601';
 $result = new \Temporal\Spec\PlainMonthDay(12, 15, $arg, 1972);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');

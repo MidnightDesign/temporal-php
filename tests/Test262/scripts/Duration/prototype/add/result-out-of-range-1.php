@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $maxSec = 9_007_199_254_740_991;
 $maxMs = 9_007_199_254_740_990_976;
 $maxUs = 9.007_199_254_740_991e+21;
 $maxNs = 9.007_199_254_740_991e+24;
-$durations = [\Temporal\Spec\Duration::from(['seconds' => $maxSec]), \Temporal\Spec\Duration::from(['milliseconds' => $maxMs]), \Temporal\Spec\Duration::from(['microseconds' => $maxUs]), \Temporal\Spec\Duration::from(['nanoseconds' => $maxNs]), \Temporal\Spec\Duration::from(['seconds' => -$maxSec]), \Temporal\Spec\Duration::from(['milliseconds' => -$maxMs]), \Temporal\Spec\Duration::from(['microseconds' => -$maxUs]), \Temporal\Spec\Duration::from(['nanoseconds' => -$maxNs])];
+$durations = [\Temporal\Spec\Duration::from(JsUndefined::strip(['seconds' => $maxSec])), \Temporal\Spec\Duration::from(JsUndefined::strip(['milliseconds' => $maxMs])), \Temporal\Spec\Duration::from(JsUndefined::strip(['microseconds' => $maxUs])), \Temporal\Spec\Duration::from(JsUndefined::strip(['nanoseconds' => $maxNs])), \Temporal\Spec\Duration::from(JsUndefined::strip(['seconds' => -$maxSec])), \Temporal\Spec\Duration::from(JsUndefined::strip(['milliseconds' => -$maxMs])), \Temporal\Spec\Duration::from(JsUndefined::strip(['microseconds' => -$maxUs])), \Temporal\Spec\Duration::from(JsUndefined::strip(['nanoseconds' => -$maxNs]))];
 foreach ($durations as $duration) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { $duration->add($duration); }, '');
 }

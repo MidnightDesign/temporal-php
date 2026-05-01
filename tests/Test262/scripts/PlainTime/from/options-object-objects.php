@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from((object) ['hour' => 12, 'minute' => 34], (object) []), 12, 34, 0, 0, 0, 0, 'options may be an empty plain object');
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from((object) ['hour' => 12, 'minute' => 34], function () {  }), 12, 34, 0, 0, 0, 0, 'options may be an empty function object');

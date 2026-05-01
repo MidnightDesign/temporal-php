@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(2_020.6, 11.7), 2020, 11, 'M11', 'positive fractional');
 TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(-2_020.6, 11.7), -2020, 11, 'M11', 'negative fractional');

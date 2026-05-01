@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $a1 = new \Temporal\Spec\ZonedDateTime(1_555_448_460_000_000_000, 'America/New_York');
 Assert::sameValue($a1->getTimeZoneTransition('next')->epochNanoseconds, 1_572_760_800_000_000_000, '');
 $a2 = new \Temporal\Spec\ZonedDateTime(-5_364_662_400_000_000_000, 'America/New_York');

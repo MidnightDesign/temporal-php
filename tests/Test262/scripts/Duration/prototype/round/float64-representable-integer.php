@@ -7,9 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 18_014_398_509_481, 981, 0);
-$result = $d->round(['largestUnit' => 'microseconds']);
-Assert::sameValue($result->microseconds, 18_014_398_509_481_980, 'microseconds result should have FP precision loss');
-Assert::sameValue($result->toString(), 'PT18014398509.48198S', 'toString() should not use more precise internal representation than the spec prescribes');
-TemporalHelpers::assertDuration($result->round(['largestUnit' => 'seconds', 'smallestUnit' => 'microseconds', 'roundingMode' => 'halfTrunc', 'roundingIncrement' => 8]), 0, 0, 0, 0, 0, 0, 18_014_398_509, 481, 976, 0, 'subsequent round() should not use more precise internal representation than the spec prescribes');
+Assert::incomplete('PHP keeps Duration fields as exact int64; the fixture pins JS BigInt → Number float64 narrowing (see README deviation)');

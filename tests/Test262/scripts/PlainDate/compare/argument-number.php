@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $numbers = [1, 19_761_118, -19_761_118, 1_234_567_890];
 foreach ($numbers as $arg) {
 Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainDate::compare($arg, new \Temporal\Spec\PlainDate(1976, 11, 18)); }, 'A number is not a valid ISO string for PlainDate (first argument)');

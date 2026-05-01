@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance1 = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::assertTrue($instance1->until(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => 'UTC'])->blank, 'Time zone created from string \'UTC\'');
 $instance2 = new \Temporal\Spec\ZonedDateTime(0, '-01:30');

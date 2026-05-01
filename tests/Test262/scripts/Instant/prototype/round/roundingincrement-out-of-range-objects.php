@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_000_000_005);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -INF]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -1]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -INF])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => -1])); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0]); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 0.9]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1_000_000_000 + 1]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) ['smallestUnit' => 'nanoseconds', 'roundingIncrement' => INF]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 1_000_000_000 + 1])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => INF])); }, '');

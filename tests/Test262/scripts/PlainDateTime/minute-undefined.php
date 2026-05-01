@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $args = [2000, 5, 2, 12];
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(...$args), 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, 'minute default argument (argument present)');

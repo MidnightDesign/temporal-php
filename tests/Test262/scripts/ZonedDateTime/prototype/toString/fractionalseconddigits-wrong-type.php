@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_650_000, 'UTC');
 Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->toString(['fractionalSecondDigits' => null]); }, 'null is not a number and converts to the string \'null\' which is not valid for fractionalSecondDigits');

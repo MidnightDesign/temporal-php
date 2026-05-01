@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'chinese';
-$daysInMonthCases = [(object) ['year' => 2001, 'leap' => 'M04L', 'days' => [30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30]]];
+$daysInMonthCases = [(object) JsUndefined::strip(['year' => 2001, 'leap' => 'M04L', 'days' => [30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30]])];
 foreach ($daysInMonthCases as $__obj__) {
 $year = $__obj__['year'] ?? null;
 $leap = $__obj__['leap'] ?? null;
 $days = $__obj__['days'] ?? null;
-$date = \Temporal\Spec\PlainDate::from((object) ['year' => $year, 'month' => 1, 'day' => 1, 'calendar' => $calendar]);
-$leapMonth = $date->with((object) ['monthCode' => $leap]);
+$date = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'day' => 1, 'calendar' => $calendar]));
+$leapMonth = $date->with((object) JsUndefined::strip(['monthCode' => $leap]));
 Assert::sameValue($leapMonth->monthCode, $leap, '');
 Assert::incomplete('untranslatable: destructuring assignment');
 }

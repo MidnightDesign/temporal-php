@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $arg = (object) ['year' => 2019, 'monthCode' => 'M06', 'calendar' => 'IsO8601'];
 $result1 = \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6));
 Assert::sameValue($result1, 0, 'Calendar is case-insensitive (first argument)');

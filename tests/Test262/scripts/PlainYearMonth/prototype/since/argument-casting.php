@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $nov94 = new \Temporal\Spec\PlainYearMonth(1994, 11);
 $jun13 = new \Temporal\Spec\PlainYearMonth(2013, 6);

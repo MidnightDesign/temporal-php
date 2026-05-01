@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
 $options = (object) ['overflow' => 'reject'];
 $commonYear = 5783;
-$monthLengths5783 = [null, 30, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
+$monthLengths5783 = [JsUndefined::singleton(), 30, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
 for ($month = 1; $month < 13; $month++) {
 Assert::incomplete('untranslatable: String()');
 }

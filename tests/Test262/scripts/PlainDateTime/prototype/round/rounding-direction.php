@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDateTime(-99, 12, 15, 12, 0, 0, 500);
 TemporalHelpers::assertPlainDateTime($instance->round(['smallestUnit' => 'second', 'roundingMode' => 'floor']), -99, 12, 'M12', 15, 12, 0, 0, 0, 0, 0, 'Rounding down is towards the Big Bang, not the epoch or 1 BCE (roundingMode floor)');

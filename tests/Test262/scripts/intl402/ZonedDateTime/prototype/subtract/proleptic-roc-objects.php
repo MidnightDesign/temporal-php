@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'roc';
 $days3 = new \Temporal\Spec\Duration(0, 0, 0, -3);
 $days3n = new \Temporal\Spec\Duration(0, 0, 0, 3);
 $weeks1 = new \Temporal\Spec\Duration(0, 0, -1);
 $weeks1n = new \Temporal\Spec\Duration(0, 0, 1);
-$date329n1004 = \Temporal\Spec\ZonedDateTime::from((object) ['year' => -329, 'monthCode' => 'M10', 'day' => 4, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
-$date329n1015 = \Temporal\Spec\ZonedDateTime::from((object) ['year' => -329, 'monthCode' => 'M10', 'day' => 15, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]);
+$date329n1004 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => -329, 'monthCode' => 'M10', 'day' => 4, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
+$date329n1015 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => -329, 'monthCode' => 'M10', 'day' => 15, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]));
 TemporalHelpers::assertPlainDateTime($date329n1004->subtract($days3)->toPlainDateTime(), -329, 10, 'M10', 7, 12, 34, 0, 0, 0, 0, 'add 3 days to -329-10-04', 'broc', 330);
 TemporalHelpers::assertPlainDateTime($date329n1015->subtract($days3n)->toPlainDateTime(), -329, 10, 'M10', 12, 12, 34, 0, 0, 0, 0, 'subtract 3 days from -329-10-15', 'broc', 330);
 TemporalHelpers::assertPlainDateTime($date329n1004->subtract($weeks1)->toPlainDateTime(), -329, 10, 'M10', 11, 12, 34, 0, 0, 0, 0, 'add 1 week to -329-10-04', 'broc', 330);

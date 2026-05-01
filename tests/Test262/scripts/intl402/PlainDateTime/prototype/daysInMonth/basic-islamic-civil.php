@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'islamic-civil';
 $options = ['overflow' => 'reject'];
 $leapYear = 1390;
@@ -18,7 +19,7 @@ $daysInMonth[$leapYear] = $leapYearDaysInMonth;
 $daysInMonth[$commonYear] = $commonYearDaysInMonth;
 foreach ([$leapYear, $commonYear] as $year) {
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\Spec\PlainDateTime::from(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]);
+$date = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]));
 Assert::sameValue($date->daysInMonth, $daysInMonth[$year][$month - 1], "{$date}");
 }
 }

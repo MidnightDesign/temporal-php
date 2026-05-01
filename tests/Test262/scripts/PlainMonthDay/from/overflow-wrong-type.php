@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validValues = [new \Temporal\Spec\PlainMonthDay(5, 2), ['monthCode' => 'M05', 'day' => 2], '05-02'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainMonthDay::from($value, ['overflow' => $overflow]); }, fn($result, $descr) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 2, $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainMonthDay::from($value, JsUndefined::strip(['overflow' => $overflow])); }, fn($result, $descr) => TemporalHelpers::assertPlainMonthDay($result, 'M05', 2, $descr));
 }

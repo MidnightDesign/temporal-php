@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1);
-$options = ['smallestUnit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2000, 1, 1)];
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(array_merge($options, ['roundingIncrement' => -INF])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(array_merge($options, ['roundingIncrement' => -1])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(array_merge($options, ['roundingIncrement' => 0])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(array_merge($options, ['roundingIncrement' => 1_000_000_000 + 1])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(array_merge($options, ['roundingIncrement' => INF])); }, '');
+$options = JsUndefined::strip(['smallestUnit' => 'years', 'relativeTo' => new \Temporal\Spec\PlainDate(2000, 1, 1)]);
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(JsUndefined::strip(array_merge($options, ['roundingIncrement' => -INF]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(JsUndefined::strip(array_merge($options, ['roundingIncrement' => -1]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(JsUndefined::strip(array_merge($options, ['roundingIncrement' => 0]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(JsUndefined::strip(array_merge($options, ['roundingIncrement' => 1_000_000_000 + 1]))); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { return $instance->round(JsUndefined::strip(array_merge($options, ['roundingIncrement' => INF]))); }, '');

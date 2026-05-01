@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'ethioaa';
 $options = (object) ['overflow' => 'reject'];
 for ($year = 7462; $year < 7542; $year++) {
-$date = \Temporal\Spec\PlainYearMonth::from((object) ['year' => $year, 'month' => 1, 'calendar' => $calendar]);
+$date = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar]));
 Assert::sameValue($date->monthsInYear, 13, '');
 }

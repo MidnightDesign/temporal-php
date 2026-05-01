@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainYearMonth::from((object) ['year' => 1989, 'month' => 1, 'calendar' => 'japanese']);
 $result2 = $instance->with((object) ['month' => 2]);
 Assert::notSameValue($result2->era, $instance->era, 'resulting month should have crossed an era boundary');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-10');
 TemporalHelpers::assertPlainYearMonth($ym->with((object) ['year' => 2020]), 2020, 10, 'M10', 'year');

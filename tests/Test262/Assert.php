@@ -59,6 +59,16 @@ final class Assert
         if ($actual === self::int64Overflow() || $expected === self::int64Overflow()) {
             return;
         }
+        // The JsUndefined sentinel is the test layer's marker for JS undefined; the spec
+        // layer represents JS undefined as PHP null. Normalize for value-equality so
+        // tests like `assert.sameValue(instance.era, undefined)` work whether `era`
+        // returned PHP null (from a calendar with no eras) or the sentinel.
+        if ($actual instanceof JsUndefined) {
+            $actual = null;
+        }
+        if ($expected instanceof JsUndefined) {
+            $expected = null;
+        }
         // TC39 SameValue treats all numbers as the same type (JS has no int/float distinction).
         // Treat PHP int(n) and float(n.0) as equivalent when they have the same numeric value.
         if ((is_int($actual) || is_float($actual)) && (is_int($expected) || is_float($expected))) {
@@ -86,6 +96,13 @@ final class Assert
     {
         if ($actual === self::int64Overflow() || $unexpected === self::int64Overflow()) {
             return;
+        }
+        // See sameValue() for the rationale on the JsUndefined → null normalization.
+        if ($actual instanceof JsUndefined) {
+            $actual = null;
+        }
+        if ($unexpected instanceof JsUndefined) {
+            $unexpected = null;
         }
         PHPUnitAssert::assertNotSame($unexpected, $actual, $message);
     }

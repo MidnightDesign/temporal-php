@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $oneMonth = \Temporal\Spec\Duration::from(['months' => 1]);
-TemporalHelpers::assertDuration($oneMonth->round(['largestUnit' => 'days', 'relativeTo' => ['year' => 2020, 'month' => 1, 'day' => 1, 'months' => 2]]), 0, 0, 0, 31, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($oneMonth->round(JsUndefined::strip(['largestUnit' => 'days', 'relativeTo' => ['year' => 2020, 'month' => 1, 'day' => 1, 'months' => 2]])), 0, 0, 0, 31, 0, 0, 0, 0, 0, 0);

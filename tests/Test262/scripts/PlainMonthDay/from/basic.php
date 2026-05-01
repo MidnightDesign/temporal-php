@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$options = [['overflow' => 'constrain'], ['overflow' => 'reject'], [], null];
+$options = [['overflow' => 'constrain'], ['overflow' => 'reject'], [], JsUndefined::singleton()];
 foreach ($options as $opt) {
 Assert::incomplete('untranslatable: JSON.stringify');
 }

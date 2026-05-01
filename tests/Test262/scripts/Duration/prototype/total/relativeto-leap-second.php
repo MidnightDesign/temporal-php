@@ -7,16 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2016-12-31T23:59:60';
-$result1 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result1 = $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result1, 366, 'leap second is a valid ISO string for PlainDate relativeTo');
 $relativeTo = '2016-12-31T23:59:60+00:00[UTC]';
-$result2 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result2 = $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result2, 366, 'leap second is a valid ISO string for ZonedDateTime relativeTo');
 $relativeTo = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
-$result3 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result3 = $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result3, 366, 'second: 60 is valid in a property bag for PlainDate relativeTo');
 $relativeTo = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60, 'timeZone' => 'UTC'];
-$result4 = $instance->total(['unit' => 'days', 'relativeTo' => $relativeTo]);
+$result4 = $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo]));
 Assert::sameValue($result4, 366, 'second: 60 is valid in a property bag for ZonedDateTime relativeTo');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 12, 34, 56, 123, 456, 789);
-TemporalHelpers::checkStringOptionWrongType('largestUnit', 'minute', function ($largestUnit) use (&$duration) { return $duration->round(['largestUnit' => $largestUnit]); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 754, 56, 123, 456, 789, $descr));
+TemporalHelpers::checkStringOptionWrongType('largestUnit', 'minute', function ($largestUnit) use (&$duration) { return $duration->round(JsUndefined::strip(['largestUnit' => $largestUnit])); }, fn($result, $descr) => TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 754, 56, 123, 456, 789, $descr));

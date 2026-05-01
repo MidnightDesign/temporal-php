@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\ZonedDateTime::from((object) ['calendar' => 'dangi', 'year' => 2012, 'month' => 4, 'day' => 1, 'timeZone' => 'UTC']);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->add('P1Y1M', (object) ['overflow' => 'reject']); }, 'Adding a year and a month to a numerical (leap) month.');
 $oneYear = new \Temporal\Spec\Duration(1);

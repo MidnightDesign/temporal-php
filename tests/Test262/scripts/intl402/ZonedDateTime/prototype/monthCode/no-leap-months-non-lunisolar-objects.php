@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendars = (object) ['buddhist' => 2513, 'coptic' => 1686, 'ethioaa' => 7462, 'ethiopic' => 1962, 'gregory' => 1970, 'indian' => 1892, 'islamic-civil' => 1390, 'islamic-tbla' => 1390, 'islamic-umalqura' => 1390, 'persian' => 1348, 'roc' => 60];
 foreach ($calendars as $calendar => $year) {
 for ($month = 1; $month < 13; $month++) {
-$date = \Temporal\Spec\ZonedDateTime::from((object) ['year' => $year, 'month' => $month, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
+$date = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']));
 Assert::sameValue($date->monthCode->endsWith('L'), false, '');
 }
 }

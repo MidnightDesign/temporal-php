@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from((object) ['calendar' => 'japanese', 'monthCode' => 'M05', 'month' => 12]), 'Missing year throws TypeError before month/monthCode conflict throws RangeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from((object) ['calendar' => 'japanese', 'year' => 2020]), 'Missing month/monthCode throws TypeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from((object) ['calendar' => 'japanese', 'monthCode' => 'M05', 'month' => 12]), 'undefined year throws TypeError before month/monthCode conflict throws RangeError');

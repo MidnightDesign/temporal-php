@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $oneMonth = new \Temporal\Spec\Duration(0, 1);
 $days30 = new \Temporal\Spec\Duration(0, 0, 0, 30);
-Assert::sameValue(\Temporal\Spec\Duration::compare($oneMonth, $days30, ['relativeTo' => \Temporal\Spec\PlainDate::from('2018-04-01')]), 0, '');
-Assert::sameValue(\Temporal\Spec\Duration::compare($oneMonth, $days30, ['relativeTo' => \Temporal\Spec\PlainDate::from('2018-03-01')]), 1, '');
-Assert::sameValue(\Temporal\Spec\Duration::compare($oneMonth, $days30, ['relativeTo' => \Temporal\Spec\PlainDate::from('2018-02-01')]), -1, '');
+Assert::sameValue(\Temporal\Spec\Duration::compare($oneMonth, $days30, JsUndefined::strip(['relativeTo' => \Temporal\Spec\PlainDate::from('2018-04-01')])), 0, '');
+Assert::sameValue(\Temporal\Spec\Duration::compare($oneMonth, $days30, JsUndefined::strip(['relativeTo' => \Temporal\Spec\PlainDate::from('2018-03-01')])), 1, '');
+Assert::sameValue(\Temporal\Spec\Duration::compare($oneMonth, $days30, JsUndefined::strip(['relativeTo' => \Temporal\Spec\PlainDate::from('2018-02-01')])), -1, '');

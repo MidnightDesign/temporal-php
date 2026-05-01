@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $arg1 = new \Temporal\Spec\ZonedDateTime(1_572_342_398_271_986_102, '-07:00', 'iso8601');
 $arg2 = new \Temporal\Spec\ZonedDateTime(1_572_342_398_271_986_102, '-07:00', 'japanese');
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::compare($arg1, $arg2), 0, '');

@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'chinese';
-$cases = (object) ['year2000' => (object) ['year' => 1999, 'month' => 11, 'monthCode' => 'M11', 'calendar' => $calendar], 'year1900' => (object) ['year' => 1899, 'month' => 12, 'monthCode' => 'M12', 'calendar' => $calendar], 'year2100' => (object) ['year' => 2099, 'month' => 11, 'calendar' => $calendar]];
+$cases = (object) JsUndefined::strip(['year2000' => (object) JsUndefined::strip(['year' => 1999, 'month' => 11, 'monthCode' => 'M11', 'calendar' => $calendar]), 'year1900' => (object) JsUndefined::strip(['year' => 1899, 'month' => 12, 'monthCode' => 'M12', 'calendar' => $calendar]), 'year2100' => (object) JsUndefined::strip(['year' => 2099, 'month' => 11, 'calendar' => $calendar])]);
 foreach ($cases as $name => $result) {
 $inCal = \Temporal\Spec\PlainYearMonth::from($result);
 $afterWithMonth = $inCal->with((object) ['month' => 1]);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = \Temporal\Spec\PlainDate::from('2019-11-18');
 TemporalHelpers::assertPlainDate($date->subtract((object) ['years' => 43]), 1976, 11, 'M11', 18);
@@ -14,10 +15,10 @@ TemporalHelpers::assertPlainDate($date->subtract((object) ['months' => 11]), 201
 TemporalHelpers::assertPlainDate($date->subtract((object) ['days' => 20]), 2019, 10, 'M10', 29);
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-02-28')->subtract((object) ['months' => 1]), 2019, 1, 'M01', 28);
 TemporalHelpers::assertPlainDate($date->subtract(\Temporal\Spec\Duration::from('P43Y')), 1976, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-11-18')->subtract((object) ['years' => -43]), 2019, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2018-12-18')->subtract((object) ['months' => -11]), 2019, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-10-29')->subtract((object) ['days' => -20]), 2019, 11, 'M11', 18);
-TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-01-28')->subtract((object) ['months' => -1]), 2019, 2, 'M02', 28);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('1976-11-18')->subtract((object) JsUndefined::strip(['years' => -43])), 2019, 11, 'M11', 18);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2018-12-18')->subtract((object) JsUndefined::strip(['months' => -11])), 2019, 11, 'M11', 18);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-10-29')->subtract((object) JsUndefined::strip(['days' => -20])), 2019, 11, 'M11', 18);
+TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from('2019-01-28')->subtract((object) JsUndefined::strip(['months' => -1])), 2019, 2, 'M02', 28);
 $p1y = new \Temporal\Spec\Duration(1);
 $p4y = new \Temporal\Spec\Duration(4);
 $p5m = new \Temporal\Spec\Duration(0, 5);

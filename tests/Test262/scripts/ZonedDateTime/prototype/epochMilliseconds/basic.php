@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $afterEpoch = new \Temporal\Spec\ZonedDateTime(217_175_010_123_456_789, 'UTC');
 Assert::sameValue($afterEpoch->epochMilliseconds, 217_175_010_123, 'epochMilliseconds post epoch');
 Assert::sameValue((is_int($afterEpoch->epochMilliseconds) || is_float($afterEpoch->epochMilliseconds)), true, 'epochMilliseconds value is a number');

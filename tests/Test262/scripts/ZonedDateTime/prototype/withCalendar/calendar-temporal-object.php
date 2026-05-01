@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $plainDateTime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 $plainMonthDay = new \Temporal\Spec\PlainMonthDay(5, 2);

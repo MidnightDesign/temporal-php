@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $hourBeforeDstStart = new \Temporal\Spec\PlainDateTime(2000, 4, 2, 1)->toZonedDateTime('America/Vancouver');
 $dayBeforeDstStart = new \Temporal\Spec\PlainDateTime(2000, 4, 1, 2, 30)->toZonedDateTime('America/Vancouver');
 Assert::sameValue($hourBeforeDstStart->hoursInDay, 23, '23 hours in dst start day');

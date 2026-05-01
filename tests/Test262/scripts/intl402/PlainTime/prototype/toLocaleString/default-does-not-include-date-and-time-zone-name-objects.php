@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainTime = new \Temporal\Spec\PlainTime(11, 46, 40, 321);
 $result = $plainTime->toLocaleString('en', (object) ['timeZone' => 'UTC']);
 Assert::assertTrue(!str_contains($result, '1970'), "PlainTime formatted with no options {$result} should not include year");

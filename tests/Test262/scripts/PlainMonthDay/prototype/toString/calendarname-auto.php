@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $monthday = new \Temporal\Spec\PlainMonthDay(5, 2);
 $result = $monthday->toString(['calendarName' => 'auto']);
 Assert::sameValue($result, '05-02', "built-in ISO calendar for calendarName = auto");

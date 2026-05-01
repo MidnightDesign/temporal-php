@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $result = \Temporal\Spec\PlainDateTime::from(['era' => 'foobar', 'eraYear' => 1, 'year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'calendar' => 'iso8601']);
 TemporalHelpers::assertPlainDateTime($result, 1970, 1, 'M01', 1, 0, 0, 0, 0, 0, 0, 'era and eraYear are ignored for calendar not using eras (iso8601)');

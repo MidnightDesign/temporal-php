@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainDateTime::from((object) ['calendar' => 'chinese', 'year' => 2012, 'month' => 5, 'day' => 1]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->subtract('P1Y1M', (object) ['overflow' => 'reject']); }, 'Subtracting a year and a month to a numerical (leap) month.');
 $oneYear = new \Temporal\Spec\Duration(1);

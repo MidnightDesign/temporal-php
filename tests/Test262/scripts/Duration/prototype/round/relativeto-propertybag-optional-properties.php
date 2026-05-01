@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
-$relativeTo = ['year' => 2021, 'month' => 10, 'day' => 28, 'timeZone' => $timeZone];
-$resultWithout = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
-$relativeTo = ['year' => 2021, 'month' => 10, 'day' => 28, 'hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'offset' => '+00:00', 'timeZone' => $timeZone, 'calendar' => 'iso8601'];
-$resultWith = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$relativeTo = JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'timeZone' => $timeZone]);
+$resultWithout = $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
+$relativeTo = JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'hour' => 0, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0, 'offset' => '+00:00', 'timeZone' => $timeZone, 'calendar' => 'iso8601']);
+$resultWith = $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDurationsEqual($resultWithout, $resultWith, 'results should be the same with and without optional properties');

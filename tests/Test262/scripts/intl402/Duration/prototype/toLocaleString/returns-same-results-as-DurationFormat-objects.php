@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $durationLike = (object) ['years' => 1, 'months' => 2, 'weeks' => 3, 'days' => 4, 'hours' => 5, 'minutes' => 6, 'seconds' => 7, 'milliseconds' => 8, 'microseconds' => 9, 'nanoseconds' => 10];
 $duration = \Temporal\Spec\Duration::from($durationLike);
-$locales = [null, 'en', 'de', 'th-u-nu-thai', ['ar-u-nu-arab']];
-$options = [null, (object) ['style' => 'long']];
+$locales = [JsUndefined::singleton(), 'en', 'de', 'th-u-nu-thai', ['ar-u-nu-arab']];
+$options = [JsUndefined::singleton(), (object) ['style' => 'long']];
 foreach ($locales as $locale) {
 foreach ($options as $opts) {
 Assert::incomplete('untranslatable new expression');

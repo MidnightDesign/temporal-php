@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $minYear = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
 $duration = new \Temporal\Spec\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
 Assert::throws(\InvalidArgumentException::class, function () use (&$minYear, &$duration) { return $minYear->subtract($duration); }, '');

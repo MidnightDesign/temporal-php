@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'japanese';
 $options = ['overflow' => 'reject'];
 for ($year = 1892; $year < 1972; $year++) {
-$date = \Temporal\Spec\PlainYearMonth::from(['year' => $year, 'month' => 1, 'calendar' => $calendar]);
+$date = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar]));
 Assert::sameValue($date->monthsInYear, 12, '');
 }

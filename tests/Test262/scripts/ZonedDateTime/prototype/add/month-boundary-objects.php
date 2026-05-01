@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = (object) ['overflow' => 'reject'];
 $months6 = new \Temporal\Spec\Duration(0, 6);
@@ -17,7 +18,7 @@ $dates = [$date20001201];
 foreach ($durations as $duration) {
 foreach ($dates as $start) {
 $end = $start->add($duration);
-$startYesterday = $start->add((object) ['days' => -1]);
+$startYesterday = $start->add((object) JsUndefined::strip(['days' => -1]));
 $endYesterday = $startYesterday->add($duration);
 Assert::sameValue($endYesterday->day, min($startYesterday->day, $endYesterday->daysInMonth), 'adding months should result in same day');
 $endYesterdayNextDay = $endYesterday->add((object) ['days' => 1]);
@@ -25,7 +26,7 @@ while ($endYesterdayNextDay->day !== 1) {
 $endYesterdayNextDay = $endYesterdayNextDay->add((object) ['days' => 1]);
 }
 TemporalHelpers::assertPlainDateTime($endYesterdayNextDay->toPlainDateTime(), $end->year, $end->month, $end->monthCode, $end->day, 12, 34, 0, 0, 0, 0, "endYesterdayNextDay", $end->era, $end->eraYear);
-$endReverse = $endYesterdayNextDay->add((object) ['days' => -1]);
+$endReverse = $endYesterdayNextDay->add((object) JsUndefined::strip(['days' => -1]));
 $startReverse = $endReverse->add($duration->negated());
 Assert::sameValue($startReverse->day, min($endReverse->day, $startReverse->daysInMonth), '');
 $startReverseNextDay = $startReverse->add((object) ['days' => 1]);

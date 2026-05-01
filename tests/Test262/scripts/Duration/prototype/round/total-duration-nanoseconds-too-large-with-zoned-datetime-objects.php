@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $maxMs = 9_007_199_254_740_990_976;
 $maxUs = 9.007_199_254_740_991e+21;
 $maxNs = 9.007_199_254_740_991e+24;
-$durations = [\Temporal\Spec\Duration::from((object) ['seconds' => 9_007_199_254_740_991]), \Temporal\Spec\Duration::from((object) ['milliseconds' => $maxMs]), \Temporal\Spec\Duration::from((object) ['microseconds' => $maxUs]), \Temporal\Spec\Duration::from((object) ['nanoseconds' => $maxNs]), \Temporal\Spec\Duration::from((object) ['seconds' => -9_007_199_254_740_991]), \Temporal\Spec\Duration::from((object) ['milliseconds' => -$maxMs]), \Temporal\Spec\Duration::from((object) ['microseconds' => -$maxUs]), \Temporal\Spec\Duration::from((object) ['nanoseconds' => -$maxNs])];
+$durations = [\Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => 9_007_199_254_740_991])), \Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => $maxMs])), \Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => $maxUs])), \Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => $maxNs])), \Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => -9_007_199_254_740_991])), \Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => -$maxMs])), \Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => -$maxUs])), \Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => -$maxNs]))];
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-$options = (object) ['smallestUnit' => 'day', 'largestUnit' => 'day', 'relativeTo' => $zonedDateTime];
+$options = (object) JsUndefined::strip(['smallestUnit' => 'day', 'largestUnit' => 'day', 'relativeTo' => $zonedDateTime]);
 foreach ($durations as $duration) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$options) { return $duration->round($options); }, '');
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $maxYMW = (int) (2 ** 32) - 1;
 $maxDays = (int) floor(9_007_199_254_740_991 / 86_400);
 $maxHours = (int) floor(9_007_199_254_740_991 / 3600);

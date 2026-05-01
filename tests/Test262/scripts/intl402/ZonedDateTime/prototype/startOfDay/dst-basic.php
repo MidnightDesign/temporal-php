@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dayBeforeDstStart = new \Temporal\Spec\PlainDateTime(2000, 4, 1, 2, 30)->toZonedDateTime('America/Vancouver');
 TemporalHelpers::assertPlainDatesEqual($dayBeforeDstStart->startOfDay()->toPlainDate(), $dayBeforeDstStart->toPlainDate(), 'Date before dst start');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '1976-11-18T15:23:30.12-02:00[−02:00]', '1976-11-18T15:23:30.12−02:00[−02:00]', '−009999-11-18T15:23:30.12[UTC]'];
 foreach ($invalidStrings as $arg) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "variant minus sign: {$arg}");

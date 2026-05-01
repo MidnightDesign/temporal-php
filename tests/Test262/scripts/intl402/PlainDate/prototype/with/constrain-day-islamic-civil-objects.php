@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'islamic-civil';
 $options = (object) ['overflow' => 'reject'];
-$common0130 = \Temporal\Spec\PlainDate::from((object) ['year' => 1444, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar], $options);
-$leap0130 = \Temporal\Spec\PlainDate::from((object) ['year' => 1445, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar], $options);
+$common0130 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1444, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
+$leap0130 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1445, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($common0130->with((object) ['monthCode' => 'M02']), 1444, 2, 'M02', 29, 'common-year Safar constrains to 29', 'ah', 1444);
 Assert::throws(\InvalidArgumentException::class, function () use (&$common0130, &$options) { $common0130->with((object) ['monthCode' => 'M02'], $options); }, 'common-year Safar rejects with 30');
 TemporalHelpers::assertPlainDate($common0130->with((object) ['monthCode' => 'M03'], $options), 1444, 3, 'M03', 30, 'common-year Rabi\' al-Awwal does not reject 30', 'ah', 1444);

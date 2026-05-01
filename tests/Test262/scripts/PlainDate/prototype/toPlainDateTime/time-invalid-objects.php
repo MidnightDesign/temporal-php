@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainDate = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::throws(\TypeError::class, function () use (&$plainDate) { return $plainDate->toPlainDateTime((object) []); }, 'empty object');
 Assert::throws(\TypeError::class, function () use (&$plainDate) { return $plainDate->toPlainDateTime((object) ['minutes' => 30]); }, 'plural property');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(\Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(2000, 5, 31, 12, 15, 45, 333, 777, 111), new \Temporal\Spec\PlainDateTime(1987, 5, 31, 12, 15, 45, 333, 777, 111)), 1, 'year >');
 Assert::sameValue(\Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1981, 12, 15, 6, 30, 15, 222, 444, 6), new \Temporal\Spec\PlainDateTime(2048, 12, 15, 6, 30, 15, 222, 444, 6)), -1, 'year <');
 Assert::sameValue(\Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(2000, 5, 31, 12, 15, 45, 333, 777, 111), new \Temporal\Spec\PlainDateTime(2000, 3, 31, 12, 15, 45, 333, 777, 111)), 1, 'month >');

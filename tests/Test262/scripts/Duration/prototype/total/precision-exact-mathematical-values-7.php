@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $units = ['seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 $toNanos = ['seconds' => 1_000_000_000, 'milliseconds' => 1_000_000, 'microseconds' => 1000, 'nanoseconds' => 1];
 $integers = [0, 1, 2, 2 ** 51, 2 ** 52, 2 ** 53, 2 ** 54];

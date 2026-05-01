@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::checkSubclassingIgnoredStatic(\Temporal\Spec\PlainDateTime::class, 'from', ['2000-05-02T12:34:56.987654321'], fn($result) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 34, 56, 987, 654, 321));

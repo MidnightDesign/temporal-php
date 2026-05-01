@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add([$field => 1.5]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add([$field => -1.5]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add(JsUndefined::strip([$field => -1.5])); }, '');
 }

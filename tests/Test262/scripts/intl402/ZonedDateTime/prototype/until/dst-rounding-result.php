@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $start = \Temporal\Spec\PlainDateTime::from('2000-04-04T02:30')->toZonedDateTime('America/Vancouver');
 $end = \Temporal\Spec\PlainDateTime::from('2000-04-01T14:15')->toZonedDateTime('America/Vancouver');

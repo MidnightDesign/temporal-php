@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
 $timeZone = '2021-08-19T17:30';
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$timeZone) { return $instance->toZonedDateTime($timeZone); }, 'bare date-time string is not a time zone');

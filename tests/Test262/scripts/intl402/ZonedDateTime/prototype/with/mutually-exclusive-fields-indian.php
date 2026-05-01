@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = ['overflow' => 'reject'];
 $instance = \Temporal\Spec\ZonedDateTime::from(['year' => 1947, 'monthCode' => 'M12', 'day' => 15, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => 'indian'], $options);

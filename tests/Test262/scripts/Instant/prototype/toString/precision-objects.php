@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $isoString = '2020-01-01T23:58:57.012034Z';
 $instant = \Temporal\Spec\Instant::from($isoString);
 $instantIsoStrMicros = $instant->toString((object) ['smallestUnit' => 'microseconds']);

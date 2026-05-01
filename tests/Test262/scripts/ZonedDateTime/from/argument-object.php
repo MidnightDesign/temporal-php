@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\ZonedDateTime::from(['year' => 1976, 'month' => 11, 'monthCode' => 'M11', 'day' => 18, 'timeZone' => 'UTC'])->toPlainDateTime(), 1976, 11, 'M11', 18, 0, 0, 0, 0, 0, 0, 'plain object with month & month code');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from([]), 'empty object throws');

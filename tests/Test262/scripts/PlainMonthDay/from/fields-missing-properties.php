@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from([]), 'No properties');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['day' => 15]), 'Only day');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['month' => 12]), 'day is required with month');

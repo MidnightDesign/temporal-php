@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$overflow) { return \Temporal\Spec\PlainDateTime::from((object) ['year' => -271_821, 'month' => 4, 'day' => 19], (object) ['overflow' => $overflow]); }, "negative out of bounds (plain object, overflow = {$overflow})");
-Assert::throws(\InvalidArgumentException::class, function () use (&$overflow) { return \Temporal\Spec\PlainDateTime::from((object) ['year' => 275_760, 'month' => 9, 'day' => 14], (object) ['overflow' => $overflow]); }, "positive out of bounds (plain object, overflow = {$overflow})");
+Assert::throws(\InvalidArgumentException::class, function () use (&$overflow) { return \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => -271_821, 'month' => 4, 'day' => 19]), (object) JsUndefined::strip(['overflow' => $overflow])); }, "negative out of bounds (plain object, overflow = {$overflow})");
+Assert::throws(\InvalidArgumentException::class, function () use (&$overflow) { return \Temporal\Spec\PlainDateTime::from((object) ['year' => 275_760, 'month' => 9, 'day' => 14], (object) JsUndefined::strip(['overflow' => $overflow])); }, "positive out of bounds (plain object, overflow = {$overflow})");
 }
-TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from((object) ['year' => -271_821, 'month' => 4, 'day' => 19, 'nanosecond' => 1]), -271_821, 4, 'M04', 19, 0, 0, 0, 0, 0, 1, 'construct from property bag (negative boundary)');
+TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => -271_821, 'month' => 4, 'day' => 19, 'nanosecond' => 1])), -271_821, 4, 'M04', 19, 0, 0, 0, 0, 0, 1, 'construct from property bag (negative boundary)');
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from((object) ['year' => 275_760, 'month' => 9, 'day' => 13, 'hour' => 23, 'minute' => 59, 'second' => 59, 'millisecond' => 999, 'microsecond' => 999, 'nanosecond' => 999]), 275_760, 9, 'M09', 13, 23, 59, 59, 999, 999, 999, 'construct from property bag (positive boundary)');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('-271821-04-19T00:00'), 'out-of-bounds ISO string (negative case)');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('+275760-09-14T00:00'), 'out-of-bounds ISO string (positive case)');

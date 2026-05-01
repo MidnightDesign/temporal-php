@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $legacyNames = ['Etc/GMT0', 'GMT0', 'GMT-0', 'GMT+0', 'EST5EDT', 'CST6CDT', 'MST7MDT', 'PST8PDT'];
 foreach ($legacyNames as $arg) {
 $instance = new \Temporal\Spec\ZonedDateTime(0, $arg);

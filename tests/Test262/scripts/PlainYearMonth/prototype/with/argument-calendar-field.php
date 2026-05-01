@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-10');
 Assert::throws(\TypeError::class, function () use (&$ym) { return $ym->with(['year' => 2021, 'calendar' => 'iso8601']); }, '');

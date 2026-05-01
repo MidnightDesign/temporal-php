@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZones = [['Europe/Prague', 'Europe/Prague'], ['Europe/Bratislava', 'Europe/Bratislava'], ['Australia/Canberra', 'Australia/Sydney'], ['Atlantic/Jan_Mayen', 'Arctic/Longyearbyen'], ['Pacific/Truk', 'Pacific/Chuuk'], ['Etc/UCT', 'UTC'], ['Etc/GMT0', 'UTC']];
 foreach ($timeZones as $__entry__) {
 [$timeZone, $linkTarget] = array_pad($__entry__, 2, null);

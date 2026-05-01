@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = '+01:00';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
-$properties = ['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => '-07:00', 'timeZone' => $timeZone];
+$properties = JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => '-07:00', 'timeZone' => $timeZone]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$properties) { return $instance->equals($properties); }, 'offset property not matching time zone is rejected');

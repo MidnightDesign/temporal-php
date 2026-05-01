@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $blank = new \Temporal\Spec\Duration();
 TemporalHelpers::assertDuration($blank->add('PT1.03125H'), 0, 0, 0, 0, 1, 1, 52, 500, 0, 0, 'positive fractional units rounded with correct rounding mode');

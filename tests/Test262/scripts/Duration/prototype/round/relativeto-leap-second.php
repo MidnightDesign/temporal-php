@@ -7,17 +7,18 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '2016-12-31T23:59:60';
-$result1 = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result1 = $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'leap second is a valid ISO string for PlainDate relativeTo');
 $relativeTo = '2016-12-31T23:59:60+00:00[UTC]';
-$result2 = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result2 = $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result2, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'leap second is a valid ISO string for ZonedDateTime relativeTo');
 $relativeTo = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60];
-$result3 = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result3 = $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result3, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'second: 60 is valid in a property bag for PlainDate relativeTo');
 $relativeTo = ['year' => 2016, 'month' => 12, 'day' => 31, 'hour' => 23, 'minute' => 59, 'second' => 60, 'timeZone' => 'UTC'];
-$result4 = $instance->round(['largestUnit' => 'years', 'relativeTo' => $relativeTo]);
+$result4 = $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo]));
 TemporalHelpers::assertDuration($result4, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 'second: 60 is valid in a property bag for ZonedDateTime relativeTo');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $oneYear = new \Temporal\Spec\Duration(1);
 $oneMonth = new \Temporal\Spec\Duration(0, 1);
 $oneWeek = new \Temporal\Spec\Duration(0, 0, 1);
@@ -22,7 +23,7 @@ Assert::throws(\InvalidArgumentException::class, function () use (&$oneYear, &$o
 Assert::throws(\InvalidArgumentException::class, function () use (&$oneYear) { return $oneYear->total('days'); }, 'total days of years requires relativeTo (string shorthand)');
 foreach (['months', 'weeks'] as $unit) {
 foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$unit) { return $duration->total((object) ['unit' => $unit]); }, "{$duration} total {$unit} requires relativeTo");
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$unit) { return $duration->total((object) JsUndefined::strip(['unit' => $unit])); }, "{$duration} total {$unit} requires relativeTo");
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$unit) { return $duration->total($unit); }, "{$duration} total {$unit} requires relativeTo (string shorthand)");
 }
 }

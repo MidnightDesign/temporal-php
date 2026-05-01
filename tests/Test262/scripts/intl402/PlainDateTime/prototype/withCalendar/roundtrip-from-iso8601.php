@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $d1 = new \Temporal\Spec\PlainDateTime(1911, 10, 10, 4, 5, 6, 7, 8, 9);
 $d2 = $d1->withCalendar('roc');

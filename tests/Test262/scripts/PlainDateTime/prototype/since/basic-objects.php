@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = \Temporal\Spec\PlainDateTime::from((object) ['year' => 1969, 'monthCode' => 'M07', 'day' => 24, 'hour' => 12, 'minute' => 34]);
 $date2 = \Temporal\Spec\PlainDateTime::from((object) ['year' => 1969, 'monthCode' => 'M10', 'day' => 5, 'hour' => 12, 'minute' => 34]);

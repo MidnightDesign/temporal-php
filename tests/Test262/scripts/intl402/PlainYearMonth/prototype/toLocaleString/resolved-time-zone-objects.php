@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $month = new \Temporal\Spec\PlainYearMonth(2021, 8, 'gregory');
 $result = $month->toLocaleString('en', (object) ['timeZone' => 'Pacific/Apia']);
 Assert::sameValue($result, '8/2021', '');

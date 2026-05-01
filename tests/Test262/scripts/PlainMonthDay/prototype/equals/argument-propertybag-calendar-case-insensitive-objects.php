@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainMonthDay(11, 18);
 $arg = (object) ['monthCode' => 'M11', 'day' => 18, 'calendar' => 'IsO8601'];
 $result = $instance->equals($arg);

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $febCommonYear = new \Temporal\Spec\PlainYearMonth(2023, 2);
 $result = $febCommonYear->toPlainDate((object) ['day' => 29]);

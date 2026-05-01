@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = \Temporal\Spec\Duration::from(['days' => 1, 'minutes' => 5]);
 $result = $duration->add('P2DT5M');

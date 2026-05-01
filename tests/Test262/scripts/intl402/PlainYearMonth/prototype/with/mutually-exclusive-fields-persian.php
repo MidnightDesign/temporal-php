@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = ['overflow' => 'reject'];
 $instance = \Temporal\Spec\PlainYearMonth::from(['year' => 1404, 'monthCode' => 'M12', 'calendar' => 'persian'], $options);

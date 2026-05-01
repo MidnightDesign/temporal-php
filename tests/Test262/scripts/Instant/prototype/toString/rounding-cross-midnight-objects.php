@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(946_684_799_999_999_999);
 foreach (['ceil', 'halfExpand'] as $roundingMode) {
-Assert::sameValue($instant->toString((object) ['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode]), '2000-01-01T00:00:00.00000000Z', '');
+Assert::sameValue($instant->toString((object) JsUndefined::strip(['fractionalSecondDigits' => 8, 'roundingMode' => $roundingMode])), '2000-01-01T00:00:00.00000000Z', '');
 }

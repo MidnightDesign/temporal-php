@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $conflictingOptions = [['weekday', 'short'], ['era', 'short'], ['year', 'numeric'], ['month', 'numeric'], ['day', 'numeric'], ['hour', 'numeric'], ['minute', 'numeric'], ['second', 'numeric'], ['dayPeriod', 'short'], ['fractionalSecondDigits', 3]];
 $instant = new \Temporal\Spec\Instant(957_270_896_987_650_000);
 Assert::sameValue(is_string($instant->toLocaleString('en', (object) ['dateStyle' => 'short'])), true, '');
 Assert::sameValue(is_string($instant->toLocaleString('en', (object) ['timeStyle' => 'short'])), true, '');
 foreach ($conflictingOptions as $__entry__) {
 [$option, $value] = array_pad($__entry__, 2, null);
-Assert::throws(\TypeError::class, function () use (&$instant, &$option, &$value) { $instant->toLocaleString('en', (object) [$option => $value, 'dateStyle' => 'short']); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
-Assert::throws(\TypeError::class, function () use (&$instant, &$option, &$value) { $instant->toLocaleString('en', (object) [$option => $value, 'timeStyle' => 'short']); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
-$instant->toLocaleString('en', (object) [$option => $value]);
-$instant->toLocaleString('en', (object) [$option => $value]);
+Assert::throws(\TypeError::class, function () use (&$instant, &$option, &$value) { $instant->toLocaleString('en', (object) JsUndefined::strip([$option => $value, 'dateStyle' => 'short'])); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
+Assert::throws(\TypeError::class, function () use (&$instant, &$option, &$value) { $instant->toLocaleString('en', (object) JsUndefined::strip([$option => $value, 'timeStyle' => 'short'])); }, "instant.toLocaleString(\"en\", { {$option}: \"{$value}\",  timeStyle: \"short\" }) throws TypeError");
+$instant->toLocaleString('en', (object) JsUndefined::strip([$option => $value]));
+$instant->toLocaleString('en', (object) JsUndefined::strip([$option => $value]));
 }

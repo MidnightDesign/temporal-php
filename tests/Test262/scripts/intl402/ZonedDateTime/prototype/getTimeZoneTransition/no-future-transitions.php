@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = \Temporal\Spec\ZonedDateTime::from('2024-06-15T12:00:00[Asia/Kolkata]');
 Assert::sameValue($zdt->getTimeZoneTransition('next'), null, 'Asia/Kolkata should have no next time zone transition from 2024');
 $prev = $zdt->getTimeZoneTransition('previous');

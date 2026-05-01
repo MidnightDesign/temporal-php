@@ -1438,20 +1438,8 @@ final class PlainDateTime implements Stringable
             $calendarId = ZonedDateTime::extractCalendarFromString($cal);
         }
 
-        $hasEra = array_key_exists('era', $bag);
-        $hasEraYear = array_key_exists('eraYear', $bag);
-        $hasEraAndEraYear = $hasEra && $hasEraYear;
-
-        // era and eraYear must come as a pair.
-        if ($hasEra !== $hasEraYear) {
-            throw new \TypeError('PlainDateTime property bag must have both era and eraYear, or neither.');
-        }
-
-        // Determine if this calendar supports eras.
-        $calendarSupportsEras =
-            $calendarId !== null
-            && $calendarId !== 'iso8601'
-            && !in_array($calendarId, ['chinese', 'dangi'], strict: true);
+        $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainDateTime');
+        $calendarSupportsEras = CalendarMath::supportsEras($calendarId);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
             throw new \TypeError('PlainDateTime property bag must have a year field.');

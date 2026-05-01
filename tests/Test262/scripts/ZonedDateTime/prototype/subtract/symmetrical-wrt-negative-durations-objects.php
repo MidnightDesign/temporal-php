@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $mar31 = \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:00+00:00[UTC]');
-TemporalHelpers::assertZonedDateTimesEqual($mar31->subtract((object) ['minutes' => -30]), \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:30:00+00:00[UTC]'));
-TemporalHelpers::assertZonedDateTimesEqual($mar31->subtract((object) ['seconds' => -30]), \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:00:30+00:00[UTC]'));
+TemporalHelpers::assertZonedDateTimesEqual($mar31->subtract((object) JsUndefined::strip(['minutes' => -30])), \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:30:00+00:00[UTC]'));
+TemporalHelpers::assertZonedDateTimesEqual($mar31->subtract((object) JsUndefined::strip(['seconds' => -30])), \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:00:30+00:00[UTC]'));

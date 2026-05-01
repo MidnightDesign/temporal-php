@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $yearmonth = \Temporal\Spec\PlainYearMonth::from(['year' => 5779, 'monthCode' => 'M05L', 'calendar' => 'hebrew']);
 $duration = ['years' => 1];
 $yearmonth->add($duration);

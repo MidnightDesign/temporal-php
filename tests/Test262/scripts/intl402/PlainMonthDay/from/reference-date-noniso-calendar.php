@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $pmd = \Temporal\Spec\PlainMonthDay::from('2023-01-01[u-ca=hebrew]');
 TemporalHelpers::assertPlainMonthDay($pmd, 'M04', 8);

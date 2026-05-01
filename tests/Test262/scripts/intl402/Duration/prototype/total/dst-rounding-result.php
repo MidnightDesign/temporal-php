@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(0, 1, 0, 15, 11, 30);
 $relativeTo = new \Temporal\Spec\ZonedDateTime(950_868_000_000_000_000, 'America/Vancouver');
-Assert::sameValue($duration->total(['unit' => 'months', 'relativeTo' => $relativeTo]), 1.5, '1 month 15 days 11:30 should be exactly 1.5 months');
+Assert::sameValue($duration->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => $relativeTo])), 1.5, '1 month 15 days 11:30 should be exactly 1.5 months');
 $duration = new \Temporal\Spec\Duration(0, 1, 0, 15, 0, 30);
 $relativeTo = new \Temporal\Spec\ZonedDateTime(951_991_200_000_000_000, 'America/Vancouver');
-Assert::sameValue($duration->total(['unit' => 'months', 'relativeTo' => $relativeTo]), 1.5, '1 month 15 days 00:30 should be exactly 1.5 months');
+Assert::sameValue($duration->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => $relativeTo])), 1.5, '1 month 15 days 00:30 should be exactly 1.5 months');

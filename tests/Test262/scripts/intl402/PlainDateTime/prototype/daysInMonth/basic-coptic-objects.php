@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'coptic';
 $options = (object) ['overflow' => 'reject'];
 $leapYear = 1687;
 $commonYear = 1688;
 foreach ([$leapYear, $commonYear] as $year) {
 for ($month = 1; $month < 14; $month++) {
-$date = \Temporal\Spec\PlainDateTime::from((object) ['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]);
+$date = \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]));
 if ($month !== 13) {
 Assert::sameValue($date->daysInMonth, 30, "{$date}");
 } else {

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $findPart = function ($parts, $expectedType) use (&$__unknown__) {
 return $parts->find(function ($__unknown__) use (&$type, &$expectedType) { return $type === $expectedType; })->value;
 };

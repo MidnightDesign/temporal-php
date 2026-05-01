@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $args = [5, 2];
 $dateExplicit = new \Temporal\Spec\PlainMonthDay(...$args);
 Assert::sameValue($dateExplicit->calendarId, 'iso8601', '');

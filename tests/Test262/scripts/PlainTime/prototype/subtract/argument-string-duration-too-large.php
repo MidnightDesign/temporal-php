@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $ones = str_repeat('1', (int) (1000));
 Assert::incomplete('untranslatable: Number()');

@@ -7,4 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from('1976-11-18junk'), 'String with trailing junk should not be valid as a PlainDate');

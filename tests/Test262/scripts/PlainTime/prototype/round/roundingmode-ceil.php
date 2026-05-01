@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainTime(13, 46, 23, 123, 987, 500);
 $expected = [['hour', [14]], ['minute', [13, 47]], ['second', [13, 46, 24]], ['millisecond', [13, 46, 23, 124]], ['microsecond', [13, 46, 23, 123, 988]], ['nanosecond', [13, 46, 23, 123, 987, 500]]];
@@ -19,5 +20,5 @@ $s = $s ?? 0;
 $ms = $ms ?? 0;
 $µs = $µs ?? 0;
 $ns = $ns ?? 0;
-TemporalHelpers::assertPlainTime($instance->round(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]), $h, $min, $s, $ms, $µs, $ns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
+TemporalHelpers::assertPlainTime($instance->round(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode])), $h, $min, $s, $ms, $µs, $ns, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
 }

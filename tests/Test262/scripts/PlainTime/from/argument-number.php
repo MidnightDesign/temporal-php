@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $numbers = [1, -123_456.987_654_321, 1_234_567, 123_456.9_876_543_219];
 foreach ($numbers as $arg) {
 Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "A number ({$arg}) is not a valid ISO string for PlainTime");

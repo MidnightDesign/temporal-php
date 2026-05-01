@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $ym1 = new \Temporal\Spec\PlainYearMonth(2000, 1, 'iso8601', 1);
 $ym2 = new \Temporal\Spec\PlainYearMonth(2000, 1, 'gregory', 1);
 Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($ym1, $ym2), 0, '');

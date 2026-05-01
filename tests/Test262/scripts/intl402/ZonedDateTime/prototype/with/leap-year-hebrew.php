@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
 $options = ['overflow' => 'reject'];
-$adarI = \Temporal\Spec\ZonedDateTime::from(['year' => 5782, 'monthCode' => 'M05L', 'day' => 30, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
+$adarI = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 5782, 'monthCode' => 'M05L', 'day' => 30, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($adarI->with(['year' => 5783])->toPlainDateTime(), 5783, 6, 'M06', 29, 12, 34, 0, 0, 0, 0, 'Changing 30 Adar I to common year constrains to 29 Adar', 'am', 5783);
 Assert::throws(\InvalidArgumentException::class, function () use (&$adarI, &$options) { $adarI->with(['year' => 5783], $options); }, 'Changing 30 Adar I to common year rejects (either because the month or day would be constrained)');

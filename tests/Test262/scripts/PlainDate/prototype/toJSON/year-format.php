@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(-100_000, 12, 3);
 Assert::sameValue($instance->toJSON(), '-100000-12-03', 'large negative year formatted as 6-digit');
 $instance = new \Temporal\Spec\PlainDate(-10_000, 4, 5);

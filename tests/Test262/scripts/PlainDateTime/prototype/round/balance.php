@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 23, 59, 59, 999, 999, 999);
 foreach (['day', 'hour', 'minute', 'second', 'millisecond', 'microsecond'] as $smallestUnit) {
-TemporalHelpers::assertPlainDateTime($dt->round(['smallestUnit' => $smallestUnit]), 1976, 11, 'M11', 19, 0, 0, 0, 0, 0, 0, "balances to next {$smallestUnit}");
+TemporalHelpers::assertPlainDateTime($dt->round(JsUndefined::strip(['smallestUnit' => $smallestUnit])), 1976, 11, 'M11', 19, 0, 0, 0, 0, 0, 0, "balances to next {$smallestUnit}");
 }

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $fewSeconds = new \Temporal\Spec\ZonedDateTime(192_258_181_000_000_000, 'UTC');
 $zeroSeconds = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $wholeSeconds = new \Temporal\Spec\ZonedDateTime(30_000_000_000, 'UTC');

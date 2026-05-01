@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-TemporalHelpers::checkStringOptionWrongType('disambiguation', 'compatible', function ($disambiguation) use (&$datetime) { return $datetime->with(['hour' => 2], ['disambiguation' => $disambiguation]); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_003_600_987_654_321, $descr));
+TemporalHelpers::checkStringOptionWrongType('disambiguation', 'compatible', function ($disambiguation) use (&$datetime) { return $datetime->with(['hour' => 2], JsUndefined::strip(['disambiguation' => $disambiguation])); }, fn($result, $descr) => Assert::sameValue($result->epochNanoseconds, 1_000_003_600_987_654_321, $descr));

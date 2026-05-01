@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $obj = ['year' => 2020, 'month' => 3, 'day' => 8, 'hour' => 1, 'offset' => '-04:00', 'timeZone' => 'UTC'];
 Assert::throws(\InvalidArgumentException::class, function () use (&$obj) { return \Temporal\Spec\ZonedDateTime::from($obj); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$obj) { return \Temporal\Spec\ZonedDateTime::from($obj, ['offset' => 'reject']); }, '');

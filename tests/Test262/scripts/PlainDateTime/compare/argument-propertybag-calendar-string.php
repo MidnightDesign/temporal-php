@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'iso8601';
-$arg = ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
+$arg = JsUndefined::strip(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar]);
 $result1 = \Temporal\Spec\PlainDateTime::compare($arg, new \Temporal\Spec\PlainDateTime(1976, 11, 18));
 Assert::sameValue($result1, 0, "Calendar created from string \"" . json_encode($arg) . "\" (first argument)");
 $result2 = \Temporal\Spec\PlainDateTime::compare(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $arg);

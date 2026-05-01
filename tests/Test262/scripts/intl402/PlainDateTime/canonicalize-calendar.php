@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $result = new \Temporal\Spec\PlainDateTime(2024, 7, 2, 12, 34, 56, 987, 654, 321, 'islamicc');
 Assert::sameValue($result->calendarId, 'islamic-civil', 'calendar ID is canonicalized');
 $result = new \Temporal\Spec\PlainDateTime(2024, 7, 2, 12, 34, 56, 987, 654, 321, 'ethiopic-amete-alem');

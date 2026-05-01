@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'dangi';
 $options = (object) ['overflow' => 'reject'];
@@ -17,16 +18,16 @@ $months4n = new \Temporal\Spec\Duration(0, -4);
 $months6 = new \Temporal\Spec\Duration(0, 6);
 $months6n = new \Temporal\Spec\Duration(0, -6);
 $durations = [$months1, $months1n, $months4, $months4n, $months6, $months6n];
-$date201901 = \Temporal\Spec\PlainDate::from((object) ['year' => 2019, 'monthCode' => 'M01', 'day' => 1, 'calendar' => $calendar], $options);
-$date201906 = \Temporal\Spec\PlainDate::from((object) ['year' => 2019, 'monthCode' => 'M06', 'day' => 1, 'calendar' => $calendar], $options);
-$date201911 = \Temporal\Spec\PlainDate::from((object) ['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $calendar], $options);
-$date201912 = \Temporal\Spec\PlainDate::from((object) ['year' => 2019, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar], $options);
-$date200012 = \Temporal\Spec\PlainDate::from((object) ['year' => 2000, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar], $options);
+$date201901 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M01', 'day' => 1, 'calendar' => $calendar]), $options);
+$date201906 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M06', 'day' => 1, 'calendar' => $calendar]), $options);
+$date201911 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $calendar]), $options);
+$date201912 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2019, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar]), $options);
+$date200012 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 2000, 'monthCode' => 'M12', 'day' => 1, 'calendar' => $calendar]), $options);
 $dates = [$date201901, $date201906, $date201911, $date201912, $date200012];
 foreach ($durations as $duration) {
 foreach ($dates as $start) {
 $end = $start->add($duration);
-$startYesterday = $start->add((object) ['days' => -1]);
+$startYesterday = $start->add((object) JsUndefined::strip(['days' => -1]));
 $endYesterday = $startYesterday->add($duration);
 Assert::sameValue($endYesterday->day, min($startYesterday->day, $endYesterday->daysInMonth), 'adding months should result in same day');
 $endYesterdayNextDay = $endYesterday->add((object) ['days' => 1]);
@@ -34,7 +35,7 @@ while ($endYesterdayNextDay->day !== 1) {
 $endYesterdayNextDay = $endYesterdayNextDay->add((object) ['days' => 1]);
 }
 TemporalHelpers::assertPlainDate($endYesterdayNextDay, $end->year, $end->month, $end->monthCode, $end->day, "endYesterdayNextDay", $end->era, $end->eraYear);
-$endReverse = $endYesterdayNextDay->add((object) ['days' => -1]);
+$endReverse = $endYesterdayNextDay->add((object) JsUndefined::strip(['days' => -1]));
 $startReverse = $endReverse->add($duration->negated());
 Assert::sameValue($startReverse->day, min($endReverse->day, $startReverse->daysInMonth), '');
 $startReverseNextDay = $startReverse->add((object) ['days' => 1]);

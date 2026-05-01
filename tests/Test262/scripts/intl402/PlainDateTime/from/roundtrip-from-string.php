@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$year2000Cases = [['buddhist', 2543, 1, 'M01', 1, 'be', 2543], ['chinese', 1999, 11, 'M11', 25, null, null], ['coptic', 1716, 4, 'M04', 22, 'am', 1716], ['dangi', 1999, 11, 'M11', 25, null, null], ['ethioaa', 7492, 4, 'M04', 22, 'aa', 7492], ['ethiopic', 1992, 4, 'M04', 22, 'am', 1992], ['gregory', 2000, 1, 'M01', 1, 'ce', 2000], ['hebrew', 5760, 4, 'M04', 23, 'am', 5760], ['indian', 1921, 10, 'M10', 11, 'shaka', 1921], ['islamic-civil', 1420, 9, 'M09', 24, 'ah', 1420], ['islamic-tbla', 1420, 9, 'M09', 25, 'ah', 1420], ['islamic-umalqura', 1420, 9, 'M09', 24, 'ah', 1420], ['japanese', 2000, 1, 'M01', 1, 'heisei', 12], ['persian', 1378, 10, 'M10', 11, 'ap', 1378], ['roc', 89, 1, 'M01', 1, 'roc', 89]];
+$year2000Cases = [['buddhist', 2543, 1, 'M01', 1, 'be', 2543], ['chinese', 1999, 11, 'M11', 25, JsUndefined::singleton(), JsUndefined::singleton()], ['coptic', 1716, 4, 'M04', 22, 'am', 1716], ['dangi', 1999, 11, 'M11', 25, JsUndefined::singleton(), JsUndefined::singleton()], ['ethioaa', 7492, 4, 'M04', 22, 'aa', 7492], ['ethiopic', 1992, 4, 'M04', 22, 'am', 1992], ['gregory', 2000, 1, 'M01', 1, 'ce', 2000], ['hebrew', 5760, 4, 'M04', 23, 'am', 5760], ['indian', 1921, 10, 'M10', 11, 'shaka', 1921], ['islamic-civil', 1420, 9, 'M09', 24, 'ah', 1420], ['islamic-tbla', 1420, 9, 'M09', 25, 'ah', 1420], ['islamic-umalqura', 1420, 9, 'M09', 24, 'ah', 1420], ['japanese', 2000, 1, 'M01', 1, 'heisei', 12], ['persian', 1378, 10, 'M10', 11, 'ap', 1378], ['roc', 89, 1, 'M01', 1, 'roc', 89]];
 foreach ($year2000Cases as $__entry__) {
 [$calendar, $year, $month, $monthCode, $day, $era, $eraYear, $descr] = array_pad($__entry__, 8, null);
 $string = "2000-01-01T12:34[u-ca={$calendar}]";

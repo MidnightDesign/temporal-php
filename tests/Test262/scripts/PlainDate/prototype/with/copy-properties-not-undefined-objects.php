@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainDate = new \Temporal\Spec\PlainDate(2006, 1, 24);
 TemporalHelpers::assertPlainDate($plainDate->with((object) ['day' => 1]), 2006, 1, 'M01', 1, 'only the properties that are present and defined in the plain object are copied');

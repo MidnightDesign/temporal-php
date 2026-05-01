@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'ethioaa';
 $options = ['overflow' => 'reject'];
 $year = 7462;
 for ($month = 1; $month < 14; $month++) {
-$date = \Temporal\Spec\ZonedDateTime::from(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']);
+$date = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']));
 $daysInMonth = $date->daysInMonth;
-$oneDayPastMonthEnd = $date->with(['day' => $daysInMonth + 1]);
+$oneDayPastMonthEnd = $date->with(JsUndefined::strip(['day' => $daysInMonth + 1]));
 Assert::sameValue($oneDayPastMonthEnd->day, $daysInMonth, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with(['day' => $daysInMonth + 1], $options); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with(JsUndefined::strip(['day' => $daysInMonth + 1]), $options); }, '');
 }

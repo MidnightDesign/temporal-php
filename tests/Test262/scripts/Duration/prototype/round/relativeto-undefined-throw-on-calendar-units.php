@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $oneYear = new \Temporal\Spec\Duration(1);
 $oneMonth = new \Temporal\Spec\Duration(0, 1);
@@ -19,6 +20,6 @@ Assert::throws(\InvalidArgumentException::class, function () use (&$oneMonth, &$
 Assert::throws(\InvalidArgumentException::class, function () use (&$oneYear, &$options) { return $oneYear->round($options); }, 'balancing years to days requires relativeTo');
 foreach (['months', 'weeks'] as $largestUnit) {
 foreach ([$oneDay, $oneWeek, $oneMonth, $oneYear] as $duration) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$largestUnit) { return $duration->round(['largestUnit' => $largestUnit]); }, "balancing {$duration} to {$largestUnit} requires relativeTo");
+Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$largestUnit) { return $duration->round(JsUndefined::strip(['largestUnit' => $largestUnit])); }, "balancing {$duration} to {$largestUnit} requires relativeTo");
 }
 }

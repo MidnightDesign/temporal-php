@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $zdt = \Temporal\Spec\ZonedDateTime::from('2019-10-29T09:46:38.271986102[-07:00]');
 TemporalHelpers::assertPlainDate($zdt->toPlainDate(), 2019, 10, 'M10', 29);

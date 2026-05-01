@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $timeZone = 'Africa/Monrovia';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
@@ -17,7 +18,7 @@ TemporalHelpers::assertDuration($result, 0, 0, 0, 0, -1, -29, 0, 0, 0, 0, 'Unrou
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->since('1970-01-01T00:00:00-00:44:40[Africa/Monrovia]'); }, 'wrong :SS not accepted in string offset');
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->since('1970-01-01T00:00:00-00:45:00[Africa/Monrovia]'); }, 'rounded HH:MM:SS not accepted in string offset');
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->since('1970-01-01T00:44:30+00:44:30[+00:45]'); }, 'minute rounding not supported for offset time zones');
-$properties = ['offset' => '-00:45', 'year' => 1970, 'month' => 1, 'day' => 1, 'minute' => 44, 'second' => 30, 'timeZone' => $timeZone];
+$properties = JsUndefined::strip(['offset' => '-00:45', 'year' => 1970, 'month' => 1, 'day' => 1, 'minute' => 44, 'second' => 30, 'timeZone' => $timeZone]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$properties) { return $instance->since($properties); }, 'no fuzzy matching is done on offset in property bag');
 $reference = new \Temporal\Spec\ZonedDateTime(-543_069_621_000_000_000, 'Pacific/Niue');
 TemporalHelpers::assertDuration($reference->since('1952-10-15T23:59:59-11:19:40[Pacific/Niue]'), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '-11:19:40 is accepted as -11:19:40 in Pacific/Niue edge case');

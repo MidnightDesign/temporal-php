@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2000, 10);
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, ['roundingIncrement' => -INF]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, ['roundingIncrement' => -1]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, JsUndefined::strip(['roundingIncrement' => -INF])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, JsUndefined::strip(['roundingIncrement' => -1])); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, ['roundingIncrement' => 0]); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, ['roundingIncrement' => 0.9]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, ['roundingIncrement' => 1_000_000_000 + 1]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, ['roundingIncrement' => INF]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, JsUndefined::strip(['roundingIncrement' => 1_000_000_000 + 1])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, JsUndefined::strip(['roundingIncrement' => INF])); }, '');

@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'gregory';
 $options = ['overflow' => 'reject'];
-$common0131 = \Temporal\Spec\ZonedDateTime::from(['year' => 2019, 'monthCode' => 'M01', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
-$common1231 = \Temporal\Spec\ZonedDateTime::from(['year' => 2019, 'monthCode' => 'M12', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
-$leap0131 = \Temporal\Spec\ZonedDateTime::from(['year' => 2016, 'monthCode' => 'M01', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
-$leap1231 = \Temporal\Spec\ZonedDateTime::from(['year' => 2016, 'monthCode' => 'M12', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar], $options);
+$common0131 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2019, 'monthCode' => 'M01', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+$common1231 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2019, 'monthCode' => 'M12', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+$leap0131 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2016, 'monthCode' => 'M01', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+$leap1231 = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 2016, 'monthCode' => 'M12', 'day' => 31, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 $months1 = new \Temporal\Spec\Duration(0, -1);
 $months2 = new \Temporal\Spec\Duration(0, -2);
 $months3 = new \Temporal\Spec\Duration(0, -3);

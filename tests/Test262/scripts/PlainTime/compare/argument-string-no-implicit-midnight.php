@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $arg = '2019-10-01';
 $midnight = new \Temporal\Spec\PlainTime();
 Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$midnight) { return \Temporal\Spec\PlainTime::compare($arg, $midnight); }, 'Date-only string throws, does not implicitly convert to midnight (first argument)');

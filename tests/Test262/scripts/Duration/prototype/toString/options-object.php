@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 0, 1);
 $result1 = $instance->toString([]);
 Assert::sameValue($result1, 'PT1H', 'options may be an empty plain object');

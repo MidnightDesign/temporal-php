@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from((object) ['hour' => 15, 'minute' => 23]), 15, 23, 0, 0, 0, 0);
 TemporalHelpers::assertPlainTime(\Temporal\Spec\PlainTime::from((object) ['minute' => 30, 'microsecond' => 555]), 0, 30, 0, 0, 555, 0);

@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $p = \Temporal\Spec\Instant::from('1965-04-25T09:00:00Z')->toZonedDateTimeISO('America/Los_Angeles');
 $nsPerHour = 60 * 60 * (1000 ** 3);
 Assert::sameValue($p->offsetNanoseconds, -7 * $nsPerHour, 'DST transition');
-Assert::sameValue($p->add(['nanoseconds' => +1])->offsetNanoseconds, -7 * $nsPerHour, 'DST transition plus one nanosecond');
-Assert::sameValue($p->add(['nanoseconds' => -1])->offsetNanoseconds, -8 * $nsPerHour, 'DST transition minus one nanosecond');
+Assert::sameValue($p->add(JsUndefined::strip(['nanoseconds' => +1]))->offsetNanoseconds, -7 * $nsPerHour, 'DST transition plus one nanosecond');
+Assert::sameValue($p->add(JsUndefined::strip(['nanoseconds' => -1]))->offsetNanoseconds, -8 * $nsPerHour, 'DST transition minus one nanosecond');

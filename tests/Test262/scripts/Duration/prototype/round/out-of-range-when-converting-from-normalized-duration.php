@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $ms = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 488, 0, 0);
 Assert::throws(\InvalidArgumentException::class, function () use (&$ms) { return $ms->round(['largestUnit' => 'nanoseconds', 'roundingIncrement' => 1]); }, 'nanoseconds component after balancing as a float64-representable integer is out of range (maximum milliseconds)');
 $us = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 0, 475_712, 0);

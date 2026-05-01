@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $later = new \Temporal\Spec\PlainDate(2000, 5, 7);
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) ['roundingIncrement' => -INF]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) ['roundingIncrement' => -1]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) JsUndefined::strip(['roundingIncrement' => -INF])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) JsUndefined::strip(['roundingIncrement' => -1])); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) ['roundingIncrement' => 0]); }, '');
 Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) ['roundingIncrement' => 0.9]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) ['roundingIncrement' => 1_000_000_000 + 1]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) ['roundingIncrement' => INF]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) JsUndefined::strip(['roundingIncrement' => 1_000_000_000 + 1])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) JsUndefined::strip(['roundingIncrement' => INF])); }, '');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $hoursOnly = new \Temporal\Spec\Duration(0, 0, 0, 0, 1);
 foreach ([(object) [], function () {  }, (object) ['roundingMode' => 'ceil']] as $roundTo) {

@@ -7,14 +7,15 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $plainDate = \Temporal\Spec\PlainDate::from('2020-01-01');
 $timeZone = 'UTC';
 $plainTime = \Temporal\Spec\PlainTime::from('12:00');
-$result = $plainDate->toZonedDateTime((object) ['timeZone' => $timeZone, 'plainTime' => $plainTime]);
+$result = $plainDate->toZonedDateTime((object) JsUndefined::strip(['timeZone' => $timeZone, 'plainTime' => $plainTime]));
 Assert::sameValue($result->toString(), '2020-01-01T12:00:00+00:00[UTC]', 'objects passed');
 $result = $plainDate->toZonedDateTime($timeZone);
 Assert::sameValue($result->toString(), '2020-01-01T00:00:00+00:00[UTC]', 'time zone object argument');
-$result = $plainDate->toZonedDateTime((object) ['timeZone' => $timeZone, 'plainTime' => $plainTime]);
+$result = $plainDate->toZonedDateTime((object) JsUndefined::strip(['timeZone' => $timeZone, 'plainTime' => $plainTime]));
 Assert::sameValue($result->toString(), '2020-01-01T12:00:00+00:00[UTC]', 'time zone string property');
-$result = $plainDate->toZonedDateTime((object) ['timeZone' => $timeZone, 'plainTime' => '12:00']);
+$result = $plainDate->toZonedDateTime((object) JsUndefined::strip(['timeZone' => $timeZone, 'plainTime' => '12:00']));
 Assert::sameValue($result->toString(), '2020-01-01T12:00:00+00:00[UTC]', 'time string property');

@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(2019, 2, 16, 23, 45);
 foreach (['earlier', 'later', 'compatible', 'reject'] as $disambiguation) {
-$result = $instance->toZonedDateTime('+03:30', ['disambiguation' => $disambiguation]);
+$result = $instance->toZonedDateTime('+03:30', JsUndefined::strip(['disambiguation' => $disambiguation]));
 Assert::sameValue($result->epochNanoseconds, 1_550_348_100_000_000_000, 'Result is 2019-02-16T20:15Z regardless of disambiguation');
 }

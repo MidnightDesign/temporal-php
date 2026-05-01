@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $md = \Temporal\Spec\PlainMonthDay::from('01-15');
 TemporalHelpers::assertPlainMonthDay($md->with(['day' => 22]), 'M01', 22, 'with({day})');

@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $plainRelativeTo = new \Temporal\Spec\PlainDate(1970, 1, 1);
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 3, 12);
 $commonOptions = (object) ['smallestUnit' => 'hours', 'roundingIncrement' => 8, 'roundingMode' => 'halfEven'];
 TemporalHelpers::assertDuration($duration->round($commonOptions), 0, 0, 0, 3, 8, 0, 0, 0, 0, 0, 'halfEven rounding is downward with no relativeTo');
-TemporalHelpers::assertDuration($duration->round((object) array_merge((array) $commonOptions, ['relativeTo' => $plainRelativeTo])), 0, 0, 0, 3, 8, 0, 0, 0, 0, 0, 'halfEven rounding is downward with PlainDate relativeTo');
-TemporalHelpers::assertDuration($duration->round((object) array_merge((array) $commonOptions, ['relativeTo' => $zonedRelativeTo])), 0, 0, 0, 3, 16, 0, 0, 0, 0, 0, 'halfEven rounding is upward with ZonedDateTime relativeTo');
+TemporalHelpers::assertDuration($duration->round((object) JsUndefined::strip(array_merge((array) $commonOptions, ['relativeTo' => $plainRelativeTo]))), 0, 0, 0, 3, 8, 0, 0, 0, 0, 0, 'halfEven rounding is downward with PlainDate relativeTo');
+TemporalHelpers::assertDuration($duration->round((object) JsUndefined::strip(array_merge((array) $commonOptions, ['relativeTo' => $zonedRelativeTo]))), 0, 0, 0, 3, 16, 0, 0, 0, 0, 0, 'halfEven rounding is upward with ZonedDateTime relativeTo');

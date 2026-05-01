@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 1, 'day' => 32], ['overflow' => 'reject']), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 2, 'day' => 29], ['overflow' => 'reject']), '');
 Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from(['year' => 2021, 'month' => 3, 'day' => 32], ['overflow' => 'reject']), '');

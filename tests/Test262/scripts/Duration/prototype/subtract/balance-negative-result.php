@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration1 = new \Temporal\Spec\Duration(0, 0, 0, 0, -60);
 $duration2 = new \Temporal\Spec\Duration(0, 0, 0, -1);

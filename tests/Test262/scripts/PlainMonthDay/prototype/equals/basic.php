@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $md1 = \Temporal\Spec\PlainMonthDay::from('01-22');
 $md2 = \Temporal\Spec\PlainMonthDay::from('12-15');
 Assert::assertTrue($md1->equals($md1), 'same object');

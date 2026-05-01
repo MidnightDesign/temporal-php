@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [[new \Temporal\Spec\PlainTime(5, 3, 1), '05:03:01'], [new \Temporal\Spec\PlainTime(15, 23), '15:23:00'], [new \Temporal\Spec\PlainTime(15, 23, 30), '15:23:30'], [new \Temporal\Spec\PlainTime(15, 23, 30, 123, 400), '15:23:30.1234']];
 $options = null;
 foreach ($tests as $__entry__) {

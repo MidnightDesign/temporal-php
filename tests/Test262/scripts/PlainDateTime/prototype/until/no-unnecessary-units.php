@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $lastFeb21 = new \Temporal\Spec\PlainDateTime(2021, 2, 28);
 $lastFeb22 = new \Temporal\Spec\PlainDateTime(2022, 2, 28);

@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1);
 foreach (['UTC', '+01:00'] as $timeZone) {
-$instance->round((object) ['largestUnit' => 'months', 'relativeTo' => (object) ['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]]);
+$instance->round((object) JsUndefined::strip(['largestUnit' => 'months', 'relativeTo' => (object) JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])]));
 }
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

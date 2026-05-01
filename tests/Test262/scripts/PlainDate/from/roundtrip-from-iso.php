@@ -7,11 +7,12 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $testRoundtrip = function ($date) {
-$dateFromYearMonth = \Temporal\Spec\PlainDate::from(['year' => $date->year, 'month' => $date->month, 'day' => $date->day]);
+$dateFromYearMonth = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => $date->year, 'month' => $date->month, 'day' => $date->day]));
 TemporalHelpers::assertPlainDate($dateFromYearMonth, $date->year, $date->month, $date->monthCode, $date->day, "{$date} - created from year and month");
-$dateFromYearMonthCode = \Temporal\Spec\PlainDate::from(['year' => $date->year, 'monthCode' => $date->monthCode, 'day' => $date->day]);
+$dateFromYearMonthCode = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => $date->year, 'monthCode' => $date->monthCode, 'day' => $date->day]));
 TemporalHelpers::assertPlainDate($dateFromYearMonthCode, $date->year, $date->month, $date->monthCode, $date->day, "{$date} - created from year and month code");
 };
 $year2000 = new \Temporal\Spec\PlainDate(2000, 1, 1);

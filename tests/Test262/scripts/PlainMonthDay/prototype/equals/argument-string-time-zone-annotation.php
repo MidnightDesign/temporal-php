@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [['1976-05-02T15:23[Asia/Kolkata]', 'named, with no offset'], ['1976-05-02T15:23[!Europe/Vienna]', 'named, with ! and no offset'], ['1976-05-02T15:23[+00:00]', 'numeric, with no offset'], ['1976-05-02T15:23[!-02:30]', 'numeric, with ! and no offset'], ['1976-05-02T15:23+00:00[UTC]', 'named, with offset'], ['1976-05-02T15:23+00:00[!Africa/Abidjan]', 'named, with offset and !'], ['1976-05-02T15:23+00:00[+01:00]', 'numeric, with offset'], ['1976-05-02T15:23+00:00[!-08:00]', 'numeric, with offset and !']];
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ($tests as $__entry__) {

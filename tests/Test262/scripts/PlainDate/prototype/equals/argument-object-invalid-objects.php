@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainDate::from((object) ['year' => 2000, 'month' => 5, 'day' => 2]);
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals((object) []); }, 'plain object');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->equals((object) ['year' => 1972, 'month' => 7]); }, 'only year, month');

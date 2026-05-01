@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 2, 2, 12, 34, 56, 987, 654, 321);
 $fields = (object) ['day' => 31];
 $explicit = $datetime->with($fields);

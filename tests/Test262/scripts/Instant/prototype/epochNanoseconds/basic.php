@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $afterEpoch = new \Temporal\Spec\Instant(217_175_010_123_456_789);
 Assert::sameValue($afterEpoch->epochNanoseconds, 217_175_010_123_456_789, 'epochNanoseconds post epoch');
 $beforeEpoch = new \Temporal\Spec\Instant(-217_175_010_876_543_211);

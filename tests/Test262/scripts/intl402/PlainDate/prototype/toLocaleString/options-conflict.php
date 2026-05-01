@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $conflictingOptions = [['weekday', 'short'], ['era', 'short'], ['year', 'numeric'], ['month', 'numeric'], ['day', 'numeric']];
 $date = new \Temporal\Spec\PlainDate(2000, 5, 2);
 Assert::sameValue(is_string($date->toLocaleString('en', ['dateStyle' => 'short'])), true, '');
 Assert::throws(\TypeError::class, function () use (&$date) { $date->toLocaleString('en', ['timeStyle' => 'short']); }, 'timeStyle conflicts with PlainDate');
 foreach ($conflictingOptions as $__entry__) {
 [$option, $value] = array_pad($__entry__, 2, null);
-Assert::throws(\TypeError::class, function () use (&$date, &$option, &$value) { $date->toLocaleString('en', [$option => $value, 'dateStyle' => 'short']); }, "date.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
-$date->toLocaleString('en', [$option => $value]);
-$date->toLocaleString('en', [$option => $value]);
+Assert::throws(\TypeError::class, function () use (&$date, &$option, &$value) { $date->toLocaleString('en', JsUndefined::strip([$option => $value, 'dateStyle' => 'short'])); }, "date.toLocaleString(\"en\", { {$option}: \"{$value}\",  dateStyle: \"short\" }) throws TypeError");
+$date->toLocaleString('en', JsUndefined::strip([$option => $value]));
+$date->toLocaleString('en', JsUndefined::strip([$option => $value]));
 }

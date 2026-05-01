@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->subtract((object) []); }, 'Throws TypeError if no property is present');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->subtract((object) ['nonsense' => true]); }, 'Throws TypeError if no recognized property is present');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $inst = new \Temporal\Spec\Instant(50_000);
 $result = $inst->subtract(new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 3, 2, 1));
 Assert::sameValue(-2_952_001, $result->epochNanoseconds, 'subtract positive sub-seconds');

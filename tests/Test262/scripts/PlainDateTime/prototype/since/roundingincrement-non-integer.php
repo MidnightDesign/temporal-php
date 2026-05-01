@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $earlier = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 0);
 $later = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 0, 0, 5);
 $result = $later->since($earlier, ['roundingIncrement' => 2.5, 'roundingMode' => 'trunc']);
 TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 'roundingIncrement 2.5 truncates to 2');
-$result2 = $later->since($earlier, ['smallestUnit' => 'days', 'roundingIncrement' => 1_000_000_000 + 0.5, 'roundingMode' => 'expand']);
+$result2 = $later->since($earlier, JsUndefined::strip(['smallestUnit' => 'days', 'roundingIncrement' => 1_000_000_000 + 0.5, 'roundingMode' => 'expand']));
 TemporalHelpers::assertDuration($result2, 0, 0, 0, 1_000_000_000, 0, 0, 0, 0, 0, 0, 'roundingIncrement 1e9 + 0.5 truncates to 1e9');

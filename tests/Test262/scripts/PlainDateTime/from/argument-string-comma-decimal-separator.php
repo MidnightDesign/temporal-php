@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from('1976-11-18T15:23:30,12'), 1976, 11, 'M11', 18, 15, 23, 30, 120, 0, 0, 'comma decimal separator');

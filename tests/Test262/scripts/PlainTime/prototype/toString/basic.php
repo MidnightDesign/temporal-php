@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23)->toString(), '15:23:00', '');
 Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30)->toString(), '15:23:30', '');
 Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123)->toString(), '15:23:30.123', '');

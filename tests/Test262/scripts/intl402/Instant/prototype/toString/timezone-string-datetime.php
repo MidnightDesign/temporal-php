@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $timeZone = '2021-08-19T17:30[America/Vancouver]';
-$result1 = $instance->toString(['timeZone' => $timeZone]);
+$result1 = $instance->toString(JsUndefined::strip(['timeZone' => $timeZone]));
 Assert::sameValue(substr(string: $result1, offset: -6), '-08:00', 'date-time + IANA annotation is the IANA time zone');
 $timeZone = '2021-08-19T17:30Z[America/Vancouver]';
-$result2 = $instance->toString(['timeZone' => $timeZone]);
+$result2 = $instance->toString(JsUndefined::strip(['timeZone' => $timeZone]));
 Assert::sameValue(substr(string: $result2, offset: -6), '-08:00', 'date-time + Z + IANA annotation is the IANA time zone');
 $timeZone = '2021-08-19T17:30-07:00[America/Vancouver]';
-$result3 = $instance->toString(['timeZone' => $timeZone]);
+$result3 = $instance->toString(JsUndefined::strip(['timeZone' => $timeZone]));
 Assert::sameValue(substr(string: $result3, offset: -6), '-08:00', 'date-time + offset + IANA annotation is the IANA time zone');

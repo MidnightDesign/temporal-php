@@ -7,18 +7,19 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $other = new \Temporal\Spec\PlainYearMonth(2000, 5, 'gregory');
 $base = ['era' => 'ad', 'month' => 5, 'calendar' => 'gregory'];
 foreach ([INF, -INF] as $inf) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$inf, &$other) { return \Temporal\Spec\PlainYearMonth::compare(array_merge($base, ['eraYear' => $inf]), $other); }, "eraYear property cannot be {$inf}");
-Assert::throws(\InvalidArgumentException::class, function () use (&$other, &$base, &$inf) { return \Temporal\Spec\PlainYearMonth::compare($other, array_merge($base, ['eraYear' => $inf])); }, "eraYear property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$inf, &$other) { return \Temporal\Spec\PlainYearMonth::compare(JsUndefined::strip(array_merge($base, ['eraYear' => $inf])), $other); }, "eraYear property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$other, &$base, &$inf) { return \Temporal\Spec\PlainYearMonth::compare($other, JsUndefined::strip(array_merge($base, ['eraYear' => $inf]))); }, "eraYear property cannot be {$inf}");
 $calls1 = [];
 $obj1 = TemporalHelpers::toPrimitiveObserver($calls1, $inf, 'eraYear');
-Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$obj1, &$other) { return \Temporal\Spec\PlainYearMonth::compare(array_merge($base, ['eraYear' => $obj1]), $other); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$base, &$obj1, &$other) { return \Temporal\Spec\PlainYearMonth::compare(JsUndefined::strip(array_merge($base, ['eraYear' => $obj1])), $other); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls1, ["get eraYear.valueOf", "call eraYear.valueOf"], "it fails after fetching the primitive value");
 $calls2 = [];
 $obj2 = TemporalHelpers::toPrimitiveObserver($calls2, $inf, 'eraYear');
-Assert::throws(\InvalidArgumentException::class, function () use (&$other, &$base, &$obj2) { return \Temporal\Spec\PlainYearMonth::compare($other, array_merge($base, ['eraYear' => $obj2])); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$other, &$base, &$obj2) { return \Temporal\Spec\PlainYearMonth::compare($other, JsUndefined::strip(array_merge($base, ['eraYear' => $obj2]))); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls2, ["get eraYear.valueOf", "call eraYear.valueOf"], "it fails after fetching the primitive value");
 }

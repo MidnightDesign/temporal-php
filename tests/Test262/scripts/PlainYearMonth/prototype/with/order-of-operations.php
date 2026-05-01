@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $expectedOpsForPrimitiveOptions = ['get fields.calendar', 'get fields.timeZone', 'get fields.month', 'get fields.month.valueOf', 'call fields.month.valueOf', 'get fields.monthCode', 'get fields.monthCode.toString', 'call fields.monthCode.toString', 'get fields.year', 'get fields.year.valueOf', 'call fields.year.valueOf'];
 $expected = array_merge($expectedOpsForPrimitiveOptions, ['get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString']);

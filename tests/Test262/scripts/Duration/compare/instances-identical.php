@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration1 = new \Temporal\Spec\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
 $duration2 = new \Temporal\Spec\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
 Assert::sameValue(\Temporal\Spec\Duration::compare($duration1, $duration2), 0, 'identical Duration instances should be equal');

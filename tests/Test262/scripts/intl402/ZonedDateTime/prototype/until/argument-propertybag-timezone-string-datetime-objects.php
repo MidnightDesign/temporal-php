@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $expectedTimeZone = 'America/Vancouver';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $expectedTimeZone);
 $timeZone = '2021-08-19T17:30[America/Vancouver]';
-$instance->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 $timeZone = '2021-08-19T17:30Z[America/Vancouver]';
-$instance->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 $timeZone = '2021-08-19T17:30-07:00[America/Vancouver]';
-$instance->until((object) ['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]);
+$instance->until((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone]));
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

@@ -7,13 +7,14 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'coptic';
 $options = (object) ['overflow' => 'reject'];
-$common1230 = \Temporal\Spec\PlainDate::from((object) ['year' => 1738, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar], $options);
-$leap0130 = \Temporal\Spec\PlainDate::from((object) ['year' => 1739, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar], $options);
-$leap1230 = \Temporal\Spec\PlainDate::from((object) ['year' => 1739, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar], $options);
-$common0130 = \Temporal\Spec\PlainDate::from((object) ['year' => 1740, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar], $options);
+$common1230 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1738, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar]), $options);
+$leap0130 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1739, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
+$leap1230 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1739, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar]), $options);
+$common0130 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 1740, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
 $months1 = new \Temporal\Spec\Duration(0, -1);
 $months1n = new \Temporal\Spec\Duration(0, 1);
 TemporalHelpers::assertPlainDate($common1230->subtract($months1), 1738, 13, 'M13', 5, 'Adding 1 month to last day of Mesori constrains to day 5 of common-year epagomenal month', 'am', 1738);

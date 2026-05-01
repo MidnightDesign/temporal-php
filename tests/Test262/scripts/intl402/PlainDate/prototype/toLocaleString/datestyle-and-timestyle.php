@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $item = new \Temporal\Spec\PlainDate(2026, 1, 20);
 Assert::throws(\TypeError::class, function () use (&$item) { $item->toLocaleString('en', ['dateStyle' => 'full', 'timeStyle' => 'full']); }, '');

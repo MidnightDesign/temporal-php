@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $later = new \Temporal\Spec\PlainDate(2001, 6, 3);
 $units = ['years', 'months', 'weeks', 'days'];
@@ -14,6 +15,6 @@ for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
 $largestUnit = $units[$largestIdx];
 $smallestUnit = $units[$smallestIdx];
-Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier, &$largestUnit, &$smallestUnit) { return $later->since($earlier, (object) ['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier, &$largestUnit, &$smallestUnit) { return $later->since($earlier, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, '');
 }
 }

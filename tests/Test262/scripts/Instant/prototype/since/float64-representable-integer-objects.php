@@ -7,5 +7,5 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$i1 = new \Temporal\Spec\Instant(0);
-Assert::incomplete('Instant epoch nanoseconds exceed PHP int64 range');
+use Temporal\Tests\Test262\JsUndefined;
+Assert::incomplete('PHP keeps Duration fields as exact int64; the fixture pins JS BigInt → Number float64 narrowing (see README deviation)');

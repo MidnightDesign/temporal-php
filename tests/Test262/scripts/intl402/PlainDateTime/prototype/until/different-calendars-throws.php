@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $dt1 = new \Temporal\Spec\PlainDateTime(2000, 1, 1, 0, 0, 0, 0, 0, 0);
 $dt2 = new \Temporal\Spec\PlainDateTime(2000, 1, 1, 0, 0, 0, 0, 0, 0, 'gregory');
 Assert::throws(\InvalidArgumentException::class, function () use (&$dt1, &$dt2) { return $dt1->until($dt2); }, 'cannot use until with PDTs having different calendars');

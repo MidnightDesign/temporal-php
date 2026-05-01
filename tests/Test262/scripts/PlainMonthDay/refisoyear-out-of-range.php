@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainMonthDay(9, 14, 'iso8601', 275_760), 'after the maximum ISO date');
 Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainMonthDay(4, 18, 'iso8601', -271_821), 'before the minimum ISO date');

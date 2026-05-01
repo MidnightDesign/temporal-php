@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dur = new \Temporal\Spec\Duration(0, 0, 0, 0, 13, 0, 0, 0, 0, 0);
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-TemporalHelpers::assertDuration($dur->round((object) ['relativeTo' => $zdt, 'largestUnit' => 'hours', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil']), 0, 0, 0, 0, 24, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dur->round((object) JsUndefined::strip(['relativeTo' => $zdt, 'largestUnit' => 'hours', 'smallestUnit' => 'hours', 'roundingIncrement' => 12, 'roundingMode' => 'ceil'])), 0, 0, 0, 0, 24, 0, 0, 0, 0, 0);

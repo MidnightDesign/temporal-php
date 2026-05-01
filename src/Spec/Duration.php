@@ -780,72 +780,18 @@ final class Duration implements Stringable
         $unit = self::normalizeUnit($unit);
 
         if ($unit === 'years' || $unit === 'months' || $unit === 'weeks') {
-            if (!is_array($totalOf) || !array_key_exists('relativeTo', $totalOf)) {
-                throw new InvalidArgumentException("total() with unit \"{$unit}\" requires a relativeTo option.");
-            }
-            /** @var mixed $rt */
-            $rt = $totalOf['relativeTo'];
-            // PlainDate and ZonedDateTime objects are valid relativeTo values; convert to property bag.
-            if ($rt instanceof \Temporal\Spec\ZonedDateTime) {
-                $rt = self::zdtToPlainDateBag($rt);
-            } elseif ($rt instanceof \Temporal\Spec\PlainDate) {
-                $rt = ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
-            } elseif (is_string($rt)) {
-                $rt = $this->parseRelativeToString($rt);
-            } else {
-                if (is_object($rt)) {
-                    $rt = get_object_vars($rt);
-                }
-                if (is_array($rt)) {
-                    self::validateRelativeToPropertyBag($rt);
-                } else {
-                    throw new \TypeError('relativeTo must be a string or property bag.');
-                }
-            }
-            // Both 'month' and 'monthCode' are valid month specifiers per TC39.
-            $hasYear = array_key_exists('year', $rt);
-            $hasMonth = array_key_exists('month', $rt) || array_key_exists('monthCode', $rt);
-            $hasDay = array_key_exists('day', $rt);
-            if (!$hasYear || !$hasMonth || !$hasDay) {
-                throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
-            }
-            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo'] ?? null);
+            [$rt, $zdtInfoCal] = $this->resolveRelativeToForTotal(
+                $totalOf,
+                "total() with unit \"{$unit}\" requires a relativeTo option.",
+            );
             return $this->totalCalendar($unit, $rt, $zdtInfoCal);
         }
 
         if ($this->years !== 0 || $this->months !== 0 || $this->weeks !== 0) {
-            // Calendar fields need a relativeTo anchor to convert to the target unit.
-            if (!is_array($totalOf) || !array_key_exists('relativeTo', $totalOf)) {
-                throw new InvalidArgumentException(
-                    'total() on a duration with years, months, or weeks requires a relativeTo option.',
-                );
-            }
-            /** @var mixed $rt */
-            $rt = $totalOf['relativeTo'];
-            // PlainDate and ZonedDateTime objects are valid relativeTo values; convert to property bag.
-            if ($rt instanceof \Temporal\Spec\ZonedDateTime) {
-                $rt = self::zdtToPlainDateBag($rt);
-            } elseif ($rt instanceof \Temporal\Spec\PlainDate) {
-                $rt = ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
-            } elseif (is_string($rt)) {
-                $rt = $this->parseRelativeToString($rt);
-            } else {
-                if (is_object($rt)) {
-                    $rt = get_object_vars($rt);
-                }
-                if (is_array($rt)) {
-                    self::validateRelativeToPropertyBag($rt);
-                } else {
-                    throw new \TypeError('relativeTo must be a string or property bag.');
-                }
-            }
-            $hasYear = array_key_exists('year', $rt);
-            $hasMonth = array_key_exists('month', $rt) || array_key_exists('monthCode', $rt);
-            $hasDay = array_key_exists('day', $rt);
-            if (!$hasYear || !$hasMonth || !$hasDay) {
-                throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
-            }
-            $zdtInfoCal = self::resolveRelativeToZdt($totalOf['relativeTo'] ?? null);
+            [$rt, $zdtInfoCal] = $this->resolveRelativeToForTotal(
+                $totalOf,
+                'total() on a duration with years, months, or weeks requires a relativeTo option.',
+            );
             return $this->totalCalendar($unit, $rt, $zdtInfoCal);
         }
 
@@ -1027,6 +973,67 @@ final class Duration implements Stringable
         // Return int when the result is a whole number (matches JS behavior where
         // e.g. 24 hours total('hours') is 24, not 24.0).
         return self::toIntIfWhole($result);
+    }
+
+    /**
+     * Validates and resolves the `relativeTo` option for `Duration::total()`'s
+     * calendar paths. Returns the property-bag form of the anchor (with `year`,
+     * `month`/`monthCode`, `day` keys guaranteed) plus the ZonedDateTime info
+     * record when the original input was a ZDT.
+     *
+     * @param mixed  $totalOf  the options bag passed to `total()` (string-form
+     *     totalOf is invalid here — calendar units require an options object,
+     *     never a bare smallestUnit string).
+     * @param string $missingMsg  message for InvalidArgumentException when the
+     *     `relativeTo` key is absent. The TypeError thrown for an explicit null
+     *     and the field-shape errors are spec-mandated and identical across
+     *     calling sites.
+     * @return array{0: array<array-key, mixed>, 1: array{epochSec: int, subNs: int, tzId: string, year: int, month: int, day: int, hour: int, minute: int, second: int}|null}
+     *     [resolvedBag, zdtInfo].
+     * @throws InvalidArgumentException if relativeTo is absent.
+     * @throws \TypeError if relativeTo is null, not String/Object, or the
+     *     resolved bag lacks year, month/monthCode, or day.
+     */
+    private function resolveRelativeToForTotal(mixed $totalOf, string $missingMsg): array
+    {
+        if (!is_array($totalOf) || !array_key_exists('relativeTo', $totalOf)) {
+            throw new InvalidArgumentException($missingMsg);
+        }
+        // Per TC39 GetTemporalRelativeToOption: present-but-null relativeTo is
+        // not a String or Object → TypeError. (Distinct from the absent case,
+        // which is RangeError above.) test262
+        // Duration/prototype/total/does-not-accept-non-string-primitives-for-relativeTo
+        // pins this distinction.
+        if ($totalOf['relativeTo'] === null) {
+            throw new \TypeError('relativeTo must be a string, property bag, or Temporal date/datetime.');
+        }
+        /** @var mixed $rt */
+        $rt = $totalOf['relativeTo'];
+        // PlainDate and ZonedDateTime objects are valid relativeTo values; convert to property bag.
+        if ($rt instanceof \Temporal\Spec\ZonedDateTime) {
+            $rt = self::zdtToPlainDateBag($rt);
+        } elseif ($rt instanceof \Temporal\Spec\PlainDate) {
+            $rt = ['year' => $rt->isoYear, 'month' => $rt->isoMonth, 'day' => $rt->isoDay];
+        } elseif (is_string($rt)) {
+            $rt = $this->parseRelativeToString($rt);
+        } else {
+            if (is_object($rt)) {
+                $rt = get_object_vars($rt);
+            }
+            if (is_array($rt)) {
+                self::validateRelativeToPropertyBag($rt);
+            } else {
+                throw new \TypeError('relativeTo must be a string or property bag.');
+            }
+        }
+        // Both 'month' and 'monthCode' are valid month specifiers per TC39.
+        $hasYear = array_key_exists('year', $rt);
+        $hasMonth = array_key_exists('month', $rt) || array_key_exists('monthCode', $rt);
+        $hasDay = array_key_exists('day', $rt);
+        if (!$hasYear || !$hasMonth || !$hasDay) {
+            throw new \TypeError('relativeTo property bag must have year, month/monthCode, and day fields.');
+        }
+        return [$rt, self::resolveRelativeToZdt($totalOf['relativeTo'])];
     }
 
     /**
@@ -2211,6 +2218,14 @@ final class Duration implements Stringable
         $zdtInfoRound = $rtRawForZdt !== null ? self::resolveRelativeToZdt($rtRawForZdt) : null;
 
         if ($needsRelativeTo && !$relativeToProvided) {
+            // Distinguish "key absent" (= JS undefined → RangeError) from "key
+            // present with PHP null" (= JS null → TypeError per
+            // GetTemporalRelativeToOption "If value is not a String or an Object,
+            // throw a TypeError"). extractRelativeTo collapses both to false
+            // for the unneeded path; only re-inspect here when the option matters.
+            if (array_key_exists('relativeTo', $roundTo) && $roundTo['relativeTo'] === null) {
+                throw new \TypeError('relativeTo must be a string, property bag, or Temporal date/datetime.');
+            }
             throw new InvalidArgumentException(
                 'Duration::round() with calendar units (years, months, weeks) requires a relativeTo option.',
             );
@@ -2747,9 +2762,15 @@ final class Duration implements Stringable
         }
         /** @var mixed $rt */
         $rt = $options['relativeTo'];
-        // null is not a valid relativeTo value (it represents JS null, not undefined).
+        // PHP null is treated as the option being absent. test262 fixtures pass `null`
+        // in `[null, plainRelativeTo, zonedRelativeTo]` parametric tables (for
+        // non-calendar Durations) and expect the round to succeed — collapsing
+        // PHP null to "absent" matches that. Genuinely-typed wrong-type fixtures
+        // (relativeto-wrong-type) cover the same path: when the calling context
+        // does require an anchor, the absent-relativeTo branch raises
+        // InvalidArgumentException ≡ JS RangeError.
         if ($rt === null) {
-            throw new \TypeError('relativeTo must be a string or property bag array.');
+            return false;
         }
         if ($rt instanceof \Temporal\Spec\PlainDate || $rt instanceof \Temporal\Spec\ZonedDateTime) {
             return true; // PlainDate and ZonedDateTime objects are valid relativeTo values
@@ -4624,7 +4645,7 @@ final class Duration implements Stringable
      */
     private function nudgeToCalendarMonthsOrYears(
         \DateTimeImmutable $startDate,
-        int $totalNs,
+        int|float $totalNs,
         int $nsPerDay,
         int $suIdx,
         int $luIdx,
@@ -4633,11 +4654,43 @@ final class Duration implements Stringable
         bool $isPositive,
         ?array $zdtInfo = null,
     ): self {
+        // $totalNs is int|float to accommodate calendar progressions across
+        // multi-millennium spans where days × NS_PER_DAY exceeds int64. The function
+        // never decomposes $totalNs into days/sub-day components except in the ZDT
+        // branch (which handles its own conversion against actual epoch seconds);
+        // all other uses are sign checks and ratio comparisons that work for both
+        // int and float operands.
         $sign = $totalNs >= 0 ? 1 : -1;
 
         // For ZDT with IANA timezone, recompute totalNs using actual epoch seconds
         // so DST transitions are accounted for.
         if ($zdtInfo !== null) {
+            // Decompose $totalNs into (calendarDaysFromNs, timePartNs). The int branch
+            // is the common case; the float branch is reached only when calendarDays ×
+            // NS_PER_DAY exceeds int64 (~106k days, ~292 years).
+            //
+            // Static analyzers (Psalm, Mago) infer $totalNs as `int` from the caller's
+            // own arithmetic and flag the float branch as dead. The runtime contract is
+            // wider — `nudgeToCalendarMonthsOrYears` is widened to `int|float` for exactly
+            // the overflow case the spec layer must support — so the suppressions are
+            // correct. Keeping the suppressions next to the branch they describe rather
+            // than the file head; remove them only if the analyzers learn that PHP's
+            // int*int can overflow to float.
+            /**
+             * @psalm-suppress RedundantCondition
+             */
+            if (is_int($totalNs)) {
+                $calendarDaysFromNs = intdiv($totalNs - ($totalNs % $nsPerDay), $nsPerDay);
+                $timePartNs = $totalNs % $nsPerDay;
+            } else {
+                // @mago-ignore analysis:unreachable-else-clause
+                // @mago-ignore analysis:no-value
+                $nsPerDayF = (float) $nsPerDay;
+                /** @psalm-suppress NoValue */
+                $calendarDaysFromNs = (int) (($totalNs - fmod(num1: $totalNs, num2: $nsPerDayF)) / $nsPerDayF);
+                /** @psalm-suppress NoValue */
+                $timePartNs = (int) fmod(num1: $totalNs, num2: $nsPerDayF);
+            }
             $actualDaysSec = (int) self::zdtDaysToSec(
                 $zdtInfo['year'],
                 $zdtInfo['month'],
@@ -4646,11 +4699,9 @@ final class Duration implements Stringable
                 $zdtInfo['minute'],
                 $zdtInfo['second'],
                 $zdtInfo['tzId'],
-                // calendarDays is totalNs/nsPerDay rounded toward zero (strip time component).
-                intdiv($totalNs - ($totalNs % $nsPerDay), $nsPerDay),
+                $calendarDaysFromNs,
                 $zdtInfo['epochSec'],
             );
-            $timePartNs = $totalNs % $nsPerDay;
             $totalNs = ($actualDaysSec * 1_000_000_000) + $timePartNs;
         }
 

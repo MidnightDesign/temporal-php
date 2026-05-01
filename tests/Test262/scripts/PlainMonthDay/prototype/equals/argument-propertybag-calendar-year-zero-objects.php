@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['-000000-10-31', '-000000-10-31T17:45', '-000000-10-31T17:45Z', '-000000-10-31T17:45+01:00', '-000000-10-31T17:45+00:00[UTC]'];
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ($invalidStrings as $str) {
-$arg = (object) ['year' => 1976, 'month' => 11, 'day' => 18, 'calendar' => $str];
+$arg = (object) JsUndefined::strip(['year' => 1976, 'month' => 11, 'day' => 18, 'calendar' => $str]);
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, 'reject minus zero as extended year');
 }

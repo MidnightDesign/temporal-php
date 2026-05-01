@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $validValues = [new \Temporal\Spec\PlainYearMonth(2000, 5), (object) ['year' => 2000, 'month' => 5], '2000-05'];
 foreach ($validValues as $value) {
-TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainYearMonth::from($value, (object) ['overflow' => $overflow]); }, fn($result, $descr) => TemporalHelpers::assertPlainYearMonth($result, 2000, 5, 'M05', $descr));
+TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainYearMonth::from($value, (object) JsUndefined::strip(['overflow' => $overflow])); }, fn($result, $descr) => TemporalHelpers::assertPlainYearMonth($result, 2000, 5, 'M05', $descr));
 }

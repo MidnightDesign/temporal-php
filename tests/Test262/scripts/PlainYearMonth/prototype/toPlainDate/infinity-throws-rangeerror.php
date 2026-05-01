@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 foreach ([INF, -INF] as $inf) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf) { return $instance->toPlainDate(['day' => $inf]); }, "day property cannot be {$inf}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf) { return $instance->toPlainDate(JsUndefined::strip(['day' => $inf])); }, "day property cannot be {$inf}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, 'day');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$obj) { return $instance->toPlainDate(['day' => $obj]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$obj) { return $instance->toPlainDate(JsUndefined::strip(['day' => $obj])); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, ["get day.valueOf", "call day.valueOf"], "it fails after fetching the primitive value");
 }

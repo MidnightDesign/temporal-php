@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $monthCodesWithYears = [['monthCode' => 'M03L', 'referenceYear' => 1955], ['monthCode' => 'M04L', 'referenceYear' => 1944], ['monthCode' => 'M05L', 'referenceYear' => 1952], ['monthCode' => 'M06L', 'referenceYear' => 1941], ['monthCode' => 'M07L', 'referenceYear' => 1938]];
 $calendar = 'dangi';
@@ -14,10 +15,10 @@ $day = 30;
 foreach ($monthCodesWithYears as $__obj__) {
 $monthCode = $__obj__['monthCode'] ?? null;
 $referenceYear = $__obj__['referenceYear'] ?? null;
-$pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day]);
+$pmd = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, $day, $monthCode, $referenceYear);
-$constrain = \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1], ['overflow' => 'constrain']);
+$constrain = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrain, $monthCode, $day, "{$monthCode} (constrained)", $referenceYear);
 Assert::sameValue($constrain->equals($pmd), true, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode, &$day) { \Temporal\Spec\PlainMonthDay::from(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1], ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode, &$day) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), ['overflow' => 'reject']); }, '');
 }

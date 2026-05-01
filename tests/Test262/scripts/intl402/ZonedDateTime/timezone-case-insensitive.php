@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'eTc/gMt+1';
 $result = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 Assert::sameValue($result->timeZoneId, 'Etc/GMT+1', "Time zone created from string \"{$timeZone}\"");

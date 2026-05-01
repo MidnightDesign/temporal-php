@@ -7,12 +7,13 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = \Temporal\Spec\ZonedDateTime::from(['year' => 1970, 'month' => 1, 'day' => 1, 'hour' => 12, 'timeZone' => 'Africa/Monrovia']);
 Assert::sameValue($instance->offset, '-00:44:30', 'original offset');
 $properties = ['day' => 2, 'offset' => '-00:45'];
 foreach (['ignore', 'prefer'] as $offset) {
-$result = $instance->with($properties, ['offset' => $offset]);
+$result = $instance->with($properties, JsUndefined::strip(['offset' => $offset]));
 Assert::sameValue($result->epochNanoseconds, 132_270_000_000_000, "ignores new offset (offset={$offset})");
 Assert::sameValue($result->offset, $instance->offset, 'offset property is unchanged');
 TemporalHelpers::assertPlainDateTime($result->toPlainDateTime(), 1970, 1, 'M01', 2, 12, 0, 0, 0, 0, 0, 'wall time is not shifted');

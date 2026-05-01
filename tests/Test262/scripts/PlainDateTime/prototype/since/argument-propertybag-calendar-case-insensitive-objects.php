@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18);
 $arg = (object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => 'IsO8601'];

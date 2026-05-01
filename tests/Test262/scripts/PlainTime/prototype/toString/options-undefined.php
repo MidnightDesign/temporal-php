@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $tests = [['15:23', '15:23:00'], ['15:23:30', '15:23:30'], ['15:23:30.1234', '15:23:30.1234']];
 foreach ($tests as $__entry__) {
 [$input, $expected] = array_pad($__entry__, 2, null);

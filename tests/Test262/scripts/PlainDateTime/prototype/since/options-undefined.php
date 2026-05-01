@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
 $later = new \Temporal\Spec\PlainDateTime(2000, 6, 12, 12, 34, 56, 987, 654, 322);
 $explicit = $later->since($earlier);

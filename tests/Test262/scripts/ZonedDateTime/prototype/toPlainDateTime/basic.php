@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $zdtEpoch = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 TemporalHelpers::assertPlainDateTime($zdtEpoch->toPlainDateTime(), 1970, 1, 'M01', 1, 0, 0, 0, 0, 0, 0, 'epoch result');

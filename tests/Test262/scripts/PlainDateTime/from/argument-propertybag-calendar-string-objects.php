@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'iso8601';
-$arg = (object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar];
+$arg = (object) JsUndefined::strip(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar]);
 $result = \Temporal\Spec\PlainDateTime::from($arg);
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 0, 0, 0, 0, 0, 0, "Calendar created from string \"{$calendar}\"");
 Assert::sameValue($result->calendarId, 'iso8601', 'calendar string is iso8601');

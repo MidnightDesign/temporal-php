@@ -7,16 +7,17 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dstStartDay = \Temporal\Spec\PlainDateTime::from('2000-04-02T12:00:01')->toZonedDateTime('America/Vancouver');
 $dstEndDay = \Temporal\Spec\PlainDateTime::from('2000-10-29T12:00:01')->toZonedDateTime('America/Vancouver');
 $oneThirty = ['hour' => 1, 'minute' => 30];
 $twoThirty = ['hour' => 2, 'minute' => 30];
-$bogus = array_merge($twoThirty, ['offset' => '+23:59']);
+$bogus = JsUndefined::strip(array_merge($twoThirty, ['offset' => '+23:59']));
 $preserveExactSpring = $dstStartDay->with($bogus, ['offset' => 'use']);
 TemporalHelpers::assertZonedDateTimesEqual($preserveExactSpring, \Temporal\Spec\ZonedDateTime::from('2000-03-31T18:31:01-08:00[America/Vancouver]'), 'Option offset: use, with bogus offset, changes to the exact');
 Assert::sameValue($preserveExactSpring->epochNanoseconds, \Temporal\Spec\Instant::from('2000-04-02T02:30:01+23:59')->epochNanoseconds, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$dstStartDay, &$twoThirty) { return $dstStartDay->with(array_merge($twoThirty, ['offset' => '+23:59']), ['offset' => 'reject']); }, 'Option offset: reject, with bogus offset, throws');
+Assert::throws(\InvalidArgumentException::class, function () use (&$dstStartDay, &$twoThirty) { return $dstStartDay->with(JsUndefined::strip(array_merge($twoThirty, ['offset' => '+23:59'])), ['offset' => 'reject']); }, 'Option offset: reject, with bogus offset, throws');
 $doubleTime = new \Temporal\Spec\ZonedDateTime(972_811_801_000_000_000, 'America/Vancouver');
 $preserveExactFall = $doubleTime->with(['offset' => '-07:00'], ['offset' => 'use']);
 Assert::sameValue($preserveExactFall->offset, '-07:00', '');

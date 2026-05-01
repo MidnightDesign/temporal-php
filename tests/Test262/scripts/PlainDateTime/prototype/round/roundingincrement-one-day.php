@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dt = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 14, 23, 30, 123, 456, 789);
 TemporalHelpers::assertPlainDateTime($dt->round(['smallestUnit' => 'day', 'roundingIncrement' => 1]), 1976, 11, 'M11', 19, 0, 0, 0, 0, 0, 0, '1 day is a valid increment');

@@ -7,25 +7,26 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $dCalendar = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $dNoCalendar = new \Temporal\Spec\Duration(0, 0, 0, 5, 5, 5, 5, 5, 5, 5);
 $plainRelativeTo = new \Temporal\Spec\PlainDate(2020, 1, 1);
 $zonedRelativeTo = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach ([$plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
-TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'hours', 'roundingIncrement' => 3, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 6, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 5, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'seconds', 'roundingIncrement' => 15, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 5, 5, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'milliseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 5, 5, 5, 10, 0, 0);
-TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'microseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 5, 5, 5, 5, 10, 0);
-TemporalHelpers::assertDuration($dCalendar->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo]), 5, 6, 0, 10, 5, 5, 5, 5, 5, 10);
+TemporalHelpers::assertDuration($dCalendar->round(JsUndefined::strip(['smallestUnit' => 'hours', 'roundingIncrement' => 3, 'relativeTo' => $relativeTo])), 5, 6, 0, 10, 6, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dCalendar->round(JsUndefined::strip(['smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'relativeTo' => $relativeTo])), 5, 6, 0, 10, 5, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dCalendar->round(JsUndefined::strip(['smallestUnit' => 'seconds', 'roundingIncrement' => 15, 'relativeTo' => $relativeTo])), 5, 6, 0, 10, 5, 5, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dCalendar->round(JsUndefined::strip(['smallestUnit' => 'milliseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo])), 5, 6, 0, 10, 5, 5, 5, 10, 0, 0);
+TemporalHelpers::assertDuration($dCalendar->round(JsUndefined::strip(['smallestUnit' => 'microseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo])), 5, 6, 0, 10, 5, 5, 5, 5, 10, 0);
+TemporalHelpers::assertDuration($dCalendar->round(JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo])), 5, 6, 0, 10, 5, 5, 5, 5, 5, 10);
 }
-foreach ([null, $plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
-TemporalHelpers::assertDuration($dNoCalendar->round(['smallestUnit' => 'days', 'roundingIncrement' => 2, 'relativeTo' => $relativeTo]), 0, 0, 0, 6, 0, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($dNoCalendar->round(['smallestUnit' => 'hours', 'roundingIncrement' => 3, 'relativeTo' => $relativeTo]), 0, 0, 0, 5, 6, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($dNoCalendar->round(['smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'relativeTo' => $relativeTo]), 0, 0, 0, 5, 5, 0, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($dNoCalendar->round(['smallestUnit' => 'seconds', 'roundingIncrement' => 15, 'relativeTo' => $relativeTo]), 0, 0, 0, 5, 5, 5, 0, 0, 0, 0);
-TemporalHelpers::assertDuration($dNoCalendar->round(['smallestUnit' => 'milliseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo]), 0, 0, 0, 5, 5, 5, 5, 10, 0, 0);
-TemporalHelpers::assertDuration($dNoCalendar->round(['smallestUnit' => 'microseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo]), 0, 0, 0, 5, 5, 5, 5, 5, 10, 0);
-TemporalHelpers::assertDuration($dNoCalendar->round(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo]), 0, 0, 0, 5, 5, 5, 5, 5, 5, 10);
+foreach ([JsUndefined::singleton(), $plainRelativeTo, $zonedRelativeTo] as $relativeTo) {
+TemporalHelpers::assertDuration($dNoCalendar->round(JsUndefined::strip(['smallestUnit' => 'days', 'roundingIncrement' => 2, 'relativeTo' => $relativeTo])), 0, 0, 0, 6, 0, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dNoCalendar->round(JsUndefined::strip(['smallestUnit' => 'hours', 'roundingIncrement' => 3, 'relativeTo' => $relativeTo])), 0, 0, 0, 5, 6, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dNoCalendar->round(JsUndefined::strip(['smallestUnit' => 'minutes', 'roundingIncrement' => 30, 'relativeTo' => $relativeTo])), 0, 0, 0, 5, 5, 0, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dNoCalendar->round(JsUndefined::strip(['smallestUnit' => 'seconds', 'roundingIncrement' => 15, 'relativeTo' => $relativeTo])), 0, 0, 0, 5, 5, 5, 0, 0, 0, 0);
+TemporalHelpers::assertDuration($dNoCalendar->round(JsUndefined::strip(['smallestUnit' => 'milliseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo])), 0, 0, 0, 5, 5, 5, 5, 10, 0, 0);
+TemporalHelpers::assertDuration($dNoCalendar->round(JsUndefined::strip(['smallestUnit' => 'microseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo])), 0, 0, 0, 5, 5, 5, 5, 5, 10, 0);
+TemporalHelpers::assertDuration($dNoCalendar->round(JsUndefined::strip(['smallestUnit' => 'nanoseconds', 'roundingIncrement' => 10, 'relativeTo' => $relativeTo])), 0, 0, 0, 5, 5, 5, 5, 5, 5, 10);
 }

@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $min = \Temporal\Spec\PlainYearMonth::from('-271821-04');
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$overflow) { return $min->subtract((object) ['months' => 1], (object) ['overflow' => $overflow]); }, $overflow);
+Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$overflow) { return $min->subtract((object) ['months' => 1], (object) JsUndefined::strip(['overflow' => $overflow])); }, $overflow);
 }

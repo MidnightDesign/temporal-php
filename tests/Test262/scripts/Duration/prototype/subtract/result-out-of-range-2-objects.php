@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $duration1 = \Temporal\Spec\Duration::from((object) ['days' => 104_249_991_374]);
-$duration2 = \Temporal\Spec\Duration::from((object) ['days' => -104_249_991_374]);
+$duration2 = \Temporal\Spec\Duration::from((object) JsUndefined::strip(['days' => -104_249_991_374]));
 Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2) { return $duration1->subtract($duration2); }, '');

@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_987_650_000);
 $string = $instant->toString((object) ['fractionalSecondDigits' => 2.5]);
 Assert::sameValue($string, '2001-09-09T01:46:40.98Z', 'fractionalSecondDigits 2.5 floors to 2');
 $string = $instant->toString((object) ['fractionalSecondDigits' => 9.7]);
 Assert::sameValue($string, '2001-09-09T01:46:40.987650000Z', 'fractionalSecondDigits 9.7 floors to 9 and is not out of range');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->toString((object) ['fractionalSecondDigits' => -0.6]); }, 'fractionalSecondDigits -0.6 floors to -1 and is out of range');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->toString((object) JsUndefined::strip(['fractionalSecondDigits' => -0.6])); }, 'fractionalSecondDigits -0.6 floors to -1 and is out of range');

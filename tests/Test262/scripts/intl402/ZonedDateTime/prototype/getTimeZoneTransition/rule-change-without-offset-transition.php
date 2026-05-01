@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $londonPrev = new \Temporal\Spec\ZonedDateTime(0, 'Europe/London')->getTimeZoneTransition('previous');
 Assert::notSameValue($londonPrev->offsetNanoseconds, $londonPrev->subtract(['nanoseconds' => 1])->offsetNanoseconds, 'should be a UTC offset transition');
 Assert::sameValue($londonPrev->epochNanoseconds, -59_004_000_000_000_000, 'epoch nanoseconds for 1968-02-18T03:00:00+01:00');

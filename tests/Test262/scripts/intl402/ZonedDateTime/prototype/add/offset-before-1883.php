@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\ZonedDateTime::from('2001-09-08T18:46:40-07:00[America/Vancouver]');
 $expectedOffset = '-08:12:28';
 Assert::sameValue($instance->add(\Temporal\Spec\Duration::from('-P5432Y1837M'))->offset, $expectedOffset, "add -P5432Y1837M, offset should be {$expectedOffset}");

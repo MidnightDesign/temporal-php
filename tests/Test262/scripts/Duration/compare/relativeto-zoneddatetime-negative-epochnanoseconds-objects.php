@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $relativeTo = new \Temporal\Spec\ZonedDateTime(-13_849_764_999_999_999, 'UTC');
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
-$result = \Temporal\Spec\Duration::compare($duration, $duration, (object) ['relativeTo' => $relativeTo]);
+$result = \Temporal\Spec\Duration::compare($duration, $duration, (object) JsUndefined::strip(['relativeTo' => $relativeTo]));
 Assert::sameValue($result, 0, '');

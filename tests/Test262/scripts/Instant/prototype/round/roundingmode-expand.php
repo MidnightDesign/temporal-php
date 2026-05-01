@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(217_175_010_123_987_500);
 $expected = [['hour', 217_177_200_000_000_000], ['minute', 217_175_040_000_000_000], ['second', 217_175_011_000_000_000], ['millisecond', 217_175_010_124_000_000], ['microsecond', 217_175_010_123_988_000], ['nanosecond', 217_175_010_123_987_500]];
 $roundingMode = 'expand';
 foreach ($expected as $__entry__) {
 [$smallestUnit, $expected] = array_pad($__entry__, 2, null);
-Assert::sameValue($instance->round(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode])->epochNanoseconds, $expected, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
+Assert::sameValue($instance->round(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'roundingMode' => $roundingMode]))->epochNanoseconds, $expected, "rounds to {$smallestUnit} (roundingMode = {$roundingMode})");
 }

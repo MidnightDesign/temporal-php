@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $date1 = new \Temporal\Spec\PlainDate(1914, 2, 23, 'iso8601');
 $date2 = new \Temporal\Spec\PlainDate(1914, 2, 22, 'gregory');
 Assert::sameValue($date1->equals($date2), false, 'different ISO dates');

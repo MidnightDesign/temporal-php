@@ -7,17 +7,18 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\PlainDateTime(1800, 1, 1)->toZonedDateTime('Europe/Paris');
 Assert::sameValue($zdt->toString(), '1800-01-01T00:00:00+00:09[Europe/Paris]', '');
 Assert::sameValue($zdt->offsetNanoseconds, (9 * 60 + 21) * 1_000_000_000, '');
 $first = $zdt->getTimeZoneTransition('next');
 Assert::sameValue($first->toString(), '1911-03-10T23:50:39+00:00[Europe/Paris]', '');
-$firstMinus1s = $first->add((object) ['seconds' => -1]);
+$firstMinus1s = $first->add((object) JsUndefined::strip(['seconds' => -1]));
 Assert::sameValue($firstMinus1s->toString(), '1911-03-10T23:59:59+00:09[Europe/Paris]', '');
 Assert::sameValue($firstMinus1s->offsetNanoseconds, (9 * 60 + 21) * 1_000_000_000, '');
 $next = $firstMinus1s->getTimeZoneTransition('next');
 Assert::sameValue($next->toString(), '1911-03-10T23:50:39+00:00[Europe/Paris]', '');
-$firstMinus1ns = $first->add((object) ['nanoseconds' => -1]);
+$firstMinus1ns = $first->add((object) JsUndefined::strip(['nanoseconds' => -1]));
 Assert::sameValue($firstMinus1ns->toString(), '1911-03-10T23:59:59.999999999+00:09[Europe/Paris]', '');
 Assert::sameValue($firstMinus1ns->offsetNanoseconds, (9 * 60 + 21) * 1_000_000_000, '');
 $next = $firstMinus1ns->getTimeZoneTransition('next');

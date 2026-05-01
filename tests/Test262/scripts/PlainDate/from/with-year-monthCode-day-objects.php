@@ -7,5 +7,6 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDate(\Temporal\Spec\PlainDate::from((object) ['year' => 2021, 'monthCode' => 'M07', 'day' => 15]), 2021, 7, 'M07', 15, 'year/monthCode/day');

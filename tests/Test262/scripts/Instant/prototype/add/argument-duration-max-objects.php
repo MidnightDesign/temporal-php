@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $maxCases = [['PT2400000000H', 'string with max hours'], [(object) ['hours' => 2_400_000_000], 'property bag with max hours'], ['PT144000000000M', 'string with max minutes'], [(object) ['minutes' => 144_000_000_000], 'property bag with max minutes'], ['PT8640000000000S', 'string with max seconds'], [(object) ['seconds' => 8_640_000_000_000], 'property bag with max seconds']];
 foreach ($maxCases as $__entry__) {
@@ -16,7 +17,7 @@ $result = $instance->add($arg);
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
 }
-$minCases = [['-PT2400000000H', 'string with min hours'], [(object) ['hours' => -2_400_000_000], 'property bag with min hours'], ['-PT144000000000M', 'string with min minutes'], [(object) ['minutes' => -144_000_000_000], 'property bag with min minutes'], ['-PT8640000000000S', 'string with min seconds'], [(object) ['seconds' => -8_640_000_000_000], 'property bag with min seconds']];
+$minCases = [['-PT2400000000H', 'string with min hours'], [(object) JsUndefined::strip(['hours' => -2_400_000_000]), 'property bag with min hours'], ['-PT144000000000M', 'string with min minutes'], [(object) JsUndefined::strip(['minutes' => -144_000_000_000]), 'property bag with min minutes'], ['-PT8640000000000S', 'string with min seconds'], [(object) JsUndefined::strip(['seconds' => -8_640_000_000_000]), 'property bag with min seconds']];
 foreach ($minCases as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
 $result = $instance->add($arg);

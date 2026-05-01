@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-TemporalHelpers::checkStringOptionWrongType('timeZoneName', 'auto', function ($timeZoneName) use (&$datetime) { return $datetime->toString(['timeZoneName' => $timeZoneName]); }, fn($result, $descr) => Assert::sameValue($result, '2001-09-09T01:46:40.987654321+00:00[UTC]', $descr));
+TemporalHelpers::checkStringOptionWrongType('timeZoneName', 'auto', function ($timeZoneName) use (&$datetime) { return $datetime->toString(JsUndefined::strip(['timeZoneName' => $timeZoneName])); }, fn($result, $descr) => Assert::sameValue($result, '2001-09-09T01:46:40.987654321+00:00[UTC]', $descr));

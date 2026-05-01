@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $feb20 = \Temporal\Spec\Instant::from('2020-02-01T00:00Z');
 $latersub = $feb20->add((object) ['hours' => 24, 'milliseconds' => 250, 'microseconds' => 250, 'nanoseconds' => 250]);

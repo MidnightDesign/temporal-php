@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration = \Temporal\Spec\Duration::from((object) ['days' => 3, 'hours' => 1, 'minutes' => 10]);
 TemporalHelpers::assertDuration($duration->subtract((object) ['days' => 1, 'minutes' => 5]), 0, 0, 0, 2, 1, 5, 0, 0, 0, 0);
@@ -15,12 +16,12 @@ TemporalHelpers::assertDuration($duration->subtract((object) ['days' => 3]), 0, 
 TemporalHelpers::assertDuration($duration->subtract((object) ['minutes' => 10]), 0, 0, 0, 3, 1, 0, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($duration->subtract((object) ['minutes' => 15]), 0, 0, 0, 3, 0, 55, 0, 0, 0, 0);
 TemporalHelpers::assertDuration($duration->subtract((object) ['seconds' => 30]), 0, 0, 0, 3, 1, 9, 30, 0, 0, 0);
-TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P2DT1H5M')->subtract((object) ['days' => -1, 'minutes' => -5]), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
-TemporalHelpers::assertDuration(new \Temporal\Spec\Duration()->subtract((object) ['days' => -3, 'hours' => -1, 'minutes' => -10]), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
-TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('PT1H10M')->subtract((object) ['days' => -3]), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
-TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P3DT1H')->subtract((object) ['minutes' => -10]), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
-TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P3DT55M')->subtract((object) ['minutes' => -15]), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
-TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P3DT1H9M30S')->subtract((object) ['seconds' => -30]), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P2DT1H5M')->subtract((object) JsUndefined::strip(['days' => -1, 'minutes' => -5])), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(new \Temporal\Spec\Duration()->subtract((object) JsUndefined::strip(['days' => -3, 'hours' => -1, 'minutes' => -10])), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('PT1H10M')->subtract((object) JsUndefined::strip(['days' => -3])), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P3DT1H')->subtract((object) JsUndefined::strip(['minutes' => -10])), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P3DT55M')->subtract((object) JsUndefined::strip(['minutes' => -15])), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
+TemporalHelpers::assertDuration(\Temporal\Spec\Duration::from('P3DT1H9M30S')->subtract((object) JsUndefined::strip(['seconds' => -30])), 0, 0, 0, 3, 1, 10, 0, 0, 0, 0);
 $d = \Temporal\Spec\Duration::from((object) ['minutes' => 100, 'seconds' => 100, 'milliseconds' => 2000, 'microseconds' => 2000, 'nanoseconds' => 2000]);
 $less = \Temporal\Spec\Duration::from((object) ['minutes' => 10, 'seconds' => 10, 'milliseconds' => 500, 'microseconds' => 500, 'nanoseconds' => 500]);
 TemporalHelpers::assertDuration($d->subtract($less), 0, 0, 0, 0, 0, 91, 31, 501, 501, 500);

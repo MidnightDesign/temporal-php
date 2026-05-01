@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $date = new \Temporal\Spec\PlainDate(2000, 5, 2, 'iso8601');
-TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', function ($calendarName) use (&$date) { return $date->toString((object) ['calendarName' => $calendarName]); }, fn($result, $descr) => Assert::sameValue($result, '2000-05-02', $descr));
+TemporalHelpers::checkStringOptionWrongType('calendarName', 'auto', function ($calendarName) use (&$date) { return $date->toString((object) JsUndefined::strip(['calendarName' => $calendarName])); }, fn($result, $descr) => Assert::sameValue($result, '2000-05-02', $descr));

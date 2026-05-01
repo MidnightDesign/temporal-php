@@ -7,10 +7,11 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
-$daysPerMonth = (object) ['Cheshvan' => [29, 30, 30, 29, 29, 30, 30, 29, 29, 30, 29], 'Kislev' => [30, 30, 30, 29, 30, 30, 30, 30, 29, 30, 30]];
+use Temporal\Tests\Test262\JsUndefined;
+$daysPerMonth = (object) JsUndefined::strip(['Cheshvan' => [29, 30, 30, 29, 29, 30, 30, 29, 29, 30, 29], 'Kislev' => [30, 30, 30, 29, 30, 30, 30, 30, 29, 30, 30]]);
 for ($year = 0; $year < count($daysPerMonth->Cheshvan); ++$year) {
-$endOfCheshvan = \Temporal\Spec\PlainDate::from((object) ['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M02', 'day' => 30]);
+$endOfCheshvan = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M02', 'day' => 30]));
 Assert::sameValue($endOfCheshvan->day, $daysPerMonth->Cheshvan[$year], '');
-$endOfKislev = \Temporal\Spec\PlainDate::from((object) ['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M03', 'day' => 30]);
+$endOfKislev = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M03', 'day' => 30]));
 Assert::sameValue($endOfKislev->day, $daysPerMonth->Kislev[$year], '');
 }

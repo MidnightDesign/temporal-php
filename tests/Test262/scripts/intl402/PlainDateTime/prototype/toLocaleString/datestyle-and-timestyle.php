@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $item = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 0, 0, 0, 0, 0, 0);
 $result = $item->toLocaleString('en', ['dateStyle' => 'full', 'timeStyle' => 'full']);
 Assert::sameValue(str_contains($result, ':00'), true, 'using both dateStyle and timeStyle should not throw');

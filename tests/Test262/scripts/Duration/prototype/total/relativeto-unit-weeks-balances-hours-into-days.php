@@ -7,9 +7,10 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $almostWeek = new \Temporal\Spec\Duration(0, 0, 0, 6, 20, 0, 0, 0, 0, 0);
 $almostWeekNegative = new \Temporal\Spec\Duration(0, 0, 0, -6, -20, 0, 0, 0, 0, 0);
-$totalWeeks = $almostWeek->total(['unit' => 'weeks', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)]);
+$totalWeeks = $almostWeek->total(JsUndefined::strip(['unit' => 'weeks', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)]));
 Assert::assertTrue(abs($totalWeeks - ((6 + (20 / 24)) / 7)) < 2.220446049250313E-16, '');
-$totalWeeksNegative = $almostWeekNegative->total(['unit' => 'weeks', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)]);
+$totalWeeksNegative = $almostWeekNegative->total(JsUndefined::strip(['unit' => 'weeks', 'relativeTo' => new \Temporal\Spec\PlainDate(2020, 1, 1)]));
 Assert::assertTrue(abs($totalWeeksNegative - -((6 + (20 / 24)) / 7)) < 2.220446049250313E-16, '');

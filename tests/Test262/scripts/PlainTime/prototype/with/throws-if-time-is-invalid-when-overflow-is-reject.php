@@ -7,8 +7,9 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainTime();
-$temporalTimeLikes = [['hour' => -1], ['hour' => 24], ['minute' => -1], ['minute' => 60], ['second' => -1], ['second' => 60], ['millisecond' => -1], ['millisecond' => 1000], ['microsecond' => -1], ['microsecond' => 1000], ['nanosecond' => -1], ['nanosecond' => 1000]];
+$temporalTimeLikes = [JsUndefined::strip(['hour' => -1]), ['hour' => 24], JsUndefined::strip(['minute' => -1]), ['minute' => 60], JsUndefined::strip(['second' => -1]), ['second' => 60], JsUndefined::strip(['millisecond' => -1]), ['millisecond' => 1000], JsUndefined::strip(['microsecond' => -1]), ['microsecond' => 1000], JsUndefined::strip(['nanosecond' => -1]), ['nanosecond' => 1000]];
 $options = ['overflow' => 'reject'];
 foreach ($temporalTimeLikes as $temporalTimeLike) {
 Assert::incomplete('untranslatable: JSON.stringify');

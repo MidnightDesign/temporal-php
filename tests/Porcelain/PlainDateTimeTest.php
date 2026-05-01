@@ -1055,6 +1055,24 @@ final class PlainDateTimeTest extends TemporalTestCase
         static::assertSame(12, $result->hour);
     }
 
+    public function testFromFieldsWithEraAndEraYear(): void
+    {
+        $dt = PlainDateTime::fromFields(
+            year: 2020,
+            month: 6,
+            day: 15,
+            hour: 12,
+            minute: 30,
+            calendar: Calendar::Gregory,
+            era: 'ce',
+            eraYear: 2020,
+        );
+
+        static::assertSame(2020, $dt->year);
+        static::assertSame('ce', $dt->era);
+        static::assertSame(2020, $dt->eraYear);
+    }
+
     // -------------------------------------------------------------------------
     // toZonedDateTime
     // -------------------------------------------------------------------------

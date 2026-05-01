@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(new \Temporal\Spec\Duration(1, 0, 0, 0, 0, 0, 0, 0, 0, 1)->toJSON(), 'P1YT0.000000001S', 'years with nanoseconds');
 Assert::sameValue(new \Temporal\Spec\Duration(0, 1, 0, 0, 0, 0, 0, 0, 1)->toJSON(), 'P1MT0.000001S', 'months with microseconds');
 Assert::sameValue(new \Temporal\Spec\Duration(0, 0, 1, 0, 0, 0, 0, 1)->toJSON(), 'P1WT0.001S', 'weeks with milliseconds');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $riyadh = \Temporal\Spec\ZonedDateTime::from('2024-06-15T12:00:00[Asia/Riyadh]');
 Assert::sameValue($riyadh->getTimeZoneTransition('next'), null, 'Asia/Riyadh should have no next time zone transition from 2024');
 $earlyRiyadh = \Temporal\Spec\ZonedDateTime::from('1850-01-01T00:00:00[Asia/Riyadh]');

@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $nsPerDay = 864 * (10 ** 11);
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::sameValue($zdt->yearOfWeek, 1970, '');

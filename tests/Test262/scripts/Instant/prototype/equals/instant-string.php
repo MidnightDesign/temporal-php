@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $str = '1970-01-01T00:00';
 Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$str) { return $instance->equals($str); }, 'bare date-time string is not an instant');

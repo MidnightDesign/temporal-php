@@ -7,6 +7,7 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::sameValue(\Temporal\Spec\PlainDate::compare($zdt, new \Temporal\Spec\PlainDate(1970, 1, 1)), 0, 'same date, ZDT first');
 Assert::sameValue(\Temporal\Spec\PlainDate::compare(new \Temporal\Spec\PlainDate(1970, 1, 1), $zdt), 0, 'same date, ZDT second');

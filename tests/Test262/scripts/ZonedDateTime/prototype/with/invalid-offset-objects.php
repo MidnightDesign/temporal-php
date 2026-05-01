@@ -7,7 +7,8 @@ declare(strict_types=1);
 // Re-generate: composer test262:build
 
 use Temporal\Tests\Test262\Assert;
+use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['', 'PREFER', 'balance'] as $offset) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$offset) { return $zdt->with((object) ['day' => 5], (object) ['offset' => $offset]); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$offset) { return $zdt->with((object) ['day' => 5], (object) JsUndefined::strip(['offset' => $offset])); }, '');
 }
