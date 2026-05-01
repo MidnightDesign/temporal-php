@@ -599,7 +599,12 @@ final class PlainDateTime implements Stringable
         if ($hasYear) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainDateTime::with() year');
         } elseif ($hasEra) {
-            $resolved = CalendarMath::resolveEraYear($calendar, $fields['era'], $fields['eraYear'], 'PlainDateTime::with()');
+            $resolved = CalendarMath::resolveEraYear(
+                $calendar,
+                $fields['era'],
+                $fields['eraYear'],
+                'PlainDateTime::with()',
+            );
             if ($resolved !== null) {
                 $year = $resolved;
             }

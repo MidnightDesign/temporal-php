@@ -1524,7 +1524,12 @@ final class ZonedDateTime implements Stringable
             if ($hasYear) {
                 $year = CalendarMath::toFiniteInt($fields['year'], 'ZonedDateTime::with() year');
             } elseif ($hasEra) {
-                $resolved = CalendarMath::resolveEraYear($calendar, $fields['era'], $fields['eraYear'], 'ZonedDateTime::with()');
+                $resolved = CalendarMath::resolveEraYear(
+                    $calendar,
+                    $fields['era'],
+                    $fields['eraYear'],
+                    'ZonedDateTime::with()',
+                );
                 if ($resolved !== null) {
                     $year = $resolved;
                 }

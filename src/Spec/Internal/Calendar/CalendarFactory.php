@@ -159,7 +159,10 @@ final class CalendarFactory
             return 'iso8601';
         }
         // Date-like strings: starts with digits and has a dash within the first 7 chars.
-        if (preg_match(pattern: '/^\d/', subject: $cal) === 1 && preg_match(pattern: '/^\d{1,6}-/', subject: $cal) === 1) {
+        if (
+            preg_match(pattern: '/^\d/', subject: $cal) === 1
+            && preg_match(pattern: '/^\d{1,6}-/', subject: $cal) === 1
+        ) {
             return 'iso8601';
         }
         // Plain calendar ID: ASCII-only lowercase (rejects non-ASCII via downstream canonicalize).

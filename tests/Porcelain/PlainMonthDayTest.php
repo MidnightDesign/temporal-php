@@ -427,13 +427,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         // calendar has no era support to fall back on.
         $this->expectException(\TypeError::class);
 
-        PlainMonthDay::fromFields(
-            month: 5,
-            day: 1,
-            calendar: Calendar::Chinese,
-            era: 'x',
-            eraYear: 1,
-        );
+        PlainMonthDay::fromFields(month: 5, day: 1, calendar: Calendar::Chinese, era: 'x', eraYear: 1);
     }
 
     // -------------------------------------------------------------------------

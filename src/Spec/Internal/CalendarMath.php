@@ -104,11 +104,7 @@ final class CalendarMath
         } elseif (is_scalar($eraRaw) || $eraRaw instanceof \Stringable) {
             $eraStr = (string) $eraRaw;
         } else {
-            throw new \TypeError(sprintf(
-                '%s era must be a string; got %s.',
-                $errorContext,
-                get_debug_type($eraRaw),
-            ));
+            throw new \TypeError(sprintf('%s era must be a string; got %s.', $errorContext, get_debug_type($eraRaw)));
         }
         $eraYearInt = self::toFiniteInt($eraYearRaw, "{$errorContext} eraYear");
         return $calendar->resolveEra($eraStr, $eraYearInt);
