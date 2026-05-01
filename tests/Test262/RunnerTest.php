@@ -83,10 +83,17 @@ final class RunnerTest extends TestCase
     /**
      * Dispatches throwables from generated test262 scripts:
      *
-     *   - `\ParseError`        → fail loudly (transpiler bug, not a legitimate incomplete test).
-     *   - Other `\Error` (e.g. `\TypeError`, `\ArgumentCountError`, `\UnhandledMatchError`,
-     *     `\AssertionError`): these indicate the generated PHP cannot run — mark the test as
-     *     incomplete rather than pass/fail, since the JS fixture cannot be translated 1:1.
+     *   - `\ParseError`         → fail loudly (transpiler bug, not a legitimate incomplete test).
+     *   - `\Error` from `src/Spec/` → fail loudly. The fixture didn't wrap this call in
+     *     `Assert::throws(...)`, which means it expected the call to succeed. A throw escaping
+     *     our spec layer is a spec deviation and must surface as a real failure, not silently
+     *     downgrade to "incomplete." This catches the case where a positive test262 fixture
+     *     pinpoints a bug (we throw where the spec mandates success) — the fixture exists but
+     *     would otherwise stay hidden in the incomplete bucket.
+     *   - Other `\Error` (e.g. `\UnhandledMatchError` from a transpiler-emitted match,
+     *     `\AssertionError`, `\Error: Call to undefined method`): these indicate the generated
+     *     PHP cannot run because the transpiler couldn't model the JS fixture 1:1. Mark
+     *     incomplete.
      *   - `\Exception` subclasses: re-throw so PHPUnit records the real assertion / runtime error.
      */
     private static function handleScriptThrowable(\Throwable $e): void
@@ -95,8 +102,44 @@ final class RunnerTest extends TestCase
             static::fail(sprintf('Syntax error in generated script: %s', $e->getMessage()));
         }
         if ($e instanceof \Error) {
-            static::markTestIncomplete(sprintf('PHP error: %s', $e->getMessage()));
+            if (self::originatesInSpecLayer($e)) {
+                throw $e;
+            }
+            static::markTestIncomplete(sprintf('PHP error (transpiler artifact): %s', $e->getMessage()));
         }
         throw $e;
+    }
+
+    /**
+     * Returns true when the error came from our spec implementation, distinguishing
+     * real spec deviations from transpiler artifacts (PHP-native argument-type
+     * checks that fire before the function body runs because PHP's typed
+     * parameters reject inputs that JS would coerce).
+     */
+    private static function originatesInSpecLayer(\Throwable $e): bool
+    {
+        if (!str_contains($e->getFile(), '/src/Spec/')) {
+            return false;
+        }
+
+        // PHP-native argument-type-mismatch errors are thrown before the function
+        // body runs, with a message of the form:
+        //   "Class::method(): Argument #N ($name) must be of type X, Y given, called in /path/file.php on line M"
+        // The throw site looks like it's in src/Spec/ (it points at the function
+        // definition), but the function body never executed. If the calling site
+        // is a transpiled test262 script, it's a transpiler artifact: PHP's typed
+        // parameters reject inputs that JS would coerce. If the calling site is
+        // also in src/Spec/, it's a genuine impl mismatch (one Spec method
+        // passing the wrong type to another). Distinguish by extracting the
+        // "called in" path.
+        $m = null;
+        if (preg_match('/, called in (.+) on line \d+$/', $e->getMessage(), $m) === 1) {
+            return str_contains($m[1], '/src/Spec/');
+        }
+
+        // Anything else — explicit `throw new ...`, return-value-type mismatch
+        // (function ran but returned the wrong type), `\UnhandledMatchError` from
+        // an exhaustive match, etc. — is a real impl issue that should fail.
+        return true;
     }
 }
