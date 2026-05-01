@@ -4162,8 +4162,22 @@ final class ZonedDateTime implements Stringable
             );
         }
 
-        // Time-only units: use epoch ns difference.
-        $absDiffNs = $sign < 0 ? -$diffNs : $diffNs;
+        // Time-only units: hybrid (sec, subNs) decomposition. Avoids the int64
+        // overflow that would otherwise occur for spans approaching the spec's
+        // representable range (~±275,760 years from epoch). diffEpochNs returns
+        // a PHP_INT_MIN/MAX sentinel for those spans, and `-PHP_INT_MIN` overflows
+        // to float; sourcing the diff directly from (sec, subNs) sidesteps both.
+        [$tdSec, $tdSubNs] = $temporalDate->getEpochParts();
+        [$otherSec, $otherSubNs] = $other->getEpochParts();
+        $absDiffSec = $sign < 0 ? $tdSec - $otherSec : $otherSec - $tdSec;
+        $absDiffSubNs = $sign < 0 ? $tdSubNs - $otherSubNs : $otherSubNs - $tdSubNs;
+        // Borrow if subNs is negative.
+        if ($absDiffSubNs < 0) {
+            $absDiffSec--;
+            $absDiffSubNs += self::NS_PER_SECOND;
+        }
+        // Now: $absDiffSec >= 0 and 0 <= $absDiffSubNs < NS_PER_SECOND. Both fit
+        // int64 since |epochSec| < 8.64×10¹² (the spec range).
 
         $nsPerSmallest = match ($normSmallest) {
             'hour' => 3_600_000_000_000,
@@ -4175,7 +4189,22 @@ final class ZonedDateTime implements Stringable
         };
         /** @psalm-var int<1, 1000> $roundingIncrement */
         $nsIncrement = $nsPerSmallest * $roundingIncrement;
-        $roundedAbsNs = self::roundPositiveNs($absDiffNs, $nsIncrement, $effectiveMode);
+
+        // Round (absDiffSec, absDiffSubNs) by nsIncrement. Two regimes:
+        //   - increment < NS_PER_SECOND → only absDiffSubNs is affected (always int).
+        //   - increment ≥ NS_PER_SECOND → round in seconds; absDiffSubNs supplies
+        //     the half-window tiebreaker for halfExpand/halfTrunc/halfEven.
+        if ($nsIncrement < self::NS_PER_SECOND) {
+            $absDiffSubNs = self::roundPositiveNs($absDiffSubNs, $nsIncrement, $effectiveMode);
+            if ($absDiffSubNs >= self::NS_PER_SECOND) {
+                $absDiffSec += intdiv($absDiffSubNs, self::NS_PER_SECOND);
+                $absDiffSubNs %= self::NS_PER_SECOND;
+            }
+        } else {
+            $incSec = intdiv($nsIncrement, self::NS_PER_SECOND);
+            $absDiffSec = self::roundPositiveSecondsWithSubNs($absDiffSec, $absDiffSubNs, $incSec, $effectiveMode);
+            $absDiffSubNs = 0;
+        }
 
         /** @var array<string,int> $timeUnitRank */
         static $timeUnitRank = [
@@ -4188,12 +4217,15 @@ final class ZonedDateTime implements Stringable
         ];
         $luTimeRank = $timeUnitRank[$normLargest] ?? 6;
 
-        $h = $luTimeRank >= 6 ? intdiv(num1: $roundedAbsNs, num2: 3_600_000_000_000) : 0;
-        $rem = $luTimeRank >= 6 ? $roundedAbsNs % 3_600_000_000_000 : $roundedAbsNs;
-        $min = $luTimeRank >= 5 ? intdiv(num1: $rem, num2: 60_000_000_000) : 0;
-        $rem = $luTimeRank >= 5 ? $rem % 60_000_000_000 : $rem;
-        $sec = $luTimeRank >= 4 ? intdiv(num1: $rem, num2: self::NS_PER_SECOND) : 0;
-        $rem = $luTimeRank >= 4 ? $rem % self::NS_PER_SECOND : $rem;
+        // Decompose (absDiffSec, absDiffSubNs) into time units. The seconds part
+        // covers hour/minute/second; the sub-second part covers ms/µs/ns. Both
+        // halves stay in int64 throughout.
+        $h = $luTimeRank >= 6 ? intdiv(num1: $absDiffSec, num2: 3_600) : 0;
+        $remSec = $luTimeRank >= 6 ? $absDiffSec % 3_600 : $absDiffSec;
+        $min = $luTimeRank >= 5 ? intdiv(num1: $remSec, num2: 60) : 0;
+        $remSec = $luTimeRank >= 5 ? $remSec % 60 : $remSec;
+        $sec = $luTimeRank >= 4 ? $remSec : 0;
+        $rem = $luTimeRank >= 4 ? $absDiffSubNs : ($remSec * self::NS_PER_SECOND) + $absDiffSubNs;
         $msR = $luTimeRank >= 3 ? intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND) : 0;
         $rem = $luTimeRank >= 3 ? $rem % self::NS_PER_MILLISECOND : $rem;
         $usR = $luTimeRank >= 2 ? intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND) : 0;
@@ -4278,6 +4310,43 @@ final class ZonedDateTime implements Stringable
         }
 
         return [$sign * $years, $sign * $months, $sign * $days];
+    }
+
+    /**
+     * Rounds (absSec, absSubNs) — a non-negative seconds + sub-second-ns pair —
+     * to the nearest multiple of $incSec seconds, returning the result in seconds.
+     *
+     * Used by the time-unit diff path to handle spans up to the spec's
+     * representable range (~±275,760 years from epoch) without forming an
+     * int64-overflowing total nanosecond value. The half-window comparison
+     * works on doubled seconds with absSubNs as the tiebreaker; both sides of
+     * the comparison fit int64 because incSec is bounded by the rounding
+     * increment (≤ 1000 × 3600 hour-seconds) and remSec stays below incSec.
+     */
+    private static function roundPositiveSecondsWithSubNs(int $absSec, int $absSubNs, int $incSec, string $mode): int
+    {
+        $secFloor = intdiv($absSec, $incSec) * $incSec;
+        $remSec = $absSec - $secFloor;
+        $r1 = $secFloor;
+        $r2 = $secFloor + $incSec;
+
+        // Express the fractional remainder (within the rounding window) in ns.
+        // Bounded by incSec × NS_PER_SECOND, which stays in int64 for any valid
+        // increment (incSec ≤ 3.6×10⁶ for hour-with-1000-increment).
+        $fractionalNs = ($remSec * self::NS_PER_SECOND) + $absSubNs;
+        $hasRemainder = $fractionalNs > 0;
+        $doubled = $fractionalNs * 2;
+        $halfWindowNs = $incSec * self::NS_PER_SECOND;
+        $cmp = $doubled <=> $halfWindowNs;
+
+        return match ($mode) {
+            'trunc', 'floor' => $r1,
+            'ceil', 'expand' => $hasRemainder ? $r2 : $r1,
+            'halfExpand', 'halfCeil' => $cmp >= 0 ? $r2 : $r1,
+            'halfTrunc', 'halfFloor' => $cmp > 0 ? $r2 : $r1,
+            'halfEven' => $cmp > 0 || $cmp === 0 && (intdiv($r1, $incSec) % 2) !== 0 ? $r2 : $r1,
+            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+        };
     }
 
     /**

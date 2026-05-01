@@ -4650,7 +4650,7 @@ final class Duration implements Stringable
      */
     private function nudgeToCalendarMonthsOrYears(
         \DateTimeImmutable $startDate,
-        int $totalNs,
+        int|float $totalNs,
         int $nsPerDay,
         int $suIdx,
         int $luIdx,
@@ -4659,11 +4659,35 @@ final class Duration implements Stringable
         bool $isPositive,
         ?array $zdtInfo = null,
     ): self {
+        // $totalNs is int|float to accommodate calendar progressions across
+        // multi-millennium spans where days × NS_PER_DAY exceeds int64. The function
+        // never decomposes $totalNs into days/sub-day components except in the ZDT
+        // branch (which handles its own conversion against actual epoch seconds);
+        // all other uses are sign checks and ratio comparisons that work for both
+        // int and float operands.
         $sign = $totalNs >= 0 ? 1 : -1;
 
         // For ZDT with IANA timezone, recompute totalNs using actual epoch seconds
         // so DST transitions are accounted for.
         if ($zdtInfo !== null) {
+            // Decompose $totalNs into (calendarDaysFromNs, timePartNs). The int branch
+            // is the common case; the float branch is reached only when calendarDays ×
+            // NS_PER_DAY exceeds int64 (~106k days, ~292 years).
+            if (is_int($totalNs)) {
+                $calendarDaysFromNs = intdiv($totalNs - ($totalNs % $nsPerDay), $nsPerDay);
+                $timePartNs = $totalNs % $nsPerDay;
+            } else {
+                // @mago-ignore analysis:unreachable-else-clause
+                // @mago-ignore analysis:no-value
+                // Mago statically infers $totalNs as int from the caller, but the
+                // parameter is widened to int|float for exactly the overflow case the
+                // spec layer must support (calendar progressions across multi-millennium
+                // spans where days × NS_PER_DAY exceeds int64). Mago is wrong about
+                // reachability here.
+                $nsPerDayF = (float) $nsPerDay;
+                $calendarDaysFromNs = (int) (($totalNs - fmod(num1: $totalNs, num2: $nsPerDayF)) / $nsPerDayF);
+                $timePartNs = (int) fmod(num1: $totalNs, num2: $nsPerDayF);
+            }
             $actualDaysSec = (int) self::zdtDaysToSec(
                 $zdtInfo['year'],
                 $zdtInfo['month'],
@@ -4672,11 +4696,9 @@ final class Duration implements Stringable
                 $zdtInfo['minute'],
                 $zdtInfo['second'],
                 $zdtInfo['tzId'],
-                // calendarDays is totalNs/nsPerDay rounded toward zero (strip time component).
-                intdiv($totalNs - ($totalNs % $nsPerDay), $nsPerDay),
+                $calendarDaysFromNs,
                 $zdtInfo['epochSec'],
             );
-            $timePartNs = $totalNs % $nsPerDay;
             $totalNs = ($actualDaysSec * 1_000_000_000) + $timePartNs;
         }
 
