@@ -679,15 +679,6 @@ final class PlainMonthDay implements Stringable
                         "PlainMonthDay::from() cannot parse \"{$s}\": Z (UTC) designator is not valid.",
                     );
                 }
-            } else {
-                // No time — check for Z or offset immediately following the date portion.
-                $dateLen = str_starts_with($s, '--') ? 7 : 5;
-                $rest = substr(string: $s, offset: $dateLen);
-                if ($rest !== '' && preg_match('/^[Zz]|^[+-]\d{2}/', $rest) === 1) {
-                    throw new InvalidArgumentException(
-                        "PlainMonthDay::from() cannot parse \"{$s}\": UTC offset without time is not valid.",
-                    );
-                }
             }
 
             $calendarId = CalendarMath::validateAnnotations($m[7], $s);
@@ -749,18 +740,6 @@ final class PlainMonthDay implements Stringable
         } else {
             $month = (int) substr(string: $dateRest, offset: 1, length: 2);
             $day = (int) substr(string: $dateRest, offset: 4, length: 2);
-        }
-
-        // Check for UTC offset without time — NOT valid for PlainMonthDay.
-        if ($m[3] === '') {
-            // No time component. Check if there's a Z or offset after the date portion.
-            $dateLen = strlen($yearRaw) + strlen($dateRest);
-            $rest = substr(string: $s, offset: $dateLen);
-            if ($rest !== '' && preg_match('/^[Zz]|^[+-]\d{2}/', $rest) === 1) {
-                throw new InvalidArgumentException(
-                    "PlainMonthDay::from() cannot parse \"{$s}\": UTC offset without time is not valid.",
-                );
-            }
         }
 
         // Validate the time portion if present.
