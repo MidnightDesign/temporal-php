@@ -567,7 +567,7 @@ final class PlainMonthDay implements Stringable
 
         // Resolve era + eraYear for non-ISO calendars.
         if ($calendar !== null && $hasEra && $hasEraYear) {
-            $resolved = CalendarMath::resolveEraYear($calendar, $bag['era'], $bag['eraYear'], 'toPlainDate()');
+            $resolved = CalendarMath::resolveYearFromEra($calendar, $bag['era'], $bag['eraYear'], 'toPlainDate()');
             if ($resolved !== null) {
                 $year = $resolved;
             }
@@ -871,7 +871,12 @@ final class PlainMonthDay implements Stringable
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && $hasEraAndEraYear) {
-            $resolved = CalendarMath::resolveEraYear($calendar, $bag['era'], $bag['eraYear'], 'PlainMonthDay::from()');
+            $resolved = CalendarMath::resolveYearFromEra(
+                $calendar,
+                $bag['era'],
+                $bag['eraYear'],
+                'PlainMonthDay::from()',
+            );
             if ($resolved !== null) {
                 if ($year !== null && $year !== $resolved) {
                     throw new InvalidArgumentException(

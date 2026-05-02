@@ -90,7 +90,7 @@ final class CalendarMath
      *
      * @throws \TypeError if the era value cannot be coerced to a string.
      */
-    public static function resolveEraYear(
+    public static function resolveYearFromEra(
         CalendarProtocol $calendar,
         mixed $eraRaw,
         mixed $eraYearRaw,
