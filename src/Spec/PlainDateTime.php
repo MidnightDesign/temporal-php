@@ -1233,7 +1233,7 @@ final class PlainDateTime implements Stringable
      */
     public function withCalendar(string $calendar): self
     {
-        $calId = ZonedDateTime::extractCalendarFromString($calendar);
+        $calId = CalendarFactory::extractCalendarFromString($calendar);
         return new self(
             $this->isoYear,
             $this->isoMonth,
@@ -1424,16 +1424,10 @@ final class PlainDateTime implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
-        // Validate calendar key if present (delegates to ZonedDateTime::extractCalendarFromString
-        // which rejects minus-zero years, unknown calendars, and empty strings).
+        // Validate calendar key if present.
         $calendarId = null;
         if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $cal */
-            $cal = $bag['calendar'];
-            if (!is_string($cal)) {
-                throw new \TypeError(sprintf('PlainDateTime calendar must be a string; got %s.', get_debug_type($cal)));
-            }
-            $calendarId = ZonedDateTime::extractCalendarFromString($cal);
+            $calendarId = CalendarFactory::resolveBagCalendar($bag['calendar'], 'PlainDateTime');
         }
 
         $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainDateTime');

@@ -408,14 +408,16 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testExtractCalendarFromStringAcceptsKnownCalendar(): void
     {
-        $result = ZonedDateTime::extractCalendarFromString('hebrew');
+        $result = \Temporal\Spec\Internal\Calendar\CalendarFactory::extractCalendarFromString('hebrew');
 
         static::assertSame('hebrew', $result);
     }
 
     public function testExtractCalendarFromStringAcceptsAnnotation(): void
     {
-        $result = ZonedDateTime::extractCalendarFromString('2024-01-15[u-ca=japanese]');
+        $result = \Temporal\Spec\Internal\Calendar\CalendarFactory::extractCalendarFromString(
+            '2024-01-15[u-ca=japanese]',
+        );
 
         static::assertSame('japanese', $result);
     }
@@ -423,7 +425,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     public function testExtractCalendarFromStringRejectsUnknownCalendar(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        ZonedDateTime::extractCalendarFromString('nonsense');
+        \Temporal\Spec\Internal\Calendar\CalendarFactory::extractCalendarFromString('nonsense');
     }
 
     // -------------------------------------------------------------------------

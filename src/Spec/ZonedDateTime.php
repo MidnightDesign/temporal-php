@@ -655,7 +655,7 @@ final class ZonedDateTime implements Stringable
      */
     public function withCalendar(string $calendar): self
     {
-        $calId = self::extractCalendarFromString($calendar);
+        $calId = CalendarFactory::extractCalendarFromString($calendar);
         [$epochSec, $subNs] = $this->getEpochParts();
         return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $calId);
     }
@@ -1875,65 +1875,6 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * Extracts and validates a calendar ID from a string.
-     *
-     * Accepts:
-     *   - 'iso8601' (case-insensitive)
-     *   - ISO date/datetime/year-month/month-day strings (no annotation → iso8601,
-     *     [u-ca=iso8601] → iso8601, other [u-ca=X] → throw)
-     *
-     * Rejects:
-     *   - Empty string
-     *   - Minus-zero extended year strings
-     *   - Unknown calendar IDs
-     *
-     * @throws InvalidArgumentException for invalid/unsupported calendars.
-     * @internal Used by PlainDate/PlainDateTime for calendar validation.
-     * @psalm-suppress UnusedReturnValue — callers invoke this only for validation (side-effects/throws)
-     * @psalm-api
-     */
-    public static function extractCalendarFromString(string $s): string
-    {
-        if ($s === '') {
-            throw new InvalidArgumentException('Calendar ID must not be empty.');
-        }
-        // Reject minus-zero extended year.
-        if (preg_match('/^-0{6}(?:[^0-9]|$)/', $s) === 1) {
-            throw new InvalidArgumentException("Invalid calendar \"{$s}\": minus-zero year.");
-        }
-        // Check for [u-ca=X] annotation.
-        $m = null;
-        if (preg_match('/\[u-ca=([^\]]+)\]/', $s, $m) === 1) {
-            return CalendarFactory::canonicalize($m[1]);
-        }
-        // ISO date/datetime strings → iso8601 (check BEFORE time-only, to avoid ambiguity).
-        // Match: date patterns (YYYY-MM, MM-DD, ±YYYYYY-) or datetime T-separator after digits.
-        if (preg_match('/^\d{2}-\d{2}|^\d{4}-\d{2}|^[+-]\d{6}-/', $s) === 1 || preg_match('/\d[Tt]\d/', $s) === 1) {
-            return 'iso8601';
-        }
-        // Time-only strings (no calendar annotation) → iso8601.
-        // These are checked AFTER date strings to avoid false positives on year-like digits.
-        if (preg_match('/^[Tt]\d/', $s) === 1) {
-            return 'iso8601';
-        }
-        // Extended time: starts with 2 digits followed by colon (HH:MM or HH:MM:SS).
-        if (preg_match('/^\d{2}:/', $s) === 1) {
-            return 'iso8601';
-        }
-        // Bare hour: exactly 2 digits (HH alone, no suffix).
-        if (preg_match('/^\d{2}$/', $s) === 1) {
-            return 'iso8601';
-        }
-        // Compact time HHMMSS or HHMM: 4–6 digits NOT followed by '-'
-        // (4 or 6 digits followed by end-of-string, fraction, or +/- offset).
-        if (preg_match('/^\d{4,6}(?:[.,]|\+|$)/', $s) === 1 || preg_match('/^\d{4,6}-(?!\d{2}-)/', $s) === 1) {
-            return 'iso8601';
-        }
-        // Plain calendar ID: validate through CalendarFactory.
-        return CalendarFactory::canonicalize($s);
-    }
-
-    /**
      * @internal Used by PlainDate/PlainDateTime for timezone validation.
      * @psalm-api
      */
@@ -2634,12 +2575,7 @@ final class ZonedDateTime implements Stringable
         // Validate calendar first (spec validates calendar before required fields).
         $calendarId = 'iso8601';
         if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $calRaw */
-            $calRaw = $bag['calendar'];
-            if (!is_string($calRaw)) {
-                throw new \TypeError('ZonedDateTime calendar must be a string.');
-            }
-            $calendarId = self::extractCalendarFromString($calRaw);
+            $calendarId = CalendarFactory::resolveBagCalendar($bag['calendar'], 'ZonedDateTime');
         }
 
         // Must have a timeZone key.

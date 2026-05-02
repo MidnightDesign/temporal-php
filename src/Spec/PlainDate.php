@@ -793,7 +793,7 @@ final class PlainDate implements Stringable
      */
     public function withCalendar(string $calendar): self
     {
-        $calId = ZonedDateTime::extractCalendarFromString($calendar);
+        $calId = CalendarFactory::extractCalendarFromString($calendar);
         return new self($this->isoYear, $this->isoMonth, $this->isoDay, $calId);
     }
 
