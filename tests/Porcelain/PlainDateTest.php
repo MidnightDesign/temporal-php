@@ -715,6 +715,36 @@ final class PlainDateTest extends TestCase
         static::assertSame(5, $dur->days);
     }
 
+    public function testSinceThrowsWhenYearsRoundingExceedsIsoRange(): void
+    {
+        $from = new PlainDate(1970, 1, 1);
+        $to = new PlainDate(1971, 1, 1);
+
+        $this->expectException(InvalidArgumentException::class);
+        $from->since(
+            $to,
+            largestUnit: Unit::Year,
+            smallestUnit: Unit::Year,
+            roundingMode: RoundingMode::HalfExpand,
+            roundingIncrement: 1_000_000,
+        );
+    }
+
+    public function testUntilThrowsWhenYearsRoundingExceedsIsoRange(): void
+    {
+        $from = new PlainDate(1970, 1, 1);
+        $to = new PlainDate(1971, 1, 1);
+
+        $this->expectException(InvalidArgumentException::class);
+        $from->until(
+            $to,
+            largestUnit: Unit::Year,
+            smallestUnit: Unit::Year,
+            roundingMode: RoundingMode::HalfExpand,
+            roundingIncrement: 1_000_000,
+        );
+    }
+
     // -------------------------------------------------------------------------
     // Calendar::fromId
     // -------------------------------------------------------------------------

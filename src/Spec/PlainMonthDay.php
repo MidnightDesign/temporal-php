@@ -567,16 +567,9 @@ final class PlainMonthDay implements Stringable
 
         // Resolve era + eraYear for non-ISO calendars.
         if ($calendar !== null && $hasEra && $hasEraYear) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'toPlainDate() eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveYearFromEra($calendar, $bag['era'], $bag['eraYear'], 'toPlainDate()');
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -686,15 +679,6 @@ final class PlainMonthDay implements Stringable
                         "PlainMonthDay::from() cannot parse \"{$s}\": Z (UTC) designator is not valid.",
                     );
                 }
-            } else {
-                // No time — check for Z or offset immediately following the date portion.
-                $dateLen = str_starts_with($s, '--') ? 7 : 5;
-                $rest = substr(string: $s, offset: $dateLen);
-                if ($rest !== '' && preg_match('/^[Zz]|^[+-]\d{2}/', $rest) === 1) {
-                    throw new InvalidArgumentException(
-                        "PlainMonthDay::from() cannot parse \"{$s}\": UTC offset without time is not valid.",
-                    );
-                }
             }
 
             $calendarId = CalendarMath::validateAnnotations($m[7], $s);
@@ -756,18 +740,6 @@ final class PlainMonthDay implements Stringable
         } else {
             $month = (int) substr(string: $dateRest, offset: 1, length: 2);
             $day = (int) substr(string: $dateRest, offset: 4, length: 2);
-        }
-
-        // Check for UTC offset without time — NOT valid for PlainMonthDay.
-        if ($m[3] === '') {
-            // No time component. Check if there's a Z or offset after the date portion.
-            $dateLen = strlen($yearRaw) + strlen($dateRest);
-            $rest = substr(string: $s, offset: $dateLen);
-            if ($rest !== '' && preg_match('/^[Zz]|^[+-]\d{2}/', $rest) === 1) {
-                throw new InvalidArgumentException(
-                    "PlainMonthDay::from() cannot parse \"{$s}\": UTC offset without time is not valid.",
-                );
-            }
         }
 
         // Validate the time portion if present.
@@ -835,25 +807,9 @@ final class PlainMonthDay implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow): self
     {
-        // Validate calendar if present.
-        $calendarId = null;
-        if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $calRaw */
-            $calRaw = $bag['calendar'];
-            if (!is_string($calRaw)) {
-                throw new \TypeError(sprintf(
-                    'PlainMonthDay::from() calendar must be a string; got %s.',
-                    get_debug_type($calRaw),
-                ));
-            }
-            // Reject minus-zero extended year in calendar strings.
-            if (preg_match('/^-0{6}/', $calRaw) === 1) {
-                throw new InvalidArgumentException(
-                    "Cannot use negative zero as extended year in calendar string \"{$calRaw}\".",
-                );
-            }
-            $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($calRaw));
-        }
+        $calendarId = array_key_exists('calendar', $bag)
+            ? CalendarFactory::resolveBagCalendar($bag['calendar'], 'PlainMonthDay')
+            : null;
 
         $hasMonth = array_key_exists('month', $bag) && $bag['month'] !== null;
         $hasMonthCode = array_key_exists('monthCode', $bag) && $bag['monthCode'] !== null;
@@ -915,21 +871,19 @@ final class PlainMonthDay implements Stringable
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && $hasEraAndEraYear) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainMonthDay::from() eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    if ($year !== null && $year !== $resolved) {
-                        throw new InvalidArgumentException(
-                            "Conflicting year ({$year}) and era+eraYear (resolved to {$resolved}).",
-                        );
-                    }
-                    $year = $resolved;
+            $resolved = CalendarMath::resolveYearFromEra(
+                $calendar,
+                $bag['era'],
+                $bag['eraYear'],
+                'PlainMonthDay::from()',
+            );
+            if ($resolved !== null) {
+                if ($year !== null && $year !== $resolved) {
+                    throw new InvalidArgumentException(
+                        "Conflicting year ({$year}) and era+eraYear (resolved to {$resolved}).",
+                    );
                 }
+                $year = $resolved;
             }
         }
 
@@ -992,18 +946,7 @@ final class PlainMonthDay implements Stringable
             }
         }
 
-        // For the stored referenceISOYear: use 1972 if the day is valid for 1972,
-        // otherwise use the provided year (for cases like Feb 29 constrained to 28 in common year).
-        $refYear = 1972;
-        /**
-         * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
-         */
-        $maxDayIn1972 = CalendarMath::calcDaysInMonth(1972, $month);
-        if ($day > $maxDayIn1972) {
-            $refYear = $year;
-        }
-
-        return new self($month, $day, $calendarId, $refYear);
+        return new self($month, $day, $calendarId, 1972);
     }
 
     /**
@@ -1234,38 +1177,6 @@ final class PlainMonthDay implements Stringable
         $calYear = $calendar->year(1972, 7, 1);
         [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($calYear, $monthCode, $day, 'constrain');
         return new self($isoM, $isoD, $calendarId, $isoY);
-    }
-
-    /**
-     * Extracts and validates the calendar ID from a calendar string.
-     *
-     * Accepts bare calendar IDs ("iso8601"), ISO date strings ("2020-01-01", "01-01"),
-     * and strings with [u-ca=X] annotations. Returns the lowercase calendar ID.
-     * Throws for unsupported calendars.
-     */
-    private static function extractCalendarId(string $cal): string
-    {
-        if (str_contains($cal, '[')) {
-            $m = null;
-            if (preg_match('/\[!?u-ca=([^\]]+)\]/', $cal, $m) === 1) {
-                return strtolower($m[1]);
-            }
-            // Bracket without u-ca → default iso8601.
-            return 'iso8601';
-        }
-        // Detect date-like strings: starts with digits and has a dash within the first 7 chars.
-        if (preg_match('/^\d/', $cal) === 1 && preg_match('/^\d{1,6}-/', $cal) === 1) {
-            return 'iso8601';
-        }
-        // Plain calendar ID: ASCII-only lowercase.
-        $lower = '';
-        $len = strlen($cal);
-        for ($i = 0; $i < $len; $i++) {
-            $c = $cal[$i];
-            $o = ord($c);
-            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
-        }
-        return $lower;
     }
 
     #[\Override]

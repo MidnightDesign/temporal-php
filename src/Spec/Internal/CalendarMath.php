@@ -6,6 +6,7 @@ namespace Temporal\Spec\Internal;
 
 use InvalidArgumentException;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
+use Temporal\Spec\Internal\Calendar\CalendarProtocol;
 
 /** @internal */
 final class CalendarMath
@@ -76,6 +77,37 @@ final class CalendarMath
             throw new \TypeError("{$className} property bag must have both era and eraYear, or neither.");
         }
         return $hasEra && $hasEraYear;
+    }
+
+    /**
+     * Coerces an `era` bag value to a string per the spec's `to-string`
+     * conversion in PrepareCalendarFields, then delegates to
+     * `$calendar->resolveEra()`. Treats null era or eraYear as absent
+     * (PrepareCalendarFields skips conversion for undefined values).
+     * Returns null for eraless calendars (chinese, dangi); the caller
+     * must handle that case if it implies a later TypeError per
+     * NonISOResolveFields.
+     *
+     * @throws \TypeError if the era value cannot be coerced to a string.
+     */
+    public static function resolveYearFromEra(
+        CalendarProtocol $calendar,
+        mixed $eraRaw,
+        mixed $eraYearRaw,
+        string $errorContext,
+    ): ?int {
+        if ($eraRaw === null || $eraYearRaw === null) {
+            return null;
+        }
+        if (is_string($eraRaw)) {
+            $eraStr = $eraRaw;
+        } elseif (is_scalar($eraRaw) || $eraRaw instanceof \Stringable) {
+            $eraStr = (string) $eraRaw;
+        } else {
+            throw new \TypeError(sprintf('%s era must be a string; got %s.', $errorContext, get_debug_type($eraRaw)));
+        }
+        $eraYearInt = self::toFiniteInt($eraYearRaw, "{$errorContext} eraYear");
+        return $calendar->resolveEra($eraStr, $eraYearInt);
     }
 
     /**

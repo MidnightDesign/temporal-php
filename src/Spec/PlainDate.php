@@ -470,16 +470,14 @@ final class PlainDate implements Stringable
         if ($hasYear) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainDate::with() year');
         } elseif ($hasEra) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $fields['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $fields['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveYearFromEra(
+                $calendar,
+                $fields['era'],
+                $fields['eraYear'],
+                'PlainDate::with()',
+            );
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -795,7 +793,7 @@ final class PlainDate implements Stringable
      */
     public function withCalendar(string $calendar): self
     {
-        $calId = ZonedDateTime::extractCalendarFromString($calendar);
+        $calId = CalendarFactory::extractCalendarFromString($calendar);
         return new self($this->isoYear, $this->isoMonth, $this->isoDay, $calId);
     }
 
@@ -950,22 +948,9 @@ final class PlainDate implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
-        // Validate calendar key if present.
-        $calendarId = null;
-        if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $cal */
-            $cal = $bag['calendar'];
-            if (!is_string($cal)) {
-                throw new \TypeError(sprintf('PlainDate calendar must be a string; got %s.', get_debug_type($cal)));
-            }
-            // Reject minus-zero extended year in date-like calendar strings.
-            if (preg_match('/^-0{6}/', $cal) === 1) {
-                throw new InvalidArgumentException(
-                    "Cannot use negative zero as extended year in calendar string \"{$cal}\".",
-                );
-            }
-            $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($cal));
-        }
+        $calendarId = array_key_exists('calendar', $bag)
+            ? CalendarFactory::resolveBagCalendar($bag['calendar'], 'PlainDate')
+            : null;
 
         $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainDate');
         $calendarSupportsEras = CalendarMath::supportsEras($calendarId);
@@ -996,16 +981,9 @@ final class PlainDate implements Stringable
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && array_key_exists('era', $bag) && array_key_exists('eraYear', $bag)) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainDate eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveYearFromEra($calendar, $bag['era'], $bag['eraYear'], 'PlainDate');
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -1599,6 +1577,8 @@ final class PlainDate implements Stringable
     /**
      * Returns [years, months, remainingDays] between two dates.
      *
+     * Caller must pass dates in (earlier, later) order: (y1,m1,d1) ≤ (y2,m2,d2).
+     *
      * $receiverIsY2: true when the caller's receiver corresponds to y2 (the later
      * argument), false when it corresponds to y1 (the earlier argument).  The anchor
      * for the day-remainder calculation is always derived from the RECEIVER's date so
@@ -1617,18 +1597,6 @@ final class PlainDate implements Stringable
         int $d2,
         bool $receiverIsY2 = true,
     ): array {
-        $sign = $y2 > $y1 || $y2 === $y1 && ($m2 > $m1 || $m2 === $m1 && $d2 >= $d1) ? 1 : -1;
-
-        // Track whether the receiver ends up as y1 or y2 after a potential swap.
-        // A swap happens when sign < 0, which flips the receiver position.
-        $receiverIsY2AfterSwap = $receiverIsY2;
-
-        // Work in the positive direction; negate result if sign is negative.
-        if ($sign < 0) {
-            [$y1, $m1, $d1, $y2, $m2, $d2] = [$y2, $m2, $d2, $y1, $m1, $d1];
-            $receiverIsY2AfterSwap = !$receiverIsY2;
-        }
-
         $years = $y2 - $y1;
         $months = $m2 - $m1;
 
@@ -1649,10 +1617,7 @@ final class PlainDate implements Stringable
             }
         }
 
-        // Compute anchor and remaining days from the RECEIVER's perspective.
-        // receiverIsY2AfterSwap=true  → receiver=y2 → anchor = y2 − months (backward from receiver)
-        // receiverIsY2AfterSwap=false → receiver=y1 → anchor = y1 + months (forward from receiver)
-        if ($receiverIsY2AfterSwap) {
+        if ($receiverIsY2) {
             // Anchor from y2 (receiver) going backward.
             $anchorMonth = $m2 - $months;
             $anchorYear = $y2 - $years;
@@ -1680,7 +1645,7 @@ final class PlainDate implements Stringable
                 - CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
         }
 
-        return [$sign * $years, $sign * $months, $sign * $days];
+        return [$years, $months, $days];
     }
 
     /**
@@ -1775,56 +1740,6 @@ final class PlainDate implements Stringable
         }
 
         return new self($newYear, $newMonth, $newDay, $this->calendarId);
-    }
-
-    /**
-     * Extracts the calendar ID from a calendar string.
-     *
-     * The calendar field in a property bag may be either a plain ID (e.g. 'iso8601')
-     * or an ISO 8601 date/datetime string carrying a [u-ca=...] annotation. In the
-     * latter case the annotation's value is the calendar ID; when absent, 'iso8601'
-     * is the default.
-     *
-     * Only ASCII-lowercase comparison is used for case-folding. Calendar IDs that
-     * contain non-ASCII characters that would be lowercased differently by Unicode
-     * case-folding (e.g. U+0130 İ) are not lowercased and will not match 'iso8601'.
-     */
-    private static function extractCalendarId(string $cal): string
-    {
-        // A string that looks like an ISO date/datetime (e.g. "2020-01-01", "01-01",
-        // "2020-01", "2016-12-31T23:59:60") is an ISO date string used as a
-        // calendar field. Extract the [u-ca=...] annotation if present; otherwise
-        // the implicit calendar is iso8601.
-        //
-        // Valid date-string forms (per TC39 spec, must START with digits and have
-        // date structure):
-        //   YYYY-MM  YYYY-MM-DD  YYYY-MM-DDTHH...  MM-DD
-        // These all START with digits and contain a '-' within the first 7 chars.
-        if (str_contains($cal, '[')) {
-            $m = null;
-            if (preg_match('/\[!?u-ca=([^\]]+)\]/', $cal, $m) === 1) {
-                return strtolower($m[1]);
-            }
-            // Bracket without u-ca → default iso8601.
-            return 'iso8601';
-        }
-        // Detect date-like strings: must start with ASCII digits and have a dash
-        // within the first 7 chars (to distinguish "2020-01-01" from "iso8601").
-        if (preg_match('/^\d/', $cal) === 1 && preg_match('/^\d{1,6}-/', $cal) === 1) {
-            // ISO date string with no bracket → implicit iso8601.
-            return 'iso8601';
-        }
-        // A plain calendar ID: lowercase for case-insensitive comparison.
-        // Use ASCII-only lowercase to reject non-ASCII characters like U+0130 (İ).
-        $lower = '';
-        $len = strlen($cal);
-        for ($i = 0; $i < $len; $i++) {
-            $c = $cal[$i];
-            $o = ord($c);
-            // Only lowercase ASCII A-Z; leave all other bytes unchanged.
-            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
-        }
-        return $lower;
     }
 
     #[\Override]

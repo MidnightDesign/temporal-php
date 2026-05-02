@@ -428,16 +428,14 @@ final class PlainYearMonth implements Stringable
         if ($hasYear) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainYearMonth::with() year');
         } elseif ($hasEra) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $fields['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $fields['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveYearFromEra(
+                $calendar,
+                $fields['era'],
+                $fields['eraYear'],
+                'PlainYearMonth::with()',
+            );
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -797,24 +795,9 @@ final class PlainYearMonth implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
-        // Validate calendar key if present.
-        $calendarId = null;
-        if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $cal */
-            $cal = $bag['calendar'];
-            if (!is_string($cal)) {
-                throw new \TypeError(sprintf(
-                    'PlainYearMonth calendar must be a string; got %s.',
-                    get_debug_type($cal),
-                ));
-            }
-            if (preg_match('/^-0{6}/', $cal) === 1) {
-                throw new InvalidArgumentException(
-                    "Cannot use negative zero as extended year in calendar string \"{$cal}\".",
-                );
-            }
-            $calendarId = CalendarFactory::canonicalize(self::extractCalendarId($cal));
-        }
+        $calendarId = array_key_exists('calendar', $bag)
+            ? CalendarFactory::resolveBagCalendar($bag['calendar'], 'PlainYearMonth')
+            : null;
 
         $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainYearMonth');
         $calendarSupportsEras = CalendarMath::supportsEras($calendarId);
@@ -841,16 +824,9 @@ final class PlainYearMonth implements Stringable
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && array_key_exists('era', $bag) && array_key_exists('eraYear', $bag)) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainYearMonth eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveYearFromEra($calendar, $bag['era'], $bag['eraYear'], 'PlainYearMonth');
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -1512,32 +1488,6 @@ final class PlainYearMonth implements Stringable
             return sprintf('+%06d', $year);
         }
         return sprintf('%04d', $year);
-    }
-
-    /**
-     * Extracts the calendar ID from a calendar string (same logic as PlainDate).
-     */
-    private static function extractCalendarId(string $cal): string
-    {
-        if (str_contains($cal, '[')) {
-            $m = null;
-            if (preg_match('/\[!?u-ca=([^\]]+)\]/', $cal, $m) === 1) {
-                return strtolower($m[1]);
-            }
-            return 'iso8601';
-        }
-        if (preg_match('/^\d/', $cal) === 1 && preg_match('/^\d{1,6}-/', $cal) === 1) {
-            return 'iso8601';
-        }
-        // ASCII-only lowercase.
-        $lower = '';
-        $len = strlen($cal);
-        for ($i = 0; $i < $len; $i++) {
-            $c = $cal[$i];
-            $o = ord($c);
-            $lower .= $o >= 0x41 && $o <= 0x5A ? chr($o + 32) : $c;
-        }
-        return $lower;
     }
 
     /**

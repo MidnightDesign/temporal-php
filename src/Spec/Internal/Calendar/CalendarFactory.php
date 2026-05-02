@@ -89,6 +89,111 @@ final class CalendarFactory
     }
 
     /**
+     * Resolves a property-bag `calendar` field to a canonical calendar ID.
+     *
+     * Type-checks $value, then forwards to {@see extractCalendarFromString}.
+     * The $context label is used in the TypeError message (e.g. "PlainDate"
+     * produces "PlainDate calendar must be a string; got int.").
+     *
+     * @throws \TypeError                if $value is not a string.
+     * @throws InvalidArgumentException if $value is malformed or names an unknown calendar.
+     */
+    public static function resolveBagCalendar(mixed $value, string $context): string
+    {
+        if (!is_string($value)) {
+            throw new \TypeError(sprintf('%s calendar must be a string; got %s.', $context, get_debug_type($value)));
+        }
+        return self::extractCalendarFromString($value);
+    }
+
+    /**
+     * Resolves a calendar-field string to a canonical calendar ID.
+     *
+     * Accepts:
+     *   - Bare calendar IDs ("hebrew", "iso8601", ...) — case-insensitive
+     *   - ISO date / datetime / year-month / month-day / time strings, with
+     *     or without a `[u-ca=...]` annotation. No annotation → "iso8601".
+     *
+     * Rejects (InvalidArgumentException):
+     *   - Empty string
+     *   - Minus-zero extended-year strings ("-000000-...")
+     *   - Bracket annotations not preceded by an ISO date prefix
+     *     ("foo[u-ca=hebrew]", "[u-ca=hebrew]", "abc[u-ca=hebrew]")
+     *   - Unknown calendar identifiers
+     *
+     * @throws InvalidArgumentException for invalid/unsupported calendars.
+     */
+    public static function extractCalendarFromString(string $s): string
+    {
+        if ($s === '') {
+            throw new InvalidArgumentException('Calendar ID must not be empty.');
+        }
+        // Reject minus-zero extended year ("-000000" with no further digits).
+        if (preg_match(pattern: '/^-0{6}(?:[^0-9]|$)/', subject: $s) === 1) {
+            throw new InvalidArgumentException("Invalid calendar \"{$s}\": minus-zero year.");
+        }
+        // Per ParseTemporalCalendarString, a string with a bracket annotation
+        // must parse as a Temporal date/time string — i.e. the prefix before
+        // '[' must be a valid ISO date or time prefix. Bare bracket annotations
+        // and bracket annotations following non-Temporal prefixes are RangeError.
+        if (str_contains($s, '[')) {
+            $prefix = substr($s, offset: 0, length: (int) strpos($s, needle: '['));
+            if (!self::looksLikeIsoDateOrTime($prefix)) {
+                throw new InvalidArgumentException(
+                    "Invalid calendar string \"{$s}\": bracket annotation must follow an ISO date or time prefix.",
+                );
+            }
+            $m = null;
+            if (preg_match(pattern: '/\[!?u-ca=([^\]]+)\]/', subject: $s, matches: $m) === 1) {
+                return self::canonicalize($m[1]);
+            }
+            // Bracket without u-ca (e.g. timezone annotation) → default iso8601.
+            return 'iso8601';
+        }
+        // ISO date / datetime / time strings (no annotation) → iso8601.
+        if (self::looksLikeIsoDateOrTime($s)) {
+            return 'iso8601';
+        }
+        // Plain calendar ID.
+        return self::canonicalize($s);
+    }
+
+    /**
+     * Returns true if $s starts with anything that looks like an ISO date or
+     * time prefix: date (YYYY-MM, MM-DD, ±YYYYYY-), datetime (digit-T-digit),
+     * or time form (T-prefix, HH:MM, bare HH, compact HHMM/HHMMSS).
+     */
+    private static function looksLikeIsoDateOrTime(string $s): bool
+    {
+        if ($s === '') {
+            return false;
+        }
+        // Date / datetime.
+        if (
+            preg_match(pattern: '/^\d{2}-\d{2}|^\d{4}-\d{2}|^[+-]\d{6}-/', subject: $s) === 1
+            || preg_match(pattern: '/\d[Tt]\d/', subject: $s) === 1
+        ) {
+            return true;
+        }
+        // Time-only forms.
+        if (preg_match(pattern: '/^[Tt]\d/', subject: $s) === 1) {
+            return true;
+        }
+        if (preg_match(pattern: '/^\d{2}:/', subject: $s) === 1) {
+            return true;
+        }
+        // Bare hour: exactly 2 digits.
+        if (preg_match(pattern: '/^\d{2}$/', subject: $s) === 1) {
+            return true;
+        }
+        // Compact time HHMM/HHMMSS: 4–6 digits NOT followed by '-DD-'.
+        return (
+            preg_match(pattern: '/^\d{4,6}(?:[.,]|\+|$)/', subject: $s) === 1
+            || preg_match(pattern: '/^\d{4,6}-(?!\d{2}-)/', subject: $s) === 1
+        );
+    }
+
+    /**
      * Returns true if the given ID (after lowercasing and alias resolution) is a known calendar.
      */
     public static function isKnownCalendar(string $id): bool

@@ -599,16 +599,14 @@ final class PlainDateTime implements Stringable
         if ($hasYear) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainDateTime::with() year');
         } elseif ($hasEra) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $fields['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $fields['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveYearFromEra(
+                $calendar,
+                $fields['era'],
+                $fields['eraYear'],
+                'PlainDateTime::with()',
+            );
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
@@ -1235,7 +1233,7 @@ final class PlainDateTime implements Stringable
      */
     public function withCalendar(string $calendar): self
     {
-        $calId = ZonedDateTime::extractCalendarFromString($calendar);
+        $calId = CalendarFactory::extractCalendarFromString($calendar);
         return new self(
             $this->isoYear,
             $this->isoMonth,
@@ -1426,16 +1424,10 @@ final class PlainDateTime implements Stringable
      */
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
-        // Validate calendar key if present (delegates to ZonedDateTime::extractCalendarFromString
-        // which rejects minus-zero years, unknown calendars, and empty strings).
+        // Validate calendar key if present.
         $calendarId = null;
         if (array_key_exists('calendar', $bag)) {
-            /** @var mixed $cal */
-            $cal = $bag['calendar'];
-            if (!is_string($cal)) {
-                throw new \TypeError(sprintf('PlainDateTime calendar must be a string; got %s.', get_debug_type($cal)));
-            }
-            $calendarId = ZonedDateTime::extractCalendarFromString($cal);
+            $calendarId = CalendarFactory::resolveBagCalendar($bag['calendar'], 'PlainDateTime');
         }
 
         $hasEraAndEraYear = CalendarMath::hasEraAndEraYear($bag, $calendarId, 'PlainDateTime');
@@ -1466,16 +1458,9 @@ final class PlainDateTime implements Stringable
 
         // Resolve era + eraYear if present (overrides year for era-based calendars).
         if ($calendar !== null && array_key_exists('era', $bag) && array_key_exists('eraYear', $bag)) {
-            /** @var mixed $eraRaw */
-            $eraRaw = $bag['era'];
-            /** @var mixed $eraYearRaw */
-            $eraYearRaw = $bag['eraYear'];
-            if (is_string($eraRaw) && $eraYearRaw !== null) {
-                $eraYearInt = CalendarMath::toFiniteInt($eraYearRaw, 'PlainDateTime eraYear');
-                $resolved = $calendar->resolveEra($eraRaw, $eraYearInt);
-                if ($resolved !== null) {
-                    $year = $resolved;
-                }
+            $resolved = CalendarMath::resolveYearFromEra($calendar, $bag['era'], $bag['eraYear'], 'PlainDateTime');
+            if ($resolved !== null) {
+                $year = $resolved;
             }
         }
 
