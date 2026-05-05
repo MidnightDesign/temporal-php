@@ -7,6 +7,7 @@ namespace Temporal\Spec;
 use InvalidArgumentException;
 use Stringable;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
+use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
  * A span of time expressed as 10 calendar and clock fields.
@@ -3644,7 +3645,7 @@ final class Duration implements Stringable
                 "Invalid local date/time: {$year}-{$month}-{$day} {$hour}:{$minute}:{$second}.",
             );
         }
-        return ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
+        return TimeZoneHelper::wallSecToEpochSec($wallSec, $tzId);
     }
 
     /**

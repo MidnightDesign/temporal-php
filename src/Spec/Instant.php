@@ -9,6 +9,7 @@ use DateTimeZone;
 use InvalidArgumentException;
 use Stringable;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
  * A fixed point in time with nanosecond precision.
@@ -763,7 +764,7 @@ final class Instant implements Stringable
                 // Try as IANA timezone name.
                 try {
                     new \DateTimeZone($bracket);
-                    return ZonedDateTime::normalizeTimezoneId($bracket);
+                    return TimeZoneHelper::normalizeTimezoneId($bracket);
                 } catch (\Exception) {
                     throw new InvalidArgumentException(
                         "Invalid time zone string \"{$tz}\": unsupported bracket timezone \"{$bracket}\".",
@@ -810,7 +811,7 @@ final class Instant implements Stringable
         // IANA timezone name: validate via PHP DateTimeZone.
         try {
             new \DateTimeZone($tz);
-            return ZonedDateTime::normalizeTimezoneId($tz);
+            return TimeZoneHelper::normalizeTimezoneId($tz);
         } catch (\Exception) {
             throw new InvalidArgumentException(
                 "Invalid time zone string \"{$tz}\": not a recognized timezone identifier.",
