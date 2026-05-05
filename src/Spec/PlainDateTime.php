@@ -9,6 +9,7 @@ use Stringable;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TemporalSerde;
+use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
  * A calendar date combined with a wall-clock time, without a time zone.
@@ -1194,7 +1195,7 @@ final class PlainDateTime implements Stringable
             }
         }
 
-        $normalTzId = ZonedDateTime::normalizeTimezoneId($timeZone);
+        $normalTzId = TimeZoneHelper::normalizeTimezoneId($timeZone);
         $disambiguation = 'compatible';
         if ($opts !== null && array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
             $disambiguation = $opts['disambiguation'];
@@ -1204,7 +1205,7 @@ final class PlainDateTime implements Stringable
         // year-formatting issues with extended years > 9999 or negative years).
         $epochDays = CalendarMath::toJulianDay($this->isoYear, $this->isoMonth, $this->isoDay) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($this->hour * 3600) + ($this->minute * 60) + $this->second;
-        $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $normalTzId, $disambiguation);
+        $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $normalTzId, $disambiguation);
 
         $subNs = ($this->millisecond * self::NS_PER_MS) + ($this->microsecond * self::NS_PER_US) + $this->nanosecond;
 

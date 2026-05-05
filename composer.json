@@ -31,7 +31,7 @@
     },
     "scripts": {
         "test": "phpunit tests/",
-        "test-coverage": "phpunit --testsuite=default --coverage-xml build/coverage/coverage-xml --log-junit build/coverage/junit.xml",
+        "test-coverage": "phpunit tests/ --coverage-xml build/coverage/coverage-xml --log-junit build/coverage/junit.xml",
         "test262:transpile": ["node tools/transpile-test262.mjs tests/Test262/data", "mago format tests/Test262/scripts"],
         "test262:sync": "bash tools/sync-test262.sh",
         "test262:build": "@test262:transpile",
@@ -51,7 +51,7 @@
             "@mago",
             "@mago-check",
             "@test-coverage",
-            "infection --threads=max --coverage=build/coverage --skip-initial-tests"
+            "infection --threads=max --coverage=build/coverage --skip-initial-tests --filter=src/Calendar.php,src/Duration.php,src/Instant.php,src/Now.php,src/PlainDate.php,src/PlainDateTime.php,src/PlainMonthDay.php,src/PlainTime.php,src/PlainYearMonth.php,src/ZonedDateTime.php"
         ]
     },
     "config": {

@@ -9,6 +9,7 @@ use Stringable;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TemporalSerde;
+use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
  * A date-time anchored to a specific timezone and instant.
@@ -397,8 +398,11 @@ final class ZonedDateTime implements Stringable
             $todayWallSec = $todayEpochDays * 86_400;
             $tomorrowWallSec = $tomorrowEpochDays * 86_400;
 
-            $todayEpochSec = self::wallSecToEpochSecStartOfDay($todayWallSec, $this->resolvedTimeZoneId);
-            $tomorrowEpochSec = self::wallSecToEpochSecStartOfDay($tomorrowWallSec, $this->resolvedTimeZoneId);
+            $todayEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($todayWallSec, $this->resolvedTimeZoneId);
+            $tomorrowEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay(
+                $tomorrowWallSec,
+                $this->resolvedTimeZoneId,
+            );
 
             $diffSec = $tomorrowEpochSec - $todayEpochSec;
             $hours = (float) $diffSec / 3600.0;
@@ -447,7 +451,7 @@ final class ZonedDateTime implements Stringable
                 $this->epochNanoseconds = $epochNanoseconds < 0 ? PHP_INT_MIN : PHP_INT_MAX;
                 $this->trueEpochSec = $epochSec;
                 $this->trueSubNs = $subNs;
-                $this->timeZoneId = self::normalizeTimezoneId($timeZoneId, true);
+                $this->timeZoneId = TimeZoneHelper::normalizeTimezoneId($timeZoneId, true);
                 $this->calendarId = CalendarFactory::canonicalize($calendarId);
                 $this->resolvedTimeZoneId = self::resolveCanonicalTimezoneId($this->timeZoneId);
                 return;
@@ -455,7 +459,7 @@ final class ZonedDateTime implements Stringable
             $epochNanoseconds = (int) $epochNanoseconds;
         }
         $this->epochNanoseconds = $epochNanoseconds;
-        $this->timeZoneId = self::normalizeTimezoneId($timeZoneId, true);
+        $this->timeZoneId = TimeZoneHelper::normalizeTimezoneId($timeZoneId, true);
         $this->calendarId = CalendarFactory::canonicalize($calendarId);
         $this->resolvedTimeZoneId = self::resolveCanonicalTimezoneId($this->timeZoneId);
     }
@@ -640,7 +644,7 @@ final class ZonedDateTime implements Stringable
     {
         // Normalize before constructing so datetime strings are accepted here
         // (the constructor rejects them with $rejectDatetimeStrings = true).
-        $normalizedTz = self::normalizeTimezoneId($timeZone);
+        $normalizedTz = TimeZoneHelper::normalizeTimezoneId($timeZone);
         [$epochSec, $subNs] = $this->getEpochParts();
         return self::fromEpochParts($epochSec, $subNs, $normalizedTz, $this->calendarId);
     }
@@ -717,7 +721,7 @@ final class ZonedDateTime implements Stringable
         // Determine the timezone offset at this new wall-clock second.
         // For a fixed offset timezone we can use it directly; for IANA we need
         // to do a wall-clock → UTC conversion.
-        $epochSec = self::wallSecToEpochSec($wallSec, $this->resolvedTimeZoneId);
+        $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $this->resolvedTimeZoneId);
 
         $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
 
@@ -744,7 +748,7 @@ final class ZonedDateTime implements Stringable
         // For cross-midnight DST gaps (e.g., 1919-03-31 America/Toronto where
         // midnight doesn't exist), startOfDay should return the transition
         // epoch itself — the first valid instant of the day.
-        $epochSec = self::wallSecToEpochSecStartOfDay($wallSec, $this->resolvedTimeZoneId);
+        $epochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($wallSec, $this->resolvedTimeZoneId);
 
         return self::createFromEpochParts($epochSec, 0, $this->timeZoneId, $this->calendarId);
     }
@@ -1301,7 +1305,7 @@ final class ZonedDateTime implements Stringable
         $lc = $this->localComponents();
         $epochDays = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
         $midnightWallSec = $epochDays * 86_400;
-        $midnightEpochSec = self::wallSecToEpochSecStartOfDay($midnightWallSec, $this->resolvedTimeZoneId);
+        $midnightEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($midnightWallSec, $this->resolvedTimeZoneId);
 
         // Compute offset from midnight using true epoch parts to handle sentinels.
         if ($this->trueEpochSec !== null) {
@@ -1316,7 +1320,7 @@ final class ZonedDateTime implements Stringable
         if ($isDay) {
             // Compute actual day length for DST-aware day rounding.
             $nextDayWallSec = $midnightWallSec + 86_400;
-            $nextDayEpochSec = self::wallSecToEpochSecStartOfDay($nextDayWallSec, $this->resolvedTimeZoneId);
+            $nextDayEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($nextDayWallSec, $this->resolvedTimeZoneId);
             $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * self::NS_PER_SECOND;
 
             if ($dayLengthNs <= 0) {
@@ -1796,7 +1800,7 @@ final class ZonedDateTime implements Stringable
         $tz = new \DateTimeZone($this->resolvedTimeZoneId);
 
         if ($dir === 'next') {
-            $transitions = self::safeGetTransitions($tz, $epochSec, $epochSec + (200 * 365 * 86_400));
+            $transitions = TimeZoneHelper::safeGetTransitions($tz, $epochSec, $epochSec + (200 * 365 * 86_400));
             if (count($transitions) < 2) {
                 return null;
             }
@@ -1818,7 +1822,7 @@ final class ZonedDateTime implements Stringable
         // 'previous': find the most recent transition strictly BEFORE the current instant.
         // Use epochSec+1 as end bound so that a transition at exactly epochSec is always
         // included — some PHP/ICU versions exclude the boundary second from getTransitions().
-        $transitions = self::safeGetTransitions($tz, $epochSec - (200 * 365 * 86_400), $epochSec + 1);
+        $transitions = TimeZoneHelper::safeGetTransitions($tz, $epochSec - (200 * 365 * 86_400), $epochSec + 1);
         if (count($transitions) < 2) {
             return null;
         }
@@ -1844,185 +1848,9 @@ final class ZonedDateTime implements Stringable
         return new self($transNs, $this->timeZoneId, $this->calendarId);
     }
 
-    /**
-     * Wraps `DateTimeZone::getTransitions()` to always return a narrowed list.
-     *
-     * The underlying PHP function may return `false` on failure (per the PHP manual);
-     * both phpstan stubs (`tools/phpstan-stubs/DateTimeZone.stub`) and mago model this.
-     * This helper normalizes both to an empty list and narrows each element to an
-     * array of two ints (epoch second + offset second) so the call sites can treat the
-     * result as a typed shape.
-     *
-     * @return list<array{ts: int, offset: int}>
-     */
-    private static function safeGetTransitions(\DateTimeZone $tz, int $begin, int $end): array
-    {
-        $result = $tz->getTransitions($begin, $end);
-        if ($result === false) {
-            return [];
-        }
-        $out = [];
-        foreach ($result as $t) {
-            // intval() is used so that mago (whose stubs treat element values as mixed)
-            // and phpstan (whose stubs treat them as int) both see an int result.
-            $out[] = ['ts' => intval($t['ts']), 'offset' => intval($t['offset'])];
-        }
-        return $out;
-    }
-
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
-
-    /**
-     * @internal Used by PlainDate/PlainDateTime for timezone validation.
-     * @psalm-api
-     */
-    public static function normalizeTimezoneId(string $id, bool $rejectDatetimeStrings = false): string
-    {
-        // Split caches per flag so the hot path skips the "R\0"/"N\0" prefix
-        // concat that the single-cache variant used to build the lookup key.
-        /** @var array<string, string> $cacheR */
-        static $cacheR = [];
-        /** @var array<string, string> $cacheN */
-        static $cacheN = [];
-        if ($rejectDatetimeStrings) {
-            if (array_key_exists($id, $cacheR)) {
-                return $cacheR[$id];
-            }
-            $result = self::normalizeTimezoneIdUncached($id, true);
-            if (count($cacheR) >= 1024) {
-                $cacheR = [];
-            }
-            return $cacheR[$id] = $result;
-        }
-        if (array_key_exists($id, $cacheN)) {
-            return $cacheN[$id];
-        }
-        $result = self::normalizeTimezoneIdUncached($id, false);
-        if (count($cacheN) >= 1024) {
-            $cacheN = [];
-        }
-        return $cacheN[$id] = $result;
-    }
-
-    private static function normalizeTimezoneIdUncached(string $id, bool $rejectDatetimeStrings): string
-    {
-        if ($id === '') {
-            throw new InvalidArgumentException('ZonedDateTime timeZoneId must not be empty.');
-        }
-
-        // 'UTC' (case-insensitive).
-        if (strtoupper($id) === 'UTC') {
-            return 'UTC';
-        }
-
-        // Reject minus-zero extended year.
-        if (preg_match('/^-0{6}(?:[^0-9]|$)/', $id) === 1) {
-            throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": minus-zero year.");
-        }
-
-        // Datetime strings (have a T-separator after a date part).
-        $isDatetime = preg_match('/\d{4,}-\d{2}-\d{2}[Tt]|\d{8}[Tt]/', $id) === 1;
-
-        if ($isDatetime) {
-            if ($rejectDatetimeStrings) {
-                throw new InvalidArgumentException(
-                    "Invalid timeZoneId \"{$id}\": ISO date-time string is not a valid timezone identifier for ZonedDateTime constructor.",
-                );
-            }
-            // Bracket annotation takes precedence.
-            $bm = null;
-            if (preg_match('/\[(!?[^\]]+)\]/', $id, $bm) === 1) {
-                $bracket = $bm[1];
-                if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bracket) === 1) {
-                    throw new InvalidArgumentException(
-                        "Invalid timeZoneId \"{$id}\": sub-minute offset in bracket annotation.",
-                    );
-                }
-                if (strtoupper($bracket) === 'UTC') {
-                    return 'UTC';
-                }
-                if (preg_match('/^[+\-]\d{2}:\d{2}$/', $bracket) === 1) {
-                    return $bracket;
-                }
-                // IANA name in bracket.
-                try {
-                    /** @psalm-suppress ArgumentTypeCoercion — $bracket is non-empty (matched by regex) */
-                    new \DateTimeZone($bracket);
-                    return $bracket;
-                } catch (\Exception) {
-                    throw new InvalidArgumentException(
-                        "Invalid timeZoneId \"{$id}\": unsupported bracket timezone \"{$bracket}\".",
-                    );
-                }
-            }
-            // No bracket: use inline offset.
-            if (preg_match('/[+\-]\d{2}:\d{2}:\d{2}/i', $id) === 1) {
-                throw new InvalidArgumentException(
-                    "Invalid timeZoneId \"{$id}\": inline offset contains a seconds component.",
-                );
-            }
-            if (preg_match('/[Zz](?:\[|$)/', $id) === 1) {
-                return 'UTC';
-            }
-            $om = null;
-            if (preg_match('/([+\-]\d{2}:\d{2})(?:\[|$)/', $id, $om) === 1) {
-                return $om[1];
-            }
-            throw new InvalidArgumentException(
-                "Invalid timeZoneId \"{$id}\": bare datetime without Z, offset, or bracket.",
-            );
-        }
-
-        // Pure UTC-offset strings.
-        // ±HH:MM
-        if (preg_match('/^([+\-]\d{2}):(\d{2})$/', $id) === 1) {
-            return $id;
-        }
-        // ±HHMM → ±HH:MM
-        $m = null;
-        if (preg_match('/^([+\-])(\d{2})(\d{2})$/', $id, $m) === 1) {
-            return sprintf('%s%s:%s', $m[1], $m[2], $m[3]);
-        }
-        // ±HH → ±HH:00
-        if (preg_match('/^([+\-])(\d{2})$/', $id, $m) === 1) {
-            return sprintf('%s%s:00', $m[1], $m[2]);
-        }
-        // Sub-minute offsets → reject.
-        if (preg_match('/^[+\-]\d{2}:\d{2}[:.].*/i', $id) === 1) {
-            throw new InvalidArgumentException(
-                "Invalid timeZoneId \"{$id}\": sub-minute offset is not a valid timezone identifier.",
-            );
-        }
-
-        // IANA timezone name: validate via PHP DateTimeZone (case-insensitive).
-        try {
-            new \DateTimeZone($id);
-        } catch (\Exception) {
-            throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": not a recognized timezone identifier.");
-        }
-
-        // Case-normalize the timezone ID using the canonical timezone list.
-        /** @var array<string, string>|null $lowerToCanonical */
-        static $lowerToCanonical = null;
-        if ($lowerToCanonical === null) {
-            $lowerToCanonical = [];
-            foreach (\DateTimeZone::listIdentifiers(\DateTimeZone::ALL_WITH_BC) as $ident) {
-                $lowerToCanonical[strtolower($ident)] = $ident;
-            }
-            // PHP doesn't include Etc/UTC in listIdentifiers but accepts it
-            $lowerToCanonical['etc/utc'] = 'Etc/UTC';
-        }
-        // Must be in the IANA timezone list — reject abbreviations like "AST", "EST".
-        $lower = strtolower($id);
-        if (!array_key_exists($lower, $lowerToCanonical)) {
-            throw new InvalidArgumentException(
-                "Invalid timeZoneId \"{$id}\": not a recognized IANA timezone identifier.",
-            );
-        }
-        return $lowerToCanonical[$lower];
-    }
 
     /**
      * Returns the true UTC epoch seconds and sub-second nanoseconds,
@@ -2446,7 +2274,7 @@ final class ZonedDateTime implements Stringable
             $epochSec = $wallSec;
         } elseif ($hasInlineOffset) {
             // Inline offset present: behavior depends on offset option.
-            $normalizedTzId = self::normalizeTimezoneId($tzId);
+            $normalizedTzId = TimeZoneHelper::normalizeTimezoneId($tzId);
             $resolvedTzId = self::resolveCanonicalTimezoneId($normalizedTzId);
 
             if ($offsetOption === 'use') {
@@ -2454,20 +2282,20 @@ final class ZonedDateTime implements Stringable
                 $epochSec = $wallSec - $inlineOffsetSec;
             } elseif ($offsetOption === 'ignore') {
                 // Ignore the inline offset; use the wall clock with the bracket timezone.
-                $epochSec = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+                $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
             } elseif ($offsetOption === 'prefer') {
                 if ($inlineOffsetHasSeconds) {
                     // HH:MM:SS: use inline offset if it matches exactly; otherwise timezone.
                     $epochSec = $wallSec - $inlineOffsetSec;
                     $actualOffsetSec = self::staticResolveOffset($epochSec, $resolvedTzId);
                     if ($actualOffsetSec !== $inlineOffsetSec) {
-                        $epochSec = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+                        $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
                     }
                 } else {
                     // HH:MM: use timezone resolution first. If the resolved offset matches
                     // exactly, the inline offset successfully disambiguated. Otherwise, accept
                     // if it rounds to the resolved offset (sub-minute tolerance).
-                    $tzEpoch = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+                    $tzEpoch = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
                     $tzOffset = self::staticResolveOffset($tzEpoch, $resolvedTzId);
                     if ($tzOffset === $inlineOffsetSec) {
                         // The timezone's default resolution matches the inline offset.
@@ -2497,7 +2325,7 @@ final class ZonedDateTime implements Stringable
                     $actualOffsetSec = self::staticResolveOffset($epochSec, $resolvedTzId);
                     if ($actualOffsetSec !== $inlineOffsetSec) {
                         // Also check against timezone resolution for the error case.
-                        $tzEpoch = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+                        $tzEpoch = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
                         $tzOffset = self::staticResolveOffset($tzEpoch, $resolvedTzId);
                         if ($tzOffset !== $inlineOffsetSec) {
                             throw new InvalidArgumentException(
@@ -2508,7 +2336,7 @@ final class ZonedDateTime implements Stringable
                     }
                 } else {
                     // HH:MM: use timezone resolution, validate with rounding.
-                    $tzEpoch = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+                    $tzEpoch = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
                     $tzOffset = self::staticResolveOffset($tzEpoch, $resolvedTzId);
                     if ($tzOffset === $inlineOffsetSec) {
                         $epochSec = $tzEpoch;
@@ -2535,13 +2363,13 @@ final class ZonedDateTime implements Stringable
             $tzId = $normalizedTzId;
         } else {
             // No inline offset: convert wall clock to UTC via the timezone.
-            $normalizedTzId = self::normalizeTimezoneId($tzId);
+            $normalizedTzId = TimeZoneHelper::normalizeTimezoneId($tzId);
             $resolvedTzId = self::resolveCanonicalTimezoneId($normalizedTzId);
             if ($isDateOnly) {
                 // Date-only string: use startOfDay semantics (TC39 spec).
-                $epochSec = self::wallSecToEpochSecStartOfDay($wallSec, $resolvedTzId);
+                $epochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($wallSec, $resolvedTzId);
             } else {
-                $epochSec = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+                $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
             }
             $tzId = $normalizedTzId;
         }
@@ -2762,9 +2590,9 @@ final class ZonedDateTime implements Stringable
             );
         }
 
-        $normalTzId = self::normalizeTimezoneId($tzRaw);
+        $normalTzId = TimeZoneHelper::normalizeTimezoneId($tzRaw);
         $resolvedTzId = self::resolveCanonicalTimezoneId($normalTzId);
-        $epochSec = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+        $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
         $subNs = ($milli * self::NS_PER_MILLISECOND) + ($micro * self::NS_PER_MICROSECOND) + $nano;
 
         // Handle 'offset' field if provided: depends on offset option.
@@ -2916,135 +2744,6 @@ final class ZonedDateTime implements Stringable
         }
         [$sign, $absSec] = self::parseOffset($offset, $offset);
         return [$sign, $absSec];
-    }
-
-    /**
-     * Converts wall-clock seconds (as if UTC) to epoch seconds given a timezone.
-     *
-     * For 'UTC' / fixed-offset: subtract the fixed offset.
-     * For IANA: use PHP DateTimeZone transition data.
-     */
-    /**
-     * @internal Used by PlainDate/PlainDateTime for timezone resolution.
-     * @psalm-api
-     */
-    /**
-     * Like wallSecToEpochSec, but for startOfDay: when midnight is in a gap,
-     * returns the transition epoch (first valid instant of the day) instead of
-     * the regular gap disambiguation.
-     */
-    private static function wallSecToEpochSecStartOfDay(int $wallSec, string $tzId): int
-    {
-        if ($tzId === '' || $tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) === 1) {
-            return self::wallSecToEpochSec($wallSec, $tzId);
-        }
-        $tz = new \DateTimeZone($tzId);
-        $approxOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $wallSec)));
-        $epoch1 = $wallSec - $approxOffset;
-        $transitions = self::safeGetTransitions($tz, $epoch1 - 86_400, $epoch1 + 86_400);
-        $nTransitions = count($transitions);
-        if ($nTransitions >= 2) {
-            for ($i = 1; $i < $nTransitions; $i++) {
-                $tEpoch = $transitions[$i]['ts'];
-                $pre = $transitions[$i - 1]['offset'];
-                $post = $transitions[$i]['offset'];
-                if ($post > $pre) {
-                    // Gap: check if wallSec is in [wallAtPre, wallAtPost)
-                    $wallAtPre = $tEpoch + $pre;
-                    $wallAtPost = $tEpoch + $post;
-                    if ($wallSec >= $wallAtPre && $wallSec < $wallAtPost) {
-                        // Midnight is in a gap: return the transition epoch.
-                        return $tEpoch;
-                    }
-                }
-            }
-        }
-        return self::wallSecToEpochSec($wallSec, $tzId);
-    }
-
-    public static function wallSecToEpochSec(int $wallSec, string $tzId, string $disambiguation = 'compatible'): int
-    {
-        if ($tzId === 'UTC') {
-            return $wallSec;
-        }
-        // Fixed offset ±HH:MM.
-        $m = null;
-        if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $tzId, $m) === 1) {
-            $sign = $m[1] === '+' ? 1 : -1;
-            $offsetSec = $sign * (((int) $m[2] * 3600) + ((int) $m[3] * 60));
-            return $wallSec - $offsetSec;
-        }
-        // IANA: use PHP's DateTimeZone to resolve wall clock to epoch.
-        /** @psalm-suppress ArgumentTypeCoercion — $tzId is validated non-empty before this call */
-        $tz = new \DateTimeZone($tzId);
-
-        // Get the standard resolution.
-        $approxOffset = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $wallSec)));
-        $epoch1 = $wallSec - $approxOffset;
-        $offset1 = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epoch1)));
-
-        // Check for gap/overlap by looking at timezone transitions near this epoch.
-        $transitions = self::safeGetTransitions($tz, $epoch1 - 86_400, $epoch1 + 86_400);
-        $transitionEpoch = null;
-        $preOffset = null;
-        $postOffset = null;
-        $nTransitions = count($transitions);
-        if ($nTransitions >= 2) {
-            for ($i = 1; $i < $nTransitions; $i++) {
-                $tEpoch = $transitions[$i]['ts'];
-                $pre = $transitions[$i - 1]['offset'];
-                $post = $transitions[$i]['offset'];
-                // Check if the wall time falls in a gap or overlap around this transition.
-                $wallAtPre = $tEpoch + $pre;
-                $wallAtPost = $tEpoch + $post;
-                if ($pre > $post) {
-                    // Fall-back (overlap): wallAtPost < wallAtPre, wall times in [wallAtPost, wallAtPre) are ambiguous.
-                    if ($wallSec >= $wallAtPost && $wallSec < $wallAtPre) {
-                        $transitionEpoch = $tEpoch;
-                        $preOffset = $pre;
-                        $postOffset = $post;
-                        break;
-                    }
-                } elseif ($post > $pre) {
-                    // Spring-forward (gap): wallAtPre < wallAtPost, wall times in [wallAtPre, wallAtPost) don't exist.
-                    if ($wallSec >= $wallAtPre && $wallSec < $wallAtPost) {
-                        $transitionEpoch = $tEpoch;
-                        $preOffset = $pre;
-                        $postOffset = $post;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if ($transitionEpoch !== null && $preOffset !== null && $postOffset !== null) {
-            if ($preOffset > $postOffset) {
-                // Overlap (fall-back): two valid epochs.
-                $earlierEpoch = $wallSec - $preOffset; // Earlier occurrence (before transition, higher offset)
-                $laterEpoch = $wallSec - $postOffset; // Later occurrence (after transition, lower offset)
-                return match ($disambiguation) {
-                    'earlier', 'compatible' => $earlierEpoch,
-                    'later' => $laterEpoch,
-                    'reject' => throw new InvalidArgumentException("Ambiguous wall clock time in timezone {$tzId}."),
-                    default => $earlierEpoch,
-                };
-            }
-            // Gap (spring-forward): wall time doesn't exist.
-            // TC39: resolve by interpreting the wall time in the opposite offset.
-            // 'earlier': use post offset → gives an instant before the gap.
-            // 'later'/'compatible': use pre offset → gives an instant after the gap.
-            $beforeGapEpoch = $wallSec - $postOffset;
-            $afterGapEpoch = $wallSec - $preOffset;
-            return match ($disambiguation) {
-                'compatible', 'later' => $afterGapEpoch,
-                'earlier' => $beforeGapEpoch,
-                'reject' => throw new InvalidArgumentException("Non-existent wall clock time in timezone {$tzId}."),
-                default => $afterGapEpoch,
-            };
-        }
-
-        // No gap/overlap: simple resolution.
-        return $wallSec - $offset1;
     }
 
     /**
@@ -3308,7 +3007,11 @@ final class ZonedDateTime implements Stringable
             // Step 1: Resolve new date + original time to intermediate epoch.
             $epochDays = CalendarMath::toJulianDay($newYear, $newMonth, $newDay) - 2_440_588;
             $wallSec = ($epochDays * 86_400) + ($lc['hour'] * 3600) + ($lc['minute'] * 60) + $lc['second'];
-            $intermediateEpochSec = self::wallSecToEpochSec($wallSec, $this->resolvedTimeZoneId, 'compatible');
+            $intermediateEpochSec = TimeZoneHelper::wallSecToEpochSec(
+                $wallSec,
+                $this->resolvedTimeZoneId,
+                'compatible',
+            );
             $intermediateSubNs =
                 ($lc['millisecond'] * self::NS_PER_MILLISECOND)
                 + ($lc['microsecond'] * self::NS_PER_MICROSECOND)
@@ -3403,7 +3106,7 @@ final class ZonedDateTime implements Stringable
         $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($h * 3600) + ($min * 60) + $sec;
         $resolvedTzId = self::resolveCanonicalTimezoneId($tzId);
-        $epochSec = self::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
+        $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
 
         $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
 
@@ -3413,10 +3116,12 @@ final class ZonedDateTime implements Stringable
     /**
      * Creates a ZonedDateTime from UTC epoch seconds and sub-second nanoseconds.
      *
-     * Internal factory used by PlainDate::toZonedDateTime() for dates outside
-     * the int64 nanosecond range. Not part of the public API.
-     *
-     * @internal
+     * Used by PlainDate::toZonedDateTime() and external callers that have decomposed
+     * epoch components and need to construct a ZonedDateTime without re-encoding through
+     * an int64 nanosecond intermediate (which overflows for dates near the ISO range
+     * boundary). The method handles int64 overflow internally by storing a sentinel
+     * epochNanoseconds value while preserving the true epoch seconds for later
+     * decomposition.
      */
     public static function createFromEpochParts(
         int $epochSec,

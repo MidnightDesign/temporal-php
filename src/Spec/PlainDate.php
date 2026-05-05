@@ -9,6 +9,7 @@ use Stringable;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TemporalSerde;
+use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
  * A calendar date without a time or time zone.
@@ -710,7 +711,7 @@ final class PlainDate implements Stringable
     {
         if (is_string($item)) {
             // String argument = timezone ID; use startOfDay semantics (TC39 spec).
-            $tzId = ZonedDateTime::normalizeTimezoneId($item);
+            $tzId = TimeZoneHelper::normalizeTimezoneId($item);
             return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0, startOfDay: true);
         }
         if (is_object($item)) {
@@ -728,7 +729,7 @@ final class PlainDate implements Stringable
                 get_debug_type($tzRaw),
             ));
         }
-        $tzId = ZonedDateTime::normalizeTimezoneId($tzRaw);
+        $tzId = TimeZoneHelper::normalizeTimezoneId($tzRaw);
 
         // Optional plainTime: if the key is present, pass through PlainTime::from()
         // (null throws TypeError, matching JS behavior where null !== undefined).
@@ -829,12 +830,12 @@ final class PlainDate implements Stringable
         // For startOfDay semantics (string shorthand), use the transition epoch
         // for cross-midnight DST gaps instead of regular disambiguation.
         if ($startOfDay && $h === 0 && $m === 0 && $s === 0 && $ms === 0 && $us === 0 && $ns === 0) {
-            $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
+            $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $tzId);
             $zdt = ZonedDateTime::createFromEpochParts($epochSec, 0, $tzId, $this->calendarId);
             return $zdt->startOfDay();
         }
 
-        $epochSec = ZonedDateTime::wallSecToEpochSec($wallSec, $tzId);
+        $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $tzId);
 
         $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
 
