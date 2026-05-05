@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal;
 
+use Temporal\Exception\InvalidArgument;
+
 /**
  * Rounding modes for Temporal arithmetic and formatting operations.
  *
@@ -43,7 +45,7 @@ enum RoundingMode: string
     /**
      * Convert to PHP's built-in \RoundingMode.
      *
-     * @throws \LogicException for HalfCeil and HalfFloor, which have no PHP equivalent.
+     * @throws InvalidArgument for HalfCeil and HalfFloor, which have no PHP equivalent.
      * @psalm-api
      */
     public function toPhpRoundingMode(): \RoundingMode
@@ -56,7 +58,7 @@ enum RoundingMode: string
             self::HalfExpand => \RoundingMode::HalfAwayFromZero,
             self::HalfTrunc => \RoundingMode::HalfTowardsZero,
             self::HalfEven => \RoundingMode::HalfEven,
-            self::HalfCeil, self::HalfFloor => throw new \LogicException(
+            self::HalfCeil, self::HalfFloor => throw new InvalidArgument(
                 "{$this->name} has no PHP \\RoundingMode equivalent.",
             ),
         };
@@ -65,7 +67,7 @@ enum RoundingMode: string
     /**
      * Create from PHP's built-in \RoundingMode.
      *
-     * @throws \LogicException for HalfOdd, which has no Temporal equivalent.
+     * @throws InvalidArgument for HalfOdd, which has no Temporal equivalent.
      * @psalm-api
      */
     public static function fromPhpRoundingMode(\RoundingMode $mode): self
@@ -78,7 +80,7 @@ enum RoundingMode: string
             \RoundingMode::HalfAwayFromZero => self::HalfExpand,
             \RoundingMode::HalfTowardsZero => self::HalfTrunc,
             \RoundingMode::HalfEven => self::HalfEven,
-            \RoundingMode::HalfOdd => throw new \LogicException('HalfOdd has no Temporal RoundingMode equivalent.'),
+            \RoundingMode::HalfOdd => throw new InvalidArgument('HalfOdd has no Temporal RoundingMode equivalent.'),
         };
     }
 }
