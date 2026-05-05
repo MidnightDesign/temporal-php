@@ -8,6 +8,10 @@ Until 1.0.0 the public API may change between minor versions.
 
 ## [Unreleased]
 
+### Added
+
+- **`Temporal\Exception\` hierarchy.** Introduces a `TemporalException` marker interface and concrete classes (`InvalidArgument`, `RangeError`) that extend the corresponding SPL parents (`\InvalidArgumentException`, `\RangeException`). Porcelain throw sites in `Calendar::fromId()` and `RoundingMode::{to,from}PhpRoundingMode()` now throw `Temporal\Exception\InvalidArgument`; existing `catch (\InvalidArgumentException)` / `catch (\LogicException)` clauses keep working because the SPL parents are preserved. The marker interface lets consumers catch every Temporal-origin throwable through a single base. Spec-layer throw sites still emit bare SPL exceptions and will be retrofitted onto this hierarchy in subsequent minors.
+
 ### Changed
 
 - **Spec layer (`Temporal\Spec\`) reframed as a public API layer, not internal.** The 0.1.0 release notes described it as "considered internal"; that was a misframing. The layer is PSR-4 public and will be covered by the Backwards Compatibility Promise on the same terms as the porcelain layer starting at 1.0.0.

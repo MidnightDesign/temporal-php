@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal;
 
+use Temporal\Exception\InvalidArgument;
+
 /**
  * ECMA-402 calendar systems supported by the TC39 Temporal proposal.
  *
@@ -45,7 +47,7 @@ enum Calendar: string
      * Handles case-insensitivity and known aliases (e.g. 'islamicc' resolves
      * to IslamicCivil, 'HEBREW' resolves to Hebrew).
      *
-     * @throws \InvalidArgumentException if the identifier is not a known calendar.
+     * @throws InvalidArgument if the identifier is not a known calendar.
      */
     public static function fromId(string $id): self
     {
@@ -58,7 +60,7 @@ enum Calendar: string
         $result = self::tryFrom($lower);
 
         if ($result === null) {
-            throw new \InvalidArgumentException("Unknown calendar \"{$id}\".");
+            throw new InvalidArgument("Unknown calendar \"{$id}\".");
         }
 
         return $result;
