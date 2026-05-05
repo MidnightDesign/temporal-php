@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal;
 
+use Temporal\Spec\Internal\DateTimeFields;
 use Temporal\Trait\HasEpochProperties;
 use Temporal\Trait\HasEpochSpec;
 
@@ -61,6 +62,32 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
     public static function fromEpochNanoseconds(int $epochNanoseconds): self
     {
         return self::fromSpec(Spec\Instant::fromEpochNanoseconds($epochNanoseconds));
+    }
+
+    /**
+     * Creates an Instant from a PHP `\DateTimeInterface`.
+     *
+     * PHP's `\DateTimeImmutable` carries microsecond precision; sub-microsecond
+     * Temporal bits (the lowest three decimal digits of `epochNanoseconds`) are
+     * therefore always zero on the resulting Instant.
+     */
+    public static function fromDateTime(\DateTimeInterface $dt): self
+    {
+        return new self(DateTimeFields::epochNanoseconds($dt));
+    }
+
+    /**
+     * Returns a `\DateTimeImmutable` for the same instant, in `$tz` (default UTC).
+     *
+     * The result has microsecond precision; sub-microsecond bits of the Temporal
+     * `epochNanoseconds` are dropped (they cannot be represented by PHP's
+     * native date-time types).
+     *
+     * @param \DateTimeZone|null $tz Display time zone, or null for UTC.
+     */
+    public function toDateTime(?\DateTimeZone $tz = null): \DateTimeImmutable
+    {
+        return DateTimeFields::toDateTime($this->spec->epochNanoseconds, $tz ?? new \DateTimeZone('UTC'));
     }
 
     /**

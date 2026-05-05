@@ -10,6 +10,7 @@ Until 1.0.0 the public API may change between minor versions.
 
 ### Added
 
+- **`fromDateTime` / `toDateTime` on porcelain value types.** Native `\DateTimeImmutable` interop for `Temporal\Instant` (both directions, optional `\DateTimeZone` arg, defaults to UTC), `Temporal\ZonedDateTime` (both directions, preserves the zone id), and `fromDateTime` on `Temporal\PlainDateTime`, `Temporal\PlainDate`, `Temporal\PlainTime`. Sub-microsecond Temporal bits are zero on conversion (PHP's `\DateTimeImmutable` is microsecond-precision). Unblocks "wrap your own clock" testing without a library-blessed clock-injection seam — see issue #19 for rationale.
 - **`Temporal\Exception\` hierarchy.** Introduces a `TemporalException` marker interface and concrete classes (`InvalidArgument`, `RangeError`) that extend the corresponding SPL parents (`\InvalidArgumentException`, `\RangeException`). Porcelain throw sites in `Calendar::fromId()` and `RoundingMode::{to,from}PhpRoundingMode()` now throw `Temporal\Exception\InvalidArgument`; existing `catch (\InvalidArgumentException)` / `catch (\LogicException)` clauses keep working because the SPL parents are preserved. The marker interface lets consumers catch every Temporal-origin throwable through a single base. Spec-layer throw sites still emit bare SPL exceptions and will be retrofitted onto this hierarchy in subsequent minors.
 
 ### Changed

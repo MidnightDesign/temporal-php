@@ -820,4 +820,38 @@ final class PlainDateTest extends TestCase
         static::assertSame(0, $zdt->hour);
         static::assertSame(0, $zdt->minute);
     }
+
+    // -------------------------------------------------------------------------
+    // fromDateTime()
+    // -------------------------------------------------------------------------
+
+    public function testFromDateTimeReadsZoneLocalDate(): void
+    {
+        // 2020-06-15T22:30:00 UTC = 2020-06-16T07:30:00 Asia/Tokyo (next day in Tokyo).
+        // fromDateTime must take the Tokyo-local date, not the UTC one.
+        $dt = new \DateTimeImmutable('2020-06-16T07:30:00', new \DateTimeZone('Asia/Tokyo'));
+        $pd = PlainDate::fromDateTime($dt);
+
+        static::assertSame(2020, $pd->year);
+        static::assertSame(6, $pd->month);
+        static::assertSame(16, $pd->day); // Tokyo's date, not UTC's 15th
+    }
+
+    public function testFromDateTimeDefaultsToIsoCalendar(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T00:00:00', new \DateTimeZone('UTC'));
+        $pd = PlainDate::fromDateTime($dt);
+
+        static::assertSame(Calendar::Iso8601, $pd->calendar);
+    }
+
+    public function testFromDateTimeAcceptsExplicitCalendar(): void
+    {
+        $dt = new \DateTimeImmutable('2024-06-15T00:00:00', new \DateTimeZone('UTC'));
+        $pd = PlainDate::fromDateTime($dt, Calendar::Hebrew);
+
+        static::assertSame(Calendar::Hebrew, $pd->calendar);
+        static::assertNotSame(2024, $pd->year);
+        static::assertSame(2024, $pd->toSpec()->isoYear);
+    }
 }

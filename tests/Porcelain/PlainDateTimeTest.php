@@ -1102,4 +1102,78 @@ final class PlainDateTimeTest extends TemporalTestCase
         static::assertSame('-04:00', $earlier->offset);
         static::assertSame('-05:00', $later->offset);
     }
+
+    // -------------------------------------------------------------------------
+    // fromDateTime()
+    // -------------------------------------------------------------------------
+
+    public function testFromDateTimeReadsCivilFieldsFromZone(): void
+    {
+        // Same instant, different zones — fromDateTime must take Tokyo's local fields,
+        // not UTC's. 2020-06-15T12:30:45 UTC = 2020-06-15T21:30:45 Asia/Tokyo.
+        $dt = new \DateTimeImmutable('2020-06-15T21:30:45.123456', new \DateTimeZone('Asia/Tokyo'));
+        $pdt = PlainDateTime::fromDateTime($dt);
+
+        static::assertSame(2020, $pdt->year);
+        static::assertSame(6, $pdt->month);
+        static::assertSame(15, $pdt->day);
+        static::assertSame(21, $pdt->hour); // Tokyo, not UTC
+        static::assertSame(30, $pdt->minute);
+        static::assertSame(45, $pdt->second);
+        static::assertSame(123, $pdt->millisecond);
+        static::assertSame(456, $pdt->microsecond);
+        static::assertSame(0, $pdt->nanosecond);
+    }
+
+    public function testFromDateTimeDefaultsToIsoCalendar(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T12:30:45', new \DateTimeZone('UTC'));
+        $pdt = PlainDateTime::fromDateTime($dt);
+
+        static::assertSame(Calendar::Iso8601, $pdt->calendar);
+    }
+
+    public function testFromDateTimeAcceptsExplicitCalendar(): void
+    {
+        $dt = new \DateTimeImmutable('2024-06-15T12:30:45', new \DateTimeZone('UTC'));
+        $pdt = PlainDateTime::fromDateTime($dt, Calendar::Hebrew);
+
+        static::assertSame(Calendar::Hebrew, $pdt->calendar);
+        // The Hebrew projection of the ISO 2024-06-15 date has a non-Gregorian year.
+        static::assertNotSame(2024, $pdt->year);
+        // Spec layer preserves the ISO date used to build it.
+        static::assertSame(2024, $pdt->toSpec()->isoYear);
+        static::assertSame(6, $pdt->toSpec()->isoMonth);
+        static::assertSame(15, $pdt->toSpec()->isoDay);
+    }
+
+    public function testFromDateTimeZeroMicroseconds(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T12:30:45', new \DateTimeZone('UTC'));
+        $pdt = PlainDateTime::fromDateTime($dt);
+
+        static::assertSame(0, $pdt->millisecond);
+        static::assertSame(0, $pdt->microsecond);
+        static::assertSame(0, $pdt->nanosecond);
+    }
+
+    public function testFromDateTimeMaxMicrosecondsSplitsCorrectly(): void
+    {
+        // u=999999 — pins the divisor at exactly 1000 (intdiv(999999, 999)=1001, not 999).
+        $dt = new \DateTimeImmutable('2020-06-15T12:30:45.999999', new \DateTimeZone('UTC'));
+        $pdt = PlainDateTime::fromDateTime($dt);
+
+        static::assertSame(999, $pdt->millisecond);
+        static::assertSame(999, $pdt->microsecond);
+    }
+
+    public function testFromDateTimeMidRangeMicrosecondsSplitCorrectly(): void
+    {
+        // u=500000 — pins divisor at <= 1000 (intdiv(500000, 1001)=499, not 500).
+        $dt = new \DateTimeImmutable('2020-06-15T12:30:45.500000', new \DateTimeZone('UTC'));
+        $pdt = PlainDateTime::fromDateTime($dt);
+
+        static::assertSame(500, $pdt->millisecond);
+        static::assertSame(0, $pdt->microsecond);
+    }
 }

@@ -54,6 +54,30 @@ final class PlainTime implements \Stringable, \JsonSerializable, HasTimeOfDaySpe
     }
 
     /**
+     * Creates a PlainTime from a PHP `\DateTimeInterface`.
+     *
+     * The hour/minute/second/microsecond are read from `$dt`'s own time zone
+     * (via the `G`, `i`, `s`, `u` format specifiers); date and zone identifier
+     * are dropped.
+     *
+     * PHP's `\DateTimeImmutable` carries microsecond precision; the resulting
+     * PlainTime always has `nanosecond = 0`.
+     */
+    public static function fromDateTime(\DateTimeInterface $dt): self
+    {
+        $u = (int) $dt->format('u');
+
+        return new self(
+            (int) $dt->format('G'),
+            (int) $dt->format('i'),
+            (int) $dt->format('s'),
+            intdiv(num1: $u, num2: 1000),
+            $u % 1000,
+            0,
+        );
+    }
+
+    /**
      * Compares two PlainTime values.
      *
      * @return int -1, 0, or 1.
