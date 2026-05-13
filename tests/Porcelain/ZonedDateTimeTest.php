@@ -1418,4 +1418,85 @@ final class ZonedDateTimeTest extends TemporalTestCase
         static::assertSame('ce', $zdt->era);
         static::assertSame(2020, $zdt->eraYear);
     }
+
+    // -------------------------------------------------------------------------
+    // fromDateTime() / toDateTime()
+    // -------------------------------------------------------------------------
+
+    public function testFromDateTimeIanaZoneRoundTrip(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T14:30:45.123456', new \DateTimeZone('Europe/Vienna'));
+        $zdt = ZonedDateTime::fromDateTime($dt);
+
+        static::assertSame('Europe/Vienna', $zdt->timeZoneId);
+        static::assertSame(2020, $zdt->year);
+        static::assertSame(6, $zdt->month);
+        static::assertSame(15, $zdt->day);
+        static::assertSame(14, $zdt->hour);
+        static::assertSame(30, $zdt->minute);
+        static::assertSame(45, $zdt->second);
+        static::assertSame(123, $zdt->millisecond);
+        static::assertSame(456, $zdt->microsecond);
+        static::assertSame(0, $zdt->nanosecond);
+
+        $back = $zdt->toDateTime();
+        static::assertSame('Europe/Vienna', $back->format('e'));
+        static::assertSame('2020-06-15T14:30:45.123456+02:00', $back->format('Y-m-d\TH:i:s.uP'));
+    }
+
+    public function testFromDateTimeFixedOffsetZonePreservesOffsetString(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T18:00:45.000123', new \DateTimeZone('+05:30'));
+        $zdt = ZonedDateTime::fromDateTime($dt);
+
+        static::assertSame('+05:30', $zdt->timeZoneId);
+        static::assertSame(18, $zdt->hour);
+
+        $back = $zdt->toDateTime();
+        static::assertSame('+05:30', $back->format('e'));
+        static::assertSame('2020-06-15T18:00:45.000123+05:30', $back->format('Y-m-d\TH:i:s.uP'));
+    }
+
+    public function testFromDateTimeUtc(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T12:30:00', new \DateTimeZone('UTC'));
+        $zdt = ZonedDateTime::fromDateTime($dt);
+
+        static::assertSame('UTC', $zdt->timeZoneId);
+        static::assertSame(1_592_224_200_000_000_000, $zdt->epochNanoseconds);
+
+        $back = $zdt->toDateTime();
+        static::assertSame('UTC', $back->format('e'));
+    }
+
+    public function testFromDateTimeNegativeEpochRoundTrips(): void
+    {
+        // 1.5 ms before epoch in UTC.
+        $dt = new \DateTimeImmutable('1969-12-31T23:59:59.998500', new \DateTimeZone('UTC'));
+        $zdt = ZonedDateTime::fromDateTime($dt);
+
+        static::assertSame(-1_500_000, $zdt->epochNanoseconds);
+
+        $back = $zdt->toDateTime();
+        static::assertSame('1969-12-31T23:59:59.998500+00:00', $back->format('Y-m-d\TH:i:s.uP'));
+    }
+
+    public function testFromDateTimeDropsSubMicrosecondBits(): void
+    {
+        $zdt = new ZonedDateTime(1_592_224_245_123_456_789, 'UTC');
+        $back = ZonedDateTime::fromDateTime($zdt->toDateTime());
+
+        static::assertSame(1_592_224_245_123_456_000, $back->epochNanoseconds);
+        static::assertSame('UTC', $back->timeZoneId);
+    }
+
+    public function testFromDateTimeFarFutureBeyondInt64Throws(): void
+    {
+        $dt = new \DateTimeImmutable('3000-01-01T00:00:00', new \DateTimeZone('UTC'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        ZonedDateTime::fromDateTime($dt);
+    }
 }

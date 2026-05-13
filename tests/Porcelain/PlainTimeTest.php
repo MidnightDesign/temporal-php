@@ -627,4 +627,71 @@ final class PlainTimeTest extends TemporalTestCase
         // 7 minutes truncated to nearest 5 = 5
         static::assertSame(5, $d->minutes);
     }
+
+    // -------------------------------------------------------------------------
+    // fromDateTime()
+    // -------------------------------------------------------------------------
+
+    public function testFromDateTimePreservesHmsAndMicroseconds(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T13:45:30.123456', new \DateTimeZone('UTC'));
+        $pt = PlainTime::fromDateTime($dt);
+
+        static::assertSame(13, $pt->hour);
+        static::assertSame(45, $pt->minute);
+        static::assertSame(30, $pt->second);
+        static::assertSame(123, $pt->millisecond);
+        static::assertSame(456, $pt->microsecond);
+        static::assertSame(0, $pt->nanosecond);
+    }
+
+    public function testFromDateTimeUsesZoneLocalTime(): void
+    {
+        // Same instant: 12:30 UTC vs 21:30 Tokyo.
+        $dt = new \DateTimeImmutable('2020-06-15T21:30:00', new \DateTimeZone('Asia/Tokyo'));
+        $pt = PlainTime::fromDateTime($dt);
+
+        static::assertSame(21, $pt->hour); // Tokyo, not UTC
+        static::assertSame(30, $pt->minute);
+    }
+
+    public function testFromDateTimeZeroMicrosecondsZerosAllSubSecondFields(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T13:45:30', new \DateTimeZone('UTC'));
+        $pt = PlainTime::fromDateTime($dt);
+
+        static::assertSame(0, $pt->millisecond);
+        static::assertSame(0, $pt->microsecond);
+        static::assertSame(0, $pt->nanosecond);
+    }
+
+    public function testFromDateTimeMicrosecondOnlyBitSetsBothFields(): void
+    {
+        // 1 microsecond exactly — must produce ms=0, us=1, not ms=1, us=0.
+        $dt = new \DateTimeImmutable('2020-06-15T13:45:30.000001', new \DateTimeZone('UTC'));
+        $pt = PlainTime::fromDateTime($dt);
+
+        static::assertSame(0, $pt->millisecond);
+        static::assertSame(1, $pt->microsecond);
+    }
+
+    public function testFromDateTimeMillisecondOnlyBitSetsCorrectField(): void
+    {
+        // 1 millisecond exactly — must produce ms=1, us=0.
+        $dt = new \DateTimeImmutable('2020-06-15T13:45:30.001000', new \DateTimeZone('UTC'));
+        $pt = PlainTime::fromDateTime($dt);
+
+        static::assertSame(1, $pt->millisecond);
+        static::assertSame(0, $pt->microsecond);
+    }
+
+    public function testFromDateTimeMaxMicrosecondsSplitsCorrectly(): void
+    {
+        // u=999999 — pins the divisor at exactly 1000 (intdiv(999999, 999)=1001, // not 999).
+        $dt = new \DateTimeImmutable('2020-06-15T13:45:30.999999', new \DateTimeZone('UTC'));
+        $pt = PlainTime::fromDateTime($dt);
+
+        static::assertSame(999, $pt->millisecond);
+        static::assertSame(999, $pt->microsecond);
+    }
 }

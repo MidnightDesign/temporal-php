@@ -174,6 +174,40 @@ final class PlainDateTime implements
     }
 
     /**
+     * Creates a PlainDateTime from a PHP `\DateTimeInterface`.
+     *
+     * The civil year/month/day/hour/minute/second/microsecond are read from
+     * `$dt`'s own time zone (via the `Y`, `n`, `j`, `G`, `i`, `s`, `u` format
+     * specifiers); the time-zone identifier itself is dropped because
+     * PlainDateTime is zoneless.
+     *
+     * PHP's `\DateTimeImmutable` carries microsecond precision; the resulting
+     * PlainDateTime always has `nanosecond = 0`.
+     *
+     * @param \DateTimeInterface $dt       Source date-time; its own zone determines the civil fields.
+     * @param Calendar           $calendar Calendar projection (default ISO 8601).
+     */
+    public static function fromDateTime(\DateTimeInterface $dt, Calendar $calendar = Calendar::Iso8601): self
+    {
+        $u = (int) $dt->format('u');
+
+        return self::fromSpec(
+            new SpecPlainDateTime(
+                (int) $dt->format('Y'),
+                (int) $dt->format('n'),
+                (int) $dt->format('j'),
+                (int) $dt->format('G'),
+                (int) $dt->format('i'),
+                (int) $dt->format('s'),
+                intdiv(num1: $u, num2: 1000),
+                $u % 1000,
+                0,
+                $calendar->value,
+            ),
+        );
+    }
+
+    /**
      * Compares two PlainDateTimes chronologically.
      *
      * @return int Negative if $one is earlier, positive if later, zero if equal.

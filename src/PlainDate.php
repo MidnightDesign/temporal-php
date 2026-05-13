@@ -109,6 +109,23 @@ final class PlainDate implements \Stringable, \JsonSerializable, HasYearMonthSpe
     }
 
     /**
+     * Creates a PlainDate from a PHP `\DateTimeInterface`.
+     *
+     * The year/month/day are read from `$dt`'s own time zone (via the `Y`, `n`,
+     * `j` format specifiers); the time-of-day and time-zone identifier are
+     * dropped because PlainDate carries neither.
+     *
+     * @param \DateTimeInterface $dt       Source date-time; its own zone determines the civil date.
+     * @param Calendar           $calendar Calendar projection (default ISO 8601).
+     */
+    public static function fromDateTime(\DateTimeInterface $dt, Calendar $calendar = Calendar::Iso8601): self
+    {
+        return self::fromSpec(
+            new SpecPlainDate((int) $dt->format('Y'), (int) $dt->format('n'), (int) $dt->format('j'), $calendar->value),
+        );
+    }
+
+    /**
      * Compares two PlainDates chronologically.
      *
      * @return int Negative if $one is earlier, positive if later, zero if equal.

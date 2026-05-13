@@ -641,4 +641,130 @@ final class InstantTest extends TemporalTestCase
 
         static::assertSame(5, $d->seconds);
     }
+
+    // -------------------------------------------------------------------------
+    // fromDateTime() / toDateTime()
+    // -------------------------------------------------------------------------
+
+    public function testFromDateTimeRoundTripUtc(): void
+    {
+        $dt = new \DateTimeImmutable('2020-06-15T12:30:45.123456', new \DateTimeZone('UTC'));
+        $i = Instant::fromDateTime($dt);
+
+        static::assertSame(1_592_224_245_123_456_000, $i->epochNanoseconds);
+
+        $back = $i->toDateTime();
+        static::assertSame('2020-06-15T12:30:45.123456+00:00', $back->format('Y-m-d\TH:i:s.uP'));
+    }
+
+    public function testFromDateTimeNonUtcInputCollapsesToInstant(): void
+    {
+        // Same instant as 2020-06-15T12:30:45.123456 UTC, but expressed in Asia/Tokyo.
+        $dt = new \DateTimeImmutable('2020-06-15T21:30:45.123456', new \DateTimeZone('Asia/Tokyo'));
+        $i = Instant::fromDateTime($dt);
+
+        static::assertSame(1_592_224_245_123_456_000, $i->epochNanoseconds);
+    }
+
+    public function testToDateTimeDefaultsToUtc(): void
+    {
+        $i = new Instant(1_592_224_245_000_000_000);
+        $dt = $i->toDateTime();
+
+        static::assertSame('UTC', $dt->format('e'));
+        static::assertSame('2020-06-15T12:30:45+00:00', $dt->format('Y-m-d\TH:i:sP'));
+    }
+
+    public function testToDateTimeAcceptsExplicitTimeZone(): void
+    {
+        $i = new Instant(1_592_224_245_000_000_000); // 2020-06-15T12:30:45Z
+        $dt = $i->toDateTime(new \DateTimeZone('Asia/Tokyo'));
+
+        static::assertSame('Asia/Tokyo', $dt->format('e'));
+        static::assertSame('2020-06-15T21:30:45+09:00', $dt->format('Y-m-d\TH:i:sP'));
+    }
+
+    public function testFromDateTimeDropsSubMicrosecondBitsByDocumentedContract(): void
+    {
+        // Build an Instant with sub-microsecond precision, convert through DateTime,
+        // and confirm the lowest three decimal digits are zeroed (not preserved).
+        $i = new Instant(1_592_224_245_123_456_789);
+        $dt = $i->toDateTime();
+        $back = Instant::fromDateTime($dt);
+
+        static::assertSame(1_592_224_245_123_456_000, $back->epochNanoseconds);
+    }
+
+    public function testToDateTimeAtEpochZero(): void
+    {
+        $i = new Instant(0);
+        $dt = $i->toDateTime();
+
+        static::assertSame(0, $dt->getTimestamp());
+        static::assertSame('000000', $dt->format('u'));
+        static::assertSame('1970-01-01T00:00:00+00:00', $dt->format('Y-m-d\TH:i:sP'));
+    }
+
+    public function testToDateTimeNegativeEpochNanosecondsRoundTripsExactly(): void
+    {
+        // -1.5 ms before epoch: tests that floored division puts us in
+        // "1969-12-31 23:59:59.998500 UTC", not "1970-01-01 00:00:00 -.0015".
+        $i = new Instant(-1_500_000);
+        $dt = $i->toDateTime();
+
+        static::assertSame('1969-12-31T23:59:59.998500+00:00', $dt->format('Y-m-d\TH:i:s.uP'));
+
+        $back = Instant::fromDateTime($dt);
+        static::assertSame(-1_500_000, $back->epochNanoseconds);
+    }
+
+    public function testToDateTimeNegativeEpochSecondsBoundary(): void
+    {
+        // Exactly 1 second before epoch — usOfSec is zero, so the floor-borrow
+        // branch must NOT trigger. Catches an off-by-one in the if-condition.
+        $i = new Instant(-1_000_000_000);
+        $dt = $i->toDateTime();
+
+        static::assertSame('1969-12-31T23:59:59.000000+00:00', $dt->format('Y-m-d\TH:i:s.uP'));
+        static::assertSame(-1_000_000_000, Instant::fromDateTime($dt)->epochNanoseconds);
+    }
+
+    public function testFromDateTimeAtEpochZero(): void
+    {
+        $dt = new \DateTimeImmutable('1970-01-01T00:00:00', new \DateTimeZone('UTC'));
+        $i = Instant::fromDateTime($dt);
+
+        static::assertSame(0, $i->epochNanoseconds);
+    }
+
+    public function testFromDateTimePreEpoch(): void
+    {
+        $dt = new \DateTimeImmutable('1969-12-31T23:59:59.998500', new \DateTimeZone('UTC'));
+        $i = Instant::fromDateTime($dt);
+
+        static::assertSame(-1_500_000, $i->epochNanoseconds);
+    }
+
+    public function testFromDateTimeFarFutureBeyondInt64Throws(): void
+    {
+        // PHP's int64 nanosecond range covers ~±292 years around 1970. Year 3000
+        // is well past +2262 and would overflow `ts * 10^9` to float before the
+        // `int` return type's TypeError fired. Surface as a range error instead.
+        $dt = new \DateTimeImmutable('3000-01-01T00:00:00', new \DateTimeZone('UTC'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        Instant::fromDateTime($dt);
+    }
+
+    public function testFromDateTimeFarPastBeyondInt64Throws(): void
+    {
+        $dt = new \DateTimeImmutable('1500-01-01T00:00:00', new \DateTimeZone('UTC'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        Instant::fromDateTime($dt);
+    }
 }

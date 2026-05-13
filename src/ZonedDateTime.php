@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal;
 
+use Temporal\Spec\Internal\DateTimeFields;
 use Temporal\Trait\HasDayOfMonthProperties;
 use Temporal\Trait\HasDayOfMonthSpec;
 use Temporal\Trait\HasEpochProperties;
@@ -220,6 +221,30 @@ final class ZonedDateTime implements
     public static function compare(self $one, self $two): int
     {
         return Spec\ZonedDateTime::compare($one->spec, $two->spec);
+    }
+
+    /**
+     * Creates a ZonedDateTime from a PHP `\DateTimeInterface`.
+     *
+     * The zone of `$dt` (as returned by `\DateTimeZone::getName()`) is used as
+     * the resulting `timeZoneId`; this preserves both IANA names like
+     * `Europe/Vienna` and fixed-offset strings like `+05:30`.
+     *
+     * PHP's `\DateTimeImmutable` carries microsecond precision; sub-microsecond
+     * Temporal bits (the lowest three decimal digits of `epochNanoseconds`) are
+     * therefore always zero on the resulting ZonedDateTime.
+     */
+    public static function fromDateTime(\DateTimeInterface $dt): self
+    {
+        // Mago's stubs type \DateTimeInterface::getTimezone() as \DateTimeZone|false; in practice
+        // it never returns false for \DateTimeImmutable. PHPStan and Psalm correctly model the
+        // runtime. Suppress Mago here rather than adding a runtime check the other analyzers
+        // (correctly) flag as redundant.
+        // @mago-ignore analysis:invalid-method-access
+        // @mago-ignore analysis:mixed-argument
+        $tzId = $dt->getTimezone()->getName();
+
+        return new self(DateTimeFields::epochNanoseconds($dt), $tzId);
     }
 
     // -------------------------------------------------------------------------
@@ -473,6 +498,23 @@ final class ZonedDateTime implements
     public function toInstant(): Instant
     {
         return Instant::fromSpec($this->spec->toInstant());
+    }
+
+    /**
+     * Returns a `\DateTimeImmutable` for the same instant in this ZonedDateTime's
+     * time zone.
+     *
+     * The result has microsecond precision; sub-microsecond bits of the Temporal
+     * `epochNanoseconds` are dropped (they cannot be represented by PHP's
+     * native date-time types). Fixed-offset zones like `+05:30` are passed
+     * through to `\DateTimeZone` as-is.
+     */
+    public function toDateTime(): \DateTimeImmutable
+    {
+        $tzId = $this->spec->timeZoneId;
+        \assert($tzId !== '', description: 'spec layer guarantees a non-empty time zone id');
+
+        return DateTimeFields::toDateTime($this->spec->epochNanoseconds, new \DateTimeZone($tzId));
     }
 
     /**
