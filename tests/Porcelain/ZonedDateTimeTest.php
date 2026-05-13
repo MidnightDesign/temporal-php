@@ -1489,4 +1489,14 @@ final class ZonedDateTimeTest extends TemporalTestCase
         static::assertSame(1_592_224_245_123_456_000, $back->epochNanoseconds);
         static::assertSame('UTC', $back->timeZoneId);
     }
+
+    public function testFromDateTimeFarFutureBeyondInt64Throws(): void
+    {
+        $dt = new \DateTimeImmutable('3000-01-01T00:00:00', new \DateTimeZone('UTC'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        ZonedDateTime::fromDateTime($dt);
+    }
 }

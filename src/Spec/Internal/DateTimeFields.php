@@ -35,10 +35,31 @@ final class DateTimeFields
      * format specifier, so the lowest three decimal digits of the result are
      * always zero. This matches the loss-of-precision contract documented on
      * the porcelain `fromDateTime()` factories.
+     *
+     * @throws \InvalidArgumentException if `$dt`'s instant lies outside the
+     *         int64 nanosecond range (roughly the years 1678–2262 around
+     *         the Unix epoch).
      */
     public static function epochNanoseconds(\DateTimeInterface $dt): int
     {
-        return (($dt->getTimestamp() * 1_000_000) + (int) $dt->format('u')) * 1_000;
+        $ts = $dt->getTimestamp();
+        // PHP's int64 nanosecond range covers ~±292 years around the Unix
+        // epoch. Beyond that, `$ts × NS_PER_SECOND` overflows to float and
+        // the `int` return type would raise a TypeError before the porcelain
+        // factory could surface a meaningful range error.
+        // The threshold is one less than intdiv(PHP_INT_MAX, NS_PER_SECOND)
+        // = 9_223_372_036 so that the full product plus the maximum
+        // microsecond contribution (999_999 × 1_000 = 999_999_000) stays
+        // within int64: 9_223_372_035 × 10⁹ + 999_999_000 < PHP_INT_MAX.
+        $tsMax = 9_223_372_035;
+        if ($ts > $tsMax || $ts < -$tsMax) {
+            throw new \InvalidArgumentException(sprintf(
+                "DateTime '%s' is outside the representable int64 nanosecond range.",
+                $dt->format(\DateTimeInterface::RFC3339),
+            ));
+        }
+
+        return ($ts * 1_000_000_000) + ((int) $dt->format('u') * 1_000);
     }
 
     /**

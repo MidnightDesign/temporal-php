@@ -113,7 +113,7 @@ final class PlainDate implements \Stringable, \JsonSerializable, HasYearMonthSpe
      *
      * The year/month/day are read from `$dt`'s own time zone (via the `Y`, `n`,
      * `j` format specifiers); the time-of-day and time-zone identifier are
-     * dropped because PlainDate is dateless of those.
+     * dropped because PlainDate carries neither.
      *
      * @param \DateTimeInterface $dt       Source date-time; its own zone determines the civil date.
      * @param Calendar           $calendar Calendar projection (default ISO 8601).

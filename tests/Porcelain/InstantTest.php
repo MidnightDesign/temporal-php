@@ -744,4 +744,27 @@ final class InstantTest extends TemporalTestCase
 
         static::assertSame(-1_500_000, $i->epochNanoseconds);
     }
+
+    public function testFromDateTimeFarFutureBeyondInt64Throws(): void
+    {
+        // PHP's int64 nanosecond range covers ~±292 years around 1970. Year 3000
+        // is well past +2262 and would overflow `ts * 10^9` to float before the
+        // `int` return type's TypeError fired. Surface as a range error instead.
+        $dt = new \DateTimeImmutable('3000-01-01T00:00:00', new \DateTimeZone('UTC'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        Instant::fromDateTime($dt);
+    }
+
+    public function testFromDateTimeFarPastBeyondInt64Throws(): void
+    {
+        $dt = new \DateTimeImmutable('1500-01-01T00:00:00', new \DateTimeZone('UTC'));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        Instant::fromDateTime($dt);
+    }
 }
