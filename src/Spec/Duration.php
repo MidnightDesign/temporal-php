@@ -1436,11 +1436,11 @@ final class Duration implements Stringable
             $current = $next;
         }
 
-        $remainingDays = (int) $current->diff($end)->days;
+        $remainingDays = $current->diff($end)->days;
         // Use start-anchored r2 to match TC39 spec (daysUntil(r1, r2) where
         // r2 = start + (months+1) months, not current + 1 month).
         $r2 = self::addMonthsClamped($start, $sign * ($months + 1));
-        $daysInNextMonth = (int) $current->diff($r2)->days;
+        $daysInNextMonth = $current->diff($r2)->days;
 
         if ($zdtInfo !== null) {
             // DST-aware: compute the actual epoch seconds spanning from $current to $r2
@@ -1522,11 +1522,11 @@ final class Duration implements Stringable
             $current = $next;
         }
 
-        $remainingDays = (int) $current->diff($end)->days;
+        $remainingDays = $current->diff($end)->days;
         // Use start-anchored r2 to match TC39 spec (daysUntil(r1, r2) where
         // r2 = start + (years+1) years, not current + 1 year).
         $r2 = self::addYearsClamped($start, $sign * ($years + 1));
-        $daysInNextYear = (int) $current->diff($r2)->days;
+        $daysInNextYear = $current->diff($r2)->days;
         // Convert fracNs → ms → fracDays via two exact divisions.
         // Direct division fracNs / (nsPerDay * 365) loses precision (86400e9 * 365 > 2^53).
         // Dividing fracNs by 1e6 first (ns → ms) gives the same float64 as the JS test's
