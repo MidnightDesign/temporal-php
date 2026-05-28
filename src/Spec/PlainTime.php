@@ -745,8 +745,21 @@ final class PlainTime implements Stringable
         // Try pure time string (with optional T prefix and optional offset/annotations).
         // Strip leading T/t.
         $timeStr = $s;
+        $hasTimeDesignator = false;
         if (str_starts_with($timeStr, 'T') || str_starts_with($timeStr, 't')) {
             $timeStr = substr(string: $timeStr, offset: 1);
+            $hasTimeDesignator = true;
+        }
+
+        // TC39 13.31.3 (TimeSpecWithOptionalOffsetNotAmbiguous Early Errors): a bare time
+        // string without a 'T' designator must NOT be parseable as DateSpecYearMonth or
+        // DateSpecMonthDay. Such strings (e.g. "2021-12", "1214", "12-14") are reserved for
+        // PlainYearMonth/PlainMonthDay; without the disambiguating 'T' they are a RangeError.
+        if (!$hasTimeDesignator && self::isAmbiguousWithDate($timeStr)) {
+            throw new InvalidArgumentException(sprintf(
+                'PlainTime::from() cannot parse "%s": this string is ambiguous with a date (PlainYearMonth/PlainMonthDay) and requires a \'T\' time designator.',
+                $s,
+            ));
         }
 
         // Pattern: HH:MM[:SS[.frac]][offset][annotations]  (colon-separated)
@@ -833,6 +846,47 @@ final class PlainTime implements Stringable
         }
 
         throw new InvalidArgumentException("PlainTime::from() cannot parse \"{$s}\": invalid ISO 8601 time string.");
+    }
+
+    /**
+     * Determines whether a bare (no-'T') time string is also a valid ISO 8601 date
+     * specification, in which case it is ambiguous and must be rejected per TC39 13.31.3.
+     *
+     * Tests the non-annotation prefix against the DateSpecYearMonth and DateSpecMonthDay
+     * grammar productions:
+     *   - DateSpecYearMonth: YYYY-MM | YYYYMM      (month 01–12)
+     *   - DateSpecMonthDay:  --MM-DD | --MMDD | MM-DD | MMDD
+     *                        (month 01–12, day valid for that month in a leap year)
+     *
+     * Any trailing bracketed annotations (e.g. "[UTC]", "[u-ca=iso8601]") are ignored:
+     * they do not affect whether the numeric body is a date specification.
+     */
+    private static function isAmbiguousWithDate(string $timeStr): bool
+    {
+        // Split off trailing bracketed annotations; only the numeric body is relevant.
+        $body = preg_replace(pattern: '/(?:\[[^\]]*\])+$/', replacement: '', subject: $timeStr);
+        if ($body === null || $body === '') {
+            return false;
+        }
+
+        // DateSpecYearMonth: four-digit year, optional hyphen, two-digit month 01–12.
+        if (preg_match('/^\d{4}-?(\d{2})$/', $body, $ym) === 1) {
+            $month = (int) $ym[1];
+            return $month >= 1 && $month <= 12;
+        }
+
+        // DateSpecMonthDay: optional leading "--", two-digit month, optional hyphen, two-digit day.
+        if (preg_match('/^(?:--)?(\d{2})-?(\d{2})$/', $body, $md) === 1) {
+            $month = (int) $md[1];
+            $day = (int) $md[2];
+            if ($month < 1 || $month > 12 || $day < 1) {
+                return false;
+            }
+            // Reference ISO year 1972 (a leap year), matching PlainMonthDay, so Feb 29 is valid.
+            return $day <= CalendarMath::calcDaysInMonth(1972, $month);
+        }
+
+        return false;
     }
 
     /**
