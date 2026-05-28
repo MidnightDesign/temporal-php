@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+foreach (TemporalHelpers::isoPlainYearMonthStringsInvalid() as $input) {
+Assert::throws(\InvalidArgumentException::class, function () use (&$input) { return \Temporal\Spec\PlainYearMonth::from($input, ['overflow' => 'reject']); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$input) { return \Temporal\Spec\PlainYearMonth::from($input, ['overflow' => 'constrain']); }, '');
+}

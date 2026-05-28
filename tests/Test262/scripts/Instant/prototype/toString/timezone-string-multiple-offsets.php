@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $timeZone = '2021-08-19T17:30:45.123456789-12:12[+01:46]';
 $result = $instance->toString(JsUndefined::strip(['timeZone' => $timeZone]));
-Assert::incomplete('untranslatable: Array.prototype.slice()');
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result, -6), '+01:46', 'Time zone string determined from bracket name');

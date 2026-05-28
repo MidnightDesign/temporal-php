@@ -13,5 +13,5 @@ $options = (object) ['overflow' => 'reject'];
 $leapYears = [1894, 1898, 1902, 1906, 1910, 1914, 1918, 1922, 1926, 1930, 1934, 1938, 1942, 1946, 1950, 1954, 1958, 1962, 1966, 1970];
 for ($year = 1894; $year < 1974; $year++) {
 $date = \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34]));
-Assert::sameValue($date->inLeapYear, str_contains($leapYears, $year), '');
+Assert::sameValue($date->inLeapYear, \Temporal\Tests\Test262\Js::includes($leapYears, $year), '');
 }

@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $item = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 0, 0, 0, 0, 0, 0);
 $result = $item->toLocaleString('en', (object) ['dateStyle' => 'full', 'timeStyle' => 'full']);
-Assert::sameValue(str_contains($result, ':00'), true, 'using both dateStyle and timeStyle should not throw');
+Assert::sameValue(\Temporal\Tests\Test262\Js::includes($result, ':00'), true, 'using both dateStyle and timeStyle should not throw');

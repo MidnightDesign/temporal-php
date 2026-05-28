@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+$validStrings = array_merge(TemporalHelpers::isoPlainYearMonthStringsValid(), TemporalHelpers::isoPlainYearMonthStringsValidNegativeYear());
+foreach ($validStrings as $arg) {
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($arg, $arg), 0, "\"{$arg}\" is a valid PlainYearMonth string");
+}

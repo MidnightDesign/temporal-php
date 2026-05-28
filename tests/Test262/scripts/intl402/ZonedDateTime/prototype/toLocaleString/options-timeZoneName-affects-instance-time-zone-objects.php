@@ -12,4 +12,4 @@ $datetime = new \Temporal\Spec\ZonedDateTime(0, 'Europe/Vienna');
 $resultShort = $datetime->toLocaleString('en-US', (object) ['timeZoneName' => 'short']);
 $resultLong = $datetime->toLocaleString('en-US', (object) ['timeZoneName' => 'long']);
 Assert::notSameValue($resultShort, $resultLong, 'formats with different timeZoneName options should be different');
-Assert::assertTrue(str_contains($resultLong, 'Central European Standard Time'), 'time zone name can be written out in full');
+Assert::assertTrue(\Temporal\Tests\Test262\Js::includes($resultLong, 'Central European Standard Time'), 'time zone name can be written out in full');

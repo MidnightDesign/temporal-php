@@ -21,6 +21,14 @@ TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01", $re
 $pmd29 = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]));
 TemporalHelpers::assertPlainMonthDay($pmd29, $monthCode, 29, "{$monthCode}-29", $referenceYear29);
 if (!$has30) {
-Assert::incomplete('untranslatable: Array.prototype.slice()');
+$regularMonth = \Temporal\Tests\Test262\Js::slice($monthCode, 0, 3);
+$constrain30 = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]));
+Assert::sameValue($constrain30->monthCode, $regularMonth, "{$monthCode}-30 should be constrained to {$regularMonth}-30");
+Assert::sameValue($constrain30->day, 30, "day 30 should be preserved for {$monthCode}");
+$constrain31 = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]));
+Assert::sameValue($constrain31->monthCode, $regularMonth, "{$monthCode}-31 should be constrained to {$regularMonth}-30");
+Assert::sameValue($constrain31->day, 30, "day 31 should be constrained to 30 for {$monthCode}");
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), ['overflow' => 'reject']); }, "{$monthCode}-30 should throw with reject");
 }
+Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }

@@ -1318,8 +1318,36 @@ class Emitter {
       return `array_map(fn(${params}) => ${body}, ${arr})`;
     }
 
-    // TemporalHelpers.X.method() chains (e.g. TemporalHelpers.ISO.plainYearMonthStringsValid())
-    // are not translatable — emit incomplete for any chained TemporalHelpers call.
+    // TemporalHelpers.ISO.method() chains: translate known methods to TemporalHelpers::isoMethod().
+    // All seven ISO string-array helpers used in the corpus are listed here.
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.object.type === 'MemberExpression'
+        && !callee.object.computed
+        && callee.object.object.type === 'Identifier'
+        && callee.object.object.name === 'TemporalHelpers'
+        && callee.object.property.type === 'Identifier'
+        && callee.object.property.name === 'ISO') {
+      const isoMethod = callee.property.name;
+      const ISO_METHODS = new Set([
+        'plainYearMonthStringsValid',
+        'plainYearMonthStringsInvalid',
+        'plainYearMonthStringsValidNegativeYear',
+        'plainMonthDayStringsValid',
+        'plainMonthDayStringsInvalid',
+        'plainTimeStringsAmbiguous',
+        'plainTimeStringsUnambiguous',
+      ]);
+      if (!ISO_METHODS.has(isoMethod)) {
+        this.emitIncomplete(`untranslatable: TemporalHelpers.ISO.${isoMethod}() is not yet implemented`);
+        return null;
+      }
+      const phpMethod = 'iso' + isoMethod.charAt(0).toUpperCase() + isoMethod.slice(1);
+      const args = this.transpileArgs(node.arguments);
+      if (args === null) return null;
+      return `TemporalHelpers::${phpMethod}(${args})`;
+    }
+
+    // Other TemporalHelpers.X.method() chains are not translatable.
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.object.type === 'MemberExpression'
         && rootIdentifier(callee.object) === 'TemporalHelpers') {
@@ -1513,10 +1541,24 @@ class Emitter {
       return `array_merge(${parts.join(', ')})`;
     }
 
-    // arr.slice() / arr.indexOf() → not directly translatable to PHP arrays
+    // .slice(start[, end]) → Js::slice($obj, $start[, $end])
+    // Works for both strings (all temporal fixtures) and arrays.
+    // .indexOf() has no temporal fixtures; keep it incomplete.
     if (callee.type === 'MemberExpression' && !callee.computed
-        && (callee.property.name === 'slice' || callee.property.name === 'indexOf')) {
-      this.emitIncomplete(`untranslatable: Array.prototype.${callee.property.name}()`);
+        && callee.property.name === 'slice') {
+      const obj   = this.transpileExpr(callee.object);
+      const start = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : '0';
+      if (obj === null || start === null) return null;
+      if (node.arguments[1]) {
+        const end = this.transpileExpr(node.arguments[1]);
+        if (end === null) return null;
+        return `\\Temporal\\Tests\\Test262\\Js::slice(${obj}, ${start}, ${end})`;
+      }
+      return `\\Temporal\\Tests\\Test262\\Js::slice(${obj}, ${start})`;
+    }
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'indexOf') {
+      this.emitIncomplete(`untranslatable: Array.prototype.indexOf()`);
       return null;
     }
 
@@ -1545,13 +1587,33 @@ class Emitter {
       return `(preg_match(${pat}, ${str}, $__m) ? $__m : null)`;
     }
 
-    // str.includes(needle[, position]) → str_contains($str, $needle) (position ignored)
+    // .includes(needle) → Js::includes($haystack, $needle)
+    // Handles both strings (str_contains) and arrays (strict in_array).
+    // Position argument is ignored, matching the existing behaviour.
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.property.name === 'includes') {
+      const haystack = this.transpileExpr(callee.object);
+      const needle   = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : "''";
+      if (haystack === null || needle === null) return null;
+      return `\\Temporal\\Tests\\Test262\\Js::includes(${haystack}, ${needle})`;
+    }
+
+    // .startsWith(needle) → Js::startsWith($str, $needle)
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'startsWith') {
       const str    = this.transpileExpr(callee.object);
       const needle = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : "''";
       if (str === null || needle === null) return null;
-      return `str_contains(${str}, ${needle})`;
+      return `\\Temporal\\Tests\\Test262\\Js::startsWith(${str}, ${needle})`;
+    }
+
+    // .endsWith(needle) → Js::endsWith($str, $needle)
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'endsWith') {
+      const str    = this.transpileExpr(callee.object);
+      const needle = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : "''";
+      if (str === null || needle === null) return null;
+      return `\\Temporal\\Tests\\Test262\\Js::endsWith(${str}, ${needle})`;
     }
 
     // Temporal.X.y(arg)

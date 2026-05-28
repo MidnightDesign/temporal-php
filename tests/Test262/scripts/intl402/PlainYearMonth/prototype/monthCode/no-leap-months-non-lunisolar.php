@@ -12,6 +12,6 @@ $calendars = ['buddhist' => 2513, 'coptic' => 1686, 'ethioaa' => 7462, 'ethiopic
 foreach ($calendars as $calendar => $year) {
 for ($month = 1; $month < 13; $month++) {
 $date = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => $year, 'month' => $month, 'calendar' => $calendar]));
-Assert::sameValue($date->monthCode->endsWith('L'), false, '');
+Assert::sameValue(\Temporal\Tests\Test262\Js::endsWith($date->monthCode, 'L'), false, '');
 }
 }

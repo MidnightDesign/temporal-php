@@ -10,4 +10,18 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $midnight = new \Temporal\Spec\PlainTime();
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+foreach (TemporalHelpers::isoPlainTimeStringsAmbiguous() as $string) {
+$arg = $string;
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$midnight) { return \Temporal\Spec\PlainTime::compare($arg, $midnight); }, "'{$arg}' is ambiguous and requires T prefix (first argument)");
+Assert::throws(\InvalidArgumentException::class, function () use (&$midnight, &$arg) { return \Temporal\Spec\PlainTime::compare($midnight, $arg); }, "'{$arg}' is ambiguous and requires T prefix (second argument)");
+$arg = "T{$string}";
+\Temporal\Spec\PlainTime::compare($arg, $midnight);
+\Temporal\Spec\PlainTime::compare($midnight, $arg);
+$arg = " {$string}";
+Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$midnight) { return \Temporal\Spec\PlainTime::compare($arg, $midnight); }, "space is not accepted as a substitute for T prefix (first argument): '{$arg}'");
+Assert::throws(\InvalidArgumentException::class, function () use (&$midnight, &$arg) { return \Temporal\Spec\PlainTime::compare($midnight, $arg); }, "space is not accepted as a substitute for T prefix (second argument): '{$arg}'");
+}
+foreach (TemporalHelpers::isoPlainTimeStringsUnambiguous() as $arg) {
+\Temporal\Spec\PlainTime::compare($arg, $midnight);
+\Temporal\Spec\PlainTime::compare($midnight, $arg);
+}

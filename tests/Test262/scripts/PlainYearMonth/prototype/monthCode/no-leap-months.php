@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 for ($year = 1970; $year < 1975; $year++) {
 for ($month = 1; $month < 13; $month++) {
 $date = \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => $year, 'month' => $month]));
-Assert::sameValue($date->monthCode->endsWith('L'), false, '');
+Assert::sameValue(\Temporal\Tests\Test262\Js::endsWith($date->monthCode, 'L'), false, '');
 }
 }

@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $result1 = $instance->toString((object) ['timeZone' => 'UTC']);
-Assert::incomplete('untranslatable: Array.prototype.slice()');
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result1, -6), '+00:00', 'Time zone created from string \'UTC\'');
+$result2 = $instance->toString((object) ['timeZone' => '-01:30']);
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result2, -6), '-01:30', 'Time zone created from string \'-01:30\'');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $date = new \Temporal\Spec\PlainMonthDay(5, 2, 'gregory');
-Assert::assertTrue($date->toLocaleString('en', (object) ['era' => 'narrow'])->startsWith('5'), 'toLocaleString on a PlainMonthDay with era option should work');
+Assert::assertTrue(\Temporal\Tests\Test262\Js::startsWith($date->toLocaleString('en', (object) ['era' => 'narrow']), '5'), 'toLocaleString on a PlainMonthDay with era option should work');

@@ -13,5 +13,5 @@ $options = (object) ['overflow' => 'reject'];
 $leapYears = [2515, 2519, 2523, 2527, 2531, 2535, 2539, 2543, 2547, 2551, 2555, 2559, 2563, 2567, 2571, 2575, 2579, 2583, 2587, 2591];
 for ($year = 2513; $year < 2593; $year++) {
 $date = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']));
-Assert::sameValue($date->inLeapYear, str_contains($leapYears, $year), '');
+Assert::sameValue($date->inLeapYear, \Temporal\Tests\Test262\Js::includes($leapYears, $year), '');
 }

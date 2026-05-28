@@ -13,5 +13,5 @@ $options = (object) ['overflow' => 'reject'];
 $leapYears = [5730, 5733, 5736, 5738, 5741, 5744, 5746, 5749, 5752, 5755, 5757, 5760, 5763, 5765, 5768, 5771, 5774, 5776, 5779, 5782, 5784, 5787, 5790, 5793, 5795, 5798, 5801, 5803, 5806, 5809];
 for ($year = 5730; $year < 5810; $year++) {
 $date = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar]));
-Assert::sameValue($date->inLeapYear, str_contains($leapYears, $year), '');
+Assert::sameValue($date->inLeapYear, \Temporal\Tests\Test262\Js::includes($leapYears, $year), '');
 }

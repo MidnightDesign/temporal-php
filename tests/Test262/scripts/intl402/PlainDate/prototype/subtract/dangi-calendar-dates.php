@@ -19,6 +19,6 @@ $duration = \Temporal\Spec\Duration::from($duration);
 $start = \Temporal\Spec\PlainDate::from(JsUndefined::strip(array_merge($startDate, ['calendar' => $calendar])));
 $end = $start->add($duration);
 $calculatedStart = $end->subtract($duration);
-$expectedCalculatedStart = ($duration->years !== 0 && !$end->monthCode->endsWith('L') ? $start->subtract(['months' => 1]) : $start);
+$expectedCalculatedStart = ($duration->years !== 0 && !\Temporal\Tests\Test262\Js::endsWith($end->monthCode, 'L') ? $start->subtract(['months' => 1]) : $start);
 TemporalHelpers::assertPlainDate($calculatedStart, $expectedCalculatedStart->year, $expectedCalculatedStart->month, $expectedCalculatedStart->monthCode, $expectedCalculatedStart->day, "{$unit}", $expectedCalculatedStart->era, $expectedCalculatedStart->eraYear);
 }

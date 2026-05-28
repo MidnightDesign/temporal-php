@@ -17,7 +17,22 @@ foreach ($monthCodesWithYears as $__obj__) {
 $monthCode = $__obj__['monthCode'] ?? null;
 $referenceYear = $__obj__['referenceYear'] ?? null;
 foreach ($daysToTest as $day) {
-Assert::incomplete('untranslatable: Array.prototype.slice()');
+$nonLeapMonthCode = \Temporal\Tests\Test262\Js::slice($monthCode, 0, -1);
+$pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day]));
+$constrain = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $nonLeapMonthCode, 'day' => 30]));
+Assert::sameValue($constrain->equals($pmd), true, '');
 }
+}
+}
+$nonexistentMonthCodesWithYears = [(object) ['monthCode' => 'M01L', 'referenceYear' => 1972], (object) ['monthCode' => 'M12L', 'referenceYear' => 1972]];
+foreach ($calendars as $calendar) {
+foreach ($nonexistentMonthCodesWithYears as $__obj__) {
+$monthCode = $__obj__['monthCode'] ?? null;
+$referenceYear = $__obj__['referenceYear'] ?? null;
+$nonLeapMonthCode = \Temporal\Tests\Test262\Js::slice($monthCode, 0, -1);
+$pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]));
+$constrain = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $nonLeapMonthCode, 'day' => 29]));
+TemporalHelpers::assertPlainMonthDay($constrain, $nonLeapMonthCode, 29, "{$nonLeapMonthCode} 29 (constrained)", $referenceYear);
+Assert::sameValue($constrain->equals($pmd), true, '');
 }
 }

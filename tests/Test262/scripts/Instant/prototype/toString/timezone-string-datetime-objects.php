@@ -16,4 +16,16 @@ Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$
 }
 $timeZone = '2021-08-19T17:30Z';
 $result1 = $instance->toString((object) JsUndefined::strip(['timeZone' => $timeZone]));
-Assert::incomplete('untranslatable: Array.prototype.slice()');
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result1, -6), '+00:00', 'date-time + Z is UTC time zone');
+$timeZone = '2021-08-19T17:30-07:00';
+$result2 = $instance->toString((object) JsUndefined::strip(['timeZone' => $timeZone]));
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result2, -6), '-07:00', 'date-time + offset is the offset time zone');
+$timeZone = '2021-08-19T17:30[UTC]';
+$result3 = $instance->toString((object) JsUndefined::strip(['timeZone' => $timeZone]));
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result3, -6), '+00:00', 'date-time + IANA annotation is the offset time zone');
+$timeZone = '2021-08-19T17:30Z[UTC]';
+$result4 = $instance->toString((object) JsUndefined::strip(['timeZone' => $timeZone]));
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result4, -6), '+00:00', 'date-time + Z + IANA annotation is the offset time zone');
+$timeZone = '2021-08-19T17:30-07:00[UTC]';
+$result5 = $instance->toString((object) JsUndefined::strip(['timeZone' => $timeZone]));
+Assert::sameValue(\Temporal\Tests\Test262\Js::slice($result5, -6), '+00:00', 'date-time + offset + IANA annotation is the offset time zone');
