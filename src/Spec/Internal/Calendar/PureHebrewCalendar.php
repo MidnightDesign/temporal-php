@@ -646,8 +646,15 @@ final class PureHebrewCalendar implements CalendarProtocol
     }
 
     #[\Override]
-    public function monthCodeToMonth(string $monthCode, int $calYear): int
+    public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
+        // ConstrainMonthCode: M05L (Adar I) is the only Hebrew leap month code and
+        // exists only in leap years. In a non-leap year it constrains to M06 (Adar)
+        // under 'constrain', or throws under 'reject'.
+        if ($monthCode === 'M05L' && $overflow === 'constrain' && !self::isLeapYear($calYear)) {
+            return self::monthCodeToOrdinal('M06', $calYear);
+        }
+
         return self::monthCodeToOrdinal($monthCode, $calYear);
     }
 

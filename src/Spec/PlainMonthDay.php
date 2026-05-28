@@ -142,8 +142,7 @@ final class PlainMonthDay implements Stringable
 
         // TC39 range: the resulting date (referenceISOYear-month-day) must be within the
         // representable PlainDate range (Apr 19 −271821 … Sep 13 +275760).
-        $epochDays = CalendarMath::toJulianDay($this->referenceISOYear, $this->isoMonth, $this->isoDay) - 2_440_588;
-        if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
+        if (!self::isIsoDateWithinLimits($this->referenceISOYear, $this->isoMonth, $this->isoDay)) {
             throw new InvalidArgumentException(sprintf(
                 'Invalid PlainMonthDay: %d-%d-%d is outside the representable range.',
                 $this->referenceISOYear,
@@ -151,6 +150,18 @@ final class PlainMonthDay implements Stringable
                 $this->isoDay,
             ));
         }
+    }
+
+    /**
+     * ISODateWithinLimits: whether an ISO date falls within the representable PlainDate
+     * range (epoch days within [-100_000_001, 100_000_000], i.e. Apr 19 −271821 …
+     * Sep 13 +275760).
+     */
+    private static function isIsoDateWithinLimits(int $isoYear, int $isoMonth, int $isoDay): bool
+    {
+        $epochDays = CalendarMath::toJulianDay($isoYear, $isoMonth, $isoDay) - 2_440_588;
+
+        return $epochDays >= -100_000_001 && $epochDays <= 100_000_000;
     }
 
     // -------------------------------------------------------------------------
@@ -634,7 +645,9 @@ final class PlainMonthDay implements Stringable
         // Pattern captures: (1) month, (2) day, (3) hour, (4) min, (5) sec, (6) frac, (7) brackets
         // The double-dash prefix (--) is optional.
         // optional '--' prefix + MM-DD, optional T+time, optional offset, bracket annotations
-        $monthDayPattern = '/^(?:--)?(\d{2})-(\d{2})(?:[Tt ](\d{2})(?::?(\d{2})(?::?(\d{2})([.,]\d+)?)?)?(?:[Zz]|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?((?:\[[^\]]*\])*)$/';
+        // Per DateSpecMonthDay (TwoDashes[opt] DateMonth -[opt] DateDay), the hyphen
+        // between month and day is optional: MM-DD, MMDD, --MM-DD and --MMDD are all valid.
+        $monthDayPattern = '/^(?:--)?(\d{2})-?(\d{2})(?:[Tt ](\d{2})(?::?(\d{2})(?::?(\d{2})([.,]\d+)?)?)?(?:[Zz]|[+-]\d{2}(?::\d{2}(?::\d{2}(?:[.,]\d+)?)?|\d{2}(?:\d{2}(?:[.,]\d+)?)?)?)?)?((?:\[[^\]]*\])*)$/';
 
         /** @var list<string> $m */
         $m = [];
@@ -667,8 +680,12 @@ final class PlainMonthDay implements Stringable
                     }
                 }
                 // Z is not valid for PlainMonthDay.
-                // Determine the offset of the date part: MM-DD = 5 chars, --MM-DD = 7 chars.
-                $dateLen = str_starts_with($s, '--') ? 7 : 5;
+                // Determine the offset of the date part from the actual match:
+                // TwoDashes (0 or 2) + 2 month digits + separator (0 or 1) + 2 day digits.
+                $dashPrefix = str_starts_with($s, '--') ? 2 : 0;
+                // A separator dash is present iff the month-day span exceeds MMDD (4 digits).
+                $hasSeparator = ($s[$dashPrefix + 2] ?? '') === '-';
+                $dateLen = $dashPrefix + 2 + ($hasSeparator ? 1 : 0) + 2;
                 $afterDate = substr(string: $s, offset: $dateLen);
                 $bracketPos = strpos(haystack: $afterDate, needle: '[');
                 $timeOffset = $bracketPos !== false
@@ -785,6 +802,18 @@ final class PlainMonthDay implements Stringable
 
         // For non-ISO calendars, project the ISO date through the calendar and find reference year.
         if ($calendarId !== null && $calendarId !== 'iso8601') {
+            // Per ToTemporalMonthDay, the parsed ISO date must satisfy ISODateWithinLimits
+            // before the calendar's month-day resolution runs. For the iso8601 calendar the
+            // parsed year is discarded (referenceISOYear = 1972), so this only applies here.
+            if (!self::isIsoDateWithinLimits($isoYear, $month, $day)) {
+                throw new InvalidArgumentException(sprintf(
+                    'PlainMonthDay::from() cannot parse "%s": %d-%d-%d is outside the representable ISO date range.',
+                    $s,
+                    $isoYear,
+                    $month,
+                    $day,
+                ));
+            }
             $cal = CalendarFactory::get($calendarId);
             $mc = $cal->monthCode($isoYear, $month, $day);
             $d = $cal->day($isoYear, $month, $day);
@@ -992,8 +1021,7 @@ final class PlainMonthDay implements Stringable
             }
 
             // Validate the resolved ISO date is within the representable range.
-            $epochDays = CalendarMath::toJulianDay($isoY, $isoM, $isoD) - 2_440_588;
-            if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
+            if (!self::isIsoDateWithinLimits($isoY, $isoM, $isoD)) {
                 throw new InvalidArgumentException(sprintf(
                     'Calendar year %d produces ISO date %d-%d-%d which is outside the representable range.',
                     $year,
@@ -1071,6 +1099,173 @@ final class PlainMonthDay implements Stringable
     }
 
     /**
+     * NonISOMonthDayToISOReferenceDate for the chinese and dangi calendars.
+     *
+     * Implements the normative ISO reference-year table
+     * (chinese-dangi-iso-reference-years) and its surrounding algorithm steps:
+     *
+     *  - daysInMonth is 30 for both calendars; a day above that is rejected
+     *    (reject) or clamped to 30 (constrain).
+     *  - If the row's "Days 1–29" cell is blank, or day = 30 and the "Day 30"
+     *    cell is blank, then reject throws and constrain drops the leap suffix
+     *    (CreateMonthCode with isLeap = false) and re-resolves the common month.
+     *  - The reference ISO year for the (possibly de-leaped) month code and day
+     *    is taken from the table; the result is the latest ISO date in that ISO
+     *    year whose calendar month code and day match.
+     *
+     * @param Internal\Calendar\CalendarProtocol $calendar
+     */
+    private static function resolveChineseDangiReferenceYear(
+        Internal\Calendar\CalendarProtocol $calendar,
+        string $calendarId,
+        string $monthCode,
+        int $day,
+        string $overflow,
+    ): self {
+        // daysInMonth is 30 for chinese/dangi: clamp or reject above it.
+        if ($day > 30) {
+            if ($overflow === 'reject') {
+                throw new InvalidArgumentException(
+                    "monthCode \"{$monthCode}\" with day {$day} does not exist in this calendar.",
+                );
+            }
+            $day = 30;
+        }
+
+        $referenceYear = self::chineseDangiReferenceYear($calendarId, $monthCode, $day);
+
+        // Blank table cell: this month-day is not known to occur. Reject throws;
+        // constrain drops the leap suffix and resolves the common month instead.
+        if ($referenceYear === null) {
+            if ($overflow === 'reject') {
+                throw new InvalidArgumentException(
+                    "monthCode \"{$monthCode}\" with day {$day} does not exist in this calendar.",
+                );
+            }
+            if (!str_ends_with($monthCode, 'L')) {
+                throw new InvalidArgumentException(
+                    "monthCode \"{$monthCode}\" with day {$day} does not exist in this calendar.",
+                );
+            }
+            $commonCode = substr($monthCode, offset: 0, length: -1);
+            return self::resolveChineseDangiReferenceYear($calendar, $calendarId, $commonCode, $day, $overflow);
+        }
+
+        // Return the latest ISO date in the reference ISO year whose calendar
+        // month code and day match. The calendar year overlapping that ISO year
+        // can start in the prior ISO year, so try both boundary calendar years
+        // and keep the latest ISO date that lands within the reference ISO year.
+        /** @var array{0: int, 1: int, 2: int}|null $best */
+        $best = null;
+        $calYearCandidates = array_unique([
+            $calendar->year($referenceYear, 12, 31),
+            $calendar->year($referenceYear, 1, 1),
+        ]);
+        foreach ($calYearCandidates as $calYear) {
+            try {
+                [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($calYear, $monthCode, $day, 'reject');
+            } catch (InvalidArgumentException $e) {
+                unset($e);
+                continue;
+            }
+            if ($isoY !== $referenceYear) {
+                continue;
+            }
+            if (
+                $calendar->monthCode($isoY, $isoM, $isoD) !== $monthCode
+                || $calendar->day($isoY, $isoM, $isoD) !== $day
+            ) {
+                continue;
+            }
+            $epochDays = CalendarMath::toJulianDay($isoY, $isoM, $isoD);
+            if ($best === null || $epochDays > $best[0]) {
+                $best = [$epochDays, $isoM, $isoD];
+            }
+        }
+
+        if ($best === null) {
+            throw new InvalidArgumentException(
+                "monthCode \"{$monthCode}\" with day {$day} does not exist in this calendar.",
+            );
+        }
+
+        return new self($best[1], $best[2], $calendarId, $referenceYear);
+    }
+
+    /**
+     * Returns the ISO reference year for a chinese/dangi month code and day per
+     * the normative chinese-dangi-iso-reference-years table, or null when the
+     * applicable cell is blank ("—").
+     *
+     * Non-leap month codes M01–M12 use reference year 1972 for days 1–29; the
+     * "Day 30" column differs for a handful of rows. Leap month codes use the
+     * per-row reference year. M11L splits by day (1–10 → 2033, 11–29 → 2034),
+     * and M03's day-30 reference year differs between chinese and dangi.
+     */
+    private static function chineseDangiReferenceYear(string $calendarId, string $monthCode, int $day): ?int
+    {
+        // "Day 30" column entries (days 1–29 default to 1972 for common months
+        // and the leap-row value below). A blank entry is represented by null.
+        if ($day === 30) {
+            $day30 = [
+                'M01' => 1970,
+                'M02' => 1972,
+                'M03' => $calendarId === 'dangi' ? 1968 : 1966,
+                'M04' => 1970,
+                'M05' => 1972,
+                'M06' => 1971,
+                'M07' => 1972,
+                'M08' => 1971,
+                'M09' => 1972,
+                'M10' => 1972,
+                'M11' => 1970,
+                'M12' => 1972,
+                'M01L' => null,
+                'M02L' => null,
+                'M03L' => 1955,
+                'M04L' => 1944,
+                'M05L' => 1952,
+                'M06L' => 1941,
+                'M07L' => 1938,
+                'M08L' => null,
+                'M09L' => null,
+                'M10L' => null,
+                'M11L' => null,
+                'M12L' => null,
+            ];
+
+            return array_key_exists($monthCode, $day30) ? $day30[$monthCode] : null;
+        }
+
+        // Days 1–29 column.
+        $days1to29 = [
+            'M02L' => 1947,
+            'M03L' => 1966,
+            'M04L' => 1963,
+            'M05L' => 1971,
+            'M06L' => 1960,
+            'M07L' => 1968,
+            'M08L' => 1957,
+            'M09L' => 2014,
+            'M10L' => 1984,
+            // M11L splits by day; handled below.
+            'M01L' => null,
+            'M12L' => null,
+        ];
+
+        if ($monthCode === 'M11L') {
+            return $day <= 10 ? 2033 : 2034;
+        }
+
+        if (array_key_exists($monthCode, $days1to29)) {
+            return $days1to29[$monthCode];
+        }
+
+        // Common month codes M01–M12: reference year 1972 for days 1–29.
+        return 1972;
+    }
+
+    /**
      * Finds the latest ISO year at or before 1972 where the given calendar
      * monthCode+day exists, and returns a PlainMonthDay with that reference year.
      *
@@ -1091,6 +1286,16 @@ final class PlainMonthDay implements Stringable
         int $day,
         string $overflow = 'constrain',
     ): self {
+        // Chinese and dangi use a normative ISO reference-year table
+        // (NonISOMonthDayToISOReferenceDate, chinese-dangi-iso-reference-years).
+        // The generic backward search below only covers ISO years 1872–1972 and
+        // therefore cannot find leap months whose reference year falls outside
+        // that window (e.g. M09L→2014, M11L→2033/2034), nor distinguish the
+        // chinese/dangi M03 day-30 difference. Resolve those via the table.
+        if ($calendarId === 'chinese' || $calendarId === 'dangi') {
+            return self::resolveChineseDangiReferenceYear($calendar, $calendarId, $monthCode, $day, $overflow);
+        }
+
         // Phase 1: Try to find an exact match (the day fits without constraining).
         /** @var array{0: int, 1: int, 2: int}|null $bestMatch */
         $bestMatch = null;

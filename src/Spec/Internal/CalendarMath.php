@@ -417,38 +417,46 @@ final class CalendarMath
     ): string {
         $parts = [];
 
+        // ECMA-402 CreateDateTimeFormat with required = "time" (PlainTime) only honors
+        // the time-related option set; the date-component options (weekday, era, year,
+        // month, day) are not applicable to a time-only type and are dropped. The sole
+        // time-only mode is $defaultComponents === 'time'.
+        $allowsDateComponents = $defaultComponents !== 'time';
+
         // Date components
-        if (($opts['weekday'] ?? null) !== null) {
-            $parts[] = match ($opts['weekday']) {
-                'narrow' => 'EEEEE',
-                'short' => 'EEE',
-                'long' => 'EEEE',
-                default => 'EEE',
-            };
-        }
-        if (($opts['era'] ?? null) !== null) {
-            $parts[] = match ($opts['era']) {
-                'narrow' => 'GGGGG',
-                'short' => 'GGG',
-                'long' => 'GGGG',
-                default => 'GGG',
-            };
-        }
-        if (($opts['year'] ?? null) !== null) {
-            $parts[] = $opts['year'] === '2-digit' ? 'yy' : 'y';
-        }
-        if (($opts['month'] ?? null) !== null) {
-            $parts[] = match ($opts['month']) {
-                'numeric' => 'M',
-                '2-digit' => 'MM',
-                'narrow' => 'MMMMM',
-                'short' => 'MMM',
-                'long' => 'MMMM',
-                default => 'M',
-            };
-        }
-        if (($opts['day'] ?? null) !== null) {
-            $parts[] = $opts['day'] === '2-digit' ? 'dd' : 'd';
+        if ($allowsDateComponents) {
+            if (($opts['weekday'] ?? null) !== null) {
+                $parts[] = match ($opts['weekday']) {
+                    'narrow' => 'EEEEE',
+                    'short' => 'EEE',
+                    'long' => 'EEEE',
+                    default => 'EEE',
+                };
+            }
+            if (($opts['era'] ?? null) !== null) {
+                $parts[] = match ($opts['era']) {
+                    'narrow' => 'GGGGG',
+                    'short' => 'GGG',
+                    'long' => 'GGGG',
+                    default => 'GGG',
+                };
+            }
+            if (($opts['year'] ?? null) !== null) {
+                $parts[] = $opts['year'] === '2-digit' ? 'yy' : 'y';
+            }
+            if (($opts['month'] ?? null) !== null) {
+                $parts[] = match ($opts['month']) {
+                    'numeric' => 'M',
+                    '2-digit' => 'MM',
+                    'narrow' => 'MMMMM',
+                    'short' => 'MMM',
+                    'long' => 'MMMM',
+                    default => 'M',
+                };
+            }
+            if (($opts['day'] ?? null) !== null) {
+                $parts[] = $opts['day'] === '2-digit' ? 'dd' : 'd';
+            }
         }
 
         // Time components
@@ -491,10 +499,13 @@ final class CalendarMath
         // If no primary date/time components but auxiliary options were set,
         // add default components based on the default mode.
         $hasDatePart =
-            ($opts['weekday'] ?? null) !== null
-            || ($opts['year'] ?? null) !== null
-            || ($opts['month'] ?? null) !== null
-            || ($opts['day'] ?? null) !== null;
+            $allowsDateComponents
+            && (
+                ($opts['weekday'] ?? null) !== null
+                || ($opts['year'] ?? null) !== null
+                || ($opts['month'] ?? null) !== null
+                || ($opts['day'] ?? null) !== null
+            );
         $hasTimePart =
             ($opts['hour'] ?? null) !== null
             || ($opts['minute'] ?? null) !== null

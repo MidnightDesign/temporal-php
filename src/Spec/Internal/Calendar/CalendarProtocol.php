@@ -120,8 +120,14 @@ interface CalendarProtocol
 
     /**
      * Converts a month code (e.g. "M01", "M05L") to an ordinal month number for the given year.
+     *
+     * Applies ConstrainMonthCode semantics: when the month code does not exist in the given
+     * year, 'reject' throws while 'constrain' maps it to the best common month (e.g. Hebrew
+     * "M05L" → "M06" in a non-leap year) before taking the ordinal.
+     *
+     * @param string $overflow 'constrain' or 'reject'
      */
-    public function monthCodeToMonth(string $monthCode, int $calYear): int;
+    public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int;
 
     // -------------------------------------------------------------------------
     // Era resolution

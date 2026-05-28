@@ -1095,11 +1095,11 @@ final class IntlCalendarBridge implements CalendarProtocol
     // -------------------------------------------------------------------------
 
     #[\Override]
-    public function monthCodeToMonth(string $monthCode, int $calYear): int
+    public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
         return match ($this->calendarId) {
-            'hebrew' => $this->hebrewMonthCodeToMonth($monthCode, $calYear),
-            'chinese', 'dangi' => $this->chineseMonthCodeToMonth($monthCode, $calYear),
+            'hebrew' => $this->hebrewMonthCodeToMonth($monthCode, $calYear, $overflow),
+            'chinese', 'dangi' => $this->chineseMonthCodeToMonth($monthCode, $calYear, $overflow),
             default => $this->defaultMonthCodeToMonth($monthCode),
         };
     }
@@ -1131,11 +1131,16 @@ final class IntlCalendarBridge implements CalendarProtocol
      *
      * M01-M05 → 1-5, M05L → 6 (leap only), M06-M12 → 6-12 (non-leap) or 7-13 (leap).
      */
-    private function hebrewMonthCodeToMonth(string $monthCode, int $calYear): int
+    private function hebrewMonthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
         $isLeap = (((((7 * $calYear) + 1) % 19) + 19) % 19) < 7;
         if ($monthCode === 'M05L') {
             if (!$isLeap) {
+                // ConstrainMonthCode: Hebrew "M05L" (Adar I) → "M06" (Adar) in a
+                // non-leap year under 'constrain', or throw under 'reject'.
+                if ($overflow === 'constrain') {
+                    return $this->hebrewMonthCodeToMonth('M06', $calYear, $overflow);
+                }
                 throw new InvalidArgumentException(
                     "monthCode \"M05L\" is only valid in Hebrew leap years; year {$calYear} is not a leap year.",
                 );
@@ -1163,8 +1168,12 @@ final class IntlCalendarBridge implements CalendarProtocol
      * "M01"-"M12" are regular months; "MxxL" is a leap month following month xx.
      * The ordinal depends on which months precede it in the year (including any leap month).
      */
-    private function chineseMonthCodeToMonth(string $monthCode, int $calYear): int
+    private function chineseMonthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
+        // Leap-month existence and constraining are resolved downstream in
+        // calendarToIsoFromMonthCode; this helper only maps a code to its ordinal.
+        unset($overflow);
+
         $isLeapCode = str_ends_with($monthCode, 'L');
         $baseCode = $isLeapCode ? substr($monthCode, offset: 0, length: -1) : $monthCode;
 

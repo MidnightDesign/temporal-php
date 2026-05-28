@@ -844,7 +844,7 @@ final class PlainYearMonth implements Stringable
             }
             $monthCode = $monthCodeRaw;
             $month = $calendar !== null
-                ? $calendar->monthCodeToMonth($monthCode, $year)
+                ? $calendar->monthCodeToMonth($monthCode, $year, $overflow)
                 : CalendarMath::monthCodeToMonth($monthCode);
         }
 

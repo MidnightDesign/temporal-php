@@ -397,8 +397,12 @@ final class PureIndianCalendar implements CalendarProtocol
     }
 
     #[\Override]
-    public function monthCodeToMonth(string $monthCode, int $calYear): int
+    public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
+        // Indian has no leap months, so every valid month code exists in every
+        // year; overflow is irrelevant here.
+        unset($overflow);
+
         $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
             throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"indian\".");
