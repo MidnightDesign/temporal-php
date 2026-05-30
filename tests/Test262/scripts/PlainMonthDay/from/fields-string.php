@@ -16,5 +16,5 @@ TemporalHelpers::assertPlainMonthDay($plainMonthDay, 'M10', 1, "from {$argument}
 Assert::sameValue($plainMonthDay->calendarId, 'iso8601', "from {$argument} calendar");
 }
 foreach (TemporalHelpers::isoPlainMonthDayStringsInvalid() as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainMonthDay::from($arg); }, "\"{$arg}\" not a valid PlainMonthDay string");
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\PlainMonthDay::from($arg); }, "\"{$arg}\" not a valid PlainMonthDay string");
 }

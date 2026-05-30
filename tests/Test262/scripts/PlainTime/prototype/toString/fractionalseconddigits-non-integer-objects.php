@@ -13,4 +13,4 @@ $string = $time->toString((object) ['fractionalSecondDigits' => 2.5]);
 Assert::sameValue($string, '12:34:56.98', 'fractionalSecondDigits 2.5 floors to 2');
 $string = $time->toString((object) ['fractionalSecondDigits' => 9.7]);
 Assert::sameValue($string, '12:34:56.987650000', 'fractionalSecondDigits 9.7 floors to 9 and is not out of range');
-Assert::throws(\InvalidArgumentException::class, function () use (&$time) { return $time->toString((object) JsUndefined::strip(['fractionalSecondDigits' => -0.6])); }, 'fractionalSecondDigits -0.6 floors to -1 and is out of range');
+Assert::throws(\RangeException::class, function () use (&$time) { return $time->toString((object) JsUndefined::strip(['fractionalSecondDigits' => -0.6])); }, 'fractionalSecondDigits -0.6 floors to -1 and is out of range');

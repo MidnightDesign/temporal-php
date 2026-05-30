@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->round((object) JsUndefined::strip(['smallestUnit' => 'second', 'roundingIncrement' => NAN])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instant) { return $instant->round((object) JsUndefined::strip(['smallestUnit' => 'second', 'roundingIncrement' => NAN])); }, '');

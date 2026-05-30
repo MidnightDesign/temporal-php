@@ -10,8 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 foreach (['era', 'nonsense'] as $unit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$d, &$unit) { return $d->total((object) JsUndefined::strip(['unit' => $unit])); }, '');
+Assert::throws(\RangeException::class, function () use (&$d, &$unit) { return $d->total((object) JsUndefined::strip(['unit' => $unit])); }, '');
 }
 foreach (['era', 'nonsense'] as $unit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$d, &$unit) { return $d->total($unit); }, '');
+Assert::throws(\RangeException::class, function () use (&$d, &$unit) { return $d->total($unit); }, '');
 }

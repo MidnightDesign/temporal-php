@@ -44,8 +44,8 @@ const PHP_INT_MIN = -9_223_372_036_854_775_808n;
 
 /** JS error → PHP exception class (fully-qualified). */
 const ERROR_MAP = {
-  RangeError:  '\\InvalidArgumentException',
-  SyntaxError: '\\InvalidArgumentException',
+  RangeError:  '\\RangeException',
+  SyntaxError: '\\RangeException',
   TypeError:   '\\TypeError',
 };
 
@@ -406,6 +406,9 @@ class Emitter {
     // missing-arguments fixture) — those throw ArgumentCountError in PHP, not
     // the JS-spec RangeError.
     this.arrayLiteralVars = new Map();
+    // Array-literal variables whose elements include a BigInt literal — a for-of
+    // over one is not faithfully translatable (PHP has no BigInt type).
+    this.bigIntArrayVars = new Set();
     // Variables that hold a JS-only ToPrimitive observer construct (an object
     // literal with `valueOf`/`toString` method shorthands) — directly, or as an
     // element of an array. Also includes variables MUTATED inside such method
@@ -586,6 +589,12 @@ class Emitter {
       // was statically constructed with fewer elements than the constructor needs.
       if (decl.id.type === 'Identifier' && decl.init?.type === 'ArrayExpression') {
         this.arrayLiteralVars.set(decl.id.name, decl.init.elements.length);
+        // Track data tables containing BigInt literals (e.g. wrong-type test
+        // tables like `[[null,…],[1n,"bigint"],…]`): a for-of over such a table
+        // cannot reproduce the JS Number-vs-BigInt distinction in PHP.
+        if (hasBigIntLiteral(decl.init)) {
+          this.bigIntArrayVars.add(decl.id.name);
+        }
       }
       // Detect inline JS-only ToPrimitive observers: `const X = { valueOf() {} }`
       // or `const X = [{ valueOf() {} }, ...]`. The init can't be expressed in
@@ -894,6 +903,19 @@ class Emitter {
       return;
     }
 
+    // A for-of over a *wrong-type* data table that contains a BigInt literal
+    // (inline, or a variable initialized from such an array) and whose body
+    // asserts a throw relies on the JS Number-vs-BigInt type distinction, which
+    // PHP has no equivalent for — `Nn` and `N` both become PHP int, so the
+    // assertion can't be reproduced. Mark incomplete. (Loops that merely compute
+    // with BigInt values — no throw assertion — coerce fine and are left alone.)
+    if (((node.right.type === 'ArrayExpression' && hasBigIntLiteral(node.right))
+        || (node.right.type === 'Identifier' && this.bigIntArrayVars.has(node.right.name)))
+        && subtreeHasAssertThrows(node.body)) {
+      this.emitIncomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+      return;
+    }
+
     // Special case: for (const [k, v] of Object.entries(obj)) → foreach ($obj as $k => $v)
     // Also handles: for (const [k, {a, b, c}] of Object.entries(obj)) where the value slot
     // is an ObjectPattern — the properties are bound inside the loop body.
@@ -1178,8 +1200,8 @@ class Emitter {
       // appears as a function-default-argument placeholder or comparison target
       // against an impl-returned PHP null.
       case 'undefined': return 'null';
-      case 'RangeError': return '\\InvalidArgumentException';
-      case 'SyntaxError': return '\\InvalidArgumentException';
+      case 'RangeError': return '\\RangeException';
+      case 'SyntaxError': return '\\RangeException';
       case 'TypeError':  return '\\TypeError';
       case 'Infinity':   return 'INF';
       case 'NaN':        return 'NAN';
@@ -1447,10 +1469,12 @@ class Emitter {
       return null;
     }
 
-    // Symbol() called as bare function → not translatable
+    // Symbol() called as bare function → JsSymbol sentinel. JsSymbol is Stringable
+    // but its __toString throws TypeError, mirroring JS ToString/ToNumber(Symbol).
+    // This makes e.g. `fractionalSecondDigits: Symbol()` raise TypeError while a
+    // plain non-Stringable object falls through to RangeError.
     if (callee.type === 'Identifier' && callee.name === 'Symbol') {
-      this.emitIncomplete('untranslatable: Symbol()');
-      return null;
+      return '\\Temporal\\Tests\\Test262\\JsSymbol::singleton()';
     }
 
     // verifyProperty(target, prop, descriptor) → Assert::method checks
@@ -2273,6 +2297,14 @@ class Emitter {
     const classExpr = this.transpileAsClassRef(errorNode);
     if (classExpr === null) return null;
 
+    // An option-bag value that is a BigInt literal (e.g. `{ fractionalSecondDigits: 2n }`)
+    // can't be told apart from the equivalent Number in PHP, so the JS RangeError/TypeError
+    // is not reproducible. Skip just this assertion; later ones in the fixture still run.
+    if (fnNode && hasBigIntInObject(fnNode)) {
+      this.emitSkipAndDefer(node, 'BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP');
+      return null;
+    }
+
     // TypeError tests relying on JS BigInt-vs-Number type distinction can't be replicated in PHP.
     if (classExpr.includes('TypeError') && fnNode) {
       if (arrowHasBigIntArg(fnNode)) {
@@ -2603,6 +2635,44 @@ function hasBigIntLiteral(node) {
 }
 
 /**
+ * Returns true if the subtree contains an object-literal whose value includes a
+ * BigInt literal — e.g. an option bag like `{ fractionalSecondDigits: 2n }`.
+ * Such a value can't be distinguished from the equivalent Number in PHP, so the
+ * JS RangeError/TypeError it would trigger is not reproducible. (Contrast a
+ * BigInt passed directly as a numeric argument, which other paths handle.)
+ */
+function hasBigIntInObject(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'ObjectExpression' && hasBigIntLiteral(node)) return true;
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    const child = node[key];
+    if (Array.isArray(child)) { if (child.some(hasBigIntInObject)) return true; }
+    else if (hasBigIntInObject(child)) return true;
+  }
+  return false;
+}
+
+/** Returns true if the subtree contains an `assert.throws(...)` call. */
+function subtreeHasAssertThrows(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'CallExpression'
+      && node.callee?.type === 'MemberExpression'
+      && !node.callee.computed
+      && node.callee.object?.type === 'Identifier' && node.callee.object.name === 'assert'
+      && node.callee.property?.type === 'Identifier' && node.callee.property.name === 'throws') {
+    return true;
+  }
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    const child = node[key];
+    if (Array.isArray(child)) { if (child.some(subtreeHasAssertThrows)) return true; }
+    else if (subtreeHasAssertThrows(child)) return true;
+  }
+  return false;
+}
+
+/**
  * Returns true if the node (or any node reachable through + binary chains)
  * contains a string literal.  Used to decide whether a `+` operator should
  * be emitted as PHP's `.` (string concatenation).
@@ -2883,5 +2953,8 @@ const projectRoot = path.resolve(dataDir, '..', '..', '..');
 const scriptsDir  = path.join(path.dirname(path.resolve(dataDir)), 'scripts');
 
 console.log(`Transpiling test262 JS → PHP from ${dataDir} …`);
+// Purge previously-generated scripts so fixtures removed/renamed upstream don't
+// linger as orphaned .php (every file under scripts/ is regenerated below).
+fs.rmSync(scriptsDir, { recursive: true, force: true });
 walkDir(path.resolve(dataDir), f => processFile(f, path.resolve(dataDir), scriptsDir));
 console.log('Done.');

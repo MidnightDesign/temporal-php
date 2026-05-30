@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from(['calendar' => 'gregory', 'monthCode' => 'M05', 'month' => 6]), 'Missing year/era throws TypeError before month/monthCode conflict throws RangeError');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainYearMonth::from(['calendar' => 'gregory', 'monthCode' => 'M05', 'month' => 6]), 'undefined year throws TypeError before month/monthCode conflict throws RangeError');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(['calendar' => 'gregory', 'year' => 2020, 'monthCode' => 'M05', 'month' => 6]), 'month/monthCode conflict throws RangeError when all types are valid');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainYearMonth::from(['calendar' => 'gregory', 'year' => 2020, 'monthCode' => 'M05', 'month' => 6]), 'month/monthCode conflict throws RangeError when all types are valid');

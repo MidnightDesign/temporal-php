@@ -12,4 +12,4 @@ $arg = 'iSo8601';
 $result = new \Temporal\Spec\PlainYearMonth(2000, 5, $arg, 1);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');
 $arg = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return new \Temporal\Spec\PlainYearMonth(2000, 5, $arg, 1); }, 'calendar ID is capital dotted I is not lowercased');
+Assert::throws(\RangeException::class, function () use (&$arg) { return new \Temporal\Spec\PlainYearMonth(2000, 5, $arg, 1); }, 'calendar ID is capital dotted I is not lowercased');

@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $items = [(object) ['year' => 2000, 'month' => 11], '2000-11', new \Temporal\Spec\PlainYearMonth(2000, 11)];
-Assert::incomplete('untranslatable: Symbol()');
+$values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
+foreach ($items as $item) {
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+}

@@ -12,6 +12,6 @@ $d1 = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 $d2 = new \Temporal\Spec\Duration(-1, -2, -3, -4, -5, -6, -7, -8, -9, -10);
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$d1, &$field) { return $d1->with((object) JsUndefined::strip([$field => -1])); }, "sign in argument { {$field}: -1 } conflicting with sign of duration should throw RangeError");
-Assert::throws(\InvalidArgumentException::class, function () use (&$d2, &$field) { return $d2->with((object) [$field => 1]); }, "sign in argument { {$field}: 1 } conflicting with sign of duration should throw RangeError");
+Assert::throws(\RangeException::class, function () use (&$d1, &$field) { return $d1->with((object) JsUndefined::strip([$field => -1])); }, "sign in argument { {$field}: -1 } conflicting with sign of duration should throw RangeError");
+Assert::throws(\RangeException::class, function () use (&$d2, &$field) { return $d2->with((object) [$field => 1]); }, "sign in argument { {$field}: 1 } conflicting with sign of duration should throw RangeError");
 }

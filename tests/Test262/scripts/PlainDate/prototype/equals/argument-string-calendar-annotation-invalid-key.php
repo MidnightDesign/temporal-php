@@ -12,5 +12,5 @@ $invalidStrings = [['1970-01-01[U-CA=iso8601]', 'invalid capitalized key'], ['19
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach ($invalidStrings as $__entry__) {
 [$arg, $descr] = array_pad($__entry__, 2, null);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "annotation keys must be lowercase: {$arg} - {$descr}");
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "annotation keys must be lowercase: {$arg} - {$descr}");
 }

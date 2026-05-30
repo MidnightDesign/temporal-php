@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->add('invalid duration string'); }, 'invalid duration string causes a RangeError');
+Assert::throws(\RangeException::class, function () use (&$instance) { return $instance->add('invalid duration string'); }, 'invalid duration string causes a RangeError');

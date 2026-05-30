@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Spec;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 
 /**
  * The Temporal.Now namespace object.
@@ -53,8 +54,8 @@ final class Now
      * If a time zone identifier string is provided, the date is computed
      * relative to that time zone; otherwise the system default is used.
      *
-     * @throws \TypeError              if $timeZone is not null and not a string.
-     * @throws InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws TypeError  if $timeZone is not null and not a string.
+     * @throws RangeError if the string is not a valid time zone identifier.
      * @psalm-api
      */
     public static function plainDateISO(?string $timeZone = null): PlainDate
@@ -69,8 +70,8 @@ final class Now
     /**
      * Returns the current time (no date) in the ISO 8601 calendar.
      *
-     * @throws \TypeError              if $timeZone is not null and not a string.
-     * @throws InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws TypeError  if $timeZone is not null and not a string.
+     * @throws RangeError if the string is not a valid time zone identifier.
      * @psalm-api
      */
     public static function plainTimeISO(?string $timeZone = null): PlainTime
@@ -88,8 +89,8 @@ final class Now
      * If a time zone identifier string is provided, the date/time is computed
      * relative to that time zone; otherwise the system default is used.
      *
-     * @throws \TypeError              if $timeZone is not null and not a string.
-     * @throws InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws TypeError  if $timeZone is not null and not a string.
+     * @throws RangeError if the string is not a valid time zone identifier.
      * @psalm-api
      */
     public static function plainDateTimeISO(?string $timeZone = null): PlainDateTime
@@ -114,8 +115,8 @@ final class Now
      * If a time zone identifier string is provided, it is used; otherwise the
      * system default is used.
      *
-     * @throws \TypeError              if $timeZone is not null and not a string.
-     * @throws InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws TypeError  if $timeZone is not null and not a string.
+     * @throws RangeError if the string is not a valid time zone identifier.
      * @psalm-api
      */
     public static function zonedDateTimeISO(?string $timeZone = null): ZonedDateTime
@@ -140,24 +141,24 @@ final class Now
      * datetime string → extract IANA annotation or UTC offset; reject bare datetimes
      * standalone offset/IANA → validate and return
      *
-     * @throws \TypeError              for non-string arguments (including explicitly-passed null).
-     * @throws InvalidArgumentException for empty strings or otherwise invalid strings.
+     * @throws TypeError  for non-string arguments (including explicitly-passed null).
+     * @throws RangeError for empty strings or otherwise invalid strings.
      */
     private static function resolveTimeZone(?string $timeZone, bool $provided = false): string
     {
         if ($timeZone === null) {
             if ($provided) {
-                throw new \TypeError('Temporal.Now: timeZone must be a string; got null.');
+                throw new TypeError('Temporal.Now: timeZone must be a string; got null.');
             }
             return date_default_timezone_get();
         }
         if ($timeZone === '') {
-            throw new InvalidArgumentException('Temporal.Now: timeZone string must not be empty.');
+            throw new RangeError('Temporal.Now: timeZone string must not be empty.');
         }
 
         // Reject minus-zero extended year.
         if (str_starts_with($timeZone, '-000000')) {
-            throw new InvalidArgumentException('Temporal.Now: year −000000 is invalid (minus zero).');
+            throw new RangeError('Temporal.Now: year −000000 is invalid (minus zero).');
         }
 
         // Detect ISO datetime strings (YYYY-MM-DDTHH... or YYYYMMDDThh...).
@@ -183,16 +184,14 @@ final class Now
             $tzId = $m[1]; // regex [^\]]+ guarantees non-empty
             // Any offset annotation with a seconds component is sub-minute → invalid.
             if (preg_match('/^[+-]\d{2}:\d{2}:/', $tzId) === 1) {
-                throw new InvalidArgumentException(
-                    "Temporal.Now: sub-minute offset in time zone annotation [{$tzId}].",
-                );
+                throw new RangeError("Temporal.Now: sub-minute offset in time zone annotation [{$tzId}].");
             }
             return $tzId;
         }
 
         // No IANA annotation — check for sub-minute inline offset (±HH:MM:SS...).
         if (preg_match('/[+-]\d{2}:?\d{2}:\d/', $s) === 1) {
-            throw new InvalidArgumentException("Temporal.Now: datetime string \"{$s}\" has a sub-minute UTC offset.");
+            throw new RangeError("Temporal.Now: datetime string \"{$s}\" has a sub-minute UTC offset.");
         }
 
         // Z → UTC.
@@ -206,7 +205,7 @@ final class Now
         }
 
         // Bare datetime string with no timezone information.
-        throw new InvalidArgumentException("Temporal.Now: datetime string \"{$s}\" has no time zone information.");
+        throw new RangeError("Temporal.Now: datetime string \"{$s}\" has no time zone information.");
     }
 
     /**
@@ -218,7 +217,7 @@ final class Now
     {
         // Reject offsets with a seconds component: ±HH:MM:... or ±HHMM:...
         if (preg_match('/^[+-]\d{2}:?\d{2}:/', $s) === 1) {
-            throw new InvalidArgumentException("Temporal.Now: time zone offset \"{$s}\" has sub-minute precision.");
+            throw new RangeError("Temporal.Now: time zone offset \"{$s}\" has sub-minute precision.");
         }
         return $s;
     }

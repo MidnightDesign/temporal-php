@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\JsUndefined;
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 $instance = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->subtract((object) JsUndefined::strip([$field => -INF])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$field) { return $instance->subtract((object) JsUndefined::strip([$field => -INF])); }, '');
 }
 $calls = 0;
 // JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): obj = { valueOf() { calls++; return -Infinity; } }

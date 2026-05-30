@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $mar31 = \Temporal\Spec\ZonedDateTime::from('2020-03-31T15:00+00:00[UTC]');
-Assert::throws(\InvalidArgumentException::class, function () use (&$mar31) { return $mar31->subtract((object) ['months' => 1], (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$mar31) { return $mar31->subtract((object) ['months' => 1], (object) ['overflow' => 'reject']); }, '');

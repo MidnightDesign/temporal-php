@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add((object) [$field => 1.5]); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add((object) JsUndefined::strip([$field => -1.5])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$field) { return $instance->add((object) [$field => 1.5]); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$field) { return $instance->add((object) JsUndefined::strip([$field => -1.5])); }, '');
 }

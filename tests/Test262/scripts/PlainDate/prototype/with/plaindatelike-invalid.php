@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $plainDate = new \Temporal\Spec\PlainDate(1976, 11, 18);
-Assert::incomplete('untranslatable: Symbol()');
+$tests = [[JsUndefined::singleton()], [null], [true], ['2019-05-17'], ['2019-05-17T12:34'], ['2019-05-17T12:34Z'], ['18:05:42.577'], ['42'], [\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [42, 'number'], [42, 'bigint'], [NAN, 'NaN'], [INF, 'Infinity'], [\Temporal\Spec\PlainDate::from('2019-05-17'), 'PlainDate'], [\Temporal\Spec\PlainDateTime::from('2019-05-17T12:34'), 'PlainDateTime'], [\Temporal\Spec\PlainMonthDay::from('2019-05-17'), 'PlainMonthDay'], [\Temporal\Spec\PlainTime::from('12:34'), 'PlainTime'], [\Temporal\Spec\PlainYearMonth::from('2019-05-17'), 'PlainYearMonth'], [\Temporal\Spec\ZonedDateTime::from('2019-05-17T12:34Z[UTC]'), 'ZonedDateTime'], [['year' => 2021, 'calendar' => 'iso8601'], 'calendar'], [['year' => 2021, 'timeZone' => 'UTC'], 'timeZone'], [[], 'empty object'], [[], 'array'], [['months' => 12], 'only plural property']];
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainMonthDay(11, 18);
 foreach (TemporalHelpers::isoPlainMonthDayStringsInvalid() as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "\"{$arg}\" is not a valid PlainMonthDay string");
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "\"{$arg}\" is not a valid PlainMonthDay string");
 }

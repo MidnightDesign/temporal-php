@@ -20,5 +20,5 @@ TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, $day, $monthCode, $refere
 $constrain = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), (object) ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrain, $monthCode, $day, "{$monthCode} (constrained)", $referenceYear);
 Assert::sameValue($constrain->equals($pmd), true, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode, &$day) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode, &$day) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), (object) ['overflow' => 'reject']); }, '');
 }

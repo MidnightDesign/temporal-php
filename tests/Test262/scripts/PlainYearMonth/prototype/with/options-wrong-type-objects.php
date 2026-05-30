@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Symbol()');
+$badOptions = [null, true, '2021-01', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
+$instance = new \Temporal\Spec\PlainYearMonth(2019, 10);
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

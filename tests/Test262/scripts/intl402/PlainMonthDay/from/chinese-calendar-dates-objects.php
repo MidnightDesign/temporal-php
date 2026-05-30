@@ -22,9 +22,9 @@ TemporalHelpers::assertPlainMonthDay($md, $monthCode, $day, 'md', $referenceYear
 $md2 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]));
 TemporalHelpers::assertPlainMonthDay($md2, $monthCode, $day, 'md2', $referenceYear);
 Assert::sameValue($md->equals($md2), true, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$year, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar])); }, '');
+Assert::throws(\RangeException::class, function () use (&$year, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
 $constrained = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]));
 Assert::sameValue($constrained->monthCode, 'M12', '');
 }

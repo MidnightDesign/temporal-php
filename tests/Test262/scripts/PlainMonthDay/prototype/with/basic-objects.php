@@ -14,7 +14,7 @@ TemporalHelpers::assertPlainMonthDay($md->with((object) ['day' => 22]), 'M01', 2
 TemporalHelpers::assertPlainMonthDay($md->with((object) ['month' => 12]), 'M12', 15, 'with({month})');
 TemporalHelpers::assertPlainMonthDay($md->with((object) ['monthCode' => 'M12']), 'M12', 15, 'with({monthCode})');
 TemporalHelpers::assertPlainMonthDay($md->with((object) ['month' => 12, 'monthCode' => 'M12']), 'M12', 15, 'with({month, monthCode}) agree');
-Assert::throws(\InvalidArgumentException::class, function () use (&$md) { return $md->with((object) ['month' => 12, 'monthCode' => 'M11']); }, 'with({month, monthCode}) disagree');
+Assert::throws(\RangeException::class, function () use (&$md) { return $md->with((object) ['month' => 12, 'monthCode' => 'M11']); }, 'with({month, monthCode}) disagree');
 TemporalHelpers::assertPlainMonthDay($md->with((object) ['year' => 2000, 'month' => 12]), 'M12', 15, 'with({year, month})');
 TemporalHelpers::assertPlainMonthDay($md->with((object) ['year' => 2000]), 'M01', 15, 'with({year})');
 Assert::throws(\TypeError::class, function () use (&$md) { return $md->with((object) ['day' => 1, 'calendar' => 'iso8601']); }, 'with({calendar})');

@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $from = new \Temporal\Spec\PlainDate(1970, 1, 1);
 $to = new \Temporal\Spec\PlainDate(1971, 1, 1);
 $options = ['roundingIncrement' => 100_000_000, 'smallestUnit' => 'months'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$from, &$to, &$options) { return $from->since($to, $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$from, &$to, &$options) { return $from->since($to, $options); }, '');

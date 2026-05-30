@@ -21,7 +21,7 @@ TemporalHelpers::assertPlainDateTime($date->toPlainDateTime(), $year, $month, $m
 $date2 = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'day' => $day, 'timeZone' => 'UTC', 'calendar' => $calendar]));
 TemporalHelpers::assertPlainDateTime($date2->toPlainDateTime(), $year, $month, $monthCode, $day, 0, 0, 0, 0, 0, 0, 'constructing ZonedDateTime from month code');
 TemporalHelpers::assertZonedDateTimesEqual($date, $date2, 'datetime from month should equal datetime from month code');
-Assert::throws(\InvalidArgumentException::class, function () use (&$year, &$calendar) { \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$year, &$calendar) { \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
 $constrained = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar]));
 Assert::sameValue($constrained->monthCode, 'M12', '');
 }

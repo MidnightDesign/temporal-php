@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $feb20 = new \Temporal\Spec\PlainYearMonth(2020, 2);
 $feb21 = new \Temporal\Spec\PlainYearMonth(2021, 2);
-Assert::incomplete('untranslatable: Symbol()');
+foreach ([null, 1, 'hello', true, \Temporal\Tests\Test262\JsSymbol::singleton(), 1] as $badOption) {
+Assert::incomplete('untranslatable: String()');
+}

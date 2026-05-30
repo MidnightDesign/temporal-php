@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use Temporal\Duration;
+use Temporal\Exception\RangeError;
 use Temporal\Instant;
 use Temporal\RoundingMode;
 use Temporal\Unit;
@@ -110,14 +110,14 @@ final class InstantTest extends TemporalTestCase
 
     public function testParseInvalidStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         Instant::parse('not-an-instant');
     }
 
     public function testParseEmptyStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         Instant::parse('');
     }
@@ -252,7 +252,7 @@ final class InstantTest extends TemporalTestCase
     {
         $i = new Instant(0);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         $i->add(new Duration(days: 1));
     }
@@ -277,7 +277,7 @@ final class InstantTest extends TemporalTestCase
     {
         $i = new Instant(0);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         $i->subtract(new Duration(months: 1));
     }
@@ -752,7 +752,7 @@ final class InstantTest extends TemporalTestCase
         // `int` return type's TypeError fired. Surface as a range error instead.
         $dt = new \DateTimeImmutable('3000-01-01T00:00:00', new \DateTimeZone('UTC'));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $this->expectExceptionMessage('outside the representable int64 nanosecond range');
 
         Instant::fromDateTime($dt);
@@ -762,7 +762,7 @@ final class InstantTest extends TemporalTestCase
     {
         $dt = new \DateTimeImmutable('1500-01-01T00:00:00', new \DateTimeZone('UTC'));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $this->expectExceptionMessage('outside the representable int64 nanosecond range');
 
         Instant::fromDateTime($dt);

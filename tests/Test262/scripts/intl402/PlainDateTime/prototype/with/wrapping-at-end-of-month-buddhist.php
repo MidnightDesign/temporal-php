@@ -16,5 +16,5 @@ $date = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => $year, 
 $daysInMonth = $date->daysInMonth;
 $oneDayPastMonthEnd = $date->with(JsUndefined::strip(['day' => $daysInMonth + 1]));
 Assert::sameValue($oneDayPastMonthEnd->day, $daysInMonth, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with(JsUndefined::strip(['day' => $daysInMonth + 1]), $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$date, &$daysInMonth, &$options) { return $date->with(JsUndefined::strip(['day' => $daysInMonth + 1]), $options); }, '');
 }

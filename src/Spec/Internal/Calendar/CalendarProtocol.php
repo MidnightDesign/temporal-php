@@ -140,7 +140,7 @@ interface CalendarProtocol
      * era should be ignored. Throws if the era is invalid for this calendar.
      *
      * @return int|null The resolved year, or null if era is not applicable.
-     * @throws \InvalidArgumentException if the era is not valid for this calendar.
+     * @throws \Temporal\Exception\RangeError if the era is not valid for this calendar.
      */
     public function resolveEra(string $era, int $eraYear): ?int;
 }

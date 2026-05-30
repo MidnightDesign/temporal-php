@@ -8,4 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Symbol()');
+foreach ([null, JsUndefined::singleton(), true, 3.1_416, 'a string', \Temporal\Tests\Test262\JsSymbol::singleton(), 7] as $primitive) {
+$plainMonthDay = new \Temporal\Spec\PlainMonthDay(5, 2);
+Assert::throws(\TypeError::class, function () use (&$plainMonthDay, &$primitive) { return $plainMonthDay->toPlainDate($primitive); }, '');
+}

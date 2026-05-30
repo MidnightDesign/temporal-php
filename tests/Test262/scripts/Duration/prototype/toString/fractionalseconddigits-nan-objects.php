@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->toString((object) JsUndefined::strip(['fractionalSecondDigits' => NAN])); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration) { return $duration->toString((object) JsUndefined::strip(['fractionalSecondDigits' => NAN])); }, '');

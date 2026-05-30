@@ -14,4 +14,4 @@ TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(-2_020.6
 TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(null, 11), 0, 11, 'M11', 'null defaults to zero');
 TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth(false, true), 0, 1, 'M01', 'boolean defaults');
 TemporalHelpers::assertPlainYearMonth(new \Temporal\Spec\PlainYearMonth('2020.6', '11.7'), 2020, 11, 'M11', 'fractional strings');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

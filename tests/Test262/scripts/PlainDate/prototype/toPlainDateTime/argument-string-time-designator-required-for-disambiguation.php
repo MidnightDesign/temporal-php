@@ -12,11 +12,11 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
 foreach (TemporalHelpers::isoPlainTimeStringsAmbiguous() as $string) {
 $arg = $string;
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toPlainDateTime($arg); }, "'{$arg}' is ambiguous and requires T prefix");
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->toPlainDateTime($arg); }, "'{$arg}' is ambiguous and requires T prefix");
 $arg = "T{$string}";
 $instance->toPlainDateTime($arg);
 $arg = " {$string}";
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->toPlainDateTime($arg); }, "space is not accepted as a substitute for T prefix: '{$arg}'");
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->toPlainDateTime($arg); }, "space is not accepted as a substitute for T prefix: '{$arg}'");
 }
 foreach (TemporalHelpers::isoPlainTimeStringsUnambiguous() as $arg) {
 $instance->toPlainDateTime($arg);

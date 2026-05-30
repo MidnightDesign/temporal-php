@@ -19,5 +19,5 @@ TemporalHelpers::assertPlainDateTime($result, 2021, 5, 'M05', 17, 12, 34, 56, 0,
 Assert::throws(\TypeError::class, function () use (&$options) { return \Temporal\Spec\PlainDateTime::from(7, $options); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, [], "Failing call before options is processed");
 // JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'month' => 2, 'day' => 29], $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$options) { return \Temporal\Spec\PlainDateTime::from(['year' => 2021, 'month' => 2, 'day' => 29], $options); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "Failing call after options is processed");

@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainYearMonth(1976, 11);
 foreach (TemporalHelpers::isoPlainYearMonthStringsInvalid() as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->until($arg); }, "\"{$arg}\" is not a valid PlainYearMonth string");
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->until($arg); }, "\"{$arg}\" is not a valid PlainYearMonth string");
 }

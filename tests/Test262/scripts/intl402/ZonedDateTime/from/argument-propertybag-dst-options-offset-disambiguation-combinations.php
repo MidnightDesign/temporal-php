@@ -19,7 +19,7 @@ Assert::sameValue($zdt->hour, 1, 'Hour result when offset: ignore and disambigua
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStart, JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'later']));
 Assert::sameValue($zdt->offset, '-07:00', 'Offset result when offset: ignore and disambiguation: later');
 Assert::sameValue($zdt->hour, 3, 'Hour result when offset: ignore and disambiguation: later');
-Assert::throws(\InvalidArgumentException::class, function () use (&$DSTStart, &$offset) { return \Temporal\Spec\ZonedDateTime::from($DSTStart, JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'reject'])); }, 'Throws when offset: ignore and disambiguation: reject');
+Assert::throws(\RangeException::class, function () use (&$DSTStart, &$offset) { return \Temporal\Spec\ZonedDateTime::from($DSTStart, JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'reject'])); }, 'Throws when offset: ignore and disambiguation: reject');
 $DSTStartWithWrongOffset = JsUndefined::strip(array_merge($DSTStart, ['offset' => '-23:59']));
 $offset = 'prefer';
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'compatible']));
@@ -31,4 +31,4 @@ Assert::sameValue($zdt->hour, 1, 'Hour result when offset is wrong, option offse
 $zdt = \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'later']));
 Assert::sameValue($zdt->offset, '-07:00', 'Offset result when option offset: prefer, and disambiguation: later');
 Assert::sameValue($zdt->hour, 3, 'Hour result when option offset: prefer, and disambiguation: later');
-Assert::throws(\InvalidArgumentException::class, function () use (&$DSTStartWithWrongOffset, &$offset) { return \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'reject'])); }, 'Throws when offset is wrong, option offset: prefer, and disambiguation: reject');
+Assert::throws(\RangeException::class, function () use (&$DSTStartWithWrongOffset, &$offset) { return \Temporal\Spec\ZonedDateTime::from($DSTStartWithWrongOffset, JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'reject'])); }, 'Throws when offset is wrong, option offset: prefer, and disambiguation: reject');

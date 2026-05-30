@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['', 'PREFER', 'balance'] as $offset) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$offset) { return $zdt->with(['day' => 5], JsUndefined::strip(['offset' => $offset])); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt, &$offset) { return $zdt->with(['day' => 5], JsUndefined::strip(['offset' => $offset])); }, '');
 }

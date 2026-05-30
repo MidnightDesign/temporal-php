@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\Calendar\CalendarProtocol;
 
@@ -30,8 +31,8 @@ final class CalendarMath
      * @param array<array-key, mixed> $bag
      * @param non-empty-string $field
      * @param non-empty-string $className Used in error messages (e.g. "PlainDateTime").
-     * @throws \TypeError if the field is present but null.
-     * @throws InvalidArgumentException if the value is non-finite.
+     * @throws RangeError if the field is present but null.
+     * @throws RangeError if the value is non-finite.
      */
     public static function extractIntField(array $bag, string $field, int $default, string $className): int
     {
@@ -41,7 +42,7 @@ final class CalendarMath
         /** @var mixed $raw */
         $raw = $bag[$field];
         if ($raw === null) {
-            throw new \TypeError("{$className} property bag {$field} field must not be undefined.");
+            throw new RangeError("{$className} property bag {$field} field must not be undefined.");
         }
         return self::toFiniteInt($raw, "{$className} {$field}");
     }
@@ -67,14 +68,14 @@ final class CalendarMath
      * onto null.
      *
      * @param array<array-key, mixed> $bag
-     * @throws \TypeError if only one of era/eraYear is present on an era-supporting calendar.
+     * @throws TypeError if only one of era/eraYear is present on an era-supporting calendar.
      */
     public static function hasEraAndEraYear(array $bag, ?string $calendarId, string $className): bool
     {
         $hasEra = array_key_exists('era', $bag) && $bag['era'] !== null;
         $hasEraYear = array_key_exists('eraYear', $bag) && $bag['eraYear'] !== null;
         if (self::supportsEras($calendarId) && $hasEra !== $hasEraYear) {
-            throw new \TypeError("{$className} property bag must have both era and eraYear, or neither.");
+            throw new TypeError("{$className} property bag must have both era and eraYear, or neither.");
         }
         return $hasEra && $hasEraYear;
     }
@@ -88,7 +89,7 @@ final class CalendarMath
      * must handle that case if it implies a later TypeError per
      * NonISOResolveFields.
      *
-     * @throws \TypeError if the era value cannot be coerced to a string.
+     * @throws TypeError if the era value cannot be coerced to a string.
      */
     public static function resolveYearFromEra(
         CalendarProtocol $calendar,
@@ -104,7 +105,7 @@ final class CalendarMath
         } elseif (is_scalar($eraRaw) || $eraRaw instanceof \Stringable) {
             $eraStr = (string) $eraRaw;
         } else {
-            throw new \TypeError(sprintf('%s era must be a string; got %s.', $errorContext, get_debug_type($eraRaw)));
+            throw new TypeError(sprintf('%s era must be a string; got %s.', $errorContext, get_debug_type($eraRaw)));
         }
         $eraYearInt = self::toFiniteInt($eraYearRaw, "{$errorContext} eraYear");
         return $calendar->resolveEra($eraStr, $eraYearInt);
@@ -113,7 +114,9 @@ final class CalendarMath
     /**
      * Validates that a mixed value is finite and converts it to int.
      *
-     * @throws InvalidArgumentException if the value is non-finite.
+     * @throws RangeError if the value is non-finite, non-numeric, or otherwise
+     *         not coercible to a number.
+     * @throws TypeError if the value is a Symbol (its `__toString` throws).
      */
     public static function toFiniteInt(mixed $value, string $errorContext): int
     {
@@ -122,7 +125,7 @@ final class CalendarMath
         }
         if (is_float($value)) {
             if (!is_finite($value)) {
-                throw new InvalidArgumentException("{$errorContext} must be finite.");
+                throw new RangeError("{$errorContext} must be finite.");
             }
             return (int) $value;
         }
@@ -131,15 +134,29 @@ final class CalendarMath
         }
         if (is_string($value)) {
             if (!is_numeric($value)) {
-                throw new InvalidArgumentException("{$errorContext} must be numeric.");
+                throw new RangeError("{$errorContext} must be numeric.");
             }
             $floatVal = (float) $value;
             if (!is_finite($floatVal)) {
-                throw new InvalidArgumentException("{$errorContext} must be finite.");
+                throw new RangeError("{$errorContext} must be finite.");
             }
             return (int) $floatVal;
         }
-        throw new InvalidArgumentException("{$errorContext} must be numeric.");
+        // Stringable: cast to string then re-run the numeric checks. The JsSymbol
+        // sentinel's __toString throws Temporal\Exception\TypeError here, while a
+        // plain stdClass (not Stringable) falls through to RangeError below.
+        if ($value instanceof \Stringable) {
+            $str = (string) $value;
+            if (!is_numeric($str)) {
+                throw new RangeError("{$errorContext} must be numeric.");
+            }
+            $floatVal = (float) $str;
+            if (!is_finite($floatVal)) {
+                throw new RangeError("{$errorContext} must be finite.");
+            }
+            return (int) $floatVal;
+        }
+        throw new RangeError("{$errorContext} must be numeric.");
     }
 
     /** @var list<string> Individual date/time component options that conflict with dateStyle/timeStyle. */
@@ -165,7 +182,7 @@ final class CalendarMath
      * fractionalSecondDigits, timeZoneName) throws a TypeError.
      *
      * @param array<string, mixed> $opts
-     * @throws \TypeError if style and component options are mixed.
+     * @throws TypeError if style and component options are mixed.
      */
     public static function validateStyleConflicts(array $opts): void
     {
@@ -182,7 +199,7 @@ final class CalendarMath
             }
 
             $style = $hasDateStyle ? 'dateStyle' : 'timeStyle';
-            throw new \TypeError(sprintf('toLocaleString(): %s and %s cannot be used together.', $style, $opt));
+            throw new TypeError(sprintf('toLocaleString(): %s and %s cannot be used together.', $style, $opt));
         }
     }
 
@@ -553,7 +570,7 @@ final class CalendarMath
      * ignored regardless of value; in that case null is always returned.
      *
      * @return ?string Canonicalized calendar ID from the first u-ca annotation, or null.
-     * @throws InvalidArgumentException on any violation.
+     * @throws RangeError on any violation.
      */
     public static function validateAnnotations(string $section, string $original, bool $checkCalendar = true): ?string
     {
@@ -577,7 +594,7 @@ final class CalendarMath
                 [$key] = explode(separator: '=', string: $content, limit: 2);
 
                 if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Invalid annotation key \"{$key}\" in \"{$original}\": annotation keys must be lowercase.",
                     );
                 }
@@ -586,7 +603,7 @@ final class CalendarMath
                     if ($checkCalendar && $calCount === 0) {
                         $calValue = substr(string: $content, offset: strlen($key) + 1);
                         if (!CalendarFactory::isKnownCalendar($calValue)) {
-                            throw new InvalidArgumentException("Unknown calendar \"{$calValue}\" in \"{$original}\".");
+                            throw new RangeError("Unknown calendar \"{$calValue}\" in \"{$original}\".");
                         }
                         $calendarId = CalendarFactory::canonicalize($calValue);
                     }
@@ -595,21 +612,17 @@ final class CalendarMath
                         $calHasCritical = true;
                     }
                     if ($calCount > 1 && $calHasCritical) {
-                        throw new InvalidArgumentException(
-                            "Multiple calendar annotations with critical flag in \"{$original}\".",
-                        );
+                        throw new RangeError("Multiple calendar annotations with critical flag in \"{$original}\".");
                     }
                 } else {
                     if ($critical) {
-                        throw new InvalidArgumentException(
-                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
-                        );
+                        throw new RangeError("Critical unknown annotation \"[!{$content}]\" in \"{$original}\".");
                     }
                 }
             } else {
                 ++$tzCount;
                 if ($tzCount > 1) {
-                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
+                    throw new RangeError("Multiple time-zone annotations in \"{$original}\".");
                 }
                 // Offset-style TZ annotation: reject sub-minute (seconds component).
                 if (preg_match('/^[+-]/', $content) === 1) {
@@ -617,14 +630,10 @@ final class CalendarMath
                         preg_match('/^[+-]\d{2}:\d{2}:\d{2}/', $content) === 1
                         || preg_match('/^[+-]\d{2}:\d{2}[.,]/', $content) === 1
                     ) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
+                        throw new RangeError("Sub-minute UTC offset in time-zone annotation in \"{$original}\".");
                     }
                     if (preg_match('/^[+-]\d{2}(?!\d*:)\d{4,}/', $content) === 1) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
+                        throw new RangeError("Sub-minute UTC offset in time-zone annotation in \"{$original}\".");
                     }
                 }
             }
@@ -699,27 +708,27 @@ final class CalendarMath
      * @phpstan-assert int<0, 999> $ms
      * @phpstan-assert int<0, 999> $us
      * @phpstan-assert int<0, 999> $ns
-     * @throws InvalidArgumentException if any field is out of its valid range.
+     * @throws RangeError if any field is out of its valid range.
      */
     public static function validateTimeFields(int $h, int $min, int $sec, int $ms, int $us, int $ns): void
     {
         if ($h < 0 || $h > 23) {
-            throw new InvalidArgumentException("Invalid time: hour {$h} is out of range 0–23.");
+            throw new RangeError("Invalid time: hour {$h} is out of range 0–23.");
         }
         if ($min < 0 || $min > 59) {
-            throw new InvalidArgumentException("Invalid time: minute {$min} is out of range 0–59.");
+            throw new RangeError("Invalid time: minute {$min} is out of range 0–59.");
         }
         if ($sec < 0 || $sec > 59) {
-            throw new InvalidArgumentException("Invalid time: second {$sec} is out of range 0–59.");
+            throw new RangeError("Invalid time: second {$sec} is out of range 0–59.");
         }
         if ($ms < 0 || $ms > 999) {
-            throw new InvalidArgumentException("Invalid time: millisecond {$ms} is out of range 0–999.");
+            throw new RangeError("Invalid time: millisecond {$ms} is out of range 0–999.");
         }
         if ($us < 0 || $us > 999) {
-            throw new InvalidArgumentException("Invalid time: microsecond {$us} is out of range 0–999.");
+            throw new RangeError("Invalid time: microsecond {$us} is out of range 0–999.");
         }
         if ($ns < 0 || $ns > 999) {
-            throw new InvalidArgumentException("Invalid time: nanosecond {$ns} is out of range 0–999.");
+            throw new RangeError("Invalid time: nanosecond {$ns} is out of range 0–999.");
         }
     }
 
@@ -727,23 +736,28 @@ final class CalendarMath
      * Validates and returns the integer value of a `roundingIncrement` option.
      *
      * Accepts int, float, string, or bool. Returns the truncated integer value.
-     * Throws TypeError for non-numeric types, InvalidArgumentException for NaN, infinite, or out-of-range values.
      *
-     * @throws \TypeError if the value is not numeric.
-     * @throws InvalidArgumentException if the value is NaN, infinite, or outside 1–1000000000.
+     * @throws RangeError if the value is non-numeric, NaN, infinite, or outside 1–1000000000.
+     * @throws TypeError if the value is a Symbol (its `__toString` throws).
      */
     public static function validateRoundingIncrement(mixed $value): int
     {
         if (!is_int($value) && !is_float($value) && !is_string($value) && !is_bool($value)) {
-            throw new \TypeError('roundingIncrement must be numeric.');
+            // Stringable: cast to string so the JsSymbol sentinel's __toString
+            // raises Temporal\Exception\TypeError; everything else => RangeError.
+            if ($value instanceof \Stringable) {
+                $value = (string) $value;
+            } else {
+                throw new RangeError('roundingIncrement must be numeric.');
+            }
         }
         $riFloat = (float) $value;
         if (is_nan($riFloat) || !is_finite($riFloat)) {
-            throw new InvalidArgumentException('roundingIncrement must be a finite number.');
+            throw new RangeError('roundingIncrement must be a finite number.');
         }
         $riInt = (int) $riFloat; // truncate toward zero per spec
         if ($riInt < 1 || $riInt > 1_000_000_000) {
-            throw new InvalidArgumentException("roundingIncrement {$riInt} is out of range; must be 1–1000000000.");
+            throw new RangeError("roundingIncrement {$riInt} is out of range; must be 1–1000000000.");
         }
         return $riInt;
     }
@@ -752,12 +766,12 @@ final class CalendarMath
      * Validates an ISO month code and returns the month number 1–12.
      *
      * @return int<1, 12>
-     * @throws InvalidArgumentException if the month code is not M01–M12.
+     * @throws RangeError if the month code is not M01–M12.
      */
     public static function monthCodeToMonth(string $monthCode): int
     {
         if (preg_match('/^M(0[1-9]|1[0-2])$/', $monthCode) !== 1) {
-            throw new InvalidArgumentException("Invalid monthCode for ISO calendar: \"{$monthCode}\".");
+            throw new RangeError("Invalid monthCode for ISO calendar: \"{$monthCode}\".");
         }
         /** @var int<1, 12> */
         return (int) substr($monthCode, offset: 1);

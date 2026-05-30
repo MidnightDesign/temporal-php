@@ -21,7 +21,7 @@ TemporalHelpers::assertPlainDate($date, $year, $month, $monthCode, $day, 'constr
 $date2 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]));
 TemporalHelpers::assertPlainDate($date2, $year, $month, $monthCode, $day, 'constructing PlainDate from month code');
 Assert::sameValue($date->equals($date2), true, 'date from month should equal date from month code');
-Assert::throws(\InvalidArgumentException::class, function () use (&$year, &$calendar) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$year, &$calendar) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
 $constrained = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'month' => 15, 'day' => 1, 'calendar' => $calendar]));
 Assert::sameValue($constrained->monthCode, 'M12', '');
 }

@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $minYear = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, 'UTC');
 $duration = new \Temporal\Spec\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$minYear, &$duration) { return $minYear->subtract($duration); }, '');
+Assert::throws(\RangeException::class, function () use (&$minYear, &$duration) { return $minYear->subtract($duration); }, '');
 $maxYear = new \Temporal\Spec\PlainDateTime(275_760, 1, 1)->toZonedDateTime('UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$maxYear, &$duration) { return $maxYear->subtract($duration->negated()); }, '');
+Assert::throws(\RangeException::class, function () use (&$maxYear, &$duration) { return $maxYear->subtract($duration->negated()); }, '');

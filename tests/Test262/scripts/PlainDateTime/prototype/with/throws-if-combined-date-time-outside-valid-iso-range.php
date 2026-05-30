@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $minDateTime = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
 $zeroNanoseconds = ['nanosecond' => 0];
-Assert::throws(\InvalidArgumentException::class, function () use (&$minDateTime, &$zeroNanoseconds) { return $minDateTime->with($zeroNanoseconds); }, '');
+Assert::throws(\RangeException::class, function () use (&$minDateTime, &$zeroNanoseconds) { return $minDateTime->with($zeroNanoseconds); }, '');

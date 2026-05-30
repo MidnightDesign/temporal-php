@@ -13,8 +13,8 @@ $expected = ['get options.overflow', 'get options.overflow.toString', 'call opti
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, ['overflow' => 'reject'], 'options');
 $instance = new \Temporal\Spec\ZonedDateTime(7_689_600_000_000_000, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->subtract(new \Temporal\Spec\Duration(0, 1), $options); }, 'overflow reject exception thrown');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->subtract(new \Temporal\Spec\Duration(0, 1), $options); }, 'overflow reject exception thrown');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");
 // JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->subtract(new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991), $options); }, 'exception thrown when resulting exact time out of range');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->subtract(new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991), $options); }, 'exception thrown when resulting exact time out of range');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

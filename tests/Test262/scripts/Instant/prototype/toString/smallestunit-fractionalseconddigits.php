@@ -15,4 +15,4 @@ foreach ($tests as $__entry__) {
 $string = $instant->toString(JsUndefined::strip(['smallestUnit' => $smallestUnit, 'fractionalSecondDigits' => 5]));
 Assert::sameValue($string, $expected, "smallestUnit: \"{$smallestUnit}\" overrides fractionalSecondDigits");
 }
-Assert::throws(\InvalidArgumentException::class, function () use (&$instant) { return $instant->toString(['smallestUnit' => 'hour', 'fractionalSecondDigits' => 5]); }, 'hour is an invalid smallestUnit but still overrides fractionalSecondDigits');
+Assert::throws(\RangeException::class, function () use (&$instant) { return $instant->toString(['smallestUnit' => 'hour', 'fractionalSecondDigits' => 5]); }, 'hour is an invalid smallestUnit but still overrides fractionalSecondDigits');

@@ -13,5 +13,5 @@ $expected = ['get options.relativeTo', 'get options.unit', 'get options.unit.toS
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, ['unit' => 'weeks'], 'options');
 $instance = new \Temporal\Spec\Duration(1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->total($options); }, 'exception thrown when total of calendar unit requested without relativeTo');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->total($options); }, 'exception thrown when total of calendar unit requested without relativeTo');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

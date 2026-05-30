@@ -9,10 +9,11 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 foreach (['m1', 'M1', 'm01'] as $monthCode) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$monthCode) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17, 'timeZone' => 'UTC'])); }, "monthCode '{$monthCode}' is not well-formed");
+Assert::throws(\RangeException::class, function () use (&$monthCode) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17, 'timeZone' => 'UTC'])); }, "monthCode '{$monthCode}' is not well-formed");
 }
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2021, 'month' => 12, 'monthCode' => 'M11', 'day' => 17, 'timeZone' => 'UTC']), 'monthCode and month conflict');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2021, 'month' => 12, 'monthCode' => 'M11', 'day' => 17, 'timeZone' => 'UTC']), 'monthCode and month conflict');
 foreach (['M00', 'M19', 'M99', 'M13', 'M00L', 'M05L', 'M13L'] as $monthCode) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$monthCode) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17, 'timeZone' => 'UTC'])); }, "monthCode '{$monthCode}' is not valid for ISO 8601 calendar");
+Assert::throws(\RangeException::class, function () use (&$monthCode) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 2021, 'monthCode' => $monthCode, 'day' => 17, 'timeZone' => 'UTC'])); }, "monthCode '{$monthCode}' is not valid for ISO 8601 calendar");
 }
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['day' => 1, 'monthCode' => 'L99M', 'year' => \Temporal\Tests\Test262\JsSymbol::singleton(), 'timeZone' => 'UTC'])), 'Month code syntax is validated before year type is validated');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['day' => 1, 'monthCode' => 'M99L', 'year' => \Temporal\Tests\Test262\JsSymbol::singleton(), 'timeZone' => 'UTC'])), 'Month code suitability is validated after year type is validated');

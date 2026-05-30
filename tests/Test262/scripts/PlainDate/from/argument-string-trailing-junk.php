@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDate::from('1976-11-18junk'), 'String with trailing junk should not be valid as a PlainDate');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainDate::from('1976-11-18junk'), 'String with trailing junk should not be valid as a PlainDate');

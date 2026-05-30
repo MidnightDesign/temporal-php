@@ -12,10 +12,10 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainMonthDay(5, 2);
 foreach ([INF, -INF] as $inf) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$inf, &$overflow) { return $instance->with(JsUndefined::strip(['day' => $inf]), JsUndefined::strip(['overflow' => $overflow])); }, "day property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\RangeException::class, function () use (&$instance, &$inf, &$overflow) { return $instance->with(JsUndefined::strip(['day' => $inf]), JsUndefined::strip(['overflow' => $overflow])); }, "day property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, 'day');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$obj, &$overflow) { return $instance->with(JsUndefined::strip(['day' => $obj]), JsUndefined::strip(['overflow' => $overflow])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$obj, &$overflow) { return $instance->with(JsUndefined::strip(['day' => $obj]), JsUndefined::strip(['overflow' => $overflow])); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, ["get day.valueOf", "call day.valueOf"], "it fails after fetching the primitive value");
 }
 }

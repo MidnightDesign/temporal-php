@@ -15,14 +15,14 @@ $instance = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($f
 Assert::sameValue($instance->timeZoneId, $tz, $tz . ' is a valid timezone');
 }
 $gmtMinus24TZ = 'Etc/GMT-24';
-Assert::throws(\InvalidArgumentException::class, function () use (&$fields, &$gmtMinus24TZ) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $gmtMinus24TZ]))); }, $gmtMinus24TZ . ' is an invalid timezone');
+Assert::throws(\RangeException::class, function () use (&$fields, &$gmtMinus24TZ) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $gmtMinus24TZ]))); }, $gmtMinus24TZ . ' is an invalid timezone');
 foreach ([1, 2, 3, 4, 5, 6, 7, 8, 9] as $n) {
 $tz = 'Etc/GMT-0' . $n;
-Assert::throws(\InvalidArgumentException::class, function () use (&$fields, &$tz) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $tz]))); }, $tz . ' is an invalid timezone');
+Assert::throws(\RangeException::class, function () use (&$fields, &$tz) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $tz]))); }, $tz . ' is an invalid timezone');
 }
 foreach ([0, 1, 2, 3, 4, 5, 6, 7, 8, 9] as $n) {
 $tz = 'Etc/GMT+0' . $n;
-Assert::throws(\InvalidArgumentException::class, function () use (&$fields, &$tz) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $tz]))); }, $tz . ' is an invalid timezone');
+Assert::throws(\RangeException::class, function () use (&$fields, &$tz) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $tz]))); }, $tz . ' is an invalid timezone');
 }
 foreach ([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as $n) {
 $tz = 'Etc/GMT+' . $n;
@@ -30,4 +30,4 @@ $instance = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($f
 Assert::sameValue($instance->timeZoneId, $tz, $tz . ' is a valid timezone');
 }
 $gmtPlus24TZ = 'Etc/GMT+24';
-Assert::throws(\InvalidArgumentException::class, function () use (&$fields, &$gmtPlus24TZ) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $gmtPlus24TZ]))); }, $gmtPlus24TZ . ' is an invalid timezone');
+Assert::throws(\RangeException::class, function () use (&$fields, &$gmtPlus24TZ) { return \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(array_merge($fields, ['timeZone' => $gmtPlus24TZ]))); }, $gmtPlus24TZ . ' is an invalid timezone');

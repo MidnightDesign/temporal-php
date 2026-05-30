@@ -13,4 +13,4 @@ $arg = 'iSo8601';
 $result = $instance->withCalendar($arg);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');
 $arg = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->withCalendar($arg); }, 'calendar ID is ASCII-lowercased, capital dotted I is not lowercased');
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->withCalendar($arg); }, 'calendar ID is ASCII-lowercased, capital dotted I is not lowercased');

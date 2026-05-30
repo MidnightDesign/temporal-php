@@ -20,5 +20,5 @@ Assert::sameValue($result instanceof \Temporal\Spec\PlainTime, true, "{$unit} {$
 }
 $nextIncrements = ['hour' => 24, 'minute' => 60, 'second' => 60, 'millisecond' => 1000, 'microsecond' => 1000, 'nanosecond' => 1000];
 foreach ($nextIncrements as $unit => $next) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$t, &$unit, &$next) { return $t->round(JsUndefined::strip(['smallestUnit' => $unit, 'roundingIncrement' => $next])); }, "throws on increments that are equal to the next highest (unit = {$unit}, increment = {$next})");
+Assert::throws(\RangeException::class, function () use (&$t, &$unit, &$next) { return $t->round(JsUndefined::strip(['smallestUnit' => $unit, 'roundingIncrement' => $next])); }, "throws on increments that are equal to the next highest (unit = {$unit}, increment = {$next})");
 }

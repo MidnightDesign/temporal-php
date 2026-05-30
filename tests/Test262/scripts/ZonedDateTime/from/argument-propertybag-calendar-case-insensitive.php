@@ -13,4 +13,4 @@ $arg = JsUndefined::strip(['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'ti
 $result = \Temporal\Spec\ZonedDateTime::from($arg);
 Assert::sameValue($result->calendarId, 'iso8601', 'Calendar is case-insensitive');
 $arg['calendar'] = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, 'calendar ID is capital dotted I is not lowercased');
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, 'calendar ID is capital dotted I is not lowercased');

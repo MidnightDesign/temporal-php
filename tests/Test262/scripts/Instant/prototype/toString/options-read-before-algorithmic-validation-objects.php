@@ -13,5 +13,5 @@ $expected = ['get options.fractionalSecondDigits', 'get options.fractionalSecond
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, (object) ['smallestUnit' => 'month', 'fractionalSecondDigits' => 'auto', 'roundingMode' => 'expand'], 'options');
 $instance = new \Temporal\Spec\Instant(0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->toString($options); }, 'exception thrown when unit is a date unit');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->toString($options); }, 'exception thrown when unit is a date unit');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

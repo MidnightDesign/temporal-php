@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochParts(340282366920938463463374607431, 768211456), '2n ** 128n');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochParts(-340282366920938463463374607432, 231788544), '-(2n ** 128n)');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochParts(340282366920938463463374607431, 768211456), '2n ** 128n');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochParts(-340282366920938463463374607432, 231788544), '-(2n ** 128n)');

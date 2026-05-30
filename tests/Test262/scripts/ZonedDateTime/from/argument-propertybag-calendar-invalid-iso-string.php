@@ -13,5 +13,5 @@ $invalidStrings = [['', 'empty string'], ['1997-12-04[u-ca=notacal]', 'Unknown c
 foreach ($invalidStrings as $__entry__) {
 [$cal, $description] = array_pad($__entry__, 2, null);
 $arg = JsUndefined::strip(['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' => $cal]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "{$description} is not a valid calendar ID");
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "{$description} is not a valid calendar ID");
 }

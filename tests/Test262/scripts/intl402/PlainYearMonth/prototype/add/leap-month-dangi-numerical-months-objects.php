@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainYearMonth::from((object) ['calendar' => 'dangi', 'year' => 2012, 'month' => 4]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->add('P1Y1M', (object) ['overflow' => 'reject']); }, 'Adding a year and a month to a numerical (leap) month.');
+Assert::throws(\RangeException::class, function () use (&$instance) { return $instance->add('P1Y1M', (object) ['overflow' => 'reject']); }, 'Adding a year and a month to a numerical (leap) month.');
 $oneYear = new \Temporal\Spec\Duration(1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$oneYear) { return $instance->add($oneYear, (object) ['overflow' => 'reject']); }, 'Adding a year to a numerical (leap) month.');
+Assert::throws(\RangeException::class, function () use (&$instance, &$oneYear) { return $instance->add($oneYear, (object) ['overflow' => 'reject']); }, 'Adding a year to a numerical (leap) month.');

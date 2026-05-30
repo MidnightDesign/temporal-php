@@ -14,4 +14,4 @@ TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(-2_020.6, 11.7, 24
 TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(null, 11, 24), 0, 11, 'M11', 24, 'null');
 TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate(true, 11, 24), 1, 11, 'M11', 24, 'boolean');
 TemporalHelpers::assertPlainDate(new \Temporal\Spec\PlainDate('2020.6', '11.7', '24.1'), 2020, 11, 'M11', 24, 'fractional strings');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

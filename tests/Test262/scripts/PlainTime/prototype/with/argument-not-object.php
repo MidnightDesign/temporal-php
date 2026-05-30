@@ -12,4 +12,6 @@ $instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(); }, 'undefined');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(null); }, 'null');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(true); }, 'true');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(\Temporal\Tests\Test262\JsSymbol::singleton()); }, 'symbol');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(1); }, '1');
+Assert::incomplete('BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');

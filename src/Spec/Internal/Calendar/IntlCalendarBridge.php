@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal\Calendar;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
 use Temporal\Spec\Internal\CalendarMath;
 
 /**
@@ -122,7 +122,7 @@ final class IntlCalendarBridge implements CalendarProtocol
     public function __construct(
         private readonly string $calendarId,
     ) {
-        $icuType = self::CALENDAR_TO_ICU[$calendarId] ?? throw new InvalidArgumentException(
+        $icuType = self::CALENDAR_TO_ICU[$calendarId] ?? throw new RangeError(
             "No ICU mapping for calendar \"{$calendarId}\".",
         );
         $cal = \IntlCalendar::createInstance('UTC', sprintf('@calendar=%s', $icuType));
@@ -501,7 +501,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             // Constrain month to 1-12 for Gregorian-based calendars.
             if ($calMonth > 12) {
                 if ($overflow === 'reject') {
-                    throw new InvalidArgumentException("Month {$calMonth} exceeds maximum 12 for this calendar year.");
+                    throw new RangeError("Month {$calMonth} exceeds maximum 12 for this calendar year.");
                 }
                 $calMonth = 12;
             }
@@ -517,9 +517,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($overflow === 'reject') {
             $maxMonths = $this->calendarMonthsInCalYear($calYear);
             if ($calMonth > $maxMonths) {
-                throw new InvalidArgumentException(
-                    "Month {$calMonth} exceeds maximum {$maxMonths} for this calendar year.",
-                );
+                throw new RangeError("Month {$calMonth} exceeds maximum {$maxMonths} for this calendar year.");
             }
         } elseif ($calMonth > 12) {
             // For non-Gregorian constrain, check if month exceeds max.
@@ -575,20 +573,16 @@ final class IntlCalendarBridge implements CalendarProtocol
                         $this->setCalendarFieldsFromMonthCode($calYear, $baseCode, $calDay);
                         return $this->resolveAndConstrain($calDay, $overflow);
                     }
-                    throw new InvalidArgumentException(
-                        "monthCode \"{$monthCode}\" does not exist in this calendar year.",
-                    );
+                    throw new RangeError("monthCode \"{$monthCode}\" does not exist in this calendar year.");
                 }
             } else {
                 try {
                     $this->setCalendarFieldsFromMonthCode($calYear, $monthCode, 1);
                     $_ = $this->intlCal->get(\IntlCalendar::FIELD_MONTH);
                     if ($this->intlCal->get(self::FIELD_IS_LEAP_MONTH) !== 1) {
-                        throw new InvalidArgumentException(
-                            "monthCode \"{$monthCode}\" does not exist in this calendar year.",
-                        );
+                        throw new RangeError("monthCode \"{$monthCode}\" does not exist in this calendar year.");
                     }
-                } catch (InvalidArgumentException $e) {
+                } catch (RangeError $e) {
                     if ($overflow === 'constrain') {
                         // Chinese/Dangi: MxxL → Mxx (the regular version of the same month).
                         $baseCode = substr($monthCode, offset: 0, length: -1);
@@ -602,7 +596,7 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         try {
             $this->setCalendarFieldsFromMonthCode($calYear, $monthCode, $calDay);
-        } catch (InvalidArgumentException $e) {
+        } catch (RangeError $e) {
             // Leap month code in a year without that leap month: constrain.
             if ($overflow === 'constrain' && $isLeapCode) {
                 $baseCode = substr($monthCode, offset: 0, length: -1);
@@ -645,7 +639,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             if ($cutoverSafe) {
                 $newMaxDay = CalendarMath::calcDaysInMonth($finalIsoYear, $calMonth);
                 if ($overflow === 'reject' && $isoDay > $newMaxDay) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Day {$isoDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
                     );
                 }
@@ -715,7 +709,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             if (array_key_exists($maxKey, $this->maxCalDayCache)) {
                 $newMaxDay = $this->maxCalDayCache[$maxKey];
                 if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
                     );
                 }
@@ -729,7 +723,7 @@ final class IntlCalendarBridge implements CalendarProtocol
                 }
                 $this->maxCalDayCache[$maxKey] = $newMaxDay;
                 if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
                     );
                 }
@@ -1068,15 +1062,11 @@ final class IntlCalendarBridge implements CalendarProtocol
         $maxMonth = $this->isCopticLike ? 13 : 12;
         $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
-            throw new InvalidArgumentException(
-                "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
-            );
+            throw new RangeError("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
         }
         $month = (int) $m[1];
         if ($month < 1 || $month > $maxMonth) {
-            throw new InvalidArgumentException(
-                "monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".",
-            );
+            throw new RangeError("monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".");
         }
         return $month;
     }
@@ -1098,15 +1088,11 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         $m = null;
         if (preg_match('/^M(\d{2})$/', $baseCode, $m) !== 1) {
-            throw new InvalidArgumentException(
-                "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
-            );
+            throw new RangeError("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
         }
         $baseNum = (int) $m[1]; // 1-12
         if ($baseNum < 1 || $baseNum > 12) {
-            throw new InvalidArgumentException(
-                "monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".",
-            );
+            throw new RangeError("monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".");
         }
 
         // Find the leap month in this year (if any) by scanning via ICU.
@@ -1196,7 +1182,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
             if ($overflow === 'reject') {
                 $monthCode = sprintf('M%02dL', $icuMonth + 1);
-                throw new InvalidArgumentException("monthCode \"{$monthCode}\" does not exist in this calendar year.");
+                throw new RangeError("monthCode \"{$monthCode}\" does not exist in this calendar year.");
             }
 
             // Constrain: use the non-leap version of the same ICU month.
@@ -1267,7 +1253,7 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         $validEras = self::VALID_ERAS[$this->calendarId] ?? [];
         if (!in_array($era, $validEras, strict: true)) {
-            throw new InvalidArgumentException("Invalid era \"{$era}\" for calendar \"{$this->calendarId}\".");
+            throw new RangeError("Invalid era \"{$era}\" for calendar \"{$this->calendarId}\".");
         }
 
         return match ($this->calendarId) {
@@ -1292,9 +1278,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         if ($era === 'ce') {
             return $eraYear;
         }
-        $startYear = self::JAPANESE_ERA_TO_START[$era] ?? throw new InvalidArgumentException(
-            "Unknown Japanese era \"{$era}\".",
-        );
+        $startYear = self::JAPANESE_ERA_TO_START[$era] ?? throw new RangeError("Unknown Japanese era \"{$era}\".");
         return $startYear + $eraYear - 1;
     }
 
@@ -1422,13 +1406,11 @@ final class IntlCalendarBridge implements CalendarProtocol
             $baseCode = $isLeapCode ? substr($monthCode, offset: 0, length: -1) : $monthCode;
             $m = null;
             if (preg_match('/^M(\d{2})$/', $baseCode, $m) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
-                );
+                throw new RangeError("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
             }
             $baseNum = (int) $m[1];
             if ($baseNum < 1 || $baseNum > 12) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".",
                 );
             }
@@ -1448,13 +1430,11 @@ final class IntlCalendarBridge implements CalendarProtocol
             $maxMonth = $this->isCopticLike ? 13 : 12;
             $m = null;
             if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".",
-                );
+                throw new RangeError("Invalid monthCode \"{$monthCode}\" for calendar \"{$this->calendarId}\".");
             }
             $num = (int) $m[1];
             if ($num < 1 || $num > $maxMonth) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "monthCode \"{$monthCode}\" is out of range for calendar \"{$this->calendarId}\".",
                 );
             }
@@ -1478,7 +1458,7 @@ final class IntlCalendarBridge implements CalendarProtocol
 
         if ($overflow === 'reject') {
             if ($calDay > $maxDay) {
-                throw new InvalidArgumentException("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
+                throw new RangeError("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
             }
         }
         // For Gregorian-based, the day was already clamped in setCalendarFieldsFromMonthCode.

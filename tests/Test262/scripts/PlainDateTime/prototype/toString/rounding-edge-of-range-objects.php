@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $start = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$start) { return $start->toString((object) ['smallestUnit' => 'second']); }, 'Rounding down can go out of range');
+Assert::throws(\RangeException::class, function () use (&$start) { return $start->toString((object) ['smallestUnit' => 'second']); }, 'Rounding down can go out of range');
 $end = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 23, 59, 59, 999);
-Assert::throws(\InvalidArgumentException::class, function () use (&$end) { return $end->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'halfExpand']); }, 'Rounding up can go out of range');
+Assert::throws(\RangeException::class, function () use (&$end) { return $end->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'halfExpand']); }, 'Rounding up can go out of range');

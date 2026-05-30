@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
-Assert::incomplete('untranslatable: Symbol()');
+$args = [JsUndefined::singleton(), null, true, '2020-01-12T10:20:30', \Temporal\Tests\Test262\JsSymbol::singleton(), 2020, 2020, NAN];
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

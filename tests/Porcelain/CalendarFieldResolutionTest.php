@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Temporal\Exception\RangeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\PlainDate;
 use Temporal\Spec\PlainDateTime;
@@ -112,7 +112,7 @@ final class CalendarFieldResolutionTest extends TestCase
     public function testPlainDateFromHebrewLeapMonthCodeThrowsInNonLeapYear(): void
     {
         // 5783: (7*5783+1)%19 = 14, not < 7, so not a leap year
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainDate::from(['year' => 5783, 'monthCode' => 'M05L', 'day' => 5, 'calendar' => 'hebrew']);
     }
 
@@ -272,7 +272,7 @@ final class CalendarFieldResolutionTest extends TestCase
 
     public function testPlainDateFromInvalidEraThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainDate::from([
             'year' => 2025,
             'month' => 1,
@@ -443,7 +443,7 @@ final class CalendarFieldResolutionTest extends TestCase
 
     public function testPlainDateFromRejectsOverflowingDay(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainDate::from([
             'year' => 5784,
             'month' => 1,
@@ -483,7 +483,7 @@ final class CalendarFieldResolutionTest extends TestCase
     {
         $cal = CalendarFactory::get('hebrew');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $cal->monthCodeToMonth('M05L', 5783);
     }
 
@@ -491,7 +491,7 @@ final class CalendarFieldResolutionTest extends TestCase
     {
         $cal = CalendarFactory::get('gregory');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $cal->monthCodeToMonth('M13', 2024);
     }
 
@@ -528,7 +528,7 @@ final class CalendarFieldResolutionTest extends TestCase
     {
         $cal = CalendarFactory::get('gregory');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $cal->resolveEra('xyz', 2024);
     }
 

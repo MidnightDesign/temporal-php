@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->with((object) ['month' => 5, 'monthCode' => 'M06']); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt) { return $zdt->with((object) ['month' => 5, 'monthCode' => 'M06']); }, '');

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
+use Temporal\Exception\RangeError;
 use Temporal\Overflow;
 use Temporal\PlainDateTime;
 use Temporal\PlainTime;
@@ -58,7 +58,7 @@ final class PlainDateTimeTest extends TemporalTestCase
 
     public function testConstructorRejectsInvalidDay(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         new PlainDateTime(2020, 2, 30);
     }
 
@@ -173,7 +173,7 @@ final class PlainDateTimeTest extends TemporalTestCase
 
     public function testParseInvalidStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainDateTime::parse('not-a-datetime');
     }
 
@@ -290,7 +290,7 @@ final class PlainDateTimeTest extends TemporalTestCase
     {
         $dt = new PlainDateTime(2020, 1, 31, 12, 0);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $dt->with(month: 2, overflow: Overflow::Reject);
     }
 
@@ -839,14 +839,14 @@ final class PlainDateTimeTest extends TemporalTestCase
     public function testAddForwardsOverflowReject(): void
     {
         $dt = new PlainDateTime(2020, 1, 31, 12, 0);
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $dt->add(new Duration(months: 1), Overflow::Reject);
     }
 
     public function testSubtractForwardsOverflowReject(): void
     {
         $dt = new PlainDateTime(2020, 3, 31, 12, 0);
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $dt->subtract(new Duration(months: 1), Overflow::Reject);
     }
 
@@ -982,7 +982,7 @@ final class PlainDateTimeTest extends TemporalTestCase
 
     public function testFromFieldsForwardsOverflowReject(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         PlainDateTime::fromFields(year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
     }

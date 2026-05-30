@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal\Calendar;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 
 /**
  * Singleton factory for calendar protocol instances.
@@ -67,7 +68,7 @@ final class CalendarFactory
     /**
      * Canonicalizes a calendar identifier: lowercases, resolves aliases.
      *
-     * @throws InvalidArgumentException if the calendar ID is unknown.
+     * @throws RangeError if the calendar ID is unknown.
      */
     public static function canonicalize(string $id): string
     {
@@ -82,7 +83,7 @@ final class CalendarFactory
         }
 
         if (!in_array($lower, self::KNOWN_CALENDARS, strict: true)) {
-            throw new InvalidArgumentException("Unknown calendar \"{$id}\".");
+            throw new RangeError("Unknown calendar \"{$id}\".");
         }
 
         return self::$canonicalCache[$id] = $lower;
@@ -95,13 +96,13 @@ final class CalendarFactory
      * The $context label is used in the TypeError message (e.g. "PlainDate"
      * produces "PlainDate calendar must be a string; got int.").
      *
-     * @throws \TypeError                if $value is not a string.
-     * @throws InvalidArgumentException if $value is malformed or names an unknown calendar.
+     * @throws TypeError if $value is not a string.
+     * @throws RangeError if $value is malformed or names an unknown calendar.
      */
     public static function resolveBagCalendar(mixed $value, string $context): string
     {
         if (!is_string($value)) {
-            throw new \TypeError(sprintf('%s calendar must be a string; got %s.', $context, get_debug_type($value)));
+            throw new TypeError(sprintf('%s calendar must be a string; got %s.', $context, get_debug_type($value)));
         }
         return self::extractCalendarFromString($value);
     }
@@ -114,23 +115,23 @@ final class CalendarFactory
      *   - ISO date / datetime / year-month / month-day / time strings, with
      *     or without a `[u-ca=...]` annotation. No annotation → "iso8601".
      *
-     * Rejects (InvalidArgumentException):
+     * Rejects (RangeError):
      *   - Empty string
      *   - Minus-zero extended-year strings ("-000000-...")
      *   - Bracket annotations not preceded by an ISO date prefix
      *     ("foo[u-ca=hebrew]", "[u-ca=hebrew]", "abc[u-ca=hebrew]")
      *   - Unknown calendar identifiers
      *
-     * @throws InvalidArgumentException for invalid/unsupported calendars.
+     * @throws RangeError for invalid/unsupported calendars.
      */
     public static function extractCalendarFromString(string $s): string
     {
         if ($s === '') {
-            throw new InvalidArgumentException('Calendar ID must not be empty.');
+            throw new RangeError('Calendar ID must not be empty.');
         }
         // Reject minus-zero extended year ("-000000" with no further digits).
         if (preg_match(pattern: '/^-0{6}(?:[^0-9]|$)/', subject: $s) === 1) {
-            throw new InvalidArgumentException("Invalid calendar \"{$s}\": minus-zero year.");
+            throw new RangeError("Invalid calendar \"{$s}\": minus-zero year.");
         }
         // Per ParseTemporalCalendarString, a string with a bracket annotation
         // must parse as a Temporal date/time string — i.e. the prefix before
@@ -139,7 +140,7 @@ final class CalendarFactory
         if (str_contains($s, '[')) {
             $prefix = substr($s, offset: 0, length: (int) strpos($s, needle: '['));
             if (!self::looksLikeIsoDateOrTime($prefix)) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "Invalid calendar string \"{$s}\": bracket annotation must follow an ISO date or time prefix.",
                 );
             }

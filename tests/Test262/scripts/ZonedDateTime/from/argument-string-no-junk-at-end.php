@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30.123456789-08:00[-08:00]junk'), '');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from('1976-11-18T15:23:30.123456789-08:00[-08:00]junk'), '');

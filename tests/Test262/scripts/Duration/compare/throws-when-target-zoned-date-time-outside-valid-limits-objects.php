@@ -12,5 +12,5 @@ $blank = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 $oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $relativeTo = \Temporal\Spec\ZonedDateTime::fromInstantParts(8640000000000, 0, 'UTC');
 $options = (object) JsUndefined::strip(['relativeTo' => $relativeTo]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$oneDay, &$blank, &$options) { return \Temporal\Spec\Duration::compare($oneDay, $blank, $options); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$blank, &$oneDay, &$options) { return \Temporal\Spec\Duration::compare($blank, $oneDay, $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$oneDay, &$blank, &$options) { return \Temporal\Spec\Duration::compare($oneDay, $blank, $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$blank, &$oneDay, &$options) { return \Temporal\Spec\Duration::compare($blank, $oneDay, $options); }, '');

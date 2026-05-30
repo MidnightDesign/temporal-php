@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 Assert::sameValue(new \Temporal\Spec\ZonedDateTime(false, 'UTC')->epochNanoseconds, 0, 'boolean defaults');
 Assert::sameValue(new \Temporal\Spec\ZonedDateTime(true, 'UTC')->epochNanoseconds, 1, 'boolean defaults');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\ZonedDateTime(\Temporal\Tests\Test262\JsSymbol::singleton(), 'UTC'), "symbol");
+Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\ZonedDateTime(null, 'UTC'), "undefined");

@@ -12,4 +12,4 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $expected = new \Temporal\Spec\ZonedDateTime(217_119_600_000_000_000, '+01:00');
 TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from((object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'timeZone' => '+01:00']), $expected);
 TemporalHelpers::assertZonedDateTimesEqual(\Temporal\Spec\ZonedDateTime::from((object) ['year' => 1976, 'month' => 11, 'day' => 18, 'timeZone' => '+01:00']), $expected);
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1976, 'month' => 11, 'monthCode' => 'M12', 'day' => 18, 'timeZone' => '+01:00']), '');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) ['year' => 1976, 'month' => 11, 'monthCode' => 'M12', 'day' => 18, 'timeZone' => '+01:00']), '');

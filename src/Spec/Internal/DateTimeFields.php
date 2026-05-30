@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal;
 
+use Temporal\Exception\RangeError;
+
 /**
  * Internal helpers for converting between epoch-nanosecond integers and PHP's
  * `\DateTimeInterface`/`\DateTimeImmutable`.
@@ -36,7 +38,7 @@ final class DateTimeFields
      * always zero. This matches the loss-of-precision contract documented on
      * the porcelain `fromDateTime()` factories.
      *
-     * @throws \InvalidArgumentException if `$dt`'s instant lies outside the
+     * @throws RangeError if `$dt`'s instant lies outside the
      *         int64 nanosecond range (roughly the years 1678–2262 around
      *         the Unix epoch).
      */
@@ -53,7 +55,7 @@ final class DateTimeFields
         // within int64: 9_223_372_035 × 10⁹ + 999_999_000 < PHP_INT_MAX.
         $tsMax = 9_223_372_035;
         if ($ts > $tsMax || $ts < -$tsMax) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new RangeError(sprintf(
                 "DateTime '%s' is outside the representable int64 nanosecond range.",
                 $dt->format(\DateTimeInterface::RFC3339),
             ));

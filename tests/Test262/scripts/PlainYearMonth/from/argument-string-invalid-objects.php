@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (TemporalHelpers::isoPlainYearMonthStringsInvalid() as $input) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$input) { return \Temporal\Spec\PlainYearMonth::from($input, (object) ['overflow' => 'reject']); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$input) { return \Temporal\Spec\PlainYearMonth::from($input, (object) ['overflow' => 'constrain']); }, '');
+Assert::throws(\RangeException::class, function () use (&$input) { return \Temporal\Spec\PlainYearMonth::from($input, (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$input) { return \Temporal\Spec\PlainYearMonth::from($input, (object) ['overflow' => 'constrain']); }, '');
 }

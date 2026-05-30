@@ -15,5 +15,5 @@ $durations = [\Temporal\Spec\Duration::from((object) JsUndefined::strip(['second
 $zonedDateTime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $options = (object) JsUndefined::strip(['smallestUnit' => 'day', 'largestUnit' => 'day', 'relativeTo' => $zonedDateTime]);
 foreach ($durations as $duration) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$options) { return $duration->round($options); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration, &$options) { return $duration->round($options); }, '');
 }

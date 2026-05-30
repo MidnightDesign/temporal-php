@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('2020-13-34T24:60[-08:00]', (object) ['overflow' => 'constrain']), '');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from('2020-13-34T24:60[-08:00]', (object) ['overflow' => 'constrain']), '');

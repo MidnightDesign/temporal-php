@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal\Calendar;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
 use Temporal\Spec\Internal\CalendarMath;
 
 /**
@@ -160,7 +160,7 @@ final class PureHebrewCalendar implements CalendarProtocol
         $totalMonths = $isLeap ? 13 : 12;
 
         if ($ordinalMonth < 1 || $ordinalMonth > $totalMonths) {
-            throw new InvalidArgumentException("Month ordinal {$ordinalMonth} out of range for Hebrew year {$year}.");
+            throw new RangeError("Month ordinal {$ordinalMonth} out of range for Hebrew year {$year}.");
         }
 
         // Map ordinal to logical month identity
@@ -197,9 +197,7 @@ final class PureHebrewCalendar implements CalendarProtocol
             10 => 29, // Tammuz
             11 => 30, // Av
             12 => 29, // Elul
-            default => throw new InvalidArgumentException(
-                "Invalid ordinal month {$ordinalMonth} for non-leap Hebrew year.",
-            ),
+            default => throw new RangeError("Invalid ordinal month {$ordinalMonth} for non-leap Hebrew year."),
         };
         return self::$monthLengthCache[$key] = $v;
     }
@@ -232,7 +230,7 @@ final class PureHebrewCalendar implements CalendarProtocol
 
         if ($monthCode === 'M05L') {
             if (!$isLeap) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "monthCode \"M05L\" is only valid in Hebrew leap years; year {$calYear} is not a leap year.",
                 );
             }
@@ -241,11 +239,11 @@ final class PureHebrewCalendar implements CalendarProtocol
 
         $m = null;
         if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
-            throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for hebrew calendar.");
+            throw new RangeError("Invalid monthCode \"{$monthCode}\" for hebrew calendar.");
         }
         $num = (int) $m[1];
         if ($num < 1 || $num > 12) {
-            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for hebrew calendar.");
+            throw new RangeError("monthCode \"{$monthCode}\" is out of range for hebrew calendar.");
         }
 
         if ($num <= 5) {
@@ -400,9 +398,7 @@ final class PureHebrewCalendar implements CalendarProtocol
 
         if ($overflow === 'reject') {
             if ($calMonth > $totalMonths) {
-                throw new InvalidArgumentException(
-                    "Month {$calMonth} exceeds maximum {$totalMonths} for this calendar year.",
-                );
+                throw new RangeError("Month {$calMonth} exceeds maximum {$totalMonths} for this calendar year.");
             }
         } elseif ($calMonth > $totalMonths) {
             $calMonth = $totalMonths;
@@ -410,7 +406,7 @@ final class PureHebrewCalendar implements CalendarProtocol
 
         $maxDay = self::monthLength($calYear, $calMonth);
         if ($overflow === 'reject' && $calDay > $maxDay) {
-            throw new InvalidArgumentException("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
+            throw new RangeError("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
         }
         $calDay = min($calDay, $maxDay);
 
@@ -423,12 +419,12 @@ final class PureHebrewCalendar implements CalendarProtocol
         $isLeapCode = str_ends_with($monthCode, 'L');
 
         if ($isLeapCode && $monthCode !== 'M05L') {
-            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is not valid for the hebrew calendar.");
+            throw new RangeError("monthCode \"{$monthCode}\" is not valid for the hebrew calendar.");
         }
 
         try {
             $ordinal = self::monthCodeToOrdinal($monthCode, $calYear);
-        } catch (InvalidArgumentException $e) {
+        } catch (RangeError $e) {
             if ($overflow === 'constrain' && $monthCode === 'M05L') {
                 // M05L (Adar I) in non-leap year constrains to M06 (Adar).
                 $ordinal = self::monthCodeToOrdinal('M06', $calYear);
@@ -439,7 +435,7 @@ final class PureHebrewCalendar implements CalendarProtocol
 
         $maxDay = self::monthLength($calYear, $ordinal);
         if ($overflow === 'reject' && $calDay > $maxDay) {
-            throw new InvalidArgumentException("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
+            throw new RangeError("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
         }
         $calDay = min($calDay, $maxDay);
 
@@ -468,9 +464,7 @@ final class PureHebrewCalendar implements CalendarProtocol
                 $isNewLeap = self::isLeapYear($calYear);
                 if ($mc === 'M05L' && !$isNewLeap) {
                     if ($overflow === 'reject') {
-                        throw new InvalidArgumentException(
-                            "monthCode \"M05L\" does not exist in Hebrew year {$calYear}.",
-                        );
+                        throw new RangeError("monthCode \"M05L\" does not exist in Hebrew year {$calYear}.");
                     }
                     // Constrain M05L -> M06 (Adar)
                     $calMonth = self::monthCodeToOrdinal('M06', $calYear);
@@ -498,7 +492,7 @@ final class PureHebrewCalendar implements CalendarProtocol
             // Constrain day.
             $newMaxDay = self::monthLength($calYear, $calMonth);
             if ($overflow === 'reject' && $originalCalDay > $newMaxDay) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "Day {$originalCalDay} exceeds maximum {$newMaxDay} for the resulting calendar month.",
                 );
             }
@@ -662,7 +656,7 @@ final class PureHebrewCalendar implements CalendarProtocol
     public function resolveEra(string $era, int $eraYear): int
     {
         if ($era !== 'am') {
-            throw new InvalidArgumentException("Invalid era \"{$era}\" for calendar \"hebrew\".");
+            throw new RangeError("Invalid era \"{$era}\" for calendar \"hebrew\".");
         }
         return $eraYear;
     }

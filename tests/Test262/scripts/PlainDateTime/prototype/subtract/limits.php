@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $min = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
 $max = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 23, 59, 59, 999, 999, 999);
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$min, &$overflow) { return $min->subtract(['nanoseconds' => 1], JsUndefined::strip(['overflow' => $overflow])); }, "subtracting 1 nanosecond beyond minimum limit (overflow = {$overflow})");
-Assert::throws(\InvalidArgumentException::class, function () use (&$max, &$overflow) { return $max->subtract(JsUndefined::strip(['nanoseconds' => -1]), JsUndefined::strip(['overflow' => $overflow])); }, "subtracting -1 nanosecond beyond maximum limit (overflow = {$overflow})");
+Assert::throws(\RangeException::class, function () use (&$min, &$overflow) { return $min->subtract(['nanoseconds' => 1], JsUndefined::strip(['overflow' => $overflow])); }, "subtracting 1 nanosecond beyond minimum limit (overflow = {$overflow})");
+Assert::throws(\RangeException::class, function () use (&$max, &$overflow) { return $max->subtract(JsUndefined::strip(['nanoseconds' => -1]), JsUndefined::strip(['overflow' => $overflow])); }, "subtracting -1 nanosecond beyond maximum limit (overflow = {$overflow})");
 }

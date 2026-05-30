@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $temporalZonedDateTimeLike = JsUndefined::strip(['year' => -271_821, 'month' => 4, 'day' => 19, 'hour' => 1, 'minute' => 0, 'second' => 0, 'millisecond' => 0, 'microsecond' => 0, 'nanosecond' => 0]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$temporalZonedDateTimeLike) { return $zdt->with($temporalZonedDateTimeLike); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt, &$temporalZonedDateTimeLike) { return $zdt->with($temporalZonedDateTimeLike); }, '');

@@ -19,7 +19,7 @@ $result = \Temporal\Spec\ZonedDateTime::from('1970-01-01T12:00-00:44:30.00000000
 Assert::sameValue($result->epochNanoseconds, 45_870_000_000_000, "accepts trailing zeroes after ISO string offset (offset: {$offset})");
 Assert::sameValue($result->offset, '-00:44:30', 'offset property removes trailing zeroes from input');
 }
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('1970-01-01T00:00-00:44:30[-00:45]', ['offset' => 'reject']), 'minute rounding not supported for offset time zones');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from('1970-01-01T00:00-00:44:30[-00:45]', ['offset' => 'reject']), 'minute rounding not supported for offset time zones');
 $str = '1970-01-01T12:00-00:45[Africa/Monrovia]';
 foreach (['ignore', 'prefer', 'reject'] as $offset) {
 $result = \Temporal\Spec\ZonedDateTime::from($str, JsUndefined::strip(['offset' => $offset]));
@@ -51,8 +51,8 @@ Assert::sameValue($resultRoundedSeconds->epochNanoseconds, 45_870_000_000_000, "
 Assert::sameValue($resultRoundedSeconds->offset, '-00:44:30', 'offset property is still the full precision');
 TemporalHelpers::assertPlainDateTime($resultRoundedSeconds->toPlainDateTime(), 1970, 1, 'M01', 1, 12, 0, 0, 0, 0, 0, 'wall time is preserved');
 }
-Assert::throws(\InvalidArgumentException::class, function () use (&$wrongSeconds) { return \Temporal\Spec\ZonedDateTime::from($wrongSeconds, ['offset' => 'reject']); }, 'wrong :SS not accepted in string offset (offset=reject)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$roundedSeconds) { return \Temporal\Spec\ZonedDateTime::from($roundedSeconds, ['offset' => 'reject']); }, 'rounded HH:MM:SS not accepted in string offset (offset=reject)');
+Assert::throws(\RangeException::class, function () use (&$wrongSeconds) { return \Temporal\Spec\ZonedDateTime::from($wrongSeconds, ['offset' => 'reject']); }, 'wrong :SS not accepted in string offset (offset=reject)');
+Assert::throws(\RangeException::class, function () use (&$roundedSeconds) { return \Temporal\Spec\ZonedDateTime::from($roundedSeconds, ['offset' => 'reject']); }, 'rounded HH:MM:SS not accepted in string offset (offset=reject)');
 $properties = ['year' => 1970, 'month' => 1, 'day' => 1, 'hour' => 12, 'offset' => '-00:45', 'timeZone' => 'Africa/Monrovia'];
 foreach (['ignore', 'prefer'] as $offset) {
 $result = \Temporal\Spec\ZonedDateTime::from($properties, JsUndefined::strip(['offset' => $offset]));
@@ -60,9 +60,9 @@ Assert::sameValue($result->epochNanoseconds, 45_870_000_000_000, "no fuzzy match
 }
 $result2 = \Temporal\Spec\ZonedDateTime::from($properties, ['offset' => 'use']);
 Assert::sameValue($result2->epochNanoseconds, 45_900_000_000_000, 'no fuzzy matching is done on offset in property bag (offset=use)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$properties) { return \Temporal\Spec\ZonedDateTime::from($properties, ['offset' => 'reject']); }, 'no fuzzy matching is done on offset in property bag (offset=reject)');
+Assert::throws(\RangeException::class, function () use (&$properties) { return \Temporal\Spec\ZonedDateTime::from($properties, ['offset' => 'reject']); }, 'no fuzzy matching is done on offset in property bag (offset=reject)');
 $reference = -543_069_621_000_000_000;
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::from('1952-10-15T23:59:59-11:19:40[Pacific/Niue]')->epochNanoseconds, $reference, '-11:19:40 is accepted as -11:19:40 in Pacific/Niue edge case');
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::from('1952-10-15T23:59:59-11:20[Pacific/Niue]')->epochNanoseconds, $reference, '-11:20 matches the first candidate -11:19:40 in the Pacific/Niue edge case');
 Assert::sameValue(\Temporal\Spec\ZonedDateTime::from('1952-10-15T23:59:59-11:20:00[Pacific/Niue]')->epochNanoseconds, $reference + 20_000_000_000, '-11:20:00 is accepted as -11:20:00 in the Pacific/Niue edge case');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\ZonedDateTime::from('1952-10-15T23:59:59-11:19:50[Pacific/Niue]'), 'wrong :SS not accepted in the Pacific/Niue edge case');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from('1952-10-15T23:59:59-11:19:50[Pacific/Niue]'), 'wrong :SS not accepted in the Pacific/Niue edge case');

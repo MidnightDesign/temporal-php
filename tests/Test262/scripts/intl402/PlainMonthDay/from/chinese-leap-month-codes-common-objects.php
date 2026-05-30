@@ -28,7 +28,7 @@ Assert::sameValue($constrain30->day, 30, "day 30 should be preserved for {$month
 $constrain31 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]));
 Assert::sameValue($constrain31->monthCode, $regularMonth, "{$monthCode}-31 should be constrained to {$regularMonth}-30");
 Assert::sameValue($constrain31->day, 30, "day 31 should be constrained to 30 for {$monthCode}");
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), (object) ['overflow' => 'reject']); }, "{$monthCode}-30 should throw with reject");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), (object) ['overflow' => 'reject']); }, "{$monthCode}-30 should throw with reject");
 }
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }

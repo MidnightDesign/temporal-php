@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$overflow) { return $instance->subtract(JsUndefined::strip(['hours' => 1, 'minutes' => -30]), JsUndefined::strip(['overflow' => $overflow])); }, "mixed positive and negative values always throw (overflow = \"{$overflow}\")");
+Assert::throws(\RangeException::class, function () use (&$instance, &$overflow) { return $instance->subtract(JsUndefined::strip(['hours' => 1, 'minutes' => -30]), JsUndefined::strip(['overflow' => $overflow])); }, "mixed positive and negative values always throw (overflow = \"{$overflow}\")");
 }

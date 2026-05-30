@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
+use Temporal\Exception\RangeError;
 use Temporal\Spec\Duration;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\PlainDate;
@@ -101,7 +101,7 @@ final class CalendarArithmeticTest extends TestCase
 
         // Simpler: use gregory calendar, add 1 month from Jan 31 to Feb.
         $cal2 = CalendarFactory::get('gregory');
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $cal2->dateAdd(2024, 1, 31, 0, 1, 0, 0, 'reject');
     }
 
@@ -260,7 +260,7 @@ final class CalendarArithmeticTest extends TestCase
     {
         // Gregory: Jan 31 + 1 month with reject should throw
         $d = new PlainDate(2024, 1, 31, 'gregory');
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $d->add(new Duration(0, 1), ['overflow' => 'reject']);
     }
 
@@ -503,7 +503,7 @@ final class CalendarArithmeticTest extends TestCase
     public function testPlainDateAddOutOfRangeThrows(): void
     {
         $d = new PlainDate(275_760, 9, 1, 'buddhist');
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $this->expectExceptionMessage('outside the representable range');
         $d->add(new Duration(1));
     }

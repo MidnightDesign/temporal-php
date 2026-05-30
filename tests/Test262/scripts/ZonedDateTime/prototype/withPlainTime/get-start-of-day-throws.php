@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $zdt = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, '-01');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->withPlainTime(); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt) { return $zdt->withPlainTime(); }, '');
 $zdt = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, '+01');
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->withPlainTime(); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt) { return $zdt->withPlainTime(); }, '');

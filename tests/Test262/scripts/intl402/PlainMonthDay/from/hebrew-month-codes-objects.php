@@ -28,9 +28,9 @@ TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 30, "day 31 shoul
 } else {
 TemporalHelpers::assertPlainMonthDay($pmd30, $monthCode, 29, "day 30 should be constrained to 29 for {$monthCode}", $referenceYear);
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 29, "day 31 should be constrained to 29 for {$monthCode}", $referenceYear);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 30 should throw with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 30 should throw with reject overflow");
 }
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }
 $monthCode = 'M05L';
 $referenceYear = 1970;
@@ -42,4 +42,4 @@ $pmd30 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calend
 TemporalHelpers::assertPlainMonthDay($pmd30, $monthCode, 30, "{$monthCode}-30", $referenceYear);
 $constrained = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, 'M05L', 30, 'day 31 of leap month should be constrained to day 30', $referenceYear);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");

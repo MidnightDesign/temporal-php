@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $zdt = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, 'UTC');
 $temporalZonedDateTimeLike = (object) ['offset' => '+01'];
 $options = (object) ['offset' => 'use'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$temporalZonedDateTimeLike, &$options) { return $zdt->with($temporalZonedDateTimeLike, $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt, &$temporalZonedDateTimeLike, &$options) { return $zdt->with($temporalZonedDateTimeLike, $options); }, '');

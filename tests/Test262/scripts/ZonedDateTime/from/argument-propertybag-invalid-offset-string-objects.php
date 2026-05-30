@@ -10,4 +10,10 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
 $offsetOptions = ['use', 'prefer', 'ignore', 'reject'];
-Assert::incomplete('untranslatable: Symbol()');
+$badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000, (object) [], \Temporal\Tests\Test262\JsSymbol::singleton()];
+foreach ($offsetOptions as $offsetOption) {
+foreach ($badOffsets as $offset) {
+$arg = (object) JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => $timeZone]);
+Assert::incomplete('untranslatable: String()');
+}
+}

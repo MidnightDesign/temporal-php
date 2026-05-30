@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $arg2 = new \Temporal\Spec\PlainYearMonth(1976, 11);
 foreach (TemporalHelpers::isoPlainYearMonthStringsInvalid() as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$arg2) { return \Temporal\Spec\PlainYearMonth::compare($arg, $arg2); }, "\"{$arg}\" is invalid (first argument)");
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg2, &$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg2, $arg); }, "\"{$arg}\" is invalid (second argument)");
+Assert::throws(\RangeException::class, function () use (&$arg, &$arg2) { return \Temporal\Spec\PlainYearMonth::compare($arg, $arg2); }, "\"{$arg}\" is invalid (first argument)");
+Assert::throws(\RangeException::class, function () use (&$arg2, &$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg2, $arg); }, "\"{$arg}\" is invalid (second argument)");
 }

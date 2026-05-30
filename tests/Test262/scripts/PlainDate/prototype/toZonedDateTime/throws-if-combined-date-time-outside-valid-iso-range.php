@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $minDate = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
 $midnight = new \Temporal\Spec\PlainTime();
 $item = JsUndefined::strip(['timeZone' => '+00', 'plainTime' => $midnight]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$minDate, &$item) { return $minDate->toZonedDateTime($item); }, '');
+Assert::throws(\RangeException::class, function () use (&$minDate, &$item) { return $minDate->toZonedDateTime($item); }, '');

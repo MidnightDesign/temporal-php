@@ -13,7 +13,7 @@ $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'm
 $instance = \Temporal\Spec\PlainYearMonth::from(['year' => 2000, 'month' => 5]);
 foreach ($overflows as $overflow) {
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field, &$overflow) { return $instance->subtract(JsUndefined::strip([$field => INF]), JsUndefined::strip(['overflow' => $overflow])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$field, &$overflow) { return $instance->subtract(JsUndefined::strip([$field => INF]), JsUndefined::strip(['overflow' => $overflow])); }, '');
 }
 }
 $calls = 0;

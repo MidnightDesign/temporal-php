@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $duration1 = new \Temporal\Spec\Duration(1);
 $duration2 = new \Temporal\Spec\Duration(2);
 $bad = '-000000-11-01';
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2, &$bad) { return \Temporal\Spec\Duration::compare($duration1, $duration2, (object) JsUndefined::strip(['relativeTo' => $bad])); }, 'Cannot use negative zero as extended year');
+Assert::throws(\RangeException::class, function () use (&$duration1, &$duration2, &$bad) { return \Temporal\Spec\Duration::compare($duration1, $duration2, (object) JsUndefined::strip(['relativeTo' => $bad])); }, 'Cannot use negative zero as extended year');

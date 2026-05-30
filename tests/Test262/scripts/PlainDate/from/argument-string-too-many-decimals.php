@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['1970-01-01T00:00:00.1234567891', '1970-01-01T00:00:00.1234567890', '1970-01-01T00+00:00:00.1234567891', '1970-01-01T00+00:00:00.1234567890'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { \Temporal\Spec\PlainDate::from($arg); }, 'no more than 9 decimal places are allowed');
+Assert::throws(\RangeException::class, function () use (&$arg) { \Temporal\Spec\PlainDate::from($arg); }, 'no more than 9 decimal places are allowed');
 }

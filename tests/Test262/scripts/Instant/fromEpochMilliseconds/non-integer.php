@@ -8,10 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(INF), 'Infinity');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(-INF), '-Infinity');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(NAN), 'NaN');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(1.3), '1.3');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(-0.5), '-0.5');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(), 'undefined');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(INF), 'Infinity');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(-INF), '-Infinity');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(NAN), 'NaN');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(1.3), '1.3');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(-0.5), '-0.5');

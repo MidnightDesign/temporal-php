@@ -11,11 +11,11 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 foreach (TemporalHelpers::isoPlainTimeStringsAmbiguous() as $string) {
 $arg = $string;
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "'{$arg}' is ambiguous and requires T prefix");
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "'{$arg}' is ambiguous and requires T prefix");
 $arg = "T{$string}";
 \Temporal\Spec\PlainTime::from($arg);
 $arg = " {$string}";
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "space is not accepted as a substitute for T prefix: '{$arg}'");
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "space is not accepted as a substitute for T prefix: '{$arg}'");
 }
 foreach (TemporalHelpers::isoPlainTimeStringsUnambiguous() as $arg) {
 \Temporal\Spec\PlainTime::from($arg);

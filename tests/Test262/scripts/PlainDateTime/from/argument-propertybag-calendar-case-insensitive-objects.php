@@ -13,4 +13,4 @@ $arg = (object) ['year' => 1976, 'monthCode' => 'M11', 'day' => 18, 'calendar' =
 $result = \Temporal\Spec\PlainDateTime::from($arg);
 TemporalHelpers::assertPlainDateTime($result, 1976, 11, 'M11', 18, 0, 0, 0, 0, 0, 0, 'Calendar is case-insensitive');
 $arg->calendar = 'İSO8601';
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\PlainDateTime::from($arg); }, 'calendar ID is capital dotted I is not lowercased');
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\PlainDateTime::from($arg); }, 'calendar ID is capital dotted I is not lowercased');

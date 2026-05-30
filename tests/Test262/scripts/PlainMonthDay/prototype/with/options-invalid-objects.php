@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainMonthDay(2, 2);
-Assert::incomplete('untranslatable: Symbol()');
+foreach ([null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1] as $badOptions) {
+Assert::throws(\TypeError::class, function () use (&$instance, &$badOptions) { return $instance->with((object) ['day' => 17], $badOptions); }, '');
+}

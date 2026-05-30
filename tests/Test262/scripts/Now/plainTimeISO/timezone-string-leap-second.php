@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
 \Temporal\Spec\Now::plainTimeISO($timeZone);
 $timeZone = '2021-08-19T17:30:45.123456789+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone) { return \Temporal\Spec\Now::plainTimeISO($timeZone); }, 'leap second in time zone name not valid');
+Assert::throws(\RangeException::class, function () use (&$timeZone) { return \Temporal\Spec\Now::plainTimeISO($timeZone); }, 'leap second in time zone name not valid');

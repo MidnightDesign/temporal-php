@@ -18,7 +18,7 @@ $day = $__obj__['day'] ?? null;
 $referenceYear = $__obj__['referenceYear'] ?? null;
 $pd = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day]));
 if ($pd->monthCode === $monthCode && $pd->day === $day) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$pmd, &$pd) { $pmd = \Temporal\Spec\PlainMonthDay::from($pd, (object) ['overflow' => 'reject']); }, "{$year}, {$monthCode}, {$day} should not be valid with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$pmd, &$pd) { $pmd = \Temporal\Spec\PlainMonthDay::from($pd, (object) ['overflow' => 'reject']); }, "{$year}, {$monthCode}, {$day} should not be valid with reject overflow");
 }
 }
 }

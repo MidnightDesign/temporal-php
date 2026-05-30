@@ -9,8 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'hebrew';
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5779, 'monthCode' => 'M13', 'day' => 1, 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M13', 'day' => 1, 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5779, 'monthCode' => 'M13', 'day' => 1, 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M13', 'day' => 1, 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
 for ($i = 1; $i <= 12; $i++) {
 if ($i === 5) {
 Assert::incomplete('untranslatable statement: ContinueStatement');

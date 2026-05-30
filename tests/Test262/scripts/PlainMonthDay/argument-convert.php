@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainMonthDay(new \Temporal\Spec\PlainMonthDay(11.7, 24.1), 'M11', 24, 'positive fractional');
 TemporalHelpers::assertPlainMonthDay(new \Temporal\Spec\PlainMonthDay('11.7', '24.1'), 'M11', 24, 'fractional strings');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

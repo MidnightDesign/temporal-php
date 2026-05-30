@@ -13,11 +13,11 @@ $expected = ['get options.largestUnit', 'get options.largestUnit.toString', 'cal
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, ['smallestUnit' => 'years', 'largestUnit' => 'nanoseconds', 'roundingIncrement' => 1, 'roundingMode' => 'halfCeil'], 'options');
 $instance = new \Temporal\Spec\Duration(1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->round($options); }, 'exception thrown when smallestUnit > largestUnit');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->round($options); }, 'exception thrown when smallestUnit > largestUnit');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");
 // JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
 $expectedWithoutUnits = ['get options.largestUnit', 'get options.relativeTo', 'get options.roundingIncrement', 'get options.roundingIncrement.valueOf', 'call options.roundingIncrement.valueOf', 'get options.roundingMode', 'get options.roundingMode.toString', 'call options.roundingMode.toString', 'get options.smallestUnit'];
 $optionsWithoutUnits = TemporalHelpers::propertyBagObserver($actual, ['roundingIncrement' => 1, 'roundingMode' => 'halfFloor'], 'options');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$optionsWithoutUnits) { $instance->round($optionsWithoutUnits); }, 'exception thrown when neither smallestUnit nor largestUnit present');
+Assert::throws(\RangeException::class, function () use (&$instance, &$optionsWithoutUnits) { $instance->round($optionsWithoutUnits); }, 'exception thrown when neither smallestUnit nor largestUnit present');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expectedWithoutUnits, "all options should be read first");
 // JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);

@@ -12,4 +12,4 @@ $instance = new \Temporal\Spec\ZonedDateTime(1_588_377_600_000_000_000, 'UTC');
 $timeZone = '2016-12-31T23:59:60+00:00[UTC]';
 Assert::assertTrue($instance->equals((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])), 'leap second is a valid ISO string for TimeZone');
 $timeZone = '2021-08-19T17:30:45.123456789+23:59[+23:59:60]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$timeZone) { return $instance->equals((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])); }, 'leap second in time zone name not valid');
+Assert::throws(\RangeException::class, function () use (&$instance, &$timeZone) { return $instance->equals((object) JsUndefined::strip(['year' => 2020, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])); }, 'leap second in time zone name not valid');

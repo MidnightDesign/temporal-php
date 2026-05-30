@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, ['overflow' => 'reject'], 'options');
-Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\PlainDateTime::from('2020-13-34T25:60:60', $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$options) { return \Temporal\Spec\PlainDateTime::from('2020-13-34T25:60:60', $options); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, [], "options read after string parsing");

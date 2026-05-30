@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $arg = '2019-10-01';
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, 'Date-only string throws, does not implicitly convert to midnight');
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, 'Date-only string throws, does not implicitly convert to midnight');

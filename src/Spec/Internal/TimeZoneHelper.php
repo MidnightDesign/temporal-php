@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
 
 /**
  * Internal helpers for timezone identifier normalization and wall-clock-to-epoch
@@ -48,7 +48,7 @@ final class TimeZoneHelper
     private static function normalizeTimezoneIdUncached(string $id, bool $rejectDatetimeStrings): string
     {
         if ($id === '') {
-            throw new InvalidArgumentException('ZonedDateTime timeZoneId must not be empty.');
+            throw new RangeError('ZonedDateTime timeZoneId must not be empty.');
         }
 
         // 'UTC' (case-insensitive).
@@ -58,7 +58,7 @@ final class TimeZoneHelper
 
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $id) === 1) {
-            throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": minus-zero year.");
+            throw new RangeError("Invalid timeZoneId \"{$id}\": minus-zero year.");
         }
 
         // Datetime strings (have a T-separator after a date part).
@@ -66,7 +66,7 @@ final class TimeZoneHelper
 
         if ($isDatetime) {
             if ($rejectDatetimeStrings) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "Invalid timeZoneId \"{$id}\": ISO date-time string is not a valid timezone identifier for ZonedDateTime constructor.",
                 );
             }
@@ -75,9 +75,7 @@ final class TimeZoneHelper
             if (preg_match('/\[(!?[^\]]+)\]/', $id, $bm) === 1) {
                 $bracket = $bm[1];
                 if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bracket) === 1) {
-                    throw new InvalidArgumentException(
-                        "Invalid timeZoneId \"{$id}\": sub-minute offset in bracket annotation.",
-                    );
+                    throw new RangeError("Invalid timeZoneId \"{$id}\": sub-minute offset in bracket annotation.");
                 }
                 if (strtoupper($bracket) === 'UTC') {
                     return 'UTC';
@@ -91,16 +89,12 @@ final class TimeZoneHelper
                     new \DateTimeZone($bracket);
                     return $bracket;
                 } catch (\Exception) {
-                    throw new InvalidArgumentException(
-                        "Invalid timeZoneId \"{$id}\": unsupported bracket timezone \"{$bracket}\".",
-                    );
+                    throw new RangeError("Invalid timeZoneId \"{$id}\": unsupported bracket timezone \"{$bracket}\".");
                 }
             }
             // No bracket: use inline offset.
             if (preg_match('/[+\-]\d{2}:\d{2}:\d{2}/i', $id) === 1) {
-                throw new InvalidArgumentException(
-                    "Invalid timeZoneId \"{$id}\": inline offset contains a seconds component.",
-                );
+                throw new RangeError("Invalid timeZoneId \"{$id}\": inline offset contains a seconds component.");
             }
             if (preg_match('/[Zz](?:\[|$)/', $id) === 1) {
                 return 'UTC';
@@ -109,9 +103,7 @@ final class TimeZoneHelper
             if (preg_match('/([+\-]\d{2}:\d{2})(?:\[|$)/', $id, $om) === 1) {
                 return $om[1];
             }
-            throw new InvalidArgumentException(
-                "Invalid timeZoneId \"{$id}\": bare datetime without Z, offset, or bracket.",
-            );
+            throw new RangeError("Invalid timeZoneId \"{$id}\": bare datetime without Z, offset, or bracket.");
         }
 
         // Pure UTC-offset strings.
@@ -130,16 +122,14 @@ final class TimeZoneHelper
         }
         // Sub-minute offsets → reject.
         if (preg_match('/^[+\-]\d{2}:\d{2}[:.].*/i', $id) === 1) {
-            throw new InvalidArgumentException(
-                "Invalid timeZoneId \"{$id}\": sub-minute offset is not a valid timezone identifier.",
-            );
+            throw new RangeError("Invalid timeZoneId \"{$id}\": sub-minute offset is not a valid timezone identifier.");
         }
 
         // IANA timezone name: validate via PHP DateTimeZone (case-insensitive).
         try {
             new \DateTimeZone($id);
         } catch (\Exception) {
-            throw new InvalidArgumentException("Invalid timeZoneId \"{$id}\": not a recognized timezone identifier.");
+            throw new RangeError("Invalid timeZoneId \"{$id}\": not a recognized timezone identifier.");
         }
 
         // Case-normalize the timezone ID using the canonical timezone list.
@@ -156,9 +146,7 @@ final class TimeZoneHelper
         // Must be in the IANA timezone list — reject abbreviations like "AST", "EST".
         $lower = strtolower($id);
         if (!array_key_exists($lower, $lowerToCanonical)) {
-            throw new InvalidArgumentException(
-                "Invalid timeZoneId \"{$id}\": not a recognized IANA timezone identifier.",
-            );
+            throw new RangeError("Invalid timeZoneId \"{$id}\": not a recognized IANA timezone identifier.");
         }
         return $lowerToCanonical[$lower];
     }
@@ -292,7 +280,7 @@ final class TimeZoneHelper
                 return match ($disambiguation) {
                     'earlier', 'compatible' => $earlierEpoch,
                     'later' => $laterEpoch,
-                    'reject' => throw new InvalidArgumentException("Ambiguous wall clock time in timezone {$tzId}."),
+                    'reject' => throw new RangeError("Ambiguous wall clock time in timezone {$tzId}."),
                     default => $earlierEpoch,
                 };
             }
@@ -305,7 +293,7 @@ final class TimeZoneHelper
             return match ($disambiguation) {
                 'compatible', 'later' => $afterGapEpoch,
                 'earlier' => $beforeGapEpoch,
-                'reject' => throw new InvalidArgumentException("Non-existent wall clock time in timezone {$tzId}."),
+                'reject' => throw new RangeError("Non-existent wall clock time in timezone {$tzId}."),
                 default => $afterGapEpoch,
             };
         }

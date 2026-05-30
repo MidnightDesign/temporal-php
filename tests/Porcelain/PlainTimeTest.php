@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use Temporal\Duration;
+use Temporal\Exception\RangeError;
 use Temporal\PlainTime;
 use Temporal\RoundingMode;
 use Temporal\Unit;
@@ -85,14 +85,14 @@ final class PlainTimeTest extends TemporalTestCase
 
     public function testParseInvalidStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         PlainTime::parse('not-a-time');
     }
 
     public function testParseEmptyStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         PlainTime::parse('');
     }

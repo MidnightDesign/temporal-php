@@ -12,4 +12,4 @@ $calcutta = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/C
 $kolkata = \Temporal\Spec\ZonedDateTime::from('2021-09-01T00:00:00+05:30[Asia/Kolkata]');
 $colombo = \Temporal\Spec\ZonedDateTime::from('2022-08-01T00:00:00+05:30[Asia/Colombo]');
 Assert::sameValue($calcutta->since($kolkata, (object) ['largestUnit' => 'day'])->toString(), '-P609D', '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calcutta, &$colombo) { return $calcutta->since($colombo, (object) ['largestUnit' => 'day']); }, '');
+Assert::throws(\RangeException::class, function () use (&$calcutta, &$colombo) { return $calcutta->since($colombo, (object) ['largestUnit' => 'day']); }, '');

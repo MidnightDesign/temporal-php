@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $plainTime = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
-Assert::incomplete('untranslatable: Symbol()');
+$tests = [[JsUndefined::singleton()], [null], [true], ['2019-05-17'], ['2019-05-17T12:34'], ['2019-05-17T12:34Z'], ['18:05:42.577'], ['42'], [\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [42, 'number'], [42, 'bigint'], [\Temporal\Spec\PlainDate::from('2019-05-17'), 'PlainDate'], [\Temporal\Spec\PlainDateTime::from('2019-05-17T12:34'), 'PlainDateTime'], [\Temporal\Spec\PlainMonthDay::from('2019-05-17'), 'PlainMonthDay'], [\Temporal\Spec\PlainTime::from('12:34'), 'PlainTime'], [\Temporal\Spec\PlainYearMonth::from('2019-05-17'), 'PlainYearMonth'], [\Temporal\Spec\ZonedDateTime::from('2019-05-17T12:34Z[UTC]'), 'ZonedDateTime'], [['hour' => 14, 'calendar' => 'iso8601'], 'calendar'], [['hour' => 14, 'timeZone' => 'UTC'], 'timeZone'], [[], 'empty object'], [['hours' => 14], 'only plural property']];
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

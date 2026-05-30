@@ -13,5 +13,5 @@ $expected = ['get options.calendarName', 'get options.calendarName.toString', 'c
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, (object) ['calendarName' => 'always', 'smallestUnit' => 'month', 'fractionalSecondDigits' => 'auto', 'roundingMode' => 'expand'], 'options');
 $instance = new \Temporal\Spec\PlainDateTime(2025, 8, 14, 12);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->toString($options); }, 'exception thrown when smallestUnit is a date unit');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->toString($options); }, 'exception thrown when smallestUnit is a date unit');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

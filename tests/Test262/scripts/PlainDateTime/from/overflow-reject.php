@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from(['year' => 2019, 'month' => 1, 'day' => 31], ['overflow' => 'reject']), 2019, 1, 'M01', 31, 0, 0, 0, 0, 0, 0, 'overflow reject, acceptable argument');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 2019, 'month' => 1, 'day' => 32], ['overflow' => 'reject']), 'overflow reject, unacceptable argument');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainDateTime::from(['year' => 2019, 'month' => 1, 'day' => 32], ['overflow' => 'reject']), 'overflow reject, unacceptable argument');

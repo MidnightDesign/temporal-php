@@ -29,7 +29,7 @@ final class PlainTime implements \Stringable, \JsonSerializable, HasTimeOfDaySpe
      * @param int $millisecond 0–999
      * @param int $microsecond 0–999
      * @param int $nanosecond  0–999
-     * @throws \InvalidArgumentException if any parameter is out of range.
+     * @throws \Temporal\Exception\RangeError if any parameter is out of range.
      */
     public function __construct(
         int $hour = 0,
@@ -46,7 +46,7 @@ final class PlainTime implements \Stringable, \JsonSerializable, HasTimeOfDaySpe
      * Creates a PlainTime by parsing an ISO 8601 time string.
      *
      * @param string $text An ISO 8601 time string (e.g. "13:45:30.123456789").
-     * @throws \InvalidArgumentException if the string is invalid.
+     * @throws \Temporal\Exception\RangeError if the string is invalid.
      */
     public static function parse(string $text): self
     {
@@ -98,7 +98,7 @@ final class PlainTime implements \Stringable, \JsonSerializable, HasTimeOfDaySpe
      * @param int<0, 999>|null $millisecond 0–999, or null to keep.
      * @param int<0, 999>|null $microsecond 0–999, or null to keep.
      * @param int<0, 999>|null $nanosecond  0–999, or null to keep.
-     * @throws \InvalidArgumentException if a field value is out of range.
+     * @throws \Temporal\Exception\RangeError if a field value is out of range.
      */
     public function with(
         ?int $hour = null,
@@ -161,7 +161,7 @@ final class PlainTime implements \Stringable, \JsonSerializable, HasTimeOfDaySpe
      * @param Unit         $smallestUnit       The unit to round to.
      * @param RoundingMode $roundingMode       Rounding mode (default: HalfExpand).
      * @param int          $roundingIncrement  Must evenly divide the next-larger unit.
-     * @throws \InvalidArgumentException for invalid unit or increment values.
+     * @throws \Temporal\Exception\RangeError for invalid unit or increment values.
      */
     public function round(
         Unit $smallestUnit,

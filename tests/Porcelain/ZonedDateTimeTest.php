@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Disambiguation;
 use Temporal\Duration;
+use Temporal\Exception\RangeError;
 use Temporal\OffsetDisplay;
 use Temporal\OffsetOption;
 use Temporal\Overflow;
@@ -52,7 +52,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
     public function testConstructorInvalidTimeZoneThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         new ZonedDateTime(0, 'Invalid/Zone');
     }
@@ -273,7 +273,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
     public function testParseInvalidStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         ZonedDateTime::parse('not-a-zoned-datetime');
     }
@@ -324,7 +324,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
     public function testParseWithOffsetOptionRejectInvalid(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         // Offset does not match the timezone
         ZonedDateTime::parse('2020-01-01T12:00:00+00:00[Asia/Kolkata]', offsetOption: OffsetOption::Reject);
@@ -459,7 +459,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     {
         $zdt = ZonedDateTime::parse('2020-01-31T12:00:00+00:00[UTC]');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         $zdt->with(month: 2, overflow: Overflow::Reject);
     }
@@ -1088,14 +1088,14 @@ final class ZonedDateTimeTest extends TemporalTestCase
     public function testAddForwardsOverflowReject(): void
     {
         $zdt = ZonedDateTime::parse('2020-01-31T12:00:00+00:00[UTC]');
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $zdt->add(new Duration(months: 1), Overflow::Reject);
     }
 
     public function testSubtractForwardsOverflowReject(): void
     {
         $zdt = ZonedDateTime::parse('2020-03-31T12:00:00+00:00[UTC]');
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $zdt->subtract(new Duration(months: 1), Overflow::Reject);
     }
 
@@ -1277,7 +1277,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
     public function testFromFieldsForwardsOverflowReject(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         ZonedDateTime::fromFields(timeZone: 'UTC', year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
     }
@@ -1308,7 +1308,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     public function testFromFieldsForwardsDisambiguationReject(): void
     {
         // 2024-10-27 02:30 in Europe/Berlin is ambiguous (fall-back DST).
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         ZonedDateTime::fromFields(
             timeZone: 'Europe/Berlin',
@@ -1494,7 +1494,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
     {
         $dt = new \DateTimeImmutable('3000-01-01T00:00:00', new \DateTimeZone('UTC'));
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $this->expectExceptionMessage('outside the representable int64 nanosecond range');
 
         ZonedDateTime::fromDateTime($dt);

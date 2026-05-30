@@ -6,8 +6,9 @@ namespace Temporal\Spec;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use InvalidArgumentException;
 use Stringable;
+use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -64,7 +65,7 @@ final class Instant implements Stringable
      *        sentinel + true parts (see {@see fromEpochParts()}). A decimal string
      *        is decomposed exactly so the over-int64 value is preserved without
      *        float-precision loss.
-     * @throws InvalidArgumentException if a float value is not a finite integer,
+     * @throws RangeError if a float value is not a finite integer,
      *         a string is not a decimal integer, or the value is outside the
      *         representable Temporal nanosecond range.
      */
@@ -75,7 +76,7 @@ final class Instant implements Stringable
             // into floor epoch-seconds + sub-second nanoseconds, preserving full
             // precision the lossy float path cannot.
             if (preg_match('/^[+-]?\d+$/', $epochNanoseconds) !== 1) {
-                throw new InvalidArgumentException('epochNanoseconds string must be a decimal integer.');
+                throw new RangeError('epochNanoseconds string must be a decimal integer.');
             }
             [$sec, $subNs] = self::decimalStringToEpochParts($epochNanoseconds);
             [$this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs] = self::normalizeEpochParts($sec, $subNs);
@@ -83,7 +84,7 @@ final class Instant implements Stringable
         }
         if (is_float($epochNanoseconds)) {
             if (!is_finite($epochNanoseconds) || floor($epochNanoseconds) !== $epochNanoseconds) {
-                throw new InvalidArgumentException('epochNanoseconds must be a finite integer value.');
+                throw new RangeError('epochNanoseconds must be a finite integer value.');
             }
             // (float) PHP_INT_MAX rounds up to 2^63 > PHP_INT_MAX due to float64 precision.
             // A float beyond int64 may still be a valid over-int64 instant (|ns| ≤ 8.64e21):
@@ -144,7 +145,7 @@ final class Instant implements Stringable
      *
      * @return array{int, ?int, int} [epochNanoseconds, trueEpochSec, trueSubNs];
      *         trueEpochSec is null when the value fits int64 exactly.
-     * @throws InvalidArgumentException if the result is outside the representable Temporal range.
+     * @throws RangeError if the result is outside the representable Temporal range.
      */
     private static function normalizeEpochParts(int $epochSec, int $subNs): array
     {
@@ -157,7 +158,7 @@ final class Instant implements Stringable
 
         $maxSec = 8_640_000_000_000;
         if ($epochSec < -$maxSec || $epochSec > $maxSec || $epochSec === $maxSec && $subNs > 0) {
-            throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+            throw new RangeError('Instant result is outside the representable nanosecond range.');
         }
 
         // When the full nanosecond value fits int64, store it exactly; otherwise
@@ -182,17 +183,17 @@ final class Instant implements Stringable
      * produced for deliberately out-of-range fixtures, since every valid instant's
      * epochSec ≤ 8.64e12 fits int64) as PHP float literals, so $epochSec/$subNs
      * accept int|float. A finite over-int64 float epoch-second is always outside the
-     * spec range and therefore throws InvalidArgumentException — never a TypeError.
+     * spec range and therefore throws RangeError — never a TypeError.
      *
      * @internal
      * @psalm-internal Temporal\Spec
-     * @throws InvalidArgumentException if a part is a non-integer float or the result
+     * @throws RangeError if a part is a non-integer float or the result
      *         is outside the representable Temporal range.
      */
     public static function fromEpochParts(int|float $epochSec, int|float $subNs): self
     {
         // Spec range: |epochNs| ≤ 8_640_000_000_000 × 10⁹. Out-of-range results
-        // throw InvalidArgumentException — the project's range-violation type,
+        // throw RangeError — the project's range-violation type,
         // to which the test262 transpiler maps the JS-spec RangeError. Normalization,
         // the range check, and the over-int64 sentinel are shared with the
         // constructor via normalizeEpochParts().
@@ -202,7 +203,7 @@ final class Instant implements Stringable
             // range, so it is unconditionally out of range. (float)PHP_INT_MAX rounds
             // up past PHP_INT_MAX, so compare against the spec bound directly.
             if (!is_finite($epochSec) || $epochSec > (float) $maxSec || $epochSec < -(float) $maxSec) {
-                throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+                throw new RangeError('Instant result is outside the representable nanosecond range.');
             }
             $epochSec = (int) $epochSec;
         }
@@ -213,7 +214,7 @@ final class Instant implements Stringable
                 || $subNs > (float) PHP_INT_MAX
                 || $subNs < (float) PHP_INT_MIN
             ) {
-                throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+                throw new RangeError('Instant result is outside the representable nanosecond range.');
             }
             $subNs = (int) $subNs;
         }
@@ -266,8 +267,9 @@ final class Instant implements Stringable
      *   '-271821-04-20T00:00Z'                                 (spec minimum)
      *   '+275760-09-13T23:59:59.999999999+23:59:59.999999999'  (spec maximum)
      *
-     * @throws InvalidArgumentException if the string cannot be parsed, has no UTC offset,
-     *                                  or represents a timestamp outside the nanosecond range.
+     * @throws RangeError if the string cannot be parsed, has no UTC offset,
+     *                    or represents a timestamp outside the nanosecond range.
+     * @throws TypeError if $item is a non-string, non-Instant object.
      */
     public static function from(string|object $item): self
     {
@@ -276,7 +278,7 @@ final class Instant implements Stringable
             return self::fromEpochParts($epochSec, $subNs);
         }
         if (!is_string($item)) {
-            throw new InvalidArgumentException(sprintf(
+            throw new TypeError(sprintf(
                 'Temporal.Instant.from() requires an Instant or string, got %s.',
                 get_debug_type($item),
             ));
@@ -285,9 +287,7 @@ final class Instant implements Stringable
         // Reject more than 9 fractional-second digits (time part or offset fraction).
         // TC39 spec: strings with 10+ fractional digits are invalid (test262 argument-string-too-many-decimals).
         if (preg_match('/[.,]\d{10,}/', $text) === 1) {
-            throw new InvalidArgumentException(
-                "Invalid Instant string \"{$text}\": fractional seconds may have at most 9 digits.",
-            );
+            throw new RangeError("Invalid Instant string \"{$text}\": fractional seconds may have at most 9 digits.");
         }
         /*
          * Regex groups:
@@ -310,9 +310,7 @@ final class Instant implements Stringable
         /** @var list<string> $m */
         $m = [];
         if (preg_match($pattern, $text, $m) !== 1) {
-            throw new InvalidArgumentException(
-                "Invalid Instant string \"{$text}\": expected ISO 8601 with a UTC offset.",
-            );
+            throw new RangeError("Invalid Instant string \"{$text}\": expected ISO 8601 with a UTC offset.");
         }
 
         [, $yearRaw, $dateRest, $hour, $min, $sec, $fractionRaw, $offsetRaw, $annotationSection] = $m;
@@ -331,9 +329,7 @@ final class Instant implements Stringable
         $yearNum = (int) $yearRaw;
         // Reject -000000 (minus-zero year is invalid per spec).
         if ($yearNum === 0 && str_starts_with($yearRaw, '-')) {
-            throw new InvalidArgumentException(
-                "Invalid Instant string \"{$text}\": year -000000 (negative zero) is not valid.",
-            );
+            throw new RangeError("Invalid Instant string \"{$text}\": year -000000 (negative zero) is not valid.");
         }
         $monthNum = (int) substr(string: $dateRest, offset: 1, length: 2);
         $dayNum = (int) substr(string: $dateRest, offset: 4, length: 2);
@@ -342,24 +338,24 @@ final class Instant implements Stringable
         $secNum = $sec !== '' ? (int) $sec : 0;
 
         if ($monthNum < 1 || $monthNum > 12) {
-            throw new InvalidArgumentException("Invalid Instant string \"{$text}\": month out of range.");
+            throw new RangeError("Invalid Instant string \"{$text}\": month out of range.");
         }
         $maxDay = CalendarMath::calcDaysInMonth($yearNum, $monthNum);
         if ($dayNum < 1 || $dayNum > $maxDay) {
-            throw new InvalidArgumentException("Invalid Instant string \"{$text}\": day out of range.");
+            throw new RangeError("Invalid Instant string \"{$text}\": day out of range.");
         }
         if ($hourNum > 23) {
-            throw new InvalidArgumentException("Invalid Instant string \"{$text}\": hour out of range.");
+            throw new RangeError("Invalid Instant string \"{$text}\": hour out of range.");
         }
         if ($minNum > 59) {
-            throw new InvalidArgumentException("Invalid Instant string \"{$text}\": minute out of range.");
+            throw new RangeError("Invalid Instant string \"{$text}\": minute out of range.");
         }
 
         // Leap second: 60 is valid and maps to the last nanosecond of :59 (spec §8.5.6).
         $sec60 = $secNum === 60;
         $normalSec = $sec60 ? 59 : $secNum;
         if (!$sec60 && $secNum > 59) {
-            throw new InvalidArgumentException("Invalid Instant string \"{$text}\": second out of range.");
+            throw new RangeError("Invalid Instant string \"{$text}\": second out of range.");
         }
 
         // Parse the offset to [sign, absSec, fracNs].  The offset is applied
@@ -383,7 +379,7 @@ final class Instant implements Stringable
                 $normalSec,
             ));
         } catch (\Exception) {
-            throw new InvalidArgumentException("Could not parse \"{$text}\".");
+            throw new RangeError("Could not parse \"{$text}\".");
         }
 
         // $localSec: Unix seconds for the local date/time as if it were UTC.
@@ -410,9 +406,7 @@ final class Instant implements Stringable
         // sub-second component puts the instant out of range.
         $maxSec = 8_640_000_000_000;
         if ($utcEpochSec < -$maxSec || $utcEpochSec > $maxSec || $utcEpochSec === $maxSec && $baseNs > 0) {
-            throw new InvalidArgumentException(
-                "Instant string \"{$text}\" is outside the representable nanosecond range.",
-            );
+            throw new RangeError("Instant string \"{$text}\" is outside the representable nanosecond range.");
         }
 
         // For dates far from the Unix epoch (years roughly outside 1678–2262),
@@ -428,26 +422,22 @@ final class Instant implements Stringable
      *
      * @param int|float|null $epochMilliseconds Milliseconds since the Unix epoch.
      *        Must be a finite integer value within ±8_640_000_000_000_000.
-     * @throws InvalidArgumentException if the value is not a finite integer or is out of range.
+     * @throws RangeError if the value is not a finite integer or is out of range.
      */
     public static function fromEpochMilliseconds(int|float|null $epochMilliseconds = null): self
     {
         if ($epochMilliseconds === null) {
-            throw new InvalidArgumentException('epochMilliseconds must be provided.');
+            throw new RangeError('epochMilliseconds must be provided.');
         }
         if (is_float($epochMilliseconds)) {
             if (!is_finite($epochMilliseconds) || floor($epochMilliseconds) !== $epochMilliseconds) {
-                throw new InvalidArgumentException(
-                    "epochMilliseconds must be a finite integer value, got {$epochMilliseconds}.",
-                );
+                throw new RangeError("epochMilliseconds must be a finite integer value, got {$epochMilliseconds}.");
             }
             $epochMilliseconds = (int) $epochMilliseconds;
         }
         $limit = 8_640_000_000_000_000;
         if ($epochMilliseconds < -$limit || $epochMilliseconds > $limit) {
-            throw new InvalidArgumentException(
-                "epochMilliseconds {$epochMilliseconds} is outside the valid range of ±{$limit}.",
-            );
+            throw new RangeError("epochMilliseconds {$epochMilliseconds} is outside the valid range of ±{$limit}.");
         }
         // Guard against int64 overflow when multiplying ms × 10^6 to get nanoseconds.
         // Threshold: floor(PHP_INT_MAX / NS_PER_MILLISECOND) = 9_223_372_036_854.
@@ -489,18 +479,33 @@ final class Instant implements Stringable
 
     /**
      * Coerces a non-Instant value to an Instant by parsing it as an ISO string.
-     * Throws TypeError for primitive non-strings (null, bool, int, float).
-     * Throws InvalidArgumentException for objects/arrays (can't replicate JS toString coercion).
      *
-     * @throws \TypeError for primitive non-string values.
-     * @throws InvalidArgumentException for objects/arrays or invalid strings.
+     * Per TC39, the argument undergoes ToTemporalInstant, which performs ToString
+     * on a non-Instant value and then parses the result. A foreign object
+     * stringifies and fails to parse, so it surfaces a RangeError; a Symbol's
+     * ToString throws a TypeError (modelled here by the JsSymbol sentinel's
+     * throwing {@see \Stringable::__toString()}). Non-string, non-object
+     * primitives (number/bool/null/bigint) never reach this method — the typed
+     * `string|object` signature rejects them with a native TypeError first.
+     *
+     * @throws TypeError if $arg is a Symbol (Stringable whose cast throws).
+     * @throws RangeError if $arg is a foreign object or an invalid ISO string.
      */
     private static function coerceToInstant(string|object $arg): self
     {
-        if (is_string($arg)) {
-            return self::from($arg);
+        if (!is_string($arg)) {
+            if ($arg instanceof Stringable) {
+                // JsSymbol's __toString() throws TypeError here; a genuine
+                // Stringable is parsed below and any parse failure is a RangeError.
+                $arg = (string) $arg;
+            } else {
+                // A non-string, non-Stringable value (number, bool, plain object,
+                // Temporal type other than Instant) is a wrong-TYPE argument —
+                // TC39 throws TypeError before any string coercion is attempted.
+                throw new TypeError('Temporal\\Instant argument must be an Instant or an ISO string.');
+            }
         }
-        throw new InvalidArgumentException('Temporal\\Instant argument must be a Temporal\\Instant or an ISO string.');
+        return self::from($arg);
     }
 
     // -------------------------------------------------------------------------
@@ -511,9 +516,10 @@ final class Instant implements Stringable
      * Returns true when both Instants represent the same point in time.
      *
      * Accepts either an Instant instance or a string parseable by {@see from()}.
-     * Any other type throws InvalidArgumentException (matches JS coercion failure behaviour).
+     * Any other type throws TypeError (matches JS coercion failure behaviour).
      *
-     * @throws InvalidArgumentException if $other is not an Instant or a valid ISO string.
+     * @throws TypeError if $other is not an Instant or a string.
+     * @throws RangeError if $other is an invalid ISO string.
      */
     public function equals(string|object $other): bool
     {
@@ -538,7 +544,8 @@ final class Instant implements Stringable
      * using the unsigned mode for a positive sign, regardless of the actual sign of the epoch.
      *
      * @param array<array-key, mixed>|object|null $options
-     * @throws InvalidArgumentException if options are invalid.
+     * @throws RangeError if options are invalid.
+     * @throws TypeError if the timeZone option is a non-string.
      */
     public function toString(array|object|null $options = null): string
     {
@@ -555,24 +562,27 @@ final class Instant implements Stringable
             if (array_key_exists('fractionalSecondDigits', $options)) {
                 /** @var mixed $fsd */
                 $fsd = $options['fractionalSecondDigits'];
+                // A Stringable in this Number-or-String position is coerced via
+                // ToString: the JsSymbol sentinel's throwing __toString surfaces a
+                // TypeError, while any other Stringable yields a string that is not
+                // "auto" and therefore a RangeError below.
+                if (!is_string($fsd) && !is_int($fsd) && !is_float($fsd) && $fsd instanceof Stringable) {
+                    $fsd = (string) $fsd;
+                }
                 if ($fsd !== 'auto') {
-                    if ($fsd === null || is_bool($fsd)) {
-                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
+                    if ($fsd === null || is_bool($fsd) || is_string($fsd)) {
+                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
                     }
                     if (is_float($fsd)) {
                         if (is_nan($fsd) || is_infinite($fsd)) {
-                            throw new InvalidArgumentException(
-                                "fractionalSecondDigits must be 'auto' or a finite integer 0–9.",
-                            );
+                            throw new RangeError("fractionalSecondDigits must be 'auto' or a finite integer 0–9.");
                         }
                         $fsd = (int) floor($fsd);
                     } elseif (!is_int($fsd)) {
-                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
+                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
                     }
                     if ($fsd < 0 || $fsd > 9) {
-                        throw new InvalidArgumentException(
-                            "fractionalSecondDigits {$fsd} is out of range (must be 0–9).",
-                        );
+                        throw new RangeError("fractionalSecondDigits {$fsd} is out of range (must be 0–9).");
                     }
                     $digits = $fsd;
                 }
@@ -580,20 +590,23 @@ final class Instant implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = (string) $options['smallestUnit'];
+                $su = self::coerceOptionString($options['smallestUnit']);
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
                     'millisecond', 'milliseconds' => [3, false],
                     'microsecond', 'microseconds' => [6, false],
                     'nanosecond', 'nanoseconds' => [9, false],
-                    default => throw new InvalidArgumentException("Invalid smallestUnit \"{$su}\"."),
+                    default => throw new RangeError("Invalid smallestUnit \"{$su}\"."),
                 };
             }
 
-            // roundingMode (null → default 'trunc')
+            // roundingMode (null → default 'trunc'). Validated even on the fast
+            // (increment === 1) path so an unknown / non-string mode is rejected
+            // rather than silently accepted.
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $roundMode = (string) $options['roundingMode'];
+                $roundMode = self::coerceOptionString($options['roundingMode']);
+                self::validateRoundingMode($roundMode);
             }
 
             // timeZone: must be a string; non-string (including null) → TypeError.
@@ -601,7 +614,7 @@ final class Instant implements Stringable
                 /** @var mixed $tzVal */
                 $tzVal = $options['timeZone'];
                 if (!is_string($tzVal)) {
-                    throw new \TypeError('timeZone must be a string.');
+                    throw new TypeError('timeZone must be a string.');
                 }
                 self::validateTimeZoneString($tzVal);
             }
@@ -722,48 +735,40 @@ final class Instant implements Stringable
      *   - Datetime strings (contain T): must have Z, an offset, or a bracket annotation;
      *     an inline offset must not include a seconds component.
      *
-     * @throws InvalidArgumentException for invalid timezone strings.
+     * @throws RangeError for invalid timezone strings.
      */
     private static function validateTimeZoneString(string $tz): void
     {
         // Reject empty string.
         if ($tz === '') {
-            throw new InvalidArgumentException('Invalid timeZone "": empty string is not a valid timezone identifier.');
+            throw new RangeError('Invalid timeZone "": empty string is not a valid timezone identifier.');
         }
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
-            throw new InvalidArgumentException("Invalid timeZone \"{$tz}\": minus-zero year.");
+            throw new RangeError("Invalid timeZone \"{$tz}\": minus-zero year.");
         }
         // Reject bracket annotation with a seconds component (e.g. [+23:59:60]).
         $bm = null;
         if (preg_match('/\[([^\]]+)\]/', $tz, $bm) === 1) {
             if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bm[1]) === 1) {
-                throw new InvalidArgumentException(
-                    "Invalid timeZone \"{$tz}\": sub-minute seconds in bracket annotation.",
-                );
+                throw new RangeError("Invalid timeZone \"{$tz}\": sub-minute seconds in bracket annotation.");
             }
         }
         // Pure UTC-offset strings (no T date/time part): must be ±HH:MM or ±HHMM.
         if (preg_match('/^[+\-]\d{2}/', $tz) === 1 && !str_contains($tz, 'T') && !str_contains($tz, 't')) {
             if (preg_match('/^[+\-]\d{2}:\d{2}(?:$|[^:\d])/', $tz) !== 1 && preg_match('/^[+\-]\d{4}$/', $tz) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid timeZone \"{$tz}\": offset contains seconds or is in an invalid format.",
-                );
+                throw new RangeError("Invalid timeZone \"{$tz}\": offset contains seconds or is in an invalid format.");
             }
             return;
         }
         // Datetime strings: must have Z, an offset, or a bracket annotation.
         if (preg_match('/\d{4,}-\d{2}-\d{2}[Tt]|\d{8}[Tt]/', $tz) === 1) {
             if (preg_match('/T\d{2}:?\d{2}(?::?\d{2})?(?:\.\d+)?(?:Z|[+\-]|\[)/i', $tz) !== 1) {
-                throw new InvalidArgumentException(
-                    "Invalid timeZone \"{$tz}\": bare datetime without Z, offset, or bracket.",
-                );
+                throw new RangeError("Invalid timeZone \"{$tz}\": bare datetime without Z, offset, or bracket.");
             }
             // Inline offset must not include a seconds component (e.g. -07:00:01).
             if (preg_match('/[+\-]\d{2}:\d{2}:\d{2}(?!\])/i', $tz) === 1) {
-                throw new InvalidArgumentException(
-                    "Invalid timeZone \"{$tz}\": inline offset contains a seconds component.",
-                );
+                throw new RangeError("Invalid timeZone \"{$tz}\": inline offset contains a seconds component.");
             }
         }
     }
@@ -899,7 +904,7 @@ final class Instant implements Stringable
      * @param string $timeZone A timezone string: 'UTC', '±HH:MM', or an ISO datetime string
      *                        with an inline offset or bracket annotation (e.g. '2020-01-01T00:00Z').
      * @psalm-api used by test262 scripts
-     * @throws InvalidArgumentException if the timezone string is invalid (empty, sub-minute offset, etc.).
+     * @throws RangeError if the timezone string is invalid (empty, sub-minute offset, etc.).
      */
     public function toZonedDateTimeISO(string $timeZone): ZonedDateTime
     {
@@ -915,12 +920,12 @@ final class Instant implements Stringable
      * with an inline offset (Z or ±HH:MM) or a bracket annotation [tzId].
      * Sub-minute offsets, bare datetimes, and empty strings are rejected.
      *
-     * @throws InvalidArgumentException for invalid timezone strings.
+     * @throws RangeError for invalid timezone strings.
      */
     private static function parseTimeZoneId(string $tz): string
     {
         if ($tz === '') {
-            throw new InvalidArgumentException('Time zone string must not be empty.');
+            throw new RangeError('Time zone string must not be empty.');
         }
         // 'UTC' (case-insensitive).
         if (strtoupper($tz) === 'UTC') {
@@ -928,7 +933,7 @@ final class Instant implements Stringable
         }
         // Reject minus-zero extended year.
         if (preg_match('/^-0{6}(?:[^0-9]|$)/', $tz) === 1) {
-            throw new InvalidArgumentException("Invalid time zone string \"{$tz}\": minus-zero year.");
+            throw new RangeError("Invalid time zone string \"{$tz}\": minus-zero year.");
         }
 
         // Determine if this looks like a datetime (has a T-separator after a date part).
@@ -942,7 +947,7 @@ final class Instant implements Stringable
                 $bracket = $bm[1];
                 // Sub-minute offset in bracket: reject.
                 if (preg_match('/^[+\-]\d{2}:\d{2}:\d{2}/', $bracket) === 1) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Invalid time zone string \"{$tz}\": sub-minute offset in bracket annotation.",
                     );
                 }
@@ -957,7 +962,7 @@ final class Instant implements Stringable
                     new \DateTimeZone($bracket);
                     return TimeZoneHelper::normalizeTimezoneId($bracket);
                 } catch (\Exception) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Invalid time zone string \"{$tz}\": unsupported bracket timezone \"{$bracket}\".",
                     );
                 }
@@ -965,9 +970,7 @@ final class Instant implements Stringable
             // No bracket: inline offset (Z or ±HH:MM) required.
             // Reject sub-minute inline offset.
             if (preg_match('/[+\-]\d{2}:\d{2}:\d{2}/i', $tz) === 1) {
-                throw new InvalidArgumentException(
-                    "Invalid time zone string \"{$tz}\": inline offset contains a seconds component.",
-                );
+                throw new RangeError("Invalid time zone string \"{$tz}\": inline offset contains a seconds component.");
             }
             // Extract inline offset (Z or ±HH:MM at end or after time part).
             if (preg_match('/[Zz](?:\[|$)/', $tz) === 1) {
@@ -978,9 +981,7 @@ final class Instant implements Stringable
                 return $om[1];
             }
             // Bare datetime with no offset and no bracket.
-            throw new InvalidArgumentException(
-                "Invalid time zone string \"{$tz}\": bare datetime without Z, offset, or bracket.",
-            );
+            throw new RangeError("Invalid time zone string \"{$tz}\": bare datetime without Z, offset, or bracket.");
         }
 
         // Pure UTC-offset strings: accept only ±HH:MM (no seconds component).
@@ -994,7 +995,7 @@ final class Instant implements Stringable
         }
         // Anything with more than ±HH:MM (seconds or fractional) → reject.
         if (preg_match('/^[+\-]\d{2}:\d{2}[:.].*/i', $tz) === 1) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Invalid time zone string \"{$tz}\": sub-minute offset is not a valid timezone identifier.",
             );
         }
@@ -1004,9 +1005,7 @@ final class Instant implements Stringable
             new \DateTimeZone($tz);
             return TimeZoneHelper::normalizeTimezoneId($tz);
         } catch (\Exception) {
-            throw new InvalidArgumentException(
-                "Invalid time zone string \"{$tz}\": not a recognized timezone identifier.",
-            );
+            throw new RangeError("Invalid time zone string \"{$tz}\": not a recognized timezone identifier.");
         }
     }
 
@@ -1019,13 +1018,13 @@ final class Instant implements Stringable
      *
      * @param Duration|string|array<array-key, mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
      * @psalm-api used by test262 scripts
-     * @throws InvalidArgumentException if the duration contains calendar fields or the result is out of range.
+     * @throws RangeError if the duration contains calendar fields or the result is out of range.
      */
     public function add(string|array|object $duration): self
     {
         $d = Duration::from($duration);
         if ($d->years !== 0 || $d->months !== 0 || $d->weeks !== 0 || $d->days !== 0) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 'Temporal\\Instant::add() does not support calendar fields (years, months, weeks, days).',
             );
         }
@@ -1049,13 +1048,13 @@ final class Instant implements Stringable
      *
      * @param Duration|string|array<array-key, mixed>|object $duration Duration, ISO 8601 duration string, or property-bag array.
      * @psalm-api used by test262 scripts
-     * @throws InvalidArgumentException if the duration contains calendar fields or the result is out of range.
+     * @throws RangeError if the duration contains calendar fields or the result is out of range.
      */
     public function subtract(string|array|object $duration): self
     {
         $d = Duration::from($duration);
         if ($d->years !== 0 || $d->months !== 0 || $d->weeks !== 0 || $d->days !== 0) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 'Temporal\\Instant::subtract() does not support calendar fields (years, months, weeks, days).',
             );
         }
@@ -1081,7 +1080,8 @@ final class Instant implements Stringable
      *
      * @param string|array<array-key, mixed>|object $roundTo
      * @psalm-api used by test262 scripts
-     * @throws InvalidArgumentException if smallestUnit is missing/invalid or roundingIncrement is invalid.
+     * @throws RangeError if smallestUnit is missing/invalid or roundingIncrement is invalid.
+     * @throws TypeError if smallestUnit or roundingMode is a non-string.
      */
     public function round(string|array|object $roundTo): self
     {
@@ -1094,10 +1094,10 @@ final class Instant implements Stringable
         /** @var mixed $suRaw */
         $suRaw = $roundTo['smallestUnit'] ?? null;
         if ($suRaw === null) {
-            throw new InvalidArgumentException('Temporal\\Instant::round() requires smallestUnit.');
+            throw new RangeError('Temporal\\Instant::round() requires smallestUnit.');
         }
         if (!is_string($suRaw)) {
-            throw new \TypeError('smallestUnit must be a string.');
+            throw new TypeError('smallestUnit must be a string.');
         }
         // Maps unit name → [ns-per-unit, max-increment-divisor (next unit size)]
         $unitMap = [
@@ -1115,7 +1115,7 @@ final class Instant implements Stringable
             'hours' => [3_600_000_000_000, 24],
         ];
         if (!array_key_exists($suRaw, $unitMap)) {
-            throw new InvalidArgumentException("Invalid smallestUnit \"{$suRaw}\" for Temporal\\Instant::round().");
+            throw new RangeError("Invalid smallestUnit \"{$suRaw}\" for Temporal\\Instant::round().");
         }
         [$nsPerUnit, $maxDivisor] = $unitMap[$suRaw];
 
@@ -1124,8 +1124,9 @@ final class Instant implements Stringable
             /** @var mixed $rmRaw */
             $rmRaw = $roundTo['roundingMode'];
             if (!is_string($rmRaw)) {
-                throw new \TypeError('roundingMode must be a string.');
+                throw new TypeError('roundingMode must be a string.');
             }
+            self::validateRoundingMode($rmRaw);
             $roundingMode = $rmRaw;
         }
 
@@ -1136,10 +1137,10 @@ final class Instant implements Stringable
             $increment = CalendarMath::toFiniteInt($roundTo['roundingIncrement'], 'roundingIncrement');
         }
         if ($increment < 1) {
-            throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
+            throw new RangeError('roundingIncrement must be a positive integer.');
         }
         if ($increment > $maxDivisor || ($maxDivisor % $increment) !== 0) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "roundingIncrement {$increment} does not evenly divide {$maxDivisor} for unit \"{$suRaw}\".",
             );
         }
@@ -1188,6 +1189,91 @@ final class Instant implements Stringable
     // Helpers
     // -------------------------------------------------------------------------
 
+    /** Allowed roundingMode option values (TC39 RoundingMode). */
+    private const array ROUNDING_MODES = [
+        'trunc',
+        'floor',
+        'ceil',
+        'expand',
+        'halfExpand',
+        'halfTrunc',
+        'halfFloor',
+        'halfCeil',
+        'halfEven',
+    ];
+
+    /**
+     * Coerces a mixed option value to an enum string per the universal coercion
+     * contract: scalars stringify; a {@see \Stringable} object is cast via
+     * `(string)` (so a Symbol sentinel's throwing __toString surfaces a
+     * {@see TypeError}); any other object / array / null is rejected.
+     *
+     * @throws RangeError if the value is an array, a non-Stringable object, or null.
+     */
+    private static function coerceOptionString(mixed $value): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+        if ($value instanceof Stringable) {
+            return (string) $value;
+        }
+        throw new RangeError('Option value must be a string.');
+    }
+
+    /**
+     * Validates a roundingMode string against the allowed TC39 set so an unknown
+     * (or coerced non-enum) mode is rejected even on a fast path where no
+     * rounding is performed.
+     *
+     * @throws RangeError for an unknown roundingMode.
+     */
+    private static function validateRoundingMode(string $mode): void
+    {
+        if (!in_array($mode, self::ROUNDING_MODES, strict: true)) {
+            throw new RangeError("Invalid roundingMode \"{$mode}\".");
+        }
+    }
+
+    /**
+     * Coerces a mixed roundingIncrement option to an integer per the universal
+     * coercion contract: int/float/bool/numeric-string coerce (a non-finite
+     * float is rejected); a {@see \Stringable} object stringifies then validates;
+     * a non-numeric string, any other object, an array, or null is rejected.
+     *
+     * @throws RangeError if the value cannot be coerced to a finite number.
+     */
+    private static function coerceRoundingIncrement(mixed $value): int
+    {
+        if (is_int($value)) {
+            return $value;
+        }
+        if (is_bool($value)) {
+            return (int) $value;
+        }
+        if (is_float($value)) {
+            if (!is_finite($value)) {
+                throw new RangeError('roundingIncrement must be a finite number.');
+            }
+            return (int) $value;
+        }
+        if (is_string($value) || $value instanceof Stringable) {
+            $str = (string) $value;
+            if (!is_numeric($str)) {
+                throw new RangeError('roundingIncrement must be a number.');
+            }
+            $floatVal = (float) $str;
+            if (!is_finite($floatVal)) {
+                throw new RangeError('roundingIncrement must be a finite number.');
+            }
+            return (int) $floatVal;
+        }
+        throw new RangeError('roundingIncrement must be a number.');
+    }
+
     /**
      * Parses an offset string captured by the regex into [sign, absSec, fracNs].
      *
@@ -1198,7 +1284,7 @@ final class Instant implements Stringable
      *   ±HHMM  | ±HHMMSS[.,f]         → no separators
      *
      * @return array{-1|1, int<0, 86399>, int<0, 999999999>}  [sign (+1|-1), absSec, fracNs]
-     * @throws InvalidArgumentException if the offset is out of range
+     * @throws RangeError if the offset is out of range
      */
     private static function parseOffset(string $offset, string $original): array
     {
@@ -1243,7 +1329,7 @@ final class Instant implements Stringable
 
         $absSec = ($hours * 3600) + ($minutes * 60) + $seconds;
         if ((($absSec * self::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
-            throw new InvalidArgumentException("Invalid Instant string \"{$original}\": UTC offset out of range.");
+            throw new RangeError("Invalid Instant string \"{$original}\": UTC offset out of range.");
         }
         /** @var int<0, 86399> $absSec — range validated above */
 
@@ -1262,7 +1348,7 @@ final class Instant implements Stringable
      *
      * Non-critical unknown annotations and calendar annotations are ignored.
      *
-     * @throws InvalidArgumentException on any violation.
+     * @throws RangeError on any violation.
      */
     /**
      * Strips the leading separator and truncates/pads the fractional-second
@@ -1292,7 +1378,7 @@ final class Instant implements Stringable
      * The tie-breaking half-modes (halfExpand, halfCeil, halfTrunc, halfFloor,
      * halfEven) use the same positive-sign convention.
      *
-     * @throws InvalidArgumentException for unknown rounding modes.
+     * @throws RangeError for unknown rounding modes.
      */
     private static function roundAsIfPositive(int $ns, int $increment, string $mode): int
     {
@@ -1321,7 +1407,7 @@ final class Instant implements Stringable
                 'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
                 'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
                 'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
-                default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+                default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
             };
         }
 
@@ -1336,7 +1422,7 @@ final class Instant implements Stringable
      * Mirrors ZonedDateTime::roundEpochParts(). $subNs must be in [0, 1e9).
      *
      * @return array{int, int} [epochSec, subNs] with subNs in [0, 1e9)
-     * @throws InvalidArgumentException for unknown rounding modes.
+     * @throws RangeError for unknown rounding modes.
      */
     private static function roundEpochParts(int $epochSec, int $subNs, int $increment, string $mode): array
     {
@@ -1368,7 +1454,7 @@ final class Instant implements Stringable
             'halfEven' => ($d1Ns * 2) === $increment
                 ? (intdiv($floorSec, $incSec) % 2) !== 0
                 : ($d1Ns * 2) > $increment,
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+            default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
         };
         return [$expand ? $floorSec + $incSec : $floorSec, 0];
     }
@@ -1392,7 +1478,7 @@ final class Instant implements Stringable
      * the max-sentinel + small-ns overflow case (no PHP_INT_MAX → PHP_INT_MIN
      * wraparound) impossible.
      *
-     * @throws InvalidArgumentException if the resulting instant is outside the Temporal spec range.
+     * @throws RangeError if the resulting instant is outside the Temporal spec range.
      */
     private static function addNsOffset(
         int $epochSec,
@@ -1418,7 +1504,7 @@ final class Instant implements Stringable
         // the integer seconds sum below cannot overflow.
         $specMaxSec = 8_640_000_000_000.0;
         if ($floatDeltaSec > (4.0 * $specMaxSec) || $floatDeltaSec < (-4.0 * $specMaxSec)) {
-            throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+            throw new RangeError('Instant result is outside the representable nanosecond range.');
         }
 
         // Decompose each field into whole seconds + sub-second nanoseconds.
@@ -1493,9 +1579,8 @@ final class Instant implements Stringable
      * @param int $diffSec   Signed whole-second difference (this − other for since, other − this for until).
      * @param int $diffSubNs Signed sub-second nanosecond difference paired with $diffSec.
      * @param array<array-key, mixed>|object|null $options
-     * @throws InvalidArgumentException for invalid unit/mode strings.
-     * @throws InvalidArgumentException for invalid roundingIncrement.
-     * @throws \TypeError for wrong-typed option values.
+     * @throws RangeError for invalid unit/mode strings or invalid roundingIncrement.
+     * @throws TypeError for wrong-typed option values.
      */
     private static function diffInstant(int $diffSec, int $diffSubNs, array|object|null $options): Duration
     {
@@ -1576,16 +1661,16 @@ final class Instant implements Stringable
         $suVal = array_key_exists('smallestUnit', $options) ? $options['smallestUnit'] : null;
 
         if ($luVal !== null && !is_string($luVal)) {
-            throw new \TypeError('largestUnit must be a string.');
+            throw new TypeError('largestUnit must be a string.');
         }
         if ($suVal !== null && !is_string($suVal)) {
-            throw new \TypeError('smallestUnit must be a string.');
+            throw new TypeError('smallestUnit must be a string.');
         }
 
         $suRaw = is_string($suVal) ? $suVal : 'nanosecond';
 
         if (!array_key_exists($suRaw, $unitOrder)) {
-            throw new InvalidArgumentException("Invalid smallestUnit \"{$suRaw}\".");
+            throw new RangeError("Invalid smallestUnit \"{$suRaw}\".");
         }
 
         $suIdx = $unitOrder[$suRaw];
@@ -1593,7 +1678,7 @@ final class Instant implements Stringable
         if ($luProvided) {
             $luRaw = (string) $luVal;
             if (!array_key_exists($luRaw, $unitOrder)) {
-                throw new InvalidArgumentException("Invalid largestUnit \"{$luRaw}\".");
+                throw new RangeError("Invalid largestUnit \"{$luRaw}\".");
             }
             $luIdx = $unitOrder[$luRaw];
         } else {
@@ -1604,29 +1689,26 @@ final class Instant implements Stringable
 
         // smallestUnit must not be larger than largestUnit.
         if ($suIdx > $luIdx) {
-            throw new InvalidArgumentException(
-                "smallestUnit \"{$suRaw}\" must not be larger than largestUnit \"{$luRaw}\".",
-            );
+            throw new RangeError("smallestUnit \"{$suRaw}\" must not be larger than largestUnit \"{$luRaw}\".");
         }
 
         $roundingMode = 'trunc';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $roundingMode = (string) $options['roundingMode'];
+            $roundingMode = self::coerceOptionString($options['roundingMode']);
+            self::validateRoundingMode($roundingMode);
         }
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $increment = (int) $options['roundingIncrement'];
+            $increment = self::coerceRoundingIncrement($options['roundingIncrement']);
         }
         if ($increment < 1) {
-            throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
+            throw new RangeError('roundingIncrement must be a positive integer.');
         }
         $maxInc = $maxIncrementByIndex[$suIdx];
         // increment must evenly divide maxInc AND be strictly less than maxInc.
         if ($increment >= $maxInc || $increment > 1 && ($maxInc % $increment) !== 0) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "roundingIncrement {$increment} is invalid for unit \"{$suRaw}\" (max is {$maxInc}, must divide evenly and be < {$maxInc}).",
             );
         }

@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $minDateTime = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 1);
 $midnight = new \Temporal\Spec\PlainTime();
-Assert::throws(\InvalidArgumentException::class, function () use (&$minDateTime, &$midnight) { return $minDateTime->withPlainTime($midnight); }, '');
+Assert::throws(\RangeException::class, function () use (&$minDateTime, &$midnight) { return $minDateTime->withPlainTime($midnight); }, '');

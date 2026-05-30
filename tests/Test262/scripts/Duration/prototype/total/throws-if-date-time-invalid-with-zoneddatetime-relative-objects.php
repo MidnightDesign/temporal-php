@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
 $relativeTo = \Temporal\Spec\ZonedDateTime::fromInstantParts(8639999999999, 999999999, 'UTC');
 $totalOf = (object) JsUndefined::strip(['unit' => 'years', 'relativeTo' => $relativeTo]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$totalOf) { return $duration->total($totalOf); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration, &$totalOf) { return $duration->total($totalOf); }, '');

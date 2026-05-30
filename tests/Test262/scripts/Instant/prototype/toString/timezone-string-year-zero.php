@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['-000000-10-31T17:45Z', '-000000-10-31T17:45+00:00[UTC]'];
 $instance = new \Temporal\Spec\Instant(0);
 foreach ($invalidStrings as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$timeZone) { return $instance->toString(JsUndefined::strip(['timeZone' => $timeZone])); }, 'reject minus zero as extended year');
+Assert::throws(\RangeException::class, function () use (&$instance, &$timeZone) { return $instance->toString(JsUndefined::strip(['timeZone' => $timeZone])); }, 'reject minus zero as extended year');
 }

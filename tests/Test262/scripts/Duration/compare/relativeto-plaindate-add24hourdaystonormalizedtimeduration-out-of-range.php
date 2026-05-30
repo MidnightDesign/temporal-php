@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $duration1 = \Temporal\Spec\Duration::from(JsUndefined::strip(['years' => 1, 'seconds' => 2 ** 53 - 1]));
 $duration2 = \Temporal\Spec\Duration::from(['years' => 2]);
 $relativeTo = new \Temporal\Spec\PlainDate(2000, 1, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2, &$relativeTo) { return \Temporal\Spec\Duration::compare($duration1, $duration2, JsUndefined::strip(['relativeTo' => $relativeTo])); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration2, &$duration1, &$relativeTo) { return \Temporal\Spec\Duration::compare($duration2, $duration1, JsUndefined::strip(['relativeTo' => $relativeTo])); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration1, &$duration2, &$relativeTo) { return \Temporal\Spec\Duration::compare($duration1, $duration2, JsUndefined::strip(['relativeTo' => $relativeTo])); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration2, &$duration1, &$relativeTo) { return \Temporal\Spec\Duration::compare($duration2, $duration1, JsUndefined::strip(['relativeTo' => $relativeTo])); }, '');

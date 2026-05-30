@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 foreach (['', 'EARLIER', 'balance'] as $disambiguation) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$disambiguation) { return $zdt->with((object) ['day' => 5], (object) JsUndefined::strip(['disambiguation' => $disambiguation])); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt, &$disambiguation) { return $zdt->with((object) ['day' => 5], (object) JsUndefined::strip(['disambiguation' => $disambiguation])); }, '');
 }

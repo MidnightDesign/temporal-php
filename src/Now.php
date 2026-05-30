@@ -42,7 +42,7 @@ final class Now
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
      * @param Calendar    $calendar Calendar system (default ISO 8601).
-     * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws \Temporal\Exception\RangeError if the string is not a valid time zone identifier.
      */
     public static function plainDate(?string $timeZone = null, Calendar $calendar = Calendar::Iso8601): PlainDate
     {
@@ -59,7 +59,7 @@ final class Now
      * Returns the current wall-clock time (no date) in the ISO 8601 calendar.
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
-     * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws \Temporal\Exception\RangeError if the string is not a valid time zone identifier.
      */
     public static function plainTime(?string $timeZone = null): PlainTime
     {
@@ -73,7 +73,7 @@ final class Now
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
      * @param Calendar    $calendar Calendar system (default ISO 8601).
-     * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws \Temporal\Exception\RangeError if the string is not a valid time zone identifier.
      */
     public static function plainDateTime(
         ?string $timeZone = null,
@@ -93,7 +93,7 @@ final class Now
      *
      * @param string|null $timeZone IANA time zone or UTC offset; null uses the system default.
      * @param Calendar    $calendar Calendar system (default ISO 8601).
-     * @throws \InvalidArgumentException if the string is not a valid time zone identifier.
+     * @throws \Temporal\Exception\RangeError if the string is not a valid time zone identifier.
      */
     public static function zonedDateTime(
         ?string $timeZone = null,
