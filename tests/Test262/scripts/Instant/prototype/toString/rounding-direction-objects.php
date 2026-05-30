@@ -8,4 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('Instant epoch nanoseconds exceed PHP int64 range');
+$instance = \Temporal\Spec\Instant::fromEpochParts(-65261246400, 500000000);
+Assert::sameValue($instance->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'floor']), '-000099-12-15T12:00:00Z', 'Rounding down is towards the Big Bang, not the epoch or 1 BCE');
+Assert::sameValue($instance->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'trunc']), '-000099-12-15T12:00:00Z', 'Rounding down is towards the Big Bang, not the epoch or 1 BCE (roundingMode trunc)');
+Assert::sameValue($instance->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'ceil']), '-000099-12-15T12:00:01Z', 'Rounding up is away from the Big Bang, not the epoch or 1 BCE (roundingMode ceil)');
+Assert::sameValue($instance->toString((object) ['smallestUnit' => 'second', 'roundingMode' => 'halfExpand']), '-000099-12-15T12:00:01Z', 'Rounding up is away from the Big Bang, not the epoch or 1 BCE (roundingMode halfExpand)');

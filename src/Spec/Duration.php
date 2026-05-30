@@ -7,6 +7,7 @@ namespace Temporal\Spec;
 use InvalidArgumentException;
 use Stringable;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
+use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
@@ -860,6 +861,18 @@ final class Duration implements Stringable
                 // PlainDate objects are always valid for pure-time computations; no extra validation needed.
             } elseif ($rtRaw instanceof \Temporal\Spec\ZonedDateTime) {
                 // ZonedDateTime objects are valid relativeTo values for pure-time computations.
+                // For a non-blank duration, the target instant (anchor epoch + duration) must
+                // stay within the representable Temporal range (±8.64e21 ns ≙ ±8.64e12 s).
+                // Read the TRUE epoch seconds via epochParts() (sentinel-aware), not the clamped
+                // public epochNanoseconds field.
+                if (!$this->blank) {
+                    [$rtTrueSec, $rtSubNs] = $rtRaw->epochParts();
+                    if (self::zdtTargetOutOfRange($rtTrueSec, $rtSubNs, $this)) {
+                        throw new InvalidArgumentException(
+                            'relativeTo ZonedDateTime is outside the representable range after applying duration.',
+                        );
+                    }
+                }
             } elseif ($rtRaw !== null) {
                 if (is_object($rtRaw)) {
                     $rtForVal = get_object_vars($rtRaw);
@@ -974,6 +987,57 @@ final class Duration implements Stringable
         // Return int when the result is a whole number (matches JS behavior where
         // e.g. 24 hours total('hours') is 24, not 24.0).
         return self::toIntIfWhole($result);
+    }
+
+    /**
+     * Tests whether anchoring the given duration to a ZonedDateTime epoch
+     * (epochSec, subNs) lands outside the representable Temporal range
+     * (±8.64e21 ns ≙ ±8.64e12 s). The comparison is done in (seconds, sub-ns)
+     * integer space so that an over-int64 epoch plus a one-nanosecond duration
+     * is detected exactly — float seconds would lose the +1 ns at this scale.
+     *
+     * Only the time-and-day fields contribute (calendar fields are handled on
+     * the calendar paths before this is reached).
+     */
+    private static function zdtTargetOutOfRange(int $epochSec, int $subNs, self $d): bool
+    {
+        // Duration contribution as whole seconds + residual nanoseconds.
+        // Day/hour/minute/second are whole-second contributions; ms/µs/ns are sub-second.
+        $durSec =
+            ((float) $d->days * 86_400.0)
+            + ((float) $d->hours * 3_600.0)
+            + ((float) $d->minutes * 60.0)
+            + (float) $d->seconds;
+        $durNs =
+            ((float) $d->milliseconds * 1_000_000.0) + ((float) $d->microseconds * 1_000.0) + (float) $d->nanoseconds;
+
+        // Fold whole seconds out of the nanosecond residual.
+        $carrySec = floor($durNs / 1_000_000_000.0);
+        $durSec += $carrySec;
+        $residualNs = $durNs - ($carrySec * 1_000_000_000.0);
+
+        // Target = (epochSec + durSec) seconds and (subNs + residualNs) sub-seconds.
+        $targetSec = (float) $epochSec + $durSec;
+        $targetSubNs = (float) $subNs + $residualNs;
+        $carry = floor($targetSubNs / 1_000_000_000.0);
+        $targetSec += $carry;
+        $targetSubNs -= $carry * 1_000_000_000.0;
+
+        // Out of range when target > (8.64e12 s, 0 ns) or < (-8.64e12 s, 0 ns).
+        if ($targetSec > 8_640_000_000_000.0) {
+            return true;
+        }
+        if ($targetSec === 8_640_000_000_000.0 && $targetSubNs > 0.0) {
+            return true;
+        }
+        if ($targetSec < -8_640_000_000_000.0) {
+            return true;
+        }
+        if ($targetSec === -8_640_000_000_000.0 && $targetSubNs < 0.0) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -1440,6 +1504,10 @@ final class Duration implements Stringable
         // Use start-anchored r2 to match TC39 spec (daysUntil(r1, r2) where
         // r2 = start + (months+1) months, not current + 1 month).
         $r2 = self::addMonthsClamped($start, $sign * ($months + 1));
+        // The r2 boundary may fall beyond the representable ISO date-time range
+        // when the anchor sits near the limit; per TC39 RoundDuration this is a
+        // RangeError (mapped to InvalidArgumentException).
+        self::assertCalendarBoundaryInRange($r2);
         $daysInNextMonth = $current->diff($r2)->days;
 
         if ($zdtInfo !== null) {
@@ -1526,6 +1594,10 @@ final class Duration implements Stringable
         // Use start-anchored r2 to match TC39 spec (daysUntil(r1, r2) where
         // r2 = start + (years+1) years, not current + 1 year).
         $r2 = self::addYearsClamped($start, $sign * ($years + 1));
+        // The r2 boundary may fall beyond the representable ISO date-time range
+        // when the anchor sits near the limit; per TC39 RoundDuration this is a
+        // RangeError (mapped to InvalidArgumentException).
+        self::assertCalendarBoundaryInRange($r2);
         $daysInNextYear = $current->diff($r2)->days;
         // Convert fracNs → ms → fracDays via two exact divisions.
         // Direct division fracNs / (nsPerDay * 365) loses precision (86400e9 * 365 > 2^53).
@@ -2113,6 +2185,30 @@ final class Duration implements Stringable
             return $epoch1 <=> $epoch2;
         }
 
+        // For a ZonedDateTime anchor in a UTC/fixed-offset zone (resolveRelativeToZdt() returns
+        // null for those, so we never reach the DST-aware branch above), TC39 still anchors each
+        // date-category duration to the ZDT epoch via AddZonedDateTime. When either operand has a
+        // date-category largestUnit (non-zero days/weeks/months/years — calendar units are handled
+        // earlier, so days is the live case here), the resulting target instant must stay within
+        // the representable Temporal range (±8.64e12 s). Check both operands independently so the
+        // call carrying the out-of-range duration throws regardless of argument order.
+        if ($rtForCompare instanceof \Temporal\Spec\ZonedDateTime) {
+            // years/months/weeks are known zero here ($hasCalendar was false above), so the only
+            // live date-category field is days.
+            $d1IsDateCategory = $d1->days !== 0;
+            $d2IsDateCategory = $d2->days !== 0;
+            if ($d1IsDateCategory || $d2IsDateCategory) {
+                [$rtTrueSec, $rtSubNs] = $rtForCompare->epochParts();
+                foreach ([$d1, $d2] as $dCheck) {
+                    if (self::zdtTargetOutOfRange($rtTrueSec, $rtSubNs, $dCheck)) {
+                        throw new InvalidArgumentException(
+                            'relativeTo ZonedDateTime is outside the representable range after applying duration.',
+                        );
+                    }
+                }
+            }
+        }
+
         $s1 = $d1->sign;
         $s2 = $d2->sign;
         if ($s1 !== $s2) {
@@ -2409,15 +2505,38 @@ final class Duration implements Stringable
 
         // For ZonedDateTime relativeTo: the result instant must stay within ±8.64e21 ns
         // (the valid Temporal.Instant range). Check zdtEpoch ± duration in seconds.
-        if ($zdtRelativeTo) {
-            /** @var \Temporal\Spec\ZonedDateTime $rtRawForZdt */
-            $zdtEpochNs = $rtRawForZdt->epochNanoseconds;
-            $zdtEpochSec = (float) intdiv(num1: $zdtEpochNs, num2: 1_000_000_000);
+        if ($rtRawForZdt instanceof \Temporal\Spec\ZonedDateTime) {
+            // Use the true-parts accessor (not the clamped public epochNanoseconds field)
+            // so the range guard reflects the real instant for over-int64 anchors.
+            [$zdtTrueSec] = $rtRawForZdt->epochParts();
+            $zdtEpochSec = (float) $zdtTrueSec;
             $zdtResultSec = $zdtEpochSec + ((float) $sign * $totalAbsSec);
             if ($zdtResultSec > 8_640_000_000_000.0 || $zdtResultSec < -8_640_000_000_000.0) {
                 throw new InvalidArgumentException(
                     'Duration with ZonedDateTime relativeTo would move the instant outside the valid range.',
                 );
+            }
+
+            // Next-day boundary guard (mirrors TC39's hoursInDay / day-length computation).
+            // When the largestUnit is days-or-coarser, RoundRelativeDuration must determine the
+            // length of the current day, which requires AddZonedDateTime to find the start of the
+            // NEXT day (and, on the negative edge, the start of the current/prior day). If that
+            // boundary instant falls outside the representable Temporal range it must throw —
+            // independent of the duration's magnitude (so this fires even for a blank duration,
+            // unlike the magnitude-gated guard above).
+            if ($luIdx >= 6) {
+                // For UTC/fixed-offset zones (resolveRelativeToZdt() returns null) the day length
+                // is a fixed 86_400 s, so the next-day start is the day-floored epoch + 86_400 s
+                // and the day start is the day-floor itself. For IANA zones the resolved info
+                // would route through the DST-aware path above; the fixed-offset edge is what the
+                // over-int64 fixtures exercise here.
+                $dayFloorSec = floor($zdtEpochSec / 86_400.0) * 86_400.0;
+                $nextDayStartSec = $dayFloorSec + 86_400.0;
+                if ($nextDayStartSec > 8_640_000_000_000.0 || $dayFloorSec < -8_640_000_000_000.0) {
+                    throw new InvalidArgumentException(
+                        'Duration with ZonedDateTime relativeTo: the day boundary falls outside the valid range.',
+                    );
+                }
             }
         }
 
@@ -2925,13 +3044,10 @@ final class Duration implements Stringable
      */
     private static function zdtToPlainDateBag(\Temporal\Spec\ZonedDateTime $zdt): array
     {
-        // Compute local date from epoch + timezone offset (cannot call private localComponents).
-        $epochNs = $zdt->epochNanoseconds;
-        $epochSec = intdiv($epochNs, num2: 1_000_000_000);
-        $subNs = $epochNs - ($epochSec * 1_000_000_000);
-        if ($subNs < 0) {
-            $epochSec--;
-        }
+        // Compute local date from the TRUE epoch parts (sentinel-aware) + timezone
+        // offset. Reading the clamped epochNanoseconds field would anchor over-int64
+        // relativeTo instants at the year-2262 clamp instead of their real date.
+        [$epochSec] = $zdt->epochParts();
         $tzId = $zdt->timeZoneId;
         $m = null;
         if ($tzId === 'UTC') {
@@ -3510,8 +3626,10 @@ final class Duration implements Stringable
             $y += self::floorDivInt($m - 1, 12);
             $m = (((($m - 1) % 12) + 12) % 12) + 1;
         }
-        // Days in the target month (handles leap years via cal_days_in_month).
-        $daysInMonth = (int) new \DateTimeImmutable("{$y}-{$m}-01 UTC")->format('t');
+        // Days in the target month (handles leap years). Computed via CalendarMath
+        // rather than a string-built DateTimeImmutable so extended (5-/6-digit) years
+        // do not trip "Double timezone specification" parse errors.
+        $daysInMonth = CalendarMath::calcDaysInMonth($y, $m);
         $clampedDay = min($d, $daysInMonth);
         return new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
             ->setDate($y, $m, $clampedDay)
@@ -3532,7 +3650,9 @@ final class Duration implements Stringable
         $y = (int) $date->format('Y') + $years;
         $m = (int) $date->format('n');
         $d = (int) $date->format('j');
-        $daysInMonth = (int) new \DateTimeImmutable("{$y}-{$m}-01 UTC")->format('t');
+        // Computed via CalendarMath (not a string-built DateTimeImmutable) so extended
+        // (5-/6-digit) years do not trip "Double timezone specification" parse errors.
+        $daysInMonth = CalendarMath::calcDaysInMonth($y, $m);
         $clampedDay = min($d, $daysInMonth);
         return new \DateTimeImmutable('now', new \DateTimeZone('UTC'))
             ->setDate($y, $m, $clampedDay)
@@ -3557,13 +3677,10 @@ final class Duration implements Stringable
             if ($tzId === '' || $tzId === 'UTC' || preg_match('/^[+\-]\d{2}:\d{2}$/', $tzId) === 1) {
                 return null;
             }
-            $epochNs = $rt->epochNanoseconds;
-            $epochSec = intdiv($epochNs, num2: 1_000_000_000);
-            $subNs = $epochNs - ($epochSec * 1_000_000_000);
-            if ($subNs < 0) {
-                $epochSec--;
-                $subNs += 1_000_000_000;
-            }
+            // Read the TRUE epoch parts (sentinel-aware) rather than the clamped
+            // epochNanoseconds field, so over-int64 relativeTo anchors resolve to
+            // their real calendar date instead of the year-2262 clamp.
+            [$epochSec, $subNs] = $rt->epochParts();
             // Compute local components via offset.
             $tz = new \DateTimeZone($tzId);
             $offsetSec = $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
@@ -3897,6 +4014,30 @@ final class Duration implements Stringable
                 + self::floorDivInt($yp, 400)
             - 32_045;
         return $jdn - 2_440_588;
+    }
+
+    /**
+     * Throws if the given (extended-year) date lies outside the representable
+     * ISO date-time range (epoch-days in [-100 000 000, +100 000 000]).
+     *
+     * Used to guard the calendar-unit nudge boundaries in totalCalendarYears /
+     * totalCalendarMonths: per TC39 RoundDuration, snapping a near-limit anchor
+     * to the next year/month boundary (r2 = start + (n+1) units) can produce a
+     * date beyond the ISO limit, which must raise a RangeError (mapped here to
+     * InvalidArgumentException).
+     */
+    private static function assertCalendarBoundaryInRange(\DateTimeImmutable $boundary): void
+    {
+        $epochDays = self::isoDateToEpochDays(
+            (int) $boundary->format('Y'),
+            (int) $boundary->format('n'),
+            (int) $boundary->format('j'),
+        );
+        if (abs($epochDays) > 100_000_000) {
+            throw new InvalidArgumentException(
+                'Duration with relativeTo exceeds the maximum representable date range.',
+            );
+        }
     }
 
     /**
@@ -4751,6 +4892,11 @@ final class Duration implements Stringable
         $r2Date = $isYears
             ? self::addYearsClamped($startDate, $sign * $r2)
             : self::addMonthsClamped($startDate, $sign * $r2);
+        // The upper boundary may fall beyond the representable ISO date-time range
+        // when the anchor sits near the limit; per TC39 RoundDuration this is a
+        // RangeError (mapped to InvalidArgumentException). Keeps round() consistent
+        // with the total() calendar path.
+        self::assertCalendarBoundaryInRange($r2Date);
         $r1Days = (int) $startDate->diff($r1Date)->format('%r%a');
         $r2Days = (int) $startDate->diff($r2Date)->format('%r%a');
         if ($zdtInfo !== null) {

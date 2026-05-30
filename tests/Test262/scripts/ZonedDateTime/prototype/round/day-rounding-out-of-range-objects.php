@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+$instance = \Temporal\Spec\ZonedDateTime::fromInstantParts(8640000000000, 0, 'UTC');
+Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->round((object) ['smallestUnit' => 'day']); }, 'Upper bound for rounding is out of range');

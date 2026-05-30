@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $blank = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 $oneDay = new \Temporal\Spec\Duration(0, 0, 0, 1);
-Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+$relativeTo = \Temporal\Spec\ZonedDateTime::fromInstantParts(8640000000000, 0, 'UTC');
+$options = JsUndefined::strip(['relativeTo' => $relativeTo]);
+Assert::throws(\InvalidArgumentException::class, function () use (&$oneDay, &$blank, &$options) { return \Temporal\Spec\Duration::compare($oneDay, $blank, $options); }, '');
+Assert::throws(\InvalidArgumentException::class, function () use (&$blank, &$oneDay, &$options) { return \Temporal\Spec\Duration::compare($blank, $oneDay, $options); }, '');

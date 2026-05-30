@@ -34,32 +34,211 @@ final class Instant implements Stringable
      * @psalm-suppress PropertyNotSetInConstructor — virtual property (get-only hook, no backing store)
      */
     public int $epochMilliseconds {
-        get => CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_MILLISECOND);
+        get {
+            [$epochSec, $subNs] = $this->getEpochParts();
+            // ms = floor(trueNs / 1e6); decompose to avoid an int64-overflowing
+            // intermediate trueNs for over-int64 instants.
+            return ($epochSec * 1_000) + CalendarMath::floorDiv($subNs, self::NS_PER_MILLISECOND);
+        }
     }
 
     /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
     public readonly int $epochNanoseconds;
 
     /**
-     * @param int|float $epochNanoseconds Nanoseconds since the Unix epoch.
-     *        Must be a finite integer value within the PHP int64 range.
-     *        Finite float values representing out-of-range integers throw InvalidArgumentException.
-     * @throws InvalidArgumentException if a float value is not a finite integer or exceeds int64.
+     * True UTC epoch seconds — set when {@see $epochNanoseconds} is a sentinel
+     * (PHP_INT_MIN/MAX) because the actual value overflows int64 nanoseconds.
+     * Mirrors ZonedDateTime's design so over-int64 (but in-spec) instants
+     * survive construction, arithmetic, and conversion without clamping.
      */
-    public function __construct(int|float $epochNanoseconds)
+    private ?int $trueEpochSec = null;
+
+    /** Sub-second nanoseconds (0–999_999_999) paired with $trueEpochSec. */
+    private int $trueSubNs = 0;
+
+    /**
+     * @param int|float|string $epochNanoseconds Nanoseconds since the Unix epoch.
+     *        An int is taken verbatim. A finite integer-valued float or a decimal
+     *        integer string may exceed the PHP int64 range; when it is still within
+     *        the valid Temporal range (±8.64e21 ns) it is stored as an over-int64
+     *        sentinel + true parts (see {@see fromEpochParts()}). A decimal string
+     *        is decomposed exactly so the over-int64 value is preserved without
+     *        float-precision loss.
+     * @throws InvalidArgumentException if a float value is not a finite integer,
+     *         a string is not a decimal integer, or the value is outside the
+     *         representable Temporal nanosecond range.
+     */
+    public function __construct(int|float|string $epochNanoseconds)
     {
+        if (is_string($epochNanoseconds)) {
+            // Exact decomposition of a (possibly over-int64) decimal integer string
+            // into floor epoch-seconds + sub-second nanoseconds, preserving full
+            // precision the lossy float path cannot.
+            if (preg_match('/^[+-]?\d+$/', $epochNanoseconds) !== 1) {
+                throw new InvalidArgumentException('epochNanoseconds string must be a decimal integer.');
+            }
+            [$sec, $subNs] = self::decimalStringToEpochParts($epochNanoseconds);
+            [$this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs] = self::normalizeEpochParts($sec, $subNs);
+            return;
+        }
         if (is_float($epochNanoseconds)) {
             if (!is_finite($epochNanoseconds) || floor($epochNanoseconds) !== $epochNanoseconds) {
                 throw new InvalidArgumentException('epochNanoseconds must be a finite integer value.');
             }
             // (float) PHP_INT_MAX rounds up to 2^63 > PHP_INT_MAX due to float64 precision.
-            // Any float larger than 9.2e18 is outside int64 range and thus outside the spec range.
+            // A float beyond int64 may still be a valid over-int64 instant (|ns| ≤ 8.64e21):
+            // decompose it in the float domain and route through the sentinel path.
             if ($epochNanoseconds > (float) PHP_INT_MAX || $epochNanoseconds < (float) PHP_INT_MIN) {
-                throw new InvalidArgumentException('epochNanoseconds value exceeds the PHP int64 range.');
+                $secFloat = floor($epochNanoseconds / 1e9);
+                $sec = (int) $secFloat;
+                $subNs = (int) ($epochNanoseconds - ($secFloat * 1e9));
+                [$this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs] = self::normalizeEpochParts(
+                    $sec,
+                    $subNs,
+                );
+                return;
             }
             $epochNanoseconds = (int) $epochNanoseconds;
         }
         $this->epochNanoseconds = $epochNanoseconds;
+    }
+
+    /**
+     * Decomposes a decimal-integer nanosecond string into floor epoch-seconds and
+     * sub-second nanoseconds in [0, 1e9) using exact string/integer math.
+     *
+     * @return array{int, int} [epochSec, subNs]
+     */
+    private static function decimalStringToEpochParts(string $decimal): array
+    {
+        $negative = $decimal[0] === '-';
+        $digits = ltrim($decimal, characters: '+-');
+        $digits = ltrim($digits, characters: '0');
+        if ($digits === '') {
+            return [0, 0];
+        }
+        // Split off the last 9 digits as the sub-second nanosecond magnitude.
+        if (strlen($digits) <= 9) {
+            $secMagnitude = 0;
+            $subMagnitude = (int) $digits;
+        } else {
+            $secMagnitude = (int) substr($digits, offset: 0, length: -9);
+            $subMagnitude = (int) substr($digits, offset: -9);
+        }
+        if (!$negative) {
+            return [$secMagnitude, $subMagnitude];
+        }
+        // Negative: floor toward -inf. -(sec.frac) = -(sec) - frac; floor folds the
+        // fractional part down by one second when it is non-zero.
+        if ($subMagnitude === 0) {
+            return [-$secMagnitude, 0];
+        }
+        return [-$secMagnitude - 1, self::NS_PER_SECOND - $subMagnitude];
+    }
+
+    /**
+     * Normalizes true epoch parts and resolves the public {@see $epochNanoseconds}
+     * field value (a sentinel for over-int64 instants) plus the true parts. Shared
+     * by the constructor and {@see fromEpochParts()} so normalization, the spec
+     * range check, and the over-int64 sentinel rule live in one place.
+     *
+     * @return array{int, ?int, int} [epochNanoseconds, trueEpochSec, trueSubNs];
+     *         trueEpochSec is null when the value fits int64 exactly.
+     * @throws InvalidArgumentException if the result is outside the representable Temporal range.
+     */
+    private static function normalizeEpochParts(int $epochSec, int $subNs): array
+    {
+        // Normalize sub-second nanoseconds into [0, 1e9).
+        if ($subNs < 0 || $subNs >= self::NS_PER_SECOND) {
+            $carry = CalendarMath::floorDiv($subNs, self::NS_PER_SECOND);
+            $epochSec += $carry;
+            $subNs -= $carry * self::NS_PER_SECOND;
+        }
+
+        $maxSec = 8_640_000_000_000;
+        if ($epochSec < -$maxSec || $epochSec > $maxSec || $epochSec === $maxSec && $subNs > 0) {
+            throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+        }
+
+        // When the full nanosecond value fits int64, store it exactly; otherwise
+        // clamp the public field to a sentinel and carry the true parts.
+        $maxSecForNs = 9_223_372_035;
+        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
+            return [$epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX, $epochSec, $subNs];
+        }
+        return [($epochSec * self::NS_PER_SECOND) + $subNs, null, 0];
+    }
+
+    /**
+     * Creates an Instant from true UTC epoch seconds and sub-second nanoseconds,
+     * preserving the true value when it overflows int64 by clamping the public
+     * {@see $epochNanoseconds} field to a sentinel while storing the true parts.
+     *
+     * Mirrors ZonedDateTime::fromEpochParts(). The seam used by the constructor
+     * paths, arithmetic, rounding, and the toInstant()/toZonedDateTimeISO()
+     * converters so every over-int64 instant carries its true value.
+     *
+     * The test262 transpiler renders over-int64 BigInt epoch-seconds (only ever
+     * produced for deliberately out-of-range fixtures, since every valid instant's
+     * epochSec ≤ 8.64e12 fits int64) as PHP float literals, so $epochSec/$subNs
+     * accept int|float. A finite over-int64 float epoch-second is always outside the
+     * spec range and therefore throws InvalidArgumentException — never a TypeError.
+     *
+     * @internal
+     * @psalm-internal Temporal\Spec
+     * @throws InvalidArgumentException if a part is a non-integer float or the result
+     *         is outside the representable Temporal range.
+     */
+    public static function fromEpochParts(int|float $epochSec, int|float $subNs): self
+    {
+        // Spec range: |epochNs| ≤ 8_640_000_000_000 × 10⁹. Out-of-range results
+        // throw InvalidArgumentException — the project's range-violation type,
+        // to which the test262 transpiler maps the JS-spec RangeError. Normalization,
+        // the range check, and the over-int64 sentinel are shared with the
+        // constructor via normalizeEpochParts().
+        $maxSec = 8_640_000_000_000;
+        if (is_float($epochSec)) {
+            // A finite over-int64 float epochSec cannot be in the ±8.64e12 s spec
+            // range, so it is unconditionally out of range. (float)PHP_INT_MAX rounds
+            // up past PHP_INT_MAX, so compare against the spec bound directly.
+            if (!is_finite($epochSec) || $epochSec > (float) $maxSec || $epochSec < -(float) $maxSec) {
+                throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+            }
+            $epochSec = (int) $epochSec;
+        }
+        if (is_float($subNs)) {
+            if (
+                !is_finite($subNs)
+                || floor($subNs) !== $subNs
+                || $subNs > (float) PHP_INT_MAX
+                || $subNs < (float) PHP_INT_MIN
+            ) {
+                throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
+            }
+            $subNs = (int) $subNs;
+        }
+
+        [$epochNs, $trueSec, $trueSubNs] = self::normalizeEpochParts($epochSec, $subNs);
+        $self = new self($epochNs);
+        $self->trueEpochSec = $trueSec;
+        $self->trueSubNs = $trueSubNs;
+        return $self;
+    }
+
+    /**
+     * Returns the true UTC epoch seconds and sub-second nanoseconds, handling
+     * sentinel {@see $epochNanoseconds} values transparently.
+     *
+     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
+     */
+    private function getEpochParts(): array
+    {
+        if ($this->trueEpochSec !== null) {
+            return [$this->trueEpochSec, $this->trueSubNs];
+        }
+        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
+        return [$epochSec, $subNs];
     }
 
     // -------------------------------------------------------------------------
@@ -93,7 +272,8 @@ final class Instant implements Stringable
     public static function from(string|object $item): self
     {
         if ($item instanceof self) {
-            return new self($item->epochNanoseconds);
+            [$epochSec, $subNs] = $item->getEpochParts();
+            return self::fromEpochParts($epochSec, $subNs);
         }
         if (!is_string($item)) {
             throw new InvalidArgumentException(sprintf(
@@ -236,21 +416,11 @@ final class Instant implements Stringable
         }
 
         // For dates far from the Unix epoch (years roughly outside 1678–2262),
-        // utcEpochSec × NS_PER_SECOND would overflow PHP's int64. We guard with
-        // a hardcoded threshold of 9_223_372_035 — one less than
-        // intdiv(PHP_INT_MAX, NS_PER_SECOND) = 9_223_372_036 — so that the full
-        // product plus the maximum baseNs (999_999_999) stays within int64
-        // (9_223_372_035 × 10⁹ + 999_999_999 = 9_223_372_035_999_999_999 < PHP_INT_MAX).
-        // Dates beyond the threshold use a saturated sentinel so that from() does
-        // not throw for spec-valid but int64-unrepresentable instants.
-        $maxSecForNs = 9_223_372_035;
-        if ($utcEpochSec > $maxSecForNs || $utcEpochSec < -$maxSecForNs) {
-            $epochNs = $utcEpochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-        } else {
-            $epochNs = ($utcEpochSec * self::NS_PER_SECOND) + $baseNs;
-        }
-
-        return new self($epochNs);
+        // utcEpochSec × NS_PER_SECOND would overflow PHP's int64. fromEpochParts()
+        // stores the public field as a saturated sentinel while preserving the
+        // true epoch seconds / sub-ns, so spec-valid but int64-unrepresentable
+        // instants survive construction intact.
+        return self::fromEpochParts($utcEpochSec, $baseNs);
     }
 
     /**
@@ -280,10 +450,14 @@ final class Instant implements Stringable
             );
         }
         // Guard against int64 overflow when multiplying ms × 10^6 to get nanoseconds.
-        // Threshold: floor(PHP_INT_MAX / NS_PER_MILLISECOND) = 9_223_372_036_854
+        // Threshold: floor(PHP_INT_MAX / NS_PER_MILLISECOND) = 9_223_372_036_854.
+        // Beyond it, decompose into (epochSec, subNs) and let fromEpochParts()
+        // store the true value behind a saturated sentinel.
         $threshold = 9_223_372_036_854;
         if ($epochMilliseconds > $threshold || $epochMilliseconds < -$threshold) {
-            return new self($epochMilliseconds < 0 ? PHP_INT_MIN : PHP_INT_MAX);
+            $epochSec = CalendarMath::floorDiv($epochMilliseconds, 1_000);
+            $subMs = $epochMilliseconds - ($epochSec * 1_000);
+            return self::fromEpochParts($epochSec, $subMs * self::NS_PER_MILLISECOND);
         }
         return new self($epochMilliseconds * self::NS_PER_MILLISECOND);
     }
@@ -307,7 +481,10 @@ final class Instant implements Stringable
     {
         $a = $one instanceof self ? $one : self::coerceToInstant($one);
         $b = $two instanceof self ? $two : self::coerceToInstant($two);
-        return $a->epochNanoseconds <=> $b->epochNanoseconds;
+        [$aSec, $aSubNs] = $a->getEpochParts();
+        [$bSec, $bSubNs] = $b->getEpochParts();
+        $cmp = $aSec <=> $bSec;
+        return $cmp !== 0 ? $cmp : $aSubNs <=> $bSubNs;
     }
 
     /**
@@ -340,10 +517,10 @@ final class Instant implements Stringable
      */
     public function equals(string|object $other): bool
     {
-        return (
-            $this->epochNanoseconds
-            === ($other instanceof self ? $other : self::coerceToInstant($other))->epochNanoseconds
-        );
+        $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
+        [$aSec, $aSubNs] = $this->getEpochParts();
+        [$bSec, $bSubNs] = $otherInst->getEpochParts();
+        return $aSec === $bSec && $aSubNs === $bSubNs;
     }
 
     /**
@@ -469,19 +646,18 @@ final class Instant implements Stringable
         }
         // For 'auto' ($digits === -2), increment stays 1 (no rounding).
 
-        // Round using RoundNumberToIncrementAsIfPositive.
-        $ns = $increment === 1
-            ? $this->epochNanoseconds
-            : self::roundAsIfPositive($this->epochNanoseconds, $increment, $roundMode);
-
-        // Extract whole UTC seconds and sub-second nanoseconds.
-        $secs = CalendarMath::floorDiv($ns, self::NS_PER_SECOND);
+        // Round using RoundNumberToIncrementAsIfPositive, decomposed into
+        // (seconds, sub-ns) so the combined nanosecond value never has to fit
+        // int64 — keeping over-int64 instants intact.
+        [$trueSec, $trueSubNs] = $this->getEpochParts();
+        [$secs, $subNs] = $increment === 1
+            ? [$trueSec, $trueSubNs]
+            : self::roundEpochParts($trueSec, $trueSubNs, $increment, $roundMode);
 
         // For IANA timezones, compute the offset at this epoch.
         if ($ianaTimeZone !== null) {
             $tzOffsetSec = self::ianaOffsetSeconds($ianaTimeZone, $secs);
         }
-        $subNs = $ns - ($secs * self::NS_PER_SECOND); // always 0–999_999_999
 
         // Apply timezone offset to get local datetime.
         $localSecs = $tzOffsetSec !== null ? $secs + $tzOffsetSec : $secs;
@@ -499,11 +675,25 @@ final class Instant implements Stringable
             $tzSuffix = sprintf('%s%02d:%02d', $tzSign, $tzH, $tzM);
         }
 
+        // Year formatting: normal 4-digit, extended ±YYYYYY when out of range.
+        // PHP's 'Y' format token does not emit the signed 6-digit extended form
+        // the spec requires for years <0 or >9999 (now reachable since the true
+        // value is preserved beyond the int64-clamp).
+        $year = (int) $dt->format('Y');
+        if ($year < 0) {
+            $yearStr = sprintf('-%06d', abs($year));
+        } elseif ($year > 9999) {
+            $yearStr = sprintf('+%06d', $year);
+        } else {
+            $yearStr = sprintf('%04d', $year);
+        }
+        $datePart = $yearStr . $dt->format('-m-d');
+
         if ($isMinute) {
-            return $dt->format('Y-m-d\TH:i') . $tzSuffix;
+            return $datePart . $dt->format('\TH:i') . $tzSuffix;
         }
 
-        $base = $dt->format('Y-m-d\TH:i:s');
+        $base = $datePart . $dt->format('\TH:i:s');
 
         if ($digits === -2) {
             // 'auto': strip trailing zeros.
@@ -697,7 +887,7 @@ final class Instant implements Stringable
 
         $opts['_locale'] = $locale;
         $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
-        $seconds = intdiv(num1: $this->epochNanoseconds, num2: self::NS_PER_SECOND);
+        [$seconds] = $this->getEpochParts();
         $result = $formatter->format($seconds);
 
         return $result !== false ? $result : $this->toString();
@@ -714,7 +904,8 @@ final class Instant implements Stringable
     public function toZonedDateTimeISO(string $timeZone): ZonedDateTime
     {
         $tzId = self::parseTimeZoneId($timeZone);
-        return new ZonedDateTime($this->epochNanoseconds, $tzId);
+        [$epochSec, $subNs] = $this->getEpochParts();
+        return ZonedDateTime::fromInstantParts($epochSec, $subNs, $tzId);
     }
 
     /**
@@ -838,8 +1029,10 @@ final class Instant implements Stringable
                 'Temporal\\Instant::add() does not support calendar fields (years, months, weeks, days).',
             );
         }
+        [$epochSec, $subNs] = $this->getEpochParts();
         return self::addNsOffset(
-            $this->epochNanoseconds,
+            $epochSec,
+            $subNs,
             $d->hours,
             $d->minutes,
             $d->seconds,
@@ -866,8 +1059,10 @@ final class Instant implements Stringable
                 'Temporal\\Instant::subtract() does not support calendar fields (years, months, weeks, days).',
             );
         }
+        [$epochSec, $subNs] = $this->getEpochParts();
         return self::addNsOffset(
-            $this->epochNanoseconds,
+            $epochSec,
+            $subNs,
             -$d->hours,
             -$d->minutes,
             -$d->seconds,
@@ -950,8 +1145,9 @@ final class Instant implements Stringable
         }
 
         $nsIncrement = $nsPerUnit * $increment;
-        $rounded = self::roundAsIfPositive($this->epochNanoseconds, $nsIncrement, $roundingMode);
-        return new self($rounded);
+        [$trueSec, $trueSubNs] = $this->getEpochParts();
+        [$roundedSec, $roundedSubNs] = self::roundEpochParts($trueSec, $trueSubNs, $nsIncrement, $roundingMode);
+        return self::fromEpochParts($roundedSec, $roundedSubNs);
     }
 
     /**
@@ -966,8 +1162,9 @@ final class Instant implements Stringable
     public function since(string|object $other, array|object|null $options = null): Duration
     {
         $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
-        $diffNs = $this->epochNanoseconds - $otherInst->epochNanoseconds;
-        return self::diffInstant($diffNs, $options);
+        [$aSec, $aSubNs] = $this->getEpochParts();
+        [$bSec, $bSubNs] = $otherInst->getEpochParts();
+        return self::diffInstant($aSec - $bSec, $aSubNs - $bSubNs, $options);
     }
 
     /**
@@ -982,8 +1179,9 @@ final class Instant implements Stringable
     public function until(string|object $other, array|object|null $options = null): Duration
     {
         $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
-        $diffNs = $otherInst->epochNanoseconds - $this->epochNanoseconds;
-        return self::diffInstant($diffNs, $options);
+        [$aSec, $aSubNs] = $otherInst->getEpochParts();
+        [$bSec, $bSubNs] = $this->getEpochParts();
+        return self::diffInstant($aSec - $bSec, $aSubNs - $bSubNs, $options);
     }
 
     // -------------------------------------------------------------------------
@@ -1131,17 +1329,74 @@ final class Instant implements Stringable
     }
 
     /**
-     * Computes a new Instant by adding a time-field offset to an epoch-nanoseconds value.
+     * Rounds a true (epochSec, subNs) pair to the nearest multiple of $increment
+     * nanoseconds using RoundNumberToIncrementAsIfPositive, decomposed so the
+     * combined nanosecond value never has to fit int64.
      *
-     * Uses a float approximation for the spec-range check (±8.64e21 ns), then falls
-     * back to a sentinel (PHP_INT_MIN/MAX) when the result fits in the spec but not
-     * in a PHP int64.  The exact integer computation is performed only when the result
-     * is guaranteed to fit.
+     * Mirrors ZonedDateTime::roundEpochParts(). $subNs must be in [0, 1e9).
+     *
+     * @return array{int, int} [epochSec, subNs] with subNs in [0, 1e9)
+     * @throws InvalidArgumentException for unknown rounding modes.
+     */
+    private static function roundEpochParts(int $epochSec, int $subNs, int $increment, string $mode): array
+    {
+        if ($increment === 1) {
+            return [$epochSec, $subNs];
+        }
+
+        if ($increment <= self::NS_PER_SECOND) {
+            // Round the sub-second portion in isolation; carry into seconds.
+            $roundedSubNs = self::roundAsIfPositive($subNs, $increment, $mode);
+            if ($roundedSubNs >= self::NS_PER_SECOND) {
+                $epochSec += intdiv($roundedSubNs, self::NS_PER_SECOND);
+                $roundedSubNs %= self::NS_PER_SECOND;
+            }
+            return [$epochSec, $roundedSubNs];
+        }
+
+        // Minute (or coarser) increment: round in the seconds domain so the
+        // combined nanosecond value never has to fit in int64.
+        $incSec = intdiv($increment, self::NS_PER_SECOND);
+        $floorSec = self::floorToIncrement($epochSec, $incSec);
+        // d1 = distance from the floor multiple, in nanoseconds within [0, increment).
+        $d1Ns = (($epochSec - $floorSec) * self::NS_PER_SECOND) + $subNs;
+        $expand = match ($mode) {
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $d1Ns > 0,
+            'halfExpand', 'halfCeil' => ($d1Ns * 2) >= $increment,
+            'halfTrunc', 'halfFloor' => ($d1Ns * 2) > $increment,
+            'halfEven' => ($d1Ns * 2) === $increment
+                ? (intdiv($floorSec, $incSec) % 2) !== 0
+                : ($d1Ns * 2) > $increment,
+            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+        };
+        return [$expand ? $floorSec + $incSec : $floorSec, 0];
+    }
+
+    /** Largest multiple of $increment ≤ $value. */
+    private static function floorToIncrement(int $value, int $increment): int
+    {
+        $q = intdiv($value, $increment);
+        if (($value - ($q * $increment)) < 0) {
+            $q--;
+        }
+        return $q * $increment;
+    }
+
+    /**
+     * Computes a new Instant by adding a time-field offset to a true (epochSec, subNs) pair.
+     *
+     * All arithmetic is performed in the seconds domain, with sub-second
+     * contributions carried separately, so no combined nanosecond value ever has
+     * to fit int64. This keeps over-int64 (but in-spec) instants exact and makes
+     * the max-sentinel + small-ns overflow case (no PHP_INT_MAX → PHP_INT_MIN
+     * wraparound) impossible.
      *
      * @throws InvalidArgumentException if the resulting instant is outside the Temporal spec range.
      */
     private static function addNsOffset(
-        int $epochNs,
+        int $epochSec,
+        int $subNs,
         int|float $hours,
         int|float $minutes,
         int|float $seconds,
@@ -1149,84 +1404,126 @@ final class Instant implements Stringable
         int|float $microseconds,
         int|float $nanoseconds,
     ): self {
-        // Float approximation — sufficient for spec-range check.
-        $floatDelta =
-            ((float) $hours * 3_600_000_000_000.0)
-            + ((float) $minutes * 60_000_000_000.0)
-            + ((float) $seconds * 1_000_000_000.0)
-            + ((float) $milliseconds * 1_000_000.0)
-            + ((float) $microseconds * 1_000.0)
-            + (float) $nanoseconds;
-        $floatResult = (float) $epochNs + $floatDelta;
-
-        // Spec range: |epochNs| ≤ 8_640_000_000_000 × 10⁹.
-        $specMaxNs = 8_640_000_000_000.0 * 1_000_000_000.0;
-        if ($floatResult > $specMaxNs || $floatResult < -$specMaxNs) {
+        // Float approximation — used only to reject deltas so large their whole-
+        // second magnitude could itself overflow int64 before decomposition.
+        $floatDeltaSec =
+            ((float) $hours * 3_600.0)
+            + ((float) $minutes * 60.0)
+            + (float) $seconds
+            + ((float) $milliseconds / 1_000.0)
+            + ((float) $microseconds / 1_000_000.0)
+            + ((float) $nanoseconds / 1_000_000_000.0);
+        // Spec range in seconds: |epochSec| ≤ 8_640_000_000_000. A delta whose
+        // magnitude exceeds twice that can never land in range; reject early so
+        // the integer seconds sum below cannot overflow.
+        $specMaxSec = 8_640_000_000_000.0;
+        if ($floatDeltaSec > (4.0 * $specMaxSec) || $floatDeltaSec < (-4.0 * $specMaxSec)) {
             throw new InvalidArgumentException('Instant result is outside the representable nanosecond range.');
         }
 
-        // Use sentinel when outside PHP int64 range but within spec range.
-        if ($floatResult > (float) PHP_INT_MAX || $floatResult < (float) PHP_INT_MIN) {
-            return new self($floatResult < 0.0 ? PHP_INT_MIN : PHP_INT_MAX);
-        }
-
-        // Exact integer computation.
+        // Decompose each field into whole seconds + sub-second nanoseconds.
+        // Crucially, ms/us/ns are each split into a whole-second part (added in
+        // the seconds domain) and a sub-second remainder, so that a huge field
+        // value (e.g. microseconds ≈ 9e18) never forms an int64-overflowing
+        // nanosecond product — which would silently wrap and skip the range check.
         $h = (int) $hours;
         $m = (int) $minutes;
         $s = (int) $seconds;
-        $ms = (int) $milliseconds;
-        $us = (int) $microseconds;
-        $ns = (int) $nanoseconds;
 
-        // Exact integer computation. PHP promotes int to float on overflow,
-        // but the range check above already guards against that.
-        $result =
-            $epochNs
-            + $ns
-            + ($us * 1_000)
-            + ($ms * 1_000_000)
-            + ($s * self::NS_PER_SECOND)
-            + ($m * 60 * self::NS_PER_SECOND)
-            + ($h * 3_600 * self::NS_PER_SECOND);
+        // Each sub-second field is split via decomposeUnit(): exact integer math
+        // when the field fits int64 (so values up to 9.2e18 stay precise), or a
+        // float-domain split when the field exceeds int64 (so over-int64-but-in-spec
+        // float fields like nanoseconds ≈ 1.728e22 don't overflow on the int cast).
+        [$msSec, $msSubNs] = self::decomposeUnit($milliseconds, 1_000_000, 1_000);
+        [$usSec, $usSubNs] = self::decomposeUnit($microseconds, 1_000, 1_000_000);
+        [$nsSec, $nsSubNs] = self::decomposeUnit($nanoseconds, 1, 1_000_000_000);
 
-        return new self($result);
+        // Whole-second contribution from every field.
+        $deltaSec = ($h * 3_600) + ($m * 60) + $s + $msSec + $usSec + $nsSec;
+
+        // Sub-second contribution in nanoseconds: each field's remainder is < 1e9 ns
+        // apiece (sum < 3e9, well within int64).
+        $subDeltaNs = $msSubNs + $usSubNs + $nsSubNs;
+
+        // fromEpochParts() normalizes the sub-ns carry and enforces the spec range.
+        return self::fromEpochParts($epochSec + $deltaSec, $subNs + $subDeltaNs);
+    }
+
+    /**
+     * Splits one sub-second duration field into a whole-second part and a
+     * sub-second nanosecond remainder, without ever forming an int64-overflowing
+     * nanosecond product.
+     *
+     * @param int|float $value          The field value (e.g. nanoseconds, microseconds).
+     * @param int       $nsPerUnit      Nanoseconds per one of this unit (ns=1, us=1_000, ms=1_000_000).
+     * @param int       $unitsPerSecond Units of this kind per second (ns=1e9, us=1e6, ms=1e3).
+     * @return array{int, int} [wholeSeconds, subNanoseconds] where subNanoseconds
+     *                         carries the sign of $value and |subNanoseconds| < 1e9.
+     */
+    private static function decomposeUnit(int|float $value, int $nsPerUnit, int $unitsPerSecond): array
+    {
+        // Fast exact path: the field fits int64, so integer division and the
+        // sub-second remainder (always < 1e9 ns) are computed without precision loss.
+        if (is_int($value)) {
+            $whole = CalendarMath::floorDiv($value, $unitsPerSecond);
+            $remainderUnits = $value - ($whole * $unitsPerSecond);
+            return [$whole, $remainderUnits * $nsPerUnit];
+        }
+
+        // Over-int64 float field: split in the float domain. floor() yields the
+        // whole-second count (≤ ~3.46e13 for any in-spec delta, exact in float and
+        // int64), and the remainder stays < 1e9 ns.
+        $wholeFloat = floor($value / (float) $unitsPerSecond);
+        $whole = (int) $wholeFloat;
+        $remainderUnits = $value - ($wholeFloat * (float) $unitsPerSecond);
+        return [$whole, (int) ($remainderUnits * (float) $nsPerUnit)];
     }
 
     /**
      * Core implementation for since() and until().
      *
-     * Rounds and balances a nanosecond difference into a Duration according to
-     * the given options.
+     * Rounds and balances a signed epoch-second / sub-second difference into a
+     * Duration according to the given options. The difference is supplied as a
+     * (seconds, sub-ns) pair rather than a single nanosecond value so that
+     * over-int64 spans survive without clamping.
      *
      * Unit ordering (smallest to largest):
      *   nanosecond < microsecond < millisecond < second < minute < hour
      *
-     * @param int|float $diffNs Signed nanosecond difference (this − other for since, other − this for until).
-     *                         May be float when the subtraction of two int64 sentinels overflows.
+     * @param int $diffSec   Signed whole-second difference (this − other for since, other − this for until).
+     * @param int $diffSubNs Signed sub-second nanosecond difference paired with $diffSec.
      * @param array<array-key, mixed>|object|null $options
      * @throws InvalidArgumentException for invalid unit/mode strings.
      * @throws InvalidArgumentException for invalid roundingIncrement.
      * @throws \TypeError for wrong-typed option values.
      */
-    private static function diffInstant(int|float $diffNs, array|object|null $options): Duration
+    private static function diffInstant(int $diffSec, int $diffSubNs, array|object|null $options): Duration
     {
-        // If diffNs is a float (int64 overflow), clamp it to the spec range for balancing.
-        if (is_float($diffNs)) {
-            $specMaxNs = 8_640_000_000_000.0 * 1_000_000_000.0;
-            if ($diffNs > $specMaxNs) {
-                $diffNs = (int) $specMaxNs;
-            } elseif ($diffNs < -$specMaxNs) {
-                $diffNs = (int) -$specMaxNs;
+        // Normalize to true signed seconds with sub-ns in [0, 1e9). Then derive
+        // a signed magnitude so the whole diff is represented as (sign, absSec,
+        // absSubNs) — never a single int64 nanosecond value, so over-int64
+        // spans survive intact.
+        if ($diffSubNs < 0 || $diffSubNs >= self::NS_PER_SECOND) {
+            $carry = CalendarMath::floorDiv($diffSubNs, self::NS_PER_SECOND);
+            $diffSec += $carry;
+            $diffSubNs -= $carry * self::NS_PER_SECOND;
+        }
+        // Sign of the whole diff (subNs is now ≥ 0, so the diff is negative iff
+        // diffSec < 0, zero iff both parts are zero).
+        if ($diffSec < 0) {
+            $diffSign = -1;
+            // Magnitude of a negative value: -(diffSec*1e9 + diffSubNs).
+            if ($diffSubNs > 0) {
+                $absSec = -($diffSec + 1);
+                $absSubNs = self::NS_PER_SECOND - $diffSubNs;
             } else {
-                // Values at ≥2^63 in float notation can wrap when cast to int.
-                if ($diffNs >= 9_223_372_036_854_775_808.0) {
-                    $diffNs = PHP_INT_MAX;
-                } elseif ($diffNs <= -9_223_372_036_854_775_808.0) {
-                    $diffNs = PHP_INT_MIN + 1;
-                } else {
-                    $diffNs = (int) $diffNs;
-                }
+                $absSec = -$diffSec;
+                $absSubNs = 0;
             }
+        } else {
+            $diffSign = $diffSec > 0 || $diffSubNs > 0 ? 1 : 0;
+            $absSec = $diffSec;
+            $absSubNs = $diffSubNs;
         }
         // Unit name → index (0 = smallest).
         $unitOrder = [
@@ -1335,13 +1632,13 @@ final class Instant implements Stringable
         }
 
         // ---- Round ----
-        // Round on the absolute magnitude. For directional modes (floor, ceil,
-        // halfFloor, halfCeil), negate the mode when the diff is negative so that
-        // e.g. floor(-376435.5h) = -376436h (toward -∞) rather than -376435h.
-        // This matches TC39 DifferenceInstant step 15 (NegateTemporalRoundingMode).
+        // Round on the absolute magnitude, decomposed into (seconds, sub-ns) so
+        // the combined nanosecond value never has to fit int64. For directional
+        // modes (floor, ceil, halfFloor, halfCeil), negate the mode when the diff
+        // is negative so that e.g. floor(-376435.5h) = -376436h (toward -∞) rather
+        // than -376435h. Matches TC39 DifferenceInstant step 15
+        // (NegateTemporalRoundingMode).
         $nsInc = $nsPerUnitByIndex[$suIdx] * $increment;
-        $diffSign = $diffNs <=> 0;
-        $absDiff = $diffNs === PHP_INT_MIN ? PHP_INT_MAX : abs($diffNs);
         $effectiveMode = $roundingMode;
         if ($diffSign < 0) {
             $effectiveMode = match ($roundingMode) {
@@ -1352,22 +1649,21 @@ final class Instant implements Stringable
                 default => $roundingMode,
             };
         }
-        $roundedAbs = $nsInc === 1 ? $absDiff : self::roundAsIfPositive($absDiff, $nsInc, $effectiveMode);
-        $roundedNs = $diffSign * $roundedAbs;
+        [$roundedSec, $roundedSubNs] = $nsInc === 1
+            ? [$absSec, $absSubNs]
+            : self::roundEpochParts($absSec, $absSubNs, $nsInc, $effectiveMode);
 
         // ---- Balance ----
-        // Work with absolute value, restore sign at the end.
-        // abs(PHP_INT_MIN) overflows to float; clamp to PHP_INT_MAX for sentinel support.
-        $sign = $roundedNs <=> 0;
-        $absNs = $roundedNs === PHP_INT_MIN ? PHP_INT_MAX : abs($roundedNs);
+        // The rounded magnitude (roundedSec, roundedSubNs) is non-negative; build
+        // the Duration from the seconds and sub-second parts separately so no
+        // intermediate nanosecond value can overflow int64. Sign restored last.
+        $sign = $diffSign;
 
-        $ns = $absNs;
+        // Sub-second components (ns/us/ms) come entirely from roundedSubNs after
+        // rounding has settled below the second boundary.
+        $ns = $roundedSubNs;
         $us = 0;
         $ms = 0;
-        $s = 0;
-        $min = 0;
-        $h = 0;
-
         if ($luIdx >= 1) { // at least microseconds
             $us = intdiv(num1: $ns, num2: 1_000);
             $ns -= $us * 1_000;
@@ -1376,10 +1672,11 @@ final class Instant implements Stringable
             $ms = intdiv(num1: $us, num2: 1_000);
             $us -= $ms * 1_000;
         }
-        if ($luIdx >= 3) { // at least seconds
-            $s = intdiv(num1: $ms, num2: 1_000);
-            $ms -= $s * 1_000;
-        }
+
+        // Seconds and coarser components come from roundedSec.
+        $s = $roundedSec;
+        $min = 0;
+        $h = 0;
         if ($luIdx >= 4) { // at least minutes
             $min = intdiv(num1: $s, num2: 60);
             $s -= $min * 60;
@@ -1387,6 +1684,20 @@ final class Instant implements Stringable
         if ($luIdx >= 5) { // hours
             $h = intdiv(num1: $min, num2: 60);
             $min -= $h * 60;
+        }
+
+        // When largestUnit is below seconds, fold whole seconds back down into the
+        // largest available sub-second unit (ms/us/ns) so the Duration still
+        // represents the full magnitude.
+        if ($luIdx < 3 && $roundedSec !== 0) {
+            $s = 0;
+            if ($luIdx === 2) {
+                $ms += $roundedSec * 1_000;
+            } elseif ($luIdx === 1) {
+                $us += $roundedSec * 1_000_000;
+            } else {
+                $ns += $roundedSec * 1_000_000_000;
+            }
         }
 
         return new Duration(0, 0, 0, 0, $sign * $h, $sign * $min, $sign * $s, $sign * $ms, $sign * $us, $sign * $ns);

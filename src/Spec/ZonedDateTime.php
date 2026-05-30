@@ -29,6 +29,7 @@ final class ZonedDateTime implements Stringable
     private const int NS_PER_SECOND = 1_000_000_000;
     private const int NS_PER_MILLISECOND = 1_000_000;
     private const int NS_PER_MICROSECOND = 1_000;
+    private const int MS_PER_SECOND = 1_000;
 
     // -------------------------------------------------------------------------
     // Actual stored property
@@ -177,7 +178,10 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $epochMilliseconds {
-        get => CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_MILLISECOND);
+        get {
+            [$epochSec, $subNs] = $this->getEpochParts();
+            return ($epochSec * self::MS_PER_SECOND) + intdiv($subNs, self::NS_PER_MILLISECOND);
+        }
     }
 
     /**
@@ -404,6 +408,14 @@ final class ZonedDateTime implements Stringable
                 $this->resolvedTimeZoneId,
             );
 
+            // Spec (get hoursInDay steps 7-8): GetStartOfDay(today)/GetStartOfDay(tomorrow)
+            // must throw when either boundary falls outside the representable range.
+            if (abs($todayEpochSec) > 8_640_000_000_000 || abs($tomorrowEpochSec) > 8_640_000_000_000) {
+                throw new InvalidArgumentException(
+                    'ZonedDateTime hoursInDay boundary is outside the representable range.',
+                );
+            }
+
             $diffSec = $tomorrowEpochSec - $todayEpochSec;
             $hours = (float) $diffSec / 3600.0;
 
@@ -442,12 +454,16 @@ final class ZonedDateTime implements Stringable
                 }
                 // Check for boundary: reject if at the exact limit with any sub-ns remainder.
                 // Since PHP floats can't distinguish nsMax from nsMax+1, accept only the exact boundary.
+                // Derive the sub-second remainder from the SAME floored second so
+                // negative over-int64 floats don't double-floor (floor() rounds toward
+                // -inf while fmod() truncates toward zero, which would otherwise
+                // decrement $epochSec a second time below).
                 $epochSec = (int) $epochSecF;
-                $subNs = (int) fmod(num1: $epochNanoseconds, num2: 1e9);
-                if ($subNs < 0) {
-                    $epochSec--;
-                    $subNs += self::NS_PER_SECOND;
+                $rem = fmod(num1: $epochNanoseconds, num2: 1e9);
+                if ($rem < 0.0) {
+                    $rem += 1e9;
                 }
+                $subNs = (int) $rem;
                 $this->epochNanoseconds = $epochNanoseconds < 0 ? PHP_INT_MIN : PHP_INT_MAX;
                 $this->trueEpochSec = $epochSec;
                 $this->trueSubNs = $subNs;
@@ -578,7 +594,8 @@ final class ZonedDateTime implements Stringable
      */
     public function toInstant(): Instant
     {
-        return new Instant($this->epochNanoseconds);
+        [$epochSec, $subNs] = $this->getEpochParts();
+        return Instant::fromEpochParts($epochSec, $subNs);
     }
 
     /**
@@ -701,22 +718,14 @@ final class ZonedDateTime implements Stringable
             $ns = $pt->nanosecond;
         }
 
-        // Compute the local wall-clock seconds for the new datetime using the existing ISO date.
+        // Compute the local wall-clock seconds for the new datetime using the existing
+        // ISO date. Build the wall seconds from the integer Julian-day count rather than
+        // a sprintf'd ISO string: a 5-digit (extended) year would be silently mis-parsed
+        // by DateTimeImmutable (e.g. 33658 → 2008), corrupting the date. This mirrors
+        // startOfDay()/with(), which already use the toJulianDay path.
         $lc = $this->localComponents();
-        try {
-            $wallDt = new \DateTimeImmutable(sprintf(
-                '%04d-%02d-%02dT%02d:%02d:%02d+00:00',
-                $lc['year'],
-                $lc['month'],
-                $lc['day'],
-                $h,
-                $m,
-                $s,
-            ));
-        } catch (\Exception) {
-            throw new InvalidArgumentException('ZonedDateTime::withPlainTime() could not construct datetime.');
-        }
-        $wallSec = $wallDt->getTimestamp();
+        $epochDays = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
+        $wallSec = ($epochDays * 86_400) + ($h * 3_600) + ($m * 60) + $s;
 
         // Determine the timezone offset at this new wall-clock second.
         // For a fixed offset timezone we can use it directly; for IANA we need
@@ -995,19 +1004,12 @@ final class ZonedDateTime implements Stringable
             };
         }
 
-        // Round epoch nanoseconds using RoundNumberToIncrementAsIfPositive.
-        $roundedNs = $increment === 1
-            ? $this->epochNanoseconds
-            : self::roundAsIfPositive($this->epochNanoseconds, $increment, $roundMode);
-
-        // Recompute local date/time components from the rounded epoch.
-        $epochSec = CalendarMath::floorDiv($roundedNs, self::NS_PER_SECOND);
-        $maxSecForNsCheck = 9_223_372_035;
-        if ($epochSec > $maxSecForNsCheck || $epochSec < -$maxSecForNsCheck) {
-            $roundedSubNs = 0;
-        } else {
-            $roundedSubNs = $roundedNs - ($epochSec * self::NS_PER_SECOND); // 0–999_999_999
-        }
+        // Round using RoundNumberToIncrementAsIfPositive, operating on the TRUE
+        // epoch parts (sentinel-aware) so out-of-int64 instants render their real
+        // calendar year, matching toLocaleString(). Rounding is decomposed into
+        // (epochSec, subNs) to avoid int64 overflow on the combined nanosecond value.
+        [$trueSec, $trueSubNs] = $this->getEpochParts();
+        [$epochSec, $roundedSubNs] = self::roundEpochParts($trueSec, $trueSubNs, $increment, $roundMode);
 
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
@@ -1321,6 +1323,15 @@ final class ZonedDateTime implements Stringable
             // Compute actual day length for DST-aware day rounding.
             $nextDayWallSec = $midnightWallSec + 86_400;
             $nextDayEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($nextDayWallSec, $this->resolvedTimeZoneId);
+
+            // Spec (round step 18): GetStartOfDay(dateStart)/GetStartOfDay(dateEnd) must
+            // throw when either day boundary falls outside the representable range.
+            if (abs($midnightEpochSec) > 8_640_000_000_000 || abs($nextDayEpochSec) > 8_640_000_000_000) {
+                throw new InvalidArgumentException(
+                    'ZonedDateTime day-rounding boundary is outside the representable range.',
+                );
+            }
+
             $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * self::NS_PER_SECOND;
 
             if ($dayLengthNs <= 0) {
@@ -1795,7 +1806,9 @@ final class ZonedDateTime implements Stringable
             return null;
         }
 
-        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+        // Sentinel-aware: derive the transition search anchor from the true epoch
+        // parts, not the clamped epochNanoseconds field.
+        [$epochSec, $subNs] = $this->getEpochParts();
         /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated non-empty in constructor */
         $tz = new \DateTimeZone($this->resolvedTimeZoneId);
 
@@ -1812,6 +1825,15 @@ final class ZonedDateTime implements Stringable
                 $curOffset = $transitions[$i]['offset'];
                 if ($curOffset !== $prevOffset) {
                     $ts = $transitions[$i]['ts'];
+                    // A transition whose nanoseconds would overflow the int64
+                    // epochNanoseconds field is not representable: return null per spec
+                    // (and avoid the int64 overflow that $ts * NS_PER_SECOND would hit).
+                    // The constraint is the field limit (PHP_INT_MAX / NS_PER_SECOND),
+                    // not the spec-max instant in seconds — a transition below the latter
+                    // can still clamp the field and become indistinguishable.
+                    if (abs($ts) > intdiv(PHP_INT_MAX, self::NS_PER_SECOND)) {
+                        return null;
+                    }
                     return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
                 }
                 $prevOffset = $curOffset;
@@ -1830,7 +1852,7 @@ final class ZonedDateTime implements Stringable
         // the following entry (= an actual UTC offset transition).
         // Skip index 0 (initial state).
         // A transition at exactly the current epoch nanosecond is NOT "previous".
-        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
+        // ($subNs comes from getEpochParts() above — sentinel-aware.)
         $candidateTs = null;
         for ($i = count($transitions) - 1; $i >= 1; $i--) {
             $ts = $transitions[$i]['ts'];
@@ -1844,6 +1866,14 @@ final class ZonedDateTime implements Stringable
         if ($candidateTs === null) {
             return null;
         }
+        // Symmetric with the 'next' branch: a transition whose nanoseconds would
+        // overflow the int64 epochNanoseconds field is not representable (the field
+        // would clamp to PHP_INT_MAX/MIN and become indistinguishable from the anchor),
+        // so there is no in-range previous transition. The constraint is the field limit
+        // (PHP_INT_MAX / NS_PER_SECOND), not the spec-max instant in seconds.
+        if (abs($candidateTs) > intdiv(PHP_INT_MAX, self::NS_PER_SECOND)) {
+            return null;
+        }
         $transNs = $candidateTs * self::NS_PER_SECOND;
         return new self($transNs, $this->timeZoneId, $this->calendarId);
     }
@@ -1851,6 +1881,44 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
+
+    /**
+     * Returns the true UTC epoch seconds and sub-second nanoseconds, handling
+     * sentinel epochNanoseconds values transparently.
+     *
+     * Internal seam for sibling Spec classes (e.g. Duration relativeTo math) that
+     * must read the true instant rather than the clamped public epochNanoseconds
+     * field. Not part of the TC39 public surface.
+     *
+     * @internal
+     * @psalm-internal Temporal\Spec
+     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
+     */
+    public function epochParts(): array
+    {
+        return $this->getEpochParts();
+    }
+
+    /**
+     * Creates a ZonedDateTime from true UTC epoch seconds and sub-second
+     * nanoseconds, preserving over-int64 values behind a sentinel.
+     *
+     * Internal seam for sibling Spec classes (e.g. Instant::toZonedDateTimeISO)
+     * that hold true epoch parts and must hand them across the class boundary
+     * without clamping. Not part of the TC39 public surface.
+     *
+     * @internal
+     * @psalm-internal Temporal\Spec
+     * @throws InvalidArgumentException if the result is outside the representable range.
+     */
+    public static function fromInstantParts(
+        int $epochSec,
+        int $subNs,
+        string $tzId,
+        string $calendarId = 'iso8601',
+    ): self {
+        return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId);
+    }
 
     /**
      * Returns the true UTC epoch seconds and sub-second nanoseconds,
@@ -2772,6 +2840,66 @@ final class ZonedDateTime implements Stringable
      *
      * @throws InvalidArgumentException for unknown rounding modes.
      */
+    /**
+     * Rounds a (epochSec, subNs) pair to a nanosecond increment, sentinel-safe.
+     *
+     * Decomposes the rounding so the combined nanosecond value never has to fit
+     * in int64 (over-int64 instants would otherwise overflow). For increments at
+     * or below one second, only the sub-second portion is rounded (with carry
+     * into the seconds); for the minute increment the whole-second portion is
+     * rounded after folding any sub-second remainder in.
+     *
+     * @param int $subNs 0–999_999_999
+     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
+     */
+    private static function roundEpochParts(int $epochSec, int $subNs, int $increment, string $mode): array
+    {
+        if ($increment === 1) {
+            return [$epochSec, $subNs];
+        }
+
+        if ($increment <= self::NS_PER_SECOND) {
+            // Round the sub-second portion in isolation; carry into seconds.
+            $roundedSubNs = self::roundAsIfPositive($subNs, $increment, $mode);
+            if ($roundedSubNs >= self::NS_PER_SECOND) {
+                $epochSec += intdiv($roundedSubNs, self::NS_PER_SECOND);
+                $roundedSubNs %= self::NS_PER_SECOND;
+            }
+            return [$epochSec, $roundedSubNs];
+        }
+
+        // Minute (or coarser) increment: round in the seconds domain so the
+        // combined nanosecond value never has to fit in int64. epochSec is bounded
+        // by the valid-instant range (~|2.7e14|), so seconds-domain math is safe.
+        // The sub-second remainder only matters at exact-half boundaries, where it
+        // tips the distance strictly past the midpoint (AsIfPositive semantics).
+        $incSec = intdiv($increment, self::NS_PER_SECOND);
+        $floorSec = self::floorToIncrement($epochSec, $incSec);
+        // d1 = distance from the floor multiple, in nanoseconds within [0, increment).
+        $d1Ns = (($epochSec - $floorSec) * self::NS_PER_SECOND) + $subNs;
+        $expand = match ($mode) {
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $d1Ns > 0,
+            'halfExpand', 'halfCeil' => ($d1Ns * 2) >= $increment,
+            'halfTrunc', 'halfFloor' => ($d1Ns * 2) > $increment,
+            'halfEven' => ($d1Ns * 2) === $increment
+                ? (intdiv($floorSec, $incSec) % 2) !== 0
+                : ($d1Ns * 2) > $increment,
+            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+        };
+        return [$expand ? $floorSec + $incSec : $floorSec, 0];
+    }
+
+    /** Largest multiple of $increment ≤ $value. */
+    private static function floorToIncrement(int $value, int $increment): int
+    {
+        $q = intdiv($value, $increment);
+        if (($value - ($q * $increment)) < 0) {
+            $q--;
+        }
+        return $q * $increment;
+    }
+
     private static function roundAsIfPositive(int $ns, int $increment, string $mode): int
     {
         // Integer floor-division: r1 = floor(ns / increment).

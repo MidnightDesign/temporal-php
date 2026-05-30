@@ -1209,21 +1209,11 @@ final class PlainDateTime implements Stringable
 
         $subNs = ($this->millisecond * self::NS_PER_MS) + ($this->microsecond * self::NS_PER_US) + $this->nanosecond;
 
-        // Instant range: |epochNs| ≤ 8_640_000_000_000_000_000_000 (i.e. ±8_640_000_000_000 seconds + 0 sub-ns).
-        $absEpochSec = abs($epochSec);
-        if ($absEpochSec > 8_640_000_000_000 || $absEpochSec === 8_640_000_000_000 && $subNs > 0) {
-            throw new InvalidArgumentException(
-                'PlainDateTime::toZonedDateTime() result is outside the representable Instant range.',
-            );
-        }
-        $maxSecForNs = 9_223_372_035;
-        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
-            $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-        } else {
-            $epochNs = ($epochSec * self::NS_PER_SECOND) + $subNs;
-        }
-
-        return new ZonedDateTime($epochNs, $normalTzId, $this->calendarId);
+        // Route through createFromEpochParts(): it performs the Instant range check
+        // (throwing InvalidArgumentException for |epochNs| > 8.64e21) AND preserves the
+        // true over-int64 epoch in trueEpochSec/trueSubNs, so later ops on a max/min-year
+        // ZDT decode the real instant and throw correctly when the arithmetic overflows.
+        return ZonedDateTime::createFromEpochParts($epochSec, $subNs, $normalTzId, $this->calendarId);
     }
 
     /**

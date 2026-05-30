@@ -44,8 +44,9 @@ const PHP_INT_MIN = -9_223_372_036_854_775_808n;
 
 /** JS error → PHP exception class (fully-qualified). */
 const ERROR_MAP = {
-  RangeError: '\\InvalidArgumentException',
-  TypeError:  '\\TypeError',
+  RangeError:  '\\InvalidArgumentException',
+  SyntaxError: '\\InvalidArgumentException',
+  TypeError:   '\\TypeError',
 };
 
 /** Temporal class methods that have been implemented. */
@@ -205,6 +206,46 @@ const PHP_IMPLEMENTED_METHODS = {
 
 function overflowsInt64(bigint) {
   return bigint > PHP_INT_MAX || bigint < PHP_INT_MIN;
+}
+
+const NS_PER_SECOND_BIG = 1000000000n;
+
+/**
+ * Decompose an over-int64 epoch-nanoseconds BigInt into the (epochSec, subNs)
+ * pair the runtime's true-parts sentinel uses, with floor-toward-negative-
+ * infinity seconds and subNs normalized into [0, 1e9). Both components fit
+ * int64 even when the combined value does not.
+ *
+ * Emitting these exact integer parts (rather than a float literal) is
+ * load-bearing: float64 cannot represent values like 65261246399500000000,
+ * so a float arg would silently lose the sub-second fraction the runtime needs
+ * to round correctly. epochSec/subNs carry the value losslessly.
+ */
+function epochNsToFloorParts(epNsBig) {
+  let epochSec = epNsBig / NS_PER_SECOND_BIG;
+  // BigInt division truncates toward zero; correct to floor toward -inf.
+  if (epNsBig % NS_PER_SECOND_BIG !== 0n && (epNsBig < 0n) !== (NS_PER_SECOND_BIG < 0n)) {
+    epochSec -= 1n;
+  }
+  const subNs = epNsBig - epochSec * NS_PER_SECOND_BIG; // in [0, 1e9)
+  return { epochSec, subNs };
+}
+
+/**
+ * Render `new Instant(epochNs)` / `new ZonedDateTime(epochNs, tz[, cal])` for an
+ * over-int64 epoch as a lossless true-parts factory call. `rest` is the already
+ * transpiled trailing argument list (tz[, cal]) for ZonedDateTime, or '' for
+ * Instant. The fromEpochParts / fromInstantParts seams are @internal but the
+ * generated scripts are excluded from the static analyzers and PHP does not
+ * enforce @internal at runtime, so this is safe in transpiled output.
+ */
+function emitOverInt64Ctor(cls, epNsBig, rest) {
+  const { epochSec, subNs } = epochNsToFloorParts(epNsBig);
+  if (cls === 'Instant') {
+    return `\\Temporal\\Spec\\Instant::fromEpochParts(${epochSec}, ${subNs})`;
+  }
+  // ZonedDateTime: fromInstantParts(epochSec, subNs, tz[, cal])
+  return `\\Temporal\\Spec\\ZonedDateTime::fromInstantParts(${epochSec}, ${subNs}, ${rest})`;
 }
 
 /**
@@ -1138,6 +1179,7 @@ class Emitter {
       // against an impl-returned PHP null.
       case 'undefined': return 'null';
       case 'RangeError': return '\\InvalidArgumentException';
+      case 'SyntaxError': return '\\InvalidArgumentException';
       case 'TypeError':  return '\\TypeError';
       case 'Infinity':   return 'INF';
       case 'NaN':        return 'NAN';
@@ -1806,8 +1848,9 @@ class Emitter {
       if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
         const epNsBig = tryEvalBigInt(node.arguments[0]);
         if (epNsBig !== null && overflowsInt64(epNsBig)) {
-          this.emitIncomplete(`${cls} epoch nanoseconds exceed PHP int64 range`);
-          return null;
+          const rest = node.arguments.length > 1 ? this.transpileArgs(node.arguments.slice(1)) : '';
+          if (rest === null) return null;
+          return emitOverInt64Ctor(cls, epNsBig, rest);
         }
       }
       const args = this.transpileArgs(node.arguments);
@@ -1824,8 +1867,9 @@ class Emitter {
       if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
         const epNsBig = tryEvalBigInt(node.arguments[0]);
         if (epNsBig !== null && overflowsInt64(epNsBig)) {
-          this.emitIncomplete(`${cls} epoch nanoseconds exceed PHP int64 range`);
-          return null;
+          const rest = node.arguments.length > 1 ? this.transpileArgs(node.arguments.slice(1)) : '';
+          if (rest === null) return null;
+          return emitOverInt64Ctor(cls, epNsBig, rest);
         }
       }
       const args = this.transpileArgs(node.arguments);

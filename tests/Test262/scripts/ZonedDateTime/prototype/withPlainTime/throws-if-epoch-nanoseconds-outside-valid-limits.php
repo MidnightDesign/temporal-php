@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+$zdt = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, '-01');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->withPlainTime('00:00'); }, '');
+$zdt = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, '+01');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->withPlainTime('00:00'); }, '');
+$zdt = \Temporal\Spec\ZonedDateTime::fromInstantParts(8640000000000, 0, 'UTC');
+Assert::throws(\InvalidArgumentException::class, function () use (&$zdt) { return $zdt->withPlainTime('01:00'); }, '');
