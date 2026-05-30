@@ -40,7 +40,6 @@ final class IntlCalendarBridge implements CalendarProtocol
         'ethioaa' => 'ethiopic-amete-alem',
         'ethiopic' => 'ethiopic',
         'gregory' => 'gregorian',
-        'indian' => 'indian',
         'islamic-civil' => 'islamic-civil',
         'islamic-tbla' => 'islamic-tbla',
         'islamic-umalqura' => 'islamic-umalqura',
@@ -281,7 +280,6 @@ final class IntlCalendarBridge implements CalendarProtocol
             'roc' => $isoYear >= 1912 ? 'roc' : 'broc',
             'coptic' => 'am',
             'ethioaa' => 'aa',
-            'indian' => 'shaka',
             'persian' => 'ap',
             default => '__icu__',
         };
@@ -295,9 +293,7 @@ final class IntlCalendarBridge implements CalendarProtocol
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
         return match ($this->calendarId) {
             'ethiopic' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'am' : 'aa',
-            'islamic',
             'islamic-civil',
-            'islamic-rgsa',
             'islamic-tbla',
             'islamic-umalqura',
                 => $this->intlCal->get(\IntlCalendar::FIELD_YEAR) >= 1 ? 'ah' : 'bh',
@@ -330,8 +326,8 @@ final class IntlCalendarBridge implements CalendarProtocol
                 ? $this->intlCal->get(self::FIELD_EXTENDED_YEAR)
                 : $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
             'ethioaa' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
-            'indian', 'persian' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
-            'islamic', 'islamic-civil', 'islamic-rgsa', 'islamic-tbla', 'islamic-umalqura' => (function () {
+            'persian' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR),
+            'islamic-civil', 'islamic-tbla', 'islamic-umalqura' => (function () {
                 $year = $this->intlCal->get(\IntlCalendar::FIELD_YEAR);
                 return $year >= 1 ? $year : 1 - $year;
             })(),
@@ -1017,7 +1013,7 @@ final class IntlCalendarBridge implements CalendarProtocol
             'chinese', 'dangi' => $this->hasChineseLeapMonth() ? 13 : 12,
             // These Ethiopic/Coptic-family calendars always have 13 months (12 × 30 + 5/6 epagomenal).
             'coptic', 'ethiopic', 'ethioaa' => 13,
-            // All other calendars (gregory, japanese, buddhist, roc, indian, persian,
+            // All other calendars (gregory, japanese, buddhist, roc, persian,
             // islamic-*) always have 12 months per year.
             default => 12,
         };
@@ -1223,7 +1219,6 @@ final class IntlCalendarBridge implements CalendarProtocol
         'coptic' => ['era0', 'era1', 'am'],
         'ethiopic' => ['era0', 'era1', 'am', 'aa'],
         'ethioaa' => ['era0', 'aa'],
-        'indian' => ['shaka'],
         'islamic-civil' => ['ah', 'bh'],
         'islamic-tbla' => ['ah', 'bh'],
         'islamic-umalqura' => ['ah', 'bh'],
@@ -1264,7 +1259,6 @@ final class IntlCalendarBridge implements CalendarProtocol
             'coptic' => $era === 'era0' ? 1 - $eraYear : $eraYear,
             'ethiopic' => $this->resolveEthiopicEra($era, $eraYear),
             'ethioaa' => $eraYear,
-            'indian' => $eraYear,
             'persian' => $eraYear,
             default => $this->resolveIslamicEra($era, $eraYear),
         };
