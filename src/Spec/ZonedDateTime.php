@@ -1761,10 +1761,10 @@ final class ZonedDateTime implements Stringable
      *
      * Returns null for fixed-offset timezones (UTC, ±HH:MM).
      *
-     * @param string|array<array-key, mixed>|object $direction 'next' or 'previous', or an array with 'direction' key.
+     * @param mixed $direction 'next' or 'previous', or an array/object with a 'direction' key.
      * @psalm-api
      */
-    public function getTimeZoneTransition(string|array|object $direction): ?self
+    public function getTimeZoneTransition(mixed $direction): ?self
     {
         if (func_num_args() === 0) {
             throw new TypeError('ZonedDateTime::getTimeZoneTransition() requires a direction argument.');
@@ -1775,6 +1775,17 @@ final class ZonedDateTime implements Stringable
         // it before get_object_vars() (which would silently yield an empty bag and
         // mis-route to a RangeError).
         if ($direction instanceof \Stringable) {
+            throw new TypeError(
+                'ZonedDateTime::getTimeZoneTransition() direction argument must be a string or options object.',
+            );
+        }
+
+        // Spec: when directionParam is not a String it is passed to GetOptionsObject,
+        // which throws a TypeError for any non-Object, non-undefined value (number,
+        // bigint, boolean, null). Route those through a spec-layer TypeError rather
+        // than letting PHP's parameter-type guard fire (which the test262 runner
+        // treats as a representational artifact, not a faithful TC39 TypeError).
+        if (!is_string($direction) && !is_array($direction) && !is_object($direction)) {
             throw new TypeError(
                 'ZonedDateTime::getTimeZoneTransition() direction argument must be a string or options object.',
             );
