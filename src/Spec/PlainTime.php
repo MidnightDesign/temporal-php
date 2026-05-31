@@ -169,27 +169,31 @@ final class PlainTime implements Stringable
      *   - For PlainTime instances: overflow is ignored.
      *
      * @param self|string|array<array-key, mixed>|object $item PlainTime, ISO 8601 time string, or property-bag array.
-     * @param array<array-key, mixed>|object|null $options Options bag or null; supports 'overflow' key.
+     * @param mixed $options Options bag, null (omitted), or a primitive (TypeError); supports 'overflow' key.
      * @throws RangeError if the string is invalid or any field is out of range.
      * @throws TypeError if the type cannot be interpreted as a PlainTime.
      * @psalm-api
      */
-    public static function from(string|array|object $item, array|object|null $options = null): self
+    public static function from(string|array|object $item, mixed $options = null): self
     {
         if ($item instanceof self) {
-            // Validate overflow option even though it's ignored for PlainTime instances.
-            self::extractOverflow($options);
+            // ToTemporalTime step 2.a: GetOptionsObject then GetTemporalOverflowOption, before cloning.
+            self::extractOverflow(self::requireOptionsObjectOrNull($options));
             return self::fromNs($item->ns);
         }
         if (is_string($item)) {
-            // Overflow option is ignored for strings (per spec), but still validate it.
-            self::extractOverflow($options);
-            return self::fromString($item);
+            // ToTemporalTime "Else" branch: ParseISODateTime (step 3.b) runs BEFORE
+            // GetOptionsObject (step 3.d), so a bad string raises RangeError even when
+            // the options argument is a bad primitive.
+            $result = self::fromString($item);
+            self::extractOverflow(self::requireOptionsObjectOrNull($options));
+            return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
-        $overflow = self::extractOverflow($options);
+        // ToTemporalTime steps 2.c-2.e: read fields then validate options.
+        $overflow = self::extractOverflow(self::requireOptionsObjectOrNull($options));
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -654,6 +658,32 @@ final class PlainTime implements Stringable
             throw new RangeError("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
         }
         return $val;
+    }
+
+    /**
+     * GetOptionsObject for entry points where an omitted argument arrives as PHP null
+     * (the spec-layer sentinel for JS `undefined`). A non-null, non-array, non-object
+     * primitive (int/float/string/bool) — or a Symbol sentinel (a \Stringable whose
+     * __toString throws) — is a spec-layer TypeError, raised here AFTER any string
+     * parse / field read so spec ordering is preserved. null, array and object pass
+     * through to {@see extractOverflow()} unchanged.
+     *
+     * @return array<array-key, mixed>|object|null
+     */
+    private static function requireOptionsObjectOrNull(mixed $options): array|object|null
+    {
+        if ($options === null || is_array($options)) {
+            return $options;
+        }
+        if (is_object($options)) {
+            if ($options instanceof Stringable) {
+                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
+                (string) $options;
+                throw new TypeError('options must be an object.');
+            }
+            return $options;
+        }
+        throw new TypeError('options must be an object.');
     }
 
     /**
