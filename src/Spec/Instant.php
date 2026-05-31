@@ -58,8 +58,9 @@ final class Instant implements Stringable
     private int $trueSubNs = 0;
 
     /**
-     * @param int|float|string $epochNanoseconds Nanoseconds since the Unix epoch.
-     *        An int is taken verbatim. A finite integer-valued float or a decimal
+     * @param int|float|string|bool $epochNanoseconds Nanoseconds since the Unix epoch.
+     *        An int is taken verbatim. A bool is coerced (true→1, false→0) to mirror
+     *        TC39 ToBigInt(boolean). A finite integer-valued float or a decimal
      *        integer string may exceed the PHP int64 range; when it is still within
      *        the valid Temporal range (±8.64e21 ns) it is stored as an over-int64
      *        sentinel + true parts (see {@see fromEpochParts()}). A decimal string
@@ -69,8 +70,12 @@ final class Instant implements Stringable
      *         a string is not a decimal integer, or the value is outside the
      *         representable Temporal nanosecond range.
      */
-    public function __construct(int|float|string $epochNanoseconds)
+    public function __construct(int|float|string|bool $epochNanoseconds)
     {
+        // TC39 coerces the argument with ToBigInt; ToBigInt(true)=1n, ToBigInt(false)=0n.
+        if (is_bool($epochNanoseconds)) {
+            $epochNanoseconds = (int) $epochNanoseconds;
+        }
         if (is_string($epochNanoseconds)) {
             // Exact decomposition of a (possibly over-int64) decimal integer string
             // into floor epoch-seconds + sub-second nanoseconds, preserving full
