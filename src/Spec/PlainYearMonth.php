@@ -226,35 +226,29 @@ final class PlainYearMonth implements Stringable
      * property-bag array with 'year' and 'month'/'monthCode' fields.
      *
      * @param self|string|array<array-key, mixed>|object $item     PlainYearMonth, ISO 8601 year-month string, or property-bag array.
-     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
+     * @param mixed $options Options bag (['overflow' => 'constrain'|'reject']), null/primitive (TypeError), or omitted.
      * @throws RangeError if the string is invalid or overflow option is invalid.
      * @throws TypeError if the type cannot be interpreted as a PlainYearMonth.
      * @psalm-api
      */
-    public static function from(string|array|object $item, array|object|null $options = []): self
+    public static function from(string|array|object $item, mixed $options = []): self
     {
-        // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
-        $opts = self::requireOptionsObject($options);
-
-        // Validate overflow option before processing item (per spec ordering).
-        $overflow = 'constrain';
-        if (array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
-            $overflow = $ov;
+        if (is_string($item)) {
+            // ToTemporalYearMonth: ParseISODateTime (step 4, RangeError) precedes
+            // GetOptionsObject / GetTemporalOverflowOption (steps 8-9), so a bad
+            // string raises RangeError even when the options argument is a bad
+            // primitive. Overflow is irrelevant to a string but is still validated.
+            $result = self::fromString($item);
+            self::resolveOverflowOption($options);
+            return $result;
         }
+
+        // Object/instance/property-bag: GetOptionsObject + GetTemporalOverflowOption
+        // are read before the algorithmic field validation (CalendarYearMonthFromFields).
+        $overflow = self::resolveOverflowOption($options);
 
         if ($item instanceof self) {
             return new self($item->isoYear, $item->isoMonth, $item->calendarId, $item->referenceISODay);
-        }
-        if (is_string($item)) {
-            return self::fromString($item);
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
@@ -1522,6 +1516,36 @@ final class PlainYearMonth implements Stringable
             return get_object_vars($options);
         }
         return $options;
+    }
+
+    /**
+     * GetOptionsObject + GetTemporalOverflowOption: validates the options argument
+     * (TypeError for explicit null / primitive / Symbol sentinel) and the 'overflow'
+     * value (TypeError if non-string, RangeError if not 'constrain'|'reject'), then
+     * returns the resolved overflow. Factored so {@see from()} can run it AFTER
+     * ParseISODateTime on the string-item path per ToTemporalYearMonth ordering.
+     */
+    private static function resolveOverflowOption(mixed $options): string
+    {
+        // GetOptionsObject step 3: any non-null, non-array, non-object primitive
+        // (int/float/string/bool) is a TypeError — raised here (spec-layer origin),
+        // not by from()'s parameter-type guard, so it fires after the string parse.
+        if ($options !== null && !is_array($options) && !is_object($options)) {
+            throw new TypeError('options must be an object.');
+        }
+        $opts = self::requireOptionsObject($options);
+        if (!array_key_exists('overflow', $opts)) {
+            return 'constrain';
+        }
+        /** @var mixed $ov */
+        $ov = $opts['overflow'];
+        if (!is_string($ov)) {
+            throw new TypeError('overflow option must be a string.');
+        }
+        if ($ov !== 'constrain' && $ov !== 'reject') {
+            throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
+        }
+        return $ov;
     }
 
     private static function isoYearMonthWithinLimits(int $year, int $month): bool
