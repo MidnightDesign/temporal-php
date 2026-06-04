@@ -25,4 +25,4 @@ Assert::sameValue($zdt6->hoursInDay, 24, 'March 4 has 24 hours (calculated from 
 Assert::sameValue($zdt7->hoursInDay, 27, 'March 5 has 27 hours (including discontiguous piece of March 4)');
 $startOfMarch4 = \Temporal\Spec\ZonedDateTime::from('2010-03-04T00:00:00+11:00[Antarctica/Casey]');
 $startOfMarch5 = \Temporal\Spec\ZonedDateTime::from('2010-03-05T00:00:00+11:00[Antarctica/Casey]');
-TemporalHelpers::assertZonedDateTimesEqual($startOfMarch4->add(JsUndefined::strip(['hours' => $startOfMarch4->hoursInDay])), $startOfMarch5, 'start of day + hours in day = start of next day');
+TemporalHelpers::assertZonedDateTimesEqual($startOfMarch4->add((object) JsUndefined::strip(['hours' => $startOfMarch4->hoursInDay])), $startOfMarch5, 'start of day + hours in day = start of next day');
