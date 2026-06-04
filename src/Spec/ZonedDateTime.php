@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -475,11 +476,10 @@ final class ZonedDateTime implements Stringable
 
         // Validate 'disambiguation' option if present.
         if ($opts !== null && array_key_exists('disambiguation', $opts)) {
-            /** @var mixed $dv */
-            $dv = $opts['disambiguation'];
-            if (!is_string($dv)) {
-                throw new RangeError('ZonedDateTime::from() disambiguation option must be a string.');
-            }
+            $dv = Options::coerceEnumOption(
+                $opts['disambiguation'],
+                'ZonedDateTime::from() disambiguation option must be a string.',
+            );
             if (!in_array(needle: $dv, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 throw new RangeError(
                     "Invalid disambiguation value \"{$dv}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",
@@ -513,9 +513,7 @@ final class ZonedDateTime implements Stringable
             /** @var mixed $offOpt */
             $offOpt = $opts['offset'];
             if ($offOpt !== null) {
-                if (!is_string($offOpt)) {
-                    throw new TypeError('offset option must be a string.');
-                }
+                $offOpt = Options::coerceEnumOption($offOpt, 'offset option must be a string.');
                 if (!in_array(needle: $offOpt, haystack: ['use', 'ignore', 'prefer', 'reject'], strict: true)) {
                     throw new RangeError(
                         "Invalid offset option \"{$offOpt}\"; must be 'use', 'ignore', 'prefer', or 'reject'.",
@@ -902,11 +900,7 @@ final class ZonedDateTime implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits.
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                /** @var mixed $su */
-                $su = $options['smallestUnit'];
-                if (!is_string($su)) {
-                    throw new TypeError('smallestUnit must be a string.');
-                }
+                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit must be a string.');
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
@@ -919,20 +913,12 @@ final class ZonedDateTime implements Stringable
 
             // roundingMode (default 'trunc').
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                /** @var mixed $rm */
-                $rm = $options['roundingMode'];
-                if (!is_string($rm)) {
-                    throw new TypeError('roundingMode must be a string.');
-                }
+                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
                 $roundMode = $rm;
             }
 
             if (array_key_exists('offset', $options)) {
-                /** @var mixed $ov */
-                $ov = $options['offset'];
-                if (!is_string($ov)) {
-                    throw new TypeError('offset option must be a string.');
-                }
+                $ov = Options::coerceEnumOption($options['offset'], 'offset option must be a string.');
                 if ($ov !== 'auto' && $ov !== 'never') {
                     throw new RangeError("Invalid offset option \"{$ov}\"; must be 'auto' or 'never'.");
                 }
@@ -940,11 +926,7 @@ final class ZonedDateTime implements Stringable
             }
 
             if (array_key_exists('timeZoneName', $options)) {
-                /** @var mixed $tzn */
-                $tzn = $options['timeZoneName'];
-                if (!is_string($tzn)) {
-                    throw new TypeError('timeZoneName option must be a string.');
-                }
+                $tzn = Options::coerceEnumOption($options['timeZoneName'], 'timeZoneName option must be a string.');
                 if ($tzn !== 'auto' && $tzn !== 'never' && $tzn !== 'critical') {
                     throw new RangeError("Invalid timeZoneName option \"{$tzn}\".");
                 }
@@ -952,11 +934,7 @@ final class ZonedDateTime implements Stringable
             }
 
             if (array_key_exists('calendarName', $options)) {
-                /** @var mixed $cn */
-                $cn = $options['calendarName'];
-                if (!is_string($cn)) {
-                    throw new TypeError('calendarName option must be a string.');
-                }
+                $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName option must be a string.');
                 if ($cn !== 'auto' && $cn !== 'always' && $cn !== 'never' && $cn !== 'critical') {
                     throw new RangeError("Invalid calendarName value: \"{$cn}\".");
                 }
@@ -1219,9 +1197,7 @@ final class ZonedDateTime implements Stringable
         if ($suRaw === null) {
             throw new RangeError('Temporal\\ZonedDateTime::round() requires smallestUnit.');
         }
-        if (!is_string($suRaw)) {
-            throw new TypeError('smallestUnit must be a string.');
-        }
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit must be a string.');
 
         // [nsPerUnit, maxIncrement (next-unit size, or 1 for day)]
         $unitMap = [
@@ -1247,11 +1223,7 @@ final class ZonedDateTime implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            /** @var mixed $rmRaw */
-            $rmRaw = $options['roundingMode'];
-            if (!is_string($rmRaw)) {
-                throw new TypeError('roundingMode must be a string.');
-            }
+            $rmRaw = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
             $roundingMode = $rmRaw;
         }
 
@@ -1399,9 +1371,7 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $offOpt */
                 $offOpt = $optArr['offset'];
                 if ($offOpt !== null) {
-                    if (!is_string($offOpt)) {
-                        throw new TypeError('ZonedDateTime::with() offset option must be a string.');
-                    }
+                    $offOpt = Options::coerceEnumOption($offOpt, 'ZonedDateTime::with() offset option must be a string.');
                     if (!in_array($offOpt, ['prefer', 'use', 'ignore', 'reject'], strict: true)) {
                         throw new RangeError(
                             "Invalid offset option \"{$offOpt}\": must be 'prefer', 'use', 'ignore', or 'reject'.",
@@ -3387,8 +3357,8 @@ final class ZonedDateTime implements Stringable
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
-                if ($lu !== null && !is_string($lu)) {
-                    throw new TypeError('largestUnit option must be a string.');
+                if ($lu !== null) {
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
@@ -3410,8 +3380,8 @@ final class ZonedDateTime implements Stringable
             if (array_key_exists('roundingMode', $opts)) {
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
-                if ($rm !== null && !is_string($rm)) {
-                    throw new TypeError('roundingMode option must be a string.');
+                if ($rm !== null) {
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
                     if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
@@ -3424,8 +3394,8 @@ final class ZonedDateTime implements Stringable
             if (array_key_exists('smallestUnit', $opts)) {
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
-                if ($su !== null && !is_string($su)) {
-                    throw new TypeError('smallestUnit option must be a string.');
+                if ($su !== null) {
+                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {
@@ -4254,9 +4224,7 @@ final class ZonedDateTime implements Stringable
         if ($val === null) {
             return 'compatible';
         }
-        if (!is_string($val)) {
-            throw new RangeError('ZonedDateTime disambiguation option must be a string.');
-        }
+        $val = Options::coerceEnumOption($val, 'ZonedDateTime disambiguation option must be a string.');
         if (!in_array(needle: $val, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
             throw new RangeError(
                 "Invalid disambiguation value \"{$val}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",

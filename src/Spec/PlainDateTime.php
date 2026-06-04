@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -811,9 +812,7 @@ final class PlainDateTime implements Stringable
         if ($suRaw === null) {
             throw new RangeError('Temporal\\PlainDateTime::round() requires smallestUnit.');
         }
-        if (!is_string($suRaw)) {
-            throw new TypeError('smallestUnit must be a string.');
-        }
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit must be a string.');
 
         // ns-per-unit and max increment (exclusive) for each unit.
         // For 'day', max = 1 (only increment 1 is valid).
@@ -840,8 +839,7 @@ final class PlainDateTime implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            /** @psalm-suppress MixedArgument */
-            $roundingMode = (string) $options['roundingMode'];
+            $roundingMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
         }
 
         $increment = 1;
@@ -954,11 +952,7 @@ final class PlainDateTime implements Stringable
 
         if ($options !== null) {
             if (array_key_exists('calendarName', $options)) {
-                /** @var mixed $cn */
-                $cn = $options['calendarName'];
-                if (!is_string($cn)) {
-                    throw new TypeError('calendarName option must be a string.');
-                }
+                $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName option must be a string.');
                 $calendarName = $cn;
             }
 
@@ -1004,11 +998,7 @@ final class PlainDateTime implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits.
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                /** @var mixed $su */
-                $su = $options['smallestUnit'];
-                if (!is_string($su)) {
-                    throw new TypeError('smallestUnit must be a string.');
-                }
+                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit must be a string.');
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
@@ -1021,11 +1011,7 @@ final class PlainDateTime implements Stringable
 
             // roundingMode (default 'trunc' for toString).
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                /** @var mixed $rm */
-                $rm = $options['roundingMode'];
-                if (!is_string($rm)) {
-                    throw new TypeError('roundingMode must be a string.');
-                }
+                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
                 $roundMode = $rm;
             }
         }
@@ -1205,21 +1191,21 @@ final class PlainDateTime implements Stringable
         $opts = is_object($options) ? get_object_vars($options) : $options;
 
         // Validate disambiguation option if present.
+        $disambiguation = 'compatible';
         if ($opts !== null && array_key_exists('disambiguation', $opts)) {
-            /** @var mixed $disamb */
-            $disamb = $opts['disambiguation'];
-            if (!is_string($disamb) || !in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
+            $disamb = Options::coerceEnumOption(
+                $opts['disambiguation'],
+                'PlainDateTime::toZonedDateTime() disambiguation option must be a string.',
+            );
+            if (!in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 throw new RangeError(
                     'PlainDateTime::toZonedDateTime() disambiguation must be one of: compatible, earlier, later, reject.',
                 );
             }
+            $disambiguation = $disamb;
         }
 
         $normalTzId = TimeZoneHelper::normalizeTimezoneId($timeZone);
-        $disambiguation = 'compatible';
-        if ($opts !== null && array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
-            $disambiguation = $opts['disambiguation'];
-        }
 
         // Compute wall-clock seconds from epoch days + time-of-day (avoids DateTimeImmutable
         // year-formatting issues with extended years > 9999 or negative years).
@@ -1642,8 +1628,8 @@ final class PlainDateTime implements Stringable
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
-                if ($lu !== null && !is_string($lu)) {
-                    throw new TypeError('largestUnit option must be a string.');
+                if ($lu !== null) {
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
@@ -1665,8 +1651,8 @@ final class PlainDateTime implements Stringable
             if (array_key_exists('roundingMode', $opts)) {
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
-                if ($rm !== null && !is_string($rm)) {
-                    throw new TypeError('roundingMode option must be a string.');
+                if ($rm !== null) {
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
                     if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
@@ -1679,8 +1665,8 @@ final class PlainDateTime implements Stringable
             if (array_key_exists('smallestUnit', $opts)) {
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
-                if ($su !== null && !is_string($su)) {
-                    throw new TypeError('smallestUnit option must be a string.');
+                if ($su !== null) {
+                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {

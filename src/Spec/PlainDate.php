@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -288,11 +289,7 @@ final class PlainDate implements Stringable
         // Validate and extract overflow option (must be done before processing item).
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new RangeError('overflow option must be a string.');
-            }
+            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
             }
@@ -378,11 +375,7 @@ final class PlainDate implements Stringable
         // Validate and extract overflow option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new RangeError('overflow option must be a string.');
-            }
+            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
             }
@@ -657,11 +650,7 @@ final class PlainDate implements Stringable
 
         $calendarName = 'auto';
         if ($opts !== null && array_key_exists('calendarName', $opts)) {
-            /** @var mixed $cn */
-            $cn = $opts['calendarName'];
-            if (!is_string($cn)) {
-                throw new RangeError('calendarName option must be a string.');
-            }
+            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName option must be a string.');
             $calendarName = $cn;
         }
 
@@ -1118,8 +1107,8 @@ final class PlainDate implements Stringable
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
-                if ($lu !== null && !is_string($lu)) {
-                    throw new RangeError('largestUnit option must be a string.');
+                if ($lu !== null) {
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
@@ -1143,8 +1132,8 @@ final class PlainDate implements Stringable
             if (array_key_exists('roundingMode', $opts)) {
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
-                if ($rm !== null && !is_string($rm)) {
-                    throw new RangeError('roundingMode option must be a string.');
+                if ($rm !== null) {
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
                     if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
@@ -1158,8 +1147,8 @@ final class PlainDate implements Stringable
             if (array_key_exists('smallestUnit', $opts)) {
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
-                if ($su !== null && !is_string($su)) {
-                    throw new RangeError('smallestUnit option must be a string.');
+                if ($su !== null) {
+                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {
@@ -1681,11 +1670,7 @@ final class PlainDate implements Stringable
 
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new RangeError('overflow option must be a string.');
-            }
+            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
             }

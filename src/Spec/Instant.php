@@ -10,6 +10,7 @@ use Stringable;
 use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
@@ -1086,9 +1087,7 @@ final class Instant implements Stringable
         if ($suRaw === null) {
             throw new RangeError('Temporal\\Instant::round() requires smallestUnit.');
         }
-        if (!is_string($suRaw)) {
-            throw new TypeError('smallestUnit must be a string.');
-        }
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit must be a string.');
         // Maps unit name → [ns-per-unit, max-increment-divisor (next unit size)]
         $unitMap = [
             'nanosecond' => [1, 86_400_000_000_000],
@@ -1111,11 +1110,7 @@ final class Instant implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $roundTo) && $roundTo['roundingMode'] !== null) {
-            /** @var mixed $rmRaw */
-            $rmRaw = $roundTo['roundingMode'];
-            if (!is_string($rmRaw)) {
-                throw new TypeError('roundingMode must be a string.');
-            }
+            $rmRaw = Options::coerceEnumOption($roundTo['roundingMode'], 'roundingMode must be a string.');
             self::validateRoundingMode($rmRaw);
             $roundingMode = $rmRaw;
         }
@@ -1650,11 +1645,11 @@ final class Instant implements Stringable
         /** @var mixed $suVal */
         $suVal = array_key_exists('smallestUnit', $options) ? $options['smallestUnit'] : null;
 
-        if ($luVal !== null && !is_string($luVal)) {
-            throw new TypeError('largestUnit must be a string.');
+        if ($luVal !== null) {
+            $luVal = Options::coerceEnumOption($luVal, 'largestUnit must be a string.');
         }
-        if ($suVal !== null && !is_string($suVal)) {
-            throw new TypeError('smallestUnit must be a string.');
+        if ($suVal !== null) {
+            $suVal = Options::coerceEnumOption($suVal, 'smallestUnit must be a string.');
         }
 
         $suRaw = is_string($suVal) ? $suVal : 'nanosecond';

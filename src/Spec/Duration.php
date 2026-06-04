@@ -772,7 +772,9 @@ final class Duration implements Stringable
         if (is_array($totalOf)) {
             /** @var mixed $u */
             $u = $totalOf['unit'] ?? '';
-            $unit = is_string($u) ? $u : '';
+            // A present, non-null unit is a string-typed option: ToString-coerce a
+            // Stringable (JsSymbol throws TypeError), reject other types via RangeError.
+            $unit = $u === null ? '' : self::coerceEnumOption($u, 'Unit option must be a string.');
         } else {
             $unit = $totalOf;
         }

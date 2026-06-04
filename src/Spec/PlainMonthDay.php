@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 
 /**
@@ -195,11 +196,7 @@ final class PlainMonthDay implements Stringable
         // Validate overflow option before processing item (per spec ordering).
         $overflow = 'constrain';
         if (array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new TypeError('overflow option must be a string.');
-            }
+            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
             }
@@ -292,11 +289,7 @@ final class PlainMonthDay implements Stringable
         // Validate overflow option.
         $overflow = 'constrain';
         if (array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new TypeError('overflow option must be a string.');
-            }
+            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
             }
@@ -513,11 +506,7 @@ final class PlainMonthDay implements Stringable
 
         $calendarName = 'auto';
         if ($opts !== null && array_key_exists('calendarName', $opts)) {
-            /** @var mixed $cn */
-            $cn = $opts['calendarName'];
-            if (!is_string($cn)) {
-                throw new TypeError('calendarName option must be a string.');
-            }
+            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName option must be a string.');
             $calendarName = $cn;
         }
 

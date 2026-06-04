@@ -465,12 +465,16 @@ final class TemporalHelpers
      * Tests that wrong-type values for a string option cause exceptions, and
      * that the valid value produces the expected result.
      *
-     * Covers the subset of TC39 checkStringOptionWrongType that is testable in PHP:
-     *   - null, true, false, int(2), plain object → any exception thrown
-     *   - Symbol and BigInt inputs are skipped (PHP has no equivalent types)
-     *   - The "observer" (toPrimitiveObserver) property-access-order test is
-     *     skipped (PHP has no property-access tracking)
-     *   - The valid string value is passed directly and result is asserted
+     * Faithful port of TC39 checkStringOptionWrongType. GetOption(..., "string")
+     * applies ToString, so the asserted behavior is:
+     *   - null is skipped: our PHP implementation treats null as "option not set"
+     *     (uses default) rather than ToString-ing "null" → RangeError as JS does.
+     *   - true, false, int(2), plain object → ToString yields a value that is
+     *     never a valid option keyword → RangeError.
+     *   - Symbol() (JsSymbol sentinel) → ToString throws TypeError.
+     *   - an object whose toString() returns the valid value → coerces and
+     *     succeeds (the "observer" success step; drives the Stringable branch).
+     *   - BigInt is skipped (PHP has no equivalent type).
      *
      * Argument order matches JS TemporalHelpers.checkStringOptionWrongType(key, val, fn, assertFn).
      *
@@ -484,31 +488,63 @@ final class TemporalHelpers
         callable $checkFunc,
         callable $assertFunc,
     ): void {
-        // Wrong types that should throw (any exception is acceptable).
+        // ToString of a bool/number/plain object is never a valid option keyword → RangeError.
         // null is skipped: our PHP implementation treats null as "option not set" (uses default)
         // rather than throwing, which differs from JS where null converts to "null" string → RangeError.
         foreach ([true, false, 2, new \stdClass()] as $wrongValue) {
             try {
                 $checkFunc($wrongValue);
                 PHPUnitAssert::fail(sprintf(
-                    'Expected exception for %s=%s, but nothing was thrown.',
+                    'Expected RangeError for %s=%s, but nothing was thrown.',
                     $propertyName,
                     var_export(value: $wrongValue, return: true),
                 ));
             } catch (\PHPUnit\Framework\AssertionFailedError $e) {
                 throw $e;
-            } catch (\Throwable) {
-                /** @phpstan-ignore staticMethod.alreadyNarrowedType */
-                PHPUnitAssert::assertTrue(true); // count the assertion
+            } catch (\Throwable $thrown) {
+                PHPUnitAssert::assertInstanceOf(\Temporal\Exception\RangeError::class, $thrown, sprintf(
+                    'Expected RangeError for %s=%s.',
+                    $propertyName,
+                    var_export(value: $wrongValue, return: true),
+                ));
             }
         }
-        // Symbol and BigInt skipped — PHP has no equivalent types.
-        // Observer (toPrimitiveObserver) skipped — PHP has no property-access tracking.
-        // Test with the valid value directly:
+        // Symbol() cannot be ToString-ed: JsSymbol's __toString throws TypeError.
+        try {
+            $checkFunc(JsSymbol::singleton());
+            PHPUnitAssert::fail(sprintf(
+                'Expected TypeError for %s=Symbol(), but nothing was thrown.',
+                $propertyName,
+            ));
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            throw $e;
+        } catch (\Throwable $thrown) {
+            PHPUnitAssert::assertInstanceOf(\Temporal\Exception\TypeError::class, $thrown, sprintf(
+                'Expected TypeError for %s=Symbol().',
+                $propertyName,
+            ));
+        }
+        // BigInt skipped — PHP has no equivalent type.
+        // Observer success step: an object whose toString() returns the valid value
+        // must coerce via ToString and produce the expected result.
+        $observer = new class($value) implements \Stringable {
+            public function __construct(private string $v) {}
+
+            #[\Override]
+            public function __toString(): string
+            {
+                return $this->v;
+            }
+        };
+        $observerDescription = 'object with toString';
         /** @var mixed $result */
-        $result = $checkFunc($value);
-        $unitDescription = 'string';
-        $assertFunc($result, $unitDescription);
+        $result = $checkFunc($observer);
+        $assertFunc($result, $observerDescription);
+        // Test with the valid value directly:
+        $stringDescription = 'string';
+        /** @var mixed $directResult */
+        $directResult = $checkFunc($value);
+        $assertFunc($directResult, $stringDescription);
     }
 
     /**
