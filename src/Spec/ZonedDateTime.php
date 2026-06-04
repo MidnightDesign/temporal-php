@@ -428,48 +428,23 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * @param int|float $epochNanoseconds Nanoseconds since the Unix epoch. Must be a
-     *        finite integer value within the Temporal spec range (±8.64e21 ns).
+     * @param int|float $epochNanoseconds Nanoseconds since the Unix epoch, as an
+     *        integer (the PHP stand-in for a BigInt). TC39 coerces this argument with
+     *        ToBigInt; ToBigInt(Number) is a TypeError, so a PHP float is rejected.
+     *        Over-int64 instants are built via {@see fromEpochParts()}.
      * @param string    $timeZoneId       Timezone identifier: 'UTC', '±HH:MM', or an IANA name.
      * @param string    $calendarId       Calendar identifier (only 'iso8601' is supported).
-     * @throws RangeError if epochNanoseconds is not a finite integer value,
-     *                                  or if the timezone is invalid.
+     * @throws TypeError if epochNanoseconds is a float.
+     * @throws RangeError if the timezone is invalid.
      */
     public function __construct(int|float $epochNanoseconds, string $timeZoneId, string $calendarId = 'iso8601')
     {
+        // TC39 step 2: ToBigInt(epochNanoseconds). ToBigInt(Number) throws a TypeError,
+        // so a PHP float (our Number stand-in) is rejected rather than truncated. An
+        // over-int64 instant is constructed through fromEpochParts(), which carries the
+        // true epoch parts behind an int sentinel without float-precision loss.
         if (is_float($epochNanoseconds)) {
-            if (!is_finite($epochNanoseconds) || floor($epochNanoseconds) !== $epochNanoseconds) {
-                throw new RangeError('ZonedDateTime epochNanoseconds must be a finite integer value.');
-            }
-            // Float beyond int64 range: validate using epoch-second range and use sentinel.
-            if ($epochNanoseconds > (float) PHP_INT_MAX || $epochNanoseconds < (float) PHP_INT_MIN) {
-                // Validate epoch seconds first (avoids garbage from int cast of huge floats).
-                $epochSecF = floor($epochNanoseconds / 1e9);
-                $maxSec = 8_640_000_000_000.0;
-                if ($epochSecF > $maxSec || $epochSecF < -$maxSec) {
-                    throw new RangeError('ZonedDateTime epochNanoseconds value exceeds the representable range.');
-                }
-                // Check for boundary: reject if at the exact limit with any sub-ns remainder.
-                // Since PHP floats can't distinguish nsMax from nsMax+1, accept only the exact boundary.
-                // Derive the sub-second remainder from the SAME floored second so
-                // negative over-int64 floats don't double-floor (floor() rounds toward
-                // -inf while fmod() truncates toward zero, which would otherwise
-                // decrement $epochSec a second time below).
-                $epochSec = (int) $epochSecF;
-                $rem = fmod(num1: $epochNanoseconds, num2: 1e9);
-                if ($rem < 0.0) {
-                    $rem += 1e9;
-                }
-                $subNs = (int) $rem;
-                $this->epochNanoseconds = $epochNanoseconds < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-                $this->trueEpochSec = $epochSec;
-                $this->trueSubNs = $subNs;
-                $this->timeZoneId = TimeZoneHelper::normalizeTimezoneId($timeZoneId, true);
-                $this->calendarId = CalendarFactory::canonicalize($calendarId);
-                $this->resolvedTimeZoneId = self::resolveCanonicalTimezoneId($this->timeZoneId);
-                return;
-            }
-            $epochNanoseconds = (int) $epochNanoseconds;
+            throw new TypeError('ZonedDateTime epochNanoseconds must be an integer, not a float.');
         }
         $this->epochNanoseconds = $epochNanoseconds;
         $this->timeZoneId = TimeZoneHelper::normalizeTimezoneId($timeZoneId, true);

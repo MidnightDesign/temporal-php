@@ -59,16 +59,15 @@ final class Instant implements Stringable
 
     /**
      * @param int|float|string|bool $epochNanoseconds Nanoseconds since the Unix epoch.
-     *        An int is taken verbatim. A bool is coerced (true→1, false→0) to mirror
-     *        TC39 ToBigInt(boolean). A finite integer-valued float or a decimal
-     *        integer string may exceed the PHP int64 range; when it is still within
-     *        the valid Temporal range (±8.64e21 ns) it is stored as an over-int64
-     *        sentinel + true parts (see {@see fromEpochParts()}). A decimal string
-     *        is decomposed exactly so the over-int64 value is preserved without
-     *        float-precision loss.
-     * @throws RangeError if a float value is not a finite integer,
-     *         a string is not a decimal integer, or the value is outside the
-     *         representable Temporal nanosecond range.
+     *        An int is taken verbatim (the PHP stand-in for an in-range BigInt). A bool
+     *        is coerced (true→1, false→0) to mirror TC39 ToBigInt(boolean). A decimal
+     *        integer string carries an over-int64 value, decomposed exactly so full
+     *        precision is preserved (see {@see decimalStringToEpochParts()}). A float is
+     *        rejected: TC39 coerces the argument with ToBigInt and ToBigInt(Number) is a
+     *        TypeError.
+     * @throws TypeError if epochNanoseconds is a float.
+     * @throws RangeError if a string is not a decimal integer, or the value is outside
+     *         the representable Temporal nanosecond range.
      */
     public function __construct(int|float|string|bool $epochNanoseconds)
     {
@@ -87,24 +86,10 @@ final class Instant implements Stringable
             [$this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs] = self::normalizeEpochParts($sec, $subNs);
             return;
         }
+        // ToBigInt(Number) is a TypeError, so a PHP float (our Number stand-in) is
+        // rejected; an over-int64 instant is supplied as a decimal string instead.
         if (is_float($epochNanoseconds)) {
-            if (!is_finite($epochNanoseconds) || floor($epochNanoseconds) !== $epochNanoseconds) {
-                throw new RangeError('epochNanoseconds must be a finite integer value.');
-            }
-            // (float) PHP_INT_MAX rounds up to 2^63 > PHP_INT_MAX due to float64 precision.
-            // A float beyond int64 may still be a valid over-int64 instant (|ns| ≤ 8.64e21):
-            // decompose it in the float domain and route through the sentinel path.
-            if ($epochNanoseconds > (float) PHP_INT_MAX || $epochNanoseconds < (float) PHP_INT_MIN) {
-                $secFloat = floor($epochNanoseconds / 1e9);
-                $sec = (int) $secFloat;
-                $subNs = (int) ($epochNanoseconds - ($secFloat * 1e9));
-                [$this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs] = self::normalizeEpochParts(
-                    $sec,
-                    $subNs,
-                );
-                return;
-            }
-            $epochNanoseconds = (int) $epochNanoseconds;
+            throw new TypeError('epochNanoseconds must be an integer, not a float.');
         }
         $this->epochNanoseconds = $epochNanoseconds;
     }
