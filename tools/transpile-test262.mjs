@@ -349,8 +349,9 @@ function typeofToPhp(phpArg, jsType) {
     // the spec layer returns null where JS returns undefined.)
     case 'undefined': return `${phpArg} instanceof JsUndefined`;
     case 'function':  return `is_callable(${phpArg})`;
-    // 'symbol' and 'bigint' don't exist in PHP — always false
-    case 'symbol':    return 'false';
+    // 'symbol' is representable via the JsSymbol stand-in, so check it at runtime.
+    // 'bigint' has no PHP equivalent (we lower BigInt to int/float) — always false.
+    case 'symbol':    return `${phpArg} instanceof \\Temporal\\Tests\\Test262\\JsSymbol`;
     case 'bigint':    return 'false';
     default:          return null;
   }
@@ -2179,6 +2180,20 @@ class Emitter {
     // make `Foo.from(str, {})` hit the `is_object` branch while `Foo.from(str, {key})`
     // hit `is_array`, masking the array-side empty-bag path.
     // Spread elements { ...base, key: val } → array_merge($base, ['key' => $val]).
+    // Special case (checked first): `{ toString: () => EXPR }` and equivalents are
+    // lowered to a PHP \Stringable. These objects are wrong-type values that get
+    // interpolated into assertion description strings; an array would warn on
+    // stringification. As a \Stringable the value is still not a string (type checks
+    // still throw), but interpolation yields its toString value. Independent of
+    // objectMode — the concern is stringification, not bag-vs-object access.
+    const toStringRet = singleToStringReturnExpr(node);
+    if (toStringRet !== null) {
+      const ret = this.transpileExpr(toStringRet);
+      if (ret !== null) {
+        return 'new class implements \\Stringable { #[\\Override] public function __toString(): string { return (string) (' + ret + '); } }';
+      }
+    }
+
     if (node.properties.length === 0) {
       return this.objectMode ? '(object) []' : '[]';
     }
@@ -2601,6 +2616,40 @@ function hasObjectLiteral(node) {
 function hasMethodShorthand(node) {
   return node?.type === 'ObjectExpression'
     && node.properties.some(p => p.type === 'Property' && p.method);
+}
+
+/**
+ * Detects the fixture pattern `{ toString: () => EXPR }` (and equivalents:
+ * `{ toString: () => { return EXPR; } }`, `{ toString: function () { return EXPR; } }`,
+ * `{ toString() { return EXPR; } }`) — an object whose SOLE purpose is to carry a
+ * parameterless toString that returns a single value. Such objects are used as
+ * wrong-type values that are ALSO interpolated into assertion description strings.
+ * Lowering them to a PHP array triggers an "Array to string conversion" warning on
+ * interpolation; faithfully they are \Stringable (still not a string, so type checks
+ * still throw, but interpolation yields the toString value).
+ *
+ * Returns the AST node of the single return expression if `node` matches, else null.
+ * Anything more complex (extra properties, computed/renamed key, params, a non-trivial
+ * body) returns null so the caller falls through to ordinary object handling.
+ */
+function singleToStringReturnExpr(node) {
+  if (node?.type !== 'ObjectExpression' || node.properties.length !== 1) return null;
+  const prop = node.properties[0];
+  if (prop.type !== 'Property' || prop.kind !== 'init' || prop.computed) return null;
+  if (prop.key.type !== 'Identifier' || prop.key.name !== 'toString') return null;
+  const fn = prop.value;
+  if (fn?.type !== 'ArrowFunctionExpression' && fn?.type !== 'FunctionExpression') return null;
+  if (fn.params.length !== 0) return null;
+  // Arrow with expression body: () => EXPR
+  if (fn.type === 'ArrowFunctionExpression' && fn.body.type !== 'BlockStatement') {
+    return fn.body;
+  }
+  // Block body: must be exactly a single `return EXPR;`
+  const body = fn.body;
+  if (body.type !== 'BlockStatement' || body.body.length !== 1) return null;
+  const stmt = body.body[0];
+  if (stmt.type !== 'ReturnStatement' || stmt.argument == null) return null;
+  return stmt.argument;
 }
 
 /**

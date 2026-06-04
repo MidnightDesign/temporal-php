@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$monthCodeValues = [5, 5, false, \Temporal\Tests\Test262\JsSymbol::singleton(), null, (object) JsUndefined::strip(['toString' => fn() => 5])];
+$monthCodeValues = [5, 5, false, \Temporal\Tests\Test262\JsSymbol::singleton(), null, new class implements \Stringable { #[\Override] public function __toString(): string { return (string) (5); } }];
 $year = 2026;
 foreach ($monthCodeValues as $monthCode) {
 if ($monthCode === null) { continue; }
-Assert::throws(\TypeError::class, function () use (&$year, &$monthCode) { return \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'day' => 1])); }, (false ? 'Symbol should be rejected as month code' : "month code {$monthCode} should be rejected"));
+Assert::throws(\TypeError::class, function () use (&$year, &$monthCode) { return \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'day' => 1])); }, ($monthCode instanceof \Temporal\Tests\Test262\JsSymbol ? 'Symbol should be rejected as month code' : "month code {$monthCode} should be rejected"));
 }
