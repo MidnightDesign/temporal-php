@@ -1946,7 +1946,17 @@ final class PlainDateTime implements Stringable
                         $roundingMode,
                         $outputSign,
                     );
-                    return new Duration(weeks: $outputSign * intdiv(num1: $roundedDays, num2: 7));
+                    // Preserve the years/months from the date difference. Per TC39
+                    // NudgeToCalendarUnit (unit=week), the years+months portion is held fixed
+                    // (AdjustDateDurationRecord(duration.[[Date]], 0, 0)) and only the
+                    // weeks+days remainder is rounded. With largestUnit=month/year these can be
+                    // nonzero; dropping them lost a whole month (e.g. P1M weeks..months → 0).
+                    // For largestUnit=week they are already 0, so this is a no-op there.
+                    return new Duration(
+                        years: $outputSign * $years,
+                        months: $outputSign * $months,
+                        weeks: $outputSign * intdiv(num1: $roundedDays, num2: 7),
+                    );
                 }
                 // normSmallest === 'day'
                 $roundedDays = self::roundDaysWithTime(
