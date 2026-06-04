@@ -1376,14 +1376,15 @@ final class Duration implements Stringable
 
         $fracDay = (float) $fracNs / (float) $nsPerDay;
 
-        // For time units (weeks, days, hours, …): validate that the total fractional days don't
+        // For every unit (including years/months): validate that the total fractional days don't
         // exceed the maximum representable range (±100 000 000 days). This catches cases where
-        // large time fields (e.g. seconds = 2^53 - 1) push the total far beyond the limit.
-        if ($unit !== 'years' && $unit !== 'months') {
-            $totalDaysF = (float) $totalWholeDays + $fracDay;
-            if (abs($totalDaysF) > 100_000_000.0) {
-                throw new RangeError('Duration with relativeTo exceeds the maximum representable date range.');
-            }
+        // large time fields (e.g. seconds = 2^53 - 1) push the total far beyond the limit. TC39
+        // AdjustDateDurationRecord (total §13.d) raises RangeError here; without this guard the
+        // years/months paths reach totalCalendar{Years,Months}() with an overflowed float $fracNs
+        // and throw a TypeError instead.
+        $totalDaysF = (float) $totalWholeDays + $fracDay;
+        if (abs($totalDaysF) > 100_000_000.0) {
+            throw new RangeError('Duration with relativeTo exceeds the maximum representable date range.');
         }
 
         // For ZDT with IANA timezone: use DST-aware day lengths for days/hours/etc.
@@ -4407,6 +4408,14 @@ final class Duration implements Stringable
         // Total nanoseconds = calendar days * nsPerDay + time fields.
         $totalNs = ($calendarDays * $nsPerDay) + $timeNs;
         $isPositive = $totalNs >= 0;
+
+        // Guard: a time component so large it balances into a date beyond the representable
+        // range (±100 000 000 days) must throw RangeError up front — TC39 AdjustDateDurationRecord
+        // (round §28.d) — rather than spin the calendar-nudge loop forever. $totalNs may have
+        // overflowed to a float (e.g. seconds = 2^53 - 1), so divide as float.
+        if (abs((float) $totalNs / (float) $nsPerDay) > 100_000_000.0) {
+            throw new RangeError('Duration with relativeTo exceeds the maximum representable date range.');
+        }
 
         // -----------------------------------------------------------------------
         // Round based on smallestUnit
