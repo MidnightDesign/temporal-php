@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainTime::from('12:56:32');
 $values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$instance, &$badOptions) { return $instance->toString($badOptions); }, '');
+}

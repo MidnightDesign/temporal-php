@@ -409,6 +409,9 @@ class Emitter {
     // Array-literal variables whose elements include a BigInt literal — a for-of
     // over one is not faithfully translatable (PHP has no BigInt type).
     this.bigIntArrayVars = new Set();
+    // Array-literal variables whose elements include a plain Number literal — used
+    // to decide when a BigInt-containing wrong-type table can be safely lowered.
+    this.numberLiteralArrayVars = new Set();
     // Variables that hold a JS-only ToPrimitive observer construct (an object
     // literal with `valueOf`/`toString` method shorthands) — directly, or as an
     // element of an array. Also includes variables MUTATED inside such method
@@ -594,6 +597,12 @@ class Emitter {
         // cannot reproduce the JS Number-vs-BigInt distinction in PHP.
         if (hasBigIntLiteral(decl.init)) {
           this.bigIntArrayVars.add(decl.id.name);
+        }
+        // Track tables that ALSO contain a plain Number literal: such a sibling,
+        // when asserted to throw, proves the tested slot rejects the Number type,
+        // so lowering a BigInt (→ Number) to plain int is safe (see transpileForOf).
+        if (hasNumberLiteral(decl.init)) {
+          this.numberLiteralArrayVars.add(decl.id.name);
         }
       }
       // Detect inline JS-only ToPrimitive observers: `const X = { valueOf() {} }`
@@ -896,6 +905,7 @@ class Emitter {
   }
 
   transpileForOf(node) {
+    this._nullSkipForOf = false;
     // Detect TemporalHelpers.X used as iterable (e.g. TemporalHelpers.ISOMonths) — not translatable.
     if (node.right.type === 'MemberExpression' && !node.right.computed
         && node.right.object.type === 'Identifier' && node.right.object.name === 'TemporalHelpers') {
@@ -912,8 +922,28 @@ class Emitter {
     if (((node.right.type === 'ArrayExpression' && hasBigIntLiteral(node.right))
         || (node.right.type === 'Identifier' && this.bigIntArrayVars.has(node.right.name)))
         && subtreeHasAssertThrows(node.body)) {
-      this.emitIncomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
-      return;
+      // The Number-vs-BigInt distinction only matters when the throw expectation
+      // DEPENDS on it. The table can be lowered safely only when BOTH hold:
+      //  (1) every assert.throws in the body expects the SAME error class (and no
+      //      `typeof` branches the behavior outside an assert.throws message), and
+      //  (2) the table contains a plain Number literal asserted to throw — proving
+      //      the tested slot rejects the Number TYPE, so a lowered BigInt (→ Number)
+      //      is rejected identically. Without (2), lowering could turn a should-throw
+      //      BigInt into a valid value (e.g. `new Duration(0n)` throws via ToNumber,
+      //      but `new Duration(0)` does not).
+      const tableHasNumberLiteral =
+        (node.right.type === 'ArrayExpression' && hasNumberLiteral(node.right))
+        || (node.right.type === 'Identifier' && this.numberLiteralArrayVars.has(node.right.name));
+      if (uniformAssertThrowsErrorClass(node.body) === null || !tableHasNumberLiteral) {
+        this.emitIncomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+        return;
+      }
+      // A `null` table element may be an OMITTED positional argument (e.g. a
+      // positional calendar → ISO, no throw) rather than a wrong-type value, which
+      // would fail an `assert.throws`. Skip the null iteration in the lowered loop;
+      // the remaining elements still cover the throw path. (A property-bag null
+      // that DOES throw is merely left untested here — never red.)
+      this._nullSkipForOf = true;
     }
 
     // Special case: for (const [k, v] of Object.entries(obj)) → foreach ($obj as $k => $v)
@@ -1000,6 +1030,10 @@ class Emitter {
       this.emit(`foreach (${iter2} as ${tmpVar2}) {`);
       const opened2 = this.lines.length > before2;
       this.emit(`${pat} = array_pad(${tmpVar2}, ${n}, null);`);
+      if (this._nullSkipForOf) {
+        this.emit(`if (${parts[0]} === null) { continue; }`);
+        this._nullSkipForOf = false;
+      }
       // Emit default assignments for elements with AssignmentPattern defaults.
       for (let i = 0; i < patNode2.elements.length; i++) {
         const el = patNode2.elements[i];
@@ -1078,6 +1112,10 @@ class Emitter {
     const before = this.lines.length;
     this.emit(`foreach (${iter} as ${pat}) {`);
     const opened = this.lines.length > before;
+    if (this._nullSkipForOf) {
+      this.emit(`if (${pat} === null) { continue; }`);
+      this._nullSkipForOf = false;
+    }
     this.transpileStatement(node.body);
     if (opened) this.lines.push('}'); // always close what was opened
   }
@@ -2635,6 +2673,26 @@ function hasBigIntLiteral(node) {
 }
 
 /**
+ * Returns true if the AST subtree contains a plain Number literal (not a BigInt).
+ * In a wrong-type data table, a Number sibling that is asserted to throw proves the
+ * tested slot rejects the Number TYPE (e.g. a non-string calendar/monthCode), so a
+ * BigInt in the same table lowers to a plain int that is ALSO rejected — making the
+ * lowering safe. Without such a sibling, lowering may turn a should-throw BigInt
+ * into a valid value (e.g. `new Duration(0n)` throws but `new Duration(0)` does not).
+ */
+function hasNumberLiteral(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'Literal' && node.bigint === undefined && typeof node.value === 'number') return true;
+  for (const key of Object.keys(node)) {
+    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+    const child = node[key];
+    if (Array.isArray(child)) { if (child.some(hasNumberLiteral)) return true; }
+    else if (hasNumberLiteral(child)) return true;
+  }
+  return false;
+}
+
+/**
  * Returns true if the subtree contains an object-literal whose value includes a
  * BigInt literal — e.g. an option bag like `{ fractionalSecondDigits: 2n }`.
  * Such a value can't be distinguished from the equivalent Number in PHP, so the
@@ -2670,6 +2728,58 @@ function subtreeHasAssertThrows(node) {
     else if (subtreeHasAssertThrows(child)) return true;
   }
   return false;
+}
+
+/** Returns true if `node` is an `assert.throws(...)` CallExpression. */
+function isAssertThrowsCall(node) {
+  return node?.type === 'CallExpression'
+    && node.callee?.type === 'MemberExpression'
+    && !node.callee.computed
+    && node.callee.object?.type === 'Identifier' && node.callee.object.name === 'assert'
+    && node.callee.property?.type === 'Identifier' && node.callee.property.name === 'throws';
+}
+
+/**
+ * For a for-of body whose data table contains BigInt literals, returns the single
+ * error-class name asserted by EVERY `assert.throws` in the body — or `null` if
+ * they differ, if there is no `assert.throws`, if any error-class argument is not
+ * a bare Identifier (e.g. `typeof x === 'string' ? RangeError : TypeError`), or if
+ * a `typeof` operator appears anywhere OUTSIDE an `assert.throws` message (3rd)
+ * argument.
+ *
+ * A uniform class means the throw expectation does NOT depend on the JS
+ * Number-vs-BigInt distinction (a BigInt and the equivalent Number both lower to
+ * PHP int and hit the same non-string/non-number path), so the table can be
+ * lowered to plain ints and transpiled. A `typeof` used only to build the
+ * human-readable description string is harmless and is ignored.
+ */
+function uniformAssertThrowsErrorClass(node) {
+  const classes = new Set();
+  let bad = false;
+
+  function walk(n) {
+    if (bad || !n || typeof n !== 'object') return;
+    if (n.type === 'UnaryExpression' && n.operator === 'typeof') { bad = true; return; }
+    if (isAssertThrowsCall(n)) {
+      const errArg = n.arguments?.[0];
+      if (errArg?.type === 'Identifier') classes.add(errArg.name);
+      else { bad = true; return; }
+      // Recurse into every argument EXCEPT the message (index 2), where a `typeof`
+      // is only used to build a description and must not force a bail.
+      (n.arguments ?? []).forEach((a, i) => { if (i !== 2) walk(a); });
+      return;
+    }
+    for (const key of Object.keys(n)) {
+      if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
+      const child = n[key];
+      if (Array.isArray(child)) child.forEach(walk);
+      else walk(child);
+    }
+  }
+
+  walk(node);
+  if (bad || classes.size !== 1) return null;
+  return [...classes][0];
 }
 
 /**

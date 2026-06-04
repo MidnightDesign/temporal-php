@@ -10,4 +10,11 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::from(), 'no argument');
 $primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint'], [\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [new \stdClass(), 'Temporal.Instant.prototype (fails brand check)']];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($primitiveTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+if ($arg === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, "{$description} does not convert to a valid ISO string");
+foreach ([JsUndefined::singleton(), ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
+Assert::throws(\TypeError::class, function () use (&$arg, &$options) { return \Temporal\Spec\Instant::from($arg, $options); }, "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
+}
+}

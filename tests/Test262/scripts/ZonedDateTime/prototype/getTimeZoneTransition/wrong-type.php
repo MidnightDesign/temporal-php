@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $badValues = [false, 42, 55, \Temporal\Tests\Test262\JsSymbol::singleton(), null];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($badValues as $badValue) {
+if ($badValue === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$zdt, &$badValue) { return $zdt->getTimeZoneTransition($badValue); }, '');
+}

@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $monthCodeValues = [5, 5, false, \Temporal\Tests\Test262\JsSymbol::singleton(), null, JsUndefined::strip(['toString' => fn() => 5])];
 $year = 2026;
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($monthCodeValues as $monthCode) {
+if ($monthCode === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$year, &$monthCode) { return \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode])); }, (false ? 'Symbol should be rejected as month code' : "month code {$monthCode} should be rejected"));
+}

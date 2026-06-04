@@ -10,4 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $rangeErrorValues = [false, 42, 55, null];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($rangeErrorValues as $badValue) {
+if ($badValue === null) { continue; }
+Assert::throws(\RangeException::class, function () use (&$zdt, &$badValue) { return $zdt->getTimeZoneTransition((object) JsUndefined::strip(['direction' => $badValue])); }, 'Non-Symbol throws a RangeError');
+}
+Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->getTimeZoneTransition((object) JsUndefined::strip(['direction' => \Temporal\Tests\Test262\JsSymbol::singleton()])); }, 'Symbol throws a TypeError');

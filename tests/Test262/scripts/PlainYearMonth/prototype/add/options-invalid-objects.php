@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-11');
 $values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$ym, &$badOptions) { return $ym->add((object) ['years' => 1], $badOptions); }, '');
+}

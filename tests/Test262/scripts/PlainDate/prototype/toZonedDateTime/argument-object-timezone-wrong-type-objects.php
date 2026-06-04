@@ -9,4 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(1970, 1, 1);
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ([null, false, 0, 0, \Temporal\Tests\Test262\JsSymbol::singleton(), (object) [], [], function () {  }] as $timeZone) {
+if ($timeZone === null) { continue; }
+$item = (object) JsUndefined::strip(['timeZone' => $timeZone]);
+Assert::throws(\TypeError::class, function () use (&$instance, &$item) { return $instance->toZonedDateTime($item); }, '');
+}

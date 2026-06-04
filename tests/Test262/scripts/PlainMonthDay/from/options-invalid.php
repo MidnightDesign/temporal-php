@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $fields = ['month' => 2, 'day' => 31];
 $values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$fields, &$badOptions) { return \Temporal\Spec\PlainMonthDay::from($fields, $badOptions); }, '');
+}

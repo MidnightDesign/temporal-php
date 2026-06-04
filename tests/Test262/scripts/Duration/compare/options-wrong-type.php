@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($badOptions as $value) {
+if ($value === null) { continue; }
+Assert::incomplete('untranslatable: typeof');
+}

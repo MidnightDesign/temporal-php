@@ -10,4 +10,9 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $wrongTypeTests = [[null, 'null'], [true, 'boolean'], [1, 'number'], [1, 'bigint'], [19_970_327, 'large positive number'], [-19_970_327, 'negative number'], [1_234_567_890, 'very large integer'], [\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'object'], [new \Temporal\Spec\Duration(), 'duration instance']];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($wrongTypeTests as $__entry__) {
+[$calendar, $description] = array_pad($__entry__, 2, null);
+if ($calendar === null) { continue; }
+$arg = JsUndefined::strip(['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $calendar]);
+Assert::throws(\TypeError::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "{$description} is not a valid calendar");
+}

@@ -11,4 +11,7 @@ use Temporal\Tests\Test262\JsUndefined;
 $values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
 $time = new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789);
 $one = new \Temporal\Spec\PlainTime(16, 23, 30, 123, 456, 789);
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$time, &$one, &$badOptions) { return $time->since($one, $badOptions); }, '');
+}

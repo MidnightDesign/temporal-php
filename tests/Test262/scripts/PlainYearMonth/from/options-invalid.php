@@ -11,5 +11,8 @@ use Temporal\Tests\Test262\JsUndefined;
 $items = [['year' => 2000, 'month' => 11], '2000-11', new \Temporal\Spec\PlainYearMonth(2000, 11)];
 $values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
 foreach ($items as $item) {
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$item, &$badOptions) { return \Temporal\Spec\PlainYearMonth::from($item, $badOptions); }, '');
+}
 }
