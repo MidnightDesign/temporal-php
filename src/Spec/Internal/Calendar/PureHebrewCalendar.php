@@ -45,12 +45,6 @@ final class PureHebrewCalendar implements CalendarProtocol
     /** @var array<int, int> Memoized monthLength results, keyed by (year * 16) + ordinalMonth. */
     private static array $monthLengthCache = [];
 
-    #[\Override]
-    public function id(): string
-    {
-        return 'hebrew';
-    }
-
     // -------------------------------------------------------------------------
     // Core algorithmic functions
     // -------------------------------------------------------------------------

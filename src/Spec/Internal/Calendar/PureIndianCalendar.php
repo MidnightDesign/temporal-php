@@ -25,12 +25,6 @@ final class PureIndianCalendar implements CalendarProtocol
     /** Saka year = ISO year - YEAR_OFFSET */
     private const int YEAR_OFFSET = 78;
 
-    #[\Override]
-    public function id(): string
-    {
-        return 'indian';
-    }
-
     /**
      * Returns month lengths for the Indian calendar.
      *

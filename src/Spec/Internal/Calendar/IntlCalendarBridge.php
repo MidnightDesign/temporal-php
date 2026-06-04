@@ -153,12 +153,6 @@ final class IntlCalendarBridge implements CalendarProtocol
         };
     }
 
-    #[\Override]
-    public function id(): string
-    {
-        return $this->calendarId;
-    }
-
     // -------------------------------------------------------------------------
     // ISO -> Calendar field projection
     // -------------------------------------------------------------------------

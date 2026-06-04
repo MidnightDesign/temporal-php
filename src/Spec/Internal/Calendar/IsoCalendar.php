@@ -18,12 +18,6 @@ use Temporal\Spec\Internal\CalendarMath;
  */
 final class IsoCalendar implements CalendarProtocol
 {
-    #[\Override]
-    public function id(): string
-    {
-        return 'iso8601';
-    }
-
     // -------------------------------------------------------------------------
     // ISO -> Calendar field projection (identity for ISO)
     // -------------------------------------------------------------------------

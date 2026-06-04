@@ -404,7 +404,7 @@ final class PlainYearMonth implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $fields);
 
         // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
-        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
+        if (($hasEra || $hasEraYear) && in_array($this->calendarId, ['chinese', 'dangi'], strict: true)) {
             throw new TypeError('eraYear and era are invalid for this calendar.');
         }
 

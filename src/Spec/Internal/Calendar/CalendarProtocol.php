@@ -17,13 +17,6 @@ namespace Temporal\Spec\Internal\Calendar;
 interface CalendarProtocol
 {
     // -------------------------------------------------------------------------
-    // Identity
-    // -------------------------------------------------------------------------
-
-    /** Returns the canonical calendar identifier (e.g. "iso8601", "hebrew", "japanese"). */
-    public function id(): string;
-
-    // -------------------------------------------------------------------------
     // ISO -> Calendar field projection
     // -------------------------------------------------------------------------
 
