@@ -293,10 +293,9 @@ final class IntlCalendarBridge implements CalendarProtocol
         $this->setIsoDate($isoYear, $isoMonth, $isoDay);
         return match ($this->calendarId) {
             'ethiopic' => $this->intlCal->get(\IntlCalendar::FIELD_ERA) === 1 ? 'am' : 'aa',
-            'islamic-civil',
-            'islamic-tbla',
-            'islamic-umalqura',
-                => $this->intlCal->get(\IntlCalendar::FIELD_YEAR) >= 1 ? 'ah' : 'bh',
+            'islamic-civil', 'islamic-tbla', 'islamic-umalqura' => $this->intlCal->get(\IntlCalendar::FIELD_YEAR) >= 1
+                ? 'ah'
+                : 'bh',
             default => null,
         };
     }
