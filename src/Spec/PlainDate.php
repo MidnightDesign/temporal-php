@@ -226,17 +226,7 @@ final class PlainDate implements Stringable
         int|float $day,
         string|int|float|bool|object|null $calendar = 'iso8601',
     ) {
-        // TC39: an omitted calendar defaults to ISO. A non-string, non-null value
-        // (bool/number/object/Symbol) is a wrong-type TypeError; an unknown string
-        // is a RangeError (via canonicalize). PHP cannot distinguish JS `undefined`
-        // from `null` positionally, so a null calendar is treated as omitted.
-        if ($calendar === null) {
-            $calendar = 'iso8601';
-        } elseif (!is_string($calendar)) {
-            throw new TypeError('PlainDate calendar argument must be a string.');
-        }
-        $calendar = CalendarFactory::canonicalize($calendar);
-        $this->calendarId = $calendar;
+        $this->calendarId = CalendarFactory::resolveConstructorCalendar($calendar, 'PlainDate');
         if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $day)) {
             throw new RangeError('Invalid PlainDate: year, month, and day must be finite numbers.');
         }

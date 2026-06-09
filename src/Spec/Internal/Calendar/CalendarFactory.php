@@ -90,6 +90,30 @@ final class CalendarFactory
     }
 
     /**
+     * Resolves a constructor's positional `calendar` argument to a canonical
+     * calendar ID. Per TC39, an omitted (or null — PHP cannot distinguish JS
+     * `undefined` from `null` positionally) calendar defaults to ISO 8601; a
+     * non-string, non-null value (bool/number/object/Symbol) is a wrong-type
+     * TypeError; an unknown calendar string is a RangeError (via canonicalize).
+     *
+     * Unlike {@see resolveBagCalendar}, this does NOT accept ISO date/datetime
+     * strings or `[u-ca=...]` annotations — a constructor calendar argument must
+     * be a bare calendar identifier.
+     *
+     * @throws TypeError if $value is non-null and not a string.
+     * @throws RangeError if $value names an unknown calendar.
+     */
+    public static function resolveConstructorCalendar(mixed $value, string $context): string
+    {
+        if ($value === null) {
+            $value = 'iso8601';
+        } elseif (!is_string($value)) {
+            throw new TypeError("{$context} calendar argument must be a string.");
+        }
+        return self::canonicalize($value);
+    }
+
+    /**
      * Resolves a property-bag `calendar` field to a canonical calendar ID.
      *
      * Type-checks $value, then forwards to {@see extractCalendarFromString}.
