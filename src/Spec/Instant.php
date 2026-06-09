@@ -10,6 +10,7 @@ use Stringable;
 use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -147,14 +148,14 @@ final class Instant implements Stringable
             $subNs -= $carry * self::NS_PER_SECOND;
         }
 
-        $maxSec = 8_640_000_000_000;
+        $maxSec = EpochLimits::MAX_EPOCH_SECONDS;
         if ($epochSec < -$maxSec || $epochSec > $maxSec || $epochSec === $maxSec && $subNs > 0) {
             throw new RangeError('Instant result is outside the representable nanosecond range.');
         }
 
         // When the full nanosecond value fits int64, store it exactly; otherwise
         // clamp the public field to a sentinel and carry the true parts.
-        $maxSecForNs = 9_223_372_035;
+        $maxSecForNs = EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS;
         if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
             return [$epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX, $epochSec, $subNs];
         }
@@ -188,7 +189,7 @@ final class Instant implements Stringable
         // to which the test262 transpiler maps the JS-spec RangeError. Normalization,
         // the range check, and the over-int64 sentinel are shared with the
         // constructor via normalizeEpochParts().
-        $maxSec = 8_640_000_000_000;
+        $maxSec = EpochLimits::MAX_EPOCH_SECONDS;
         if (is_float($epochSec)) {
             // A finite over-int64 float epochSec cannot be in the ±8.64e12 s spec
             // range, so it is unconditionally out of range. (float)PHP_INT_MAX rounds
@@ -395,7 +396,7 @@ final class Instant implements Stringable
         // Spec range: epoch nanoseconds ∈ [-8_640_000_000_000×10⁹, +8_640_000_000_000×10⁹].
         // Checked at second granularity; at the boundary second, any non-zero
         // sub-second component puts the instant out of range.
-        $maxSec = 8_640_000_000_000;
+        $maxSec = EpochLimits::MAX_EPOCH_SECONDS;
         if ($utcEpochSec < -$maxSec || $utcEpochSec > $maxSec || $utcEpochSec === $maxSec && $baseNs > 0) {
             throw new RangeError("Instant string \"{$text}\" is outside the representable nanosecond range.");
         }
@@ -412,7 +413,7 @@ final class Instant implements Stringable
      * Creates an Instant from a Unix timestamp in milliseconds.
      *
      * @param int|float|null $epochMilliseconds Milliseconds since the Unix epoch.
-     *        Must be a finite integer value within ±8_640_000_000_000_000.
+     *        Must be a finite integer value within ±{@see EpochLimits::MAX_EPOCH_MILLISECONDS}.
      * @throws RangeError if the value is not a finite integer or is out of range.
      */
     public static function fromEpochMilliseconds(int|float|null $epochMilliseconds = null): self
@@ -426,7 +427,7 @@ final class Instant implements Stringable
             }
             $epochMilliseconds = (int) $epochMilliseconds;
         }
-        $limit = 8_640_000_000_000_000;
+        $limit = EpochLimits::MAX_EPOCH_MILLISECONDS;
         if ($epochMilliseconds < -$limit || $epochMilliseconds > $limit) {
             throw new RangeError("epochMilliseconds {$epochMilliseconds} is outside the valid range of ±{$limit}.");
         }
@@ -434,7 +435,7 @@ final class Instant implements Stringable
         // Threshold: floor(PHP_INT_MAX / NS_PER_MILLISECOND) = 9_223_372_036_854.
         // Beyond it, decompose into (epochSec, subNs) and let fromEpochParts()
         // store the true value behind a saturated sentinel.
-        $threshold = 9_223_372_036_854;
+        $threshold = EpochLimits::MAX_EPOCH_MILLISECONDS_FOR_INT64_NS;
         if ($epochMilliseconds > $threshold || $epochMilliseconds < -$threshold) {
             $epochSec = CalendarMath::floorDiv($epochMilliseconds, 1_000);
             $subMs = $epochMilliseconds - ($epochSec * 1_000);
@@ -1487,7 +1488,7 @@ final class Instant implements Stringable
         // Spec range in seconds: |epochSec| ≤ 8_640_000_000_000. A delta whose
         // magnitude exceeds twice that can never land in range; reject early so
         // the integer seconds sum below cannot overflow.
-        $specMaxSec = 8_640_000_000_000.0;
+        $specMaxSec = (float) EpochLimits::MAX_EPOCH_SECONDS;
         if ($floatDeltaSec > (4.0 * $specMaxSec) || $floatDeltaSec < (-4.0 * $specMaxSec)) {
             throw new RangeError('Instant result is outside the representable nanosecond range.');
         }

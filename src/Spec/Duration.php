@@ -9,6 +9,8 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
 /**
@@ -838,8 +840,8 @@ final class Duration implements Stringable
                         );
                     if ($rtIsZDT) {
                         if (
-                            ((float) $parsedRt['_utcSec'] + $rtTotalSec) > 8_640_000_000_000.0
-                            || ((float) $parsedRt['_utcSec'] + $rtTotalSec) < -8_640_000_000_000.0
+                            ((float) $parsedRt['_utcSec'] + $rtTotalSec) > EpochLimits::MAX_EPOCH_SECONDS
+                            || ((float) $parsedRt['_utcSec'] + $rtTotalSec) < -EpochLimits::MAX_EPOCH_SECONDS
                         ) {
                             throw new RangeError(
                                 'relativeTo ZonedDateTime is outside the representable range after applying duration.',
@@ -1021,16 +1023,16 @@ final class Duration implements Stringable
         $targetSubNs -= $carry * 1_000_000_000.0;
 
         // Out of range when target > (8.64e12 s, 0 ns) or < (-8.64e12 s, 0 ns).
-        if ($targetSec > 8_640_000_000_000.0) {
+        if ($targetSec > EpochLimits::MAX_EPOCH_SECONDS) {
             return true;
         }
-        if ($targetSec === 8_640_000_000_000.0 && $targetSubNs > 0.0) {
+        if ($targetSec === (float) EpochLimits::MAX_EPOCH_SECONDS && $targetSubNs > 0.0) {
             return true;
         }
-        if ($targetSec < -8_640_000_000_000.0) {
+        if ($targetSec < -EpochLimits::MAX_EPOCH_SECONDS) {
             return true;
         }
-        if ($targetSec === -8_640_000_000_000.0 && $targetSubNs < 0.0) {
+        if ($targetSec === -(float) EpochLimits::MAX_EPOCH_SECONDS && $targetSubNs < 0.0) {
             return true;
         }
 
@@ -1275,7 +1277,7 @@ final class Duration implements Stringable
             $utcSec = ($epochDays * 86_400) + $localTimeSec - $offsetSec;
 
             // UTC instant must be within ±8 640 000 000 000 seconds.
-            if ($utcSec > 8_640_000_000_000 || $utcSec < -8_640_000_000_000) {
+            if ($utcSec > EpochLimits::MAX_EPOCH_SECONDS || $utcSec < -EpochLimits::MAX_EPOCH_SECONDS) {
                 throw new RangeError(
                     "relativeTo ZonedDateTime \"{$s}\" UTC instant is outside the representable range.",
                 );
@@ -2407,8 +2409,8 @@ final class Duration implements Stringable
                     );
                 if ($rtIsZDT) {
                     if (
-                        ((float) $parsedRt['_utcSec'] + $rtTotalSec) > 8_640_000_000_000.0
-                        || ((float) $parsedRt['_utcSec'] + $rtTotalSec) < -8_640_000_000_000.0
+                        ((float) $parsedRt['_utcSec'] + $rtTotalSec) > EpochLimits::MAX_EPOCH_SECONDS
+                        || ((float) $parsedRt['_utcSec'] + $rtTotalSec) < -EpochLimits::MAX_EPOCH_SECONDS
                     ) {
                         throw new RangeError(
                             'relativeTo ZonedDateTime is outside the representable range after applying duration.',
@@ -2551,7 +2553,7 @@ final class Duration implements Stringable
             [$zdtTrueSec] = $rtRawForZdt->epochParts();
             $zdtEpochSec = (float) $zdtTrueSec;
             $zdtResultSec = $zdtEpochSec + ((float) $sign * $totalAbsSec);
-            if ($zdtResultSec > 8_640_000_000_000.0 || $zdtResultSec < -8_640_000_000_000.0) {
+            if ($zdtResultSec > EpochLimits::MAX_EPOCH_SECONDS || $zdtResultSec < -EpochLimits::MAX_EPOCH_SECONDS) {
                 throw new RangeError(
                     'Duration with ZonedDateTime relativeTo would move the instant outside the valid range.',
                 );
@@ -2572,7 +2574,10 @@ final class Duration implements Stringable
                 // over-int64 fixtures exercise here.
                 $dayFloorSec = floor($zdtEpochSec / 86_400.0) * 86_400.0;
                 $nextDayStartSec = $dayFloorSec + 86_400.0;
-                if ($nextDayStartSec > 8_640_000_000_000.0 || $dayFloorSec < -8_640_000_000_000.0) {
+                if (
+                    $nextDayStartSec > EpochLimits::MAX_EPOCH_SECONDS
+                    || $dayFloorSec < -EpochLimits::MAX_EPOCH_SECONDS
+                ) {
                     throw new RangeError(
                         'Duration with ZonedDateTime relativeTo: the day boundary falls outside the valid range.',
                     );

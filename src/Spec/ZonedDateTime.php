@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -412,7 +413,10 @@ final class ZonedDateTime implements Stringable
 
             // Spec (get hoursInDay steps 7-8): GetStartOfDay(today)/GetStartOfDay(tomorrow)
             // must throw when either boundary falls outside the representable range.
-            if (abs($todayEpochSec) > 8_640_000_000_000 || abs($tomorrowEpochSec) > 8_640_000_000_000) {
+            if (
+                abs($todayEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+                || abs($tomorrowEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+            ) {
                 throw new RangeError('ZonedDateTime hoursInDay boundary is outside the representable range.');
             }
 
@@ -1274,7 +1278,10 @@ final class ZonedDateTime implements Stringable
 
             // Spec (round step 18): GetStartOfDay(dateStart)/GetStartOfDay(dateEnd) must
             // throw when either day boundary falls outside the representable range.
-            if (abs($midnightEpochSec) > 8_640_000_000_000 || abs($nextDayEpochSec) > 8_640_000_000_000) {
+            if (
+                abs($midnightEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+                || abs($nextDayEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+            ) {
                 throw new RangeError('ZonedDateTime day-rounding boundary is outside the representable range.');
             }
 
@@ -2300,7 +2307,7 @@ final class ZonedDateTime implements Stringable
             // - Min: any wallSec < -8640000000000 is on a date before April 20, -271821.
             // - Max: wallSec >= 8640000086400 is on a date after September 13, +275760.
             //   (8640000086400 = max boundary epoch + 86400 s = midnight of +275760-09-14.)
-            if ($wallSec < -8_640_000_000_000 || $wallSec >= 8_640_000_086_400) {
+            if ($wallSec < -EpochLimits::MAX_EPOCH_SECONDS || $wallSec >= (EpochLimits::MAX_EPOCH_SECONDS + 86_400)) {
                 throw new RangeError(
                     "ZonedDateTime string \"{$text}\": local date-time is outside the representable range.",
                 );
@@ -2415,7 +2422,7 @@ final class ZonedDateTime implements Stringable
         }
 
         // Validate spec range.
-        $maxSec = 8_640_000_000_000;
+        $maxSec = EpochLimits::MAX_EPOCH_SECONDS;
         if ($epochSec < -$maxSec || $epochSec > $maxSec || $epochSec === $maxSec && $subNs > 0) {
             throw new RangeError("ZonedDateTime string \"{$text}\" is outside the representable nanosecond range.");
         }
@@ -2658,7 +2665,7 @@ final class ZonedDateTime implements Stringable
         $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($hour * 3600) + ($minute * 60) + $second;
         // ISODateTimeWithinLimits check.
-        if ($wallSec > 8_640_000_000_000 || $wallSec < -8_640_000_000_000) {
+        if ($wallSec > EpochLimits::MAX_EPOCH_SECONDS || $wallSec < -EpochLimits::MAX_EPOCH_SECONDS) {
             throw new RangeError('ZonedDateTime property bag: local date-time is outside the representable range.');
         }
 
@@ -3264,11 +3271,14 @@ final class ZonedDateTime implements Stringable
     ): self {
         // Range check.
         $absEpochSec = abs($epochSec);
-        if ($absEpochSec > 8_640_000_000_000 || $absEpochSec === 8_640_000_000_000 && $subNs > 0) {
+        if (
+            $absEpochSec > EpochLimits::MAX_EPOCH_SECONDS
+            || $absEpochSec === EpochLimits::MAX_EPOCH_SECONDS && $subNs > 0
+        ) {
             throw new RangeError('ZonedDateTime arithmetic result is outside the representable range.');
         }
 
-        $maxSecForNs = 9_223_372_035;
+        $maxSecForNs = EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS;
         if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
             $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
             $zdt = new self($epochNs, $tzId, $calendarId);
