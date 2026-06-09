@@ -179,7 +179,7 @@ final class PlainTime implements Stringable
     {
         if ($item instanceof self) {
             // ToTemporalTime step 2.a: GetOptionsObject then GetTemporalOverflowOption, before cloning.
-            self::extractOverflow(self::requireOptionsObjectOrNull($options));
+            self::extractOverflow(Options::requireObjectOrNull($options));
             return self::fromNs($item->ns);
         }
         if (is_string($item)) {
@@ -187,14 +187,14 @@ final class PlainTime implements Stringable
             // GetOptionsObject (step 3.d), so a bad string raises RangeError even when
             // the options argument is a bad primitive.
             $result = self::fromString($item);
-            self::extractOverflow(self::requireOptionsObjectOrNull($options));
+            self::extractOverflow(Options::requireObjectOrNull($options));
             return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
         // ToTemporalTime steps 2.c-2.e: read fields then validate options.
-        $overflow = self::extractOverflow(self::requireOptionsObjectOrNull($options));
+        $overflow = self::extractOverflow(Options::requireObjectOrNull($options));
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -252,7 +252,7 @@ final class PlainTime implements Stringable
         }
 
         // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
-        $options = self::requireOptionsObject($options);
+        $options = Options::requireObject($options);
 
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
         $overflow = self::extractOverflow($options);
@@ -471,7 +471,7 @@ final class PlainTime implements Stringable
     {
         // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
         // An omitted options argument arrives as the empty-array default.
-        $options = self::requireOptionsObject($options);
+        $options = Options::requireObject($options);
 
         // $digits: -2 = 'auto', -1 = minute format (no seconds), 0-9 = fixed digits.
         $digits = -2;
@@ -643,60 +643,6 @@ final class PlainTime implements Stringable
             throw new RangeError("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
         }
         return $val;
-    }
-
-    /**
-     * GetOptionsObject for entry points where an omitted argument arrives as PHP null
-     * (the spec-layer sentinel for JS `undefined`). A non-null, non-array, non-object
-     * primitive (int/float/string/bool) — or a Symbol sentinel (a \Stringable whose
-     * __toString throws) — is a spec-layer TypeError, raised here AFTER any string
-     * parse / field read so spec ordering is preserved. null, array and object pass
-     * through to {@see extractOverflow()} unchanged.
-     *
-     * @return array<array-key, mixed>|object|null
-     */
-    private static function requireOptionsObjectOrNull(mixed $options): array|object|null
-    {
-        if ($options === null || is_array($options)) {
-            return $options;
-        }
-        if (is_object($options)) {
-            if ($options instanceof Stringable) {
-                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
-                (string) $options;
-                throw new TypeError('options must be an object.');
-            }
-            return $options;
-        }
-        throw new TypeError('options must be an object.');
-    }
-
-    /**
-     * TC39 GetOptionsObject: the options argument must be undefined (omitted) or an
-     * object. An explicit `null` (or any other non-object primitive — those are
-     * already rejected by the parameter type) is a TypeError. A Symbol reaching here
-     * (a \Stringable whose __toString throws) is likewise a TypeError.
-     *
-     * Omitted options arrive as the empty-array default, which passes through as "no
-     * options". A genuine options object/array is returned normalized to an array.
-     *
-     * @param array<array-key, mixed>|object|null $options
-     * @return array<array-key, mixed>
-     */
-    private static function requireOptionsObject(array|object|null $options): array
-    {
-        if ($options === null) {
-            throw new TypeError('options must be an object.');
-        }
-        if (is_object($options)) {
-            if ($options instanceof Stringable) {
-                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
-                (string) $options;
-                throw new TypeError('options must be an object.');
-            }
-            return get_object_vars($options);
-        }
-        return $options;
     }
 
     /**
@@ -1062,7 +1008,7 @@ final class PlainTime implements Stringable
 
         // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
         // An omitted options argument arrives as the empty-array default.
-        $opts = self::requireOptionsObject($options);
+        $opts = Options::requireObject($options);
 
         if ($opts !== []) {
             if (array_key_exists('largestUnit', $opts)) {

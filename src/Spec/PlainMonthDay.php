@@ -191,7 +191,7 @@ final class PlainMonthDay implements Stringable
     {
         // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
         // Omitted options arrive as the empty-array default and pass through.
-        $opts = self::requireOptionsObject($options);
+        $opts = Options::requireObject($options);
 
         // Validate overflow option before processing item (per spec ordering).
         $overflow = 'constrain';
@@ -264,7 +264,7 @@ final class PlainMonthDay implements Stringable
         // Normalize inputs to array up front so the body has a single path.
         $bag = is_object($fields) ? get_object_vars($fields) : $fields;
         // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
-        $opts = self::requireOptionsObject($options);
+        $opts = Options::requireObject($options);
 
         // IsPartialTemporalObject step 3: calendar key present → TypeError.
         if (array_key_exists('calendar', $bag)) {
@@ -601,34 +601,6 @@ final class PlainMonthDay implements Stringable
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
-
-    /**
-     * TC39 GetOptionsObject: the options argument must be undefined (omitted) or an
-     * object. An explicit `null` (or any other non-object primitive — those are
-     * already rejected by the parameter type) is a TypeError. A Symbol reaching here
-     * (a \Stringable whose __toString throws) is likewise a TypeError.
-     *
-     * Omitted options arrive as the empty-array default, which passes through as "no
-     * options". A genuine options object/array is returned normalized to an array.
-     *
-     * @param array<array-key, mixed>|object|null $options
-     * @return array<array-key, mixed>
-     */
-    private static function requireOptionsObject(array|object|null $options): array
-    {
-        if ($options === null) {
-            throw new TypeError('options must be an object.');
-        }
-        if (is_object($options)) {
-            if ($options instanceof Stringable) {
-                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
-                (string) $options;
-                throw new TypeError('options must be an object.');
-            }
-            return get_object_vars($options);
-        }
-        return $options;
-    }
 
     /**
      * Parses an ISO 8601 month-day string into a PlainMonthDay.

@@ -6,6 +6,7 @@ namespace Temporal\Spec\Internal;
 
 use Stringable;
 use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 
 /**
  * Faithful coercion of a TC39 string-typed option value.
@@ -31,5 +32,58 @@ final class Options
         }
 
         throw new RangeError($invalidMessage);
+    }
+
+    /**
+     * TC39 GetOptionsObject: the options argument must be undefined (omitted) or an
+     * object. An explicit `null` (or any other non-object primitive — those are
+     * already rejected by the parameter type) is a TypeError. A Symbol reaching here
+     * (a \Stringable whose __toString throws) is likewise a TypeError.
+     *
+     * Omitted options arrive as the empty-array default, which passes through as "no
+     * options". A genuine options object/array is returned normalized to an array.
+     *
+     * @param array<array-key, mixed>|object|null $options
+     * @return array<array-key, mixed>
+     */
+    public static function requireObject(array|object|null $options): array
+    {
+        if ($options === null) {
+            throw new TypeError('options must be an object.');
+        }
+        if (is_object($options)) {
+            if ($options instanceof Stringable) {
+                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
+                (string) $options;
+                throw new TypeError('options must be an object.');
+            }
+            return get_object_vars($options);
+        }
+        return $options;
+    }
+
+    /**
+     * TC39 GetOptionsObject variant that also permits an explicit null (the
+     * spec-layer sentinel for JS `undefined`). A non-null, non-array, non-object
+     * primitive (int/float/string/bool) — or a Symbol sentinel (a \Stringable whose
+     * __toString throws) — is a spec-layer TypeError. null, array and object pass
+     * through unchanged.
+     *
+     * @return array<array-key, mixed>|object|null
+     */
+    public static function requireObjectOrNull(mixed $options): array|object|null
+    {
+        if ($options === null || is_array($options)) {
+            return $options;
+        }
+        if (is_object($options)) {
+            if ($options instanceof Stringable) {
+                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
+                (string) $options;
+                throw new TypeError('options must be an object.');
+            }
+            return $options;
+        }
+        throw new TypeError('options must be an object.');
     }
 }

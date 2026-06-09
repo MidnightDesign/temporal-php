@@ -1365,7 +1365,7 @@ final class PlainYearMonth implements Stringable
     private function addDuration(int $sign, Duration $dur, array|object|null $options): self
     {
         // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
-        $opts = self::requireOptionsObject($options);
+        $opts = Options::requireObject($options);
 
         // Validate overflow option. Per TC39 spec §9.5.7 GetOption calls ToString(value)
         // first, then validates the resulting string. So a non-string, non-Symbol value
@@ -1479,39 +1479,6 @@ final class PlainYearMonth implements Stringable
     }
 
     /**
-     * TC39 §9.5.9 ISOYearMonthWithinLimits.
-     *
-     * Valid range: April −271821 … September +275760.
-     */
-    /**
-     * TC39 GetOptionsObject: the options argument must be undefined (omitted) or an
-     * object. An explicit `null` (or any other non-object primitive — those are
-     * already rejected by the parameter type) is a TypeError. A Symbol reaching here
-     * (a \Stringable whose __toString throws) is likewise a TypeError.
-     *
-     * Omitted options arrive as the empty-array default, which passes through as "no
-     * options". A genuine options object/array is returned normalized to an array.
-     *
-     * @param array<array-key, mixed>|object|null $options
-     * @return array<array-key, mixed>
-     */
-    private static function requireOptionsObject(array|object|null $options): array
-    {
-        if ($options === null) {
-            throw new TypeError('options must be an object.');
-        }
-        if (is_object($options)) {
-            if ($options instanceof Stringable) {
-                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
-                (string) $options;
-                throw new TypeError('options must be an object.');
-            }
-            return get_object_vars($options);
-        }
-        return $options;
-    }
-
-    /**
      * GetOptionsObject + GetTemporalOverflowOption: validates the options argument
      * (TypeError for explicit null / primitive / Symbol sentinel) and the 'overflow'
      * value (TypeError if non-string, RangeError if not 'constrain'|'reject'), then
@@ -1526,7 +1493,7 @@ final class PlainYearMonth implements Stringable
         if ($options !== null && !is_array($options) && !is_object($options)) {
             throw new TypeError('options must be an object.');
         }
-        $opts = self::requireOptionsObject($options);
+        $opts = Options::requireObject($options);
         if (!array_key_exists('overflow', $opts)) {
             return 'constrain';
         }
