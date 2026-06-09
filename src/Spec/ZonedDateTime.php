@@ -1378,7 +1378,10 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $offOpt */
                 $offOpt = $optArr['offset'];
                 if ($offOpt !== null) {
-                    $offOpt = Options::coerceEnumOption($offOpt, 'ZonedDateTime::with() offset option must be a string.');
+                    $offOpt = Options::coerceEnumOption(
+                        $offOpt,
+                        'ZonedDateTime::with() offset option must be a string.',
+                    );
                     if (!in_array($offOpt, ['prefer', 'use', 'ignore', 'reject'], strict: true)) {
                         throw new RangeError(
                             "Invalid offset option \"{$offOpt}\": must be 'prefer', 'use', 'ignore', or 'reject'.",

@@ -582,7 +582,7 @@ final class Instant implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = self::coerceOptionString($options['smallestUnit']);
+                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit must be a string.');
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
@@ -597,7 +597,7 @@ final class Instant implements Stringable
             // (increment === 1) path so an unknown / non-string mode is rejected
             // rather than silently accepted.
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $roundMode = self::coerceOptionString($options['roundingMode']);
+                $roundMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
                 self::validateRoundingMode($roundMode);
             }
 
@@ -1189,28 +1189,6 @@ final class Instant implements Stringable
     ];
 
     /**
-     * Coerces a mixed option value to an enum string per the universal coercion
-     * contract: scalars stringify; a {@see \Stringable} object is cast via
-     * `(string)` (so a Symbol sentinel's throwing __toString surfaces a
-     * {@see TypeError}); any other object / array / null is rejected.
-     *
-     * @throws RangeError if the value is an array, a non-Stringable object, or null.
-     */
-    private static function coerceOptionString(mixed $value): string
-    {
-        if (is_string($value)) {
-            return $value;
-        }
-        if (is_int($value) || is_float($value) || is_bool($value)) {
-            return (string) $value;
-        }
-        if ($value instanceof Stringable) {
-            return (string) $value;
-        }
-        throw new RangeError('Option value must be a string.');
-    }
-
-    /**
      * Validates a roundingMode string against the allowed TC39 set so an unknown
      * (or coerced non-enum) mode is rejected even on a fast path where no
      * rounding is performed.
@@ -1680,7 +1658,7 @@ final class Instant implements Stringable
 
         $roundingMode = 'trunc';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            $roundingMode = self::coerceOptionString($options['roundingMode']);
+            $roundingMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
             self::validateRoundingMode($roundingMode);
         }
 

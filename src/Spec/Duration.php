@@ -592,7 +592,7 @@ final class Duration implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = self::coerceEnumOption(
+                $su = Options::coerceEnumOption(
                     $options['smallestUnit'],
                     'Invalid smallestUnit: must be second(s), millisecond(s), microsecond(s), or nanosecond(s).',
                 );
@@ -609,7 +609,7 @@ final class Duration implements Stringable
 
             // roundingMode
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $roundingMode = self::normalizeRoundingMode(self::coerceEnumOption(
+                $roundingMode = self::normalizeRoundingMode(Options::coerceEnumOption(
                     $options['roundingMode'],
                     'Invalid roundingMode.',
                 ));
@@ -776,7 +776,7 @@ final class Duration implements Stringable
             $u = $totalOf['unit'] ?? '';
             // A present, non-null unit is a string-typed option: ToString-coerce a
             // Stringable (JsSymbol throws TypeError), reject other types via RangeError.
-            $unit = $u === null ? '' : self::coerceEnumOption($u, 'Unit option must be a string.');
+            $unit = $u === null ? '' : Options::coerceEnumOption($u, 'Unit option must be a string.');
         } else {
             $unit = $totalOf;
         }
@@ -1798,27 +1798,6 @@ final class Duration implements Stringable
     }
 
     /**
-     * Coerces a mixed option value that must be an enum string.
-     *
-     * Universal coercion contract: a string is used as-is; a Stringable is cast
-     * via (string) (its __toString may itself throw — a Symbol-like sentinel
-     * throws Temporal\Exception\TypeError here); any other type (number, bool,
-     * array, object, null) is an out-of-range option value and yields a RangeError.
-     *
-     * @throws RangeError when $value is not a string and not Stringable.
-     */
-    private static function coerceEnumOption(mixed $value, string $invalidMessage): string
-    {
-        if (is_string($value)) {
-            return $value;
-        }
-        if ($value instanceof Stringable) {
-            return (string) $value;
-        }
-        throw new RangeError($invalidMessage);
-    }
-
-    /**
      * Validates a roundingMode enum string against the TC39 allowed set.
      *
      * @throws RangeError for unknown rounding modes.
@@ -2314,7 +2293,7 @@ final class Duration implements Stringable
 
         $roundingMode = $rmRaw === null
             ? 'halfExpand'
-            : self::normalizeRoundingMode(self::coerceEnumOption($rmRaw, 'Invalid roundingMode.'));
+            : self::normalizeRoundingMode(Options::coerceEnumOption($rmRaw, 'Invalid roundingMode.'));
 
         // At least one of smallestUnit or largestUnit must be provided.
         $suProvided = $suRaw !== null;
@@ -2338,9 +2317,9 @@ final class Duration implements Stringable
             'years' => 9,
         ];
 
-        $suNorm = $suProvided ? self::normalizeUnit(self::coerceEnumOption($suRaw, 'Invalid smallestUnit.')) : null;
+        $suNorm = $suProvided ? self::normalizeUnit(Options::coerceEnumOption($suRaw, 'Invalid smallestUnit.')) : null;
         $luIsAuto = !$luProvided || $luRaw === 'auto';
-        $luNorm = $luIsAuto ? null : self::normalizeUnit(self::coerceEnumOption($luRaw, 'Invalid largestUnit.'));
+        $luNorm = $luIsAuto ? null : self::normalizeUnit(Options::coerceEnumOption($luRaw, 'Invalid largestUnit.'));
 
         // Calendar smallestUnit or largestUnit require relativeTo.
         $suIsCalendar = $suNorm !== null && array_key_exists($suNorm, $UNIT_IDX) && $UNIT_IDX[$suNorm] >= 7;
