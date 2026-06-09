@@ -1176,19 +1176,6 @@ final class Instant implements Stringable
     // Helpers
     // -------------------------------------------------------------------------
 
-    /** Allowed roundingMode option values (TC39 RoundingMode). */
-    private const array ROUNDING_MODES = [
-        'trunc',
-        'floor',
-        'ceil',
-        'expand',
-        'halfExpand',
-        'halfTrunc',
-        'halfFloor',
-        'halfCeil',
-        'halfEven',
-    ];
-
     /**
      * Validates a roundingMode string against the allowed TC39 set so an unknown
      * (or coerced non-enum) mode is rejected even on a fast path where no
@@ -1198,45 +1185,9 @@ final class Instant implements Stringable
      */
     private static function validateRoundingMode(string $mode): void
     {
-        if (!in_array($mode, self::ROUNDING_MODES, strict: true)) {
+        if (!in_array($mode, CalendarMath::ROUNDING_MODES, strict: true)) {
             throw new RangeError("Invalid roundingMode \"{$mode}\".");
         }
-    }
-
-    /**
-     * Coerces a mixed roundingIncrement option to an integer per the universal
-     * coercion contract: int/float/bool/numeric-string coerce (a non-finite
-     * float is rejected); a {@see \Stringable} object stringifies then validates;
-     * a non-numeric string, any other object, an array, or null is rejected.
-     *
-     * @throws RangeError if the value cannot be coerced to a finite number.
-     */
-    private static function coerceRoundingIncrement(mixed $value): int
-    {
-        if (is_int($value)) {
-            return $value;
-        }
-        if (is_bool($value)) {
-            return (int) $value;
-        }
-        if (is_float($value)) {
-            if (!is_finite($value)) {
-                throw new RangeError('roundingIncrement must be a finite number.');
-            }
-            return (int) $value;
-        }
-        if (is_string($value) || $value instanceof Stringable) {
-            $str = (string) $value;
-            if (!is_numeric($str)) {
-                throw new RangeError('roundingIncrement must be a number.');
-            }
-            $floatVal = (float) $str;
-            if (!is_finite($floatVal)) {
-                throw new RangeError('roundingIncrement must be a finite number.');
-            }
-            return (int) $floatVal;
-        }
-        throw new RangeError('roundingIncrement must be a number.');
     }
 
     /**
@@ -1562,7 +1513,7 @@ final class Instant implements Stringable
 
         $increment = 1;
         if (array_key_exists('roundingIncrement', $options) && $options['roundingIncrement'] !== null) {
-            $increment = self::coerceRoundingIncrement($options['roundingIncrement']);
+            $increment = CalendarMath::toFiniteInt($options['roundingIncrement'], 'roundingIncrement');
         }
         if ($increment < 1) {
             throw new RangeError('roundingIncrement must be a positive integer.');
