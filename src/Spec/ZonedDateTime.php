@@ -495,7 +495,10 @@ final class ZonedDateTime implements Stringable
         // Validate 'overflow' option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], "Invalid overflow value: must be 'constrain' or 'reject'.");
+            $ov = Options::coerceEnumOption(
+                $opts['overflow'],
+                "Invalid overflow value: must be 'constrain' or 'reject'.",
+            );
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value \"{$ov}\": must be 'constrain' or 'reject'.");
             }

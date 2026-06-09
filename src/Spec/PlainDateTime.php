@@ -2265,7 +2265,10 @@ final class PlainDateTime implements Stringable
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
         }
-        $val = Options::coerceEnumOption($options['overflow'], "overflow option must be a string: must be 'constrain' or 'reject'.");
+        $val = Options::coerceEnumOption(
+            $options['overflow'],
+            "overflow option must be a string: must be 'constrain' or 'reject'.",
+        );
         if ($val !== 'constrain' && $val !== 'reject') {
             throw new RangeError("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
         }
