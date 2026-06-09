@@ -1959,7 +1959,6 @@ class Emitter {
       this.lines = inner;
       this.transpileStatement(node.body);
       const becameIncomplete = this.incomplete && !savedIncomplete;
-      this.lines = savedIncomplete ? savedLines : savedLines; // always restore
       this.lines = savedLines;
       if (becameIncomplete) {
         // Propagate incomplete to the main context:

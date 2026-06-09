@@ -1262,13 +1262,7 @@ final class ZonedDateTime implements Stringable
         $midnightEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($midnightWallSec, $this->resolvedTimeZoneId);
 
         // Compute offset from midnight using true epoch parts to handle sentinels.
-        if ($this->trueEpochSec !== null) {
-            $thisEpochSec = $this->trueEpochSec;
-            $thisSubNs = $this->trueSubNs;
-        } else {
-            $thisEpochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-            $thisSubNs = $this->epochNanoseconds - ($thisEpochSec * self::NS_PER_SECOND);
-        }
+        [$thisEpochSec, $thisSubNs] = $this->getEpochParts();
         $offsetFromMidnight = (($thisEpochSec - $midnightEpochSec) * self::NS_PER_SECOND) + $thisSubNs;
 
         if ($isDay) {
@@ -1969,14 +1963,7 @@ final class ZonedDateTime implements Stringable
         }
 
         // Use stored true epoch parts when available (sentinel values).
-        if ($this->trueEpochSec !== null) {
-            $epochSec = $this->trueEpochSec;
-            $subNs = $this->trueSubNs;
-        } else {
-            $epochNs = $this->epochNanoseconds;
-            $epochSec = CalendarMath::floorDiv($epochNs, self::NS_PER_SECOND);
-            $subNs = $epochNs - ($epochSec * self::NS_PER_SECOND); // always 0–999_999_999
-        }
+        [$epochSec, $subNs] = $this->getEpochParts();
 
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
@@ -3182,13 +3169,7 @@ final class ZonedDateTime implements Stringable
         $totalDays = $hDays + $mDays + $sDays + $msDays + $usDays + $nsDays;
 
         // Convert days to epoch seconds and add the sub-day ns.
-        if ($this->trueEpochSec !== null) {
-            $epochSec = $this->trueEpochSec;
-            $subNsOrig = $this->trueSubNs;
-        } else {
-            $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-            $subNsOrig = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
-        }
+        [$epochSec, $subNsOrig] = $this->getEpochParts();
 
         $newEpochSec = $epochSec + ($totalDays * 86_400);
         $newSubNs = $subNsOrig + $nsRem;
