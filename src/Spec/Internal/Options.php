@@ -86,4 +86,39 @@ final class Options
         }
         throw new TypeError('options must be an object.');
     }
+
+    /**
+     * TC39 GetStringOrNumberOption(options, "fractionalSecondDigits", «"auto"», 0, 9, "auto"),
+     * applied to an already-read value. A Number (int or float) is range-checked
+     * (NaN/±∞ → RangeError) and floored to an integer in 0–9; any non-number value is
+     * coerced via ToString and must equal "auto" (a JsSymbol sentinel's throwing
+     * __toString surfaces as Temporal\Exception\TypeError, exactly as ToString(Symbol)
+     * does in JS). Returns null for "auto" (the no-op default), or the digit count 0–9.
+     *
+     * @throws RangeError if the value is a non-finite/out-of-range number or a
+     *                    non-number that does not stringify to "auto".
+     */
+    public static function fractionalSecondDigits(mixed $value): ?int
+    {
+        if (is_int($value) || is_float($value)) {
+            if (is_float($value)) {
+                if (is_nan($value) || is_infinite($value)) {
+                    throw new RangeError("fractionalSecondDigits must be 'auto' or a finite integer 0–9.");
+                }
+                $value = (int) floor($value);
+            }
+            if ($value < 0 || $value > 9) {
+                throw new RangeError("fractionalSecondDigits {$value} is out of range (must be 0–9).");
+            }
+            return $value;
+        }
+        if ($value instanceof Stringable) {
+            // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
+            $value = (string) $value;
+        }
+        if ($value !== 'auto') {
+            throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
+        }
+        return null;
+    }
 }

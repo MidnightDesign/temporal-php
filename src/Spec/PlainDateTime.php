@@ -956,43 +956,11 @@ final class PlainDateTime implements Stringable
                 $calendarName = $cn;
             }
 
-            // fractionalSecondDigits: -2 = 'auto', 0-9 = fixed.
+            // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @var mixed $fsd */
-                $fsd = $options['fractionalSecondDigits'];
-                // GetStringOrNumberOption: a Number is used numerically; anything else is
-                // coerced via ToString. JsSymbol's __toString throws TypeError; every other
-                // non-number coerces to a string that must equal 'auto' or it is RangeError.
-                if (is_int($fsd) || is_bool($fsd) || $fsd === null) {
-                    // null/bool are not numbers; ToString yields 'null'/'true'/'false' => RangeError.
-                    if (!is_int($fsd)) {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if ($fsd < 0 || $fsd > 9) {
-                        throw new RangeError("fractionalSecondDigits {$fsd} is out of range (must be 0–9).");
-                    }
+                $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+                if ($fsd !== null) {
                     $digits = $fsd;
-                } elseif (is_float($fsd)) {
-                    if (is_nan($fsd) || is_infinite($fsd)) {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or a finite integer 0–9.");
-                    }
-                    $fsd = (int) floor($fsd);
-                    if ($fsd < 0 || $fsd > 9) {
-                        throw new RangeError("fractionalSecondDigits {$fsd} is out of range (must be 0–9).");
-                    }
-                    $digits = $fsd;
-                } elseif (is_string($fsd)) {
-                    // A string value is only valid when it is exactly 'auto' (the default; no-op).
-                    if ($fsd !== 'auto') {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                } else {
-                    // Non-number, non-string: coerce via ToString (JsSymbol throws TypeError here).
-                    $coerced = $fsd instanceof \Stringable ? (string) $fsd : null;
-                    if ($coerced !== 'auto') {
-                        // 'auto' is a no-op (digits stays at the default -2); anything else is invalid.
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
                 }
             }
 

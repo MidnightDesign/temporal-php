@@ -480,29 +480,8 @@ final class PlainTime implements Stringable
 
         if ($options !== []) {
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @var mixed $fsd */
-                $fsd = $options['fractionalSecondDigits'];
-                if ($fsd instanceof Stringable) {
-                    // GetStringOrNumberOption with a Symbol: ToString(Symbol) throws TypeError.
-                    // The JsSymbol sentinel's __toString throws Temporal\Exception\TypeError;
-                    // any other Stringable coerces to a string and is validated below.
-                    $fsd = (string) $fsd;
-                }
-                if ($fsd !== 'auto') {
-                    if ($fsd === null || is_bool($fsd)) {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if (is_float($fsd)) {
-                        if (is_nan($fsd) || is_infinite($fsd)) {
-                            throw new RangeError("fractionalSecondDigits must be 'auto' or a finite integer 0–9.");
-                        }
-                        $fsd = (int) floor($fsd);
-                    } elseif (!is_int($fsd)) {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if ($fsd < 0 || $fsd > 9) {
-                        throw new RangeError("fractionalSecondDigits {$fsd} is out of range (must be 0–9).");
-                    }
+                $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+                if ($fsd !== null) {
                     $digits = $fsd;
                 }
             }

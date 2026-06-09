@@ -553,30 +553,8 @@ final class Instant implements Stringable
         if ($options !== null) {
             // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @var mixed $fsd */
-                $fsd = $options['fractionalSecondDigits'];
-                // A Stringable in this Number-or-String position is coerced via
-                // ToString: the JsSymbol sentinel's throwing __toString surfaces a
-                // TypeError, while any other Stringable yields a string that is not
-                // "auto" and therefore a RangeError below.
-                if (!is_string($fsd) && !is_int($fsd) && !is_float($fsd) && $fsd instanceof Stringable) {
-                    $fsd = (string) $fsd;
-                }
-                if ($fsd !== 'auto') {
-                    if ($fsd === null || is_bool($fsd) || is_string($fsd)) {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if (is_float($fsd)) {
-                        if (is_nan($fsd) || is_infinite($fsd)) {
-                            throw new RangeError("fractionalSecondDigits must be 'auto' or a finite integer 0–9.");
-                        }
-                        $fsd = (int) floor($fsd);
-                    } elseif (!is_int($fsd)) {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if ($fsd < 0 || $fsd > 9) {
-                        throw new RangeError("fractionalSecondDigits {$fsd} is out of range (must be 0–9).");
-                    }
+                $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+                if ($fsd !== null) {
                     $digits = $fsd;
                 }
             }

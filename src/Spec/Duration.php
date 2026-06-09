@@ -559,34 +559,9 @@ final class Duration implements Stringable
         if ($options !== null) {
             // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @var mixed $fsd */
-                $fsd = $options['fractionalSecondDigits'];
-                // TC39 GetStringOrNumberOption: a Number-typed value is read as a
-                // number and range-checked; anything else is coerced via ToString
-                // and must equal "auto". A Stringable is cast first (a Symbol-like
-                // sentinel's __toString throws Temporal\Exception\TypeError; an
-                // observer object returns its string, e.g. "auto"); every other
-                // non-number type (null / bool / array / non-Stringable object)
-                // stringifies to a value that is not "auto" → RangeError.
-                if (is_int($fsd) || is_float($fsd)) {
-                    if (is_float($fsd)) {
-                        if (is_nan($fsd) || is_infinite($fsd)) {
-                            throw new RangeError("fractionalSecondDigits must be 'auto' or a finite integer 0–9.");
-                        }
-                        $fsd = (int) floor($fsd); // floor (not truncate) for non-integers
-                    }
-                    if ($fsd < 0 || $fsd > 9) {
-                        throw new RangeError("fractionalSecondDigits must be between 0 and 9, got {$fsd}.");
-                    }
+                $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+                if ($fsd !== null) {
                     $digits = $fsd;
-                } else {
-                    if ($fsd instanceof Stringable) {
-                        $fsd = (string) $fsd; // JsSymbol throws Temporal\Exception\TypeError here
-                    }
-                    if ($fsd !== 'auto') {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    $digits = null; // keep auto
                 }
             }
 

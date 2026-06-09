@@ -874,31 +874,8 @@ final class ZonedDateTime implements Stringable
 
         if ($options !== null) {
             if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @var mixed $fsd */
-                $fsd = $options['fractionalSecondDigits'];
-                if ($fsd !== 'auto') {
-                    if ($fsd === null || is_bool($fsd)) {
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if (is_float($fsd)) {
-                        if (is_nan($fsd) || is_infinite($fsd)) {
-                            throw new RangeError("fractionalSecondDigits must be 'auto' or a finite integer 0–9.");
-                        }
-                        $fsd = (int) floor($fsd);
-                    } elseif (!is_int($fsd)) {
-                        // Non-number, non-'auto' value: per GetStringOrNumberOption it is
-                        // coerced via ToString. A JS Symbol (JsSymbol, which is Stringable)
-                        // throws TypeError on coercion; every other non-int value (string,
-                        // bool already handled, plain object/array) is not a valid fsd token
-                        // and yields RangeError.
-                        if ($fsd instanceof \Stringable) {
-                            self::coerceStringableOrThrowTypeError($fsd); // JsSymbol throws TypeError
-                        }
-                        throw new RangeError("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if ($fsd < 0 || $fsd > 9) {
-                        throw new RangeError("fractionalSecondDigits {$fsd} is out of range (must be 0–9).");
-                    }
+                $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+                if ($fsd !== null) {
                     $digits = $fsd;
                 }
             }
