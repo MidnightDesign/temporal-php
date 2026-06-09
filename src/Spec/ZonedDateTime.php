@@ -495,18 +495,7 @@ final class ZonedDateTime implements Stringable
         // Validate 'overflow' option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                if ($ov instanceof \Stringable) {
-                    // JsSymbol's __toString() throws TypeError here, matching JS
-                    // ToString(Symbol); any other non-string (null/bool/number/
-                    // object/bigint) is an unknown enum value → RangeError.
-                    $ov = (string) $ov;
-                } else {
-                    throw new RangeError("Invalid overflow value: must be 'constrain' or 'reject'.");
-                }
-            }
+            $ov = Options::coerceEnumOption($opts['overflow'], "Invalid overflow value: must be 'constrain' or 'reject'.");
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value \"{$ov}\": must be 'constrain' or 'reject'.");
             }
@@ -1727,20 +1716,10 @@ final class ZonedDateTime implements Stringable
             $dir = $direction;
         } else {
             if (array_key_exists('direction', $direction)) {
-                /** @var mixed $dv */
-                $dv = $direction['direction'];
-                if (!is_string($dv)) {
-                    // GetDirectionOption coerces via ToString: a JS Symbol (JsSymbol,
-                    // Stringable) throws TypeError; every other non-string value
-                    // (null/bool/number/bigint/plain object) yields RangeError.
-                    if ($dv instanceof \Stringable) {
-                        self::coerceStringableOrThrowTypeError($dv); // JsSymbol throws TypeError
-                    }
-                    throw new RangeError(
-                        "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
-                    );
-                }
-                $dir = $dv;
+                $dir = Options::coerceEnumOption(
+                    $direction['direction'],
+                    "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
+                );
             }
             if ($dir === null) {
                 throw new RangeError(
@@ -4015,20 +3994,6 @@ final class ZonedDateTime implements Stringable
             'halfTrunc', 'halfFloor' => ($offsetNs * 2) > $dayLengthNs ? $dayLengthNs : 0,
             default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
         };
-    }
-
-    /**
-     * Coerces a Stringable to a string purely for its side effect.
-     *
-     * Used at enum/option throw sites where a JS Symbol (the JsSymbol sentinel,
-     * which is Stringable but whose __toString() throws TypeError) must surface a
-     * TypeError, while any other Stringable coerces harmlessly and the caller then
-     * throws a RangeError for the invalid token. The returned string is discarded.
-     */
-    private static function coerceStringableOrThrowTypeError(\Stringable $value): void
-    {
-        $coerced = (string) $value; // JsSymbol::__toString() throws TypeError here
-        unset($coerced);
     }
 
     /**

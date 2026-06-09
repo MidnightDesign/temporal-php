@@ -1363,16 +1363,7 @@ final class PlainYearMonth implements Stringable
         // (null/bool/number/plain object) coerces and fails => RangeError, while a Symbol
         // (\Stringable whose __toString throws) => TypeError.
         if (array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                if ($ov instanceof Stringable) {
-                    // JsSymbol throws Temporal\Exception\TypeError here.
-                    $ov = (string) $ov;
-                } else {
-                    throw new RangeError('overflow option must be a string.');
-                }
-            }
+            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
             if ($ov !== 'constrain' && $ov !== 'reject') {
                 throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
             }
