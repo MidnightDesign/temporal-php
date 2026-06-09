@@ -10,6 +10,7 @@ use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\EpochLimits;
+use Temporal\Spec\Internal\EpochRounding;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -969,7 +970,7 @@ final class ZonedDateTime implements Stringable
         // calendar year, matching toLocaleString(). Rounding is decomposed into
         // (epochSec, subNs) to avoid int64 overflow on the combined nanosecond value.
         [$trueSec, $trueSubNs] = $this->getEpochParts();
-        [$epochSec, $roundedSubNs] = self::roundEpochParts($trueSec, $trueSubNs, $increment, $roundMode);
+        [$epochSec, $roundedSubNs] = EpochRounding::round($trueSec, $trueSubNs, $increment, $roundMode);
 
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
@@ -2822,107 +2823,6 @@ final class ZonedDateTime implements Stringable
         /** @psalm-suppress ArgumentTypeCoercion — $tzId is validated non-empty before this call */
         $tz = new \DateTimeZone($tzId);
         return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
-    }
-
-    /**
-     * Rounds $ns to the nearest multiple of $increment, treating the number "as if positive"
-     * (i.e., using floor-division for the base and always rounding toward positive infinity
-     * for ties in 'halfCeil'/'halfExpand').
-     *
-     * @throws RangeError for unknown rounding modes.
-     */
-    /**
-     * Rounds a (epochSec, subNs) pair to a nanosecond increment, sentinel-safe.
-     *
-     * Decomposes the rounding so the combined nanosecond value never has to fit
-     * in int64 (over-int64 instants would otherwise overflow). For increments at
-     * or below one second, only the sub-second portion is rounded (with carry
-     * into the seconds); for the minute increment the whole-second portion is
-     * rounded after folding any sub-second remainder in.
-     *
-     * @param int $subNs 0–999_999_999
-     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
-     */
-    private static function roundEpochParts(int $epochSec, int $subNs, int $increment, string $mode): array
-    {
-        if ($increment === 1) {
-            return [$epochSec, $subNs];
-        }
-
-        if ($increment <= self::NS_PER_SECOND) {
-            // Round the sub-second portion in isolation; carry into seconds.
-            $roundedSubNs = self::roundAsIfPositive($subNs, $increment, $mode);
-            if ($roundedSubNs >= self::NS_PER_SECOND) {
-                $epochSec += intdiv($roundedSubNs, self::NS_PER_SECOND);
-                $roundedSubNs %= self::NS_PER_SECOND;
-            }
-            return [$epochSec, $roundedSubNs];
-        }
-
-        // Minute (or coarser) increment: round in the seconds domain so the
-        // combined nanosecond value never has to fit in int64. epochSec is bounded
-        // by the valid-instant range (~|2.7e14|), so seconds-domain math is safe.
-        // The sub-second remainder only matters at exact-half boundaries, where it
-        // tips the distance strictly past the midpoint (AsIfPositive semantics).
-        $incSec = intdiv($increment, self::NS_PER_SECOND);
-        $floorSec = self::floorToIncrement($epochSec, $incSec);
-        // d1 = distance from the floor multiple, in nanoseconds within [0, increment).
-        $d1Ns = (($epochSec - $floorSec) * self::NS_PER_SECOND) + $subNs;
-        $expand = match ($mode) {
-            'trunc', 'floor' => false,
-            'ceil', 'expand' => $d1Ns > 0,
-            'halfExpand', 'halfCeil' => ($d1Ns * 2) >= $increment,
-            'halfTrunc', 'halfFloor' => ($d1Ns * 2) > $increment,
-            'halfEven' => ($d1Ns * 2) === $increment
-                ? (intdiv($floorSec, $incSec) % 2) !== 0
-                : ($d1Ns * 2) > $increment,
-            default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
-        };
-        return [$expand ? $floorSec + $incSec : $floorSec, 0];
-    }
-
-    /** Largest multiple of $increment ≤ $value. */
-    private static function floorToIncrement(int $value, int $increment): int
-    {
-        $q = intdiv($value, $increment);
-        if (($value - ($q * $increment)) < 0) {
-            $q--;
-        }
-        return $q * $increment;
-    }
-
-    private static function roundAsIfPositive(int $ns, int $increment, string $mode): int
-    {
-        // Integer floor-division: r1 = floor(ns / increment).
-        $q = intdiv($ns, $increment);
-        $rem = $ns - ($q * $increment);
-        $r1 = $rem < 0 ? $q - 1 : $q;
-
-        // d1 = distance of $ns from r1 (always in [0, $increment)).
-        $d1 = $ns - ($r1 * $increment);
-
-        // Directed rounding (AsIfPositive: trunc/floor → r1; ceil/expand → r2):
-        $r2 = $r1 + 1;
-        if ($mode === 'halfEven') {
-            $cmp = $d1 * 2;
-            if ($cmp < $increment) {
-                $rounded = $r1;
-            } elseif ($cmp > $increment) {
-                $rounded = $r2;
-            } else {
-                $rounded = ($r1 % 2) === 0 ? $r1 : $r2;
-            }
-        } else {
-            $rounded = match ($mode) {
-                'trunc', 'floor' => $r1,
-                'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
-                'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
-                'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
-                default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
-            };
-        }
-
-        return $rounded * $increment;
     }
 
     // -------------------------------------------------------------------------
