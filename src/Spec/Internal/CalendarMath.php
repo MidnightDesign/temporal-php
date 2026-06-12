@@ -772,7 +772,15 @@ final class CalendarMath
     /**
      * Validates and returns the integer value of a `roundingIncrement` option.
      *
-     * Accepts int, float, string, or bool. Returns the truncated integer value.
+     * Accepts int, float, string, or bool. Returns the truncated integer value
+     * in the range 1–1,000,000,000 (the maximum for any sub-second unit).
+     *
+     * Two-tier design: this version applies the universal 1e9 upper bound and is
+     * used by the Plain* and ZonedDateTime classes, where the spec-level maximum
+     * for any rounding-increment unit is 1e9 nanoseconds. {@see Options::roundingIncrement()}
+     * is the lighter core (coerce + finite + ≥ 1 only, no upper bound) used by
+     * Duration, which performs its own operation-specific range check at the call
+     * site after the increment is validated.
      *
      * @throws RangeError if the value is non-numeric, NaN, infinite, or outside 1–1000000000.
      * @throws TypeError if the value is a Symbol (its `__toString` throws).

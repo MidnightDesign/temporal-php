@@ -206,6 +206,10 @@ final class Options
      * per-unit maximum and the even-divisibility check) are deliberately left at the
      * call sites; only the coerce + finite + ≥ 1 core lives here.
      *
+     * Two-tier design: this is the Duration-facing core (no upper bound). Plain* and
+     * ZonedDateTime use {@see CalendarMath::validateRoundingIncrement()}, which adds the
+     * universal 1e9 upper bound for time-domain increments.
+     *
      * The two RangeError messages match the {@see Temporal\Spec\Duration::round()}
      * original byte-for-byte (the test262 suite asserts on them).
      *
