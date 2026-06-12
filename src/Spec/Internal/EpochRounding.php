@@ -36,8 +36,12 @@ final class EpochRounding
             return [$epochSec, $subNs];
         }
 
-        if ($increment <= self::NS_PER_SECOND) {
-            // Round the sub-second portion in isolation; carry into seconds.
+        if ($increment < self::NS_PER_SECOND) {
+            // Strictly sub-second increment: round the sub-second portion in isolation
+            // and carry into seconds. A whole-second (or coarser) increment is excluded
+            // here on purpose — at exactly NS_PER_SECOND the result lands on a whole
+            // second, and the halfEven tie must break on the parity of that *second*,
+            // not the (always-zero) sub-second quotient, so it is handled below.
             $roundedSubNs = self::roundAsIfPositive($subNs, $increment, $mode);
             if ($roundedSubNs >= self::NS_PER_SECOND) {
                 $epochSec += intdiv($roundedSubNs, self::NS_PER_SECOND);
@@ -46,11 +50,12 @@ final class EpochRounding
             return [$epochSec, $roundedSubNs];
         }
 
-        // Minute (or coarser) increment: round in the seconds domain so the
-        // combined nanosecond value never has to fit in int64. epochSec is bounded
-        // by the valid-instant range (~|2.7e14|), so seconds-domain math is safe.
-        // The sub-second remainder only matters at exact-half boundaries, where it
-        // tips the distance strictly past the midpoint (AsIfPositive semantics).
+        // Second (or coarser) increment: round in the seconds domain so the combined
+        // nanosecond value never has to fit in int64. epochSec is bounded by the
+        // valid-instant range (~|2.7e14|), so seconds-domain math is safe. The
+        // sub-second remainder only matters at exact-half boundaries, where it tips
+        // the distance strictly past the midpoint (AsIfPositive semantics) and the
+        // halfEven tie resolves on the parity of the floor second multiple.
         $incSec = intdiv($increment, self::NS_PER_SECOND);
         $floorSec = self::floorToIncrement($epochSec, $incSec);
         // d1 = distance from the floor multiple, in nanoseconds within [0, increment).

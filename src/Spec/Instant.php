@@ -11,8 +11,8 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\EpochLimits;
-use Temporal\Spec\Internal\EpochParts;
 use Temporal\Spec\Internal\EpochRounding;
+use Temporal\Spec\Internal\EpochValue;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -87,7 +87,10 @@ final class Instant implements Stringable
                 throw new RangeError('epochNanoseconds string must be a decimal integer.');
             }
             [$sec, $subNs] = self::decimalStringToEpochParts($epochNanoseconds);
-            [$this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs] = self::normalizeEpochParts($sec, $subNs);
+            $epoch = self::normalizeEpochParts($sec, $subNs);
+            $this->epochNanoseconds = $epoch->epochNanoseconds;
+            $this->trueEpochSec = $epoch->trueEpochSec;
+            $this->trueSubNs = $epoch->trueSubNs;
             return;
         }
         // ToBigInt(Number) is a TypeError, so a PHP float (our Number stand-in) is
@@ -137,23 +140,26 @@ final class Instant implements Stringable
      * by the constructor and {@see fromEpochParts()} so normalization, the spec
      * range check, and the over-int64 sentinel rule live in one place.
      *
-     * @return array{int, ?int, int} [epochNanoseconds, trueEpochSec, trueSubNs];
-     *         trueEpochSec is null when the value fits int64 exactly.
+     * The range check stays here because its RangeError message is Instant-specific;
+     * the sub-second normalization and the int64-fit / sentinel pack are shared with
+     * ZonedDateTime via {@see EpochValue::fromParts()}.
+     *
      * @throws RangeError if the result is outside the representable Temporal range.
      */
-    private static function normalizeEpochParts(int $epochSec, int $subNs): array
+    private static function normalizeEpochParts(int $epochSec, int $subNs): EpochValue
     {
-        // Normalize sub-second nanoseconds into [0, 1e9), carrying into seconds.
-        [$epochSec, $subNs] = EpochParts::normalizeSubNs($epochSec, $subNs);
+        // Normalize + pack in one place; fromParts() carries any sub-second overflow
+        // into seconds and applies the int64-fit / sentinel rule.
+        $epoch = EpochValue::fromParts($epochSec, $subNs);
 
+        // Range-check against the spec bound on the normalized pair (subNs in [0, 1e9)).
+        [$normSec, $normSubNs] = $epoch->parts();
         $maxSec = EpochLimits::MAX_EPOCH_SECONDS;
-        if ($epochSec < -$maxSec || $epochSec > $maxSec || $epochSec === $maxSec && $subNs > 0) {
+        if ($normSec < -$maxSec || $normSec > $maxSec || $normSec === $maxSec && $normSubNs > 0) {
             throw new RangeError('Instant result is outside the representable nanosecond range.');
         }
 
-        // When the full nanosecond value fits int64, store it exactly; otherwise
-        // clamp the public field to a sentinel and carry the true parts.
-        return EpochParts::packOrClamp($epochSec, $subNs);
+        return $epoch;
     }
 
     /**
@@ -205,10 +211,10 @@ final class Instant implements Stringable
             $subNs = (int) $subNs;
         }
 
-        [$epochNs, $trueSec, $trueSubNs] = self::normalizeEpochParts($epochSec, $subNs);
-        $self = new self($epochNs);
-        $self->trueEpochSec = $trueSec;
-        $self->trueSubNs = $trueSubNs;
+        $epoch = self::normalizeEpochParts($epochSec, $subNs);
+        $self = new self($epoch->epochNanoseconds);
+        $self->trueEpochSec = $epoch->trueEpochSec;
+        $self->trueSubNs = $epoch->trueSubNs;
         return $self;
     }
 
@@ -220,12 +226,7 @@ final class Instant implements Stringable
      */
     private function getEpochParts(): array
     {
-        if ($this->trueEpochSec !== null) {
-            return [$this->trueEpochSec, $this->trueSubNs];
-        }
-        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
-        return [$epochSec, $subNs];
+        return new EpochValue($this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs)->parts();
     }
 
     // -------------------------------------------------------------------------

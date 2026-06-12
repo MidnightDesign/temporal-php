@@ -10,8 +10,8 @@ use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\EpochLimits;
-use Temporal\Spec\Internal\EpochParts;
 use Temporal\Spec\Internal\EpochRounding;
+use Temporal\Spec\Internal\EpochValue;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -1816,12 +1816,7 @@ final class ZonedDateTime implements Stringable
      */
     public function epochParts(): array
     {
-        if ($this->trueEpochSec !== null) {
-            return [$this->trueEpochSec, $this->trueSubNs];
-        }
-        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
-        return [$epochSec, $subNs];
+        return new EpochValue($this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs)->parts();
     }
 
     /**
@@ -3086,7 +3081,7 @@ final class ZonedDateTime implements Stringable
         string $calendarId = 'iso8601',
     ): self {
         // Range check (message is ZonedDateTime-specific, so it stays here; the
-        // int64-fit / sentinel packing is shared via EpochParts::packOrClamp()).
+        // int64-fit / sentinel packing is shared via EpochValue::fromParts()).
         $absEpochSec = abs($epochSec);
         if (
             $absEpochSec > EpochLimits::MAX_EPOCH_SECONDS
@@ -3098,10 +3093,10 @@ final class ZonedDateTime implements Stringable
         // When the full nanosecond value fits int64, pack it exactly; otherwise the
         // public field clamps to a sentinel and the true parts are carried (the
         // fits-int64 case returns the null/0 defaults already on the object).
-        [$epochNs, $trueSec, $trueSubNs] = EpochParts::packOrClamp($epochSec, $subNs);
-        $zdt = new self($epochNs, $tzId, $calendarId);
-        $zdt->trueEpochSec = $trueSec;
-        $zdt->trueSubNs = $trueSubNs;
+        $epoch = EpochValue::fromParts($epochSec, $subNs);
+        $zdt = new self($epoch->epochNanoseconds, $tzId, $calendarId);
+        $zdt->trueEpochSec = $epoch->trueEpochSec;
+        $zdt->trueSubNs = $epoch->trueSubNs;
         return $zdt;
     }
 
@@ -3758,21 +3753,13 @@ final class ZonedDateTime implements Stringable
         /** @psalm-var int<1, 1000> $roundingIncrement */
         $nsIncrement = $nsPerSmallest * $roundingIncrement;
 
-        // Round (absDiffSec, absDiffSubNs) by nsIncrement. Two regimes:
-        //   - increment < NS_PER_SECOND → only absDiffSubNs is affected (always int).
-        //   - increment ≥ NS_PER_SECOND → round in seconds; absDiffSubNs supplies
-        //     the half-window tiebreaker for halfExpand/halfTrunc/halfEven.
-        if ($nsIncrement < self::NS_PER_SECOND) {
-            $absDiffSubNs = self::roundPositiveNs($absDiffSubNs, $nsIncrement, $effectiveMode);
-            if ($absDiffSubNs >= self::NS_PER_SECOND) {
-                $absDiffSec += intdiv($absDiffSubNs, self::NS_PER_SECOND);
-                $absDiffSubNs %= self::NS_PER_SECOND;
-            }
-        } else {
-            $incSec = intdiv($nsIncrement, self::NS_PER_SECOND);
-            $absDiffSec = self::roundPositiveSecondsWithSubNs($absDiffSec, $absDiffSubNs, $incSec, $effectiveMode);
-            $absDiffSubNs = 0;
-        }
+        // Round the non-negative (absDiffSec, absDiffSubNs) pair by nsIncrement. The
+        // shared helper dispatches both regimes internally: a strictly sub-second
+        // increment rounds only the sub-second remainder (carrying into seconds), while
+        // a second-or-coarser increment rounds in the seconds domain so the combined
+        // nanosecond value never has to fit int64. Inputs are pre-absoluted above
+        // (absDiffSec ≥ 0, absDiffSubNs in [0, 1e9)), matching the helper's contract.
+        [$absDiffSec, $absDiffSubNs] = EpochRounding::round($absDiffSec, $absDiffSubNs, $nsIncrement, $effectiveMode);
 
         /** @var array<string,int> $timeUnitRank */
         static $timeUnitRank = [
@@ -3878,43 +3865,6 @@ final class ZonedDateTime implements Stringable
         }
 
         return [$sign * $years, $sign * $months, $sign * $days];
-    }
-
-    /**
-     * Rounds (absSec, absSubNs) — a non-negative seconds + sub-second-ns pair —
-     * to the nearest multiple of $incSec seconds, returning the result in seconds.
-     *
-     * Used by the time-unit diff path to handle spans up to the spec's
-     * representable range (~±275,760 years from epoch) without forming an
-     * int64-overflowing total nanosecond value. The half-window comparison
-     * works on doubled seconds with absSubNs as the tiebreaker; both sides of
-     * the comparison fit int64 because incSec is bounded by the rounding
-     * increment (≤ 1000 × 3600 hour-seconds) and remSec stays below incSec.
-     */
-    private static function roundPositiveSecondsWithSubNs(int $absSec, int $absSubNs, int $incSec, string $mode): int
-    {
-        $secFloor = intdiv($absSec, $incSec) * $incSec;
-        $remSec = $absSec - $secFloor;
-        $r1 = $secFloor;
-        $r2 = $secFloor + $incSec;
-
-        // Express the fractional remainder (within the rounding window) in ns.
-        // Bounded by incSec × NS_PER_SECOND, which stays in int64 for any valid
-        // increment (incSec ≤ 3.6×10⁶ for hour-with-1000-increment).
-        $fractionalNs = ($remSec * self::NS_PER_SECOND) + $absSubNs;
-        $hasRemainder = $fractionalNs > 0;
-        $doubled = $fractionalNs * 2;
-        $halfWindowNs = $incSec * self::NS_PER_SECOND;
-        $cmp = $doubled <=> $halfWindowNs;
-
-        return match ($mode) {
-            'trunc', 'floor' => $r1,
-            'ceil', 'expand' => $hasRemainder ? $r2 : $r1,
-            'halfExpand', 'halfCeil' => $cmp >= 0 ? $r2 : $r1,
-            'halfTrunc', 'halfFloor' => $cmp > 0 ? $r2 : $r1,
-            'halfEven' => $cmp > 0 || $cmp === 0 && (intdiv($r1, $incSec) % 2) !== 0 ? $r2 : $r1,
-            default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
-        };
     }
 
     /**
