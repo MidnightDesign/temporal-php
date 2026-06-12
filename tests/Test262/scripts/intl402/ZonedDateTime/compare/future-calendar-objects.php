@@ -10,4 +10,9 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $okDate = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::incomplete('TemporalHelpers.NotYetSupportedCalendars is not translatable as iterable');
+foreach (TemporalHelpers::notYetSupportedCalendars() as $calendar) {
+Assert::throws(\RangeException::class, function () use (&$calendar, &$okDate) { \Temporal\Spec\ZonedDateTime::compare("1970-01-01[UTC][u-ca={$calendar}]", $okDate); }, "{$calendar} is not yet supported (first argument, string)");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$okDate) { \Temporal\Spec\ZonedDateTime::compare((object) JsUndefined::strip(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar]), $okDate); }, "{$calendar} is not yet supported (first argument, property bag)");
+Assert::throws(\RangeException::class, function () use (&$okDate, &$calendar) { \Temporal\Spec\ZonedDateTime::compare($okDate, "1970-01-01[UTC][u-ca={$calendar}]"); }, "{$calendar} is not yet supported (second argument, string)");
+Assert::throws(\RangeException::class, function () use (&$okDate, &$calendar) { \Temporal\Spec\ZonedDateTime::compare($okDate, (object) JsUndefined::strip(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, "{$calendar} is not yet supported (second argument, property bag)");
+}

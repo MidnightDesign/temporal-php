@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.NotYetSupportedCalendars is not translatable as iterable');
+foreach (TemporalHelpers::notYetSupportedCalendars() as $calendar) {
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from("1970-01-01[u-ca={$calendar}]"); }, "{$calendar} is not yet supported (string)");
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['monthCode' => 'M01', 'day' => 1, 'calendar' => $calendar])); }, "{$calendar} is not yet supported (property bag)");
+}

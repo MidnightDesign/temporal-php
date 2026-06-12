@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $okDate = new \Temporal\Spec\PlainDate(1970, 1, 1);
-Assert::incomplete('TemporalHelpers.NotYetSupportedCalendars is not translatable as iterable');
+foreach (TemporalHelpers::notYetSupportedCalendars() as $calendar) {
+Assert::throws(\RangeException::class, function () use (&$okDate, &$calendar) { $okDate->equals("1970-01-01[u-ca={$calendar}]"); }, "{$calendar} is not yet supported (string)");
+Assert::throws(\RangeException::class, function () use (&$okDate, &$calendar) { $okDate->equals((object) JsUndefined::strip(['year' => 1970, 'month' => 1, 'day' => 1, 'calendar' => $calendar])); }, "{$calendar} is not yet supported (property bag)");
+}

@@ -1010,4 +1010,54 @@ final class TemporalHelpers
             '00-00',
         ];
     }
+
+    /**
+     * Returns the 12 ISO calendar months with their month number, month code, and
+     * maximum days-in-month (using a leap year for February = 29).
+     *
+     * PHP translation of JS TemporalHelpers.ISOMonths.
+     *
+     * @return list<array{month: int, monthCode: string, daysInMonth: int}>
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function isoMonths(): array
+    {
+        return [
+            ['month' => 1,  'monthCode' => 'M01', 'daysInMonth' => 31],
+            ['month' => 2,  'monthCode' => 'M02', 'daysInMonth' => 29],
+            ['month' => 3,  'monthCode' => 'M03', 'daysInMonth' => 31],
+            ['month' => 4,  'monthCode' => 'M04', 'daysInMonth' => 30],
+            ['month' => 5,  'monthCode' => 'M05', 'daysInMonth' => 31],
+            ['month' => 6,  'monthCode' => 'M06', 'daysInMonth' => 30],
+            ['month' => 7,  'monthCode' => 'M07', 'daysInMonth' => 31],
+            ['month' => 8,  'monthCode' => 'M08', 'daysInMonth' => 31],
+            ['month' => 9,  'monthCode' => 'M09', 'daysInMonth' => 30],
+            ['month' => 10, 'monthCode' => 'M10', 'daysInMonth' => 31],
+            ['month' => 11, 'monthCode' => 'M11', 'daysInMonth' => 30],
+            ['month' => 12, 'monthCode' => 'M12', 'daysInMonth' => 31],
+        ];
+    }
+
+    /**
+     * Returns calendar IDs that are not yet supported by any browser Temporal
+     * implementation (defined in the Intl.Era-monthcode proposal).
+     *
+     * PHP translation of JS TemporalHelpers.NotYetSupportedCalendars.
+     *
+     * @return list<string>
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function notYetSupportedCalendars(): array
+    {
+        return [
+            'bangla',
+            'gujarati',
+            'kannada',
+            'marathi',
+            'odia',
+            'tamil',
+            'telugu',
+            'vikram',
+        ];
+    }
 }

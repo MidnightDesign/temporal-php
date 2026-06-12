@@ -9,4 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.NotYetSupportedCalendars is not translatable as iterable');
+foreach (TemporalHelpers::notYetSupportedCalendars() as $calendar) {
+Assert::throws(\RangeException::class, function () use (&$calendar) { new \Temporal\Spec\PlainDate(1970, 1, 1, $calendar); }, "{$calendar} is not yet supported");
+}

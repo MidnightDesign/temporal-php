@@ -10,4 +10,9 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $okDate = new \Temporal\Spec\PlainDate(1970, 1, 1);
-Assert::incomplete('TemporalHelpers.NotYetSupportedCalendars is not translatable as iterable');
+foreach (TemporalHelpers::notYetSupportedCalendars() as $calendar) {
+Assert::throws(\RangeException::class, function () use (&$calendar, &$okDate) { \Temporal\Spec\PlainDate::compare("1970-01-01[u-ca={$calendar}]", $okDate); }, "{$calendar} is not yet supported (first argument, string)");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$okDate) { \Temporal\Spec\PlainDate::compare((object) JsUndefined::strip(['year' => 1970, 'month' => 1, 'day' => 1, 'calendar' => $calendar]), $okDate); }, "{$calendar} is not yet supported (first argument, property bag)");
+Assert::throws(\RangeException::class, function () use (&$okDate, &$calendar) { \Temporal\Spec\PlainDate::compare($okDate, "1970-01-01[u-ca={$calendar}]"); }, "{$calendar} is not yet supported (second argument, string)");
+Assert::throws(\RangeException::class, function () use (&$okDate, &$calendar) { \Temporal\Spec\PlainDate::compare($okDate, (object) JsUndefined::strip(['year' => 1970, 'month' => 1, 'day' => 1, 'calendar' => $calendar])); }, "{$calendar} is not yet supported (second argument, property bag)");
+}

@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $okDate = new \Temporal\Spec\PlainDateTime(1970, 1, 1);
-Assert::incomplete('TemporalHelpers.NotYetSupportedCalendars is not translatable as iterable');
+foreach (TemporalHelpers::notYetSupportedCalendars() as $calendar) {
+Assert::throws(\RangeException::class, function () use (&$okDate, &$calendar) { $okDate->withCalendar($calendar); }, "{$calendar} is not yet supported");
+}

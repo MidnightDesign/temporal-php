@@ -1008,11 +1008,19 @@ class Emitter {
   }
 
   transpileForOf(node) {
-    // Detect TemporalHelpers.X used as iterable (e.g. TemporalHelpers.ISOMonths) — not translatable.
+    // Detect TemporalHelpers.X used as iterable — not translatable, except for the
+    // two known array properties that have PHP static-method equivalents.
     if (node.right.type === 'MemberExpression' && !node.right.computed
         && node.right.object.type === 'Identifier' && node.right.object.name === 'TemporalHelpers') {
-      this.emitIncomplete(`TemporalHelpers.${node.right.property.name} is not translatable as iterable`);
-      return;
+      const propName = node.right.property.name;
+      const TRANSLATABLE = new Set(['ISOMonths', 'NotYetSupportedCalendars']);
+      if (!TRANSLATABLE.has(propName)) {
+        this.emitIncomplete(`TemporalHelpers.${propName} is not translatable as iterable`);
+        return;
+      }
+      // ISOMonths / NotYetSupportedCalendars: fall through to normal for-of handling;
+      // transpileMember() will translate them to TemporalHelpers::isoMonths() /
+      // TemporalHelpers::notYetSupportedCalendars().
     }
 
     const bigIntTable = this.classifyBigIntTableForOf(node);
@@ -1414,6 +1422,13 @@ class Emitter {
             this.emitIncomplete(`\\Temporal\\Spec\\${temporalTarget.class}::${temporalTarget.method} used as a value`);
             return null;
         }
+      }
+
+      // TemporalHelpers.ISOMonths / TemporalHelpers.NotYetSupportedCalendars are
+      // translatable array properties — map to their PHP static-method equivalents.
+      if (node.object.type === 'Identifier' && node.object.name === 'TemporalHelpers') {
+        if (node.property.name === 'ISOMonths') return 'TemporalHelpers::isoMonths()';
+        if (node.property.name === 'NotYetSupportedCalendars') return 'TemporalHelpers::notYetSupportedCalendars()';
       }
 
       // Any member access whose root object is TemporalHelpers is not translatable
@@ -2592,11 +2607,16 @@ class Emitter {
       return null;
     }
 
-    // Detect TemporalHelpers.X used as forEach receiver — not translatable.
+    // Detect TemporalHelpers.X used as forEach receiver — not translatable, except for
+    // the known array properties that have PHP static-method equivalents.
     if (arrNode.type === 'MemberExpression' && !arrNode.computed
         && arrNode.object.type === 'Identifier' && arrNode.object.name === 'TemporalHelpers') {
-      this.emitIncomplete(`TemporalHelpers.${arrNode.property.name} is not translatable as iterable`);
-      return null;
+      const propName = arrNode.property.name;
+      if (propName !== 'ISOMonths') {
+        this.emitIncomplete(`TemporalHelpers.${propName} is not translatable as iterable`);
+        return null;
+      }
+      // ISOMonths: fall through; transpileMember() will emit TemporalHelpers::isoMonths().
     }
 
     // Special case: Object.entries(obj).forEach(([k, v]) => {...})

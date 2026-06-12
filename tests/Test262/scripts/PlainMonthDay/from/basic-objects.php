@@ -21,4 +21,12 @@ TemporalHelpers::assertPlainMonthDay($result, 'M07', 3, "monthCode M07, day 3, o
 $result = \Temporal\Spec\PlainMonthDay::from((object) ['monthCode' => 'M12', 'day' => 31], $opt);
 TemporalHelpers::assertPlainMonthDay($result, 'M12', 31, "monthCode M12, day 31, options = {$optionsDesc}");
 }
-Assert::incomplete('TemporalHelpers.ISOMonths is not translatable as iterable');
+foreach (TemporalHelpers::isoMonths() as $__obj__) {
+$month = $__obj__['month'] ?? null;
+$monthCode = $__obj__['monthCode'] ?? null;
+$daysInMonth = $__obj__['daysInMonth'] ?? null;
+$result = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['month' => $month, 'day' => $daysInMonth]));
+TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "month {$month}, day {$daysInMonth}");
+$result = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => $monthCode, 'day' => $daysInMonth]));
+TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "monthCode {$monthCode}, day {$daysInMonth}");
+}
