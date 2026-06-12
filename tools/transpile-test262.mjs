@@ -2708,29 +2708,27 @@ function singleToStringReturnExpr(node) {
  * would compare against a stale value.
  */
 function collectMutatedNames(node, names = new Set()) {
-  if (!node || typeof node !== 'object') return names;
-  if (Array.isArray(node)) { for (const n of node) collectMutatedNames(n, names); return names; }
-  if (node.type === 'AssignmentExpression') {
-    if (node.left?.type === 'Identifier') names.add(node.left.name);
-    else if (node.left?.type === 'MemberExpression' && node.left.object?.type === 'Identifier') names.add(node.left.object.name);
-    collectMutatedNames(node.right, names);
-    return names;
-  }
-  if (node.type === 'UpdateExpression' && node.argument?.type === 'Identifier') {
-    names.add(node.argument.name);
-    return names;
-  }
-  if (node.type === 'CallExpression'
-      && node.callee?.type === 'MemberExpression' && !node.callee.computed
-      && node.callee.object?.type === 'Identifier'
-      && node.callee.property?.type === 'Identifier'
-      && ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill'].includes(node.callee.property.name)) {
-    names.add(node.callee.object.name);
-  }
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    collectMutatedNames(node[key], names);
-  }
+  forEachNode(node, function visit(n) {
+    if (n.type === 'AssignmentExpression') {
+      if (n.left?.type === 'Identifier') names.add(n.left.name);
+      else if (n.left?.type === 'MemberExpression' && n.left.object?.type === 'Identifier') names.add(n.left.object.name);
+      // Walk the RHS only — the assignment target is recorded, never re-descended.
+      forEachNode(n.right, visit);
+      return false; // children handled manually above
+    }
+    if (n.type === 'UpdateExpression' && n.argument?.type === 'Identifier') {
+      names.add(n.argument.name);
+      return false; // a bare `x++` target has no inner mutations to find
+    }
+    if (n.type === 'CallExpression'
+        && n.callee?.type === 'MemberExpression' && !n.callee.computed
+        && n.callee.object?.type === 'Identifier'
+        && n.callee.property?.type === 'Identifier'
+        && ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill'].includes(n.callee.property.name)) {
+      names.add(n.callee.object.name);
+    }
+    return true; // let forEachNode recurse generically
+  });
   return names;
 }
 
