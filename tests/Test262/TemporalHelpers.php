@@ -502,33 +502,37 @@ final class TemporalHelpers
             } catch (\PHPUnit\Framework\AssertionFailedError $e) {
                 throw $e;
             } catch (\Throwable $thrown) {
-                PHPUnitAssert::assertInstanceOf(\Temporal\Exception\RangeError::class, $thrown, sprintf(
-                    'Expected RangeError for %s=%s.',
-                    $propertyName,
-                    var_export(value: $wrongValue, return: true),
-                ));
+                PHPUnitAssert::assertInstanceOf(
+                    \Temporal\Exception\RangeError::class,
+                    $thrown,
+                    sprintf(
+                        'Expected RangeError for %s=%s.',
+                        $propertyName,
+                        var_export(value: $wrongValue, return: true),
+                    ),
+                );
             }
         }
         // Symbol() cannot be ToString-ed: JsSymbol's __toString throws TypeError.
         try {
             $checkFunc(JsSymbol::singleton());
-            PHPUnitAssert::fail(sprintf(
-                'Expected TypeError for %s=Symbol(), but nothing was thrown.',
-                $propertyName,
-            ));
+            PHPUnitAssert::fail(sprintf('Expected TypeError for %s=Symbol(), but nothing was thrown.', $propertyName));
         } catch (\PHPUnit\Framework\AssertionFailedError $e) {
             throw $e;
         } catch (\Throwable $thrown) {
-            PHPUnitAssert::assertInstanceOf(\Temporal\Exception\TypeError::class, $thrown, sprintf(
-                'Expected TypeError for %s=Symbol().',
-                $propertyName,
-            ));
+            PHPUnitAssert::assertInstanceOf(
+                \Temporal\Exception\TypeError::class,
+                $thrown,
+                sprintf('Expected TypeError for %s=Symbol().', $propertyName),
+            );
         }
         // BigInt skipped — PHP has no equivalent type.
         // Observer success step: an object whose toString() returns the valid value
         // must coerce via ToString and produce the expected result.
         $observer = new class($value) implements \Stringable {
-            public function __construct(private string $v) {}
+            public function __construct(
+                private string $v,
+            ) {}
 
             #[\Override]
             public function __toString(): string
