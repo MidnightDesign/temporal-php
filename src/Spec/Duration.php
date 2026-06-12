@@ -583,7 +583,7 @@ final class Duration implements Stringable
 
             // roundingMode
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $roundingMode = self::normalizeRoundingMode(Options::coerceEnumOption(
+                $roundingMode = Options::roundingMode(Options::coerceEnumOption(
                     $options['roundingMode'],
                     'roundingMode',
                 ));
@@ -1765,30 +1765,6 @@ final class Duration implements Stringable
     }
 
     /**
-     * Validates a roundingMode enum string against the TC39 allowed set.
-     *
-     * @throws RangeError for unknown rounding modes.
-     */
-    private static function normalizeRoundingMode(string $mode): string
-    {
-        return match ($mode) {
-            'trunc',
-            'truncate',
-            'floor',
-            'ceil',
-            'ceiling',
-            'expand',
-            'halfExpand',
-            'halfTrunc',
-            'halfFloor',
-            'halfCeil',
-            'halfEven',
-                => $mode,
-            default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
-        };
-    }
-
-    /**
      * Normalises a singular or plural Temporal unit name to its canonical plural form.
      *
      * @throws RangeError for unknown unit names.
@@ -2071,11 +2047,11 @@ final class Duration implements Stringable
         }
         return match ($mode) {
             // Toward zero
-            'trunc', 'truncate' => 0,
+            'trunc' => 0,
             // Floor = toward -∞: expand for negative, trunc for positive.
             'floor' => $positive ? 0 : 1,
             // Ceil = toward +∞: expand for positive, trunc for negative.
-            'ceil', 'ceiling' => $positive ? 1 : 0,
+            'ceil' => $positive ? 1 : 0,
             // Always away from zero.
             'expand' => 1,
             // Half away from zero (standard rounding).
@@ -2255,7 +2231,7 @@ final class Duration implements Stringable
 
         $roundingMode = $rmRaw === null
             ? 'halfExpand'
-            : self::normalizeRoundingMode(Options::coerceEnumOption($rmRaw, 'roundingMode'));
+            : Options::roundingMode(Options::coerceEnumOption($rmRaw, 'roundingMode'));
 
         // At least one of smallestUnit or largestUnit must be provided.
         $suProvided = $suRaw !== null;
@@ -4189,7 +4165,7 @@ final class Duration implements Stringable
         return match ($mode) {
             'trunc' => $r1,
             'floor' => $positive ? $r1 : $r2,
-            'ceil', 'ceiling' => $positive ? $r2 : $r1,
+            'ceil' => $positive ? $r2 : $r1,
             'expand' => $r2,
             'halfExpand' => $progress >= 0.5 ? $r2 : $r1,
             'halfTrunc' => $progress > 0.5 ? $r2 : $r1,
