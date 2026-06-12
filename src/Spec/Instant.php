@@ -11,6 +11,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\EpochLimits;
+use Temporal\Spec\Internal\EpochParts;
 use Temporal\Spec\Internal\EpochRounding;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -142,12 +143,8 @@ final class Instant implements Stringable
      */
     private static function normalizeEpochParts(int $epochSec, int $subNs): array
     {
-        // Normalize sub-second nanoseconds into [0, 1e9).
-        if ($subNs < 0 || $subNs >= self::NS_PER_SECOND) {
-            $carry = CalendarMath::floorDiv($subNs, self::NS_PER_SECOND);
-            $epochSec += $carry;
-            $subNs -= $carry * self::NS_PER_SECOND;
-        }
+        // Normalize sub-second nanoseconds into [0, 1e9), carrying into seconds.
+        [$epochSec, $subNs] = EpochParts::normalizeSubNs($epochSec, $subNs);
 
         $maxSec = EpochLimits::MAX_EPOCH_SECONDS;
         if ($epochSec < -$maxSec || $epochSec > $maxSec || $epochSec === $maxSec && $subNs > 0) {
@@ -156,11 +153,7 @@ final class Instant implements Stringable
 
         // When the full nanosecond value fits int64, store it exactly; otherwise
         // clamp the public field to a sentinel and carry the true parts.
-        $maxSecForNs = EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS;
-        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
-            return [$epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX, $epochSec, $subNs];
-        }
-        return [($epochSec * self::NS_PER_SECOND) + $subNs, null, 0];
+        return EpochParts::packOrClamp($epochSec, $subNs);
     }
 
     /**
@@ -1163,9 +1156,7 @@ final class Instant implements Stringable
      */
     private static function validateRoundingMode(string $mode): void
     {
-        if (!in_array($mode, CalendarMath::ROUNDING_MODES, strict: true)) {
-            throw new RangeError("Invalid roundingMode \"{$mode}\".");
-        }
+        Options::roundingMode($mode, "Invalid roundingMode \"{$mode}\".");
     }
 
     /**
