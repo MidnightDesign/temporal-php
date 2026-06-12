@@ -12,6 +12,7 @@ use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\EpochRounding;
 use Temporal\Spec\Internal\EpochValue;
+use Temporal\Spec\Internal\HasEpochParts;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -29,6 +30,7 @@ use Temporal\Spec\Internal\TimeZoneHelper;
  */
 final class ZonedDateTime implements Stringable
 {
+    use HasEpochParts;
     use TemporalSerde;
 
     private const int NS_PER_SECOND = 1_000_000_000;
@@ -41,9 +43,6 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
-    public readonly int $epochNanoseconds;
-
-    /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
     public readonly string $timeZoneId;
 
     /**
@@ -54,15 +53,6 @@ final class ZonedDateTime implements Stringable
 
     /** @var array{year:int, month:int<1,12>, day:int<1,31>, hour:int<0,23>, minute:int<0,59>, second:int<0,59>, millisecond:int<0,999>, microsecond:int<0,999>, nanosecond:int<0,999>, offsetSec:int, offset:string}|null $localCache */
     private ?array $localCache = null;
-
-    /**
-     * True epoch seconds (UTC) — set when epochNanoseconds is a sentinel
-     * (PHP_INT_MIN/MAX) because the actual value overflows int64 nanoseconds.
-     */
-    private ?int $trueEpochSec = null;
-
-    /** Sub-second nanoseconds (0–999_999_999) paired with $trueEpochSec. */
-    private int $trueSubNs = 0;
 
     /** Canonical timezone ID for DateTimeZone operations (offset/transition lookups). */
     private readonly string $resolvedTimeZoneId;
@@ -1251,7 +1241,7 @@ final class ZonedDateTime implements Stringable
             $roundedOffsetNs = $offsetFromMidnight;
         } else {
             // Round the offset from midnight, then add back midnight.
-            $roundedOffsetNs = self::roundPositiveNs($offsetFromMidnight, $nsIncrement, $roundingMode);
+            $roundedOffsetNs = EpochRounding::roundAsIfPositive($offsetFromMidnight, $nsIncrement, $roundingMode);
         }
 
         // Compute the rounded result as epoch seconds + sub-ns.
@@ -1742,18 +1732,10 @@ final class ZonedDateTime implements Stringable
             for ($i = 1; $i < $nTransitions; $i++) {
                 $curOffset = $transitions[$i]['offset'];
                 if ($curOffset !== $prevOffset) {
-                    $ts = $transitions[$i]['ts'];
-                    // A transition whose nanoseconds would overflow the int64
-                    // epochNanoseconds field is not representable: return null per spec
-                    // (and avoid the int64 overflow that $ts * NS_PER_SECOND would hit).
-                    // The constraint is the bare int64 field limit (no sub-second
-                    // remainder is added to a whole-second transition), not the spec-max
-                    // instant in seconds — a transition below the latter can still clamp
-                    // the field and become indistinguishable.
-                    if (abs($ts) > EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS_FIELD) {
-                        return null;
-                    }
-                    return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
+                    // A transition whose whole-second nanoseconds would overflow the int64
+                    // epochNanoseconds field is not representable: transitionAt() returns
+                    // null per spec (and avoids the int64 overflow $ts * NS_PER_SECOND hits).
+                    return $this->transitionAt($transitions[$i]['ts']);
                 }
                 $prevOffset = $curOffset;
             }
@@ -1785,39 +1767,33 @@ final class ZonedDateTime implements Stringable
         if ($candidateTs === null) {
             return null;
         }
-        // Symmetric with the 'next' branch: a transition whose nanoseconds would
-        // overflow the int64 epochNanoseconds field is not representable (the field
-        // would clamp to PHP_INT_MAX/MIN and become indistinguishable from the anchor),
-        // so there is no in-range previous transition. The constraint is the bare int64
-        // field limit (no sub-second remainder is added to a whole-second transition),
-        // not the spec-max instant in seconds.
-        if (abs($candidateTs) > EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS_FIELD) {
+        // Symmetric with the 'next' branch: a transition that would overflow the int64
+        // epochNanoseconds field is not representable (the field would clamp to
+        // PHP_INT_MAX/MIN and become indistinguishable from the anchor), so there is no
+        // in-range previous transition and transitionAt() returns null.
+        return $this->transitionAt($candidateTs);
+    }
+
+    /**
+     * Builds the ZonedDateTime for a whole-second timezone-transition timestamp, or null
+     * when that timestamp's nanoseconds would overflow the int64 epochNanoseconds field.
+     *
+     * Shared by the 'next' and 'previous' branches of {@see getTimeZoneTransition()}. The
+     * bound is the bare int64 field limit (a whole-second transition carries no sub-second
+     * remainder), not the spec-max instant in seconds: a transition below the spec max can
+     * still clamp the field and become indistinguishable from the anchor, so it is rejected.
+     */
+    private function transitionAt(int $ts): ?self
+    {
+        if (abs($ts) > EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS_FIELD) {
             return null;
         }
-        $transNs = $candidateTs * self::NS_PER_SECOND;
-        return new self($transNs, $this->timeZoneId, $this->calendarId);
+        return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
     }
 
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
-
-    /**
-     * Returns the true UTC epoch seconds and sub-second nanoseconds, handling
-     * sentinel epochNanoseconds values transparently.
-     *
-     * Internal seam for sibling Spec classes (e.g. Duration relativeTo math) and for
-     * this class's own epoch math, both of which must read the true instant rather than
-     * the clamped public epochNanoseconds field. Not part of the TC39 public surface.
-     *
-     * @internal
-     * @psalm-internal Temporal\Spec
-     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
-     */
-    public function epochParts(): array
-    {
-        return new EpochValue($this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs)->parts();
-    }
 
     /**
      * Creates a ZonedDateTime from true UTC epoch seconds and sub-second
@@ -3095,8 +3071,7 @@ final class ZonedDateTime implements Stringable
         // fits-int64 case returns the null/0 defaults already on the object).
         $epoch = EpochValue::fromParts($epochSec, $subNs);
         $zdt = new self($epoch->epochNanoseconds, $tzId, $calendarId);
-        $zdt->trueEpochSec = $epoch->trueEpochSec;
-        $zdt->trueSubNs = $epoch->trueSubNs;
+        $zdt->applyEpoch($epoch);
         return $zdt;
     }
 
@@ -3649,7 +3624,7 @@ final class ZonedDateTime implements Stringable
             };
             /** @psalm-var int<1, 1000> $roundingIncrement */
             $nsIncrement = $nsPerSmallest * $roundingIncrement;
-            $absTimeNs = self::roundPositiveNs($absTimeNs, $nsIncrement, $effectiveMode);
+            $absTimeNs = EpochRounding::roundAsIfPositive($absTimeNs, $nsIncrement, $effectiveMode);
 
             // Handle day overflow from rounding time.
             // Use DST-aware day length for IANA timezones.
@@ -3865,17 +3840,6 @@ final class ZonedDateTime implements Stringable
         }
 
         return [$sign * $years, $sign * $months, $sign * $days];
-    }
-
-    /**
-     * Rounds a non-negative nanosecond value to the nearest multiple of $increment.
-     *
-     * Thin wrapper over the canonical as-if-positive routine shared with Instant; for a
-     * non-negative $ns (the only kind every call site passes) the two are identical.
-     */
-    private static function roundPositiveNs(int $ns, int $increment, string $mode): int
-    {
-        return EpochRounding::roundAsIfPositive($ns, $increment, $mode);
     }
 
     /**

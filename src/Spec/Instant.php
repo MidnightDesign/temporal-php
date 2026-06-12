@@ -13,6 +13,7 @@ use Temporal\Spec\Internal\CalendarMath;
 use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\EpochRounding;
 use Temporal\Spec\Internal\EpochValue;
+use Temporal\Spec\Internal\HasEpochParts;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -26,6 +27,8 @@ use Temporal\Spec\Internal\TimeZoneHelper;
  */
 final class Instant implements Stringable
 {
+    use HasEpochParts;
+
     private const int NS_PER_SECOND = 1_000_000_000;
     private const int NS_PER_MILLISECOND = 1_000_000;
 
@@ -40,26 +43,12 @@ final class Instant implements Stringable
      */
     public int $epochMilliseconds {
         get {
-            [$epochSec, $subNs] = $this->getEpochParts();
+            [$epochSec, $subNs] = $this->epochParts();
             // ms = floor(trueNs / 1e6); decompose to avoid an int64-overflowing
             // intermediate trueNs for over-int64 instants.
             return ($epochSec * 1_000) + CalendarMath::floorDiv($subNs, self::NS_PER_MILLISECOND);
         }
     }
-
-    /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
-    public readonly int $epochNanoseconds;
-
-    /**
-     * True UTC epoch seconds — set when {@see $epochNanoseconds} is a sentinel
-     * (PHP_INT_MIN/MAX) because the actual value overflows int64 nanoseconds.
-     * Mirrors ZonedDateTime's design so over-int64 (but in-spec) instants
-     * survive construction, arithmetic, and conversion without clamping.
-     */
-    private ?int $trueEpochSec = null;
-
-    /** Sub-second nanoseconds (0–999_999_999) paired with $trueEpochSec. */
-    private int $trueSubNs = 0;
 
     /**
      * @param int|float|string|bool $epochNanoseconds Nanoseconds since the Unix epoch.
@@ -89,8 +78,7 @@ final class Instant implements Stringable
             [$sec, $subNs] = self::decimalStringToEpochParts($epochNanoseconds);
             $epoch = self::normalizeEpochParts($sec, $subNs);
             $this->epochNanoseconds = $epoch->epochNanoseconds;
-            $this->trueEpochSec = $epoch->trueEpochSec;
-            $this->trueSubNs = $epoch->trueSubNs;
+            $this->applyEpoch($epoch);
             return;
         }
         // ToBigInt(Number) is a TypeError, so a PHP float (our Number stand-in) is
@@ -213,20 +201,8 @@ final class Instant implements Stringable
 
         $epoch = self::normalizeEpochParts($epochSec, $subNs);
         $self = new self($epoch->epochNanoseconds);
-        $self->trueEpochSec = $epoch->trueEpochSec;
-        $self->trueSubNs = $epoch->trueSubNs;
+        $self->applyEpoch($epoch);
         return $self;
-    }
-
-    /**
-     * Returns the true UTC epoch seconds and sub-second nanoseconds, handling
-     * sentinel {@see $epochNanoseconds} values transparently.
-     *
-     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
-     */
-    private function getEpochParts(): array
-    {
-        return new EpochValue($this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs)->parts();
     }
 
     // -------------------------------------------------------------------------
@@ -261,7 +237,7 @@ final class Instant implements Stringable
     public static function from(string|object $item): self
     {
         if ($item instanceof self) {
-            [$epochSec, $subNs] = $item->getEpochParts();
+            [$epochSec, $subNs] = $item->epochParts();
             return self::fromEpochParts($epochSec, $subNs);
         }
         if (!is_string($item)) {
@@ -458,8 +434,8 @@ final class Instant implements Stringable
     {
         $a = $one instanceof self ? $one : self::coerceToInstant($one);
         $b = $two instanceof self ? $two : self::coerceToInstant($two);
-        [$aSec, $aSubNs] = $a->getEpochParts();
-        [$bSec, $bSubNs] = $b->getEpochParts();
+        [$aSec, $aSubNs] = $a->epochParts();
+        [$bSec, $bSubNs] = $b->epochParts();
         $cmp = $aSec <=> $bSec;
         return $cmp !== 0 ? $cmp : $aSubNs <=> $bSubNs;
     }
@@ -511,8 +487,8 @@ final class Instant implements Stringable
     public function equals(string|object $other): bool
     {
         $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
-        [$aSec, $aSubNs] = $this->getEpochParts();
-        [$bSec, $bSubNs] = $otherInst->getEpochParts();
+        [$aSec, $aSubNs] = $this->epochParts();
+        [$bSec, $bSubNs] = $otherInst->epochParts();
         return $aSec === $bSec && $aSubNs === $bSubNs;
     }
 
@@ -627,7 +603,7 @@ final class Instant implements Stringable
         // Round using RoundNumberToIncrementAsIfPositive, decomposed into
         // (seconds, sub-ns) so the combined nanosecond value never has to fit
         // int64 — keeping over-int64 instants intact.
-        [$trueSec, $trueSubNs] = $this->getEpochParts();
+        [$trueSec, $trueSubNs] = $this->epochParts();
         [$secs, $subNs] = $increment === 1
             ? [$trueSec, $trueSubNs]
             : EpochRounding::round($trueSec, $trueSubNs, $increment, $roundMode);
@@ -857,7 +833,7 @@ final class Instant implements Stringable
 
         $opts['_locale'] = $locale;
         $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
-        [$seconds] = $this->getEpochParts();
+        [$seconds] = $this->epochParts();
         $result = $formatter->format($seconds);
 
         return $result !== false ? $result : $this->toString();
@@ -874,7 +850,7 @@ final class Instant implements Stringable
     public function toZonedDateTimeISO(string $timeZone): ZonedDateTime
     {
         $tzId = self::parseTimeZoneId($timeZone);
-        [$epochSec, $subNs] = $this->getEpochParts();
+        [$epochSec, $subNs] = $this->epochParts();
         return ZonedDateTime::fromInstantParts($epochSec, $subNs, $tzId);
     }
 
@@ -993,7 +969,7 @@ final class Instant implements Stringable
                 'Temporal\\Instant::add() does not support calendar fields (years, months, weeks, days).',
             );
         }
-        [$epochSec, $subNs] = $this->getEpochParts();
+        [$epochSec, $subNs] = $this->epochParts();
         return self::addNsOffset(
             $epochSec,
             $subNs,
@@ -1023,7 +999,7 @@ final class Instant implements Stringable
                 'Temporal\\Instant::subtract() does not support calendar fields (years, months, weeks, days).',
             );
         }
-        [$epochSec, $subNs] = $this->getEpochParts();
+        [$epochSec, $subNs] = $this->epochParts();
         return self::addNsOffset(
             $epochSec,
             $subNs,
@@ -1105,7 +1081,7 @@ final class Instant implements Stringable
         }
 
         $nsIncrement = $nsPerUnit * $increment;
-        [$trueSec, $trueSubNs] = $this->getEpochParts();
+        [$trueSec, $trueSubNs] = $this->epochParts();
         [$roundedSec, $roundedSubNs] = EpochRounding::round($trueSec, $trueSubNs, $nsIncrement, $roundingMode);
         return self::fromEpochParts($roundedSec, $roundedSubNs);
     }
@@ -1122,8 +1098,8 @@ final class Instant implements Stringable
     public function since(string|object $other, array|object|null $options = null): Duration
     {
         $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
-        [$aSec, $aSubNs] = $this->getEpochParts();
-        [$bSec, $bSubNs] = $otherInst->getEpochParts();
+        [$aSec, $aSubNs] = $this->epochParts();
+        [$bSec, $bSubNs] = $otherInst->epochParts();
         return self::diffInstant($aSec - $bSec, $aSubNs - $bSubNs, $options);
     }
 
@@ -1139,8 +1115,8 @@ final class Instant implements Stringable
     public function until(string|object $other, array|object|null $options = null): Duration
     {
         $otherInst = $other instanceof self ? $other : self::coerceToInstant($other);
-        [$aSec, $aSubNs] = $otherInst->getEpochParts();
-        [$bSec, $bSubNs] = $this->getEpochParts();
+        [$aSec, $aSubNs] = $otherInst->epochParts();
+        [$bSec, $bSubNs] = $this->epochParts();
         return self::diffInstant($aSec - $bSec, $aSubNs - $bSubNs, $options);
     }
 
