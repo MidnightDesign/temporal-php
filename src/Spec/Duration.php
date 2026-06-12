@@ -1279,6 +1279,47 @@ final class Duration implements Stringable
     }
 
     /**
+     * Extracts the ISO year/month/day anchor from a validated relativeTo property
+     * bag. The bag is guaranteed to carry 'year', 'month' or 'monthCode', and 'day'
+     * (see {@see self::validateRelativeToPropertyBag()}); its numeric fields have
+     * already been checked for Infinity/NaN, so each value only needs
+     * ToIntegerWithTruncation — an int passes through unchanged, every other finite
+     * numeric/coercible value goes through PHP's `(int)` cast, which truncates toward
+     * zero exactly as the spec requires. When only 'monthCode' is present the month
+     * number is the digits after the leading 'M' (a trailing leap-marker 'L', as in
+     * "M05L", is dropped by the `(int)` cast).
+     *
+     * @param array<array-key,mixed> $bag
+     * @return array{int, int, int} [year, month, day]
+     */
+    private static function resolveAnchorYmd(array $bag): array
+    {
+        $year = self::truncateToInteger($bag['year']);
+        if (array_key_exists('month', $bag)) {
+            $month = self::truncateToInteger($bag['month']);
+        } else {
+            /** @var mixed $monthCodeRaw */
+            $monthCodeRaw = $bag['monthCode'];
+            /** @phpstan-ignore cast.string */
+            $month = (int) substr(string: is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw, offset: 1);
+        }
+        $day = self::truncateToInteger($bag['day']);
+        return [$year, $month, $day];
+    }
+
+    /**
+     * TC39 ToIntegerWithTruncation for an already-finiteness-validated property-bag
+     * field: an int passes through unchanged, every other finite numeric/coercible
+     * value goes through PHP's `(int)` cast, which truncates toward zero exactly as
+     * the spec requires. Used only by {@see self::resolveAnchorYmd()}.
+     */
+    private static function truncateToInteger(mixed $value): int
+    {
+        /** @phpstan-ignore cast.int */
+        return is_int($value) ? $value : (int) $value;
+    }
+
+    /**
      * Implements total() for calendar units (years/months/weeks) given an ISO PlainDate
      * relativeTo bag. Unknown keys in the bag are silently ignored per TC39.
      *
@@ -1287,16 +1328,7 @@ final class Duration implements Stringable
      */
     private function totalCalendar(string $unit, array $relativeTo, ?array $zdtInfo = null): int|float
     {
-        $year = Options::toIntegerTruncation($relativeTo['year']);
-        if (array_key_exists('month', $relativeTo)) {
-            $month = Options::toIntegerTruncation($relativeTo['month']);
-        } else {
-            /** @var mixed $monthCodeRaw */
-            $monthCodeRaw = $relativeTo['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $month = (int) substr(string: is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw, offset: 1);
-        }
-        $day = Options::toIntegerTruncation($relativeTo['day']);
+        [$year, $month, $day] = self::resolveAnchorYmd($relativeTo);
 
         $tz = new \DateTimeZone('UTC');
         $start = new \DateTimeImmutable('now', $tz)
@@ -2883,18 +2915,7 @@ final class Duration implements Stringable
             $rt = get_object_vars($rt);
         }
         assert(is_array($rt), description: 'non-string $rt must be a property-bag array at this point');
-        $bag = $rt;
-        $year = Options::toIntegerTruncation($bag['year']);
-        if (array_key_exists('month', $bag)) {
-            $month = Options::toIntegerTruncation($bag['month']);
-        } else {
-            /** @var mixed $mcRaw */
-            $mcRaw = $bag['monthCode'];
-            /** @phpstan-ignore cast.string */
-            $mc = is_string($mcRaw) ? $mcRaw : (string) $mcRaw;
-            $month = (int) substr(string: $mc, offset: 1);
-        }
-        $day = Options::toIntegerTruncation($bag['day']);
+        [$year, $month, $day] = self::resolveAnchorYmd($rt);
         return ['year' => $year, 'month' => $month, 'day' => $day];
     }
 

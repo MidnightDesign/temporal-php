@@ -300,18 +300,4 @@ final class Options
         }
         return null;
     }
-
-    /**
-     * TC39 ToIntegerWithTruncation applied to an already-finiteness-validated
-     * property-bag field. The value has been checked for Infinity/NaN upstream
-     * (see {@see Temporal\Spec\Duration}'s relativeTo validation), so all that
-     * remains is to truncate toward zero: an int passes through unchanged, every
-     * other finite numeric/coercible value goes through PHP's `(int)` cast, which
-     * truncates toward zero exactly as ToIntegerWithTruncation specifies.
-     */
-    public static function toIntegerTruncation(mixed $value): int
-    {
-        /** @phpstan-ignore cast.int */
-        return is_int($value) ? $value : (int) $value;
-    }
 }
