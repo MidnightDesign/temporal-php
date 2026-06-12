@@ -104,38 +104,29 @@ final class PlainTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * @param int|float $hour        0–23
-     * @param int|float $minute      0–59
-     * @param int|float $second      0–59
-     * @param int|float $millisecond 0–999
-     * @param int|float $microsecond 0–999
-     * @param int|float $nanosecond  0–999
+     * @param mixed $hour        0–23 after TC39 ToIntegerWithTruncation; null/omitted → 0.
+     * @param mixed $minute      0–59 after coercion; null/omitted → 0.
+     * @param mixed $second      0–59 after coercion; null/omitted → 0.
+     * @param mixed $millisecond 0–999 after coercion; null/omitted → 0.
+     * @param mixed $microsecond 0–999 after coercion; null/omitted → 0.
+     * @param mixed $nanosecond  0–999 after coercion; null/omitted → 0.
      * @throws RangeError if any parameter is infinite or out of range.
      */
     public function __construct(
-        int|float $hour = 0,
-        int|float $minute = 0,
-        int|float $second = 0,
-        int|float $millisecond = 0,
-        int|float $microsecond = 0,
-        int|float $nanosecond = 0,
+        mixed $hour = null,
+        mixed $minute = null,
+        mixed $second = null,
+        mixed $millisecond = null,
+        mixed $microsecond = null,
+        mixed $nanosecond = null,
     ) {
-        if (
-            !is_finite((float) $hour)
-            || !is_finite((float) $minute)
-            || !is_finite((float) $second)
-            || !is_finite((float) $millisecond)
-            || !is_finite((float) $microsecond)
-            || !is_finite((float) $nanosecond)
-        ) {
-            throw new RangeError('Invalid PlainTime: all fields must be finite numbers.');
-        }
-        $h = (int) $hour;
-        $min = (int) $minute;
-        $sec = (int) $second;
-        $ms = (int) $millisecond;
-        $us = (int) $microsecond;
-        $ns = (int) $nanosecond;
+        // TC39 ToIntegerWithTruncation: null/omitted → 0, bool → 0/1, string/float → truncated int.
+        $h = CalendarMath::toConstructorInt($hour, 'PlainTime hour');
+        $min = CalendarMath::toConstructorInt($minute, 'PlainTime minute');
+        $sec = CalendarMath::toConstructorInt($second, 'PlainTime second');
+        $ms = CalendarMath::toConstructorInt($millisecond, 'PlainTime millisecond');
+        $us = CalendarMath::toConstructorInt($microsecond, 'PlainTime microsecond');
+        $ns = CalendarMath::toConstructorInt($nanosecond, 'PlainTime nanosecond');
 
         CalendarMath::validateTimeFields($h, $min, $sec, $ms, $us, $ns);
 
@@ -261,14 +252,17 @@ final class PlainTime implements Stringable
 
         // PrepareCalendarFields step 10 (partial): at least one recognized time field
         // must be present; an object with no recognized keys is not a valid partial time.
-        $hasAnyField = array_key_exists('hour', $fields)
+        $hasAnyField =
+            array_key_exists('hour', $fields)
             || array_key_exists('minute', $fields)
             || array_key_exists('second', $fields)
             || array_key_exists('millisecond', $fields)
             || array_key_exists('microsecond', $fields)
             || array_key_exists('nanosecond', $fields);
         if (!$hasAnyField) {
-            throw new TypeError('PlainTime::with() requires at least one of: hour, minute, second, millisecond, microsecond, nanosecond.');
+            throw new TypeError(
+                'PlainTime::with() requires at least one of: hour, minute, second, millisecond, microsecond, nanosecond.',
+            );
         }
 
         // GetOptionsObject + GetTemporalOverflowOption: explicit null / non-object

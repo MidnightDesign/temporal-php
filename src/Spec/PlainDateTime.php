@@ -255,53 +255,41 @@ final class PlainDateTime implements Stringable
     public readonly int $nanosecond;
 
     /**
-     * @param int|float $year
-     * @param int|float $month        1–12
-     * @param int|float $day          1–daysInMonth
-     * @param int|float $hour         0–23
-     * @param int|float $minute       0–59
-     * @param int|float $second       0–59
-     * @param int|float $millisecond  0–999
-     * @param int|float $microsecond  0–999
-     * @param int|float $nanosecond   0–999
+     * @param mixed $year         TC39 ToIntegerWithTruncation: int/float/bool/null/string accepted.
+     * @param mixed $month        1–12 after coercion.
+     * @param mixed $day          1–daysInMonth after coercion.
+     * @param mixed $hour         0–23 after coercion; null/omitted → 0.
+     * @param mixed $minute       0–59 after coercion; null/omitted → 0.
+     * @param mixed $second       0–59 after coercion; null/omitted → 0.
+     * @param mixed $millisecond  0–999 after coercion; null/omitted → 0.
+     * @param mixed $microsecond  0–999 after coercion; null/omitted → 0.
+     * @param mixed $nanosecond   0–999 after coercion; null/omitted → 0.
      * @throws RangeError if any value is infinite, non-integer, or out of range.
      */
     public function __construct(
-        int|float $year,
-        int|float $month,
-        int|float $day,
-        int|float $hour = 0,
-        int|float $minute = 0,
-        int|float $second = 0,
-        int|float $millisecond = 0,
-        int|float $microsecond = 0,
-        int|float $nanosecond = 0,
+        mixed $year,
+        mixed $month,
+        mixed $day,
+        mixed $hour = null,
+        mixed $minute = null,
+        mixed $second = null,
+        mixed $millisecond = null,
+        mixed $microsecond = null,
+        mixed $nanosecond = null,
         mixed $calendar = null,
     ) {
         // An omitted (or null — PHP cannot distinguish JS `undefined` positionally)
         // calendar defaults to ISO 8601; a non-string is a wrong-type TypeError; an
         // unknown calendar string is a RangeError. Shared with PlainDate's constructor.
         $this->calendarId = CalendarFactory::resolveConstructorCalendar($calendar, 'PlainDateTime');
-        if (
-            !is_finite((float) $year)
-            || !is_finite((float) $month)
-            || !is_finite((float) $day)
-            || !is_finite((float) $hour)
-            || !is_finite((float) $minute)
-            || !is_finite((float) $second)
-            || !is_finite((float) $millisecond)
-            || !is_finite((float) $microsecond)
-            || !is_finite((float) $nanosecond)
-        ) {
-            throw new RangeError('Invalid PlainDateTime: all fields must be finite numbers.');
-        }
-        $this->isoYear = (int) $year;
-        $monthInt = (int) $month;
+        // TC39 ToIntegerWithTruncation: null/omitted → 0, bool → 0/1, string/float → truncated int.
+        $this->isoYear = CalendarMath::toConstructorInt($year, 'PlainDateTime year');
+        $monthInt = CalendarMath::toConstructorInt($month, 'PlainDateTime month');
         if ($monthInt < 1 || $monthInt > 12) {
             throw new RangeError("Invalid PlainDateTime: month {$monthInt} is out of range 1–12.");
         }
         $this->isoMonth = $monthInt;
-        $dayInt = (int) $day;
+        $dayInt = CalendarMath::toConstructorInt($day, 'PlainDateTime day');
         if ($dayInt < 1) {
             throw new RangeError("Invalid PlainDateTime: day {$dayInt} must be at least 1.");
         }
@@ -313,12 +301,12 @@ final class PlainDateTime implements Stringable
         }
         /** @psalm-suppress InvalidPropertyAssignmentValue — $dayInt <= $daysInMonth <= 31 */
         $this->isoDay = $dayInt;
-        $hInt = (int) $hour;
-        $minInt = (int) $minute;
-        $secInt = (int) $second;
-        $msInt = (int) $millisecond;
-        $usInt = (int) $microsecond;
-        $nsInt = (int) $nanosecond;
+        $hInt = CalendarMath::toConstructorInt($hour, 'PlainDateTime hour');
+        $minInt = CalendarMath::toConstructorInt($minute, 'PlainDateTime minute');
+        $secInt = CalendarMath::toConstructorInt($second, 'PlainDateTime second');
+        $msInt = CalendarMath::toConstructorInt($millisecond, 'PlainDateTime millisecond');
+        $usInt = CalendarMath::toConstructorInt($microsecond, 'PlainDateTime microsecond');
+        $nsInt = CalendarMath::toConstructorInt($nanosecond, 'PlainDateTime nanosecond');
         CalendarMath::validateTimeFields($hInt, $minInt, $secInt, $msInt, $usInt, $nsInt);
         // TC39 range: strictly after -271821-04-19T00:00:00 … up to +275760-09-13T23:59:59.999999999.
         // epochDays = days from Unix epoch (1970-01-01 = 0).

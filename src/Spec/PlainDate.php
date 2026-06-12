@@ -217,28 +217,29 @@ final class PlainDate implements Stringable
     public readonly int $isoDay;
 
     /**
+     * @param mixed $year     TC39 ToIntegerWithTruncation: int/float/bool/null/string accepted.
+     * @param mixed $month    1–12 after coercion.
+     * @param mixed $day      1–daysInMonth after coercion.
      * @param string|int|float|bool|object|null $calendar Calendar id string (defaults to "iso8601").
      * @throws TypeError if calendar is provided but is not a string.
      * @throws RangeError if year/month/day form an invalid ISO date or are infinite.
      * @throws RangeError if calendar is provided and is not "iso8601" (case-insensitive, ASCII-only).
      */
     public function __construct(
-        int|float $year,
-        int|float $month,
-        int|float $day,
+        mixed $year,
+        mixed $month,
+        mixed $day,
         string|int|float|bool|object|null $calendar = 'iso8601',
     ) {
         $this->calendarId = CalendarFactory::resolveConstructorCalendar($calendar, 'PlainDate');
-        if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $day)) {
-            throw new RangeError('Invalid PlainDate: year, month, and day must be finite numbers.');
-        }
-        $this->isoYear = (int) $year;
-        $monthInt = (int) $month;
+        // TC39 ToIntegerWithTruncation: null → 0, bool → 0/1, string/float → truncated int.
+        $this->isoYear = CalendarMath::toConstructorInt($year, 'PlainDate year');
+        $monthInt = CalendarMath::toConstructorInt($month, 'PlainDate month');
         if ($monthInt < 1 || $monthInt > 12) {
             throw new RangeError("Invalid PlainDate: month {$monthInt} is out of range 1–12.");
         }
         $this->isoMonth = $monthInt;
-        $dayInt = (int) $day;
+        $dayInt = CalendarMath::toConstructorInt($day, 'PlainDate day');
         if ($dayInt < 1) {
             throw new RangeError("Invalid PlainDate: day {$dayInt} must be at least 1.");
         }
@@ -364,14 +365,17 @@ final class PlainDate implements Stringable
         // PrepareCalendarFields step 10 (partial): at least one recognized date field must
         // be present. An empty-property object (e.g. JS undefined / sentinel) has no fields.
         // For non-ISO calendars, era and eraYear are also valid date fields.
-        $hasAnyField = array_key_exists('year', $fields)
+        $hasAnyField =
+            array_key_exists('year', $fields)
             || array_key_exists('month', $fields)
             || array_key_exists('monthCode', $fields)
             || array_key_exists('day', $fields)
             || array_key_exists('era', $fields)
             || array_key_exists('eraYear', $fields);
         if (!$hasAnyField) {
-            throw new TypeError('PlainDate::with() requires at least one of: year, month, monthCode, day, era, eraYear.');
+            throw new TypeError(
+                'PlainDate::with() requires at least one of: year, month, monthCode, day, era, eraYear.',
+            );
         }
 
         // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
@@ -781,10 +785,10 @@ final class PlainDate implements Stringable
         // the calendar year and monthCode so that resolveNonIsoReferenceYear can pick the
         // correct representative ISO year (matching TC39 §Temporal.PlainDate.prototype.toPlainMonthDay).
         return PlainMonthDay::from([
-            'calendar'   => $this->calendarId,
-            'year'       => $this->year,
-            'monthCode'  => $this->monthCode,
-            'day'        => $this->day,
+            'calendar' => $this->calendarId,
+            'year' => $this->year,
+            'monthCode' => $this->monthCode,
+            'day' => $this->day,
         ]);
     }
 

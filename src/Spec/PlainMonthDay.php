@@ -98,37 +98,36 @@ final class PlainMonthDay implements Stringable
     /**
      * Constructs a PlainMonthDay.
      *
-     * @param int|float $isoMonth        Month 1–12 (required).
-     * @param int|float $isoDay          Day 1–31 (calendar-aware; required).
+     * @param mixed $isoMonth        Month 1–12 after TC39 ToIntegerWithTruncation.
+     * @param mixed $isoDay          Day 1–31 (calendar-aware) after coercion.
      * @param string|int|float|bool|object|null $calendar Calendar ID string; only "iso8601" supported.
-     * @param int|float   $referenceISOYear Reference ISO year; defaults to 1972.
+     * @param mixed $referenceISOYear Reference ISO year; defaults to 1972 when null/omitted.
      *
      * @throws TypeError if calendar is provided but is not a string.
      * @throws RangeError if month/day/referenceISOYear are out of range, infinite,
      *                                  or the calendar is unsupported.
      */
     public function __construct(
-        int|float $isoMonth,
-        int|float $isoDay,
+        mixed $isoMonth,
+        mixed $isoDay,
         string|int|float|bool|object|null $calendar = 'iso8601',
-        int|float $referenceISOYear = 1972,
+        mixed $referenceISOYear = null,
     ) {
         $this->calendarId = CalendarFactory::resolveConstructorCalendar($calendar, 'PlainMonthDay');
-        if (!is_finite((float) $isoMonth) || !is_finite((float) $isoDay) || !is_finite((float) $referenceISOYear)) {
-            throw new RangeError(
-                'Invalid PlainMonthDay: isoMonth, isoDay, and referenceISOYear must be finite numbers.',
-            );
-        }
-        $monthInt = (int) $isoMonth;
+        // TC39 ToIntegerWithTruncation: null/omitted → 0, bool → 0/1, string/float → truncated int.
+        // referenceISOYear defaults to 1972 when omitted/null.
+        $monthInt = CalendarMath::toConstructorInt($isoMonth, 'PlainMonthDay isoMonth');
         if ($monthInt < 1 || $monthInt > 12) {
             throw new RangeError("Invalid PlainMonthDay: month {$monthInt} is out of range 1–12.");
         }
         $this->isoMonth = $monthInt;
-        $dayInt = (int) $isoDay;
+        $dayInt = CalendarMath::toConstructorInt($isoDay, 'PlainMonthDay isoDay');
         if ($dayInt < 1) {
             throw new RangeError("Invalid PlainMonthDay: day {$dayInt} must be at least 1.");
         }
-        $this->referenceISOYear = (int) $referenceISOYear;
+        $this->referenceISOYear = $referenceISOYear === null
+            ? 1972
+            : CalendarMath::toConstructorInt($referenceISOYear, 'PlainMonthDay referenceISOYear');
 
         // Validate day against the reference year's month.
         $daysInMonth = CalendarMath::calcDaysInMonth($this->referenceISOYear, $this->isoMonth);

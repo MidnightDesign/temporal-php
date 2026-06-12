@@ -423,21 +423,26 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * @param int|float $epochNanoseconds Nanoseconds since the Unix epoch, as an
+     * @param int|float|bool $epochNanoseconds Nanoseconds since the Unix epoch, as an
      *        integer (the PHP stand-in for a BigInt). TC39 coerces this argument with
-     *        ToBigInt; ToBigInt(Number) is a TypeError, so a PHP float is rejected.
+     *        ToBigInt; ToBigInt(bool) = 0n/1n, so booleans are accepted and coerced.
+     *        ToBigInt(Number) is a TypeError, so a PHP float is rejected.
      *        Over-int64 instants are built via {@see fromEpochParts()}.
      * @param string    $timeZoneId       Timezone identifier: 'UTC', '±HH:MM', or an IANA name.
      * @param string    $calendarId       Calendar identifier (only 'iso8601' is supported).
      * @throws TypeError if epochNanoseconds is a float.
      * @throws RangeError if the timezone is invalid.
      */
-    public function __construct(int|float $epochNanoseconds, string $timeZoneId, string $calendarId = 'iso8601')
+    public function __construct(int|float|bool $epochNanoseconds, string $timeZoneId, string $calendarId = 'iso8601')
     {
-        // TC39 step 2: ToBigInt(epochNanoseconds). ToBigInt(Number) throws a TypeError,
-        // so a PHP float (our Number stand-in) is rejected rather than truncated. An
-        // over-int64 instant is constructed through fromEpochParts(), which carries the
-        // true epoch parts behind an int sentinel without float-precision loss.
+        // TC39 step 2: ToBigInt(epochNanoseconds). ToBigInt(bool) = 0n/1n, so PHP booleans
+        // must be accepted and coerced. ToBigInt(Number) throws a TypeError, so a PHP float
+        // (our Number stand-in) is rejected rather than truncated. An over-int64 instant is
+        // constructed through fromEpochParts(), which carries the true epoch parts behind an
+        // int sentinel without float-precision loss.
+        if (is_bool($epochNanoseconds)) {
+            $epochNanoseconds = (int) $epochNanoseconds;
+        }
         if (is_float($epochNanoseconds)) {
             throw new TypeError('ZonedDateTime epochNanoseconds must be an integer, not a float.');
         }
@@ -3549,7 +3554,12 @@ final class ZonedDateTime implements Stringable
                         $timeDiffNs,
                         $receiverIsLater,
                     );
-                    $roundUp = CalendarMath::applyCalendarRoundingProgress($years, $progress, $roundingIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                        $years,
+                        $progress,
+                        $roundingIncrement,
+                        $effectiveMode,
+                    );
                     $roundedYears = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
                     return new Duration(years: $outputSign * $roundedYears);
                 }
@@ -3567,7 +3577,12 @@ final class ZonedDateTime implements Stringable
                         $timeDiffNs,
                         $receiverIsLater,
                     );
-                    $roundUp = CalendarMath::applyCalendarRoundingProgress($totalMonths, $progress, $roundingIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                        $totalMonths,
+                        $progress,
+                        $roundingIncrement,
+                        $effectiveMode,
+                    );
                     $roundedMonths = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
                     if ($normLargest === 'year') {
                         $ry = intdiv(num1: $roundedMonths, num2: 12);
@@ -3581,7 +3596,12 @@ final class ZonedDateTime implements Stringable
                     $progress = $timeDiffNs > 0 ? (float) $timeDiffNs / $nsPerDayF : 0.0;
                     $weekDays = $totalDays;
                     $weekIncrement = $roundingIncrement * 7;
-                    $roundUp = CalendarMath::applyCalendarRoundingProgress($weekDays, $progress, $weekIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                        $weekDays,
+                        $progress,
+                        $weekIncrement,
+                        $effectiveMode,
+                    );
                     $q = intdiv(num1: $weekDays, num2: $weekIncrement);
                     $roundedDays = $roundUp ? ($q + 1) * $weekIncrement : $q * $weekIncrement;
                     // Preserve the years/months from the date difference. Per TC39
@@ -3598,7 +3618,12 @@ final class ZonedDateTime implements Stringable
                 }
                 // normSmallest === 'day'
                 $progress = $timeDiffNs > 0 ? (float) $timeDiffNs / $nsPerDayF : 0.0;
-                $roundUp = CalendarMath::applyCalendarRoundingProgress($days, $progress, $roundingIncrement, $effectiveMode);
+                $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                    $days,
+                    $progress,
+                    $roundingIncrement,
+                    $effectiveMode,
+                );
                 $q = intdiv(num1: $days, num2: $roundingIncrement);
                 $roundedDays = $roundUp ? ($q + 1) * $roundingIncrement : $q * $roundingIncrement;
                 if ($normLargest === 'day') {

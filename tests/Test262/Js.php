@@ -56,7 +56,7 @@ final class Js
         // PHP's (string) [] triggers "Array to string conversion" warning; handle explicitly.
         if (is_array($value)) {
             /** @phpstan-ignore cast.string */
-            return implode(',', array_map(static fn (mixed $v): string => (string) $v, $value));
+            return implode(',', array_map(static fn(mixed $v): string => (string) $v, $value));
         }
 
         /** @phpstan-ignore cast.string */

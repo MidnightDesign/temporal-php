@@ -147,6 +147,27 @@ final class CalendarMath
     }
 
     /**
+     * TC39 ToIntegerWithTruncation for constructor numeric arguments.
+     *
+     * Like toFiniteInt but treats null as 0 (TC39 ToNumber(null) = 0 and
+     * ToNumber(undefined) = NaN which truncates to 0, and PHP maps both omitted
+     * and null to null at optional-parameter call sites).
+     *
+     * Called by Plain* constructors whose positional numeric arguments apply the
+     * ToIntegerWithTruncation abstract operation.
+     *
+     * @throws RangeError if the value is NaN or ±Infinity.
+     * @throws TypeError  (via JsSymbol.__toString) if the value is a Symbol.
+     */
+    public static function toConstructorInt(mixed $value, string $errorContext): int
+    {
+        if ($value === null) {
+            return 0;
+        }
+        return self::toFiniteInt($value, $errorContext);
+    }
+
+    /**
      * Validates bracket annotations in a Temporal string (e.g. from `from()` or `fromISO()`).
      *
      * Rejects: uppercase annotation keys, critical unknown annotations, multiple time-zone
@@ -633,5 +654,4 @@ final class CalendarMath
 
         return [0, 0, 0, $totalDays];
     }
-
 }
