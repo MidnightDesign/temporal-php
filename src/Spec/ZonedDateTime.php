@@ -33,9 +33,6 @@ final class ZonedDateTime implements Stringable
     use HasEpochParts;
     use TemporalSerde;
 
-    private const int NS_PER_SECOND = 1_000_000_000;
-    private const int NS_PER_MILLISECOND = 1_000_000;
-    private const int NS_PER_MICROSECOND = 1_000;
     private const int MS_PER_SECOND = 1_000;
 
     // -------------------------------------------------------------------------
@@ -175,7 +172,7 @@ final class ZonedDateTime implements Stringable
     public int $epochMilliseconds {
         get {
             [$epochSec, $subNs] = $this->epochParts();
-            return ($epochSec * self::MS_PER_SECOND) + intdiv($subNs, self::NS_PER_MILLISECOND);
+            return ($epochSec * self::MS_PER_SECOND) + intdiv($subNs, EpochLimits::NS_PER_MILLISECOND);
         }
     }
 
@@ -198,7 +195,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $offsetNanoseconds {
-        get => $this->localComponents()['offsetSec'] * self::NS_PER_SECOND;
+        get => $this->localComponents()['offsetSec'] * EpochLimits::NS_PER_SECOND;
     }
 
     // -------------------------------------------------------------------------
@@ -682,7 +679,7 @@ final class ZonedDateTime implements Stringable
         // to do a wall-clock → UTC conversion.
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $this->resolvedTimeZoneId);
 
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
     }
@@ -933,14 +930,14 @@ final class ZonedDateTime implements Stringable
         $min = (int) $dt->format('i');
         $sec = (int) $dt->format('s');
 
-        $ms = intdiv(num1: $roundedSubNs, num2: self::NS_PER_MILLISECOND);
-        $us = intdiv(num1: $roundedSubNs % self::NS_PER_MILLISECOND, num2: self::NS_PER_MICROSECOND);
-        $ns = $roundedSubNs % self::NS_PER_MICROSECOND;
+        $ms = intdiv(num1: $roundedSubNs, num2: EpochLimits::NS_PER_MILLISECOND);
+        $us = intdiv(num1: $roundedSubNs % EpochLimits::NS_PER_MILLISECOND, num2: EpochLimits::NS_PER_MICROSECOND);
+        $ns = $roundedSubNs % EpochLimits::NS_PER_MICROSECOND;
 
         // Build offset string: ±HH:MM (rounded to minutes per FormatUTCOffsetRounded).
         // TC39 toString() uses FormatUTCOffsetRounded, which applies halfExpand
         // rounding of offset nanoseconds to the nearest minute, then formats ±HH:MM.
-        $absOffsetNs = abs($offsetSec) * self::NS_PER_SECOND;
+        $absOffsetNs = abs($offsetSec) * EpochLimits::NS_PER_SECOND;
         $totalMinutes = intdiv($absOffsetNs + 30_000_000_000, num2: 60_000_000_000);
         $offH = intdiv($totalMinutes, num2: 60);
         $offM = $totalMinutes % 60;
@@ -959,7 +956,7 @@ final class ZonedDateTime implements Stringable
         $datePart = sprintf('%s-%02d-%02d', $yearStr, $month, $day);
 
         // Sub-second nanoseconds: ms * 1e6 + us * 1e3 + ns
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         if ($isMinute) {
             $timePart = sprintf('%02d:%02d', $hour, $min);
@@ -1162,12 +1159,12 @@ final class ZonedDateTime implements Stringable
             'hours' => [3_600_000_000_000, 24],
             'minute' => [60_000_000_000, 60],
             'minutes' => [60_000_000_000, 60],
-            'second' => [self::NS_PER_SECOND, 60],
-            'seconds' => [self::NS_PER_SECOND, 60],
-            'millisecond' => [self::NS_PER_MILLISECOND, 1_000],
-            'milliseconds' => [self::NS_PER_MILLISECOND, 1_000],
-            'microsecond' => [self::NS_PER_MICROSECOND, 1_000],
-            'microseconds' => [self::NS_PER_MICROSECOND, 1_000],
+            'second' => [EpochLimits::NS_PER_SECOND, 60],
+            'seconds' => [EpochLimits::NS_PER_SECOND, 60],
+            'millisecond' => [EpochLimits::NS_PER_MILLISECOND, 1_000],
+            'milliseconds' => [EpochLimits::NS_PER_MILLISECOND, 1_000],
+            'microsecond' => [EpochLimits::NS_PER_MICROSECOND, 1_000],
+            'microseconds' => [EpochLimits::NS_PER_MICROSECOND, 1_000],
             'nanosecond' => [1, 1_000],
             'nanoseconds' => [1, 1_000],
         ];
@@ -1214,7 +1211,7 @@ final class ZonedDateTime implements Stringable
 
         // Compute offset from midnight using true epoch parts to handle sentinels.
         [$thisEpochSec, $thisSubNs] = $this->epochParts();
-        $offsetFromMidnight = (($thisEpochSec - $midnightEpochSec) * self::NS_PER_SECOND) + $thisSubNs;
+        $offsetFromMidnight = (($thisEpochSec - $midnightEpochSec) * EpochLimits::NS_PER_SECOND) + $thisSubNs;
 
         if ($isDay) {
             // Compute actual day length for DST-aware day rounding.
@@ -1230,7 +1227,7 @@ final class ZonedDateTime implements Stringable
                 throw new RangeError('ZonedDateTime day-rounding boundary is outside the representable range.');
             }
 
-            $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * self::NS_PER_SECOND;
+            $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * EpochLimits::NS_PER_SECOND;
 
             if ($dayLengthNs <= 0) {
                 throw new RangeError('Cannot round to day: day length is zero or negative (DST transition).');
@@ -1245,11 +1242,11 @@ final class ZonedDateTime implements Stringable
         }
 
         // Compute the rounded result as epoch seconds + sub-ns.
-        $roundedEpochSec = $midnightEpochSec + intdiv(num1: $roundedOffsetNs, num2: self::NS_PER_SECOND);
-        $roundedSubNs = $roundedOffsetNs % self::NS_PER_SECOND;
+        $roundedEpochSec = $midnightEpochSec + intdiv(num1: $roundedOffsetNs, num2: EpochLimits::NS_PER_SECOND);
+        $roundedSubNs = $roundedOffsetNs % EpochLimits::NS_PER_SECOND;
         if ($roundedSubNs < 0) {
             $roundedEpochSec--;
-            $roundedSubNs += self::NS_PER_SECOND;
+            $roundedSubNs += EpochLimits::NS_PER_SECOND;
         }
 
         return self::fromEpochParts($roundedEpochSec, $roundedSubNs, $this->timeZoneId, $this->calendarId);
@@ -1579,14 +1576,14 @@ final class ZonedDateTime implements Stringable
 
             if ($offsetOption === 'use') {
                 $epochSec = $wallSec - $currentOffsetSec;
-                $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                 return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
             }
             // 'prefer'/'reject': check if current offset is valid at new wall time
             $epochFromOffset = $wallSec - $currentOffsetSec;
             $actualOffset = self::staticResolveOffset($epochFromOffset, $this->resolvedTimeZoneId);
             if ($actualOffset === $currentOffsetSec) {
-                $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                 return self::fromEpochParts($epochFromOffset, $subNs, $this->timeZoneId, $this->calendarId);
             }
 
@@ -1616,7 +1613,7 @@ final class ZonedDateTime implements Stringable
                 if ($offsetOption === 'use') {
                     // Use the offset directly, regardless of timezone rules.
                     $epochSec = $wallSec - $givenOffsetSec;
-                    $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                    $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                     return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
                 }
 
@@ -1624,7 +1621,7 @@ final class ZonedDateTime implements Stringable
                 $epochFromOffset = $wallSec - $givenOffsetSec;
                 $actualOffset = self::staticResolveOffset($epochFromOffset, $this->resolvedTimeZoneId);
                 if ($actualOffset === $givenOffsetSec) {
-                    $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                    $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                     return self::fromEpochParts($epochFromOffset, $subNs, $this->timeZoneId, $this->calendarId);
                 }
                 if ($offsetOption === 'reject') {
@@ -1788,7 +1785,7 @@ final class ZonedDateTime implements Stringable
         if (abs($ts) > EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS_FIELD) {
             return null;
         }
-        return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
+        return new self($ts * EpochLimits::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -1851,7 +1848,7 @@ final class ZonedDateTime implements Stringable
             // the calendar path only use this for sign, not magnitude.
             return $diffSec > 0 ? PHP_INT_MAX : PHP_INT_MIN;
         }
-        return ($diffSec * self::NS_PER_SECOND) + $diffSubNs;
+        return ($diffSec * EpochLimits::NS_PER_SECOND) + $diffSubNs;
     }
 
     /**
@@ -1888,11 +1885,11 @@ final class ZonedDateTime implements Stringable
         $second = $rem - ($minute * 60);
 
         /** @var int<0, 999> $ms — $subNs < 10^9, dividing by 10^6 gives 0–999 */
-        $ms = intdiv(num1: $subNs, num2: self::NS_PER_MILLISECOND);
+        $ms = intdiv(num1: $subNs, num2: EpochLimits::NS_PER_MILLISECOND);
         /** @var int<0, 999> $us — remainder mod 10^6 / 10^3 gives 0–999 */
-        $us = intdiv(num1: $subNs % self::NS_PER_MILLISECOND, num2: self::NS_PER_MICROSECOND);
+        $us = intdiv(num1: $subNs % EpochLimits::NS_PER_MILLISECOND, num2: EpochLimits::NS_PER_MICROSECOND);
         /** @var int<0, 999> $ns — remainder mod 10^3 gives 0–999 */
-        $ns = $subNs % self::NS_PER_MICROSECOND;
+        $ns = $subNs % EpochLimits::NS_PER_MICROSECOND;
 
         // Build offset string: ±HH:MM or ±HH:MM:SS when seconds are non-zero.
         $absOffsetSec = abs($offsetSec);
@@ -2566,7 +2563,7 @@ final class ZonedDateTime implements Stringable
         $normalTzId = TimeZoneHelper::normalizeTimezoneId($tzRaw);
         $resolvedTzId = self::resolveCanonicalTimezoneId($normalTzId);
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
-        $subNs = ($milli * self::NS_PER_MILLISECOND) + ($micro * self::NS_PER_MICROSECOND) + $nano;
+        $subNs = ($milli * EpochLimits::NS_PER_MILLISECOND) + ($micro * EpochLimits::NS_PER_MICROSECOND) + $nano;
 
         // Handle 'offset' field if provided: depends on offset option.
         if (array_key_exists('offset', $bag) && $offsetOption !== 'ignore') {
@@ -2786,7 +2783,7 @@ final class ZonedDateTime implements Stringable
         }
 
         $absSec = ($hours * 3600) + ($minutes * 60) + $seconds;
-        if ((($absSec * self::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
+        if ((($absSec * EpochLimits::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
             throw new RangeError("Invalid ZonedDateTime string \"{$original}\": UTC offset out of range.");
         }
         /** @var int<0, 86399> $absSec — range validated above */
@@ -2899,9 +2896,9 @@ final class ZonedDateTime implements Stringable
             $timeNs =
                 ($hours * 3_600_000_000_000)
                 + ($minutes * 60_000_000_000)
-                + ($seconds * self::NS_PER_SECOND)
-                + ($ms * self::NS_PER_MILLISECOND)
-                + ($us * self::NS_PER_MICROSECOND)
+                + ($seconds * EpochLimits::NS_PER_SECOND)
+                + ($ms * EpochLimits::NS_PER_MILLISECOND)
+                + ($us * EpochLimits::NS_PER_MICROSECOND)
                 + $ns;
 
             if ($timeNs === 0) {
@@ -2931,14 +2928,14 @@ final class ZonedDateTime implements Stringable
                 'compatible',
             );
             $intermediateSubNs =
-                ($lc['millisecond'] * self::NS_PER_MILLISECOND)
-                + ($lc['microsecond'] * self::NS_PER_MICROSECOND)
+                ($lc['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                + ($lc['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                 + $lc['nanosecond'];
 
             // Step 2: Add time nanoseconds to the epoch.
             $totalSubNs = $intermediateSubNs + $timeNs;
-            $overflowSec = CalendarMath::floorDiv($totalSubNs, self::NS_PER_SECOND);
-            $resultSubNs = $totalSubNs - ($overflowSec * self::NS_PER_SECOND);
+            $overflowSec = CalendarMath::floorDiv($totalSubNs, EpochLimits::NS_PER_SECOND);
+            $resultSubNs = $totalSubNs - ($overflowSec * EpochLimits::NS_PER_SECOND);
             $resultEpochSec = $intermediateEpochSec + $overflowSec;
 
             return self::fromEpochParts($resultEpochSec, $resultSubNs, $this->timeZoneId, $this->calendarId);
@@ -2978,14 +2975,14 @@ final class ZonedDateTime implements Stringable
         $newSubNs = $subNsOrig + $nsRem;
 
         // Carry from sub-ns.
-        if ($newSubNs >= self::NS_PER_SECOND) {
-            $carry = intdiv(num1: $newSubNs, num2: self::NS_PER_SECOND);
+        if ($newSubNs >= EpochLimits::NS_PER_SECOND) {
+            $carry = intdiv(num1: $newSubNs, num2: EpochLimits::NS_PER_SECOND);
             $newEpochSec += $carry;
-            $newSubNs -= $carry * self::NS_PER_SECOND;
+            $newSubNs -= $carry * EpochLimits::NS_PER_SECOND;
         } elseif ($newSubNs < 0) {
-            $carry = (int) ceil(-$newSubNs / self::NS_PER_SECOND);
+            $carry = (int) ceil(-$newSubNs / EpochLimits::NS_PER_SECOND);
             $newEpochSec -= $carry;
-            $newSubNs += $carry * self::NS_PER_SECOND;
+            $newSubNs += $carry * EpochLimits::NS_PER_SECOND;
         }
 
         return self::fromEpochParts($newEpochSec, $newSubNs, $this->timeZoneId, $this->calendarId);
@@ -3020,7 +3017,7 @@ final class ZonedDateTime implements Stringable
         $resolvedTzId = self::resolveCanonicalTimezoneId($tzId);
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
 
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId);
     }
@@ -3341,16 +3338,16 @@ final class ZonedDateTime implements Stringable
             $laterTimeNs =
                 ($laterLocal['hour'] * 3_600_000_000_000)
                 + ($laterLocal['minute'] * 60_000_000_000)
-                + ($laterLocal['second'] * self::NS_PER_SECOND)
-                + ($laterLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                + ($laterLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                + ($laterLocal['second'] * EpochLimits::NS_PER_SECOND)
+                + ($laterLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                + ($laterLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                 + $laterLocal['nanosecond'];
             $earlierTimeNs =
                 ($earlierLocal['hour'] * 3_600_000_000_000)
                 + ($earlierLocal['minute'] * 60_000_000_000)
-                + ($earlierLocal['second'] * self::NS_PER_SECOND)
-                + ($earlierLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                + ($earlierLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                + ($earlierLocal['second'] * EpochLimits::NS_PER_SECOND)
+                + ($earlierLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                + ($earlierLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                 + $earlierLocal['nanosecond'];
 
             $dateDiff = $laterJdn - $earlierJdn;
@@ -3384,16 +3381,16 @@ final class ZonedDateTime implements Stringable
                 $rawTdTimeNs =
                     ($tdLocal['hour'] * 3_600_000_000_000)
                     + ($tdLocal['minute'] * 60_000_000_000)
-                    + ($tdLocal['second'] * self::NS_PER_SECOND)
-                    + ($tdLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                    + ($tdLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                    + ($tdLocal['second'] * EpochLimits::NS_PER_SECOND)
+                    + ($tdLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                    + ($tdLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                     + $tdLocal['nanosecond'];
                 $rawOtherTimeNs =
                     ($otherLocal['hour'] * 3_600_000_000_000)
                     + ($otherLocal['minute'] * 60_000_000_000)
-                    + ($otherLocal['second'] * self::NS_PER_SECOND)
-                    + ($otherLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                    + ($otherLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                    + ($otherLocal['second'] * EpochLimits::NS_PER_SECOND)
+                    + ($otherLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                    + ($otherLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                     + $otherLocal['nanosecond'];
                 $rawTD = $rawOtherTimeNs - $rawTdTimeNs;
                 $tS = $rawTD <=> 0;
@@ -3617,9 +3614,9 @@ final class ZonedDateTime implements Stringable
             $nsPerSmallest = match ($normSmallest) {
                 'hour' => 3_600_000_000_000,
                 'minute' => 60_000_000_000,
-                'second' => self::NS_PER_SECOND,
-                'millisecond' => self::NS_PER_MILLISECOND,
-                'microsecond' => self::NS_PER_MICROSECOND,
+                'second' => EpochLimits::NS_PER_SECOND,
+                'millisecond' => EpochLimits::NS_PER_MILLISECOND,
+                'microsecond' => EpochLimits::NS_PER_MICROSECOND,
                 default => 1,
             };
             /** @psalm-var int<1, 1000> $roundingIncrement */
@@ -3679,12 +3676,12 @@ final class ZonedDateTime implements Stringable
             $rem = $absTimeNs % 3_600_000_000_000;
             $min = intdiv(num1: $rem, num2: 60_000_000_000);
             $rem %= 60_000_000_000;
-            $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-            $rem %= self::NS_PER_SECOND;
-            $msR = intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND);
-            $rem %= self::NS_PER_MILLISECOND;
-            $usR = intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND);
-            $nsR = $rem % self::NS_PER_MICROSECOND;
+            $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
+            $rem %= EpochLimits::NS_PER_SECOND;
+            $msR = intdiv(num1: $rem, num2: EpochLimits::NS_PER_MILLISECOND);
+            $rem %= EpochLimits::NS_PER_MILLISECOND;
+            $usR = intdiv(num1: $rem, num2: EpochLimits::NS_PER_MICROSECOND);
+            $nsR = $rem % EpochLimits::NS_PER_MICROSECOND;
 
             return new Duration(
                 years: $outputSign * $years,
@@ -3712,7 +3709,7 @@ final class ZonedDateTime implements Stringable
         // Borrow if subNs is negative.
         if ($absDiffSubNs < 0) {
             $absDiffSec--;
-            $absDiffSubNs += self::NS_PER_SECOND;
+            $absDiffSubNs += EpochLimits::NS_PER_SECOND;
         }
         // Now: $absDiffSec >= 0 and 0 <= $absDiffSubNs < NS_PER_SECOND. Both fit
         // int64 since |epochSec| < 8.64×10¹² (the spec range).
@@ -3720,9 +3717,9 @@ final class ZonedDateTime implements Stringable
         $nsPerSmallest = match ($normSmallest) {
             'hour' => 3_600_000_000_000,
             'minute' => 60_000_000_000,
-            'second' => self::NS_PER_SECOND,
-            'millisecond' => self::NS_PER_MILLISECOND,
-            'microsecond' => self::NS_PER_MICROSECOND,
+            'second' => EpochLimits::NS_PER_SECOND,
+            'millisecond' => EpochLimits::NS_PER_MILLISECOND,
+            'microsecond' => EpochLimits::NS_PER_MICROSECOND,
             default => 1,
         };
         /** @psalm-var int<1, 1000> $roundingIncrement */
@@ -3755,11 +3752,11 @@ final class ZonedDateTime implements Stringable
         $min = $luTimeRank >= 5 ? intdiv(num1: $remSec, num2: 60) : 0;
         $remSec = $luTimeRank >= 5 ? $remSec % 60 : $remSec;
         $sec = $luTimeRank >= 4 ? $remSec : 0;
-        $rem = $luTimeRank >= 4 ? $absDiffSubNs : ($remSec * self::NS_PER_SECOND) + $absDiffSubNs;
-        $msR = $luTimeRank >= 3 ? intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND) : 0;
-        $rem = $luTimeRank >= 3 ? $rem % self::NS_PER_MILLISECOND : $rem;
-        $usR = $luTimeRank >= 2 ? intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND) : 0;
-        $nsR = $luTimeRank >= 2 ? $rem % self::NS_PER_MICROSECOND : $rem;
+        $rem = $luTimeRank >= 4 ? $absDiffSubNs : ($remSec * EpochLimits::NS_PER_SECOND) + $absDiffSubNs;
+        $msR = $luTimeRank >= 3 ? intdiv(num1: $rem, num2: EpochLimits::NS_PER_MILLISECOND) : 0;
+        $rem = $luTimeRank >= 3 ? $rem % EpochLimits::NS_PER_MILLISECOND : $rem;
+        $usR = $luTimeRank >= 2 ? intdiv(num1: $rem, num2: EpochLimits::NS_PER_MICROSECOND) : 0;
+        $nsR = $luTimeRank >= 2 ? $rem % EpochLimits::NS_PER_MICROSECOND : $rem;
 
         return new Duration(
             hours: $outputSign * $h,

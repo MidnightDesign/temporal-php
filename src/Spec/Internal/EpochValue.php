@@ -27,8 +27,6 @@ namespace Temporal\Spec\Internal;
  */
 final readonly class EpochValue
 {
-    private const int NS_PER_SECOND = 1_000_000_000;
-
     /**
      * @param int $epochNanoseconds Combined nanoseconds since the Unix epoch, or a
      *        PHP_INT_MIN/MAX sentinel when the true value overflows int64.
@@ -60,9 +58,9 @@ final readonly class EpochValue
         // is 0 and the pair is unchanged, so no in-range fast-path guard is needed (an
         // `if ($subNs < 0 || $subNs >= 1e9)` guard's `< 0` arm is in fact dead — every
         // caller reaches here with $subNs ≥ 0).
-        $carry = CalendarMath::floorDiv($subNs, self::NS_PER_SECOND);
+        $carry = CalendarMath::floorDiv($subNs, EpochLimits::NS_PER_SECOND);
         $epochSec += $carry;
-        $subNs -= $carry * self::NS_PER_SECOND;
+        $subNs -= $carry * EpochLimits::NS_PER_SECOND;
 
         $maxSecForNs = EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS;
         // @infection-ignore-all > vs >= (and < vs <=) at ±MAX_EPOCH_SECONDS_FOR_INT64_NS
@@ -85,7 +83,7 @@ final readonly class EpochValue
         // value carries trueEpochSec = null, and parts() reads $this->trueSubNs only when
         // trueEpochSec !== null — so the value written here is never read back. 0/1/-1 are
         // indistinguishable.
-        return new self(($epochSec * self::NS_PER_SECOND) + $subNs, null, 0);
+        return new self(($epochSec * EpochLimits::NS_PER_SECOND) + $subNs, null, 0);
     }
 
     /**
@@ -101,8 +99,8 @@ final readonly class EpochValue
         if ($this->trueEpochSec !== null) {
             return [$this->trueEpochSec, $this->trueSubNs];
         }
-        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
+        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, EpochLimits::NS_PER_SECOND);
+        $subNs = $this->epochNanoseconds - ($epochSec * EpochLimits::NS_PER_SECOND);
         return [$epochSec, $subNs];
     }
 }

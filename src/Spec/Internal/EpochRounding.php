@@ -21,8 +21,6 @@ use Temporal\Exception\RangeError;
  */
 final class EpochRounding
 {
-    private const int NS_PER_SECOND = 1_000_000_000;
-
     /**
      * Rounds a true (epochSec, subNs) pair to the nearest multiple of $increment
      * nanoseconds. $subNs must be in [0, 1e9).
@@ -36,16 +34,16 @@ final class EpochRounding
             return [$epochSec, $subNs];
         }
 
-        if ($increment < self::NS_PER_SECOND) {
+        if ($increment < EpochLimits::NS_PER_SECOND) {
             // Strictly sub-second increment: round the sub-second portion in isolation
             // and carry into seconds. A whole-second (or coarser) increment is excluded
             // here on purpose — at exactly NS_PER_SECOND the result lands on a whole
             // second, and the halfEven tie must break on the parity of that *second*,
             // not the (always-zero) sub-second quotient, so it is handled below.
             $roundedSubNs = self::roundAsIfPositive($subNs, $increment, $mode);
-            if ($roundedSubNs >= self::NS_PER_SECOND) {
-                $epochSec += intdiv($roundedSubNs, self::NS_PER_SECOND);
-                $roundedSubNs %= self::NS_PER_SECOND;
+            if ($roundedSubNs >= EpochLimits::NS_PER_SECOND) {
+                $epochSec += intdiv($roundedSubNs, EpochLimits::NS_PER_SECOND);
+                $roundedSubNs %= EpochLimits::NS_PER_SECOND;
             }
             return [$epochSec, $roundedSubNs];
         }
@@ -56,10 +54,10 @@ final class EpochRounding
         // sub-second remainder only matters at exact-half boundaries, where it tips
         // the distance strictly past the midpoint (AsIfPositive semantics) and the
         // halfEven tie resolves on the parity of the floor second multiple.
-        $incSec = intdiv($increment, self::NS_PER_SECOND);
+        $incSec = intdiv($increment, EpochLimits::NS_PER_SECOND);
         $floorSec = self::floorToIncrement($epochSec, $incSec);
         // d1 = distance from the floor multiple, in nanoseconds within [0, increment).
-        $d1Ns = (($epochSec - $floorSec) * self::NS_PER_SECOND) + $subNs;
+        $d1Ns = (($epochSec - $floorSec) * EpochLimits::NS_PER_SECOND) + $subNs;
         $expand = self::shouldExpand($d1Ns, $increment, $mode, intdiv($floorSec, $incSec));
         return [$expand ? $floorSec + $incSec : $floorSec, 0];
     }

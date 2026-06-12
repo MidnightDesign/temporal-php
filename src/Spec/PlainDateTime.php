@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\MonthCode;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
@@ -29,7 +30,6 @@ final class PlainDateTime implements Stringable
 
     private const int NS_PER_HOUR = 3_600_000_000_000;
     private const int NS_PER_MINUTE = 60_000_000_000;
-    private const int NS_PER_SECOND = 1_000_000_000;
     private const int NS_PER_MS = 1_000_000;
     private const int NS_PER_US = 1_000;
     private const int NS_PER_DAY = 86_400_000_000_000;
@@ -816,8 +816,8 @@ final class PlainDateTime implements Stringable
             'hours' => [self::NS_PER_HOUR, 24],
             'minute' => [self::NS_PER_MINUTE, 60],
             'minutes' => [self::NS_PER_MINUTE, 60],
-            'second' => [self::NS_PER_SECOND, 60],
-            'seconds' => [self::NS_PER_SECOND, 60],
+            'second' => [EpochLimits::NS_PER_SECOND, 60],
+            'seconds' => [EpochLimits::NS_PER_SECOND, 60],
             'millisecond' => [self::NS_PER_MS, 1_000],
             'milliseconds' => [self::NS_PER_MS, 1_000],
             'microsecond' => [self::NS_PER_US, 1_000],
@@ -887,8 +887,8 @@ final class PlainDateTime implements Stringable
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem %= self::NS_PER_MINUTE;
-        $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem %= self::NS_PER_SECOND;
+        $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
+        $rem %= EpochLimits::NS_PER_SECOND;
         $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
         $rem %= self::NS_PER_MS;
         $us = intdiv(num1: $rem, num2: self::NS_PER_US);
@@ -1032,8 +1032,8 @@ final class PlainDateTime implements Stringable
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem %= self::NS_PER_MINUTE;
-        $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem %= self::NS_PER_SECOND;
+        $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
+        $rem %= EpochLimits::NS_PER_SECOND;
 
         $subNs = $rem;
 
@@ -1926,7 +1926,7 @@ final class PlainDateTime implements Stringable
             $nsPerSmallest = match ($normSmallest) {
                 'hour' => self::NS_PER_HOUR,
                 'minute' => self::NS_PER_MINUTE,
-                'second' => self::NS_PER_SECOND,
+                'second' => EpochLimits::NS_PER_SECOND,
                 'millisecond' => self::NS_PER_MS,
                 'microsecond' => self::NS_PER_US,
                 default => 1,
@@ -1996,8 +1996,8 @@ final class PlainDateTime implements Stringable
             $rem = $absTimeNs % self::NS_PER_HOUR;
             $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
             $rem %= self::NS_PER_MINUTE;
-            $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-            $rem %= self::NS_PER_SECOND;
+            $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
+            $rem %= EpochLimits::NS_PER_SECOND;
             $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
             $rem %= self::NS_PER_MS;
             $us = intdiv(num1: $rem, num2: self::NS_PER_US);
@@ -2023,7 +2023,7 @@ final class PlainDateTime implements Stringable
         $nsPerSmallest = match ($normSmallest) {
             'hour' => self::NS_PER_HOUR,
             'minute' => self::NS_PER_MINUTE,
-            'second' => self::NS_PER_SECOND,
+            'second' => EpochLimits::NS_PER_SECOND,
             'millisecond' => self::NS_PER_MS,
             'microsecond' => self::NS_PER_US,
             default => 1,
@@ -2207,8 +2207,8 @@ final class PlainDateTime implements Stringable
         $rem = $newTimeNs % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem %= self::NS_PER_MINUTE;
-        $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem %= self::NS_PER_SECOND;
+        $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
+        $rem %= EpochLimits::NS_PER_SECOND;
         $msR = intdiv(num1: $rem, num2: self::NS_PER_MS);
         $rem %= self::NS_PER_MS;
         $usR = intdiv(num1: $rem, num2: self::NS_PER_US);
@@ -2238,7 +2238,7 @@ final class PlainDateTime implements Stringable
         return (
             ($h * self::NS_PER_HOUR)
             + ($min * self::NS_PER_MINUTE)
-            + ($sec * self::NS_PER_SECOND)
+            + ($sec * EpochLimits::NS_PER_SECOND)
             + ($ms * self::NS_PER_MS)
             + ($us * self::NS_PER_US)
             + $ns

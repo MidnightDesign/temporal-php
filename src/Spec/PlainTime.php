@@ -8,6 +8,7 @@ use Stringable;
 use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 
@@ -25,7 +26,6 @@ final class PlainTime implements Stringable
 
     private const int NS_PER_HOUR = 3_600_000_000_000;
     private const int NS_PER_MINUTE = 60_000_000_000;
-    private const int NS_PER_SECOND = 1_000_000_000;
     private const int NS_PER_MS = 1_000_000;
     private const int NS_PER_US = 1_000;
     private const int NS_PER_DAY = 86_400_000_000_000;
@@ -58,7 +58,7 @@ final class PlainTime implements Stringable
      * @psalm-api
      */
     public int $second {
-        get => intdiv(num1: $this->ns % self::NS_PER_MINUTE, num2: self::NS_PER_SECOND);
+        get => intdiv(num1: $this->ns % self::NS_PER_MINUTE, num2: EpochLimits::NS_PER_SECOND);
     }
 
     /**
@@ -67,7 +67,7 @@ final class PlainTime implements Stringable
      * @psalm-api
      */
     public int $millisecond {
-        get => intdiv(num1: $this->ns % self::NS_PER_SECOND, num2: self::NS_PER_MS);
+        get => intdiv(num1: $this->ns % EpochLimits::NS_PER_SECOND, num2: self::NS_PER_MS);
     }
 
     /**
@@ -142,7 +142,7 @@ final class PlainTime implements Stringable
         $this->ns =
             ($h * self::NS_PER_HOUR)
             + ($min * self::NS_PER_MINUTE)
-            + ($sec * self::NS_PER_SECOND)
+            + ($sec * EpochLimits::NS_PER_SECOND)
             + ($ms * self::NS_PER_MS)
             + ($us * self::NS_PER_US)
             + $ns;
@@ -534,9 +534,9 @@ final class PlainTime implements Stringable
         $rem = $nsToFormat % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem %= self::NS_PER_MINUTE;
-        $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
+        $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
         // Sub-second nanoseconds (0–999_999_999).
-        $subNs = $rem % self::NS_PER_SECOND;
+        $subNs = $rem % EpochLimits::NS_PER_SECOND;
 
         if ($isMinute) {
             return sprintf('%02d:%02d', $h, $min);
@@ -575,8 +575,8 @@ final class PlainTime implements Stringable
         $rem = $nsTotal % self::NS_PER_HOUR;
         $min = intdiv(num1: $rem, num2: self::NS_PER_MINUTE);
         $rem %= self::NS_PER_MINUTE;
-        $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-        $rem %= self::NS_PER_SECOND;
+        $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
+        $rem %= EpochLimits::NS_PER_SECOND;
         $ms = intdiv(num1: $rem, num2: self::NS_PER_MS);
         $rem %= self::NS_PER_MS;
         $us = intdiv(num1: $rem, num2: self::NS_PER_US);
@@ -672,7 +672,7 @@ final class PlainTime implements Stringable
             $totalNs =
                 ($hourNum * self::NS_PER_HOUR)
                 + ($minNum * self::NS_PER_MINUTE)
-                + ($secNum * self::NS_PER_SECOND)
+                + ($secNum * EpochLimits::NS_PER_SECOND)
                 + $subNs;
 
             return self::fromNs($totalNs);
@@ -739,7 +739,7 @@ final class PlainTime implements Stringable
             $totalNs =
                 ($hourNum * self::NS_PER_HOUR)
                 + ($minNum * self::NS_PER_MINUTE)
-                + ($secNum * self::NS_PER_SECOND)
+                + ($secNum * EpochLimits::NS_PER_SECOND)
                 + $subNs;
 
             return self::fromNs($totalNs);
@@ -771,7 +771,7 @@ final class PlainTime implements Stringable
             $totalNs =
                 ($hourNum * self::NS_PER_HOUR)
                 + ($minNum * self::NS_PER_MINUTE)
-                + ($secNum * self::NS_PER_SECOND)
+                + ($secNum * EpochLimits::NS_PER_SECOND)
                 + $subNs;
 
             return self::fromNs($totalNs);
@@ -896,7 +896,7 @@ final class PlainTime implements Stringable
         // NS_PER_DAY / NS_PER_HOUR = 24; / NS_PER_MINUTE = 1440; / NS_PER_SECOND = 86400; etc.
         $hNs = ((int) $d->hours % 24) * self::NS_PER_HOUR;
         $minNs = ((int) $d->minutes % 1_440) * self::NS_PER_MINUTE;
-        $secNs = ((int) $d->seconds % 86_400) * self::NS_PER_SECOND;
+        $secNs = ((int) $d->seconds % 86_400) * EpochLimits::NS_PER_SECOND;
         $msNs = ((int) $d->milliseconds % 86_400_000) * self::NS_PER_MS;
         $usNs = ((int) $d->microseconds % 86_400_000_000) * self::NS_PER_US;
         $nsNs = (int) $d->nanoseconds % self::NS_PER_DAY;
@@ -1070,7 +1070,7 @@ final class PlainTime implements Stringable
         $nsPerUnit = [
             'hour' => self::NS_PER_HOUR,
             'minute' => self::NS_PER_MINUTE,
-            'second' => self::NS_PER_SECOND,
+            'second' => EpochLimits::NS_PER_SECOND,
             'millisecond' => self::NS_PER_MS,
             'microsecond' => self::NS_PER_US,
             'nanosecond' => 1,
@@ -1105,8 +1105,8 @@ final class PlainTime implements Stringable
             $remaining %= self::NS_PER_MINUTE;
         }
         if ($luRank >= 4) {
-            $seconds = intdiv(num1: $remaining, num2: self::NS_PER_SECOND);
-            $remaining %= self::NS_PER_SECOND;
+            $seconds = intdiv(num1: $remaining, num2: EpochLimits::NS_PER_SECOND);
+            $remaining %= EpochLimits::NS_PER_SECOND;
         }
         if ($luRank >= 3) {
             $ms = intdiv(num1: $remaining, num2: self::NS_PER_MS);

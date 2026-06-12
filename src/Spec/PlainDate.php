@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\MonthCode;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
@@ -780,9 +781,6 @@ final class PlainDate implements Stringable
     // Private helpers
     // -------------------------------------------------------------------------
 
-    private const int NS_PER_MILLISECOND = 1_000_000;
-    private const int NS_PER_MICROSECOND = 1_000;
-
     /**
      * Creates a ZonedDateTime from this date combined with the given time fields and timezone.
      *
@@ -815,7 +813,7 @@ final class PlainDate implements Stringable
 
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $tzId);
 
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         return ZonedDateTime::createFromEpochParts($epochSec, $subNs, $tzId, $this->calendarId);
     }

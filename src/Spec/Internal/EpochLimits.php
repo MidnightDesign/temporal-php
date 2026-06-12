@@ -68,4 +68,13 @@ final class EpochLimits
      * decomposes into (epochSec, subNs) and routes through fromEpochParts().
      */
     public const int MAX_EPOCH_MILLISECONDS_FOR_INT64_NS = 9_223_372_036_854;
+
+    /** Nanoseconds per second. */
+    public const int NS_PER_SECOND = 1_000_000_000;
+
+    /** Nanoseconds per millisecond. */
+    public const int NS_PER_MILLISECOND = 1_000_000;
+
+    /** Nanoseconds per microsecond. */
+    public const int NS_PER_MICROSECOND = 1_000;
 }

@@ -29,9 +29,6 @@ final class Instant implements Stringable
 {
     use HasEpochParts;
 
-    private const int NS_PER_SECOND = 1_000_000_000;
-    private const int NS_PER_MILLISECOND = 1_000_000;
-
     /**
      * Milliseconds since the Unix epoch (floor-divided from nanoseconds).
      *
@@ -46,7 +43,7 @@ final class Instant implements Stringable
             [$epochSec, $subNs] = $this->epochParts();
             // ms = floor(trueNs / 1e6); decompose to avoid an int64-overflowing
             // intermediate trueNs for over-int64 instants.
-            return ($epochSec * 1_000) + CalendarMath::floorDiv($subNs, self::NS_PER_MILLISECOND);
+            return ($epochSec * 1_000) + CalendarMath::floorDiv($subNs, EpochLimits::NS_PER_MILLISECOND);
         }
     }
 
@@ -119,7 +116,7 @@ final class Instant implements Stringable
         if ($subMagnitude === 0) {
             return [-$secMagnitude, 0];
         }
-        return [-$secMagnitude - 1, self::NS_PER_SECOND - $subMagnitude];
+        return [-$secMagnitude - 1, EpochLimits::NS_PER_SECOND - $subMagnitude];
     }
 
     /**
@@ -358,10 +355,10 @@ final class Instant implements Stringable
         // Propagate carry from the nanosecond component into whole seconds.
         if ($baseNs < 0) {
             --$utcEpochSec;
-            $baseNs += self::NS_PER_SECOND;
-        } elseif ($baseNs >= self::NS_PER_SECOND) {
+            $baseNs += EpochLimits::NS_PER_SECOND;
+        } elseif ($baseNs >= EpochLimits::NS_PER_SECOND) {
             ++$utcEpochSec;
-            $baseNs -= self::NS_PER_SECOND;
+            $baseNs -= EpochLimits::NS_PER_SECOND;
         }
 
         // Spec range: epoch nanoseconds ∈ [-8_640_000_000_000×10⁹, +8_640_000_000_000×10⁹].
@@ -410,9 +407,9 @@ final class Instant implements Stringable
         if ($epochMilliseconds > $threshold || $epochMilliseconds < -$threshold) {
             $epochSec = CalendarMath::floorDiv($epochMilliseconds, 1_000);
             $subMs = $epochMilliseconds - ($epochSec * 1_000);
-            return self::fromEpochParts($epochSec, $subMs * self::NS_PER_MILLISECOND);
+            return self::fromEpochParts($epochSec, $subMs * EpochLimits::NS_PER_MILLISECOND);
         }
-        return new self($epochMilliseconds * self::NS_PER_MILLISECOND);
+        return new self($epochMilliseconds * EpochLimits::NS_PER_MILLISECOND);
     }
 
     /**
@@ -1190,7 +1187,7 @@ final class Instant implements Stringable
         }
 
         $absSec = ($hours * 3600) + ($minutes * 60) + $seconds;
-        if ((($absSec * self::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
+        if ((($absSec * EpochLimits::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
             throw new RangeError("Invalid Instant string \"{$original}\": UTC offset out of range.");
         }
         /** @var int<0, 86399> $absSec — range validated above */
@@ -1347,10 +1344,10 @@ final class Instant implements Stringable
         // a signed magnitude so the whole diff is represented as (sign, absSec,
         // absSubNs) — never a single int64 nanosecond value, so over-int64
         // spans survive intact.
-        if ($diffSubNs < 0 || $diffSubNs >= self::NS_PER_SECOND) {
-            $carry = CalendarMath::floorDiv($diffSubNs, self::NS_PER_SECOND);
+        if ($diffSubNs < 0 || $diffSubNs >= EpochLimits::NS_PER_SECOND) {
+            $carry = CalendarMath::floorDiv($diffSubNs, EpochLimits::NS_PER_SECOND);
             $diffSec += $carry;
-            $diffSubNs -= $carry * self::NS_PER_SECOND;
+            $diffSubNs -= $carry * EpochLimits::NS_PER_SECOND;
         }
         // Sign of the whole diff (subNs is now ≥ 0, so the diff is negative iff
         // diffSec < 0, zero iff both parts are zero).
@@ -1359,7 +1356,7 @@ final class Instant implements Stringable
             // Magnitude of a negative value: -(diffSec*1e9 + diffSubNs).
             if ($diffSubNs > 0) {
                 $absSec = -($diffSec + 1);
-                $absSubNs = self::NS_PER_SECOND - $diffSubNs;
+                $absSubNs = EpochLimits::NS_PER_SECOND - $diffSubNs;
             } else {
                 $absSec = -$diffSec;
                 $absSubNs = 0;
