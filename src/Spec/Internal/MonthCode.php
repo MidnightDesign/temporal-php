@@ -37,26 +37,21 @@ final class MonthCode
     /**
      * Validates a freshly-read monthCode field value and returns the well-formed
      * string. A non-string $value is a TypeError; an ill-formed string is a
-     * RangeError. The two messages are passed in verbatim because they differ across
-     * the historical call sites (e.g. PlainDate's
-     * "Invalid monthCode for ISO calendar: ..." vs. PlainYearMonth's
-     * "Invalid monthCode format: ..."), and the test262 suite asserts on them. The
-     * syntax message is a printf template (one `%s`) so the offending string is
-     * interpolated only on failure, when it is known to be a string.
+     * RangeError. Both messages are owned here. No test asserts on the message text —
+     * `tests/Test262/Assert.php::throws()` checks only the exception CLASS, and the
+     * project's PHPUnit suites have no message assertions — so the wording is free;
+     * only the TypeError-vs-RangeError TYPE split is contractual.
      *
-     * @param string $typeMessage  TypeError text when $value is not a string.
-     * @param string $syntaxFormat printf template (one `%s`) for the RangeError text
-     *                             when the string is ill-formed.
      * @throws TypeError  if $value is not a string.
      * @throws RangeError if $value is a string that is not well-formed.
      */
-    public static function validate(mixed $value, string $typeMessage, string $syntaxFormat): string
+    public static function validate(mixed $value): string
     {
         if (!is_string($value)) {
-            throw new TypeError($typeMessage);
+            throw new TypeError('monthCode must be a string.');
         }
         if (preg_match(self::SYNTAX_PATTERN, $value) !== 1) {
-            throw new RangeError(sprintf($syntaxFormat, $value));
+            throw new RangeError(sprintf('Invalid monthCode: "%s".', $value));
         }
         return $value;
     }

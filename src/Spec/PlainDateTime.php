@@ -379,7 +379,7 @@ final class PlainDateTime implements Stringable
         // This mirrors PlainTime's parse-then-validate ordering rather than validating
         // overflow up front for every branch.
         if ($item instanceof self) {
-            self::extractOverflow($options);
+            self::resolveOverflowOption($options);
             return new self(
                 $item->isoYear,
                 $item->isoMonth,
@@ -395,13 +395,13 @@ final class PlainDateTime implements Stringable
         }
         if (is_string($item)) {
             $result = self::fromString($item);
-            self::extractOverflow($options);
+            self::resolveOverflowOption($options);
             return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -502,7 +502,7 @@ final class PlainDateTime implements Stringable
             throw new TypeError('PlainDateTime::with() requires at least one recognized temporal property.');
         }
 
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
@@ -808,7 +808,7 @@ final class PlainDateTime implements Stringable
         if ($suRaw === null) {
             throw new RangeError('Temporal\\PlainDateTime::round() requires smallestUnit.');
         }
-        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit must be a string.');
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit');
 
         // ns-per-unit and max increment (exclusive) for each unit.
         // For 'day', max = 1 (only increment 1 is valid).
@@ -835,7 +835,7 @@ final class PlainDateTime implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            $roundingMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
+            $roundingMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
         }
 
         $increment = 1;
@@ -946,7 +946,7 @@ final class PlainDateTime implements Stringable
 
         if ($options !== null) {
             if (array_key_exists('calendarName', $options)) {
-                $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName option must be a string.');
+                $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName');
                 $calendarName = $cn;
             }
 
@@ -960,7 +960,7 @@ final class PlainDateTime implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits.
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit must be a string.');
+                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
@@ -973,7 +973,7 @@ final class PlainDateTime implements Stringable
 
             // roundingMode (default 'trunc' for toString).
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
+                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
                 $roundMode = $rm;
             }
         }
@@ -1155,10 +1155,7 @@ final class PlainDateTime implements Stringable
         // Validate disambiguation option if present.
         $disambiguation = 'compatible';
         if ($opts !== null && array_key_exists('disambiguation', $opts)) {
-            $disamb = Options::coerceEnumOption(
-                $opts['disambiguation'],
-                'PlainDateTime::toZonedDateTime() disambiguation option must be a string.',
-            );
+            $disamb = Options::coerceEnumOption($opts['disambiguation'], 'disambiguation');
             if (!in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 throw new RangeError(
                     'PlainDateTime::toZonedDateTime() disambiguation must be one of: compatible, earlier, later, reject.',
@@ -1401,11 +1398,7 @@ final class PlainDateTime implements Stringable
         // ill-formed string throws RangeError before a bad year would throw.
         $monthCodeValidated = null;
         if (array_key_exists('monthCode', $bag)) {
-            $monthCodeValidated = MonthCode::validate(
-                $bag['monthCode'],
-                'PlainDateTime monthCode must be a string.',
-                'Invalid monthCode syntax: "%s".',
-            );
+            $monthCodeValidated = MonthCode::validate($bag['monthCode']);
         }
 
         // Extract year from the bag, or resolve from era + eraYear.
@@ -1590,7 +1583,7 @@ final class PlainDateTime implements Stringable
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
                 if ($lu !== null) {
-                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
@@ -1613,10 +1606,10 @@ final class PlainDateTime implements Stringable
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
                 if ($rm !== null) {
-                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
@@ -1624,7 +1617,7 @@ final class PlainDateTime implements Stringable
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
                 if ($su !== null) {
-                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {
@@ -2109,7 +2102,7 @@ final class PlainDateTime implements Stringable
      */
     private function addDuration(int $sign, Duration $dur, array|object|null $options): self
     {
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
 
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
@@ -2233,31 +2226,23 @@ final class PlainDateTime implements Stringable
     /**
      * Extracts and validates the 'overflow' option from an options bag.
      *
-     * Returns 'constrain' or 'reject'. Default is 'constrain'.
+     * Returns 'constrain' or 'reject', defaulting to 'constrain' when $options is null
+     * or has no overflow key. A null options argument is the omitted-options default
+     * (not a TypeError); a non-null options object is passed through
+     * {@see Options::requireObject()} first, so a Symbol-sentinel options object is a
+     * TypeError. An explicit `overflow => null` value is NOT the default here — it
+     * falls through to {@see Options::overflowOption()} and is a RangeError.
      *
      * @param array<array-key, mixed>|object|null $options
-     * @throws TypeError if the overflow value is not a string.
+     * @throws TypeError if the options object is a Symbol sentinel.
      * @throws RangeError if the overflow value is unrecognized.
      */
-    // NOTE: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
-    // PlainDateTime: null/bool → RangeError; other non-string → TypeError.
-    // PlainTime:     null → 'constrain' (treated as default); non-string → TypeError.
-    // ZonedDateTime: null or any non-string → RangeError (with get_debug_type).
-    // Unification is unsafe until the spec-correct behavior for each case is confirmed.
-    private static function extractOverflow(array|object|null $options): string
+    private static function resolveOverflowOption(array|object|null $options): string
     {
         if ($options === null) {
             return 'constrain';
         }
-        $options = Options::requireObject($options);
-        if (!array_key_exists('overflow', $options)) {
-            return 'constrain';
-        }
-        return Options::overflowOption(
-            $options['overflow'],
-            "overflow option must be a string: must be 'constrain' or 'reject'.",
-            "Invalid overflow value \"%s\": must be 'constrain' or 'reject'.",
-        );
+        return Options::overflowFromBag(Options::requireObject($options));
     }
 
     /**

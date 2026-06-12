@@ -278,11 +278,7 @@ final class PlainMonthDay implements Stringable
         // Validate overflow option.
         $overflow = 'constrain';
         if (array_key_exists('overflow', $opts)) {
-            $overflow = Options::overflowOption(
-                $opts['overflow'],
-                'overflow option must be a string.',
-                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-            );
+            $overflow = Options::overflowOption($opts['overflow']);
         }
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
@@ -495,7 +491,7 @@ final class PlainMonthDay implements Stringable
 
         $calendarName = 'auto';
         if ($opts !== null && array_key_exists('calendarName', $opts)) {
-            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName option must be a string.');
+            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName');
             $calendarName = $cn;
         }
 
@@ -804,15 +800,7 @@ final class PlainMonthDay implements Stringable
      */
     private static function resolveOverflowOption(array|object|null $options): string
     {
-        $opts = Options::requireObject($options);
-        if (!array_key_exists('overflow', $opts)) {
-            return 'constrain';
-        }
-        return Options::overflowOption(
-            $opts['overflow'],
-            'overflow option must be a string.',
-            "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-        );
+        return Options::overflowFromBag(Options::requireObject($options));
     }
 
     /**

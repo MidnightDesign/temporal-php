@@ -569,10 +569,7 @@ final class Duration implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = Options::coerceEnumOption(
-                    $options['smallestUnit'],
-                    'Invalid smallestUnit: must be second(s), millisecond(s), microsecond(s), or nanosecond(s).',
-                );
+                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
                 $digits = match ($su) {
                     'second', 'seconds' => 0,
                     'millisecond', 'milliseconds' => 3,
@@ -588,7 +585,7 @@ final class Duration implements Stringable
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
                 $roundingMode = self::normalizeRoundingMode(Options::coerceEnumOption(
                     $options['roundingMode'],
-                    'Invalid roundingMode.',
+                    'roundingMode',
                 ));
             }
         }
@@ -755,7 +752,7 @@ final class Duration implements Stringable
             $u = $totalOf['unit'] ?? '';
             // A present, non-null unit is a string-typed option: ToString-coerce a
             // Stringable (JsSymbol throws TypeError), reject other types via RangeError.
-            $unit = $u === null ? '' : Options::coerceEnumOption($u, 'Unit option must be a string.');
+            $unit = $u === null ? '' : Options::coerceEnumOption($u, 'Unit');
         } else {
             $unit = $totalOf;
         }
@@ -2258,7 +2255,7 @@ final class Duration implements Stringable
 
         $roundingMode = $rmRaw === null
             ? 'halfExpand'
-            : self::normalizeRoundingMode(Options::coerceEnumOption($rmRaw, 'Invalid roundingMode.'));
+            : self::normalizeRoundingMode(Options::coerceEnumOption($rmRaw, 'roundingMode'));
 
         // At least one of smallestUnit or largestUnit must be provided.
         $suProvided = $suRaw !== null;
@@ -2282,9 +2279,9 @@ final class Duration implements Stringable
             'years' => 9,
         ];
 
-        $suNorm = $suProvided ? self::normalizeUnit(Options::coerceEnumOption($suRaw, 'Invalid smallestUnit.')) : null;
+        $suNorm = $suProvided ? self::normalizeUnit(Options::coerceEnumOption($suRaw, 'smallestUnit')) : null;
         $luIsAuto = !$luProvided || $luRaw === 'auto';
-        $luNorm = $luIsAuto ? null : self::normalizeUnit(Options::coerceEnumOption($luRaw, 'Invalid largestUnit.'));
+        $luNorm = $luIsAuto ? null : self::normalizeUnit(Options::coerceEnumOption($luRaw, 'largestUnit'));
 
         // Calendar smallestUnit or largestUnit require relativeTo.
         $suIsCalendar = $suNorm !== null && array_key_exists($suNorm, $UNIT_IDX) && $UNIT_IDX[$suNorm] >= 7;

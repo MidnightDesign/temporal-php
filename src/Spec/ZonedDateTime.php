@@ -482,10 +482,7 @@ final class ZonedDateTime implements Stringable
 
         // Validate 'disambiguation' option if present.
         if ($opts !== null && array_key_exists('disambiguation', $opts)) {
-            $dv = Options::coerceEnumOption(
-                $opts['disambiguation'],
-                'ZonedDateTime::from() disambiguation option must be a string.',
-            );
+            $dv = Options::coerceEnumOption($opts['disambiguation'], 'disambiguation');
             if (!in_array(needle: $dv, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 throw new RangeError(
                     "Invalid disambiguation value \"{$dv}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",
@@ -496,11 +493,7 @@ final class ZonedDateTime implements Stringable
         // Validate 'overflow' option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $overflow = Options::overflowOption(
-                $opts['overflow'],
-                "Invalid overflow value: must be 'constrain' or 'reject'.",
-                "Invalid overflow value \"%s\": must be 'constrain' or 'reject'.",
-            );
+            $overflow = Options::overflowOption($opts['overflow']);
         }
 
         // Validate 'offset' option if present.
@@ -508,7 +501,7 @@ final class ZonedDateTime implements Stringable
             /** @var mixed $offOpt */
             $offOpt = $opts['offset'];
             if ($offOpt !== null) {
-                $offOpt = Options::coerceEnumOption($offOpt, 'offset option must be a string.');
+                $offOpt = Options::coerceEnumOption($offOpt, 'offset');
                 if (!in_array(needle: $offOpt, haystack: ['use', 'ignore', 'prefer', 'reject'], strict: true)) {
                     throw new RangeError(
                         "Invalid offset option \"{$offOpt}\"; must be 'use', 'ignore', 'prefer', or 'reject'.",
@@ -872,7 +865,7 @@ final class ZonedDateTime implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits.
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit must be a string.');
+                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
@@ -885,12 +878,12 @@ final class ZonedDateTime implements Stringable
 
             // roundingMode (default 'trunc').
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
+                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
                 $roundMode = $rm;
             }
 
             if (array_key_exists('offset', $options)) {
-                $ov = Options::coerceEnumOption($options['offset'], 'offset option must be a string.');
+                $ov = Options::coerceEnumOption($options['offset'], 'offset');
                 if ($ov !== 'auto' && $ov !== 'never') {
                     throw new RangeError("Invalid offset option \"{$ov}\"; must be 'auto' or 'never'.");
                 }
@@ -898,7 +891,7 @@ final class ZonedDateTime implements Stringable
             }
 
             if (array_key_exists('timeZoneName', $options)) {
-                $tzn = Options::coerceEnumOption($options['timeZoneName'], 'timeZoneName option must be a string.');
+                $tzn = Options::coerceEnumOption($options['timeZoneName'], 'timeZoneName');
                 if ($tzn !== 'auto' && $tzn !== 'never' && $tzn !== 'critical') {
                     throw new RangeError("Invalid timeZoneName option \"{$tzn}\".");
                 }
@@ -906,7 +899,7 @@ final class ZonedDateTime implements Stringable
             }
 
             if (array_key_exists('calendarName', $options)) {
-                $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName option must be a string.');
+                $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName');
                 if ($cn !== 'auto' && $cn !== 'always' && $cn !== 'never' && $cn !== 'critical') {
                     throw new RangeError("Invalid calendarName value: \"{$cn}\".");
                 }
@@ -1169,7 +1162,7 @@ final class ZonedDateTime implements Stringable
         if ($suRaw === null) {
             throw new RangeError('Temporal\\ZonedDateTime::round() requires smallestUnit.');
         }
-        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit must be a string.');
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit');
 
         // [nsPerUnit, maxIncrement (next-unit size, or 1 for day)]
         $unitMap = [
@@ -1195,7 +1188,7 @@ final class ZonedDateTime implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            $rmRaw = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
+            $rmRaw = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
             $roundingMode = $rmRaw;
         }
 
@@ -1329,7 +1322,7 @@ final class ZonedDateTime implements Stringable
             throw new TypeError('ZonedDateTime::with() requires at least one recognized property.');
         }
 
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
         $disambiguation = self::extractDisambiguation($options);
 
         // Extract the 'offset' option (default is 'prefer' for with()).
@@ -1340,10 +1333,7 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $offOpt */
                 $offOpt = $optArr['offset'];
                 if ($offOpt !== null) {
-                    $offOpt = Options::coerceEnumOption(
-                        $offOpt,
-                        'ZonedDateTime::with() offset option must be a string.',
-                    );
+                    $offOpt = Options::coerceEnumOption($offOpt, 'offset');
                     if (!in_array($offOpt, ['prefer', 'use', 'ignore', 'reject'], strict: true)) {
                         throw new RangeError(
                             "Invalid offset option \"{$offOpt}\": must be 'prefer', 'use', 'ignore', or 'reject'.",
@@ -1714,10 +1704,7 @@ final class ZonedDateTime implements Stringable
             }
             $dir = null;
             if (array_key_exists('direction', $bag)) {
-                $dir = Options::coerceEnumOption(
-                    $bag['direction'],
-                    "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
-                );
+                $dir = Options::coerceEnumOption($bag['direction'], 'direction');
             }
             if ($dir === null) {
                 throw new RangeError(
@@ -2871,7 +2858,7 @@ final class ZonedDateTime implements Stringable
             }
         }
 
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
 
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
@@ -3196,7 +3183,7 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
                 if ($lu !== null) {
-                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
@@ -3219,10 +3206,10 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
                 if ($rm !== null) {
-                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
@@ -3230,7 +3217,7 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
                 if ($su !== null) {
-                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {
@@ -3967,38 +3954,19 @@ final class ZonedDateTime implements Stringable
     /**
      * Extracts and validates the 'overflow' option.
      *
-     * When the key is present, the value must be a string ('constrain'|'reject').
-     * null/bool/other types throw.
+     * Returns 'constrain' or 'reject', defaulting to 'constrain' when $options is null
+     * or has no overflow key. When the key is present the value is coerced/validated by
+     * {@see Options::overflowFromBag()} → {@see Options::overflowOption()}: a string
+     * keyword passes; a JsSymbol sentinel's throwing __toString surfaces as TypeError;
+     * every other type (including null) is a RangeError. This is the canonical
+     * contract; PlainTime/PlainDateTime diverge (null value, Symbol-sentinel object)
+     * and so encode their own scaffolding around the same helper.
      *
      * @param array<array-key, mixed>|object|null $options
      */
-    // The ZonedDateTime overflow contract is the canonical one: any non-string,
-    // non-Stringable value is a RangeError (the coerced token is never a valid
-    // keyword), and a JsSymbol's throwing __toString surfaces as TypeError — exactly
-    // what Options::overflowOption() encodes. The earlier bespoke get_debug_type type
-    // message was dropped after the test262 ZonedDateTime suite confirmed nothing
-    // asserts it. (PlainDateTime/PlainTime still diverge — null/bool and non-string
-    // map to different error types there — so they keep their own handling.)
-    private static function extractOverflow(array|object|null $options): string
+    private static function resolveOverflowOption(array|object|null $options): string
     {
-        if ($options === null) {
-            return 'constrain';
-        }
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
-        if (!array_key_exists('overflow', $options)) {
-            return 'constrain';
-        }
-        // GetOption coerces the value via ToString (a string passes through; a
-        // JsSymbol sentinel's __toString throws TypeError; every other non-string
-        // yields a RangeError because the coerced token is not a valid keyword),
-        // then validates against 'constrain'|'reject'.
-        return Options::overflowOption(
-            $options['overflow'],
-            "Invalid overflow value: must be 'constrain' or 'reject'.",
-            "Invalid overflow value \"%s\": must be 'constrain' or 'reject'.",
-        );
+        return Options::overflowFromBag($options);
     }
 
     /**
@@ -4022,7 +3990,7 @@ final class ZonedDateTime implements Stringable
         if ($val === null) {
             return 'compatible';
         }
-        $val = Options::coerceEnumOption($val, 'ZonedDateTime disambiguation option must be a string.');
+        $val = Options::coerceEnumOption($val, 'disambiguation');
         if (!in_array(needle: $val, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
             throw new RangeError(
                 "Invalid disambiguation value \"{$val}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",

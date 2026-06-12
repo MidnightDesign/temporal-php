@@ -367,11 +367,7 @@ final class PlainDate implements Stringable
         // Validate and extract overflow option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $overflow = Options::overflowOption(
-                $opts['overflow'],
-                'overflow option must be a string.',
-                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-            );
+            $overflow = Options::overflowOption($opts['overflow']);
         }
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
@@ -644,7 +640,7 @@ final class PlainDate implements Stringable
 
         $calendarName = 'auto';
         if ($opts !== null && array_key_exists('calendarName', $opts)) {
-            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName option must be a string.');
+            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName');
             $calendarName = $cn;
         }
 
@@ -936,16 +932,7 @@ final class PlainDate implements Stringable
      */
     private static function resolveOverflowOption(array|object|null $options): string
     {
-        $options = Options::requireObjectOrNull($options);
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-        if ($opts === null || !array_key_exists('overflow', $opts)) {
-            return 'constrain';
-        }
-        return Options::overflowOption(
-            $opts['overflow'],
-            'overflow option must be a string.',
-            "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-        );
+        return Options::overflowFromBag(Options::requireObjectOrNull($options));
     }
 
     /**
@@ -985,11 +972,7 @@ final class PlainDate implements Stringable
         //   while { monthCode: "M99L", year: Symbol() } => TypeError (year type first).
         $validatedMonthCode = null;
         if (array_key_exists('monthCode', $bag)) {
-            $validatedMonthCode = MonthCode::validate(
-                $bag['monthCode'],
-                'PlainDate monthCode must be a string.',
-                'Invalid monthCode for ISO calendar: "%s".',
-            );
+            $validatedMonthCode = MonthCode::validate($bag['monthCode']);
         }
 
         // Extract year from the bag, or resolve from era + eraYear.
@@ -1121,7 +1104,7 @@ final class PlainDate implements Stringable
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
                 if ($lu !== null) {
-                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
@@ -1146,10 +1129,10 @@ final class PlainDate implements Stringable
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
                 if ($rm !== null) {
-                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
@@ -1158,7 +1141,7 @@ final class PlainDate implements Stringable
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
                 if ($su !== null) {
-                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {
@@ -1682,11 +1665,7 @@ final class PlainDate implements Stringable
 
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $overflow = Options::overflowOption(
-                $opts['overflow'],
-                'overflow option must be a string.',
-                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-            );
+            $overflow = Options::overflowOption($opts['overflow']);
         }
 
         $years = $sign * (int) $dur->years;

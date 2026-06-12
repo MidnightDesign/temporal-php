@@ -328,11 +328,7 @@ final class PlainYearMonth implements Stringable
         // Validate overflow option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $overflow = Options::overflowOption(
-                $opts['overflow'],
-                'overflow option must be a string.',
-                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-            );
+            $overflow = Options::overflowOption($opts['overflow']);
         }
 
         // Non-ISO calendar: delegate to dedicated handler.
@@ -569,7 +565,7 @@ final class PlainYearMonth implements Stringable
 
         $calendarName = 'auto';
         if ($opts !== null && array_key_exists('calendarName', $opts)) {
-            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName option must be a string.');
+            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName');
             $calendarName = $cn;
         }
 
@@ -791,11 +787,7 @@ final class PlainYearMonth implements Stringable
         // (Month-code *suitability* for the year is validated later, after the year is read.)
         $monthCodeStr = null;
         if (array_key_exists('monthCode', $bag)) {
-            $monthCodeStr = MonthCode::validate(
-                $bag['monthCode'],
-                'PlainYearMonth monthCode must be a string.',
-                'Invalid monthCode format: "%s".',
-            );
+            $monthCodeStr = MonthCode::validate($bag['monthCode']);
         }
 
         // Extract year from the bag, or resolve from era + eraYear.
@@ -937,7 +929,7 @@ final class PlainYearMonth implements Stringable
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
                 if ($lu !== null) {
-                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (in_array($lu, $disallowedUnits, strict: true) || !in_array($lu, $validUnits, strict: true)) {
@@ -962,10 +954,10 @@ final class PlainYearMonth implements Stringable
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
                 if ($rm !== null) {
-                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
@@ -974,7 +966,7 @@ final class PlainYearMonth implements Stringable
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
                 if ($su !== null) {
-                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     if (in_array($su, $disallowedUnits, strict: true) || !in_array($su, $validUnits, strict: true)) {
@@ -1358,11 +1350,7 @@ final class PlainYearMonth implements Stringable
         // (\Stringable whose __toString throws) => TypeError.
         $overflow = 'constrain';
         if (array_key_exists('overflow', $opts)) {
-            $overflow = Options::overflowOption(
-                $opts['overflow'],
-                'overflow option must be a string.',
-                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-            );
+            $overflow = Options::overflowOption($opts['overflow']);
         }
 
         // TC39 spec §9.5.7 step 8: The intermediate PlainDate created from {year, month, day=1}
@@ -1461,15 +1449,9 @@ final class PlainYearMonth implements Stringable
         if ($options !== null && !is_array($options) && !is_object($options)) {
             throw new TypeError('options must be an object.');
         }
-        $opts = Options::requireObject($options);
-        if (!array_key_exists('overflow', $opts)) {
-            return 'constrain';
-        }
-        return Options::overflowOption(
-            $opts['overflow'],
-            'overflow option must be a string.',
-            "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
-        );
+        // requireObject turns an explicit null / Symbol sentinel into a TypeError; the
+        // bag helper then resolves the overflow keyword (default 'constrain').
+        return Options::overflowFromBag(Options::requireObject($options));
     }
 
     private static function isoYearMonthWithinLimits(int $year, int $month): bool

@@ -554,7 +554,7 @@ final class Instant implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit must be a string.');
+                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
                     'second', 'seconds' => [0, false],
@@ -569,7 +569,7 @@ final class Instant implements Stringable
             // (increment === 1) path so an unknown / non-string mode is rejected
             // rather than silently accepted.
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $roundMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
+                $roundMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
                 self::validateRoundingMode($roundMode);
             }
 
@@ -1060,7 +1060,7 @@ final class Instant implements Stringable
         if ($suRaw === null) {
             throw new RangeError('Temporal\\Instant::round() requires smallestUnit.');
         }
-        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit must be a string.');
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit');
         // Maps unit name → [ns-per-unit, max-increment-divisor (next unit size)]
         $unitMap = [
             'nanosecond' => [1, 86_400_000_000_000],
@@ -1083,7 +1083,7 @@ final class Instant implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $roundTo) && $roundTo['roundingMode'] !== null) {
-            $rmRaw = Options::coerceEnumOption($roundTo['roundingMode'], 'roundingMode must be a string.');
+            $rmRaw = Options::coerceEnumOption($roundTo['roundingMode'], 'roundingMode');
             self::validateRoundingMode($rmRaw);
             $roundingMode = $rmRaw;
         }
@@ -1156,7 +1156,7 @@ final class Instant implements Stringable
      */
     private static function validateRoundingMode(string $mode): void
     {
-        Options::roundingMode($mode, "Invalid roundingMode \"{$mode}\".");
+        Options::roundingMode($mode);
     }
 
     /**
@@ -1443,10 +1443,10 @@ final class Instant implements Stringable
         $suVal = array_key_exists('smallestUnit', $options) ? $options['smallestUnit'] : null;
 
         if ($luVal !== null) {
-            $luVal = Options::coerceEnumOption($luVal, 'largestUnit must be a string.');
+            $luVal = Options::coerceEnumOption($luVal, 'largestUnit');
         }
         if ($suVal !== null) {
-            $suVal = Options::coerceEnumOption($suVal, 'smallestUnit must be a string.');
+            $suVal = Options::coerceEnumOption($suVal, 'smallestUnit');
         }
 
         $suRaw = is_string($suVal) ? $suVal : 'nanosecond';
@@ -1476,7 +1476,7 @@ final class Instant implements Stringable
 
         $roundingMode = 'trunc';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            $roundingMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
+            $roundingMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
             self::validateRoundingMode($roundingMode);
         }
 

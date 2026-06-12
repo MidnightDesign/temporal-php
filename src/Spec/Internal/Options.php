@@ -45,7 +45,23 @@ final class Options
         'halfEven',
     ];
 
-    public static function coerceEnumOption(mixed $value, string $invalidMessage): string
+    /**
+     * Faithful TC39 GetOption(..., "string", ...) ToString coercion of an option
+     * value: a string passes through; a Stringable coerces via __toString (a JsSymbol
+     * sentinel's throwing __toString surfaces as Temporal\Exception\TypeError); any
+     * other type is rejected with a RangeError. The returned string must still be
+     * validated against the option's allowed keyword set by the caller.
+     *
+     * The RangeError message is owned here and parameterized only by the option's NAME
+     * token (e.g. "smallestUnit", "disambiguation"). No test asserts on the message
+     * text — `tests/Test262/Assert.php::throws()` checks only the exception CLASS, and
+     * the project's PHPUnit suites have no message assertions — so the wording is free;
+     * only the RangeError TYPE is contractual.
+     *
+     * @param string $optionName Bare option name interpolated into the RangeError text.
+     * @throws RangeError if $value is neither a string nor a Stringable.
+     */
+    public static function coerceEnumOption(mixed $value, string $optionName): string
     {
         if (is_string($value)) {
             return $value;
@@ -54,7 +70,7 @@ final class Options
             return (string) $value;
         }
 
-        throw new RangeError($invalidMessage);
+        throw new RangeError("{$optionName} must be a string.");
     }
 
     /**
@@ -67,28 +83,67 @@ final class Options
      * other type is a RangeError) with the keyword check that the ~9 inline copies
      * across the Plain... and ZonedDateTime classes perform.
      *
-     * Two messages differ across the historical call sites and are passed in verbatim
-     * to preserve the byte-for-byte strings the test262 suite asserts on: the
-     * coercion-failure message, and a printf-style template for the bad-keyword
-     * message. The template embeds the *coerced* token via a single `%s` (the inline
-     * originals interpolate the post-coercion string), matching both observed shapes —
-     * `"Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'."` and
-     * `"Invalid overflow value \"%s\": must be 'constrain' or 'reject'."`.
+     * Both RangeError messages are owned here. No test asserts on the message text —
+     * `tests/Test262/Assert.php::throws()` checks only the exception CLASS, and the
+     * project's PHPUnit suites have no message assertions — so the wording is free;
+     * only the RangeError TYPE is contractual.
      *
-     * @param string $invalidTypeMessage  RangeError text when $value does not coerce
-     *                                     to a string (non-string, non-Stringable).
-     * @param string $invalidValueFormat  printf template (one `%s`) for the RangeError
-     *                                     text when the coerced string is neither
-     *                                     "constrain" nor "reject".
-     * @throws RangeError per the two messages above.
+     * @throws RangeError if $value does not coerce to a string, or coerces to a string
+     *                    that is neither "constrain" nor "reject".
      */
-    public static function overflowOption(mixed $value, string $invalidTypeMessage, string $invalidValueFormat): string
+    public static function overflowOption(mixed $value): string
     {
-        $overflow = self::coerceEnumOption($value, $invalidTypeMessage);
+        $overflow = self::coerceEnumOption($value, 'overflow');
         if ($overflow !== 'constrain' && $overflow !== 'reject') {
-            throw new RangeError(sprintf($invalidValueFormat, $overflow));
+            throw new RangeError(sprintf(
+                'Invalid overflow value: "%s"; must be \'constrain\' or \'reject\'.',
+                $overflow,
+            ));
         }
         return $overflow;
+    }
+
+    /**
+     * Normalizes an options bag and resolves its `overflow` field to a validated
+     * "constrain" / "reject" keyword, defaulting to "constrain" when the bag is null
+     * (an omitted options argument) or has no `overflow` key.
+     *
+     * Absorbs the GetOptionsObject + default-to-"constrain" scaffolding that the
+     * Plain... and ZonedDateTime `from`/`with`/`add` paths copy-pasted, delegating the
+     * keyword coercion/validation to {@see self::overflowOption()}.
+     *
+     * An explicit `overflow => null` VALUE is treated as the default "constrain" only
+     * when $nullValueIsDefault is true (the PlainTime contract); otherwise it falls
+     * through to {@see self::overflowOption()}, where a null coerces to neither
+     * keyword and is a RangeError (the contract every other class preserves).
+     *
+     * The null-OPTIONS-argument distinction (default "constrain" vs. a GetOptionsObject
+     * TypeError) is intentionally left to the caller: PlainMonthDay/PlainYearMonth run
+     * {@see self::requireObject()} (TypeError) before delegating here, while the others
+     * pass a null through to the default. So this helper always defaults a null bag.
+     *
+     * @param array<array-key, mixed>|object|null $options
+     * @param bool $nullValueIsDefault When true, an explicit `overflow => null` value
+     *                                 resolves to "constrain" instead of raising.
+     * @throws RangeError per {@see self::overflowOption()}.
+     */
+    public static function overflowFromBag(array|object|null $options, bool $nullValueIsDefault = false): string
+    {
+        if ($options === null) {
+            return 'constrain';
+        }
+        if (is_object($options)) {
+            $options = get_object_vars($options);
+        }
+        if (!array_key_exists('overflow', $options)) {
+            return 'constrain';
+        }
+        /** @var mixed $value */
+        $value = $options['overflow'];
+        if ($nullValueIsDefault && $value === null) {
+            return 'constrain';
+        }
+        return self::overflowOption($value);
     }
 
     /**
@@ -96,22 +151,21 @@ final class Options
      * {@see self::ROUNDING_MODES} set and returns it unchanged.
      *
      * Replaces the ~7 inline `!in_array($mode, ROUNDING_MODES, true)` checks. The
-     * RangeError text varies across the call sites (some embed the value as
-     * `"Invalid roundingMode \"{$mode}\"."`, others as
-     * `"Invalid roundingMode value: \"{$mode}\"."`), so it is passed in verbatim to
-     * preserve the exact string the test262 suite asserts on.
+     * RangeError message is owned here and embeds the offending value. No test asserts
+     * on the message text — `tests/Test262/Assert.php::throws()` checks only the
+     * exception CLASS, and the project's PHPUnit suites have no message assertions — so
+     * the wording is free; only the RangeError TYPE is contractual.
      *
      * This validates the STRICT keyword set only; the legacy "truncate"/"ceiling"
      * aliases some {@see Temporal\Spec\Duration} normalizers accept are intentionally
      * NOT recognized here and must keep their bespoke handling.
      *
-     * @param string $invalidMessage RangeError text when $mode is not a canonical mode.
      * @throws RangeError if $mode is not one of {@see self::ROUNDING_MODES}.
      */
-    public static function roundingMode(string $mode, string $invalidMessage): string
+    public static function roundingMode(string $mode): string
     {
         if (!in_array($mode, self::ROUNDING_MODES, strict: true)) {
-            throw new RangeError($invalidMessage);
+            throw new RangeError("Invalid roundingMode: \"{$mode}\".");
         }
         return $mode;
     }

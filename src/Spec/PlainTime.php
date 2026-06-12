@@ -179,7 +179,7 @@ final class PlainTime implements Stringable
     {
         if ($item instanceof self) {
             // ToTemporalTime step 2.a: GetOptionsObject then GetTemporalOverflowOption, before cloning.
-            self::extractOverflow(Options::requireObjectOrNull($options));
+            self::resolveOverflowOption(Options::requireObjectOrNull($options));
             return self::fromNs($item->ns);
         }
         if (is_string($item)) {
@@ -187,14 +187,14 @@ final class PlainTime implements Stringable
             // GetOptionsObject (step 3.d), so a bad string raises RangeError even when
             // the options argument is a bad primitive.
             $result = self::fromString($item);
-            self::extractOverflow(Options::requireObjectOrNull($options));
+            self::resolveOverflowOption(Options::requireObjectOrNull($options));
             return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
         // ToTemporalTime steps 2.c-2.e: read fields then validate options.
-        $overflow = self::extractOverflow(Options::requireObjectOrNull($options));
+        $overflow = self::resolveOverflowOption(Options::requireObjectOrNull($options));
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -255,7 +255,7 @@ final class PlainTime implements Stringable
         $options = Options::requireObject($options);
 
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
 
         $h = $this->hour;
         $min = $this->minute;
@@ -386,7 +386,7 @@ final class PlainTime implements Stringable
         if ($suRaw === null) {
             throw new RangeError('Temporal\\PlainTime::round() requires smallestUnit.');
         }
-        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit must be a string.');
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit');
 
         // ns-per-unit → max increment (exclusive: must be strictly less than this)
         // The max is the number of units in the next-larger unit (for rounding to divide evenly).
@@ -411,7 +411,7 @@ final class PlainTime implements Stringable
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            $rmRaw = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
+            $rmRaw = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
             $roundingMode = $rmRaw;
         }
 
@@ -488,7 +488,7 @@ final class PlainTime implements Stringable
 
             // smallestUnit overrides fractionalSecondDigits.
             if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $suRaw = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit must be a string.');
+                $suRaw = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
                 $su = $suRaw;
                 [$digits, $isMinute] = match ($su) {
                     'minute', 'minutes' => [-1, true],
@@ -502,8 +502,8 @@ final class PlainTime implements Stringable
 
             // roundingMode option.
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
-                $roundingMode = Options::roundingMode($rm, "Invalid roundingMode \"{$rm}\".");
+                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
+                $roundingMode = Options::roundingMode($rm);
             }
         }
 
@@ -587,38 +587,18 @@ final class PlainTime implements Stringable
     /**
      * Extracts and validates the 'overflow' option from an options bag.
      *
-     * Returns 'constrain' or 'reject'. Default is 'constrain'.
-     * If $options is null, an empty array, or an object with no overflow key, returns 'constrain'.
+     * Returns 'constrain' or 'reject', defaulting to 'constrain' when $options is
+     * null, has no overflow key, or carries an explicit `overflow => null` value.
+     * PlainTime's contract treats a null value as the default/absent case, hence
+     * $nullValueIsDefault: true (the other Plain... and ZonedDateTime classes do not).
      *
      * @param array<array-key, mixed>|object|null $options
-     * @throws RangeError if the overflow value is not a string, or is an unrecognized string.
+     * @throws RangeError if the overflow value is a non-null non-string, or is an
+     *                    unrecognized string.
      */
-    // NOTE: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
-    // PlainTime: null overflow value → 'constrain' (treated as default/absent).
-    // PlainDateTime: null/bool overflow → InvalidArgumentException; other non-string → TypeError.
-    // ZonedDateTime: null or any non-string → InvalidArgumentException (with get_debug_type).
-    // Unification is unsafe until the spec-correct behavior for each case is confirmed.
-    private static function extractOverflow(array|object|null $options): string
+    private static function resolveOverflowOption(array|object|null $options): string
     {
-        if ($options === null) {
-            return 'constrain';
-        }
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
-        if (!array_key_exists('overflow', $options)) {
-            return 'constrain';
-        }
-        /** @var mixed $val */
-        $val = $options['overflow'];
-        if ($val === null) {
-            return 'constrain';
-        }
-        return Options::overflowOption(
-            $val,
-            'overflow option must be a string.',
-            "Invalid overflow value \"%s\": must be 'constrain' or 'reject'.",
-        );
+        return Options::overflowFromBag($options, nullValueIsDefault: true);
     }
 
     /**
@@ -991,7 +971,7 @@ final class PlainTime implements Stringable
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
                 if ($lu !== null) {
-                    $lu = Options::coerceEnumOption($lu, 'largestUnit option must be a string.');
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
@@ -1013,7 +993,7 @@ final class PlainTime implements Stringable
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
                 if ($su !== null) {
-                    $su = Options::coerceEnumOption($su, 'smallestUnit option must be a string.');
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     // Valid smallestUnit values for PlainTime (no calendar units).
@@ -1051,10 +1031,10 @@ final class PlainTime implements Stringable
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
                 if ($rm !== null) {
-                    $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
