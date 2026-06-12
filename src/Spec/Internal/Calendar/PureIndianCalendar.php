@@ -232,14 +232,7 @@ final class PureIndianCalendar implements CalendarProtocol
     #[\Override]
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
-        $m = null;
-        if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
-            throw new RangeError("Invalid monthCode \"{$monthCode}\" for calendar \"indian\".");
-        }
-        $month = (int) $m[1];
-        if ($month < 1 || $month > 12) {
-            throw new RangeError("monthCode \"{$monthCode}\" is out of range for calendar \"indian\".");
-        }
+        $month = CalendarMath::monthCodeToMonth($monthCode);
 
         $lengths = self::monthLengths(self::isIndianLeapYear($calYear));
         $maxDay = $lengths[$month];
@@ -393,19 +386,12 @@ final class PureIndianCalendar implements CalendarProtocol
     #[\Override]
     public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
-        // Indian has no leap months, so every valid month code exists in every
-        // year; overflow is irrelevant here.
+        // Indian has no leap months, so every valid month code (M01–M12) exists
+        // in every year; overflow is irrelevant here and the shared ISO parse
+        // (which raises RangeError on anything else) is exactly correct.
         unset($overflow);
 
-        $m = null;
-        if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
-            throw new RangeError("Invalid monthCode \"{$monthCode}\" for calendar \"indian\".");
-        }
-        $month = (int) $m[1];
-        if ($month < 1 || $month > 12) {
-            throw new RangeError("monthCode \"{$monthCode}\" is out of range for calendar \"indian\".");
-        }
-        return $month;
+        return CalendarMath::monthCodeToMonth($monthCode);
     }
 
     #[\Override]
