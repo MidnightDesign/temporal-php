@@ -180,25 +180,23 @@ final class PlainMonthDay implements Stringable
      */
     public static function from(string|array|object $item, array|object|null $options = []): self
     {
-        // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
-        // Omitted options arrive as the empty-array default and pass through.
-        $opts = Options::requireObject($options);
-
-        // Validate overflow option before processing item (per spec ordering).
-        $overflow = 'constrain';
-        if (array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
-            $overflow = $ov;
+        if (is_string($item)) {
+            // ToTemporalMonthDay (string branch): ParseISODateTime (step 11) runs BEFORE
+            // GetOptionsObject (step 14) and GetTemporalOverflowOption (step 15), so a
+            // malformed string raises RangeError even when the options argument is a bad
+            // value. Overflow is irrelevant to a string but is still validated.
+            $result = self::fromString($item);
+            self::resolveOverflowOption($options);
+            return $result;
         }
+
+        // Object / instance / property-bag branch: GetOptionsObject and
+        // GetTemporalOverflowOption are read before the algorithmic field validation
+        // (CalendarMonthDayFromFields).
+        $overflow = self::resolveOverflowOption($options);
 
         if ($item instanceof self) {
             return new self($item->isoMonth, $item->isoDay, $item->calendarId, $item->referenceISOYear);
-        }
-        if (is_string($item)) {
-            return self::fromString($item);
         }
         // Temporal objects with calendar fields: extract as a property bag
         // per TC39 ToTemporalMonthDay step that calls CalendarFields.
@@ -280,11 +278,11 @@ final class PlainMonthDay implements Stringable
         // Validate overflow option.
         $overflow = 'constrain';
         if (array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
-            $overflow = $ov;
+            $overflow = Options::overflowOption(
+                $opts['overflow'],
+                'overflow option must be a string.',
+                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+            );
         }
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
@@ -792,6 +790,29 @@ final class PlainMonthDay implements Stringable
 
         // ISO calendar: always use 1972 as referenceISOYear for strings.
         return new self($month, $day, $calendarId ?? 'iso8601', 1972);
+    }
+
+    /**
+     * GetOptionsObject + GetTemporalOverflowOption: validates the options argument
+     * (explicit null / non-object primitive / Symbol sentinel => TypeError; the
+     * omitted empty-array default passes through) and the 'overflow' value (TypeError
+     * if non-string, RangeError if not 'constrain'|'reject'), then returns the resolved
+     * overflow. Factored so {@see from()} can run it AFTER ParseISODateTime on the
+     * string-item path per ToTemporalMonthDay ordering (parse before GetOptionsObject).
+     *
+     * @param array<array-key, mixed>|object|null $options
+     */
+    private static function resolveOverflowOption(array|object|null $options): string
+    {
+        $opts = Options::requireObject($options);
+        if (!array_key_exists('overflow', $opts)) {
+            return 'constrain';
+        }
+        return Options::overflowOption(
+            $opts['overflow'],
+            'overflow option must be a string.',
+            "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+        );
     }
 
     /**

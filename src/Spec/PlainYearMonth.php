@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\MonthCode;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 
@@ -327,11 +328,11 @@ final class PlainYearMonth implements Stringable
         // Validate overflow option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
-            $overflow = $ov;
+            $overflow = Options::overflowOption(
+                $opts['overflow'],
+                'overflow option must be a string.',
+                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+            );
         }
 
         // Non-ISO calendar: delegate to dedicated handler.
@@ -790,15 +791,11 @@ final class PlainYearMonth implements Stringable
         // (Month-code *suitability* for the year is validated later, after the year is read.)
         $monthCodeStr = null;
         if (array_key_exists('monthCode', $bag)) {
-            /** @var mixed $monthCodePre */
-            $monthCodePre = $bag['monthCode'];
-            if (!is_string($monthCodePre)) {
-                throw new TypeError('PlainYearMonth monthCode must be a string.');
-            }
-            if (preg_match('/^M\d{2}L?$/', $monthCodePre) !== 1) {
-                throw new RangeError("Invalid monthCode format: \"{$monthCodePre}\".");
-            }
-            $monthCodeStr = $monthCodePre;
+            $monthCodeStr = MonthCode::validate(
+                $bag['monthCode'],
+                'PlainYearMonth monthCode must be a string.',
+                'Invalid monthCode format: "%s".',
+            );
         }
 
         // Extract year from the bag, or resolve from era + eraYear.
@@ -968,10 +965,7 @@ final class PlainYearMonth implements Stringable
                     $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                        throw new RangeError("Invalid roundingMode value: \"{$rm}\".");
-                    }
-                    $roundingMode = $rm;
+                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
                 }
             }
 
@@ -1362,11 +1356,13 @@ final class PlainYearMonth implements Stringable
         // first, then validates the resulting string. So a non-string, non-Symbol value
         // (null/bool/number/plain object) coerces and fails => RangeError, while a Symbol
         // (\Stringable whose __toString throws) => TypeError.
+        $overflow = 'constrain';
         if (array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
+            $overflow = Options::overflowOption(
+                $opts['overflow'],
+                'overflow option must be a string.',
+                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+            );
         }
 
         // TC39 spec §9.5.7 step 8: The intermediate PlainDate created from {year, month, day=1}
@@ -1393,16 +1389,6 @@ final class PlainYearMonth implements Stringable
 
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
-
-        // Extract the actual overflow value for the calendar protocol.
-        $overflow = 'constrain';
-        if (array_key_exists('overflow', $opts)) {
-            /** @var mixed $ovVal */
-            $ovVal = $opts['overflow'];
-            if (is_string($ovVal) && ($ovVal === 'constrain' || $ovVal === 'reject')) {
-                $overflow = $ovVal;
-            }
-        }
 
         // Delegate to the calendar protocol for date arithmetic.
         $cal = CalendarFactory::get($this->calendarId);
@@ -1479,11 +1465,11 @@ final class PlainYearMonth implements Stringable
         if (!array_key_exists('overflow', $opts)) {
             return 'constrain';
         }
-        $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-        if ($ov !== 'constrain' && $ov !== 'reject') {
-            throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-        }
-        return $ov;
+        return Options::overflowOption(
+            $opts['overflow'],
+            'overflow option must be a string.',
+            "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+        );
     }
 
     private static function isoYearMonthWithinLimits(int $year, int $month): bool

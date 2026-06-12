@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\MonthCode;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -273,24 +274,23 @@ final class PlainDate implements Stringable
      */
     public static function from(string|array|object $item, array|object|null $options = null): self
     {
-        // Normalize options to array|null up front so option-handling has one path.
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-
-        // Validate and extract overflow option (must be done before processing item).
-        $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
-            $overflow = $ov;
+        if (is_string($item)) {
+            // ToTemporalDate (string branch): ParseISODateTime (step 14) runs BEFORE
+            // GetOptionsObject (step 18) and GetTemporalOverflowOption (step 19), so a
+            // malformed string raises RangeError even when the options argument is a bad
+            // value. Overflow is irrelevant to a string but is still validated.
+            $result = self::fromString($item);
+            self::resolveOverflowOption($options);
+            return $result;
         }
+
+        // Object / instance / property-bag branch: GetOptionsObject and
+        // GetTemporalOverflowOption are read before the algorithmic field validation
+        // (CalendarDateFromFields, steps 17-20).
+        $overflow = self::resolveOverflowOption($options);
 
         if ($item instanceof self) {
             return new self($item->isoYear, $item->isoMonth, $item->isoDay, $item->calendarId);
-        }
-        if (is_string($item)) {
-            return self::fromString($item);
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
@@ -360,16 +360,18 @@ final class PlainDate implements Stringable
             throw new TypeError('PlainDate::with() fields must not contain a calendar or timeZone property.');
         }
 
+        // GetOptionsObject: permit null, reject a Symbol sentinel, normalize to array.
+        $options = Options::requireObjectOrNull($options);
         $opts = is_object($options) ? get_object_vars($options) : $options;
 
         // Validate and extract overflow option.
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
-            $overflow = $ov;
+            $overflow = Options::overflowOption(
+                $opts['overflow'],
+                'overflow option must be a string.',
+                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+            );
         }
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
@@ -626,6 +628,8 @@ final class PlainDate implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
+        // GetOptionsObject: permit null, reject a Symbol sentinel, normalize to array.
+        $options = Options::requireObjectOrNull($options);
         $opts = is_object($options) ? get_object_vars($options) : $options;
 
         // TC39: years 0–9999 → 4 digits; years outside → ±YYYYYY (6 digits with sign prefix).
@@ -921,6 +925,30 @@ final class PlainDate implements Stringable
     }
 
     /**
+     * GetOptionsObject + GetTemporalOverflowOption: validates the options argument
+     * (permitting an omitted/null arg, TypeError for a primitive / Symbol sentinel)
+     * and the 'overflow' value (TypeError if non-string, RangeError if not
+     * 'constrain'|'reject'), then returns the resolved overflow. Factored so
+     * {@see from()} can run it AFTER ParseISODateTime on the string-item path per
+     * ToTemporalDate ordering (parse before GetOptionsObject).
+     *
+     * @param array<array-key, mixed>|object|null $options
+     */
+    private static function resolveOverflowOption(array|object|null $options): string
+    {
+        $options = Options::requireObjectOrNull($options);
+        $opts = is_object($options) ? get_object_vars($options) : $options;
+        if ($opts === null || !array_key_exists('overflow', $opts)) {
+            return 'constrain';
+        }
+        return Options::overflowOption(
+            $opts['overflow'],
+            'overflow option must be a string.',
+            "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+        );
+    }
+
+    /**
      * Creates a PlainDate from a property-bag array.
      *
      * @param array<array-key,mixed> $bag
@@ -957,16 +985,11 @@ final class PlainDate implements Stringable
         //   while { monthCode: "M99L", year: Symbol() } => TypeError (year type first).
         $validatedMonthCode = null;
         if (array_key_exists('monthCode', $bag)) {
-            /** @var mixed $mcEarly */
-            $mcEarly = $bag['monthCode'];
-            if (!is_string($mcEarly)) {
-                throw new TypeError('PlainDate monthCode must be a string.');
-            }
-            // Well-formed monthCode: "M" + two digits + optional leap marker "L".
-            if (preg_match('/^M\d{2}L?$/', $mcEarly) !== 1) {
-                throw new RangeError("Invalid monthCode for ISO calendar: \"{$mcEarly}\".");
-            }
-            $validatedMonthCode = $mcEarly;
+            $validatedMonthCode = MonthCode::validate(
+                $bag['monthCode'],
+                'PlainDate monthCode must be a string.',
+                'Invalid monthCode for ISO calendar: "%s".',
+            );
         }
 
         // Extract year from the bag, or resolve from era + eraYear.
@@ -1126,10 +1149,7 @@ final class PlainDate implements Stringable
                     $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                        throw new RangeError("Invalid roundingMode value: \"{$rm}\".");
-                    }
-                    $roundingMode = $rm;
+                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
                 }
             }
 
@@ -1656,15 +1676,17 @@ final class PlainDate implements Stringable
      */
     private function addDuration(int $sign, Duration $dur, array|object|null $options): self
     {
+        // GetOptionsObject: permit null, reject a Symbol sentinel, normalize to array.
+        $options = Options::requireObjectOrNull($options);
         $opts = is_object($options) ? get_object_vars($options) : $options;
 
         $overflow = 'constrain';
         if ($opts !== null && array_key_exists('overflow', $opts)) {
-            $ov = Options::coerceEnumOption($opts['overflow'], 'overflow option must be a string.');
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new RangeError("Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.");
-            }
-            $overflow = $ov;
+            $overflow = Options::overflowOption(
+                $opts['overflow'],
+                'overflow option must be a string.',
+                "Invalid overflow value: \"%s\"; must be 'constrain' or 'reject'.",
+            );
         }
 
         $years = $sign * (int) $dur->years;
