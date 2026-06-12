@@ -60,16 +60,7 @@ final class EpochRounding
         $floorSec = self::floorToIncrement($epochSec, $incSec);
         // d1 = distance from the floor multiple, in nanoseconds within [0, increment).
         $d1Ns = (($epochSec - $floorSec) * self::NS_PER_SECOND) + $subNs;
-        $expand = match ($mode) {
-            'trunc', 'floor' => false,
-            'ceil', 'expand' => $d1Ns > 0,
-            'halfExpand', 'halfCeil' => ($d1Ns * 2) >= $increment,
-            'halfTrunc', 'halfFloor' => ($d1Ns * 2) > $increment,
-            'halfEven' => ($d1Ns * 2) === $increment
-                ? (intdiv($floorSec, $incSec) % 2) !== 0
-                : ($d1Ns * 2) > $increment,
-            default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
-        };
+        $expand = self::shouldExpand($d1Ns, $increment, $mode, intdiv($floorSec, $incSec));
         return [$expand ? $floorSec + $incSec : $floorSec, 0];
     }
 
@@ -97,28 +88,33 @@ final class EpochRounding
         // d1 = distance of $ns from r1 (always in [0, $increment)).
         $d1 = $ns - ($r1 * $increment);
 
-        // Directed rounding (AsIfPositive: trunc/floor → r1; ceil/expand → r2):
-        $r2 = $r1 + 1;
-        if ($mode === 'halfEven') {
-            $cmp = $d1 * 2;
-            if ($cmp < $increment) {
-                $rounded = $r1;
-            } elseif ($cmp > $increment) {
-                $rounded = $r2;
-            } else {
-                $rounded = ($r1 % 2) === 0 ? $r1 : $r2;
-            }
-        } else {
-            $rounded = match ($mode) {
-                'trunc', 'floor' => $r1,
-                'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
-                'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
-                'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
-                default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
-            };
-        }
+        // Directed rounding (AsIfPositive: trunc/floor → r1; ceil/expand → r2).
+        // The halfEven tie breaks on the parity of the floor multiple index $r1.
+        $rounded = self::shouldExpand($d1, $increment, $mode, $r1) ? $r1 + 1 : $r1;
 
         return $rounded * $increment;
+    }
+
+    /**
+     * The directed-rounding decision shared by {@see round} and {@see roundAsIfPositive}:
+     * given the distance $distance from the floor multiple (always in [0, $increment)),
+     * returns whether to expand away from that floor toward the next multiple. The
+     * halfEven tie resolves on the parity of $floorMultiple, the index of the floor
+     * multiple. AsIfPositive semantics: the half-modes use the positive-sign tie
+     * convention regardless of the original value's sign.
+     *
+     * @throws RangeError for unknown rounding modes.
+     */
+    private static function shouldExpand(int $distance, int $increment, string $mode, int $floorMultiple): bool
+    {
+        return match ($mode) {
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $distance > 0,
+            'halfExpand', 'halfCeil' => ($distance * 2) >= $increment,
+            'halfTrunc', 'halfFloor' => ($distance * 2) > $increment,
+            'halfEven' => ($distance * 2) === $increment ? ($floorMultiple % 2) !== 0 : ($distance * 2) > $increment,
+            default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
+        };
     }
 
     /** Largest multiple of $increment ≤ $value. */
