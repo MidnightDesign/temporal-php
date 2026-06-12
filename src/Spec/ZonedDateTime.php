@@ -13,6 +13,7 @@ use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\EpochRounding;
 use Temporal\Spec\Internal\EpochValue;
 use Temporal\Spec\Internal\HasEpochParts;
+use Temporal\Spec\Internal\IntlFormatter;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -1028,7 +1029,7 @@ final class ZonedDateTime implements Stringable
             throw new TypeError('toLocaleString(): timeZone option is not allowed for ZonedDateTime.');
         }
 
-        $locale = CalendarMath::resolveLocale($locales);
+        $locale = IntlFormatter::resolveLocale($locales);
         $timeZone = $this->timeZoneId;
         $opts['_locale'] = $locale;
 
@@ -1042,9 +1043,9 @@ final class ZonedDateTime implements Stringable
         }
 
         // Validate style + component conflicts
-        CalendarMath::validateStyleConflicts($opts);
+        IntlFormatter::validateStyleConflicts($opts);
 
-        $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts, 'datetime');
+        $formatter = IntlFormatter::buildIntlFormatter($locale, $timeZone, $opts, 'datetime');
         [$epochSec] = $this->epochParts();
         $result = $formatter->format($epochSec);
 

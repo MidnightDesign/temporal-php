@@ -14,6 +14,7 @@ use Temporal\Spec\Internal\EpochLimits;
 use Temporal\Spec\Internal\EpochRounding;
 use Temporal\Spec\Internal\EpochValue;
 use Temporal\Spec\Internal\HasEpochParts;
+use Temporal\Spec\Internal\IntlFormatter;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -820,7 +821,7 @@ final class Instant implements Stringable
      */
     public function toLocaleString(string|array|null $locales = null, array|object|null $options = null): string
     {
-        $locale = CalendarMath::resolveLocale($locales);
+        $locale = IntlFormatter::resolveLocale($locales);
         /** @var array<string, mixed> $opts */
         $opts = is_object($options) ? get_object_vars($options) : $options ?? [];
 
@@ -829,7 +830,7 @@ final class Instant implements Stringable
         $timeZone = is_string($tzOpt) ? $tzOpt : 'UTC';
 
         $opts['_locale'] = $locale;
-        $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts);
+        $formatter = IntlFormatter::buildIntlFormatter($locale, $timeZone, $opts);
         [$seconds] = $this->epochParts();
         $result = $formatter->format($seconds);
 
