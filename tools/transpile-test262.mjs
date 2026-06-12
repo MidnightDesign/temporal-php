@@ -912,7 +912,6 @@ class Emitter {
   // be reproduced. Returns one of:
   //   'incomplete' — the loop can't be faithfully lowered; emit incomplete.
   //   'skip-null'  — lowering is safe, but `null` elements must be skipped.
-  //   'lower'      — lowering is safe with no special handling.
   //   null         — the BigInt-table rule does not apply; transpile normally.
   classifyBigIntTableForOf(node) {
     // Only applies to a for-of over a BigInt-containing data table (inline, or a
@@ -2577,6 +2576,56 @@ class Emitter {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/** AST bookkeeping keys that the generic walkers skip when recursing. */
+const AST_SKIP_KEYS = new Set(['start', 'end', 'loc', 'type']);
+
+/**
+ * Early-exit depth-first search over an AST subtree. Returns true if
+ * `predicate(n)` holds for `node` itself or for ANY descendant node, skipping
+ * the `start`/`end`/`loc`/`type` bookkeeping keys when recursing. Non-object
+ * values (null, primitives) never match and stop the descent.
+ *
+ * This captures the copy-pasted `Object.keys(node)` traversal that the various
+ * `has*` predicates each re-implemented; each of them is just
+ * `someDescendant(node, <its own root test>)`.
+ */
+function someDescendant(node, predicate) {
+  if (!node || typeof node !== 'object') return false;
+  if (predicate(node)) return true;
+  for (const key of Object.keys(node)) {
+    if (AST_SKIP_KEYS.has(key)) continue;
+    const child = node[key];
+    if (Array.isArray(child)) {
+      if (child.some(c => someDescendant(c, predicate))) return true;
+    } else if (someDescendant(child, predicate)) return true;
+  }
+  return false;
+}
+
+/**
+ * Generic depth-first walk over an AST subtree, invoking `visit(n)` on `node`
+ * and every descendant, skipping the `start`/`end`/`loc`/`type` bookkeeping
+ * keys. Arrays are flattened (each element visited). Non-object values stop the
+ * descent without being visited.
+ *
+ * `visit` may return `false` to prune: the walk will NOT auto-recurse into that
+ * node's children (use this when the visitor either handled the children itself
+ * or wants to stop descending). Any other return value (including undefined)
+ * lets the generic recursion proceed.
+ */
+function forEachNode(node, visit) {
+  if (!node || typeof node !== 'object') return;
+  if (Array.isArray(node)) {
+    for (const child of node) forEachNode(child, visit);
+    return;
+  }
+  if (visit(node) === false) return;
+  for (const key of Object.keys(node)) {
+    if (AST_SKIP_KEYS.has(key)) continue;
+    forEachNode(node[key], visit);
+  }
+}
+
 /**
  * Returns true if the AST subtree contains a JS-dynamic-toString assignment
  * (e.g. `arg.toString = function () { return "..."; };`). Such fixtures test
@@ -2585,23 +2634,14 @@ class Emitter {
  * string coercion — so the entire script is unrepresentable.
  */
 function hasDynamicToStringAssignment(node) {
-  if (!node || typeof node !== 'object') return false;
-  if (node.type === 'AssignmentExpression'
-      && node.left?.type === 'MemberExpression'
-      && !node.left.computed
-      && node.left.property?.type === 'Identifier'
-      && node.left.property.name === 'toString'
-      && (node.right?.type === 'FunctionExpression'
-          || node.right?.type === 'ArrowFunctionExpression')) {
-    return true;
-  }
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    const child = node[key];
-    if (Array.isArray(child)) { if (child.some(hasDynamicToStringAssignment)) return true; }
-    else if (hasDynamicToStringAssignment(child)) return true;
-  }
-  return false;
+  return someDescendant(node, n =>
+    n.type === 'AssignmentExpression'
+    && n.left?.type === 'MemberExpression'
+    && !n.left.computed
+    && n.left.property?.type === 'Identifier'
+    && n.left.property.name === 'toString'
+    && (n.right?.type === 'FunctionExpression'
+        || n.right?.type === 'ArrowFunctionExpression'));
 }
 
 /**
@@ -2610,15 +2650,7 @@ function hasDynamicToStringAssignment(node) {
  * variant that exercises stdClass-shaped property bags.
  */
 function hasObjectLiteral(node) {
-  if (!node || typeof node !== 'object') return false;
-  if (node.type === 'ObjectExpression') return true;
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    const child = node[key];
-    if (Array.isArray(child)) { if (child.some(hasObjectLiteral)) return true; }
-    else if (hasObjectLiteral(child)) return true;
-  }
-  return false;
+  return someDescendant(node, n => n.type === 'ObjectExpression');
 }
 
 /**
@@ -2708,14 +2740,8 @@ function collectMutatedNames(node, names = new Set()) {
  * tracker variable.
  */
 function expressionRefsAny(node, names) {
-  if (!node || typeof node !== 'object' || names.size === 0) return false;
-  if (Array.isArray(node)) return node.some(n => expressionRefsAny(n, names));
-  if (node.type === 'Identifier' && names.has(node.name)) return true;
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    if (expressionRefsAny(node[key], names)) return true;
-  }
-  return false;
+  if (names.size === 0) return false;
+  return someDescendant(node, n => n.type === 'Identifier' && names.has(n.name));
 }
 
 /**
@@ -2724,15 +2750,7 @@ function expressionRefsAny(node, names) {
  * overflow PHP int64 at runtime even if individual literals fit in int64.
  */
 function hasBigIntLiteral(node) {
-  if (!node || typeof node !== 'object') return false;
-  if (node.type === 'Literal' && node.bigint !== undefined) return true;
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    const child = node[key];
-    if (Array.isArray(child)) { if (child.some(hasBigIntLiteral)) return true; }
-    else if (hasBigIntLiteral(child)) return true;
-  }
-  return false;
+  return someDescendant(node, n => n.type === 'Literal' && n.bigint !== undefined);
 }
 
 /**
@@ -2744,15 +2762,8 @@ function hasBigIntLiteral(node) {
  * into a valid value (e.g. `new Duration(0n)` throws but `new Duration(0)` does not).
  */
 function hasNumberLiteral(node) {
-  if (!node || typeof node !== 'object') return false;
-  if (node.type === 'Literal' && node.bigint === undefined && typeof node.value === 'number') return true;
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    const child = node[key];
-    if (Array.isArray(child)) { if (child.some(hasNumberLiteral)) return true; }
-    else if (hasNumberLiteral(child)) return true;
-  }
-  return false;
+  return someDescendant(node, n =>
+    n.type === 'Literal' && n.bigint === undefined && typeof n.value === 'number');
 }
 
 /**
@@ -2763,34 +2774,12 @@ function hasNumberLiteral(node) {
  * BigInt passed directly as a numeric argument, which other paths handle.)
  */
 function hasBigIntInObject(node) {
-  if (!node || typeof node !== 'object') return false;
-  if (node.type === 'ObjectExpression' && hasBigIntLiteral(node)) return true;
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    const child = node[key];
-    if (Array.isArray(child)) { if (child.some(hasBigIntInObject)) return true; }
-    else if (hasBigIntInObject(child)) return true;
-  }
-  return false;
+  return someDescendant(node, n => n.type === 'ObjectExpression' && hasBigIntLiteral(n));
 }
 
 /** Returns true if the subtree contains an `assert.throws(...)` call. */
 function subtreeHasAssertThrows(node) {
-  if (!node || typeof node !== 'object') return false;
-  if (node.type === 'CallExpression'
-      && node.callee?.type === 'MemberExpression'
-      && !node.callee.computed
-      && node.callee.object?.type === 'Identifier' && node.callee.object.name === 'assert'
-      && node.callee.property?.type === 'Identifier' && node.callee.property.name === 'throws') {
-    return true;
-  }
-  for (const key of Object.keys(node)) {
-    if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-    const child = node[key];
-    if (Array.isArray(child)) { if (child.some(subtreeHasAssertThrows)) return true; }
-    else if (subtreeHasAssertThrows(child)) return true;
-  }
-  return false;
+  return someDescendant(node, isAssertThrowsCall);
 }
 
 /** Returns true if `node` is an `assert.throws(...)` CallExpression. */
@@ -2820,27 +2809,21 @@ function uniformAssertThrowsErrorClass(node) {
   const classes = new Set();
   let bad = false;
 
-  function walk(n) {
-    if (bad || !n || typeof n !== 'object') return;
-    if (n.type === 'UnaryExpression' && n.operator === 'typeof') { bad = true; return; }
+  forEachNode(node, function visit(n) {
+    if (bad) return false; // already failed — prune the rest of the walk
+    if (n.type === 'UnaryExpression' && n.operator === 'typeof') { bad = true; return false; }
     if (isAssertThrowsCall(n)) {
       const errArg = n.arguments?.[0];
       if (errArg?.type === 'Identifier') classes.add(errArg.name);
-      else { bad = true; return; }
+      else { bad = true; return false; }
       // Recurse into every argument EXCEPT the message (index 2), where a `typeof`
       // is only used to build a description and must not force a bail.
-      (n.arguments ?? []).forEach((a, i) => { if (i !== 2) walk(a); });
-      return;
+      (n.arguments ?? []).forEach((a, i) => { if (i !== 2) forEachNode(a, visit); });
+      return false; // children handled manually above
     }
-    for (const key of Object.keys(n)) {
-      if (key === 'start' || key === 'end' || key === 'loc' || key === 'type') continue;
-      const child = n[key];
-      if (Array.isArray(child)) child.forEach(walk);
-      else walk(child);
-    }
-  }
+    return true; // let forEachNode recurse generically
+  });
 
-  walk(node);
   if (bad || classes.size !== 1) return null;
   return [...classes][0];
 }
