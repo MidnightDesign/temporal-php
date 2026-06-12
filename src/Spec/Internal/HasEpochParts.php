@@ -15,8 +15,8 @@ namespace Temporal\Spec\Internal;
  * "epochNanoseconds is a sentinel iff trueEpochSec !== null" invariant lives in exactly
  * one place rather than being re-asserted by hand in each class:
  *
- *   - {@see epochParts()} — decodes the triple back into (epochSec, subNs), routing
- *     through {@see EpochValue::parts()} so sentinels are handled transparently.
+ *   - {@see epochParts()} — decodes the triple back into (epochSec, subNs), handling
+ *     sentinels transparently without allocating a temporary {@see EpochValue}.
  *   - {@see applyEpoch()} — stamps the carried true parts from a single {@see EpochValue},
  *     the canonical encoder of the int64-fit / sentinel rule.
  *
@@ -58,7 +58,11 @@ trait HasEpochParts
      */
     public function epochParts(): array
     {
-        return new EpochValue($this->epochNanoseconds, $this->trueEpochSec, $this->trueSubNs)->parts();
+        if ($this->trueEpochSec !== null) {
+            return [$this->trueEpochSec, $this->trueSubNs];
+        }
+        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, 1_000_000_000);
+        return [$epochSec, $this->epochNanoseconds - ($epochSec * 1_000_000_000)];
     }
 
     /**
