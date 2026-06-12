@@ -12,19 +12,6 @@ use Temporal\Spec\Internal\Calendar\CalendarProtocol;
 /** @internal */
 final class CalendarMath
 {
-    /** @var list<string> */
-    public const ROUNDING_MODES = [
-        'ceil',
-        'floor',
-        'expand',
-        'trunc',
-        'halfCeil',
-        'halfFloor',
-        'halfExpand',
-        'halfTrunc',
-        'halfEven',
-    ];
-
     /**
      * Extracts an optional int field from a property bag, returning $default if absent.
      *
