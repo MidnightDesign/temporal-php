@@ -896,8 +896,14 @@ final class IntlCalendarBridge implements CalendarProtocol
             }
 
             if ($dayConstrained) {
-                // Day was constrained, use strict inequality.
-                return $sign > 0 ? $trialJdn < $targetJdn : $trialJdn > $targetJdn;
+                // Day was constrained.
+                // Forward: use strict < so a trial that landed early (day
+                // clamped down) does not prematurely count as "within range".
+                // Backward: use non-strict >= so a trial whose day was clamped
+                // down (e.g. leap-year M13-day6 → common-year M13-day5) that
+                // lands exactly ON the target still counts as a full year
+                // difference, matching TC39 NonISODateUntil constrain semantics.
+                return $sign > 0 ? $trialJdn < $targetJdn : $trialJdn >= $targetJdn;
             }
 
             return $sign > 0 ? $trialJdn <= $targetJdn : $trialJdn >= $targetJdn;
