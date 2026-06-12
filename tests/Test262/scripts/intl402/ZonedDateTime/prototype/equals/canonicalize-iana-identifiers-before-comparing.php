@@ -12,7 +12,7 @@ $calcutta = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/C
 $kolkata = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/Kolkata]');
 $colombo = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/Colombo]');
 Assert::sameValue($calcutta->equals($kolkata), true, '');
-Assert::sameValue($calcutta->equals($kolkata->toString()), true, '');
+Assert::sameValue($calcutta->equals((string) ($kolkata)), true, '');
 Assert::sameValue($kolkata->equals($calcutta), true, '');
-Assert::sameValue($kolkata->equals($calcutta->toString()), true, '');
+Assert::sameValue($kolkata->equals((string) ($calcutta)), true, '');
 Assert::sameValue($calcutta->equals($colombo), false, '');

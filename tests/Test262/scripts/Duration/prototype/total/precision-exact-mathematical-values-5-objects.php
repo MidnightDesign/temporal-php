@@ -12,4 +12,4 @@ $seconds = 8_692_288_669_465_520;
 $milliseconds = 513;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, $seconds, $milliseconds);
 $result = $d->total((object) ['unit' => 'milliseconds']);
-Assert::incomplete('untranslatable: Number()');
+Assert::incomplete('untranslatable: BigInt()');

@@ -15,7 +15,7 @@ Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainMonthDay::from(['c
 Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['calendar' => 'chinese', 'year' => 2020, 'monthCode' => 'M04', 'month' => 5, 'day' => 1]), 'month/monthCode conflict throws RangeError when all required fields present');
 Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from(['calendar' => 'chinese', 'year' => 2020, 'monthCode' => 'M01', 'day' => 32], ['overflow' => 'reject']), 'Out-of-range day throws RangeError when all required fields present');
 $pmd = \Temporal\Spec\PlainMonthDay::from(['calendar' => 'chinese', 'year' => 2004, 'monthCode' => 'M04', 'month' => 5, 'day' => 1]);
-$pd = \Temporal\Spec\PlainDate::from($pmd->toString());
+$pd = \Temporal\Spec\PlainDate::from((string) ($pmd));
 Assert::sameValue($pmd->monthCode, 'M04', 'Temporal.PlainMonthDay monthCode');
 Assert::sameValue($pd->monthCode, 'M04', 'Temporal.PlainDate monthCode');
 Assert::sameValue($pd->month, 4, 'Temporal.PlainDate ordinal month');

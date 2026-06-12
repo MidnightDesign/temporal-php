@@ -13,5 +13,46 @@ $calendar = 'islamic-umalqura';
 $options = ['overflow' => 'reject'];
 foreach (['M01', 'M03', 'M05', 'M07', 'M12'] as $monthCode) {
 $date1443 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1443, 'monthCode' => $monthCode, 'day' => 30, 'calendar' => $calendar]), $options);
-Assert::incomplete('untranslatable: Number()');
+TemporalHelpers::assertPlainDate($date1443->with(['year' => 1442]), 1442, (float) (\Temporal\Tests\Test262\Js::slice($monthCode, 1)), $monthCode, 29, "Changing the year from {$monthCode}-30 into 29-day {$monthCode} constrains", 'ah', 1442);
+Assert::throws(\RangeException::class, function () use (&$date1443, &$options) { $date1443->with(['year' => 1442], $options); }, "Changing the year from {$monthCode}-30 into 29-day {$monthCode} rejects");
 }
+foreach (['M02', 'M04', 'M06', 'M08'] as $monthCode) {
+$date1442 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1442, 'monthCode' => $monthCode, 'day' => 30, 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDate($date1442->with(['year' => 1443]), 1443, (float) (\Temporal\Tests\Test262\Js::slice($monthCode, 1)), $monthCode, 29, "Changing the year from {$monthCode}-30 into 29-day {$monthCode} constrains", 'ah', 1443);
+Assert::throws(\RangeException::class, function () use (&$date1442, &$options) { $date1442->with(['year' => 1443], $options); }, "Changing the year from {$monthCode}-30 into 29-day {$monthCode} rejects");
+}
+foreach (['M09', 'M11'] as $monthCode) {
+$date1443 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1443, 'monthCode' => $monthCode, 'day' => 30, 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDate($date1443->with(['year' => 1444]), 1444, (float) (\Temporal\Tests\Test262\Js::slice($monthCode, 1)), $monthCode, 29, "Changing the year from {$monthCode}-30 into 29-day {$monthCode} constrains", 'ah', 1444);
+Assert::throws(\RangeException::class, function () use (&$date1443, &$options) { $date1443->with(['year' => 1444], $options); }, "Changing the year from {$monthCode}-30 into 29-day {$monthCode} rejects");
+}
+$date1444 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1444, 'monthCode' => 'M10', 'day' => 30, 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDate($date1444->with(['year' => 1443]), 1443, 10, 'M10', 29, "Changing the year from Shawwal 30 into 29-day Shawwal constrains", 'ah', 1443);
+Assert::throws(\RangeException::class, function () use (&$date1444, &$options) { $date1444->with(['year' => 1443], $options); }, "Changing the year from Shawwal 30 into 29-day Shawwal rejects");
+$date14420230 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1442, 'monthCode' => 'M02', 'day' => 30, 'calendar' => $calendar]), $options);
+$date14430130 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1443, 'monthCode' => 'M01', 'day' => 30, 'calendar' => $calendar]), $options);
+$date14441230 = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => 1444, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDate($date14441230->with(['monthCode' => 'M01']), 1444, 1, 'M01', 29, '29-day Muharram constrains', 'ah', 1444);
+Assert::throws(\RangeException::class, function () use (&$date14441230, &$options) { $date14441230->with(['monthCode' => 'M01'], $options); }, '29-day Muharram rejects with 30');
+TemporalHelpers::assertPlainDate($date14430130->with(['monthCode' => 'M02']), 1443, 2, 'M02', 29, '29-day Safar constrains', 'ah', 1443);
+Assert::throws(\RangeException::class, function () use (&$date14430130, &$options) { $date14430130->with(['monthCode' => 'M02'], $options); }, '29-day Safar rejects with 30');
+TemporalHelpers::assertPlainDate($date14420230->with(['monthCode' => 'M03']), 1442, 3, 'M03', 29, '29-day Rabi\' al-Awwal constrains', 'ah', 1442);
+Assert::throws(\RangeException::class, function () use (&$date14420230, &$options) { $date14420230->with(['monthCode' => 'M03'], $options); }, '29-day Rabi\' al-Awwal rejects with 30');
+TemporalHelpers::assertPlainDate($date14430130->with(['monthCode' => 'M04']), 1443, 4, 'M04', 29, '29-day Rabi\' al-Thani constrains', 'ah', 1443);
+Assert::throws(\RangeException::class, function () use (&$date14430130, &$options) { $date14430130->with(['monthCode' => 'M04'], $options); }, '29-day Rabi\' al-Thani rejects with 30');
+TemporalHelpers::assertPlainDate($date14420230->with(['monthCode' => 'M05']), 1442, 5, 'M05', 29, '29-day Jumada al-Awwal constrains', 'ah', 1442);
+Assert::throws(\RangeException::class, function () use (&$date14420230, &$options) { $date14420230->with(['monthCode' => 'M05'], $options); }, '29-day Jumada al-Awwal rejects with 30');
+TemporalHelpers::assertPlainDate($date14430130->with(['monthCode' => 'M06']), 1443, 6, 'M06', 29, '29-day Jumada al-Thani constrains', 'ah', 1443);
+Assert::throws(\RangeException::class, function () use (&$date14430130, &$options) { $date14430130->with(['monthCode' => 'M06'], $options); }, '29-day Jumada al-Thani rejects with 30');
+TemporalHelpers::assertPlainDate($date14420230->with(['monthCode' => 'M07']), 1442, 7, 'M07', 29, '29-day Rajab constrains', 'ah', 1442);
+Assert::throws(\RangeException::class, function () use (&$date14420230, &$options) { $date14420230->with(['monthCode' => 'M07'], $options); }, '29-day Rajab rejects with 30');
+TemporalHelpers::assertPlainDate($date14430130->with(['monthCode' => 'M08']), 1443, 8, 'M08', 29, '29-day Sha\'ban constrains', 'ah', 1443);
+Assert::throws(\RangeException::class, function () use (&$date14430130, &$options) { $date14430130->with(['monthCode' => 'M08'], $options); }, '29-day Sha\'ban rejects with 30');
+TemporalHelpers::assertPlainDate($date14441230->with(['monthCode' => 'M09']), 1444, 9, 'M09', 29, '29-day Ramadan constrains', 'ah', 1444);
+Assert::throws(\RangeException::class, function () use (&$date14441230, &$options) { $date14441230->with(['monthCode' => 'M09'], $options); }, '29-day Ramadan rejects with 30');
+TemporalHelpers::assertPlainDate($date14420230->with(['monthCode' => 'M10']), 1442, 10, 'M10', 29, '29-day Shawwal constrains', 'ah', 1442);
+Assert::throws(\RangeException::class, function () use (&$date14420230, &$options) { $date14420230->with(['monthCode' => 'M10'], $options); }, '29-day Shawwal rejects with 30');
+TemporalHelpers::assertPlainDate($date14441230->with(['monthCode' => 'M11']), 1444, 11, 'M11', 29, '29-day Dhu al-Qadah constrains', 'ah', 1444);
+Assert::throws(\RangeException::class, function () use (&$date14441230, &$options) { $date14441230->with(['monthCode' => 'M11'], $options); }, '29-day Dhu al-Qadah rejects with 30');
+TemporalHelpers::assertPlainDate($date14420230->with(['monthCode' => 'M12']), 1442, 12, 'M12', 29, '29-day Dhu al-Hijjah constrains', 'ah', 1442);
+Assert::throws(\RangeException::class, function () use (&$date14420230, &$options) { $date14420230->with(['monthCode' => 'M12'], $options); }, '29-day Dhu al-Hijjah rejects with 30');

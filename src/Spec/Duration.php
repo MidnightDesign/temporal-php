@@ -743,7 +743,14 @@ final class Duration implements Stringable
     {
         // A string totalOf is the smallestUnit shorthand; an array/object is an options
         // bag normalized via GetOptionsObject (a Symbol sentinel object => TypeError).
+        // TC39: if totalOf is undefined, throw TypeError (required arg).
         if (!is_string($totalOf)) {
+            if (is_object($totalOf) && $totalOf instanceof \Stringable) {
+                $str = (string) $totalOf; // JsSymbol: throws; JsUndefined: returns 'undefined'
+                if ($str === 'undefined') {
+                    throw new TypeError('Duration::total() requires a non-undefined options argument.');
+                }
+            }
             $totalOf = Options::requireObject($totalOf);
         }
 
@@ -2141,7 +2148,7 @@ final class Duration implements Stringable
         string|array|object $two,
         array|object|null $options = null,
     ): int {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         $d1 = self::from($one);
         $d2 = self::from($two);
@@ -2171,7 +2178,7 @@ final class Duration implements Stringable
         }
         if ($hasCalendar) {
             /** @var mixed $rt */
-            $rt = $opts !== null ? $opts['relativeTo'] ?? null : null;
+            $rt = $opts['relativeTo'] ?? null;
             $ns1 = $d1->totalNsFromRelativeTo($rt);
             $ns2 = $d2->totalNsFromRelativeTo($rt);
             return $ns1 <=> $ns2;
@@ -2179,7 +2186,7 @@ final class Duration implements Stringable
 
         // When relativeTo is a ZDT with IANA timezone, compare using actual epoch offsets.
         /** @var mixed $rtForCompare */
-        $rtForCompare = $opts !== null ? $opts['relativeTo'] ?? null : null;
+        $rtForCompare = $opts['relativeTo'] ?? null;
         $zdtInfoCompare = $rtForCompare !== null ? self::resolveRelativeToZdt($rtForCompare) : null;
 
         if ($zdtInfoCompare !== null) {
@@ -2240,7 +2247,15 @@ final class Duration implements Stringable
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
         } else {
-            // GetOptionsObject: an array passes through; a Symbol sentinel object => TypeError.
+            // TC39: if roundTo is undefined, throw TypeError (required arg).
+            // GetOptionsObject: a Symbol sentinel object => TypeError (via Stringable cast).
+            // JsUndefined sentinel: Stringable returning 'undefined' → TypeError (undefined is not an Object).
+            if (is_object($roundTo) && $roundTo instanceof \Stringable) {
+                $str = (string) $roundTo; // JsSymbol: throws TypeError; JsUndefined: returns 'undefined'
+                if ($str === 'undefined') {
+                    throw new TypeError('Duration::round() requires a non-undefined options argument.');
+                }
+            }
             $roundTo = Options::requireObject($roundTo);
         }
 

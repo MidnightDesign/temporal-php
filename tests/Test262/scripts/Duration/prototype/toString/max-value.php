@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 0, 0, 999_999_999);
-Assert::sameValue($d->toString(), 'PT9007199254740991.999999999S', 'max value ns and s does not go out of range');
+Assert::sameValue((string) ($d), 'PT9007199254740991.999999999S', 'max value ns and s does not go out of range');
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 2000);
-Assert::sameValue($d->toString(), 'PT9007199254740.993S', 'values do not lose precision intermediately');
+Assert::sameValue((string) ($d), 'PT9007199254740.993S', 'values do not lose precision intermediately');

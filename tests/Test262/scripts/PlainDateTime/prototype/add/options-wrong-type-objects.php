@@ -12,5 +12,5 @@ $badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::sing
 $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2);
 foreach ($badOptions as $value) {
 if ($value === null) { continue; }
-Assert::incomplete('untranslatable: typeof');
+Assert::throws(\TypeError::class, function () use (&$instance, &$value) { return $instance->add((object) ['months' => 1], $value); }, "TypeError on wrong options type " . (gettype($value)) . "");
 }

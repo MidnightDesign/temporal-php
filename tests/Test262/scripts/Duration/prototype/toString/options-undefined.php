@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650, 0);
 $explicit = $duration->toString();
 Assert::sameValue($explicit, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');
-$implicit = $duration->toString();
+$implicit = (string) ($duration);
 Assert::sameValue($implicit, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');
 $lambda = $duration->toString(function () {  });
 Assert::sameValue($lambda, 'P1Y2M3W4DT5H6M7.98765S', 'default precision is auto, and rounding is trunc');

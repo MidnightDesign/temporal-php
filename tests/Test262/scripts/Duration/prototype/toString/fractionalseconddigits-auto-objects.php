@@ -13,6 +13,6 @@ $subSeconds = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 650);
 $tests = [[$wholeSeconds, 'P1Y2M3W4DT5H6M7S'], [$subSeconds, 'P1Y2M3W4DT5H6M7.98765S']];
 foreach ($tests as $__entry__) {
 [$duration, $expected] = array_pad($__entry__, 2, null);
-Assert::sameValue($duration->toString(), $expected, 'default is to emit seconds and drop trailing zeroes');
+Assert::sameValue((string) ($duration), $expected, 'default is to emit seconds and drop trailing zeroes');
 Assert::sameValue($duration->toString((object) ['fractionalSecondDigits' => 'auto']), $expected, 'auto is the default');
 }

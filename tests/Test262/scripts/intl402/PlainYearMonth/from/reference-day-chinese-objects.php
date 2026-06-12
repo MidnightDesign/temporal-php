@@ -25,6 +25,6 @@ $isoYear = $isoYear ?? $year;
 $isoMonth = $isoMonth ?? $month;
 $result = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'calendar' => 'chinese']));
 TemporalHelpers::assertPlainYearMonth($result, $year, $month, $monthCode, "Date of sample Chinese intercalary month {$monthCode}", null, null, $referenceISODay);
-$isoYearMonth = \Temporal\Tests\Test262\Js::slice($result->toString(), 0, 7);
-Assert::sameValue($isoYearMonth, "{$isoYear}-" . (\Temporal\Tests\Test262\Js::toString($isoMonth)->padStart(2, '0')) . "", "{$year}-{$monthCode} starts in ISO month {$isoYear}-{$isoMonth}");
+$isoYearMonth = \Temporal\Tests\Test262\Js::slice((string) ($result), 0, 7);
+Assert::sameValue($isoYearMonth, "{$isoYear}-" . (str_pad(\Temporal\Tests\Test262\Js::toString($isoMonth), 2, '0', STR_PAD_LEFT)) . "", "{$year}-{$monthCode} starts in ISO month {$isoYear}-{$isoMonth}");
 }

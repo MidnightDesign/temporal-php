@@ -797,7 +797,14 @@ final class PlainDateTime implements Stringable
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
-            $options = get_object_vars($options);
+            // TC39: if options is undefined, throw TypeError (required arg).
+            if ($options instanceof \Stringable) {
+                $str = (string) $options; // JsSymbol: throws; JsUndefined: returns 'undefined'
+                if ($str === 'undefined') {
+                    throw new TypeError('PlainDateTime::round() requires a non-undefined options argument.');
+                }
+            }
+            $options = Options::requireObject($options);
         }
 
         /** @var mixed $suRaw */

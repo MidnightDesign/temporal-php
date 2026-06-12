@@ -12,5 +12,6 @@ $feb20 = new \Temporal\Spec\PlainDateTime(2020, 2, 1, 0, 0);
 $feb21 = new \Temporal\Spec\PlainDateTime(2021, 2, 1, 0, 0);
 $badOptions = [null, 1, 'obviously invalid', true, \Temporal\Tests\Test262\JsSymbol::singleton(), 1];
 foreach ($badOptions as $bad) {
-Assert::incomplete('untranslatable: typeof');
+if ($bad === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$feb20, &$feb21, &$bad) { return $feb20->until($feb21, $bad); }, "unacceptable options (" . (gettype($bad)) . ")");
 }

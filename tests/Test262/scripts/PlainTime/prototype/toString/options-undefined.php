@@ -14,7 +14,7 @@ foreach ($tests as $__entry__) {
 $time = \Temporal\Spec\PlainTime::from($input);
 $explicit = $time->toString();
 Assert::sameValue($explicit, $expected, 'default precision is auto and no rounding');
-$implicit = $time->toString();
+$implicit = (string) ($time);
 Assert::sameValue($implicit, $expected, 'default precision is auto and no rounding');
 $lambda = $time->toString(function () {  });
 Assert::sameValue($lambda, $expected, 'default precision is auto and no rounding');

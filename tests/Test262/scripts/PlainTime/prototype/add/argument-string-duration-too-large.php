@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $ones = str_repeat('1', (int) (1000));
-Assert::incomplete('untranslatable: Number()');
+Assert::sameValue((float) ($ones), INF, '');
+$time = new \Temporal\Spec\PlainTime();
+$str = 'PT' . $ones . 'S';
+Assert::throws(\RangeException::class, function () use (&$time, &$str) { return $time->add($str); }, '');

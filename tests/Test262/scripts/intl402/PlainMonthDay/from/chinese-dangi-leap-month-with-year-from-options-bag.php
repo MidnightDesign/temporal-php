@@ -19,7 +19,11 @@ $referenceYear = $__obj__['referenceYear'] ?? null;
 $pd = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day]));
 if ($pd->monthCode === $monthCode && $pd->day === $day) {
 $pmd = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day]));
-Assert::incomplete('untranslatable: Number()');
+$pmdYear = (float) ((string) ($pmd)->split('-')[0]);
+Assert::sameValue($pmdYear, $referenceYear, "reference year for {$year} {$monthCode} {$day} is {$pmdYear}, should be {$referenceYear}");
+$pmdFromPd = $pd->toPlainMonthDay();
+$pmdFromPdYear = (float) ((string) ($pmdFromPd)->split('-')[0]);
+Assert::sameValue($pmdFromPdYear, $referenceYear, "reference year for {$year} {$monthCode} {$day} is {$pmdYear}, should be {$referenceYear}");
 }
 }
 }

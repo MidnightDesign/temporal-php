@@ -163,9 +163,7 @@ final class Options
         if ($options === null) {
             return 'constrain';
         }
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
+        $options = self::normalizeOptions($options);
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
         }
@@ -264,6 +262,38 @@ final class Options
                 // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
                 // For any other Stringable (e.g. JsUndefined which returns 'undefined'),
                 // the cast succeeds and we fall through to get_object_vars.
+                (string) $options;
+            }
+            return get_object_vars($options);
+        }
+        return $options;
+    }
+
+    /**
+     * TC39 GetOptionsObject applied to an OPTIONAL options argument: null / omitted
+     * means "use defaults" (returns an empty array), but a Stringable sentinel that
+     * behaves like a Symbol (its __toString throws) is still a TypeError.  Ordinary
+     * objects (including JsUndefined, whose __toString returns 'undefined') are
+     * normalised to an array via get_object_vars(); that matches the spec's
+     * GetOptionsObject(options) step which returns an ordinary empty object for
+     * `undefined`.
+     *
+     * Use this helper wherever the TC39 spec step is:
+     *   "If options is undefined, set options to OrdinaryObjectCreate(null)"
+     * i.e. null/undefined is valid (use defaults) but non-object non-undefined is TypeError.
+     *
+     * @param array<array-key, mixed>|object|null $options
+     * @return array<array-key, mixed>
+     */
+    public static function normalizeOptions(array|object|null $options): array
+    {
+        if ($options === null) {
+            return [];
+        }
+        if (is_object($options)) {
+            if ($options instanceof Stringable) {
+                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
+                // This must propagate — do not catch it.
                 (string) $options;
             }
             return get_object_vars($options);

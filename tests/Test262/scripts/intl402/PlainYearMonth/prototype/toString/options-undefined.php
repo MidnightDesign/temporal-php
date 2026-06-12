@@ -14,6 +14,6 @@ foreach ([[$yearmonth1, '2000-05'], [$yearmonth2, '2000-05-01[u-ca=gregory]']] a
 [$yearmonth, $expected] = array_pad($__entry__, 2, null);
 $explicit = $yearmonth->toString();
 Assert::sameValue($explicit, $expected, 'default calendarName option is auto');
-$implicit = $yearmonth->toString();
+$implicit = (string) ($yearmonth);
 Assert::sameValue($implicit, $expected, 'default calendarName option is auto');
 }

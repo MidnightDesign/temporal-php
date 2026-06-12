@@ -14,7 +14,7 @@ foreach ([[$date1, '2000-05-02'], [$date2, '2000-05-02[u-ca=gregory]']] as $__en
 [$date, $expected] = array_pad($__entry__, 2, null);
 $explicit = $date->toString();
 Assert::sameValue($explicit, $expected, 'default calendarName option is auto');
-$implicit = $date->toString();
+$implicit = (string) ($date);
 Assert::sameValue($implicit, $expected, 'default calendarName option is auto');
 $lambda = $date->toString(function () {  });
 Assert::sameValue($lambda, $expected, 'default calendarName option is auto');

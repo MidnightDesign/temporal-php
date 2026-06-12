@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'America/Los_Angeles');
 Assert::assertTrue($zdt->withTimeZone('+05:30')->equals($zdt->withTimeZone('+0530')), '+05:30 = +0530');
 Assert::assertTrue($zdt->withTimeZone('+0530')->equals($zdt->withTimeZone('+05:30')), '+0530 = +05:30');
-Assert::assertTrue($zdt->withTimeZone('+05:30')->equals($zdt->withTimeZone('+0530')->toString()), '+05:30 = +0530 IXDTF string');
+Assert::assertTrue($zdt->withTimeZone('+05:30')->equals((string) ($zdt->withTimeZone('+0530'))), '+05:30 = +0530 IXDTF string');
 Assert::assertTrue(!$zdt->withTimeZone('+05:30')->equals($zdt->withTimeZone('Asia/Kolkata')), '+05:30 != Asia/Kolkata string ID');
-Assert::assertTrue(!$zdt->withTimeZone('+05:30')->equals($zdt->withTimeZone('Asia/Kolkata')->toString()), '+05:30 != Asia/Kolkata IXDTF string');
+Assert::assertTrue(!$zdt->withTimeZone('+05:30')->equals((string) ($zdt->withTimeZone('Asia/Kolkata'))), '+05:30 != Asia/Kolkata IXDTF string');

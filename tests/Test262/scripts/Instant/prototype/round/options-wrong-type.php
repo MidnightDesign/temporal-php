@@ -13,5 +13,5 @@ $instance = new \Temporal\Spec\Instant(0);
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->round(); }, 'TypeError on missing options argument');
 foreach ($badOptions as $value) {
 if ($value === null) { continue; }
-Assert::incomplete('untranslatable: typeof');
+Assert::throws(\TypeError::class, function () use (&$instance, &$value) { return $instance->round($value); }, "TypeError on wrong options type " . (gettype($value)) . "");
 }

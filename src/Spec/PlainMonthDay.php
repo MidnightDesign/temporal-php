@@ -486,10 +486,10 @@ final class PlainMonthDay implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         $calendarName = 'auto';
-        if ($opts !== null && array_key_exists('calendarName', $opts)) {
+        if (array_key_exists('calendarName', $opts)) {
             $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName');
             $calendarName = $cn;
         }

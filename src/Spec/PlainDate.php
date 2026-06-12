@@ -1080,7 +1080,7 @@ final class PlainDate implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : get_object_vars($options);
+            $opts = Options::normalizeOptions($options);
 
             // largestUnit
             if (array_key_exists('largestUnit', $opts)) {

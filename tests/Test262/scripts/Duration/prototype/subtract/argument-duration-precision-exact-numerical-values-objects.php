@@ -18,5 +18,5 @@ $balanceSuccessCases = [[(object) ['seconds' => 2, 'milliseconds' => 4_503_599_6
 foreach ($balanceSuccessCases as $__entry__) {
 [$arg, $string, $descr] = array_pad($__entry__, 3, null);
 $result = $instance->subtract($arg);
-Assert::sameValue($result->toString(), $string, $descr);
+Assert::sameValue((string) ($result), $string, $descr);
 }

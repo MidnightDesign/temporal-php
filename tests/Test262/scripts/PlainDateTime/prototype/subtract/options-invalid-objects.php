@@ -11,5 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $jan31 = new \Temporal\Spec\PlainDateTime(2020, 1, 31, 15, 0);
 $badOptions = [null, 1, 'hello', true, \Temporal\Tests\Test262\JsSymbol::singleton(), 1];
 foreach ($badOptions as $bad) {
-Assert::incomplete('untranslatable: typeof');
+if ($bad === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$jan31, &$bad) { return $jan31->subtract((object) ['years' => 1], $bad); }, "invalid options (" . (gettype($bad)) . ")");
 }

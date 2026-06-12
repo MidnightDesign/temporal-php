@@ -466,10 +466,10 @@ final class ZonedDateTime implements Stringable
      */
     public static function from(string|array|object $item, array|object|null $options = null): self
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         // Validate 'disambiguation' option if present.
-        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
+        if (array_key_exists('disambiguation', $opts)) {
             $dv = Options::coerceEnumOption($opts['disambiguation'], 'disambiguation');
             if (!in_array(needle: $dv, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 throw new RangeError(
@@ -480,12 +480,12 @@ final class ZonedDateTime implements Stringable
 
         // Validate 'overflow' option.
         $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
+        if (array_key_exists('overflow', $opts)) {
             $overflow = Options::overflowOption($opts['overflow']);
         }
 
         // Validate 'offset' option if present.
-        if ($opts !== null && array_key_exists('offset', $opts)) {
+        if (array_key_exists('offset', $opts)) {
             /** @var mixed $offOpt */
             $offOpt = $opts['offset'];
             if ($offOpt !== null) {
@@ -505,11 +505,11 @@ final class ZonedDateTime implements Stringable
             return self::parseZdtString($item, $options);
         }
         $disambiguation = 'compatible';
-        if ($opts !== null && array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
+        if (array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
             $disambiguation = $opts['disambiguation'];
         }
         $offsetOption = 'reject';
-        if ($opts !== null && array_key_exists('offset', $opts) && is_string($opts['offset'])) {
+        if (array_key_exists('offset', $opts) && is_string($opts['offset'])) {
             $offsetOption = $opts['offset'];
         }
         $bag = is_object($item) ? get_object_vars($item) : $item;
@@ -834,7 +834,7 @@ final class ZonedDateTime implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        $options = is_object($options) ? get_object_vars($options) : $options;
+        $options = Options::normalizeOptions($options);
 
         $digits = -2; // -2 = 'auto'
         $offsetMode = 'auto';
@@ -843,56 +843,54 @@ final class ZonedDateTime implements Stringable
         $isMinute = false;
         $roundMode = 'trunc';
 
-        if ($options !== null) {
-            if (array_key_exists('fractionalSecondDigits', $options)) {
-                $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
-                if ($fsd !== null) {
-                    $digits = $fsd;
-                }
+        if (array_key_exists('fractionalSecondDigits', $options)) {
+            $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+            if ($fsd !== null) {
+                $digits = $fsd;
             }
+        }
 
-            // smallestUnit overrides fractionalSecondDigits.
-            if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
-                [$digits, $isMinute] = match ($su) {
-                    'minute', 'minutes' => [-1, true],
-                    'second', 'seconds' => [0, false],
-                    'millisecond', 'milliseconds' => [3, false],
-                    'microsecond', 'microseconds' => [6, false],
-                    'nanosecond', 'nanoseconds' => [9, false],
-                    default => throw new RangeError("Invalid smallestUnit \"{$su}\"."),
-                };
-            }
+        // smallestUnit overrides fractionalSecondDigits.
+        if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
+            $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
+            [$digits, $isMinute] = match ($su) {
+                'minute', 'minutes' => [-1, true],
+                'second', 'seconds' => [0, false],
+                'millisecond', 'milliseconds' => [3, false],
+                'microsecond', 'microseconds' => [6, false],
+                'nanosecond', 'nanoseconds' => [9, false],
+                default => throw new RangeError("Invalid smallestUnit \"{$su}\"."),
+            };
+        }
 
-            // roundingMode (default 'trunc').
-            if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
-                $roundMode = $rm;
-            }
+        // roundingMode (default 'trunc').
+        if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
+            $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
+            $roundMode = $rm;
+        }
 
-            if (array_key_exists('offset', $options)) {
-                $ov = Options::coerceEnumOption($options['offset'], 'offset');
-                if ($ov !== 'auto' && $ov !== 'never') {
-                    throw new RangeError("Invalid offset option \"{$ov}\"; must be 'auto' or 'never'.");
-                }
-                $offsetMode = $ov;
+        if (array_key_exists('offset', $options)) {
+            $ov = Options::coerceEnumOption($options['offset'], 'offset');
+            if ($ov !== 'auto' && $ov !== 'never') {
+                throw new RangeError("Invalid offset option \"{$ov}\"; must be 'auto' or 'never'.");
             }
+            $offsetMode = $ov;
+        }
 
-            if (array_key_exists('timeZoneName', $options)) {
-                $tzn = Options::coerceEnumOption($options['timeZoneName'], 'timeZoneName');
-                if ($tzn !== 'auto' && $tzn !== 'never' && $tzn !== 'critical') {
-                    throw new RangeError("Invalid timeZoneName option \"{$tzn}\".");
-                }
-                $tzNameMode = $tzn;
+        if (array_key_exists('timeZoneName', $options)) {
+            $tzn = Options::coerceEnumOption($options['timeZoneName'], 'timeZoneName');
+            if ($tzn !== 'auto' && $tzn !== 'never' && $tzn !== 'critical') {
+                throw new RangeError("Invalid timeZoneName option \"{$tzn}\".");
             }
+            $tzNameMode = $tzn;
+        }
 
-            if (array_key_exists('calendarName', $options)) {
-                $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName');
-                if ($cn !== 'auto' && $cn !== 'always' && $cn !== 'never' && $cn !== 'critical') {
-                    throw new RangeError("Invalid calendarName value: \"{$cn}\".");
-                }
-                $calendarName = $cn;
+        if (array_key_exists('calendarName', $options)) {
+            $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName');
+            if ($cn !== 'auto' && $cn !== 'always' && $cn !== 'never' && $cn !== 'critical') {
+                throw new RangeError("Invalid calendarName value: \"{$cn}\".");
             }
+            $calendarName = $cn;
         }
 
         // Compute rounding increment in nanoseconds.
@@ -1142,7 +1140,14 @@ final class ZonedDateTime implements Stringable
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
-            $options = get_object_vars($options);
+            // TC39: if options is undefined, throw TypeError (required arg).
+            if ($options instanceof \Stringable) {
+                $str = (string) $options; // JsSymbol: throws; JsUndefined: returns 'undefined'
+                if ($str === 'undefined') {
+                    throw new TypeError('ZonedDateTime::round() requires a non-undefined options argument.');
+                }
+            }
+            $options = Options::requireObject($options);
         }
 
         /** @var mixed $suRaw */
@@ -2019,11 +2024,11 @@ final class ZonedDateTime implements Stringable
      */
     private static function parseZdtString(string $text, array|object|null $options = null): self
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         // Resolve the 'offset' option (default: 'reject').
         $offsetOption = 'reject';
-        if ($opts !== null && array_key_exists('offset', $opts)) {
+        if (array_key_exists('offset', $opts)) {
             /** @var mixed $ov */
             $ov = $opts['offset'];
             if (
@@ -2035,7 +2040,7 @@ final class ZonedDateTime implements Stringable
 
         // Resolve the 'disambiguation' option (default: 'compatible').
         $disambiguation = 'compatible';
-        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
+        if (array_key_exists('disambiguation', $opts)) {
             /** @var mixed $dv */
             $dv = $opts['disambiguation'];
             if (is_string($dv) && in_array($dv, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
@@ -3147,7 +3152,7 @@ final class ZonedDateTime implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : get_object_vars($options);
+            $opts = Options::normalizeOptions($options);
 
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
@@ -3893,9 +3898,7 @@ final class ZonedDateTime implements Stringable
         if ($options === null) {
             return 'compatible';
         }
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
+        $options = Options::normalizeOptions($options);
         if (!array_key_exists('disambiguation', $options)) {
             return 'compatible';
         }

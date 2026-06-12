@@ -8,8 +8,8 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::sameValue(\Temporal\Spec\Duration::from((object) ['milliseconds' => 3500])->toString(), 'PT3.5S', '');
-Assert::sameValue(\Temporal\Spec\Duration::from((object) ['microseconds' => 3500])->toString(), 'PT0.0035S', '');
-Assert::sameValue(\Temporal\Spec\Duration::from((object) ['nanoseconds' => 3500])->toString(), 'PT0.0000035S', '');
-Assert::sameValue(new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 1111, 1111, 1111)->toString(), 'PT1.112112111S', '');
-Assert::sameValue(\Temporal\Spec\Duration::from((object) ['seconds' => 120, 'milliseconds' => 3500])->toString(), 'PT123.5S', '');
+Assert::sameValue((string) (\Temporal\Spec\Duration::from((object) ['milliseconds' => 3500])), 'PT3.5S', '');
+Assert::sameValue((string) (\Temporal\Spec\Duration::from((object) ['microseconds' => 3500])), 'PT0.0035S', '');
+Assert::sameValue((string) (\Temporal\Spec\Duration::from((object) ['nanoseconds' => 3500])), 'PT0.0000035S', '');
+Assert::sameValue((string) (new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 1111, 1111, 1111)), 'PT1.112112111S', '');
+Assert::sameValue((string) (\Temporal\Spec\Duration::from((object) ['seconds' => 120, 'milliseconds' => 3500])), 'PT123.5S', '');

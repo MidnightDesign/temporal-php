@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $durationString = 'PT0.084000159S';
 $duration = \Temporal\Spec\Duration::from($durationString);
 $precisionString = $duration->toString((object) ['smallestUnit' => 'milliseconds']);
-Assert::sameValue($durationString, $duration->toString(), '');
+Assert::sameValue($durationString, (string) ($duration), '');
 Assert::sameValue($precisionString, 'PT0.084S', '');

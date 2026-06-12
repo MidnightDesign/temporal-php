@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $timeZoneId = function ($zdt) use (&$__m) {
-$str = $zdt->toString();
+$str = (string) ($zdt);
 $m = (preg_match('/(?<=\[)[\w\/_+-]+(?=\])/', $str, $__m) ? $__m : null);
 Assert::sameValue($m !== null, true, $str);
 return $m[0];

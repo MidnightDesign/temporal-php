@@ -510,7 +510,7 @@ final class Instant implements Stringable
      */
     public function toString(array|object|null $options = null): string
     {
-        $options = is_object($options) ? get_object_vars($options) : $options;
+        $options = Options::normalizeOptions($options);
 
         // $digits: -2 = 'auto' (strip trailing zeros), -1 = minute format, 0-9 = fixed.
         $digits = -2;
@@ -518,51 +518,49 @@ final class Instant implements Stringable
         $isMinute = false;
         $increment = 1;
 
-        if ($options !== null) {
-            // fractionalSecondDigits
-            if (array_key_exists('fractionalSecondDigits', $options)) {
-                $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
-                if ($fsd !== null) {
-                    $digits = $fsd;
-                }
+        // fractionalSecondDigits
+        if (array_key_exists('fractionalSecondDigits', $options)) {
+            $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+            if ($fsd !== null) {
+                $digits = $fsd;
             }
+        }
 
-            // smallestUnit overrides fractionalSecondDigits
-            if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
-                [$digits, $isMinute] = match ($su) {
-                    'minute', 'minutes' => [-1, true],
-                    'second', 'seconds' => [0, false],
-                    'millisecond', 'milliseconds' => [3, false],
-                    'microsecond', 'microseconds' => [6, false],
-                    'nanosecond', 'nanoseconds' => [9, false],
-                    default => throw new RangeError("Invalid smallestUnit \"{$su}\"."),
-                };
-            }
+        // smallestUnit overrides fractionalSecondDigits
+        if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
+            $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
+            [$digits, $isMinute] = match ($su) {
+                'minute', 'minutes' => [-1, true],
+                'second', 'seconds' => [0, false],
+                'millisecond', 'milliseconds' => [3, false],
+                'microsecond', 'microseconds' => [6, false],
+                'nanosecond', 'nanoseconds' => [9, false],
+                default => throw new RangeError("Invalid smallestUnit \"{$su}\"."),
+            };
+        }
 
-            // roundingMode (null → default 'trunc'). Validated even on the fast
-            // (increment === 1) path so an unknown / non-string mode is rejected
-            // rather than silently accepted.
-            if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                $roundMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
-                self::validateRoundingMode($roundMode);
-            }
+        // roundingMode (null → default 'trunc'). Validated even on the fast
+        // (increment === 1) path so an unknown / non-string mode is rejected
+        // rather than silently accepted.
+        if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
+            $roundMode = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
+            self::validateRoundingMode($roundMode);
+        }
 
-            // timeZone: must be a string; non-string (including null) → TypeError.
-            if (array_key_exists('timeZone', $options)) {
-                /** @var mixed $tzVal */
-                $tzVal = $options['timeZone'];
-                if (!is_string($tzVal)) {
-                    throw new TypeError('timeZone must be a string.');
-                }
-                self::validateTimeZoneString($tzVal);
+        // timeZone: must be a string; non-string (including null) → TypeError.
+        if (array_key_exists('timeZone', $options)) {
+            /** @var mixed $tzVal */
+            $tzVal = $options['timeZone'];
+            if (!is_string($tzVal)) {
+                throw new TypeError('timeZone must be a string.');
             }
+            self::validateTimeZoneString($tzVal);
         }
 
         // Resolve timezone offset in seconds (null = UTC / 'Z' suffix).
         $tzOffsetSec = null;
         $ianaTimeZone = null;
-        if ($options !== null && array_key_exists('timeZone', $options)) {
+        if (array_key_exists('timeZone', $options)) {
             $tzStr = (string) $options['timeZone'];
             $resolved = self::resolveTimeZoneOffsetSeconds($tzStr);
             if ($resolved !== null) {
@@ -1027,7 +1025,14 @@ final class Instant implements Stringable
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
         } elseif (is_object($roundTo)) {
-            $roundTo = get_object_vars($roundTo);
+            // TC39: if roundTo is undefined, throw TypeError (required arg).
+            if ($roundTo instanceof \Stringable) {
+                $str = (string) $roundTo; // JsSymbol: throws; JsUndefined: returns 'undefined'
+                if ($str === 'undefined') {
+                    throw new TypeError('Instant::round() requires a non-undefined options argument.');
+                }
+            }
+            $roundTo = Options::requireObject($roundTo);
         }
 
         /** @var mixed $suRaw */
@@ -1404,11 +1409,7 @@ final class Instant implements Stringable
         ];
 
         // ---- Parse options ----
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        } elseif ($options === null) {
-            $options = [];
-        }
+        $options = Options::normalizeOptions($options);
 
         // Track whether largestUnit was explicitly provided.
         $luProvided = array_key_exists('largestUnit', $options) && $options['largestUnit'] !== null;

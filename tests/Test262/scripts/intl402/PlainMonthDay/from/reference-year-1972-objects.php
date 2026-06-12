@@ -29,4 +29,4 @@ Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::fro
 Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from((object) ['year' => 5781, 'month' => 2, 'day' => 30, 'calendar' => 'hebrew'], (object) ['overflow' => 'reject']), 'RangeError thrown if month and day does not exist in given year and overflow is reject');
 $result8 = \Temporal\Spec\PlainMonthDay::from((object) ['monthCode' => 'M04', 'day' => 26, 'calendar' => 'hebrew']);
 TemporalHelpers::assertPlainMonthDay($result8, 'M04', 26, 'reference date should be the later one, if two options exist in ISO year 1972', 1972);
-Assert::sameValue($result8->toString(), '1972-12-31[u-ca=hebrew]', 'reference date');
+Assert::sameValue((string) ($result8), '1972-12-31[u-ca=hebrew]', 'reference date');

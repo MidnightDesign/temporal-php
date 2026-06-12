@@ -15,6 +15,6 @@ for ($i = 1; $i <= 12; $i++) {
 if ($i === 5) {
 continue;
 }
-$monthCode = "M" . ($i->toString()->padStart(2, '0')) . "L";
+$monthCode = "M" . (str_pad((string) ($i), 2, '0', STR_PAD_LEFT)) . "L";
 Assert::throws(\RangeException::class, function () use (&$monthCode, &$calendar) { \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 5779, 'monthCode' => $monthCode, 'calendar' => $calendar])); }, '');
 }

@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $pos = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 999, 999_999, 999_999_999);
-Assert::sameValue($pos->toString(), 'PT2.998998999S', '');
+Assert::sameValue((string) ($pos), 'PT2.998998999S', '');
 $neg = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, -999, -999_999, -999_999_999);
-Assert::sameValue($neg->toString(), '-PT2.998998999S', '');
+Assert::sameValue((string) ($neg), '-PT2.998998999S', '');

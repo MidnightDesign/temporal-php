@@ -548,13 +548,13 @@ final class PlainYearMonth implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         $yearStr = self::formatYear($this->isoYear);
         $base = sprintf('%s-%02d', $yearStr, $this->isoMonth);
 
         $calendarName = 'auto';
-        if ($opts !== null && array_key_exists('calendarName', $opts)) {
+        if (array_key_exists('calendarName', $opts)) {
             $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName');
             $calendarName = $cn;
         }

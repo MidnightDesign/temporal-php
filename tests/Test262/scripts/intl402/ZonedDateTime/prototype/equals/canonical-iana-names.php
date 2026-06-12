@@ -18,7 +18,7 @@ $z2 = $zdt->withTimeZone($primaryIdentifier);
 Assert::assertTrue($z1->equals($z2), "{$identifier} equals {$primaryIdentifier} object");
 Assert::assertTrue($z2->equals($z1), "{$primaryIdentifier} equals {$identifier} object");
 Assert::assertTrue(!$z1->equals($neverEqual), 'not equal to unrelated time zone object');
-Assert::assertTrue($z1->equals($z2->toString()), "{$identifier} equals {$primaryIdentifier} IXDTF string");
-Assert::assertTrue($z2->equals($z1->toString()), "{$primaryIdentifier} equals {$identifier} IXDTF string");
-Assert::assertTrue(!$z1->equals($neverEqual->toString()), 'not equal to unrelated IXDTF string');
+Assert::assertTrue($z1->equals((string) ($z2)), "{$identifier} equals {$primaryIdentifier} IXDTF string");
+Assert::assertTrue($z2->equals((string) ($z1)), "{$primaryIdentifier} equals {$identifier} IXDTF string");
+Assert::assertTrue(!$z1->equals((string) ($neverEqual)), 'not equal to unrelated IXDTF string');
 }

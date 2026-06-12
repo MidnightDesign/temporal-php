@@ -14,7 +14,7 @@ $options = ['overflow' => 'reject'];
 $commonYear = 5783;
 $monthLengths5783 = [JsUndefined::singleton(), 30, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29];
 for ($month = 1; $month < 13; $month++) {
-$monthCode = "M" . (\Temporal\Tests\Test262\Js::toString($month)->padStart(2, '0')) . "";
+$monthCode = "M" . (str_pad(\Temporal\Tests\Test262\Js::toString($month), 2, '0', STR_PAD_LEFT)) . "";
 $startOfMonth = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => $commonYear, 'month' => $month, 'day' => 1, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($startOfMonth, $commonYear, $month, $monthCode, 1, "Start of month {$monthCode} in common year", 'am', $commonYear);
 $day = $monthLengths5783[$month];

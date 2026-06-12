@@ -12,5 +12,5 @@ $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 3
 $args = [JsUndefined::singleton(), null, true, '2020-01-12T10:20:30', \Temporal\Tests\Test262\JsSymbol::singleton(), 2020, 2020, NAN];
 foreach ($args as $argument) {
 if ($argument === null) { continue; }
-Assert::incomplete('untranslatable: typeof');
+Assert::throws(\TypeError::class, function () use (&$instance, &$argument) { return $instance->with($argument); }, "Does not support " . (gettype($argument)) . "");
 }

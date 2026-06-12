@@ -573,8 +573,46 @@ class Emitter {
           }
           continue; // handled
         }
-        this.emitIncomplete('untranslatable: destructuring assignment');
-        return;
+        // General object destructuring: const { a, b } = expr
+        // → $a = $obj->a; $b = $obj->b;  (or $obj['a'] if obj is array-mode tracked)
+        const rhsPhp = this.transpileExpr(decl.init);
+        if (rhsPhp === null) {
+          this.emitIncomplete('untranslatable: destructuring assignment (untranslatable RHS)');
+          return;
+        }
+        // If the RHS is a simple variable, we can use it directly; otherwise
+        // store it in a temp var to avoid re-evaluation.
+        let objPhp;
+        const rhsIsSimpleVar = /^\$[a-zA-Z_]\w*$/.test(rhsPhp);
+        if (rhsIsSimpleVar) {
+          objPhp = rhsPhp;
+        } else {
+          objPhp = '$__destruct__';
+          this.emit(`${objPhp} = ${rhsPhp};`);
+        }
+        const rhsVarName = rhsIsSimpleVar ? rhsPhp.slice(1) : null;
+        const useArrayAccess = rhsVarName !== null && this.objectVars.has(rhsVarName);
+        for (const prop of decl.id.properties) {
+          if (prop.type !== 'Property' || prop.computed || prop.key?.type !== 'Identifier') continue;
+          const keyName = prop.key.name;
+          // Simple: { foo } or { foo: foo }
+          if (prop.value?.type === 'Identifier') {
+            const varName = prop.value.name;
+            const access = useArrayAccess ? `${objPhp}['${keyName}']` : `${objPhp}->${keyName}`;
+            this.emit(`$${varName} = ${access};`);
+            continue;
+          }
+          // Default value: { foo = default }
+          if (prop.value?.type === 'AssignmentPattern' && prop.value.left?.type === 'Identifier') {
+            const varName = prop.value.left.name;
+            const defaultExpr = this.transpileExpr(prop.value.right);
+            if (defaultExpr === null) continue;
+            const access = useArrayAccess ? `${objPhp}['${keyName}'] ?? null` : `${objPhp}->${keyName} ?? null`;
+            this.emit(`$${varName} = ${access} ?? ${defaultExpr};`);
+            continue;
+          }
+        }
+        continue;
       }
       // Track object literals: in array mode they become PHP arrays ['key' => val]
       // and use ['key'] access; in objectMode they become (object) [...] (stdClass)
@@ -1297,6 +1335,14 @@ class Emitter {
         .replace(/\$/g, '\\$');
       if (i < node.expressions.length) {
         const exprNode = node.expressions[i];
+        // `typeof x` inside a template interpolation — used only for human-readable
+        // error descriptions, so gettype() is a sufficient approximation.
+        if (exprNode.type === 'UnaryExpression' && exprNode.operator === 'typeof') {
+          const innerPhp = this.transpileExpr(exprNode.argument);
+          if (innerPhp === null) return null;
+          result += `" . (gettype(${innerPhp})) . "`;
+          continue;
+        }
         const exprPhp = this.transpileExpr(exprNode);
         if (exprPhp === null) return null;
         // If the expression is a variable known to be a PHP array (from objectVars or
@@ -1532,8 +1578,23 @@ class Emitter {
       return null;
     }
     if (callee.type === 'Identifier' && callee.name === 'Number') {
-      this.emitIncomplete('untranslatable: Number()');
-      return null;
+      // Number(bigIntExpr) is not translatable (BigInt vs Number distinction).
+      // Number(nonBigInt) → (float) cast — mirrors JS's Number() returning IEEE 754
+      // double (including Infinity for overflow), which Assert::sameValue accepts as
+      // equal to PHP int when values match numerically.
+      if (!node.arguments.length) return '0';
+      const arg0 = node.arguments[0];
+      // If the argument is a BigInt literal or a variable known to hold BigInt values,
+      // keep emitting incomplete.
+      const isBigIntArg = (arg0.type === 'Literal' && arg0.bigint !== undefined)
+        || (arg0.type === 'Identifier' && this.bigIntArrayVars.has(arg0.name));
+      if (isBigIntArg) {
+        this.emitIncomplete('untranslatable: Number() on BigInt');
+        return null;
+      }
+      const argPhp = this.transpileExpr(arg0);
+      if (argPhp === null) return null;
+      return `(float) (${argPhp})`;
     }
     if (callee.type === 'Identifier' && callee.name === 'String') {
       // String(Symbol()) is untranslatable (JS String() on a Symbol returns "Symbol()"
@@ -1666,6 +1727,38 @@ class Emitter {
       const n    = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : '1';
       if (str === null || n === null) return null;
       return `str_repeat(${str}, (int) (${n}))`;
+    }
+
+    // x.toString() → (string) ($x) — JS primitive .toString() maps to PHP string cast.
+    // Works for numbers, booleans, and strings (no-op for strings). Temporal objects
+    // that expose a PHP toString() method go through the generic call path below and
+    // will use ->toString() which works correctly for those objects.
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'toString'
+        && node.arguments.length === 0) {
+      const objExpr = callee.object;
+      // Only apply for: number literals, variables that are NOT object/Temporal vars,
+      // and arbitrary expressions (use (string) cast as a safe approximation).
+      // Skip Temporal class instances (they have their own toString() method).
+      const isObjectVar = objExpr.type === 'Identifier'
+        && (this.objectVars.has(objExpr.name) || this.instantVars.has(objExpr.name));
+      if (!isObjectVar) {
+        const obj = this.transpileExpr(objExpr);
+        if (obj === null) return null;
+        return `(string) (${obj})`;
+      }
+    }
+
+    // .padStart(n, fill) → str_pad($str, n, fill, STR_PAD_LEFT)
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'padStart'
+        && node.arguments.length >= 1) {
+      const str = this.transpileExpr(callee.object);
+      const len = this.transpileExpr(node.arguments[0]);
+      if (str === null || len === null) return null;
+      const fill = node.arguments[1] ? this.transpileExpr(node.arguments[1]) : "' '";
+      if (fill === null) return null;
+      return `str_pad(${str}, ${len}, ${fill}, STR_PAD_LEFT)`;
     }
 
     // arr.map(fn) → not directly translatable
@@ -2087,6 +2180,20 @@ class Emitter {
   }
 
   transpileBinary(node) {
+    // Handle `key in obj` — JS property existence check.
+    // Map to array_key_exists($key, $obj) for array-mode objects or
+    // property_exists($obj, $key) for real objects.
+    if (node.operator === 'in') {
+      const key = this.transpileExpr(node.left);
+      const obj = this.transpileExpr(node.right);
+      if (key === null || obj === null) return null;
+      // Use array_key_exists for array-mode objects; property_exists for others.
+      const objName = node.right.type === 'Identifier' ? node.right.name : null;
+      if (objName !== null && this.objectVars.has(objName)) {
+        return `array_key_exists(${key}, ${obj})`;
+      }
+      return `array_key_exists(${key}, ${obj})`;
+    }
     // Handle `typeof x === 'type'` → PHP is_type($x) function
     if (node.left.type === 'UnaryExpression' && node.left.operator === 'typeof'
         && (node.operator === '===' || node.operator === '==' || node.operator === '!==' || node.operator === '!=')
@@ -2556,6 +2663,21 @@ class Emitter {
     const before = this.lines.length;
     this.emit(`foreach (${arr} as ${param}) {`);
     const opened = this.lines.length > before;
+    // BigInt-table null-skip for forEach: same as for...of.
+    // When the iterable is a BigInt-containing array that can be safely lowered
+    // (uniform TypeError assertions + Number sibling), skip null elements which
+    // may represent omitted positional arguments rather than wrong-type values.
+    const feCbBody = cbBody;
+    const feHasBigInt =
+      (arrNode.type === 'ArrayExpression' && hasBigIntLiteral(arrNode))
+      || (arrNode.type === 'Identifier' && this.bigIntArrayVars.has(arrNode.name));
+    const feHasNumber =
+      (arrNode.type === 'ArrayExpression' && hasNumberLiteral(arrNode))
+      || (arrNode.type === 'Identifier' && this.numberLiteralArrayVars.has(arrNode.name));
+    if (feHasBigInt && feHasNumber && subtreeHasAssertThrows(feCbBody)
+        && uniformAssertThrowsErrorClass(feCbBody) !== null) {
+      this.emit(`if (${param} === null) { continue; }`);
+    }
     this.transpileStatement(cbBody);
     if (opened) this.lines.push('}');
     return null; // already emitted
@@ -2881,6 +3003,8 @@ function containsDivision(node) {
 
 function hasStringInPlusChain(node) {
   if (node.type === 'Literal' && typeof node.value === 'string') return true;
+  // A template literal in a `+` chain is also a string operand.
+  if (node.type === 'TemplateLiteral') return true;
   if (node.type === 'BinaryExpression' && node.operator === '+') {
     return hasStringInPlusChain(node.left) || hasStringInPlusChain(node.right);
   }

@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
 foreach ($badOptions as $value) {
 if ($value === null) { continue; }
-Assert::incomplete('untranslatable: typeof');
+Assert::throws(\TypeError::class, function () use (&$value) { return \Temporal\Spec\Duration::compare((object) ['hours' => 1], (object) ['hours' => 1], $value); }, "TypeError on wrong options type " . (gettype($value)) . "");
 }

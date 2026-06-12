@@ -14,6 +14,6 @@ foreach ($tests as $__entry__) {
 $monthday = new \Temporal\Spec\PlainMonthDay(5, 2, ...$args);
 $explicit = $monthday->toString();
 Assert::sameValue($explicit, $expected, 'default calendarName option is auto');
-$implicit = $monthday->toString();
+$implicit = (string) ($monthday);
 Assert::sameValue($implicit, $expected, 'default calendarName option is auto');
 }
