@@ -69,14 +69,20 @@ final class EpochRounding
     }
 
     /**
-     * Rounds a non-negative $ns to the nearest multiple of $increment using
+     * Rounds $ns to the nearest multiple of $increment using
      * RoundNumberToIncrementAsIfPositive: 'floor'/'trunc' round toward zero,
      * 'ceil'/'expand' toward +∞, and the half-modes break ties with the positive-
      * sign convention regardless of the original value's sign.
      *
+     * Package-internal seam: the epoch sibling classes ({@see Temporal\Spec\ZonedDateTime}
+     * and {@see Temporal\Spec\Instant}) call this for their non-negative as-if-positive
+     * nanosecond rounding rather than re-implementing it. Not part of any public surface.
+     *
+     * @internal Only for the Temporal\Spec epoch sibling classes.
+     *
      * @throws RangeError for unknown rounding modes.
      */
-    private static function roundAsIfPositive(int $ns, int $increment, string $mode): int
+    public static function roundAsIfPositive(int $ns, int $increment, string $mode): int
     {
         // Integer floor-division: r1 = floor(ns / increment).
         $q = intdiv($ns, $increment);

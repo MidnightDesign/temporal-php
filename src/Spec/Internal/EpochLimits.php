@@ -47,6 +47,22 @@ final class EpochLimits
     public const int MAX_EPOCH_SECONDS_FOR_INT64_NS = 9_223_372_035;
 
     /**
+     * Bare int64 epoch-seconds field limit: floor(PHP_INT_MAX / NS_PER_SECOND) =
+     * intdiv(PHP_INT_MAX, 1e9) = 9_223_372_036.
+     *
+     * This is the threshold used where a WHOLE-second timestamp is multiplied by 1e9
+     * with NO sub-second remainder added — e.g. a zone transition's seconds value,
+     * which clamps the public epochNanoseconds field once |ts| × 1e9 would exceed
+     * int64. It is deliberately ONE GREATER than
+     * {@see self::MAX_EPOCH_SECONDS_FOR_INT64_NS} (= 9_223_372_035): that bound
+     * reserves headroom for an added sub-second remainder up to 1e9 − 1
+     * (so sec × 1e9 + 999_999_999 ≤ PHP_INT_MAX), whereas this bound assumes a zero
+     * remainder (so sec × 1e9 ≤ PHP_INT_MAX permits the extra second). Use this one
+     * only at call sites that add no sub-second nanoseconds.
+     */
+    public const int MAX_EPOCH_SECONDS_FOR_INT64_NS_FIELD = 9_223_372_036;
+
+    /**
      * Largest |epoch milliseconds| whose nanosecond value (ms × 1e6) still fits a
      * signed 64-bit int: floor(PHP_INT_MAX / 1e6). Beyond it, fromEpochMilliseconds
      * decomposes into (epochSec, subNs) and routes through fromEpochParts().
