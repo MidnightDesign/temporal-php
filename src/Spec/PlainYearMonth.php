@@ -486,10 +486,10 @@ final class PlainYearMonth implements Stringable
      * Returns the Duration from $other to this year-month (this − other).
      *
      * @param self|string|array<array-key, mixed>|object $other   PlainYearMonth or ISO 8601 year-month string.
-     * @param array<array-key, mixed>|object|null $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function since(string|array|object $other, array|object|null $options = null): Duration
+    public function since(string|array|object $other, array|object $options = []): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
@@ -504,10 +504,10 @@ final class PlainYearMonth implements Stringable
      * Returns the Duration from this year-month to $other (other − this).
      *
      * @param self|string|array<array-key, mixed>|object $other   PlainYearMonth or ISO 8601 year-month string.
-     * @param array<array-key, mixed>|object|null $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function until(string|array|object $other, array|object|null $options = null): Duration
+    public function until(string|array|object $other, array|object $options = []): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
@@ -875,13 +875,13 @@ final class PlainYearMonth implements Stringable
      * "since", the final result is negated.
      *
      * @param string $operation 'since' or 'until'
-     * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
     private static function diffYearMonth(
         self $temporalDate,
         self $other,
         string $operation,
-        array|object|null $options,
+        array|object $options,
     ): Duration {
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'month', 'months', 'year', 'years'];
@@ -911,8 +911,10 @@ final class PlainYearMonth implements Stringable
         $roundingMode = 'trunc';
         $roundingIncrement = 1;
 
-        if ($options !== null) {
-            $opts = is_array($options) ? $options : get_object_vars($options);
+        // GetOptionsObject: validate and normalise the options bag.
+        // Stringable sentinels (JsSymbol) trigger TypeError via __toString().
+        $opts = Options::requireObject($options);
+        if ($opts !== []) {
 
             // largestUnit
             if (array_key_exists('largestUnit', $opts)) {

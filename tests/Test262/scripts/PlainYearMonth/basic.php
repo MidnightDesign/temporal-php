@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $ym = new \Temporal\Spec\PlainYearMonth(1976, 11);
-Assert::sameValue(is_object($ym), true, '');
+Assert::sameValue((is_object($ym) && !($ym instanceof \Temporal\Tests\Test262\JsSymbol)), true, '');
 TemporalHelpers::assertPlainYearMonth($ym, 1976, 11, 'M11');

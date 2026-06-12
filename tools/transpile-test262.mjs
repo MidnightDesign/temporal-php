@@ -341,7 +341,7 @@ function typeofToPhp(phpArg, jsType) {
     case 'string':    return `is_string(${phpArg})`;
     case 'number':    return `(is_int(${phpArg}) || is_float(${phpArg}))`;
     case 'boolean':   return `is_bool(${phpArg})`;
-    case 'object':    return `is_object(${phpArg})`;
+    case 'object':    return `(is_object(${phpArg}) && !(${phpArg} instanceof \\Temporal\\Tests\\Test262\\JsSymbol))`;
     // typeof matches JS strictly: `typeof null === 'object'`, not `'undefined'`.
     // Only the JsUndefined sentinel counts as JS undefined here. (Compare with
     // the `x === undefined` pattern handled in transpileBinary, which uses the
@@ -535,6 +535,12 @@ class Emitter {
         if (opened) this.lines.push('}');
         break;
       }
+      case 'ContinueStatement':
+        this.emit(node.label ? `continue ${node.label.name};` : 'continue;');
+        break;
+      case 'BreakStatement':
+        this.emit(node.label ? `break ${node.label.name};` : 'break;');
+        break;
       default:
         this.emitIncomplete(`untranslatable statement: ${node.type}`);
     }
@@ -680,6 +686,18 @@ class Emitter {
       return;
     }
     const params = node.params.map(p => this.transpilePattern(p)).join(', ');
+    // If any parameter is an ObjectPattern (destructured object), the body cannot
+    // faithfully execute: the transpiler can't extract the destructured fields, so
+    // the body will reference outer-scope captures instead of local defaults.
+    // Emitting incomplete preserves the prior "ArgumentCountError → incomplete" behaviour.
+    if (node.params.some(p => {
+      // AssignmentPattern wrapping an ObjectPattern: `{a = 1} = {}`
+      const inner = (p.type === 'AssignmentPattern') ? p.left : p;
+      return inner.type === 'ObjectPattern';
+    })) {
+      this.emitIncomplete('untranslatable: function parameter ObjectPattern destructuring');
+      return;
+    }
     // If the function body uses BigInt arithmetic, the computation may overflow PHP int64.
     if (hasBigIntLiteral(node.body)) {
       this.emitIncomplete('untranslatable: BigInt arithmetic in function body');
@@ -1167,7 +1185,7 @@ class Emitter {
           : `$${objName}[${idx}]`;
       }
     }
-    return '$__unknown__';
+    return '$__unknown__ = null';
   }
 
   // ── Expressions ───────────────────────────────────────────────────────────
@@ -1518,8 +1536,22 @@ class Emitter {
       return null;
     }
     if (callee.type === 'Identifier' && callee.name === 'String') {
-      this.emitIncomplete('untranslatable: String()');
-      return null;
+      // String(Symbol()) is untranslatable (JS String() on a Symbol returns "Symbol()"
+      // without throwing, but JsSymbol::__toString() throws. Use Js::toString() helper
+      // which handles JsSymbol correctly).
+      if (!node.arguments.length) return "''";
+      const arg0 = node.arguments[0];
+      const argPhp = this.transpileExpr(arg0);
+      if (argPhp === null) return null;
+      // For literal values known to never be a symbol, use a direct (string) cast.
+      // For anything else (variables, calls, etc.), use Js::toString() which handles
+      // JsSymbol values gracefully (returns "Symbol()" without throwing).
+      const isSafeLiteral = arg0.type === 'Literal'
+        || (arg0.type === 'UnaryExpression' && arg0.operator === '-' && arg0.argument.type === 'Literal');
+      if (isSafeLiteral) {
+        return `(string) (${argPhp})`;
+      }
+      return `\\Temporal\\Tests\\Test262\\Js::toString(${argPhp})`;
     }
 
     // Symbol() called as bare function → JsSymbol sentinel. JsSymbol is Stringable
@@ -1584,6 +1616,13 @@ class Emitter {
       // Math.* → PHP math functions
       if (name === 'Math') {
         return this.emitMathCall(method, node.arguments);
+      }
+
+      // JSON.stringify(x) → json_encode($x)
+      if (name === 'JSON' && method === 'stringify' && node.arguments.length >= 1) {
+        const arg = this.transpileExpr(node.arguments[0]);
+        if (arg === null) return null;
+        return `json_encode(${arg})`;
       }
 
       const jsGlobals = ['Object', 'Reflect', 'Symbol', 'Proxy', 'Array', 'JSON', 'Date'];

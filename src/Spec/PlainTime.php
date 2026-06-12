@@ -252,6 +252,25 @@ final class PlainTime implements Stringable
         }
 
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
+
+        // RejectObjectWithCalendarOrTimeZone: calendar/timeZone keys are date-specific
+        // and must not appear in a PlainTime fields bag.
+        if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
+            throw new TypeError('PlainTime::with() fields must not contain a calendar or timeZone property.');
+        }
+
+        // PrepareCalendarFields step 10 (partial): at least one recognized time field
+        // must be present; an object with no recognized keys is not a valid partial time.
+        $hasAnyField = array_key_exists('hour', $fields)
+            || array_key_exists('minute', $fields)
+            || array_key_exists('second', $fields)
+            || array_key_exists('millisecond', $fields)
+            || array_key_exists('microsecond', $fields)
+            || array_key_exists('nanosecond', $fields);
+        if (!$hasAnyField) {
+            throw new TypeError('PlainTime::with() requires at least one of: hour, minute, second, millisecond, microsecond, nanosecond.');
+        }
+
         // GetOptionsObject + GetTemporalOverflowOption: explicit null / non-object
         // primitive / Symbol => TypeError; omitted ([]) defaults to 'constrain';
         // an explicit `overflow => null` value coerces to neither keyword => RangeError.

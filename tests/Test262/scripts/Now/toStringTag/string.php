@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: String()');
+Assert::sameValue(\Temporal\Tests\Test262\Js::toString(new \stdClass()), '[object Temporal.Now]', '');

@@ -18,6 +18,10 @@ TemporalHelpers::assertPlainDateTime($dateFromYearMonth->toPlainDateTime(), $yea
 $dateFromYearMonthCode = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'day' => $day, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDateTime($dateFromYearMonthCode->toPlainDateTime(), $year, $month, $monthCode, $day, 12, 34, 0, 0, 0, 0, "{$descr} ({$calendar}) - created from year and month code", $era, $eraYear);
 if (JsUndefined::isUndefined($era)) {
-Assert::incomplete('untranslatable statement: ContinueStatement');
+continue;
 }
+$dateFromEraMonth = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => $era, 'eraYear' => $eraYear, 'month' => $month, 'day' => $day, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDateTime($dateFromEraMonth->toPlainDateTime(), $year, $month, $monthCode, $day, 12, 34, 0, 0, 0, 0, "{$descr} ({$calendar}) - created from era, era year, and month", $era, $eraYear);
+$dateFromEraMonthCode = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['era' => $era, 'eraYear' => $eraYear, 'monthCode' => $monthCode, 'day' => $day, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDateTime($dateFromEraMonthCode->toPlainDateTime(), $year, $month, $monthCode, $day, 12, 34, 0, 0, 0, 0, "{$descr} ({$calendar}) - created from era, era year, and month code", $era, $eraYear);
 }

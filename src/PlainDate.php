@@ -181,6 +181,10 @@ final class PlainDate implements \Stringable, \JsonSerializable, HasYearMonthSpe
             $fields['eraYear'] = $eraYear;
         }
 
+        if ($fields === []) {
+            return $this;
+        }
+
         $spec = $this->spec->with($fields, ['overflow' => $overflow->value]);
 
         return self::fromSpec($spec);

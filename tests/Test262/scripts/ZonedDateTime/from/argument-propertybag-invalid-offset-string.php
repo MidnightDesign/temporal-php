@@ -14,6 +14,6 @@ $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000, [], \Temporal\Test
 foreach ($offsetOptions as $offsetOption) {
 foreach ($badOffsets as $offset) {
 $arg = JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => $timeZone]);
-Assert::incomplete('untranslatable: String()');
+Assert::throws((is_string($offset) || (is_object($offset) && !($offset instanceof \Temporal\Tests\Test262\JsSymbol)) && $offset !== null ? \RangeException::class : \TypeError::class), function () use (&$arg, &$offsetOption) { return \Temporal\Spec\ZonedDateTime::from($arg, JsUndefined::strip(['offset' => $offsetOption])); }, "\"" . (\Temporal\Tests\Test262\Js::toString($offset)) . " is not a valid offset string (with offset option {$offsetOption})");
 }
 }

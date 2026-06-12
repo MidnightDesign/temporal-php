@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $invalidArgs = [[-1], [24], [0, -1], [0, 60], [0, 0, -1], [0, 0, 60], [0, 0, 0, -1], [0, 0, 0, 1000], [0, 0, 0, 0, -1], [0, 0, 0, 0, 1000], [0, 0, 0, 0, 0, -1], [0, 0, 0, 0, 0, 1000]];
 foreach ($invalidArgs as $args) {
-Assert::incomplete('untranslatable: JSON.stringify');
+Assert::throws(\RangeException::class, function () use (&$args) { return new \Temporal\Spec\PlainDateTime(1970, 1, 1, ...$args); }, "args = " . (json_encode($args)) . "");
 }

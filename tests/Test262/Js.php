@@ -38,6 +38,26 @@ final class Js
     }
 
     /**
+     * Implements JS String(value) coercion.
+     *
+     * For most values this is equivalent to a (string) cast. The key difference
+     * from PHP's cast is JsSymbol: in JS, String(Symbol()) returns "Symbol()"
+     * without throwing, while interpolating a symbol throws TypeError. This method
+     * mirrors the non-throwing String() path used in assertion message strings.
+     *
+     * @param mixed $value
+     */
+    public static function toString(mixed $value): string
+    {
+        if ($value instanceof JsSymbol) {
+            return 'Symbol()';
+        }
+
+        /** @phpstan-ignore cast.string */
+        return (string) $value;
+    }
+
+    /**
      * Implements JS String.prototype.startsWith.
      */
     public static function startsWith(string $haystack, string $needle): bool

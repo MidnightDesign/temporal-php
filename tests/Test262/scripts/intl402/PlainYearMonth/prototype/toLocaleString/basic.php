@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$findPart = function ($parts, $expectedType) use (&$__unknown__) {
-return $parts->find(function ($__unknown__) use (&$type, &$expectedType) { return $type === $expectedType; })->value;
+$findPart = function ($parts, $expectedType) {
+return $parts->find(function ($__unknown__ = null) use (&$type, &$expectedType) { return $type === $expectedType; })->value;
 };
 Assert::incomplete('untranslatable new expression');

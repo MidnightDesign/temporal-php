@@ -13,6 +13,8 @@ Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\
 Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 5781, 'monthCode' => 'M13', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
 for ($i = 1; $i <= 12; $i++) {
 if ($i === 5) {
-Assert::incomplete('untranslatable statement: ContinueStatement');
+continue;
 }
+$monthCode = "M" . ($i->toString()->padStart(2, '0')) . "L";
+Assert::throws(\RangeException::class, function () use (&$monthCode, &$calendar) { \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 5779, 'monthCode' => $monthCode, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, '');
 }

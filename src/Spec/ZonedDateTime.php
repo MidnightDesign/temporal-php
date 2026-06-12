@@ -2421,7 +2421,9 @@ final class ZonedDateTime implements Stringable
 
         // offset field SYNTAX is validated before the year field's TYPE is coerced;
         // offset MATCHING against the timezone happens later, after year coercion.
-        if (array_key_exists('offset', $bag) && $offsetOption !== 'ignore') {
+        // TC39: syntax validation runs even for offsetOption='ignore' — the offset
+        // must be a syntactically valid string regardless of whether it is used.
+        if (array_key_exists('offset', $bag)) {
             /** @var mixed $offSyntaxRaw */
             $offSyntaxRaw = $bag['offset'];
             if (!is_string($offSyntaxRaw)) {

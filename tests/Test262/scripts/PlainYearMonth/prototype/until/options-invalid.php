@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $feb20 = new \Temporal\Spec\PlainYearMonth(2020, 2);
 $feb21 = new \Temporal\Spec\PlainYearMonth(2021, 2);
 foreach ([null, 1, 'hello', true, \Temporal\Tests\Test262\JsSymbol::singleton(), 1] as $badOption) {
-Assert::incomplete('untranslatable: String()');
+Assert::throws(\TypeError::class, function () use (&$feb20, &$feb21, &$badOption) { return $feb20->until($feb21, $badOption); }, "" . (\Temporal\Tests\Test262\Js::toString($badOption)) . " throws TypeError");
 }

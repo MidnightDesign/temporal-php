@@ -151,6 +151,10 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable, HasYearMon
         if ($eraYear !== null) {
             $fields['eraYear'] = $eraYear;
         }
+        if ($fields === []) {
+            return $this;
+        }
+
         $spec = $this->spec->with($fields);
 
         return self::fromSpec($spec);

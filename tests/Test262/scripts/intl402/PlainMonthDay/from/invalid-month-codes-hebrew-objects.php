@@ -14,6 +14,8 @@ Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\
 Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => 'M13', 'day' => 1]), (object) ['overflow' => 'reject']); }, "M13 should not be valid for {$calendar} calendar with reject overflow");
 for ($i = 1; $i <= 12; $i++) {
 if ($i === 5) {
-Assert::incomplete('untranslatable statement: ContinueStatement');
+continue;
 }
+$monthCode = "M" . ($i->toString()->padStart(2, '0')) . "L";
+Assert::throws(\RangeException::class, function () use (&$monthCode, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => $monthCode, 'day' => 1, 'calendar' => $calendar])); }, '');
 }

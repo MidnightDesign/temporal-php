@@ -13,5 +13,6 @@ $tests = [[JsUndefined::singleton()], [null], [true], ['2019-05-17'], ['2019-05-
 foreach ($tests as $__entry__) {
 [$value, $message] = array_pad($__entry__, 2, null);
 if ($value === null) { continue; }
-Assert::incomplete('untranslatable: String()');
+$message = $message ?? \Temporal\Tests\Test262\Js::toString($value);
+Assert::throws(\TypeError::class, function () use (&$plainMonthDay, &$value) { return $plainMonthDay->with($value); }, $message);
 }

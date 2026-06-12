@@ -19,7 +19,7 @@ $other = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
 for ($i = 0; $i < count($units); ++$i) {
 for ($j = $i; $j < count($units); ++$j) {
 $options = (object) JsUndefined::strip(['largestUnit' => $units[$i], 'smallestUnit' => $units[$j]]);
-Assert::incomplete('untranslatable: JSON.stringify');
+TemporalHelpers::assertDuration($zdt->since($other, $options), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "epochNs = {$epochNs}, timeZone = {$timeZone}, options = " . (json_encode($options)) . ")");
 }
 }
 }

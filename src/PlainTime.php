@@ -128,6 +128,10 @@ final class PlainTime implements \Stringable, \JsonSerializable, HasTimeOfDaySpe
             $fields['nanosecond'] = $nanosecond;
         }
 
+        if ($fields === []) {
+            return $this;
+        }
+
         return self::fromSpec($this->spec->with($fields));
     }
 

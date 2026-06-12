@@ -13,6 +13,8 @@ Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\
 Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M13', 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
 for ($i = 1; $i <= 12; $i++) {
 if ($i === 5) {
-Assert::incomplete('untranslatable statement: ContinueStatement');
+continue;
 }
+$monthCode = "M" . ($i->toString()->padStart(2, '0')) . "L";
+Assert::throws(\RangeException::class, function () use (&$monthCode, &$calendar) { \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => 5779, 'monthCode' => $monthCode, 'calendar' => $calendar])); }, '');
 }
