@@ -1564,7 +1564,16 @@ class Emitter {
       }
       const arr = this.transpileExpr(callee.object);
       if (arr === null) return null;
-      const params = cb.params.map(p => this.transpilePattern(p)).join(', ');
+      // JS Array.prototype.map passes (value, index, array) to the callback.
+      // PHP's array_map passes only the value. If the callback declares more than
+      // one parameter (e.g. (value, idx)), give excess params a default of null
+      // so PHP doesn't throw "Too few arguments".
+      const numArrays = 1; // only one array is passed to array_map here
+      const params = cb.params.map((p, i) => {
+        const base = this.transpilePattern(p);
+        // Params beyond the number of arrays array_map will supply need a default.
+        return i >= numArrays ? `${base} = null` : base;
+      }).join(', ');
       const body = this.transpileExpr(cb.body);
       if (body === null) return null;
       return `array_map(fn(${params}) => ${body}, ${arr})`;
