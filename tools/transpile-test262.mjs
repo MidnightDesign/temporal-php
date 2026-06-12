@@ -905,8 +905,50 @@ class Emitter {
     if (php !== null) this.emit(`${php};`);
   }
 
+  // Decide whether a for-of over a wrong-type data table containing a BigInt
+  // literal can be lowered to a plain PHP foreach. Such a loop relies on the JS
+  // Number-vs-BigInt type distinction, which PHP has no equivalent for — `Nn`
+  // and `N` both become PHP int — so a throw assertion that depends on it can't
+  // be reproduced. Returns one of:
+  //   'incomplete' — the loop can't be faithfully lowered; emit incomplete.
+  //   'skip-null'  — lowering is safe, but `null` elements must be skipped.
+  //   'lower'      — lowering is safe with no special handling.
+  //   null         — the BigInt-table rule does not apply; transpile normally.
+  classifyBigIntTableForOf(node) {
+    // Only applies to a for-of over a BigInt-containing data table (inline, or a
+    // variable initialized from such an array) whose body asserts a throw.
+    // (Loops that merely compute with BigInt values — no throw assertion —
+    // coerce fine and are left alone.)
+    const tableHasBigInt =
+      (node.right.type === 'ArrayExpression' && hasBigIntLiteral(node.right))
+      || (node.right.type === 'Identifier' && this.bigIntArrayVars.has(node.right.name));
+    if (!tableHasBigInt || !subtreeHasAssertThrows(node.body)) {
+      return null;
+    }
+    // The Number-vs-BigInt distinction only matters when the throw expectation
+    // DEPENDS on it. The table can be lowered safely only when BOTH hold:
+    //  (1) every assert.throws in the body expects the SAME error class (and no
+    //      `typeof` branches the behavior outside an assert.throws message), and
+    //  (2) the table contains a plain Number literal asserted to throw — proving
+    //      the tested slot rejects the Number TYPE, so a lowered BigInt (→ Number)
+    //      is rejected identically. Without (2), lowering could turn a should-throw
+    //      BigInt into a valid value (e.g. `new Duration(0n)` throws via ToNumber,
+    //      but `new Duration(0)` does not).
+    const tableHasNumberLiteral =
+      (node.right.type === 'ArrayExpression' && hasNumberLiteral(node.right))
+      || (node.right.type === 'Identifier' && this.numberLiteralArrayVars.has(node.right.name));
+    if (uniformAssertThrowsErrorClass(node.body) === null || !tableHasNumberLiteral) {
+      return 'incomplete';
+    }
+    // A `null` table element may be an OMITTED positional argument (e.g. a
+    // positional calendar → ISO, no throw) rather than a wrong-type value, which
+    // would fail an `assert.throws`. Skip the null iteration in the lowered loop;
+    // the remaining elements still cover the throw path. (A property-bag null
+    // that DOES throw is merely left untested here — never red.)
+    return 'skip-null';
+  }
+
   transpileForOf(node) {
-    this._nullSkipForOf = false;
     // Detect TemporalHelpers.X used as iterable (e.g. TemporalHelpers.ISOMonths) — not translatable.
     if (node.right.type === 'MemberExpression' && !node.right.computed
         && node.right.object.type === 'Identifier' && node.right.object.name === 'TemporalHelpers') {
@@ -914,38 +956,13 @@ class Emitter {
       return;
     }
 
-    // A for-of over a *wrong-type* data table that contains a BigInt literal
-    // (inline, or a variable initialized from such an array) and whose body
-    // asserts a throw relies on the JS Number-vs-BigInt type distinction, which
-    // PHP has no equivalent for — `Nn` and `N` both become PHP int, so the
-    // assertion can't be reproduced. Mark incomplete. (Loops that merely compute
-    // with BigInt values — no throw assertion — coerce fine and are left alone.)
-    if (((node.right.type === 'ArrayExpression' && hasBigIntLiteral(node.right))
-        || (node.right.type === 'Identifier' && this.bigIntArrayVars.has(node.right.name)))
-        && subtreeHasAssertThrows(node.body)) {
-      // The Number-vs-BigInt distinction only matters when the throw expectation
-      // DEPENDS on it. The table can be lowered safely only when BOTH hold:
-      //  (1) every assert.throws in the body expects the SAME error class (and no
-      //      `typeof` branches the behavior outside an assert.throws message), and
-      //  (2) the table contains a plain Number literal asserted to throw — proving
-      //      the tested slot rejects the Number TYPE, so a lowered BigInt (→ Number)
-      //      is rejected identically. Without (2), lowering could turn a should-throw
-      //      BigInt into a valid value (e.g. `new Duration(0n)` throws via ToNumber,
-      //      but `new Duration(0)` does not).
-      const tableHasNumberLiteral =
-        (node.right.type === 'ArrayExpression' && hasNumberLiteral(node.right))
-        || (node.right.type === 'Identifier' && this.numberLiteralArrayVars.has(node.right.name));
-      if (uniformAssertThrowsErrorClass(node.body) === null || !tableHasNumberLiteral) {
-        this.emitIncomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
-        return;
-      }
-      // A `null` table element may be an OMITTED positional argument (e.g. a
-      // positional calendar → ISO, no throw) rather than a wrong-type value, which
-      // would fail an `assert.throws`. Skip the null iteration in the lowered loop;
-      // the remaining elements still cover the throw path. (A property-bag null
-      // that DOES throw is merely left untested here — never red.)
-      this._nullSkipForOf = true;
+    const bigIntTable = this.classifyBigIntTableForOf(node);
+    if (bigIntTable === 'incomplete') {
+      this.emitIncomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+      return;
     }
+    // `null` data-table elements must be skipped when the BigInt table is lowered.
+    const nullSkipForOf = bigIntTable === 'skip-null';
 
     // Special case: for (const [k, v] of Object.entries(obj)) → foreach ($obj as $k => $v)
     // Also handles: for (const [k, {a, b, c}] of Object.entries(obj)) where the value slot
@@ -1031,9 +1048,8 @@ class Emitter {
       this.emit(`foreach (${iter2} as ${tmpVar2}) {`);
       const opened2 = this.lines.length > before2;
       this.emit(`${pat} = array_pad(${tmpVar2}, ${n}, null);`);
-      if (this._nullSkipForOf) {
+      if (nullSkipForOf) {
         this.emit(`if (${parts[0]} === null) { continue; }`);
-        this._nullSkipForOf = false;
       }
       // Emit default assignments for elements with AssignmentPattern defaults.
       for (let i = 0; i < patNode2.elements.length; i++) {
@@ -1113,9 +1129,8 @@ class Emitter {
     const before = this.lines.length;
     this.emit(`foreach (${iter} as ${pat}) {`);
     const opened = this.lines.length > before;
-    if (this._nullSkipForOf) {
+    if (nullSkipForOf) {
       this.emit(`if (${pat} === null) { continue; }`);
-      this._nullSkipForOf = false;
     }
     this.transpileStatement(node.body);
     if (opened) this.lines.push('}'); // always close what was opened
