@@ -37,10 +37,10 @@ final class MonthCode
     /**
      * Validates a freshly-read monthCode field value and returns the well-formed
      * string. A non-string $value is a TypeError; an ill-formed string is a
-     * RangeError. Both messages are owned here. No test asserts on the message text —
+     * RangeError. Both messages are owned here and are non-contractual:
      * `tests/Test262/Assert.php::throws()` checks only the exception CLASS, and the
-     * project's PHPUnit suites have no message assertions — so the wording is free;
-     * only the TypeError-vs-RangeError TYPE split is contractual.
+     * project's PHPUnit suites have no message assertions, so the wording is free.
+     * Only the TypeError-vs-RangeError TYPE split is contractual.
      *
      * @throws TypeError  if $value is not a string.
      * @throws RangeError if $value is a string that is not well-formed.

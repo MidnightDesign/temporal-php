@@ -18,6 +18,13 @@ use Temporal\Exception\TypeError;
  * option keyword, so it is rejected with a RangeError. The returned string must
  * still be validated against the option's allowed set by the caller.
  *
+ * MESSAGE TEXT IS NON-CONTRACTUAL. No test asserts on any exception's message in
+ * this class: `tests/Test262/Assert.php::throws()` checks only the exception
+ * CLASS, and the project's PHPUnit suites have no message assertions. Only the
+ * exception TYPE (RangeError vs. TypeError) is contractual; the wording of every
+ * message owned here is free to change. The per-method docblocks below reference
+ * this note rather than repeating it verbatim.
+ *
  * @internal
  */
 final class Options
@@ -53,10 +60,8 @@ final class Options
      * validated against the option's allowed keyword set by the caller.
      *
      * The RangeError message is owned here and parameterized only by the option's NAME
-     * token (e.g. "smallestUnit", "disambiguation"). No test asserts on the message
-     * text — `tests/Test262/Assert.php::throws()` checks only the exception CLASS, and
-     * the project's PHPUnit suites have no message assertions — so the wording is free;
-     * only the RangeError TYPE is contractual.
+     * token (e.g. "smallestUnit", "disambiguation"). See the class-level note on message
+     * text.
      *
      * @param string $optionName Bare option name interpolated into the RangeError text.
      * @throws RangeError if $value is neither a string nor a Stringable.
@@ -83,10 +88,7 @@ final class Options
      * other type is a RangeError) with the keyword check that the ~9 inline copies
      * across the Plain... and ZonedDateTime classes perform.
      *
-     * Both RangeError messages are owned here. No test asserts on the message text —
-     * `tests/Test262/Assert.php::throws()` checks only the exception CLASS, and the
-     * project's PHPUnit suites have no message assertions — so the wording is free;
-     * only the RangeError TYPE is contractual.
+     * Both RangeError messages are owned here. See the class-level note on message text.
      *
      * @throws RangeError if $value does not coerce to a string, or coerces to a string
      *                    that is neither "constrain" nor "reject".
@@ -104,30 +106,56 @@ final class Options
     }
 
     /**
-     * Normalizes an options bag and resolves its `overflow` field to a validated
+     * Resolves the full GetOptionsObject + GetTemporalOverflowOption pipeline from a
+     * RAW options argument to a validated "constrain" / "reject" keyword.
+     *
+     * This is the single resolver for the `overflow` option across all five Plain...
+     * classes. It folds the GetOptionsObject step ({@see self::requireObject()}) and
+     * the default-to-"constrain" + keyword-coercion step ({@see self::overflowFromBag()})
+     * into one call, so callers no longer copy a `requireObject`-then-`overflowFromBag`
+     * two-step or a per-class `resolveOverflowOption` wrapper.
+     *
+     * GetOptionsObject contract (TC39): the options argument must be undefined (omitted)
+     * or an object. Omitted arrives as the empty-array default and resolves to the
+     * "constrain" default; an explicit `null` or any other non-object primitive
+     * (int/float/string/bool) is a TypeError; a Symbol sentinel (a \Stringable whose
+     * __toString throws) is a TypeError. A genuine bag's `overflow` value is then
+     * coerced/validated by {@see self::overflowOption()} (string keyword, else
+     * RangeError).
+     *
+     * @param mixed $options Raw options argument (omitted → []; null/primitive → TypeError).
+     * @throws TypeError  if $options is an explicit null, a non-object primitive, or a
+     *                    Symbol sentinel (GetOptionsObject).
+     * @throws RangeError if the `overflow` value is not "constrain"/"reject".
+     */
+    public static function overflowFromValue(mixed $options): string
+    {
+        // GetOptionsObject step 3: a non-null, non-array, non-object primitive
+        // (int/float/string/bool) is a TypeError — raised here at the spec-layer origin
+        // (after a caller's string parse), not by a from()/with() parameter-type guard.
+        if ($options !== null && !is_array($options) && !is_object($options)) {
+            throw new TypeError('options must be an object.');
+        }
+        // requireObject turns an explicit null / Symbol sentinel into a TypeError and
+        // normalizes an object to an array; the empty-array default passes through.
+        return self::overflowFromBag(self::requireObject($options));
+    }
+
+    /**
+     * Resolves an already-validated options BAG (post-GetOptionsObject) to a validated
      * "constrain" / "reject" keyword, defaulting to "constrain" when the bag is null
      * (an omitted options argument) or has no `overflow` key.
      *
-     * Absorbs the GetOptionsObject + default-to-"constrain" scaffolding that the
-     * Plain... and ZonedDateTime `from`/`with`/`add` paths copy-pasted, delegating the
-     * keyword coercion/validation to {@see self::overflowOption()}.
-     *
-     * An explicit `overflow => null` VALUE is treated as the default "constrain" only
-     * when $nullValueIsDefault is true (the PlainTime contract); otherwise it falls
-     * through to {@see self::overflowOption()}, where a null coerces to neither
-     * keyword and is a RangeError (the contract every other class preserves).
-     *
-     * The null-OPTIONS-argument distinction (default "constrain" vs. a GetOptionsObject
-     * TypeError) is intentionally left to the caller: PlainMonthDay/PlainYearMonth run
-     * {@see self::requireObject()} (TypeError) before delegating here, while the others
-     * pass a null through to the default. So this helper always defaults a null bag.
+     * Delegates the keyword coercion/validation to {@see self::overflowOption()}, where
+     * an explicit `overflow => null` value coerces to neither keyword and is a RangeError.
+     * Callers that need the GetOptionsObject (null-argument → TypeError) step should use
+     * {@see self::overflowFromValue()} instead; this helper always defaults a null bag,
+     * and is retained for the ZonedDateTime path that performs its own null handling.
      *
      * @param array<array-key, mixed>|object|null $options
-     * @param bool $nullValueIsDefault When true, an explicit `overflow => null` value
-     *                                 resolves to "constrain" instead of raising.
      * @throws RangeError per {@see self::overflowOption()}.
      */
-    public static function overflowFromBag(array|object|null $options, bool $nullValueIsDefault = false): string
+    public static function overflowFromBag(array|object|null $options): string
     {
         if ($options === null) {
             return 'constrain';
@@ -138,12 +166,7 @@ final class Options
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
         }
-        /** @var mixed $value */
-        $value = $options['overflow'];
-        if ($nullValueIsDefault && $value === null) {
-            return 'constrain';
-        }
-        return self::overflowOption($value);
+        return self::overflowOption($options['overflow']);
     }
 
     /**
@@ -151,10 +174,8 @@ final class Options
      * {@see self::ROUNDING_MODES} set and returns it unchanged.
      *
      * Replaces the ~7 inline `!in_array($mode, ROUNDING_MODES, true)` checks. The
-     * RangeError message is owned here and embeds the offending value. No test asserts
-     * on the message text — `tests/Test262/Assert.php::throws()` checks only the
-     * exception CLASS, and the project's PHPUnit suites have no message assertions — so
-     * the wording is free; only the RangeError TYPE is contractual.
+     * RangeError message is owned here and embeds the offending value. See the
+     * class-level note on message text.
      *
      * This validates the STRICT keyword set only; the legacy "truncate"/"ceiling"
      * aliases some {@see Temporal\Spec\Duration} normalizers accept are intentionally
@@ -241,31 +262,6 @@ final class Options
             return get_object_vars($options);
         }
         return $options;
-    }
-
-    /**
-     * TC39 GetOptionsObject variant that also permits an explicit null (the
-     * spec-layer sentinel for JS `undefined`). A non-null, non-array, non-object
-     * primitive (int/float/string/bool) — or a Symbol sentinel (a \Stringable whose
-     * __toString throws) — is a spec-layer TypeError. null, array and object pass
-     * through unchanged.
-     *
-     * @return array<array-key, mixed>|object|null
-     */
-    public static function requireObjectOrNull(mixed $options): array|object|null
-    {
-        if ($options === null || is_array($options)) {
-            return $options;
-        }
-        if (is_object($options)) {
-            if ($options instanceof Stringable) {
-                // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
-                (string) $options;
-                throw new TypeError('options must be an object.');
-            }
-            return $options;
-        }
-        throw new TypeError('options must be an object.');
     }
 
     /**

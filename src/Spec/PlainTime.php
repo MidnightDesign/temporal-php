@@ -175,11 +175,11 @@ final class PlainTime implements Stringable
      * @throws TypeError if the type cannot be interpreted as a PlainTime.
      * @psalm-api
      */
-    public static function from(string|array|object $item, mixed $options = null): self
+    public static function from(string|array|object $item, mixed $options = []): self
     {
         if ($item instanceof self) {
             // ToTemporalTime step 2.a: GetOptionsObject then GetTemporalOverflowOption, before cloning.
-            self::resolveOverflowOption(Options::requireObjectOrNull($options));
+            self::resolveOverflowOption($options);
             return self::fromNs($item->ns);
         }
         if (is_string($item)) {
@@ -187,14 +187,14 @@ final class PlainTime implements Stringable
             // GetOptionsObject (step 3.d), so a bad string raises RangeError even when
             // the options argument is a bad primitive.
             $result = self::fromString($item);
-            self::resolveOverflowOption(Options::requireObjectOrNull($options));
+            self::resolveOverflowOption($options);
             return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
         // ToTemporalTime steps 2.c-2.e: read fields then validate options.
-        $overflow = self::resolveOverflowOption(Options::requireObjectOrNull($options));
+        $overflow = self::resolveOverflowOption($options);
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -224,11 +224,11 @@ final class PlainTime implements Stringable
      * are recognized; unrecognized keys are silently ignored.
      *
      * @param array<array-key, mixed>|object $fields
-     * @param array<array-key, mixed>|object|null        $options Options bag or null; supports 'overflow' key.
+     * @param mixed        $options Options bag (['overflow' => ...]), null/primitive (TypeError), or omitted.
      * @throws RangeError if a field value is infinite or out of range.
      * @psalm-api
      */
-    public function with(array|object $fields, array|object|null $options = []): self
+    public function with(array|object $fields, mixed $options = []): self
     {
         // Reject Temporal objects (IsPartialTemporalObject step 2).
         if (
@@ -251,10 +251,9 @@ final class PlainTime implements Stringable
             throw new TypeError('PlainTime::with() argument must be an object.');
         }
 
-        // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
-        $options = Options::requireObject($options);
-
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / non-object
+        // primitive / Symbol => TypeError; omitted ([]) defaults to 'constrain'.
         $overflow = self::resolveOverflowOption($options);
 
         $h = $this->hour;
@@ -585,20 +584,35 @@ final class PlainTime implements Stringable
     }
 
     /**
-     * Extracts and validates the 'overflow' option from an options bag.
+     * GetOptionsObject + GetTemporalOverflowOption for PlainTime, resolving a RAW
+     * options argument to a validated 'constrain'/'reject' keyword.
      *
-     * Returns 'constrain' or 'reject', defaulting to 'constrain' when $options is
-     * null, has no overflow key, or carries an explicit `overflow => null` value.
-     * PlainTime's contract treats a null value as the default/absent case, hence
-     * $nullValueIsDefault: true (the other Plain... and ZonedDateTime classes do not).
+     * GetOptionsObject: an omitted options argument arrives as the empty-array default;
+     * an explicit null, a non-object primitive (int/float/string/bool) or a Symbol
+     * sentinel is a TypeError. The bag's 'overflow' is then coerced/validated, with
+     * PlainTime's bespoke normalization that an explicit `overflow => null` VALUE is
+     * treated as the absent/default case (→ 'constrain') rather than a RangeError — the
+     * other Plain... and ZonedDateTime classes do not do this, so it lives here instead
+     * of in the shared {@see Options} helper.
      *
-     * @param array<array-key, mixed>|object|null $options
+     * @param mixed $options Raw options argument (omitted → []; null/primitive → TypeError).
+     * @throws TypeError  if $options is an explicit null, a non-object primitive, or a
+     *                    Symbol sentinel (GetOptionsObject).
      * @throws RangeError if the overflow value is a non-null non-string, or is an
      *                    unrecognized string.
      */
-    private static function resolveOverflowOption(array|object|null $options): string
+    private static function resolveOverflowOption(mixed $options): string
     {
-        return Options::overflowFromBag($options, nullValueIsDefault: true);
+        // GetOptionsObject step 3: a non-null, non-array, non-object primitive is a
+        // TypeError raised here (after a caller's string parse), not by a parameter guard.
+        if ($options !== null && !is_array($options) && !is_object($options)) {
+            throw new TypeError('options must be an object.');
+        }
+        $bag = Options::requireObject($options);
+        if (!array_key_exists('overflow', $bag) || $bag['overflow'] === null) {
+            return 'constrain';
+        }
+        return Options::overflowOption($bag['overflow']);
     }
 
     /**

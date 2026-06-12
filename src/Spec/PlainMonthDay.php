@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\MonthCode;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 
@@ -173,27 +174,28 @@ final class PlainMonthDay implements Stringable
      * property-bag array with 'month'/'monthCode' and 'day' fields.
      *
      * @param self|string|array<array-key, mixed>|object $item PlainMonthDay, ISO 8601 month-day string, or property-bag array.
-     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
+     * @param mixed $options Options bag (['overflow' => 'constrain'|'reject']), null/primitive (TypeError), or omitted.
      * @throws RangeError if the string is invalid or overflow option is invalid.
      * @throws \TypeError if the type cannot be interpreted as a PlainMonthDay.
      * @psalm-api
      */
-    public static function from(string|array|object $item, array|object|null $options = []): self
+    public static function from(string|array|object $item, mixed $options = []): self
     {
         if (is_string($item)) {
             // ToTemporalMonthDay (string branch): ParseISODateTime (step 11) runs BEFORE
             // GetOptionsObject (step 14) and GetTemporalOverflowOption (step 15), so a
             // malformed string raises RangeError even when the options argument is a bad
-            // value. Overflow is irrelevant to a string but is still validated.
+            // value (a primitive options arg is a TypeError raised AFTER the parse).
+            // Overflow is irrelevant to a string but is still validated.
             $result = self::fromString($item);
-            self::resolveOverflowOption($options);
+            Options::overflowFromValue($options);
             return $result;
         }
 
         // Object / instance / property-bag branch: GetOptionsObject and
         // GetTemporalOverflowOption are read before the algorithmic field validation
         // (CalendarMonthDayFromFields).
-        $overflow = self::resolveOverflowOption($options);
+        $overflow = Options::overflowFromValue($options);
 
         if ($item instanceof self) {
             return new self($item->isoMonth, $item->isoDay, $item->calendarId, $item->referenceISOYear);
@@ -228,13 +230,13 @@ final class PlainMonthDay implements Stringable
      * The 'calendar' and 'timeZone' keys must not be present.
      *
      * @param array<array-key, mixed>|object $fields Property bag with fields to override.
-     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
+     * @param mixed $options Options bag (['overflow' => ...]), null/primitive (TypeError), or omitted.
      * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
      * @throws \TypeError             if no recognized fields are present.
      * @throws RangeError if the resulting month-day is invalid (overflow: reject).
      * @psalm-api
      */
-    public function with(array|object $fields, array|object|null $options = []): self
+    public function with(array|object $fields, mixed $options = []): self
     {
         // Reject Temporal objects (IsPartialTemporalObject step 2).
         if (
@@ -252,7 +254,12 @@ final class PlainMonthDay implements Stringable
 
         // Normalize inputs to array up front so the body has a single path.
         $bag = is_object($fields) ? get_object_vars($fields) : $fields;
-        // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
+        // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError;
+        // omitted ([]) passes through. The overflow KEYWORD is coerced later, after the
+        // recognized-field checks, per the GetTemporalOverflowOption ordering.
+        if ($options !== null && !is_array($options) && !is_object($options)) {
+            throw new TypeError('options must be an object.');
+        }
         $opts = Options::requireObject($options);
 
         // IsPartialTemporalObject step 3: calendar key present → TypeError.
@@ -275,7 +282,7 @@ final class PlainMonthDay implements Stringable
             throw new TypeError('PlainMonthDay::with() requires at least one of: year, month, monthCode, day.');
         }
 
-        // Validate overflow option.
+        // GetTemporalOverflowOption: coerce/validate the overflow keyword.
         $overflow = 'constrain';
         if (array_key_exists('overflow', $opts)) {
             $overflow = Options::overflowOption($opts['overflow']);
@@ -296,12 +303,8 @@ final class PlainMonthDay implements Stringable
             $monthCode = null;
             $useMonthCode = false;
             if ($hasMonthCode) {
-                /** @var mixed $mc */
-                $mc = $bag['monthCode'];
-                if (!is_string($mc)) {
-                    throw new TypeError('monthCode must be a string.');
-                }
-                $monthCode = $mc;
+                // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING => RangeError.
+                $monthCode = MonthCode::validate($bag['monthCode']);
                 $useMonthCode = true;
             }
 
@@ -376,12 +379,8 @@ final class PlainMonthDay implements Stringable
         $month = $this->isoMonth;
         $monthCode = null;
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $bag['monthCode'];
-            if (!is_string($mc)) {
-                throw new TypeError('monthCode must be a string.');
-            }
-            $monthCode = $mc;
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING => RangeError.
+            $monthCode = MonthCode::validate($bag['monthCode']);
         }
         if ($hasMonth) {
             $month = CalendarMath::toFiniteInt($bag['month'], 'PlainMonthDay::with() month');
@@ -789,21 +788,6 @@ final class PlainMonthDay implements Stringable
     }
 
     /**
-     * GetOptionsObject + GetTemporalOverflowOption: validates the options argument
-     * (explicit null / non-object primitive / Symbol sentinel => TypeError; the
-     * omitted empty-array default passes through) and the 'overflow' value (TypeError
-     * if non-string, RangeError if not 'constrain'|'reject'), then returns the resolved
-     * overflow. Factored so {@see from()} can run it AFTER ParseISODateTime on the
-     * string-item path per ToTemporalMonthDay ordering (parse before GetOptionsObject).
-     *
-     * @param array<array-key, mixed>|object|null $options
-     */
-    private static function resolveOverflowOption(array|object|null $options): string
-    {
-        return Options::overflowFromBag(Options::requireObject($options));
-    }
-
-    /**
      * Creates a PlainMonthDay from a property bag.
      *
      * Required fields: 'month'/'monthCode' AND 'day'.
@@ -858,12 +842,9 @@ final class PlainMonthDay implements Stringable
         $monthCode = null;
 
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $bag['monthCode'];
-            if (!is_string($mc)) {
-                throw new TypeError('PlainMonthDay monthCode must be a string.');
-            }
-            $monthCode = $mc;
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING =>
+            // RangeError (type-then-syntax), matching PlainDate/PlainYearMonth bag paths.
+            $monthCode = MonthCode::validate($bag['monthCode']);
         }
         if ($hasMonth) {
             $month = CalendarMath::toFiniteInt($bag['month'] ?? null, 'PlainMonthDay::from() month');

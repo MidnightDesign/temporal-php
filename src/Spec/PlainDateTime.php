@@ -362,24 +362,26 @@ final class PlainDateTime implements Stringable
      * or a property-bag array.
      *
      * @param self|string|array<array-key, mixed>|object $item    PlainDateTime, ISO 8601 datetime string, or property-bag array.
-     * @param array<array-key, mixed>|object|null $options Options bag or null; supports 'overflow' key.
+     * @param mixed $options Options bag (['overflow' => 'constrain'|'reject']), null/primitive (TypeError), or omitted.
      * @throws RangeError if the string is invalid or any field is out of range.
      * @throws TypeError if the type cannot be interpreted as a PlainDateTime.
      * @psalm-api
      */
-    public static function from(string|array|object $item, array|object|null $options = null): self
+    public static function from(string|array|object $item, mixed $options = []): self
     {
         // Overflow is validated in item-type-dependent order, per ToTemporalDateTime
         // (sec-temporal-totemporaldatetime) and Temporal.PlainDateTime.from
         // (sec-temporal.plaindatetime.from):
         //   - PlainDateTime instance: step 2.a does ToTemporalOverflow, then clones.
-        //   - String: step 3 parses (ParseISODateTime) first, then ToTemporalOverflow.
+        //   - String: step 3 parses (ParseISODateTime) first, then ToTemporalOverflow,
+        //     so a malformed string raises RangeError even when options is a bad
+        //     primitive (the options TypeError is raised AFTER the parse).
         //   - Property bag: step 2.g InterpretTemporalDateTimeFields reads the fields
         //     first (PrepareCalendarFields), and only then validates overflow.
         // This mirrors PlainTime's parse-then-validate ordering rather than validating
         // overflow up front for every branch.
         if ($item instanceof self) {
-            self::resolveOverflowOption($options);
+            Options::overflowFromValue($options);
             return new self(
                 $item->isoYear,
                 $item->isoMonth,
@@ -395,13 +397,13 @@ final class PlainDateTime implements Stringable
         }
         if (is_string($item)) {
             $result = self::fromString($item);
-            self::resolveOverflowOption($options);
+            Options::overflowFromValue($options);
             return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
-        $overflow = self::resolveOverflowOption($options);
+        $overflow = Options::overflowFromValue($options);
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -446,12 +448,12 @@ final class PlainDateTime implements Stringable
      * The 'calendar' and 'timeZone' keys must not be present.
      *
      * @param array<array-key,mixed>|object $fields   Property bag with fields to override.
-     * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => 'constrain'|'reject']
+     * @param mixed       $options Options bag (['overflow' => ...]), null/primitive (TypeError), or omitted.
      * @throws TypeError             if $fields contains 'calendar' or 'timeZone'.
      * @throws RangeError if the resulting datetime is invalid (overflow: reject).
      * @psalm-api
      */
-    public function with(array|object $fields, array|object|null $options = null): self
+    public function with(array|object $fields, mixed $options = []): self
     {
         // Reject Temporal objects (IsPartialTemporalObject step 2).
         if (
@@ -502,7 +504,9 @@ final class PlainDateTime implements Stringable
             throw new TypeError('PlainDateTime::with() requires at least one recognized temporal property.');
         }
 
-        $overflow = self::resolveOverflowOption($options);
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
+        // Symbol => TypeError; omitted ([]) defaults to 'constrain'.
+        $overflow = Options::overflowFromValue($options);
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
@@ -521,12 +525,9 @@ final class PlainDateTime implements Stringable
         $hasMonth = array_key_exists('month', $fields);
         $hasMonthCode = array_key_exists('monthCode', $fields);
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $fields['monthCode'];
-            if (!is_string($mc)) {
-                throw new TypeError('monthCode must be a string.');
-            }
-            $month = CalendarMath::monthCodeToMonth($mc);
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING =>
+            // RangeError (type-then-syntax, before month suitability is resolved).
+            $month = CalendarMath::monthCodeToMonth(MonthCode::validate($fields['monthCode']));
         }
         if ($hasMonth) {
             $newMonth = CalendarMath::toFiniteInt($fields['month'], 'PlainDateTime::with() month');
@@ -624,12 +625,8 @@ final class PlainDateTime implements Stringable
         $useMonthCode = false;
 
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $fields['monthCode'];
-            if (!is_string($mc)) {
-                throw new TypeError('monthCode must be a string.');
-            }
-            $monthCode = $mc;
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING => RangeError.
+            $monthCode = MonthCode::validate($fields['monthCode']);
             $useMonthCode = true;
         }
         if ($hasMonth) {
@@ -935,16 +932,19 @@ final class PlainDateTime implements Stringable
      * @psalm-api
      */
     #[\Override]
-    public function toString(array|object|null $options = null): string
+    public function toString(array|object|null $options = []): string
     {
-        $options = $options === null ? null : Options::requireObject($options);
+        // GetOptionsObject: PHP null (the spec layer's representation of an omitted/
+        // `undefined` options argument) resolves to the empty-array default; a Symbol
+        // sentinel is rejected; a bag is normalized to an array.
+        $options = Options::requireObject($options ?? []);
 
         $calendarName = 'auto';
         $digits = -2; // -2 = 'auto'
         $isMinute = false;
         $roundMode = 'trunc';
 
-        if ($options !== null) {
+        if ($options !== []) {
             if (array_key_exists('calendarName', $options)) {
                 $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName');
                 $calendarName = $cn;
@@ -1148,13 +1148,16 @@ final class PlainDateTime implements Stringable
      *                                  or the resulting instant is out of range.
      * @psalm-api
      */
-    public function toZonedDateTime(string $timeZone, array|object|null $options = null): ZonedDateTime
+    public function toZonedDateTime(string $timeZone, array|object|null $options = []): ZonedDateTime
     {
-        $opts = $options === null ? null : Options::requireObject($options);
+        // GetOptionsObject: PHP null (the spec layer's representation of an omitted/
+        // `undefined` options argument) resolves to the empty-array default; a Symbol
+        // sentinel is rejected; a bag is normalized to an array.
+        $opts = Options::requireObject($options ?? []);
 
         // Validate disambiguation option if present.
         $disambiguation = 'compatible';
-        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
+        if (array_key_exists('disambiguation', $opts)) {
             $disamb = Options::coerceEnumOption($opts['disambiguation'], 'disambiguation');
             if (!in_array($disamb, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
                 throw new RangeError(
@@ -2224,14 +2227,14 @@ final class PlainDateTime implements Stringable
     }
 
     /**
-     * Extracts and validates the 'overflow' option from an options bag.
+     * GetOptionsObject + GetTemporalOverflowOption, resolving a RAW options argument to
+     * a validated 'constrain'/'reject' keyword.
      *
-     * Returns 'constrain' or 'reject', defaulting to 'constrain' when $options is null
-     * or has no overflow key. A null options argument is the omitted-options default
-     * (not a TypeError); a non-null options object is passed through
-     * {@see Options::requireObject()} first, so a Symbol-sentinel options object is a
-     * TypeError. An explicit `overflow => null` value is NOT the default here — it
-     * falls through to {@see Options::overflowOption()} and is a RangeError.
+     * GetOptionsObject: PHP null (the spec layer's representation of an omitted/
+     * `undefined` options argument) resolves to the empty-array default → 'constrain';
+     * a Symbol-sentinel options object is a TypeError; a bag's 'overflow' is then
+     * coerced/validated by {@see Options::overflowFromBag()} (an explicit
+     * `overflow => null` value is NOT the default here — it is a RangeError).
      *
      * @param array<array-key, mixed>|object|null $options
      * @throws TypeError if the options object is a Symbol sentinel.
@@ -2239,10 +2242,7 @@ final class PlainDateTime implements Stringable
      */
     private static function resolveOverflowOption(array|object|null $options): string
     {
-        if ($options === null) {
-            return 'constrain';
-        }
-        return Options::overflowFromBag(Options::requireObject($options));
+        return Options::overflowFromBag(Options::requireObject($options ?? []));
     }
 
     /**
