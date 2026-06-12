@@ -2323,7 +2323,7 @@ final class PlainDateTime implements Stringable
     private static function roundDaysWithTime(int $days, int $timeNs, int $increment, string $mode, int $sign = 1): int
     {
         $progress = $timeNs > 0 ? (float) $timeNs / (float) self::NS_PER_DAY : 0.0;
-        $roundUp = self::applyRoundingProgress($days, $progress, $increment, $mode, $sign);
+        $roundUp = CalendarMath::applyCalendarRoundingProgress($days, $progress, $increment, $mode, $sign);
         $q = intdiv(num1: $days, num2: $increment);
         return $roundUp ? ($q + 1) * $increment : $q * $increment;
     }
@@ -2360,7 +2360,7 @@ final class PlainDateTime implements Stringable
         $totalRemNs = ($remainingDays * self::NS_PER_DAY) + $remainingTimeNs;
         $progress = $intervalDays > 0 ? (float) $totalRemNs / ((float) $intervalDays * (float) self::NS_PER_DAY) : 0.0;
 
-        $roundUp = self::applyRoundingProgress($totalMonths, $progress, $increment, $mode, $sign);
+        $roundUp = CalendarMath::applyCalendarRoundingProgress($totalMonths, $progress, $increment, $mode, $sign);
 
         $roundedAbsMonths = $roundUp ? $floorCount + $increment : $floorCount;
 
@@ -2403,7 +2403,7 @@ final class PlainDateTime implements Stringable
         $totalRemNs = (($remDaysFromMonths + $remainingDays) * self::NS_PER_DAY) + $remainingTimeNs;
         $progress = $intervalDays > 0 ? (float) $totalRemNs / ((float) $intervalDays * (float) self::NS_PER_DAY) : 0.0;
 
-        $roundUp = self::applyRoundingProgress($years, $progress, $increment, $mode, $sign);
+        $roundUp = CalendarMath::applyCalendarRoundingProgress($years, $progress, $increment, $mode, $sign);
 
         $roundedAbsYears = $roundUp ? $floorCount + $increment : $floorCount;
 
@@ -2411,53 +2411,6 @@ final class PlainDateTime implements Stringable
         self::addSignedMonths($receiver, $dir * $roundedAbsYears * 12);
 
         return $roundedAbsYears;
-    }
-
-    /**
-     * Determines whether to round up based on fractional progress within an interval.
-     *
-     * For directed modes (floor/ceil), the direction is always positive since we
-     * work with absolute values and apply sign at the end.
-     *
-     * @param int   $wholeUnits The number of whole units (for halfEven: determines evenness).
-     * @param float $progress   Fractional progress in [0.0, 1.0).
-     * @param int   $increment  The rounding increment.
-     * @param string $mode      The rounding mode.
-     * @return bool True if the value should be rounded up.
-     */
-    private static function applyRoundingProgress(
-        int $wholeUnits,
-        float $progress,
-        int $increment,
-        string $mode,
-        int $sign = 1,
-    ): bool {
-        $q = intdiv(num1: $wholeUnits, num2: $increment);
-        $unitRem = $wholeUnits - ($q * $increment);
-        $hasFraction = $unitRem > 0 || $progress > 0.0;
-        $halfPoint = (float) $increment / 2.0;
-        $totalFrac = (float) $unitRem + $progress;
-
-        // For negative diffs, flip floor/ceil so they retain their directional meaning.
-        $effectiveMode = $mode;
-        if ($sign < 0) {
-            $effectiveMode = match ($mode) {
-                'floor' => 'ceil',
-                'ceil' => 'floor',
-                'halfFloor' => 'halfCeil',
-                'halfCeil' => 'halfFloor',
-                default => $mode,
-            };
-        }
-
-        return match ($effectiveMode) {
-            'trunc', 'floor' => false,
-            'ceil', 'expand' => $hasFraction,
-            'halfExpand', 'halfCeil' => $totalFrac >= $halfPoint,
-            'halfTrunc', 'halfFloor' => $totalFrac > $halfPoint,
-            'halfEven' => $totalFrac > $halfPoint || $totalFrac === $halfPoint && ($q % 2) !== 0,
-            default => false,
-        };
     }
 
     /**

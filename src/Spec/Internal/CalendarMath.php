@@ -687,6 +687,56 @@ final class CalendarMath
     }
 
     /**
+     * Determines whether to round up based on whole units + sub-unit fractional progress.
+     *
+     * Unlike {@see applyRoundingProgress} (which takes a single float progress ratio),
+     * this variant works with a `$wholeUnits` count and a separate `$progress` fraction,
+     * allowing correct `halfEven` tie-breaking via the quotient parity.
+     *
+     * Used by `PlainDateTime` and `ZonedDateTime` rounding paths. ZDT callers pre-negate
+     * the mode via `negateRoundingMode` before calling, so they pass `$sign = 1` (default).
+     *
+     * @param int    $wholeUnits The total number of whole units (for `halfEven`: determines evenness).
+     * @param float  $progress   Fractional progress within the current unit, in [0.0, 1.0).
+     * @param int    $increment  The rounding increment.
+     * @param string $mode       The rounding mode string.
+     * @param int    $sign       1 for positive durations, -1 for negative (flips floor/ceil).
+     * @return bool True if the value should be rounded up.
+     */
+    public static function applyCalendarRoundingProgress(
+        int $wholeUnits,
+        float $progress,
+        int $increment,
+        string $mode,
+        int $sign = 1,
+    ): bool {
+        $q = intdiv(num1: $wholeUnits, num2: $increment);
+        $unitRem = $wholeUnits - ($q * $increment);
+        $hasFraction = $unitRem > 0 || $progress > 0.0;
+        $halfPoint = (float) $increment / 2.0;
+        $totalFrac = (float) $unitRem + $progress;
+
+        $effectiveMode = $mode;
+        if ($sign < 0) {
+            $effectiveMode = match ($mode) {
+                'floor' => 'ceil',
+                'ceil' => 'floor',
+                'halfFloor' => 'halfCeil',
+                'halfCeil' => 'halfFloor',
+                default => $mode,
+            };
+        }
+        return match ($effectiveMode) {
+            'trunc', 'floor' => false,
+            'ceil', 'expand' => $hasFraction,
+            'halfExpand', 'halfCeil' => $totalFrac >= $halfPoint,
+            'halfTrunc', 'halfFloor' => $totalFrac > $halfPoint,
+            'halfEven' => $totalFrac > $halfPoint || $totalFrac === $halfPoint && ($q % 2) !== 0,
+            default => false,
+        };
+    }
+
+    /**
      * Validates all time fields and throws if any are out of their valid range.
      *
      * @phpstan-assert int<0, 23> $h

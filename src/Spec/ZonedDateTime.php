@@ -3544,7 +3544,7 @@ final class ZonedDateTime implements Stringable
                         $timeDiffNs,
                         $receiverIsLater,
                     );
-                    $roundUp = self::applyRoundingProgress($years, $progress, $roundingIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress($years, $progress, $roundingIncrement, $effectiveMode);
                     $roundedYears = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
                     return new Duration(years: $outputSign * $roundedYears);
                 }
@@ -3562,7 +3562,7 @@ final class ZonedDateTime implements Stringable
                         $timeDiffNs,
                         $receiverIsLater,
                     );
-                    $roundUp = self::applyRoundingProgress($totalMonths, $progress, $roundingIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress($totalMonths, $progress, $roundingIncrement, $effectiveMode);
                     $roundedMonths = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
                     if ($normLargest === 'year') {
                         $ry = intdiv(num1: $roundedMonths, num2: 12);
@@ -3576,7 +3576,7 @@ final class ZonedDateTime implements Stringable
                     $progress = $timeDiffNs > 0 ? (float) $timeDiffNs / $nsPerDayF : 0.0;
                     $weekDays = $totalDays;
                     $weekIncrement = $roundingIncrement * 7;
-                    $roundUp = self::applyRoundingProgress($weekDays, $progress, $weekIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress($weekDays, $progress, $weekIncrement, $effectiveMode);
                     $q = intdiv(num1: $weekDays, num2: $weekIncrement);
                     $roundedDays = $roundUp ? ($q + 1) * $weekIncrement : $q * $weekIncrement;
                     // Preserve the years/months from the date difference. Per TC39
@@ -3593,7 +3593,7 @@ final class ZonedDateTime implements Stringable
                 }
                 // normSmallest === 'day'
                 $progress = $timeDiffNs > 0 ? (float) $timeDiffNs / $nsPerDayF : 0.0;
-                $roundUp = self::applyRoundingProgress($days, $progress, $roundingIncrement, $effectiveMode);
+                $roundUp = CalendarMath::applyCalendarRoundingProgress($days, $progress, $roundingIncrement, $effectiveMode);
                 $q = intdiv(num1: $days, num2: $roundingIncrement);
                 $roundedDays = $roundUp ? ($q + 1) * $roundingIncrement : $q * $roundingIncrement;
                 if ($normLargest === 'day') {
@@ -4070,27 +4070,6 @@ final class ZonedDateTime implements Stringable
         }
         $maxDay = CalendarMath::calcDaysInMonth($newYear, $newMonth);
         return [$newYear, $newMonth, min($day, $maxDay)];
-    }
-
-    /**
-     * Determines whether to round up based on fractional progress within an interval.
-     */
-    private static function applyRoundingProgress(int $wholeUnits, float $progress, int $increment, string $mode): bool
-    {
-        $q = intdiv(num1: $wholeUnits, num2: $increment);
-        $unitRem = $wholeUnits - ($q * $increment);
-        $hasFraction = $unitRem > 0 || $progress > 0.0;
-        $halfPoint = (float) $increment / 2.0;
-        $totalFrac = (float) $unitRem + $progress;
-
-        return match ($mode) {
-            'trunc', 'floor' => false,
-            'ceil', 'expand' => $hasFraction,
-            'halfExpand', 'halfCeil' => $totalFrac >= $halfPoint,
-            'halfTrunc', 'halfFloor' => $totalFrac > $halfPoint,
-            'halfEven' => $totalFrac > $halfPoint || $totalFrac === $halfPoint && ($q % 2) !== 0,
-            default => false,
-        };
     }
 
     /**
