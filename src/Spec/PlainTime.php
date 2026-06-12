@@ -179,7 +179,7 @@ final class PlainTime implements Stringable
     {
         if ($item instanceof self) {
             // ToTemporalTime step 2.a: GetOptionsObject then GetTemporalOverflowOption, before cloning.
-            self::resolveOverflowOption($options);
+            Options::overflowFromValue($options);
             return self::fromNs($item->ns);
         }
         if (is_string($item)) {
@@ -187,14 +187,14 @@ final class PlainTime implements Stringable
             // GetOptionsObject (step 3.d), so a bad string raises RangeError even when
             // the options argument is a bad primitive.
             $result = self::fromString($item);
-            self::resolveOverflowOption($options);
+            Options::overflowFromValue($options);
             return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
         // ToTemporalTime steps 2.c-2.e: read fields then validate options.
-        $overflow = self::resolveOverflowOption($options);
+        $overflow = Options::overflowFromValue($options);
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -253,8 +253,9 @@ final class PlainTime implements Stringable
 
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
         // GetOptionsObject + GetTemporalOverflowOption: explicit null / non-object
-        // primitive / Symbol => TypeError; omitted ([]) defaults to 'constrain'.
-        $overflow = self::resolveOverflowOption($options);
+        // primitive / Symbol => TypeError; omitted ([]) defaults to 'constrain';
+        // an explicit `overflow => null` value coerces to neither keyword => RangeError.
+        $overflow = Options::overflowFromValue($options);
 
         $h = $this->hour;
         $min = $this->minute;
@@ -581,38 +582,6 @@ final class PlainTime implements Stringable
         $us = intdiv(num1: $rem, num2: self::NS_PER_US);
         $ns = $rem % self::NS_PER_US;
         return new self($h, $min, $sec, $ms, $us, $ns);
-    }
-
-    /**
-     * GetOptionsObject + GetTemporalOverflowOption for PlainTime, resolving a RAW
-     * options argument to a validated 'constrain'/'reject' keyword.
-     *
-     * GetOptionsObject: an omitted options argument arrives as the empty-array default;
-     * an explicit null, a non-object primitive (int/float/string/bool) or a Symbol
-     * sentinel is a TypeError. The bag's 'overflow' is then coerced/validated, with
-     * PlainTime's bespoke normalization that an explicit `overflow => null` VALUE is
-     * treated as the absent/default case (→ 'constrain') rather than a RangeError — the
-     * other Plain... and ZonedDateTime classes do not do this, so it lives here instead
-     * of in the shared {@see Options} helper.
-     *
-     * @param mixed $options Raw options argument (omitted → []; null/primitive → TypeError).
-     * @throws TypeError  if $options is an explicit null, a non-object primitive, or a
-     *                    Symbol sentinel (GetOptionsObject).
-     * @throws RangeError if the overflow value is a non-null non-string, or is an
-     *                    unrecognized string.
-     */
-    private static function resolveOverflowOption(mixed $options): string
-    {
-        // GetOptionsObject step 3: a non-null, non-array, non-object primitive is a
-        // TypeError raised here (after a caller's string parse), not by a parameter guard.
-        if ($options !== null && !is_array($options) && !is_object($options)) {
-            throw new TypeError('options must be an object.');
-        }
-        $bag = Options::requireObject($options);
-        if (!array_key_exists('overflow', $bag) || $bag['overflow'] === null) {
-            return 'constrain';
-        }
-        return Options::overflowOption($bag['overflow']);
     }
 
     /**

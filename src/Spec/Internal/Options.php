@@ -33,10 +33,8 @@ final class Options
      * Canonical TC39 rounding-mode keyword set (RoundingMode enum). The order matches
      * the spec's enumeration. Validated against by {@see self::roundingMode()}.
      *
-     * This is the strict set only — it deliberately excludes the legacy ECMA-402
-     * aliases "truncate"/"ceiling", which a handful of {@see Temporal\Spec\Duration}
-     * paths still accept via their own normalizer; those are NOT routed through this
-     * constant.
+     * This is the strict keyword set only — no legacy ECMA-402 aliases ("truncate"/
+     * "ceiling") are accepted anywhere; they were never part of TC39 Temporal.
      *
      * @var list<string>
      */
@@ -149,8 +147,13 @@ final class Options
      * Delegates the keyword coercion/validation to {@see self::overflowOption()}, where
      * an explicit `overflow => null` value coerces to neither keyword and is a RangeError.
      * Callers that need the GetOptionsObject (null-argument → TypeError) step should use
-     * {@see self::overflowFromValue()} instead; this helper always defaults a null bag,
-     * and is retained for the ZonedDateTime path that performs its own null handling.
+     * {@see self::overflowFromValue()} instead; this helper always defaults a null bag.
+     *
+     * After the Plain... convergence on {@see self::overflowFromValue()}, the only
+     * external caller is {@see Temporal\Spec\ZonedDateTime}, which performs its own
+     * GetOptionsObject (null handling) upstream and so wants the bag-only resolver here;
+     * internally, {@see self::overflowFromValue()} also delegates to this method after
+     * its own GetOptionsObject step.
      *
      * @param array<array-key, mixed>|object|null $options
      * @throws RangeError per {@see self::overflowOption()}.
@@ -177,9 +180,8 @@ final class Options
      * RangeError message is owned here and embeds the offending value. See the
      * class-level note on message text.
      *
-     * This validates the STRICT keyword set only; the legacy "truncate"/"ceiling"
-     * aliases some {@see Temporal\Spec\Duration} normalizers accept are intentionally
-     * NOT recognized here and must keep their bespoke handling.
+     * This validates the STRICT keyword set only; no legacy "truncate"/"ceiling"
+     * aliases are recognized — they are not part of TC39 Temporal.
      *
      * @throws RangeError if $mode is not one of {@see self::ROUNDING_MODES}.
      */

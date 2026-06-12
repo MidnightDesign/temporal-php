@@ -460,10 +460,10 @@ final class PlainYearMonth implements Stringable
      * Only years and months are relevant; weeks and days are rejected.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function add(string|array|object $duration, array|object|null $options = []): self
+    public function add(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(1, $dur, $options);
@@ -473,10 +473,10 @@ final class PlainYearMonth implements Stringable
      * Returns a new PlainYearMonth with the given duration subtracted.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function subtract(string|array|object $duration, array|object|null $options = []): self
+    public function subtract(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(-1, $dur, $options);

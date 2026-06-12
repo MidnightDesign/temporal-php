@@ -524,10 +524,10 @@ final class PlainDate implements Stringable
      * year boundaries. Time units are balanced into days before applying.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function add(string|array|object $duration, array|object|null $options = null): self
+    public function add(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(1, $dur, $options);
@@ -537,10 +537,10 @@ final class PlainDate implements Stringable
      * Returns a new PlainDate with the given duration subtracted.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function subtract(string|array|object $duration, array|object|null $options = null): self
+    public function subtract(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(-1, $dur, $options);
@@ -1627,14 +1627,15 @@ final class PlainDate implements Stringable
      * Sub-day time units (hours, minutes, seconds, milliseconds, microseconds,
      * nanoseconds) are balanced into whole days before applying day arithmetic.
      *
-     * @param array<array-key, mixed>|object|null $options
+     * @param array<array-key, mixed>|object $options
      */
-    private function addDuration(int $sign, Duration $dur, array|object|null $options): self
+    private function addDuration(int $sign, Duration $dur, array|object $options): self
     {
-        // GetOptionsObject + GetTemporalOverflowOption: PHP null (the spec layer's
-        // representation of an omitted/`undefined` options argument) defaults to
-        // 'constrain'; a Symbol sentinel is rejected; an 'overflow' value is coerced.
-        $overflow = Options::overflowFromBag(Options::requireObject($options ?? []));
+        // GetOptionsObject + GetTemporalOverflowOption: omitted ([]) and a bag without
+        // 'overflow' default to 'constrain'; an explicit null / non-object primitive /
+        // Symbol sentinel => TypeError; an 'overflow' value is coerced/validated (an
+        // explicit `overflow => null` value => RangeError).
+        $overflow = Options::overflowFromValue($options);
 
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
