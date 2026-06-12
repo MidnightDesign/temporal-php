@@ -9,6 +9,7 @@ use Temporal\Exception\RangeError;
 use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\MonthCode;
 use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
@@ -32,12 +33,6 @@ final class PlainDateTime implements Stringable
     private const int NS_PER_MS = 1_000_000;
     private const int NS_PER_US = 1_000;
     private const int NS_PER_DAY = 86_400_000_000_000;
-
-    /**
-     * Sentinel distinguishing an omitted calendar argument (defaults to ISO 8601)
-     * from an explicitly supplied null/invalid calendar (which is a TypeError).
-     */
-    private const string CALENDAR_OMITTED = "\0__calendar_omitted__\0";
 
     // -------------------------------------------------------------------------
     // Virtual (get-only) properties
@@ -281,20 +276,12 @@ final class PlainDateTime implements Stringable
         int|float $millisecond = 0,
         int|float $microsecond = 0,
         int|float $nanosecond = 0,
-        mixed $calendar = self::CALENDAR_OMITTED,
+        mixed $calendar = null,
     ) {
-        if ($calendar === self::CALENDAR_OMITTED || $calendar === null) {
-            // No calendar argument supplied (or null): default to the ISO 8601
-            // calendar. PHP cannot distinguish JS `undefined` from `null`
-            // positionally, so a null calendar is treated as omitted.
-            $calendar = 'iso8601';
-        } elseif (!is_string($calendar)) {
-            // An explicitly supplied non-string calendar is a wrong-type TypeError.
-            throw new TypeError(sprintf('PlainDateTime calendar must be a string; got %s.', get_debug_type($calendar)));
-        } else {
-            $calendar = CalendarFactory::canonicalize($calendar);
-        }
-        $this->calendarId = $calendar;
+        // An omitted (or null — PHP cannot distinguish JS `undefined` positionally)
+        // calendar defaults to ISO 8601; a non-string is a wrong-type TypeError; an
+        // unknown calendar string is a RangeError. Shared with PlainDate's constructor.
+        $this->calendarId = CalendarFactory::resolveConstructorCalendar($calendar, 'PlainDateTime');
         if (
             !is_finite((float) $year)
             || !is_finite((float) $month)
@@ -382,11 +369,17 @@ final class PlainDateTime implements Stringable
      */
     public static function from(string|array|object $item, array|object|null $options = null): self
     {
-        // Validate overflow first so invalid overflow values always throw RangeError,
-        // regardless of the item type (even if item would otherwise cause TypeError).
-        $overflow = self::extractOverflow($options);
-
+        // Overflow is validated in item-type-dependent order, per ToTemporalDateTime
+        // (sec-temporal-totemporaldatetime) and Temporal.PlainDateTime.from
+        // (sec-temporal.plaindatetime.from):
+        //   - PlainDateTime instance: step 2.a does ToTemporalOverflow, then clones.
+        //   - String: step 3 parses (ParseISODateTime) first, then ToTemporalOverflow.
+        //   - Property bag: step 2.g InterpretTemporalDateTimeFields reads the fields
+        //     first (PrepareCalendarFields), and only then validates overflow.
+        // This mirrors PlainTime's parse-then-validate ordering rather than validating
+        // overflow up front for every branch.
         if ($item instanceof self) {
+            self::extractOverflow($options);
             return new self(
                 $item->isoYear,
                 $item->isoMonth,
@@ -401,11 +394,14 @@ final class PlainDateTime implements Stringable
             );
         }
         if (is_string($item)) {
-            return self::fromString($item);
+            $result = self::fromString($item);
+            self::extractOverflow($options);
+            return $result;
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
         }
+        $overflow = self::extractOverflow($options);
         return self::fromPropertyBag($item, $overflow);
     }
 
@@ -941,9 +937,7 @@ final class PlainDateTime implements Stringable
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
+        $options = $options === null ? null : Options::requireObject($options);
 
         $calendarName = 'auto';
         $digits = -2; // -2 = 'auto'
@@ -1156,7 +1150,7 @@ final class PlainDateTime implements Stringable
      */
     public function toZonedDateTime(string $timeZone, array|object|null $options = null): ZonedDateTime
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = $options === null ? null : Options::requireObject($options);
 
         // Validate disambiguation option if present.
         $disambiguation = 'compatible';
@@ -1398,16 +1392,20 @@ final class PlainDateTime implements Stringable
 
         $calendar = $calendarId !== null && $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
 
-        // Per TC39, a present monthCode's *syntactic* well-formedness (M + 2 digits +
-        // optional L) is validated before the year field's type is coerced; only its
-        // *suitability* (valid value for this calendar) is checked afterwards. A string
-        // that is ill-formed therefore throws RangeError before a bad year would throw.
+        // Per TC39 ToMonthCode, a present monthCode's TYPE (must be a string) is
+        // checked first, then its *syntactic* well-formedness (M + 2 digits + optional
+        // L) — both before the year field's type is coerced. Only its *suitability*
+        // (valid value for this calendar) is checked afterwards. Routing through
+        // MonthCode::validate realigns this path with PlainDate/PlainYearMonth's
+        // type-then-syntax order, so a non-string monthCode throws TypeError and an
+        // ill-formed string throws RangeError before a bad year would throw.
+        $monthCodeValidated = null;
         if (array_key_exists('monthCode', $bag)) {
-            /** @var mixed $monthCodeSyntax */
-            $monthCodeSyntax = $bag['monthCode'];
-            if (is_string($monthCodeSyntax) && preg_match('/^M\d{2}L?$/', $monthCodeSyntax) !== 1) {
-                throw new RangeError("Invalid monthCode syntax: \"{$monthCodeSyntax}\".");
-            }
+            $monthCodeValidated = MonthCode::validate(
+                $bag['monthCode'],
+                'PlainDateTime monthCode must be a string.',
+                'Invalid monthCode syntax: "%s".',
+            );
         }
 
         // Extract year from the bag, or resolve from era + eraYear.
@@ -1435,13 +1433,8 @@ final class PlainDateTime implements Stringable
         $hasMonth = array_key_exists('month', $bag);
         $hasMonthCode = array_key_exists('monthCode', $bag);
 
-        if (array_key_exists('monthCode', $bag)) {
-            /** @var mixed $monthCodeRaw */
-            $monthCodeRaw = $bag['monthCode'];
-            if (!is_string($monthCodeRaw)) {
-                throw new TypeError('PlainDateTime monthCode must be a string.');
-            }
-            $monthCode = $monthCodeRaw;
+        if ($monthCodeValidated !== null) {
+            $monthCode = $monthCodeValidated;
             $month = $calendar !== null
                 ? $calendar->monthCodeToMonth($monthCode, $year)
                 : CalendarMath::monthCodeToMonth($monthCode);
@@ -1591,7 +1584,7 @@ final class PlainDateTime implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : get_object_vars($options);
+            $opts = Options::requireObject($options);
 
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
@@ -1623,10 +1616,7 @@ final class PlainDateTime implements Stringable
                     $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                        throw new RangeError("Invalid roundingMode value: \"{$rm}\".");
-                    }
-                    $roundingMode = $rm;
+                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
                 }
             }
 
@@ -2259,20 +2249,15 @@ final class PlainDateTime implements Stringable
         if ($options === null) {
             return 'constrain';
         }
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
+        $options = Options::requireObject($options);
         if (!array_key_exists('overflow', $options)) {
             return 'constrain';
         }
-        $val = Options::coerceEnumOption(
+        return Options::overflowOption(
             $options['overflow'],
             "overflow option must be a string: must be 'constrain' or 'reject'.",
+            "Invalid overflow value \"%s\": must be 'constrain' or 'reject'.",
         );
-        if ($val !== 'constrain' && $val !== 'reject') {
-            throw new RangeError("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
-        }
-        return $val;
     }
 
     /**

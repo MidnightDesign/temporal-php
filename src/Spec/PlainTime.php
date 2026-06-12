@@ -503,10 +503,7 @@ final class PlainTime implements Stringable
             // roundingMode option.
             if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
                 $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode must be a string.');
-                if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                    throw new RangeError("Invalid roundingMode \"{$rm}\".");
-                }
-                $roundingMode = $rm;
+                $roundingMode = Options::roundingMode($rm, "Invalid roundingMode \"{$rm}\".");
             }
         }
 
@@ -617,11 +614,11 @@ final class PlainTime implements Stringable
         if ($val === null) {
             return 'constrain';
         }
-        $val = Options::coerceEnumOption($val, 'overflow option must be a string.');
-        if ($val !== 'constrain' && $val !== 'reject') {
-            throw new RangeError("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
-        }
-        return $val;
+        return Options::overflowOption(
+            $val,
+            'overflow option must be a string.',
+            "Invalid overflow value \"%s\": must be 'constrain' or 'reject'.",
+        );
     }
 
     /**
@@ -1057,10 +1054,7 @@ final class PlainTime implements Stringable
                     $rm = Options::coerceEnumOption($rm, 'roundingMode option must be a string.');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                        throw new RangeError("Invalid roundingMode value: \"{$rm}\".");
-                    }
-                    $roundingMode = $rm;
+                    $roundingMode = Options::roundingMode($rm, "Invalid roundingMode value: \"{$rm}\".");
                 }
             }
 
