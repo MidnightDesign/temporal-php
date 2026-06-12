@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-$breakoutUnits = fn($op, $zdt, $d, $options) => $zdt[$op]((object) JsUndefined::strip(['years' => $d->years]), $options)[$op]((object) JsUndefined::strip(['months' => $d->months]), $options)[$op]((object) JsUndefined::strip(['weeks' => $d->weeks]), $options)[$op]((object) JsUndefined::strip(['days' => $d->days]), $options)[$op]((object) JsUndefined::strip(['hours' => $d->hours, 'minutes' => $d->minutes, 'seconds' => $d->seconds, 'milliseconds' => $d->milliseconds, 'microseconds' => $d->microseconds, 'nanoseconds' => $d->nanoseconds]), $options);
+$breakoutUnits = fn($op, $zdt, $d, $options) => $zdt->{$op}((object) JsUndefined::strip(['years' => $d->years]), $options)->{$op}((object) JsUndefined::strip(['months' => $d->months]), $options)->{$op}((object) JsUndefined::strip(['weeks' => $d->weeks]), $options)->{$op}((object) JsUndefined::strip(['days' => $d->days]), $options)->{$op}((object) JsUndefined::strip(['hours' => $d->hours, 'minutes' => $d->minutes, 'seconds' => $d->seconds, 'milliseconds' => $d->milliseconds, 'microseconds' => $d->microseconds, 'nanoseconds' => $d->nanoseconds]), $options);
 $zdt = new \Temporal\Spec\ZonedDateTime(1_585_641_600_000_000_000, '-08:00');
 $d = new \Temporal\Spec\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $options = (object) ['overflow' => 'constrain'];

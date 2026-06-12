@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $tests = [['gregory', (object) ['year' => 2000, 'month' => 5, 'day' => 2, 'era' => 'ce'], 'era present but not eraYear'], ['gregory', (object) ['year' => 2000, 'month' => 5, 'day' => 2, 'eraYear' => 1], 'eraYear present but not era'], ['gregory', (object) ['month' => 8, 'day' => 1], 'no monthCode or year specification, non-ISO Gregorian'], ['hebrew', (object) ['month' => 8, 'day' => 1], 'no monthCode or year specification, non-ISO non-Gregorian']];
 foreach ($tests as $__entry__) {
 [$calendarId, $arg, $description] = array_pad($__entry__, 3, null);
-Assert::throws(\TypeError::class, function () use (&$arg, &$calendarId) { return \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(array_merge($arg, ['calendar' => $calendarId]))); }, $description);
+Assert::throws(\TypeError::class, function () use (&$arg, &$calendarId) { return \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(array_merge((is_object($arg) ? (array) $arg : $arg), ['calendar' => $calendarId]))); }, $description);
 }

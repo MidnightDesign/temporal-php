@@ -14,11 +14,11 @@ $leapMonthCases = [(object) ['year' => 1971, 'month' => 6, 'monthCode' => 'M05L'
 Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar]), (object) ['overflow' => 'reject']); }, '');
 Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => 'M15', 'day' => 1, 'calendar' => $calendar])); }, '');
 foreach ($leapMonthCases as $__obj__) {
-$year = $__obj__['year'] ?? null;
-$month = $__obj__['month'] ?? null;
-$monthCode = $__obj__['monthCode'] ?? null;
-$day = $__obj__['day'] ?? null;
-$referenceYear = $__obj__['referenceYear'] ?? null;
+$year = $__obj__->year ?? null;
+$month = $__obj__->month ?? null;
+$monthCode = $__obj__->monthCode ?? null;
+$day = $__obj__->day ?? null;
+$referenceYear = $__obj__->referenceYear ?? null;
 $md = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => $day, 'calendar' => $calendar]));
 TemporalHelpers::assertPlainMonthDay($md, $monthCode, $day, 'md', $referenceYear);
 $md2 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]));

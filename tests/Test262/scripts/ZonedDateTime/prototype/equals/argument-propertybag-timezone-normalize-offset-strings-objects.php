@@ -10,8 +10,8 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $tests = [(object) ['idToTest' => '+0000', 'description' => 'colon-less'], (object) ['idToTest' => '+00', 'description' => 'hours-only']];
 foreach ($tests as $test) {
-$idToTest = $test['idToTest'];
-$description = $test['description'];
+$idToTest = $test->idToTest;
+$description = $test->description;
 $instance = new \Temporal\Spec\ZonedDateTime(0, '+00:00');
 $bag = (object) JsUndefined::strip(['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $idToTest]);
 Assert::sameValue($instance->equals($bag), true, "Offset time zones are equal despite {$description} syntax in property bag argument");

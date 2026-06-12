@@ -13,8 +13,8 @@ $nsPerHour = 3_600_000_000_000;
 $fractionDigits = log10($nsPerHour) + log10(100_000_000_000) - log10(36);
 Assert::sameValue($fractionDigits, 22, '');
 foreach ($data as $__obj__) {
-$hours = $__obj__['hours'] ?? null;
-$nanoseconds = $__obj__['nanoseconds'] ?? null;
+$hours = $__obj__->hours ?? null;
+$nanoseconds = $__obj__->nanoseconds ?? null;
 Assert::assertTrue($nanoseconds < $nsPerHour, '');
 Assert::incomplete('untranslatable: BigInt()');
 }

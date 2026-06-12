@@ -12,10 +12,10 @@ $plainDateCandidates = [(object) ['year' => 1651, 'monthCode' => 'M01L', 'day' =
 $calendars = ['chinese', 'dangi'];
 foreach ($calendars as $calendar) {
 foreach ($plainDateCandidates as $__obj__) {
-$year = $__obj__['year'] ?? null;
-$monthCode = $__obj__['monthCode'] ?? null;
-$day = $__obj__['day'] ?? null;
-$referenceYear = $__obj__['referenceYear'] ?? null;
+$year = $__obj__->year ?? null;
+$monthCode = $__obj__->monthCode ?? null;
+$day = $__obj__->day ?? null;
+$referenceYear = $__obj__->referenceYear ?? null;
 $pd = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day]));
 if ($pd->monthCode === $monthCode && $pd->day === $day) {
 Assert::throws(\RangeException::class, function () use (&$pmd, &$pd) { $pmd = \Temporal\Spec\PlainMonthDay::from($pd, (object) ['overflow' => 'reject']); }, "{$year}, {$monthCode}, {$day} should not be valid with reject overflow");

@@ -15,6 +15,6 @@ $yearSymbol = (object) [353 => 'D', 354 => 'R', 355 => 'C', 383 => 'D', 384 => '
 $daySymbol = fn($date) => $date->dayOfWeek % 7 + 1;
 $daysInYear = $startOfYear->daysInYear;
 Assert::sameValue(array_key_exists($daysInYear, $yearSymbol), true, '');
-return "" . ($daySymbol($startOfYear)) . "" . ($yearSymbol[$daysInYear]) . "" . ($daySymbol($firstDayOfPesach)) . "";
+return "" . ($daySymbol($startOfYear)) . "" . ($yearSymbol->{$daysInYear}) . "" . ($daySymbol($firstDayOfPesach)) . "";
 };
 Assert::incomplete('untranslatable new expression');

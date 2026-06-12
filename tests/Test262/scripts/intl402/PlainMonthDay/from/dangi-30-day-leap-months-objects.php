@@ -13,8 +13,8 @@ $monthCodesWithYears = [(object) ['monthCode' => 'M03L', 'referenceYear' => 1955
 $calendar = 'dangi';
 $day = 30;
 foreach ($monthCodesWithYears as $__obj__) {
-$monthCode = $__obj__['monthCode'] ?? null;
-$referenceYear = $__obj__['referenceYear'] ?? null;
+$monthCode = $__obj__->monthCode ?? null;
+$referenceYear = $__obj__->referenceYear ?? null;
 $pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, $day, $monthCode, $referenceYear);
 $constrain = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => $day + 1]), (object) ['overflow' => 'constrain']);

@@ -15,7 +15,7 @@ Assert::throws(\RangeException::class, function () use (&$monthCode) { return \T
 Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from((object) ['year' => 2021, 'month' => 12, 'monthCode' => 'M11', 'day' => 17]), 'monthCode and month conflict');
 foreach (['M00', 'M19', 'M99', 'M13', 'M00L', 'M05L', 'M13L'] as $monthCode) {
 Assert::throws(\RangeException::class, function () use (&$monthCode) { return \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => $monthCode, 'day' => 17])); }, "monthCode '{$monthCode}' is not valid for ISO 8601 calendar (without numeric month)");
-$monthNumber = (float) (\Temporal\Tests\Test262\Js::slice($monthCode, 1, 3)) + (count($monthCode) - 3);
+$monthNumber = (float) (\Temporal\Tests\Test262\Js::slice($monthCode, 1, 3)) + ((is_string($monthCode) ? strlen($monthCode) : count($monthCode)) - 3);
 Assert::throws(\RangeException::class, function () use (&$monthNumber, &$monthCode) { return \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['month' => $monthNumber, 'monthCode' => $monthCode, 'day' => 17])); }, "monthCode '{$monthCode}' is not valid for ISO 8601 calendar (with numeric month)");
 $clampedMonthNumber = ($monthNumber < 1 ? 1 : ($monthNumber > 12 ? 12 : $monthNumber));
 Assert::throws(\RangeException::class, function () use (&$clampedMonthNumber, &$monthCode) { return \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['month' => $clampedMonthNumber, 'monthCode' => $monthCode, 'day' => 17])); }, "monthCode '{$monthCode}' is not valid for ISO 8601 calendar (with clamped numeric month)");

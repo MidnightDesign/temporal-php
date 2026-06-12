@@ -595,15 +595,21 @@ class Emitter {
           this.emit(`${objPhp} = ${rhsPhp};`);
         }
         const rhsVarName = rhsIsSimpleVar ? rhsPhp.slice(1) : null;
-        const useArrayAccess = rhsVarName !== null && this.objectVars.has(rhsVarName);
+        // In array mode,  objectVars are PHP arrays    → use ['key'] access.
+        // In object mode, objectVars are stdClass       → use ->key access.
+        const rhsIsObjectVar = rhsVarName !== null && this.objectVars.has(rhsVarName);
         for (const prop of decl.id.properties) {
           if (prop.type !== 'Property' || prop.computed || prop.key?.type !== 'Identifier') continue;
           const keyName = prop.key.name;
+          // Determine access pattern: objectVars in array mode → ['key'], in object mode → ->key.
+          // Variables NOT in objectVars are Temporal instances / primitives → ->key.
+          const access_plain = rhsIsObjectVar
+            ? (this.objectMode ? `${objPhp}->${keyName}` : `${objPhp}['${keyName}']`)
+            : `${objPhp}->${keyName}`;
           // Simple: { foo } or { foo: foo }
           if (prop.value?.type === 'Identifier') {
             const varName = prop.value.name;
-            const access = useArrayAccess ? `${objPhp}['${keyName}']` : `${objPhp}->${keyName}`;
-            this.emit(`$${varName} = ${access};`);
+            this.emit(`$${varName} = ${access_plain};`);
             continue;
           }
           // Default value: { foo = default }
@@ -611,8 +617,7 @@ class Emitter {
             const varName = prop.value.left.name;
             const defaultExpr = this.transpileExpr(prop.value.right);
             if (defaultExpr === null) continue;
-            const access = useArrayAccess ? `${objPhp}['${keyName}'] ?? null` : `${objPhp}->${keyName} ?? null`;
-            this.emit(`$${varName} = ${access} ?? ${defaultExpr};`);
+            this.emit(`$${varName} = ${access_plain} ?? ${defaultExpr};`);
             continue;
           }
         }
@@ -1049,10 +1054,24 @@ class Emitter {
           const before = this.lines.length;
           this.emit(`foreach (${obj} as ${key} => ${tmpVar}) {`);
           const opened = this.lines.length > before;
+          // In objectMode, if the object being iterated is a tracked objectVar (stdClass),
+          // its property values are also stdClass instances → use ->key access.
+          // Also register those loop-bound variables as objectVars so that downstream
+          // spread operations (e.g. array_merge($startDate, ...)) cast them correctly.
+          const entriesObjArg = node.right.arguments[0];
+          const entriesObjIsStdClass = this.objectMode
+            && entriesObjArg.type === 'Identifier'
+            && this.objectVars.has(entriesObjArg.name);
           for (const prop of valEl.properties) {
             if (prop.type === 'Property' && !prop.computed
                 && prop.key?.type === 'Identifier' && prop.value?.type === 'Identifier') {
-              this.emit(`$${prop.value.name} = ${tmpVar}['${prop.key.name}'] ?? null;`);
+              const propAccess = entriesObjIsStdClass
+                ? `${tmpVar}->${prop.key.name}`
+                : `${tmpVar}['${prop.key.name}']`;
+              this.emit(`$${prop.value.name} = ${propAccess} ?? null;`);
+              if (entriesObjIsStdClass) {
+                this.objectVars.add(prop.value.name);
+              }
             }
           }
           this.transpileStatement(node.body);
@@ -1142,16 +1161,28 @@ class Emitter {
       const before3 = this.lines.length;
       this.emit(`foreach (${iter3} as ${tmpVar3}) {`);
       const opened3 = this.lines.length > before3;
-      // Bind each destructured property from the temp array var.
-      // Handles { a } → $a = $tmp['a'] ?? null
-      //         { a = def } → $a = $tmp['a'] ?? def (AssignmentPattern with default)
+      // Decide whether items in the iterable are PHP arrays (array mode) or stdClass
+      // (object mode). In objectMode, an array-of-object-literals variable (tracked in
+      // objectArrayVars) contains stdClass instances → use ->key access instead of ['key'].
+      const iterRightObj = node.right;
+      const iterIsArrayOfObjects =
+        (iterRightObj.type === 'Identifier' && this.objectArrayVars.has(iterRightObj.name))
+        || (iterRightObj.type === 'ArrayExpression' && iterRightObj.elements.length > 0
+            && iterRightObj.elements.every(e => e?.type === 'ObjectExpression' && e.properties.length > 0));
+      const useObjectAccess = this.objectMode && iterIsArrayOfObjects;
+      // Bind each destructured property from the temp var.
+      // Handles { a } → $a = $tmp['a'] ?? null  (array mode)
+      //                  $a = $tmp->a ?? null    (object mode, array-of-objects iterable)
+      //         { a = def } → $a = $tmp['a'] ?? def  (array mode)
+      //                        $a = $tmp->a ?? def   (object mode, array-of-objects iterable)
       for (const prop of patNode3.properties) {
         if (prop.type !== 'Property' || prop.computed
             || prop.key?.type !== 'Identifier') continue;
         const keyName = prop.key.name;
+        const propAccess = useObjectAccess ? `${tmpVar3}->${keyName}` : `${tmpVar3}['${keyName}']`;
         // Simple identifier binding: { foo }
         if (prop.value?.type === 'Identifier') {
-          this.emit(`$${prop.value.name} = ${tmpVar3}['${keyName}'] ?? null;`);
+          this.emit(`$${prop.value.name} = ${propAccess} ?? null;`);
           continue;
         }
         // Default value binding: { foo = default }
@@ -1160,7 +1191,7 @@ class Emitter {
           const varName = prop.value.left.name;
           const defaultExpr = this.transpileExpr(prop.value.right);
           if (defaultExpr !== null) {
-            this.emit(`$${varName} = ${tmpVar3}['${keyName}'] ?? ${defaultExpr};`);
+            this.emit(`$${varName} = ${propAccess} ?? ${defaultExpr};`);
           }
           continue;
         }
@@ -1465,8 +1496,10 @@ class Emitter {
       }
       const obj  = this.transpileExpr(node.object);
       if (obj === null) return null;
-      // .length on arrays → count($arr)
-      if (node.property.name === 'length') return `count(${obj})`;
+      // .length on arrays → count($arr); .length on strings → strlen($str).
+      // PHP 8 count() throws TypeError on non-countable non-array values (including
+      // strings), so emit a runtime check that dispatches to strlen() for strings.
+      if (node.property.name === 'length') return `(is_string(${obj}) ? strlen(${obj}) : count(${obj}))`;
       // Variables assigned from object literals ({...}) become PHP arrays in array
       // mode (member access uses ['key']) or stdClass instances in objectMode
       // (member access uses ->key).
@@ -1480,15 +1513,34 @@ class Emitter {
       const phpProp = PROPERTY_RENAMES[node.property.name] ?? node.property.name;
       return `${obj}->${phpProp}`;
     }
-    // computed member (arr[i]) — rare in test262 temporal tests
+    // computed member (arr[i]) — rare in test262 temporal tests.
+    // In objectMode, if the object is a tracked objectVar (stdClass), use
+    // dynamic property access $obj->{$key} instead of array access $obj[$key].
     const obj = this.transpileExpr(node.object);
     const idx = this.transpileExpr(node.property);
     if (obj === null || idx === null) return null;
+    if (this.objectMode
+        && node.object.type === 'Identifier'
+        && this.objectVars.has(node.object.name)) {
+      return `${obj}->{${idx}}`;
+    }
     return `${obj}[${idx}]`;
   }
 
   transpileCall(node) {
     const callee = node.callee;
+
+    // Computed method call: obj["methodName"](args) → $obj->{$method}($args)
+    // In PHP, $obj["method"]($args) tries to dereference an array element, which
+    // fails when $obj is an object. Use variable method call syntax instead.
+    if (callee.type === 'MemberExpression' && callee.computed) {
+      const obj  = this.transpileExpr(callee.object);
+      const prop = this.transpileExpr(callee.property);
+      if (obj === null || prop === null) return null;
+      const args = this.transpileArgs(node.arguments);
+      if (args === null) return null;
+      return `${obj}->{${prop}}(${args})`;
+    }
 
     // assert.sameValue / assert.throws / assert.compareArray / assert.notSameValue
     if (isMember(callee, 'assert', 'sameValue'))    return this.emitSameValue(node);
@@ -2473,12 +2525,23 @@ class Emitter {
         flushCurrent();
         const val = this.transpileExpr(prop.argument);
         if (val === null) return null;
-        // In objectMode, cast objectVars-tracked spread sources to (array) so
-        // array_merge() doesn't fail on stdClass arguments.
-        const needsCast = this.objectMode
-          && prop.argument.type === 'Identifier'
-          && this.objectVars.has(prop.argument.name);
-        chunks.push(needsCast ? '(array) ' + val : val);
+        // In objectMode, spread sources may be stdClass instances that array_merge()
+        // cannot consume directly. Two strategies:
+        //   1. Statically known objectVar → static (array) cast.
+        //   2. Unknown variable (e.g. a function parameter) → runtime is_object() guard.
+        //      This handles cases where the transpiler cannot determine at build time
+        //      whether the variable holds a PHP array or a stdClass.
+        if (this.objectMode && prop.argument.type === 'Identifier') {
+          if (this.objectVars.has(prop.argument.name)) {
+            // Statically known stdClass → unconditional (array) cast.
+            chunks.push('(array) ' + val);
+          } else {
+            // Unknown — apply a runtime guard so array_merge() always gets an array.
+            chunks.push(`(is_object(${val}) ? (array) ${val} : ${val})`);
+          }
+        } else {
+          chunks.push(val);
+        }
         continue;
       }
       if (!buildProp(prop, currentParts)) return null;

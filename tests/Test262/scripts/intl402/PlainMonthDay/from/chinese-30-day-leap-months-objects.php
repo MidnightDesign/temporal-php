@@ -12,8 +12,8 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $monthCodesWithYears = [(object) ['monthCode' => 'M03L', 'referenceYear' => 1955], (object) ['monthCode' => 'M04L', 'referenceYear' => 1944], (object) ['monthCode' => 'M05L', 'referenceYear' => 1952], (object) ['monthCode' => 'M06L', 'referenceYear' => 1941], (object) ['monthCode' => 'M07L', 'referenceYear' => 1938]];
 $calendar = 'chinese';
 foreach ($monthCodesWithYears as $__obj__) {
-$monthCode = $__obj__['monthCode'] ?? null;
-$referenceYear = $__obj__['referenceYear'] ?? null;
+$monthCode = $__obj__->monthCode ?? null;
+$referenceYear = $__obj__->referenceYear ?? null;
 $pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 30, "{$monthCode}-30", $referenceYear);
 $constrain = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]));

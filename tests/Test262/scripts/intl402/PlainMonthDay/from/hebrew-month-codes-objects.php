@@ -12,10 +12,10 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'hebrew';
 $commonMonthCodes = [(object) ['monthCode' => 'M01', 'has30' => true], (object) ['monthCode' => 'M02', 'has30' => true, 'referenceYear30' => 1971], (object) ['monthCode' => 'M03', 'has30' => true, 'referenceYear30' => 1971], (object) ['monthCode' => 'M04'], (object) ['monthCode' => 'M05', 'has30' => true], (object) ['monthCode' => 'M06'], (object) ['monthCode' => 'M07', 'has30' => true], (object) ['monthCode' => 'M08'], (object) ['monthCode' => 'M09', 'has30' => true], (object) ['monthCode' => 'M10'], (object) ['monthCode' => 'M11', 'has30' => true], (object) ['monthCode' => 'M12']];
 foreach ($commonMonthCodes as $__obj__) {
-$monthCode = $__obj__['monthCode'] ?? null;
-$has30 = $__obj__['has30'] ?? false;
-$referenceYear = $__obj__['referenceYear'] ?? 1972;
-$referenceYear30 = $__obj__['referenceYear30'] ?? $referenceYear;
+$monthCode = $__obj__->monthCode ?? null;
+$has30 = $__obj__->has30 ?? false;
+$referenceYear = $__obj__->referenceYear ?? 1972;
+$referenceYear30 = $__obj__->referenceYear30 ?? $referenceYear;
 $pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01", $referenceYear);
 $pmd29 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]));

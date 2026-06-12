@@ -12,7 +12,7 @@ $tests = (object) JsUndefined::strip(['buddhist' => [[(object) JsUndefined::stri
 foreach ($tests as $calendar => $cases) {
 foreach ($cases as $__entry__) {
 [$fromArgs, $expectedYear] = array_pad($__entry__, 2, null);
-$date = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(array_merge($fromArgs, ['hour' => 12, 'minute' => 24, 'timeZone' => 'UTC', 'calendar' => $calendar])), (object) ['overflow' => 'reject']);
+$date = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(array_merge((is_object($fromArgs) ? (array) $fromArgs : $fromArgs), ['hour' => 12, 'minute' => 24, 'timeZone' => 'UTC', 'calendar' => $calendar])), (object) ['overflow' => 'reject']);
 Assert::sameValue($date->year, $expectedYear, "{$date} should have arithmetic year {$expectedYear}");
 }
 }

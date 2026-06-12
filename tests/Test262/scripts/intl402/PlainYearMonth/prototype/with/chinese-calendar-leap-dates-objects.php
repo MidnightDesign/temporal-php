@@ -11,9 +11,9 @@ use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'chinese';
 $daysInMonthCases = [(object) JsUndefined::strip(['year' => 2001, 'leap' => 'M04L', 'days' => [30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30]])];
 foreach ($daysInMonthCases as $__obj__) {
-$year = $__obj__['year'] ?? null;
-$leap = $__obj__['leap'] ?? null;
-$days = $__obj__['days'] ?? null;
+$year = $__obj__->year ?? null;
+$leap = $__obj__->leap ?? null;
+$days = $__obj__->days ?? null;
 $date = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar]));
 $leapMonth = $date->with((object) JsUndefined::strip(['monthCode' => $leap]));
 Assert::sameValue($leapMonth->monthCode, $leap, '');

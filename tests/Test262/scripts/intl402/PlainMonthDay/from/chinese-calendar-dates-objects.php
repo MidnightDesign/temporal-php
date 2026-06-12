@@ -12,11 +12,11 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'chinese';
 $monthDayCases = [(object) ['year' => 2001, 'month' => 5, 'monthCode' => 'M04L', 'day' => 15, 'referenceYear' => 1963], (object) ['year' => 2000, 'month' => 6, 'monthCode' => 'M06', 'day' => 29, 'referenceYear' => 1972]];
 foreach ($monthDayCases as $__obj__) {
-$monthCode = $__obj__['monthCode'] ?? null;
-$month = $__obj__['month'] ?? null;
-$day = $__obj__['day'] ?? null;
-$year = $__obj__['year'] ?? null;
-$referenceYear = $__obj__['referenceYear'] ?? null;
+$monthCode = $__obj__->monthCode ?? null;
+$month = $__obj__->month ?? null;
+$day = $__obj__->day ?? null;
+$year = $__obj__->year ?? null;
+$referenceYear = $__obj__->referenceYear ?? null;
 $md = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => $day, 'calendar' => $calendar]));
 TemporalHelpers::assertPlainMonthDay($md, $monthCode, $day, 'md', $referenceYear);
 $md2 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]));

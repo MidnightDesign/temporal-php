@@ -16,8 +16,8 @@ foreach ($timeZones as $timeZone) {
 foreach ($epochNanoseconds as $epochNs) {
 $zdt = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
 $other = new \Temporal\Spec\ZonedDateTime($epochNs, $timeZone);
-for ($i = 0; $i < count($units); ++$i) {
-for ($j = $i; $j < count($units); ++$j) {
+for ($i = 0; $i < (is_string($units) ? strlen($units) : count($units)); ++$i) {
+for ($j = $i; $j < (is_string($units) ? strlen($units) : count($units)); ++$j) {
 $options = JsUndefined::strip(['largestUnit' => $units[$i], 'smallestUnit' => $units[$j]]);
 TemporalHelpers::assertDuration($zdt->until($other, $options), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "epochNs = {$epochNs}, timeZone = {$timeZone}, options = " . (json_encode($options)) . ")");
 }
