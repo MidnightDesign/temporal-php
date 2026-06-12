@@ -262,8 +262,9 @@ final class Options
         if (is_object($options)) {
             if ($options instanceof Stringable) {
                 // JsSymbol sentinel: __toString throws Temporal\Exception\TypeError.
+                // For any other Stringable (e.g. JsUndefined which returns 'undefined'),
+                // the cast succeeds and we fall through to get_object_vars.
                 (string) $options;
-                throw new TypeError('options must be an object.');
             }
             return get_object_vars($options);
         }

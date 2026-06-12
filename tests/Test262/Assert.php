@@ -34,7 +34,7 @@ final class Assert
     /**
      * Asserts that a value is truthy (mirrors the bare assert() function in TC39 test262).
      */
-    public static function assertTrue(mixed $value, string $message = ''): void
+    public static function assertTrue(mixed $value, ?string $message = null): void
     {
         // Match JS's truthiness check: treat falsy PHP values (false, 0, '', null, [], '0') as false.
         $bool =
@@ -45,7 +45,7 @@ final class Assert
             && $value !== null
             && $value !== []
             && $value !== '0';
-        PHPUnitAssert::assertTrue($bool, $message);
+        PHPUnitAssert::assertTrue($bool, $message ?? '');
     }
 
     /**
@@ -54,7 +54,7 @@ final class Assert
      * Note: argument order matches JS's assert.sameValue(actual, expected),
      * which is the reverse of PHPUnit's assertSame(expected, actual).
      */
-    public static function sameValue(mixed $actual, mixed $expected, string $message = ''): void
+    public static function sameValue(mixed $actual, mixed $expected, ?string $message = null): void
     {
         if ($actual === self::int64Overflow() || $expected === self::int64Overflow()) {
             return;
@@ -76,15 +76,15 @@ final class Assert
             $fe = (float) $expected;
             // SameValue(NaN, NaN) is true in TC39.
             if (is_nan($fa) && is_nan($fe)) {
-                PHPUnitAssert::assertNan($fa, $message !== '' ? $message : 'SameValue(NaN, NaN)');
+                PHPUnitAssert::assertNan($fa, $message !== null && $message !== '' ? $message : 'SameValue(NaN, NaN)');
                 return;
             }
             if ($fa === $fe) {
-                PHPUnitAssert::assertSame($fa, $fe, $message);
+                PHPUnitAssert::assertSame($fa, $fe, $message ?? '');
                 return;
             }
         }
-        PHPUnitAssert::assertSame($expected, $actual, $message);
+        PHPUnitAssert::assertSame($expected, $actual, $message ?? '');
     }
 
     /**
@@ -92,7 +92,7 @@ final class Assert
      *
      * Note: argument order matches JS's assert.notSameValue(actual, unexpected).
      */
-    public static function notSameValue(mixed $actual, mixed $unexpected, string $message = ''): void
+    public static function notSameValue(mixed $actual, mixed $unexpected, ?string $message = null): void
     {
         if ($actual === self::int64Overflow() || $unexpected === self::int64Overflow()) {
             return;
@@ -104,7 +104,7 @@ final class Assert
         if ($unexpected instanceof JsUndefined) {
             $unexpected = null;
         }
-        PHPUnitAssert::assertNotSame($unexpected, $actual, $message);
+        PHPUnitAssert::assertNotSame($unexpected, $actual, $message ?? '');
     }
 
     /**
@@ -112,17 +112,17 @@ final class Assert
      *
      * @param class-string<\Throwable> $exceptionClass
      */
-    public static function throws(string $exceptionClass, callable $fn, string $message = ''): void
+    public static function throws(string $exceptionClass, callable $fn, ?string $message = null): void
     {
         try {
             $fn();
         } catch (AssertionFailedError $e) {
             throw $e;
         } catch (\Throwable $e) {
-            PHPUnitAssert::assertInstanceOf($exceptionClass, $e, $message);
+            PHPUnitAssert::assertInstanceOf($exceptionClass, $e, $message ?? '');
             return;
         }
-        PHPUnitAssert::fail("Expected {$exceptionClass} to be thrown, but nothing was thrown. {$message}");
+        PHPUnitAssert::fail("Expected {$exceptionClass} to be thrown, but nothing was thrown. " . ($message ?? ''));
     }
 
     /**
@@ -133,9 +133,9 @@ final class Assert
      * @param array<mixed> $actual
      * @param array<mixed> $expected
      */
-    public static function compareArray(array $actual, array $expected, string $message = ''): void
+    public static function compareArray(array $actual, array $expected, ?string $message = null): void
     {
-        PHPUnitAssert::assertSame($expected, $actual, $message);
+        PHPUnitAssert::assertSame($expected, $actual, $message ?? '');
     }
 
     /**
