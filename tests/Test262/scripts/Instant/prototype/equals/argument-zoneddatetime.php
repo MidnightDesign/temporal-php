@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkToTemporalInstantFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalInstantFastPath(function ($datetime) use (&$instant) { $instant = new \Temporal\Spec\Instant(1_000_000_000_987_654_321); Assert::assertTrue($instant->equals($datetime), ''); });

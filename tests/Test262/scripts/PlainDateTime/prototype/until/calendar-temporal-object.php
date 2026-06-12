@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkToTemporalCalendarFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalCalendarFastPath(function ($temporalObject) use (&$date) { $date = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321); $date->until(JsUndefined::strip(['year' => 2005, 'month' => 6, 'day' => 2, 'calendar' => $temporalObject])); });

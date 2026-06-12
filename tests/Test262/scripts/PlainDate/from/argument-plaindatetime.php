@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkPlainDateTimeConversionFastPath() is not yet implemented');
+TemporalHelpers::checkPlainDateTimeConversionFastPath(function ($datetime) use (&$result) { $result = \Temporal\Spec\PlainDate::from($datetime); TemporalHelpers::assertPlainDate($result, 2000, 5, 'M05', 2); });

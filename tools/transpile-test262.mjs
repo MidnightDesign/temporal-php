@@ -129,6 +129,10 @@ const IMPLEMENTED_HELPERS = new Set([
   'assertPlainMonthDay',
   'toPrimitiveObserver',
   'propertyBagObserver',
+  'checkToTemporalCalendarFastPath',
+  'checkPlainDateTimeConversionFastPath',
+  'checkToTemporalPlainDateTimeFastPath',
+  'checkToTemporalInstantFastPath',
 ]);
 
 /**

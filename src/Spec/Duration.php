@@ -2972,15 +2972,17 @@ final class Duration implements Stringable
             }
         }
         if (array_key_exists('calendar', $rt)) {
-            // TC39 ToTemporalCalendarSlotValue: a calendar in a property bag must
-            // be a string (or a Stringable whose __toString yields one — a
-            // Symbol-like sentinel throws Temporal\Exception\TypeError there).
-            // Every other type (null / bool / number / bigint / plain object) is
-            // the wrong TYPE → TypeError. Only an unknown calendar STRING is a
-            // RangeError (raised by canonicalize()).
+            // TC39 ToTemporalCalendarSlotValue: a calendar in a property bag may be:
+            //   - A Temporal object with a calendarId slot (fast-path: read the slot directly).
+            //   - A string or Stringable (coerce via ToString, then validate).
+            //   - Any other type → TypeError.
+            // Only an unknown calendar string is a RangeError (raised by canonicalize()).
             /** @var mixed $calVal */
             $calVal = $rt['calendar'];
-            if ($calVal instanceof Stringable) {
+            // Fast path: Temporal objects carry their calendar as a string slot.
+            if (is_object($calVal) && property_exists($calVal, 'calendarId') && is_string($calVal->calendarId)) {
+                $calVal = $calVal->calendarId;
+            } elseif ($calVal instanceof \Stringable) {
                 $calVal = (string) $calVal;
             }
             if (!is_string($calVal)) {

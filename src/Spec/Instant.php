@@ -238,6 +238,12 @@ final class Instant implements Stringable
             [$epochSec, $subNs] = $item->epochParts();
             return self::fromEpochParts($epochSec, $subNs);
         }
+        // TC39 sec-temporal-totemporalinstant step 1.b: a ZonedDateTime carries a
+        // Nanoseconds internal slot — extract it directly as the fast path.
+        if ($item instanceof \Temporal\Spec\ZonedDateTime) {
+            [$epochSec, $subNs] = $item->epochParts();
+            return self::fromEpochParts($epochSec, $subNs);
+        }
         if (!is_string($item)) {
             throw new TypeError(sprintf(
                 'Temporal.Instant.from() requires an Instant or string, got %s.',

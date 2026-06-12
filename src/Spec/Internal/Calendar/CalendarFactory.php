@@ -120,11 +120,21 @@ final class CalendarFactory
      * The $context label is used in the TypeError message (e.g. "PlainDate"
      * produces "PlainDate calendar must be a string; got int.").
      *
-     * @throws TypeError if $value is not a string.
+     * Per TC39 sec-temporal-totemporalcalendar step 1.a, objects that carry an
+     * internal calendar slot (PlainDate, PlainDateTime, PlainMonthDay,
+     * PlainYearMonth, ZonedDateTime) may be passed directly; their `calendarId`
+     * is extracted in place of calling the public calendar getter.
+     *
+     * @throws TypeError if $value is not a string and does not carry a calendarId.
      * @throws RangeError if $value is malformed or names an unknown calendar.
      */
     public static function resolveBagCalendar(mixed $value, string $context): string
     {
+        // Fast path: Temporal objects with an internal calendar slot carry a
+        // `calendarId` string — extract it directly (mirrors spec step 1.a).
+        if (is_object($value) && property_exists($value, 'calendarId') && is_string($value->calendarId)) {
+            return self::canonicalize($value->calendarId);
+        }
         if (!is_string($value)) {
             throw new TypeError(sprintf('%s calendar must be a string; got %s.', $context, get_debug_type($value)));
         }

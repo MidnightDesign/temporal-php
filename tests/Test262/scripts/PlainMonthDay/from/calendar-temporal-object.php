@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkToTemporalCalendarFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalCalendarFastPath(function ($temporalObject) use (&$result) { $result = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['monthCode' => 'M05', 'day' => 2, 'calendar' => $temporalObject])); Assert::sameValue($result->calendarId, 'iso8601', 'Temporal object coerced to calendar'); });

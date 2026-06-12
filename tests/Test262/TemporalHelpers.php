@@ -684,6 +684,135 @@ final class TemporalHelpers
     // -------------------------------------------------------------------------
 
     /**
+     * Invokes `$fn` with each of the five Temporal object types that carry an ISO
+     * calendar in their internal slots (PlainDate, PlainDateTime, PlainMonthDay,
+     * PlainYearMonth, ZonedDateTime) and asserts that none of the calls throw.
+     *
+     * PHP port of JS TemporalHelpers.checkToTemporalCalendarFastPath(fn).
+     * The spec fast-path at sec-temporal-totemporalcalendar step 1.a reads the
+     * [[Calendar]] internal slot from any of these five types directly rather than
+     * calling the public calendar getter, so the tests verify no observable
+     * operations are performed on the calendar object during that conversion.
+     *
+     * @param callable(mixed): mixed $fn Callback under test.
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function checkToTemporalCalendarFastPath(callable $fn): void
+    {
+        $objects = [
+            new \Temporal\Spec\PlainDate(2000, 5, 2),
+            new \Temporal\Spec\PlainDateTime(2000, 5, 2),
+            new \Temporal\Spec\PlainMonthDay(5, 2),
+            new \Temporal\Spec\PlainYearMonth(2000, 5),
+            new \Temporal\Spec\ZonedDateTime(0, 'UTC'),
+        ];
+        foreach ($objects as $obj) {
+            try {
+                $fn($obj);
+                // Count each successful "did not throw" as one assertion.
+                /** @phpstan-ignore staticMethod.alreadyNarrowedType */
+                PHPUnitAssert::assertTrue(true, sprintf('%s: no exception thrown', get_class($obj)));
+            } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+                throw $e;
+            } catch (\Throwable $e) {
+                PHPUnitAssert::fail(sprintf(
+                    'checkToTemporalCalendarFastPath: unexpected exception for %s: %s',
+                    get_class($obj),
+                    $e->getMessage(),
+                ));
+            }
+        }
+    }
+
+    /**
+     * Invokes `$fn` with a PlainDateTime and asserts it does not throw.
+     *
+     * PHP port of JS TemporalHelpers.checkPlainDateTimeConversionFastPath(fn[, message]).
+     * The harness creates `new Temporal.PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321)`.
+     *
+     * @param callable(mixed): mixed $fn      Callback under test.
+     * @param string                 $message Optional description for failure messages.
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function checkPlainDateTimeConversionFastPath(callable $fn, string $message = ''): void
+    {
+        $dt = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
+        try {
+            $fn($dt);
+            // Count each successful "did not throw" as one assertion.
+            /** @phpstan-ignore staticMethod.alreadyNarrowedType */
+            PHPUnitAssert::assertTrue(true, 'checkPlainDateTimeConversionFastPath: no exception thrown');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            $prefix = $message !== '' ? "{$message}: " : '';
+            PHPUnitAssert::fail(sprintf(
+                '%scheckPlainDateTimeConversionFastPath: unexpected exception: %s',
+                $prefix,
+                $e->getMessage(),
+            ));
+        }
+    }
+
+    /**
+     * Invokes `$fn` with a PlainDate and its calendar ID string and asserts it does not throw.
+     *
+     * PHP port of JS TemporalHelpers.checkToTemporalPlainDateTimeFastPath(fn).
+     * The JS harness creates `new Temporal.PlainDate(2000, 5, 2)` with ISO calendar
+     * and calls `fn(date, calendarId)` — two arguments, so that callbacks can
+     * construct PlainDateTimes using the same calendar.
+     *
+     * @param callable(mixed, mixed): mixed $fn Callback under test.
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function checkToTemporalPlainDateTimeFastPath(callable $fn): void
+    {
+        $date = new \Temporal\Spec\PlainDate(2000, 5, 2);
+        $calendar = $date->calendarId;
+        try {
+            $fn($date, $calendar);
+            // Count each successful "did not throw" as one assertion.
+            /** @phpstan-ignore staticMethod.alreadyNarrowedType */
+            PHPUnitAssert::assertTrue(true, 'checkToTemporalPlainDateTimeFastPath: no exception thrown');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            PHPUnitAssert::fail(sprintf(
+                'checkToTemporalPlainDateTimeFastPath: unexpected exception: %s',
+                $e->getMessage(),
+            ));
+        }
+    }
+
+    /**
+     * Invokes `$fn` with a ZonedDateTime and asserts it does not throw.
+     *
+     * PHP port of JS TemporalHelpers.checkToTemporalInstantFastPath(fn).
+     * The harness creates `new Temporal.ZonedDateTime(1_000_000_000_987_654_321n, "UTC")` —
+     * the non-round value allows fixtures to detect which exact instant the ZDT carries.
+     *
+     * @param callable(mixed): mixed $fn Callback under test.
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function checkToTemporalInstantFastPath(callable $fn): void
+    {
+        $zdt = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
+        try {
+            $fn($zdt);
+            // Count each successful "did not throw" as one assertion.
+            /** @phpstan-ignore staticMethod.alreadyNarrowedType */
+            PHPUnitAssert::assertTrue(true, 'checkToTemporalInstantFastPath: no exception thrown');
+        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            PHPUnitAssert::fail(sprintf(
+                'checkToTemporalInstantFastPath: unexpected exception: %s',
+                $e->getMessage(),
+            ));
+        }
+    }
+
+    /**
      * Returns PlainYearMonth-like strings that are valid and parse to November 1976.
      *
      * PHP translation of JS TemporalHelpers.ISO.plainYearMonthStringsValid().

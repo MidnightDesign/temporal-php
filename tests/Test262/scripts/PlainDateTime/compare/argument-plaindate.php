@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 12, 34, 56, 987, 654, 321);
-Assert::incomplete('TemporalHelpers.checkToTemporalPlainDateTimeFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalPlainDateTimeFastPath(function ($date) use (&$result, &$datetime) { $result = \Temporal\Spec\PlainDateTime::compare($date, $datetime); Assert::sameValue($result, -1, 'PlainDate is converted to midnight'); });
+TemporalHelpers::checkToTemporalPlainDateTimeFastPath(function ($date) use (&$result, &$datetime) { $result = \Temporal\Spec\PlainDateTime::compare($datetime, $date); Assert::sameValue($result, 1, 'PlainDate is converted to midnight'); });

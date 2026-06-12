@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkToTemporalPlainDateTimeFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalPlainDateTimeFastPath(function ($date) use (&$result) { $result = \Temporal\Spec\PlainDateTime::from($date); TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 0, 0, 0, 0, 0, 0, 'midnight is assumed'); Assert::sameValue($result->calendarId, 'iso8601', 'calendar result'); });
