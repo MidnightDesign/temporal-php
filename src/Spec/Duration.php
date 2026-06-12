@@ -544,19 +544,21 @@ final class Duration implements Stringable
      *   - smallestUnit: 'second[s]'|'millisecond[s]'|'microsecond[s]'|'nanosecond[s]' (overrides fractionalSecondDigits)
      *   - roundingMode: 'trunc' (default) | 'floor' | 'ceil' | 'expand' | 'halfExpand' | 'halfTrunc' | 'halfFloor' | 'halfCeil' | 'halfEven'
      *
-     * @param array<array-key, mixed>|object|null $options null or array of options
+     * @param array<array-key, mixed>|object|null $options an array of options, or any object (treated as empty options bag).
      * @throws RangeError if options are invalid or rounding causes overflow.
-     * @throws \TypeError if $options is not null and not an array.
+     * @throws \TypeError if $options is an explicit null or a non-array, non-object scalar.
      */
-    public function toString(array|object|null $options = null): string
+    public function toString(array|object|null $options = []): string
     {
-        $options = is_object($options) ? get_object_vars($options) : $options;
+        // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError.
+        // An omitted options argument arrives as the empty-array default.
+        $options = Options::requireObject($options);
 
         // $digits: null = auto, 0–9 = exact digit count.
         $digits = null;
         $roundingMode = 'trunc';
 
-        if ($options !== null) {
+        if ($options !== []) {
             // fractionalSecondDigits
             if (array_key_exists('fractionalSecondDigits', $options)) {
                 $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
@@ -742,8 +744,10 @@ final class Duration implements Stringable
      */
     public function total(string|array|object $totalOf): int|float
     {
-        if (is_object($totalOf)) {
-            $totalOf = get_object_vars($totalOf);
+        // A string totalOf is the smallestUnit shorthand; an array/object is an options
+        // bag normalized via GetOptionsObject (a Symbol sentinel object => TypeError).
+        if (!is_string($totalOf)) {
+            $totalOf = Options::requireObject($totalOf);
         }
 
         if (is_array($totalOf)) {
@@ -1286,25 +1290,16 @@ final class Duration implements Stringable
      */
     private function totalCalendar(string $unit, array $relativeTo, ?array $zdtInfo = null): int|float
     {
-        /** @var mixed $yearRaw */
-        $yearRaw = $relativeTo['year'];
-        /** @phpstan-ignore cast.int */
-        $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
+        $year = Options::toIntegerTruncation($relativeTo['year']);
         if (array_key_exists('month', $relativeTo)) {
-            /** @var mixed $monthRaw */
-            $monthRaw = $relativeTo['month'];
-            /** @phpstan-ignore cast.int */
-            $month = is_int($monthRaw) ? $monthRaw : (int) $monthRaw;
+            $month = Options::toIntegerTruncation($relativeTo['month']);
         } else {
             /** @var mixed $monthCodeRaw */
             $monthCodeRaw = $relativeTo['monthCode'];
             /** @phpstan-ignore cast.string */
             $month = (int) substr(string: is_string($monthCodeRaw) ? $monthCodeRaw : (string) $monthCodeRaw, offset: 1);
         }
-        /** @var mixed $dayRaw */
-        $dayRaw = $relativeTo['day'];
-        /** @phpstan-ignore cast.int */
-        $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
+        $day = Options::toIntegerTruncation($relativeTo['day']);
 
         $tz = new \DateTimeZone('UTC');
         $start = new \DateTimeImmutable('now', $tz)
@@ -2239,8 +2234,9 @@ final class Duration implements Stringable
     {
         if (is_string($roundTo)) {
             $roundTo = ['smallestUnit' => $roundTo];
-        } elseif (is_object($roundTo)) {
-            $roundTo = get_object_vars($roundTo);
+        } else {
+            // GetOptionsObject: an array passes through; a Symbol sentinel object => TypeError.
+            $roundTo = Options::requireObject($roundTo);
         }
 
         /** @var mixed $suRaw */
@@ -2252,16 +2248,10 @@ final class Duration implements Stringable
         /** @var mixed $incRaw */
         $incRaw = $roundTo['roundingIncrement'] ?? 1;
 
-        // Validate roundingIncrement.
-        /** @phpstan-ignore cast.int */
-        $increment = is_float($incRaw) ? $incRaw : (int) $incRaw;
-        if (is_float($increment) && (is_nan($increment) || is_infinite($increment))) {
-            throw new RangeError('roundingIncrement must be a finite positive integer.');
-        }
-        $increment = (int) $increment;
-        if ($increment < 1) {
-            throw new RangeError('roundingIncrement must be at least 1.');
-        }
+        // Validate roundingIncrement. The universal coerce + finite + ≥1 core lives in
+        // Options::roundingIncrement(); only Duration's operation-specific upper bound
+        // stays here.
+        $increment = Options::roundingIncrement($incRaw);
         if ($increment > 1_000_000_000) {
             throw new RangeError('roundingIncrement must not exceed 10^9.');
         }
@@ -2921,15 +2911,9 @@ final class Duration implements Stringable
         }
         assert(is_array($rt), description: 'non-string $rt must be a property-bag array at this point');
         $bag = $rt;
-        /** @var mixed $yearRaw */
-        $yearRaw = $bag['year'];
-        /** @phpstan-ignore cast.int */
-        $year = is_int($yearRaw) ? $yearRaw : (int) $yearRaw;
+        $year = Options::toIntegerTruncation($bag['year']);
         if (array_key_exists('month', $bag)) {
-            /** @var mixed $monthRaw */
-            $monthRaw = $bag['month'];
-            /** @phpstan-ignore cast.int */
-            $month = is_int($monthRaw) ? $monthRaw : (int) $monthRaw;
+            $month = Options::toIntegerTruncation($bag['month']);
         } else {
             /** @var mixed $mcRaw */
             $mcRaw = $bag['monthCode'];
@@ -2937,10 +2921,7 @@ final class Duration implements Stringable
             $mc = is_string($mcRaw) ? $mcRaw : (string) $mcRaw;
             $month = (int) substr(string: $mc, offset: 1);
         }
-        /** @var mixed $dayRaw */
-        $dayRaw = $bag['day'];
-        /** @phpstan-ignore cast.int */
-        $day = is_int($dayRaw) ? $dayRaw : (int) $dayRaw;
+        $day = Options::toIntegerTruncation($bag['day']);
         return ['year' => $year, 'month' => $month, 'day' => $day];
     }
 
