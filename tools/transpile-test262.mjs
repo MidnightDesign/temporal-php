@@ -1846,6 +1846,30 @@ class Emitter {
       return `substr(string: ${str}, offset: ${start})`;
     }
 
+    // str.split(delim) → explode($delim, $str)
+    // JS String.prototype.split: returns an array of substrings.
+    // Used in temporal fixtures to split ISO date strings by "-" and extract components.
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'split'
+        && node.arguments.length >= 1) {
+      const str   = this.transpileExpr(callee.object);
+      const delim = this.transpileExpr(node.arguments[0]);
+      if (str === null || delim === null) return null;
+      return `explode(${delim}, ${str})`;
+    }
+
+    // n.toPrecision(digits) → \Temporal\Tests\Test262\Js::toPrecision($n, $digits)
+    // JS Number.prototype.toPrecision(p): returns a string representation with p
+    // significant digits. Used in total() result comparison fixtures.
+    if (callee.type === 'MemberExpression' && !callee.computed
+        && callee.property.name === 'toPrecision'
+        && node.arguments.length >= 1) {
+      const num    = this.transpileExpr(callee.object);
+      const digits = this.transpileExpr(node.arguments[0]);
+      if (num === null || digits === null) return null;
+      return `\\Temporal\\Tests\\Test262\\Js::toPrecision(${num}, ${digits})`;
+    }
+
     // str.match(regex) → (preg_match(pattern, $str, $__m) ? $__m : null)
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.property.name === 'match'

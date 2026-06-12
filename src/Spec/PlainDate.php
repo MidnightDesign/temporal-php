@@ -773,7 +773,19 @@ final class PlainDate implements Stringable
      */
     public function toPlainMonthDay(): PlainMonthDay
     {
-        return new PlainMonthDay($this->isoMonth, $this->isoDay, $this->calendarId);
+        // ISO fast-path: construct directly without reference-year resolution.
+        if ($this->calendarId === 'iso8601') {
+            return new PlainMonthDay($this->isoMonth, $this->isoDay, $this->calendarId);
+        }
+        // Non-ISO calendars: go through CalendarMonthDayFromFields semantics by providing
+        // the calendar year and monthCode so that resolveNonIsoReferenceYear can pick the
+        // correct representative ISO year (matching TC39 §Temporal.PlainDate.prototype.toPlainMonthDay).
+        return PlainMonthDay::from([
+            'calendar'   => $this->calendarId,
+            'year'       => $this->year,
+            'monthCode'  => $this->monthCode,
+            'day'        => $this->day,
+        ]);
     }
 
     /**

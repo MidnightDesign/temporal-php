@@ -33,8 +33,9 @@ final class TemporalHelpers
         int|float $milliseconds,
         int|float $microseconds,
         int|float $nanoseconds,
-        string $description = '',
+        string|int $description = '',
     ): void {
+        $description = (string) $description;
         $prefix = $description !== '' ? "{$description}: " : '';
         Assert::sameValue($duration->years, $years, "{$prefix}years");
         Assert::sameValue($duration->months, $months, "{$prefix}months");
@@ -84,7 +85,7 @@ final class TemporalHelpers
     public static function assertPlainDate(
         \Temporal\Spec\PlainDate $date,
         int $year,
-        int $month,
+        int|float $month,
         string $monthCode,
         int $day,
         string $description = '',
@@ -93,7 +94,7 @@ final class TemporalHelpers
     ): void {
         $prefix = $description !== '' ? "{$description}: " : '';
         PHPUnitAssert::assertSame($year, $date->year, "{$prefix}year");
-        PHPUnitAssert::assertSame($month, $date->month, "{$prefix}month");
+        PHPUnitAssert::assertSame((int) $month, $date->month, "{$prefix}month");
         PHPUnitAssert::assertSame($monthCode, $date->monthCode, "{$prefix}monthCode");
         PHPUnitAssert::assertSame($day, $date->day, "{$prefix}day");
         // JsUndefined::isUndefined accepts both PHP null and the JsUndefined sentinel —
@@ -138,8 +139,9 @@ final class TemporalHelpers
         int $millisecond,
         int $microsecond,
         int $nanosecond,
-        string $description = '',
+        string|int $description = '',
     ): void {
+        $description = (string) $description;
         $prefix = $description !== '' ? "{$description}: " : '';
         PHPUnitAssert::assertSame($hour, $time->hour, "{$prefix}hour");
         PHPUnitAssert::assertSame($minute, $time->minute, "{$prefix}minute");
@@ -198,7 +200,7 @@ final class TemporalHelpers
     public static function assertPlainDateTime(
         \Temporal\Spec\PlainDateTime $dt,
         int $year,
-        int $month,
+        int|float $month,
         string $monthCode,
         int $day,
         int $hour,
@@ -211,7 +213,7 @@ final class TemporalHelpers
     ): void {
         $prefix = $description !== '' ? "{$description}: " : '';
         PHPUnitAssert::assertSame($year, $dt->year, "{$prefix}year");
-        PHPUnitAssert::assertSame($month, $dt->month, "{$prefix}month");
+        PHPUnitAssert::assertSame((int) $month, $dt->month, "{$prefix}month");
         PHPUnitAssert::assertSame($monthCode, $dt->monthCode, "{$prefix}monthCode");
         PHPUnitAssert::assertSame($day, $dt->day, "{$prefix}day");
         PHPUnitAssert::assertSame($hour, $dt->hour, "{$prefix}hour");

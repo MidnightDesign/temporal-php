@@ -52,9 +52,37 @@ final class Js
         if ($value instanceof JsSymbol) {
             return 'Symbol()';
         }
+        // JS String([]) → "" (empty array), String([1,2]) → "1,2" (join with comma).
+        // PHP's (string) [] triggers "Array to string conversion" warning; handle explicitly.
+        if (is_array($value)) {
+            /** @phpstan-ignore cast.string */
+            return implode(',', array_map(static fn (mixed $v): string => (string) $v, $value));
+        }
 
         /** @phpstan-ignore cast.string */
         return (string) $value;
+    }
+
+    /**
+     * Implements JS Number.prototype.toPrecision(precision).
+     *
+     * Returns a string representation of $number with exactly $precision
+     * significant digits, using exponential notation when necessary —
+     * matching JS behaviour closely enough for test262 fixture comparisons.
+     *
+     * @psalm-api used by dynamically-required test262 scripts in tests/Test262/scripts/
+     */
+    public static function toPrecision(float $number, int $precision): string
+    {
+        if (!is_finite($number)) {
+            return (string) $number;
+        }
+        // PHP's %g uses the shorter of %e/%f with the given significant digits.
+        // sprintf("%.*g", $precision, $x) gives $precision significant digits — matching toPrecision(N).
+        // The * width specifier injects $precision as an argument, avoiding string concatenation.
+        $result = sprintf('%.*g', $precision, $number);
+        // Normalise exponential notation: JS uses "e+7" and PHP uses "E+7"; lowercase.
+        return strtolower($result);
     }
 
     /**
