@@ -259,6 +259,16 @@ function emitOverInt64Ctor(cls, epNsBig, rest) {
 function tryEvalNumeric(node) {
   if (!node) return null;
   if (node.type === 'Literal' && typeof node.value === 'number') return node.value;
+  // Date.UTC(year, month0, day, h, min, s, ms) — evaluate at transpile time.
+  // month is 0-indexed in JS (January = 0).
+  if (node.type === 'CallExpression' && isMember(node.callee, 'Date', 'UTC')) {
+    const args = node.arguments.map(a => tryEvalNumeric(a));
+    if (args.every(v => v !== null)) {
+      const [y = 1970, m0 = 0, d = 1, h = 0, min = 0, s = 0, ms = 0] = args;
+      const date = new Date(Date.UTC(y, m0, d, h, min, s, ms));
+      return date.getTime(); // milliseconds since epoch
+    }
+  }
   if (node.type === 'UnaryExpression' && node.operator === '-') {
     const v = tryEvalNumeric(node.argument);
     return v !== null ? -v : null;
@@ -461,6 +471,10 @@ class Emitter {
     // these names are silently skipped, so the script keeps emitting unrelated
     // statements that come before/between/after the JS-only block.
     this.jsOnlyVars = new Set();
+    // Variables whose value is a constant numeric expression (resolved at transpile time).
+    // Used by BigInt(var) constant folding to look up whether a variable holds a known
+    // integer value (e.g. `const epochMs = 1735213600321` → constNumericVars.get('epochMs') = 1735213600321).
+    this.constNumericVars = new Map();
   }
 
   emit(line) {
@@ -729,6 +743,22 @@ class Emitter {
       }
       const lhs = this.transpilePattern(decl.id);
       const rhs = this.transpileExpr(decl.init);
+      // Track const numeric variables that are assigned from Date.UTC(...) calls,
+      // enabling BigInt(dateUTCVar) to be constant-folded later. We specifically restrict
+      // this to Date.UTC results (not arbitrary numeric literals) because:
+      //  (a) Date.UTC always returns a value ≤ ~8e12 ms (unix timestamps), safely within
+      //      the float64 exact-integer range and never used in large multiplications.
+      //  (b) Arbitrary numeric vars like `seconds = 8692288669465520` might be used in
+      //      BigInt arithmetic that exposes precision differences between our PHP int
+      //      implementation and JS's exact BigInt semantics — those tests should remain
+      //      incomplete rather than generating wrong-answer PHP code.
+      if (decl.id.type === 'Identifier' && decl.init !== null
+          && decl.init.type === 'CallExpression' && isMember(decl.init.callee, 'Date', 'UTC')) {
+        const numVal = tryEvalNumeric(decl.init);
+        if (numVal !== null && Number.isInteger(numVal)) {
+          this.constNumericVars.set(decl.id.name, numVal);
+        }
+      }
       if (rhs === null) {
         // BigInt overflow or other untranslatable value — can't define the variable
         this.emitIncomplete(`cannot represent value of '${decl.id.name ?? '?'}' in PHP (BigInt overflow)`);
@@ -1698,6 +1728,17 @@ class Emitter {
       if (bigVal !== null) {
         if (overflowsInt64(bigVal)) return null; // caller handles overflow
         return phpInt(bigVal.toString());
+      }
+      // Also try looking up a tracked const-numeric variable (e.g. `const epochMs = 1735213600321`
+      // followed by `BigInt(epochMs)`). The variable's compile-time value is safe because we know
+      // it is a JavaScript integer value (tracked at assignment time).
+      if (node.arguments.length === 1 && node.arguments[0].type === 'Identifier') {
+        const varName = node.arguments[0].name;
+        const constVal = this.constNumericVars.get(varName);
+        if (constVal !== undefined) {
+          const bigV = BigInt(constVal);
+          if (!overflowsInt64(bigV)) return phpInt(bigV.toString());
+        }
       }
       this.emitIncomplete('untranslatable: BigInt()');
       return null;
