@@ -133,6 +133,7 @@ const IMPLEMENTED_HELPERS = new Set([
   'checkPlainDateTimeConversionFastPath',
   'checkToTemporalPlainDateTimeFastPath',
   'checkToTemporalInstantFastPath',
+  'canonicalizeCalendarEra',
 ]);
 
 /**
