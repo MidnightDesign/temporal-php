@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Date.UTC');
+$epochMillis = \Temporal\Tests\Test262\Js::dateUTC(1976, 10, 18, 15, 23, 30, 123);
+Assert::incomplete('untranslatable: BigInt()');

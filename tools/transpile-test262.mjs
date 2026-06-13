@@ -253,8 +253,34 @@ function emitOverInt64Ctor(cls, epNsBig, rest) {
 }
 
 /**
+ * Recursively evaluate a pure-numeric (non-BigInt) constant expression at transpile time.
+ * Returns the numeric value if fully evaluable, or null if any operand is non-literal.
+ */
+function tryEvalNumeric(node) {
+  if (!node) return null;
+  if (node.type === 'Literal' && typeof node.value === 'number') return node.value;
+  if (node.type === 'UnaryExpression' && node.operator === '-') {
+    const v = tryEvalNumeric(node.argument);
+    return v !== null ? -v : null;
+  }
+  if (node.type === 'BinaryExpression') {
+    const l = tryEvalNumeric(node.left);
+    const r = tryEvalNumeric(node.right);
+    if (l === null || r === null) return null;
+    switch (node.operator) {
+      case '*': return l * r;
+      case '+': return l + r;
+      case '-': return l - r;
+      case '/': return l / r;
+    }
+  }
+  return null;
+}
+
+/**
  * Recursively evaluate a BigInt expression at transpile time.
  * Returns the BigInt value if fully evaluable, or null if any operand is not a BigInt literal.
+ * Also handles BigInt(numericExpr) where numericExpr is a constant numeric expression.
  */
 function tryEvalBigInt(node) {
   if (!node) return null;
@@ -272,6 +298,16 @@ function tryEvalBigInt(node) {
       case '**': return l ** r;
       case '+':  return l + r;
       case '-':  return l - r;
+    }
+  }
+  // BigInt(numericExpr) — convert a numeric constant to BigInt at transpile time.
+  // Only safe when the argument evaluates to an integer value.
+  if (node.type === 'CallExpression'
+      && node.callee?.type === 'Identifier' && node.callee.name === 'BigInt'
+      && node.arguments.length === 1) {
+    const numVal = tryEvalNumeric(node.arguments[0]);
+    if (numVal !== null && Number.isInteger(numVal)) {
+      return BigInt(Math.trunc(numVal));
     }
   }
   return null;
@@ -1652,8 +1688,17 @@ class Emitter {
       return `Assert::assertTrue(${valPhp}, ${msgPhp})`;
     }
 
-    // BigInt(x) / Number(x) called as bare functions → not translatable
+    // BigInt(x) — try constant-folding (BigInt(4 * 1e9), BigInt(5 * 60 + 4), etc.)
     if (callee.type === 'Identifier' && callee.name === 'BigInt') {
+      // tryEvalBigInt handles BigInt(numericConstExpr) via tryEvalNumeric.
+      // Only constant numeric expressions (not runtime variables) are safe to fold here,
+      // since we can't know whether a runtime variable's value will overflow int64 when
+      // later multiplied (e.g. BigInt(seconds) * 1_000_000n may overflow).
+      const bigVal = tryEvalBigInt(node);
+      if (bigVal !== null) {
+        if (overflowsInt64(bigVal)) return null; // caller handles overflow
+        return phpInt(bigVal.toString());
+      }
       this.emitIncomplete('untranslatable: BigInt()');
       return null;
     }
@@ -1710,6 +1755,14 @@ class Emitter {
     // isConstructor(fn) → always false in PHP (PHP methods are not constructors)
     if (callee.type === 'Identifier' && callee.name === 'isConstructor') {
       return 'false';
+    }
+
+    // Date.UTC(year, month0, day, h, min, s, ms) → \Temporal\Tests\Test262\Js::dateUTC(...)
+    // JS month is 0-indexed; our PHP helper mirrors this convention.
+    if (isMember(callee, 'Date', 'UTC')) {
+      const args = this.transpileArgs(node.arguments);
+      if (args === null) return null;
+      return `\\Temporal\\Tests\\Test262\\Js::dateUTC(${args})`;
     }
 
     // Temporal class alias static method calls: Instant.from() after const { Instant } = Temporal;

@@ -121,6 +121,32 @@ final class Js
         return in_array($needle, $haystack, strict: true);
     }
 
+    /**
+     * Implements JS Date.UTC(year, month, day, hours, minutes, seconds, ms).
+     *
+     * Returns milliseconds since the Unix epoch (1970-01-01 00:00:00 UTC).
+     * Month is 0-indexed (JS convention: 0 = January, 11 = December).
+     * Matches the JS Date.UTC() return value for dates after the epoch.
+     *
+     * @psalm-api used by dynamically-required test262 scripts in tests/Test262/scripts/
+     */
+    public static function dateUTC(
+        int $year,
+        int $month = 0,
+        int $day = 1,
+        int $hours = 0,
+        int $minutes = 0,
+        int $seconds = 0,
+        int $ms = 0,
+    ): int {
+        // gmmktime uses 1-indexed months; JS Date.UTC uses 0-indexed months.
+        // gmmktime() can return false for invalid input, but the test fixtures always
+        // supply valid dates — the conditional is unreachable in practice, and the cast
+        // to int allows PHPStan to accept the multiplication on the next line.
+        $ts = gmmktime($hours, $minutes, $seconds, $month + 1, $day, $year);
+        return ((int) $ts) * 1000 + $ms;
+    }
+
     // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
