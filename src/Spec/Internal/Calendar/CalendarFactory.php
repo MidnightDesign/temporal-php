@@ -72,7 +72,7 @@ final class CalendarFactory
      */
     public static function canonicalize(string $id): string
     {
-        if (isset(self::$canonicalCache[$id])) {
+        if (array_key_exists($id, self::$canonicalCache)) {
             return self::$canonicalCache[$id];
         }
 
