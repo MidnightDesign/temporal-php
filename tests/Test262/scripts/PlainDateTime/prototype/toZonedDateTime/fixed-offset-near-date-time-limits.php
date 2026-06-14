@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$oneHour = 1 * 60 * 60 * (1000 ** 3);
+$oneHour = 3_600_000_000_000;
 $minDt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 1, 0, 0, 0, 0, 0);
 $minValidDt = new \Temporal\Spec\PlainDateTime(-271_821, 4, 20, 0, 0, 0, 0, 0, 0);
 $maxDt = new \Temporal\Spec\PlainDateTime(275_760, 9, 13, 0, 0, 0, 0, 0, 0);

@@ -307,6 +307,15 @@ function emitOverInt64Ctor(cls, epNsBig, rest) {
 function tryEvalNumeric(node) {
   if (!node) return null;
   if (node.type === 'Literal' && typeof node.value === 'number') return node.value;
+  // Number.MAX_SAFE_INTEGER / Number.MIN_SAFE_INTEGER — exact-integer constants.
+  // (transpileMember folds these in the porcelain path; here we fold them so that
+  // BigInt(Number.MAX_SAFE_INTEGER) and similar constant expressions resolve.)
+  if (node.type === 'MemberExpression' && !node.computed
+      && node.object?.type === 'Identifier' && node.object.name === 'Number'
+      && node.property?.type === 'Identifier') {
+    if (node.property.name === 'MAX_SAFE_INTEGER') return 9_007_199_254_740_991;
+    if (node.property.name === 'MIN_SAFE_INTEGER') return -9_007_199_254_740_991;
+  }
   // Date.UTC(year, month0, day, h, min, s, ms) — evaluate at transpile time.
   // month is 0-indexed in JS (January = 0).
   if (node.type === 'CallExpression' && isMember(node.callee, 'Date', 'UTC')) {
@@ -340,22 +349,32 @@ function tryEvalNumeric(node) {
  * Returns the BigInt value if fully evaluable, or null if any operand is not a BigInt literal.
  * Also handles BigInt(numericExpr) where numericExpr is a constant numeric expression.
  */
-function tryEvalBigInt(node) {
+function tryEvalBigInt(node, scalarVars = null) {
   if (!node) return null;
   if (node.type === 'Literal' && node.bigint !== undefined) return BigInt(node.bigint);
+  // A const variable bound to a fully-evaluable BigInt expression (e.g.
+  // `const nanos = BigInt(Number.MAX_SAFE_INTEGER) + 2n`). The Emitter records
+  // such bindings in bigIntScalarVars and passes them in here.
+  if (node.type === 'Identifier' && scalarVars && scalarVars.has(node.name)) {
+    return scalarVars.get(node.name);
+  }
   if (node.type === 'UnaryExpression' && node.operator === '-') {
-    const v = tryEvalBigInt(node.argument);
+    const v = tryEvalBigInt(node.argument, scalarVars);
     return v !== null ? -v : null;
   }
   if (node.type === 'BinaryExpression') {
-    const l = tryEvalBigInt(node.left);
-    const r = tryEvalBigInt(node.right);
+    const l = tryEvalBigInt(node.left, scalarVars);
+    const r = tryEvalBigInt(node.right, scalarVars);
     if (l === null || r === null) return null;
     switch (node.operator) {
       case '*':  return l * r;
       case '**': return l ** r;
       case '+':  return l + r;
       case '-':  return l - r;
+      // JS BigInt `/` and `%` truncate toward zero. JS native BigInt arithmetic
+      // already does this, so the plain operators are exact.
+      case '/':  return r === 0n ? null : l / r;
+      case '%':  return r === 0n ? null : l % r;
     }
   }
   // BigInt(numericExpr) — convert a numeric constant to BigInt at transpile time.
@@ -564,6 +583,11 @@ class Emitter {
     // property read, off undefined/null/scalar/{}/class). Maps JS var name →
     // { class, member, isGetter }. See emitAssertThrows / emitSameValue / transpileVarDecl.
     this.brandedRefVars = new Map();
+    // Const variables bound to a fully-evaluable BigInt expression (e.g.
+    // `const nanos = BigInt(Number.MAX_SAFE_INTEGER) + 2n`). Maps JS var name →
+    // its BigInt value. Threaded into tryEvalBigInt so later expressions like
+    // `Number((nanos / Xn) % Yn)` constant-fold. Populated in transpileVarDecl.
+    this.bigIntScalarVars = new Map();
   }
 
   emit(line) {
@@ -861,6 +885,27 @@ class Emitter {
           });
           this.emitSkipComment(decl, `extracted readonly-property getter reference (branding); PHP has no getter-function value`);
           continue;
+        }
+        // Const variable bound to a fully-evaluable BigInt expression that involves
+        // a BigInt source (a BigInt literal or BigInt(...) call) — e.g.
+        // `const nanos = BigInt(Number.MAX_SAFE_INTEGER) + 2n`. Record its compile-time
+        // BigInt value so later expressions like `Number((nanos / Xn) % Yn)` fold.
+        // Gate on hasBigIntLiteral || BigInt(...) so plain integer consts (handled by
+        // constNumericVars / normal emit) are not swept in.
+        //
+        // ONLY track values that fit int64: the variable is emitted as a real PHP int
+        // and may be referenced by downstream code that is NOT folded (e.g.
+        // `const min = -nsMax; new ZonedDateTime(min, …)`). An overflowing value cannot
+        // be emitted as a PHP int, and recording it without an emit would leave the PHP
+        // variable undefined at those downstream sites — so leave overflowing consts to
+        // the existing overflow-bail path.
+        if (decl.init && (hasBigIntLiteral(decl.init) || referencesBigIntCall(decl.init))) {
+          const bigVal = tryEvalBigInt(decl.init, this.bigIntScalarVars);
+          if (bigVal !== null && !overflowsInt64(bigVal)) {
+            this.bigIntScalarVars.set(decl.id.name, bigVal);
+            this.emit(`$${decl.id.name} = ${phpInt(bigVal.toString())};`);
+            continue;
+          }
         }
       }
       const lhs = this.transpilePattern(decl.id);
@@ -1892,7 +1937,7 @@ class Emitter {
       // Only constant numeric expressions (not runtime variables) are safe to fold here,
       // since we can't know whether a runtime variable's value will overflow int64 when
       // later multiplied (e.g. BigInt(seconds) * 1_000_000n may overflow).
-      const bigVal = tryEvalBigInt(node);
+      const bigVal = tryEvalBigInt(node, this.bigIntScalarVars);
       if (bigVal !== null) {
         if (overflowsInt64(bigVal)) return null; // caller handles overflow
         return phpInt(bigVal.toString());
@@ -1918,6 +1963,17 @@ class Emitter {
       // equal to PHP int when values match numerically.
       if (!node.arguments.length) return '0';
       const arg0 = node.arguments[0];
+      // Number(<fully-evaluable BigInt expression>) — fold to its exact integer
+      // value. Covers `Number((nanos / Xn) % Yn)` where `nanos` is a tracked
+      // BigInt-const variable. JS Number(bigint) is exact for int64-range values;
+      // when the folded value overflows int64 we keep bailing below.
+      if (referencesBigIntCall(arg0) || hasBigIntLiteral(arg0)
+          || (arg0.type === 'Identifier' && this.bigIntScalarVars.has(arg0.name))) {
+        const bigVal = tryEvalBigInt(arg0, this.bigIntScalarVars);
+        if (bigVal !== null && !overflowsInt64(bigVal)) {
+          return phpInt(bigVal.toString());
+        }
+      }
       // If the argument is a BigInt literal or a variable known to hold BigInt values,
       // keep emitting incomplete.
       const isBigIntArg = (arg0.type === 'Literal' && arg0.bigint !== undefined)
@@ -2338,7 +2394,7 @@ class Emitter {
         return null;
       }
       if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
-        const epNsBig = tryEvalBigInt(node.arguments[0]);
+        const epNsBig = tryEvalBigInt(node.arguments[0], this.bigIntScalarVars);
         if (epNsBig !== null && overflowsInt64(epNsBig)) {
           const rest = node.arguments.length > 1 ? this.transpileArgs(node.arguments.slice(1)) : '';
           if (rest === null) return null;
@@ -2357,7 +2413,7 @@ class Emitter {
         return null;
       }
       if ((cls === 'ZonedDateTime' || cls === 'Instant') && node.arguments.length > 0) {
-        const epNsBig = tryEvalBigInt(node.arguments[0]);
+        const epNsBig = tryEvalBigInt(node.arguments[0], this.bigIntScalarVars);
         if (epNsBig !== null && overflowsInt64(epNsBig)) {
           const rest = node.arguments.length > 1 ? this.transpileArgs(node.arguments.slice(1)) : '';
           if (rest === null) return null;
@@ -2519,7 +2575,7 @@ class Emitter {
       }
     }
     // Check if the combined BigInt expression overflows int64 (e.g. 864n * 10n ** 19n).
-    const combinedBig = tryEvalBigInt(node);
+    const combinedBig = tryEvalBigInt(node, this.bigIntScalarVars);
     if (combinedBig !== null && overflowsInt64(combinedBig)) {
       return null; // caller handles: variable decl → emitIncomplete, array → sentinel
     }
@@ -3395,6 +3451,18 @@ function expressionRefsAny(node, names) {
  */
 function hasBigIntLiteral(node) {
   return someDescendant(node, n => n.type === 'Literal' && n.bigint !== undefined);
+}
+
+/**
+ * Returns true if the subtree contains a `BigInt(...)` call expression. Used
+ * together with hasBigIntLiteral to detect a const initializer that produces a
+ * BigInt value even when it has no `n`-suffixed literal (e.g.
+ * `const x = BigInt(Number.MAX_SAFE_INTEGER)`).
+ */
+function referencesBigIntCall(node) {
+  return someDescendant(node, n =>
+    n.type === 'CallExpression'
+    && n.callee?.type === 'Identifier' && n.callee.name === 'BigInt');
 }
 
 /**

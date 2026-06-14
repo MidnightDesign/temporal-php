@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$nsPerDay = 24 * 60 * 60 * 1000 * 1000 * 1000;
+$nsPerDay = 86_400_000_000_000;
 $epochNanoseconds = [0, $nsPerDay, -$nsPerDay];
 $timeZones = ['UTC', '+00', '+01', '-01'];
 foreach ($timeZones as $timeZone) {

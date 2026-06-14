@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$nsPerDay = 864 * (10 ** 11);
+$nsPerDay = 86_400_000_000_000;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::sameValue($zdt->yearOfWeek, 1970, '');
 $zdt = new \Temporal\Spec\ZonedDateTime(-3 * $nsPerDay, 'UTC');
