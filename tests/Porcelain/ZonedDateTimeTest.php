@@ -1499,4 +1499,67 @@ final class ZonedDateTimeTest extends TemporalTestCase
 
         ZonedDateTime::fromDateTime($dt);
     }
+
+    /**
+     * Largest positive epoch second that still fits the int64 nanosecond range
+     * (9_223_372_035 × 10⁹ + max-microsecond < PHP_INT_MAX). Pins the upper
+     * boundary: this exact value must be accepted, not rejected.
+     */
+    public function testFromDateTimeMaxRepresentableSecondAccepted(): void
+    {
+        $dt = (new \DateTimeImmutable('@0'))
+            ->setTimestamp(9_223_372_035)
+            ->setTimezone(new \DateTimeZone('UTC'));
+
+        $zdt = ZonedDateTime::fromDateTime($dt);
+
+        static::assertSame(9_223_372_035_000_000_000, $zdt->epochNanoseconds);
+    }
+
+    /**
+     * One second past the representable upper boundary must throw — guards the
+     * `> $tsMax` comparison and the `$tsMax` constant against off-by-one drift.
+     */
+    public function testFromDateTimeOneSecondPastMaxThrows(): void
+    {
+        $dt = (new \DateTimeImmutable('@0'))
+            ->setTimestamp(9_223_372_036)
+            ->setTimezone(new \DateTimeZone('UTC'));
+
+        $this->expectException(RangeError::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        ZonedDateTime::fromDateTime($dt);
+    }
+
+    /**
+     * Most negative epoch second that still fits the int64 nanosecond range.
+     * Pins the lower boundary: this exact value must be accepted.
+     */
+    public function testFromDateTimeMinRepresentableSecondAccepted(): void
+    {
+        $dt = (new \DateTimeImmutable('@0'))
+            ->setTimestamp(-9_223_372_035)
+            ->setTimezone(new \DateTimeZone('UTC'));
+
+        $zdt = ZonedDateTime::fromDateTime($dt);
+
+        static::assertSame(-9_223_372_035_000_000_000, $zdt->epochNanoseconds);
+    }
+
+    /**
+     * One second below the representable lower boundary must throw — guards the
+     * `< -$tsMax` comparison against an off-by-one (`<=`) drift.
+     */
+    public function testFromDateTimeOneSecondBelowMinThrows(): void
+    {
+        $dt = (new \DateTimeImmutable('@0'))
+            ->setTimestamp(-9_223_372_036)
+            ->setTimezone(new \DateTimeZone('UTC'));
+
+        $this->expectException(RangeError::class);
+        $this->expectExceptionMessage('outside the representable int64 nanosecond range');
+
+        ZonedDateTime::fromDateTime($dt);
+    }
 }
