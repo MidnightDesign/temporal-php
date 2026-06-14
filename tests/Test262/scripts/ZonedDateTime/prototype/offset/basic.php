@@ -8,4 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: BigInt arithmetic in function body');
+$test = function ($timeZoneIdentifier, $expectedOffsetString, $description) {
+$datetime = new \Temporal\Spec\ZonedDateTime(0, $timeZoneIdentifier);
+Assert::sameValue($datetime->offset, $expectedOffsetString, $description);
+};
+$test('UTC', '+00:00', 'offset of UTC is +00:00');
+$test('+01:00', '+01:00', 'positive offset');
+$test('-05:00', '-05:00', 'negative offset');

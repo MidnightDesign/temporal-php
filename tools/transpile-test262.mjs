@@ -933,8 +933,11 @@ class Emitter {
       this.emitIncomplete('untranslatable: function parameter ObjectPattern destructuring');
       return;
     }
-    // If the function body uses BigInt arithmetic, the computation may overflow PHP int64.
-    if (hasBigIntLiteral(node.body)) {
+    // If the function body uses BigInt arithmetic (or an overflowing BigInt literal),
+    // the computation may overflow PHP int64 or diverge from JS BigInt semantics.
+    // A plain, non-overflowing BigInt literal passed straight through (e.g.
+    // `new Temporal.ZonedDateTime(0n, tz)`) is safe and lowers to a plain int.
+    if (hasUnsafeBigInt(node.body)) {
       this.emitIncomplete('untranslatable: BigInt arithmetic in function body');
       return;
     }
@@ -3360,6 +3363,32 @@ function expressionRefsAny(node, names) {
  */
 function hasBigIntLiteral(node) {
   return someDescendant(node, n => n.type === 'Literal' && n.bigint !== undefined);
+}
+
+/**
+ * Returns true if the AST subtree contains a BigInt literal that CANNOT be
+ * faithfully lowered to a PHP int. Two cases are unsafe:
+ *   (1) an OVERFLOWING BigInt literal (outside int64 range), and
+ *   (2) a BigInt operand inside an arithmetic BinaryExpression (+, -, *, /, %, **),
+ *       where PHP int arithmetic may overflow or differ from JS BigInt semantics
+ *       (e.g. integer division / modulo on huge intermediates).
+ * A plain, non-overflowing BigInt literal passed straight through (e.g.
+ * `new Temporal.ZonedDateTime(0n, tz)`) is SAFE: transpileLiteral lowers `0n` to
+ * the int `0` with no precision loss. This narrows the previous blanket
+ * hasBigIntLiteral() bail in transpileFunctionDecl.
+ */
+function hasUnsafeBigInt(node) {
+  const ARITH = new Set(['+', '-', '*', '/', '%', '**']);
+  return someDescendant(node, n => {
+    if (n.type === 'Literal' && n.bigint !== undefined) {
+      return overflowsInt64(BigInt(n.bigint));
+    }
+    if (n.type === 'BinaryExpression' && ARITH.has(n.operator)) {
+      // Arithmetic on a BigInt (either operand contains a BigInt literal) is unsafe.
+      return hasBigIntLiteral(n.left) || hasBigIntLiteral(n.right);
+    }
+    return false;
+  });
 }
 
 /**

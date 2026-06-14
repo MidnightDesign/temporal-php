@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: BigInt arithmetic in function body');
+Assert::incomplete('untranslatable: Number.isFinite');
