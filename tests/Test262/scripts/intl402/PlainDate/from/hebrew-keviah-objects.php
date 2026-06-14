@@ -14,7 +14,7 @@ $firstDayOfPesach = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip([
 $yearSymbol = (object) [353 => 'D', 354 => 'R', 355 => 'C', 383 => 'D', 384 => 'R', 385 => 'C'];
 $daySymbol = fn($date) => $date->dayOfWeek % 7 + 1;
 $daysInYear = $startOfYear->daysInYear;
-Assert::sameValue(array_key_exists($daysInYear, $yearSymbol), true, '');
+Assert::sameValue(property_exists($yearSymbol, $daysInYear), true, '');
 return "" . ($daySymbol($startOfYear)) . "" . ($yearSymbol->{$daysInYear}) . "" . ($daySymbol($firstDayOfPesach)) . "";
 };
 Assert::incomplete('untranslatable new expression');

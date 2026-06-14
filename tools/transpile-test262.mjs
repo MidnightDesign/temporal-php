@@ -2386,12 +2386,16 @@ class Emitter {
       const key = this.transpileExpr(node.left);
       const obj = this.transpileExpr(node.right);
       if (key === null || obj === null) return null;
-      // Use array_key_exists for array-mode objects; property_exists for others.
+      // Object literals tracked in objectVars become PHP arrays in array mode
+      // (use array_key_exists) and stdClass instances in object mode (use
+      // property_exists). Anything else (e.g. a real stdClass) is a property
+      // lookup, so use property_exists there too.
       const objName = node.right.type === 'Identifier' ? node.right.name : null;
-      if (objName !== null && this.objectVars.has(objName)) {
-        return `array_key_exists(${key}, ${obj})`;
-      }
-      return `array_key_exists(${key}, ${obj})`;
+      const isArrayModeObject = objName !== null
+        && this.objectVars.has(objName) && !this.objectMode;
+      return isArrayModeObject
+        ? `array_key_exists(${key}, ${obj})`
+        : `property_exists(${obj}, ${key})`;
     }
     // Handle `typeof x === 'type'` → PHP is_type($x) function
     if (node.left.type === 'UnaryExpression' && node.left.operator === 'typeof'
