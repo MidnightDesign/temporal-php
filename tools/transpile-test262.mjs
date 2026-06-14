@@ -2520,6 +2520,22 @@ class Emitter {
       }
     }
 
+    // Negative-probe getter bag: `{ key: literal, get probe() { throw / assertUnreachable } }`.
+    // Lower to an anon class with the literal props declared plus a throwing __get, so
+    // get_object_vars() (how the spec layer reads bags) snapshots only the real props and
+    // the probe never fires — matching the test's "must not read this property" intent.
+    const probeBag = lazyBagGetterProbe(node);
+    if (probeBag !== null) {
+      const decls = probeBag.initProps.map(({ name, valueNode }) => {
+        const v = this.transpileExpr(valueNode);
+        return v === null ? null : `public mixed $${name} = ${v};`;
+      });
+      if (!decls.includes(null)) {
+        const declStr = decls.length > 0 ? decls.join(' ') + ' ' : '';
+        return `new class { ${declStr}public function __get(string $name): mixed { throw new \\RuntimeException('test262: property '.$name.' must not be read'); } }`;
+      }
+    }
+
     if (node.properties.length === 0) {
       return this.objectMode ? '(object) []' : '[]';
     }
@@ -3060,6 +3076,96 @@ function singleToStringReturnExpr(node) {
   const stmt = body.body[0];
   if (stmt.type !== 'ReturnStatement' || stmt.argument == null) return null;
   return stmt.argument;
+}
+
+/**
+ * Returns true if a getter accessor body is a pure NEGATIVE probe — present only
+ * to catch an implementation that wrongly READS the property, while the test
+ * expects the operation to IGNORE it. Two accepted forms:
+ *
+ *   1. `TemporalHelpers.assertUnreachable(...)` — the explicit "must not run" marker.
+ *   2. `throw new Test262Error("…descriptive message…")` — a guarded invariant.
+ *      A DESCRIPTIVE message is required: a negative-probe throw documents the
+ *      violated invariant (e.g. "should not read the day property"), whereas a
+ *      POSITIVE probe throws a BARE `new Test262Error()` that the surrounding
+ *      `assert.throws(Test262Error, …)` is meant to CATCH (the property IS read).
+ *      Requiring the message reliably separates the two without per-operation
+ *      knowledge of which fields an operation reads.
+ *
+ * Getters that push to an observation log, set a flag, or return a value are NOT
+ * negative probes (they expect to be read) and are rejected.
+ */
+function isNegativeProbeGetterBody(fn) {
+  if (fn?.type !== 'FunctionExpression' || fn.params.length !== 0) return false;
+  const body = fn.body;
+  if (body?.type !== 'BlockStatement' || body.body.length === 0) return false;
+  const first = body.body[0];
+  if (first.type === 'ThrowStatement') {
+    const thrown = first.argument;
+    // Require `new Test262Error(<descriptive message>)` — a bare throw (no message)
+    // is a POSITIVE probe whose throw is the asserted outcome.
+    return thrown?.type === 'NewExpression'
+      && thrown.callee?.type === 'Identifier' && thrown.callee.name === 'Test262Error'
+      && (thrown.arguments?.length ?? 0) >= 1;
+  }
+  if (first.type === 'ExpressionStatement'
+      && first.expression?.type === 'CallExpression'
+      && isMember(first.expression.callee, 'TemporalHelpers', 'assertUnreachable')) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Detects a "negative-probe getter bag": an ObjectExpression that mixes plain
+ * `key: literal` init properties with one or more non-computed getters whose
+ * bodies are negative probes (throw / assertUnreachable; see
+ * isNegativeProbeGetterBody). Returns `{ initProps, getterNames }` for emission,
+ * or null when the node is not such a bag.
+ *
+ * Faithful in PHP because the spec layer reads option/fields bags via
+ * get_object_vars(), which snapshots only DECLARED public properties and never
+ * triggers PHP's __get magic. Lowering to an anonymous class with the init props
+ * declared plus a throwing __get reproduces the semantics exactly: the getter
+ * never fires for the success path (matching the assertion), and any code that
+ * DID read a probed property would throw (matching the test's intent).
+ *
+ * Accepted only when EITHER there is at least one plain init prop (the probe is
+ * an EXTRA field that must be ignored — e.g. `{ year, month, get day(){throw} }`)
+ * OR every getter uses assertUnreachable (the explicit "must not read" marker —
+ * e.g. an options bag `{ get overflow(){ assertUnreachable() } }`). This excludes
+ * POSITIVE probes such as `{ get timeZone(){ throw } }` (getter-only, plain throw)
+ * where the operation is expected to read the property and the test asserts the
+ * resulting throw.
+ */
+function lazyBagGetterProbe(node) {
+  if (node?.type !== 'ObjectExpression' || node.properties.length === 0) return null;
+  const initProps = [];   // [{ name, valueNode }]
+  const getterNames = []; // string[]
+  let allGettersAssertUnreachable = true;
+
+  for (const prop of node.properties) {
+    if (prop.type !== 'Property' || prop.computed || prop.key?.type !== 'Identifier') return null;
+    if (prop.kind === 'init') {
+      if (prop.method) return null;
+      // Only plain literal init values can be a constant class-property default.
+      if (prop.value?.type !== 'Literal') return null;
+      initProps.push({ name: prop.key.name, valueNode: prop.value });
+    } else if (prop.kind === 'get') {
+      if (!isNegativeProbeGetterBody(prop.value)) return null;
+      getterNames.push(prop.key.name);
+      const fb = prop.value.body.body[0];
+      const isAssertUnreachable = fb.type === 'ExpressionStatement';
+      if (!isAssertUnreachable) allGettersAssertUnreachable = false;
+    } else {
+      return null; // setter or other accessor kind
+    }
+  }
+
+  if (getterNames.length === 0) return null;
+  // Gate: at least one init prop, OR every getter is an assertUnreachable marker.
+  if (initProps.length === 0 && !allGettersAssertUnreachable) return null;
+  return { initProps, getterNames };
 }
 
 /**
