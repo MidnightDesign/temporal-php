@@ -717,6 +717,29 @@ class Emitter {
       case 'BreakStatement':
         this.emit(node.label ? `break ${node.label.name};` : 'break;');
         break;
+      case 'TryStatement': {
+        // try { … } finally { … } — used by the Object.prototype-pollution fixtures
+        // to guarantee cleanup. PHP needs no exception scaffolding for these: the
+        // tested op does not throw, and the finally only deletes Object.prototype props
+        // (a no-op in PHP). Transpile the try-block statements inline, then the finally
+        // (whose cleanup loop is skipped). A `catch` clause is not expected in these
+        // fixtures; if present, fall back to incomplete.
+        if (node.handler) {
+          this.emitIncomplete('untranslatable statement: TryStatement with catch');
+          break;
+        }
+        for (const s of node.block.body) {
+          this.transpileStatement(s);
+          if (this.incomplete) break;
+        }
+        if (!this.incomplete && node.finalizer) {
+          for (const s of node.finalizer.body) {
+            this.transpileStatement(s);
+            if (this.incomplete) break;
+          }
+        }
+        break;
+      }
       case 'ClassDeclaration': {
         // Getter-only Temporal subclass (use-internal-slots fixtures): register the
         // class as an alias of its Temporal base and drop the declaration. The
@@ -1335,6 +1358,19 @@ class Emitter {
   }
 
   transpileForOf(node) {
+    // Object.prototype-pollution loop (string-shorthand-no-object-prototype-pollution):
+    // `for (const prop of props) Object.defineProperty(Object.prototype, prop, {get(){throw…}})`.
+    // PHP has no Object.prototype and the string-shorthand option path builds a
+    // null-prototype options object, so the pollution can never be observed. Skip the loop.
+    if (isObjectPrototypeDefinePropertyBody(node.body)) {
+      this.emitSkipComment(node, 'Object.prototype pollution has no PHP equivalent');
+      return;
+    }
+    // Object.prototype cleanup loop: `for (const prop of props) delete Object.prototype[prop]`.
+    if (isObjectPrototypeDeleteBody(node.body)) {
+      this.emitSkipComment(node, 'Object.prototype cleanup has no PHP equivalent');
+      return;
+    }
     // Detect TemporalHelpers.X used as iterable — not translatable, except for the
     // two known array properties that have PHP static-method equivalents.
     if (node.right.type === 'MemberExpression' && !node.right.computed
@@ -3950,6 +3986,66 @@ function isArrayPrototypeSymbolIterator(node) {
     && node.object.object?.type === 'Identifier' && node.object.object.name === 'Array'
     && node.object.property?.type === 'Identifier' && node.object.property.name === 'prototype'
     && isMember(node.property, 'Symbol', 'iterator');
+}
+
+/**
+ * Returns true if `node` is a member expression rooted at `Object.prototype`
+ * (e.g. `Object.prototype[prop]` or `Object.prototype.foo`).
+ */
+function isObjectPrototypeTarget(node) {
+  return node?.type === 'MemberExpression'
+    && node.object?.type === 'MemberExpression'
+    && !node.object.computed
+    && node.object.object?.type === 'Identifier' && node.object.object.name === 'Object'
+    && node.object.property?.type === 'Identifier' && node.object.property.name === 'prototype';
+}
+
+/**
+ * Returns true if `stmt` (a statement, possibly wrapped in a BlockStatement) is
+ * SOLELY an `Object.defineProperty(Object.prototype, <key>, { … })` call — the
+ * Object.prototype-pollution body of the `string-shorthand-no-object-prototype-pollution`
+ * fixtures. PHP has no Object.prototype, and the string-shorthand option path builds a
+ * null-prototype options object that never reads inherited props, so the pollution is a
+ * no-op. Such a loop body is skipped entirely.
+ */
+function isObjectPrototypeDefinePropertyBody(stmt) {
+  let s = stmt;
+  if (s?.type === 'BlockStatement') {
+    const body = s.body.filter(n => n.type !== 'EmptyStatement');
+    if (body.length !== 1) return false;
+    s = body[0];
+  }
+  if (s?.type !== 'ExpressionStatement' || s.expression.type !== 'CallExpression') return false;
+  const call = s.expression;
+  // Object.defineProperty(Object.prototype, <key>, { … })
+  if (!isMember(call.callee, 'Object', 'defineProperty')) return false;
+  if (call.arguments.length < 2) return false;
+  const target = call.arguments[0];
+  return target?.type === 'MemberExpression'
+    && !target.computed
+    && target.object?.type === 'Identifier' && target.object.name === 'Object'
+    && target.property?.type === 'Identifier' && target.property.name === 'prototype';
+}
+
+/**
+ * Returns true if `stmt` (possibly a BlockStatement) is SOLELY a
+ * `delete Object.prototype[<key>]` statement — the cleanup body of the
+ * Object.prototype-pollution fixtures' finally block. PHP has no Object.prototype
+ * so the cleanup is a no-op and the whole finally is dropped.
+ */
+function isObjectPrototypeDeleteBody(stmt) {
+  let s = stmt;
+  if (s?.type === 'BlockStatement') {
+    const body = s.body.filter(n => n.type !== 'EmptyStatement');
+    if (body.length !== 1) return false;
+    s = body[0];
+  }
+  // The delete is itself usually inside a `for (const prop of props) delete …`.
+  if (s?.type === 'ForOfStatement') return isObjectPrototypeDeleteBody(s.body);
+  if (s?.type !== 'ExpressionStatement') return false;
+  const e = s.expression;
+  return e.type === 'UnaryExpression' && e.operator === 'delete'
+    && isObjectPrototypeTarget(e.argument);
 }
 
 /**
