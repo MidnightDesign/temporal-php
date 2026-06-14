@@ -9,4 +9,11 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($badOptions as $value) {
+if ($value === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$value) { return \Temporal\Spec\PlainTime::from(['hour' => 12, 'minute' => 34], $value); }, "TypeError on wrong options type " . (gettype($value)) . "");
+Assert::throws(\TypeError::class, function () use (&$value) { return \Temporal\Spec\PlainTime::from(new \Temporal\Spec\PlainTime(12, 34), $value); }, 'TypeError thrown before cloning PlainTime instance');
+Assert::throws(\TypeError::class, function () use (&$value) { return \Temporal\Spec\PlainTime::from(new \Temporal\Spec\ZonedDateTime(0, 'UTC'), $value); }, 'TypeError thrown before converting ZonedDateTime instance');
+Assert::throws(\TypeError::class, function () use (&$value) { return \Temporal\Spec\PlainTime::from(new \Temporal\Spec\PlainDateTime(1976, 11, 18), $value); }, 'TypeError thrown before converting PlainDateTime instance');
+Assert::throws(\RangeException::class, function () use (&$value) { return \Temporal\Spec\PlainTime::from('T99:99', $value); }, 'Invalid string processed before throwing TypeError');
+}

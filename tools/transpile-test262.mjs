@@ -1287,6 +1287,15 @@ class Emitter {
       (node.right.type === 'ArrayExpression' && hasNumberLiteral(node.right))
       || (node.right.type === 'Identifier' && this.numberLiteralArrayVars.has(node.right.name));
     if (uniformAssertThrowsErrorClass(node.body) === null || !tableHasNumberLiteral) {
+      // The body is mixed-class (TypeError + RangeError). One mixed-class shape is
+      // still safe to lower: the `<PlainX>.from/options-wrong-type` table, where the
+      // RangeError comes from a static `from(<StringLiteral>, value)` string parse
+      // that PHP performs BEFORE the options-type check — reproduced identically.
+      // The lookalike `with/options-wrong-type` field-validation ordering gap (RangeError
+      // from a non-string property bag) is rejected by isStringParseFromOptionsWrongTypeBody.
+      if (tableHasNumberLiteral && isStringParseFromOptionsWrongTypeBody(node.body)) {
+        return 'skip-null';
+      }
       return 'incomplete';
     }
     // A `null` table element may be an OMITTED positional argument (e.g. a
@@ -3788,6 +3797,79 @@ function uniformAssertThrowsErrorClass(node) {
   }
   if (classes.size !== 1) return null;
   return [...classes][0];
+}
+
+/**
+ * Recognizes the `<PlainX>.from/options-wrong-type` for-of body, distinguishing
+ * it from the lookalike `with/options-wrong-type` family.
+ *
+ * Both families iterate a wrong-type-options data table and assert a mix of
+ * TypeError (object/instance first-arg) and RangeError. The crucial difference is
+ * WHERE the RangeError comes from, which decides whether PHP reproduces it:
+ *
+ *  - `from(<StringLiteral>, value)` — the RangeError is raised by the STRING PARSE,
+ *    which PHP performs BEFORE the options-type check. PHP reproduces this exactly
+ *    (verified across all 5 PlainX classes and every bad-options value). SAFE.
+ *  - `with({day:-1}, value)` — the RangeError is expected from FIELD validation,
+ *    which PHP does AFTER the options-type check (so PHP throws TypeError). A real
+ *    implementation-ordering gap. NOT safe (kept incomplete elsewhere).
+ *
+ * Returns true only for the safe `from`-string-parse shape: every `assert.throws`
+ * in the body uses a bare TypeError/RangeError error class, and every RangeError
+ * assertion's throwing call is a static `Temporal.<Class>.from(<StringLiteral>, …)`
+ * on one of the five PlainX classes. Any RangeError raised by a non-string first arg
+ * (object/property-bag/instance) disqualifies the table, so the `with`-family ordering
+ * gap stays incomplete.
+ *
+ * ZonedDateTime is deliberately EXCLUDED: its from() validates the typed options
+ * param BEFORE parsing the string, so PHP throws TypeError (not the expected
+ * RangeError) on `ZonedDateTime.from("…", value)` — a genuine ordering gap that the
+ * PlainX classes do not have (they string-parse first). Verified live.
+ */
+const STRING_PARSE_FIRST_FROM_CLASSES = new Set([
+  'PlainDate', 'PlainDateTime', 'PlainTime', 'PlainMonthDay', 'PlainYearMonth',
+]);
+
+function isStringParseFromOptionsWrongTypeBody(node) {
+  let ok = true;
+  let sawRangeStringParse = false;
+
+  // The throwing operation lives inside the arrow passed as assert.throws' 2nd arg.
+  // Unwrap `() => <expr>` (or `() => { return <expr>; }`) to the CallExpression.
+  const throwingCall = (fnArg) => {
+    if (!fnArg || fnArg.type !== 'ArrowFunctionExpression') return null;
+    let body = fnArg.body;
+    if (body.type === 'BlockStatement') {
+      const stmts = body.body.filter(s => s.type !== 'EmptyStatement');
+      if (stmts.length !== 1) return null;
+      if (stmts[0].type === 'ReturnStatement') body = stmts[0].argument;
+      else if (stmts[0].type === 'ExpressionStatement') body = stmts[0].expression;
+      else return null;
+    }
+    return body && body.type === 'CallExpression' ? body : null;
+  };
+
+  forEachNode(node, function visit(n) {
+    if (!ok) return false;
+    if (!isAssertThrowsCall(n)) return true;
+    const errArg = n.arguments?.[0];
+    if (errArg?.type !== 'Identifier' || (errArg.name !== 'TypeError' && errArg.name !== 'RangeError')) {
+      ok = false; return false;
+    }
+    if (errArg.name === 'RangeError') {
+      const call = throwingCall(n.arguments?.[1]);
+      const tc = call ? resolveTemporalCall(call.callee) : null;
+      const firstArg = call?.arguments?.[0];
+      const isStringParseFrom = tc !== null && tc.method === 'from'
+        && STRING_PARSE_FIRST_FROM_CLASSES.has(tc.className)
+        && firstArg?.type === 'Literal' && typeof firstArg.value === 'string';
+      if (!isStringParseFrom) { ok = false; return false; }
+      sawRangeStringParse = true;
+    }
+    return false; // assert.throws handled; don't descend further into it
+  });
+
+  return ok && sawRangeStringParse;
 }
 
 /**
