@@ -1631,6 +1631,10 @@ class Emitter {
       case 'RangeError': return '\\RangeException';
       case 'SyntaxError': return '\\RangeException';
       case 'TypeError':  return '\\TypeError';
+      // The test262 harness's Test262Error → its PHP counterpart. Used both as a
+      // class reference in `assert.throws(Test262Error, …)` (via transpileAsClassRef)
+      // and as a thrown value in positive-probe getter bodies (`throw new Test262Error()`).
+      case 'Test262Error': return '\\Temporal\\Tests\\Test262\\Test262Error';
       case 'Infinity':   return 'INF';
       case 'NaN':        return 'NAN';
       case 'Temporal':
@@ -2712,6 +2716,24 @@ class Emitter {
       }
     }
 
+    // Positive-probe getter bag: `{ key: literal, get probe() { throw new Test262Error() } }`.
+    // Lower to an anon class with the literal props declared plus a __get that throws
+    // Test262Error. The operation is expected to READ the probed key via a true Get(O, P)
+    // (Options::bagGet, used by PlainDate::toZonedDateTime / Instant::toString), so __get
+    // fires and the surrounding assert.throws(Test262Error, …) catches it. Declared props
+    // are read directly (no throw).
+    const positiveBag = positiveProbeGetterBag(node);
+    if (positiveBag !== null) {
+      const decls = positiveBag.initProps.map(({ name, valueNode }) => {
+        const v = this.transpileExpr(valueNode);
+        return v === null ? null : `public mixed $${name} = ${v};`;
+      });
+      if (!decls.includes(null)) {
+        const declStr = decls.length > 0 ? decls.join(' ') + ' ' : '';
+        return `new class { ${declStr}public function __get(string $name): mixed { throw new \\Temporal\\Tests\\Test262\\Test262Error(); } }`;
+      }
+    }
+
     if (node.properties.length === 0) {
       return this.objectMode ? '(object) []' : '[]';
     }
@@ -3397,6 +3419,63 @@ function lazyBagGetterProbe(node) {
   if (getterNames.length === 0) return null;
   // Gate: at least one init prop, OR every getter is an assertUnreachable marker.
   if (initProps.length === 0 && !allGettersAssertUnreachable) return null;
+  return { initProps, getterNames };
+}
+
+/**
+ * Returns true if a getter accessor body is a pure POSITIVE probe — a single
+ * BARE `throw new Test262Error()` (NO message). This is the exact complement of
+ * isNegativeProbeGetterBody's message requirement: a positive probe's throw is
+ * the asserted outcome (the operation is expected to READ the property and the
+ * surrounding `assert.throws(Test262Error, …)` catches the throw).
+ */
+function isPositiveProbeGetterBody(fn) {
+  if (fn?.type !== 'FunctionExpression' || fn.params.length !== 0) return false;
+  const body = fn.body;
+  if (body?.type !== 'BlockStatement' || body.body.length !== 1) return false;
+  const first = body.body[0];
+  if (first.type !== 'ThrowStatement') return false;
+  const thrown = first.argument;
+  return thrown?.type === 'NewExpression'
+    && thrown.callee?.type === 'Identifier' && thrown.callee.name === 'Test262Error'
+    && (thrown.arguments?.length ?? 0) === 0;
+}
+
+/**
+ * Detects a "positive-probe getter bag": an ObjectExpression whose getters are
+ * all bare `throw new Test262Error()` probes (see isPositiveProbeGetterBody),
+ * optionally mixed with plain `key: literal` init props. Returns
+ * `{ initProps, getterNames }` for emission, or null otherwise.
+ *
+ * Lowered (in transpileObject) to an anonymous class with the literal init props
+ * declared plus `public function __get(string $name): mixed { throw new Test262Error(); }`.
+ * Unlike the negative-probe bag (which relies on the spec layer NOT reading the
+ * probe), this is faithful only when the operation genuinely READS the probed
+ * property via a true Get(O, P) — the bag-reading sites that do so are
+ * PlainDate::toZonedDateTime and Instant::toString, which use Options::bagGet
+ * (firing __get). A declared init prop is read directly (no throw); the probed
+ * key is read via __get and throws, exactly matching the fixture intent.
+ */
+function positiveProbeGetterBag(node) {
+  if (node?.type !== 'ObjectExpression' || node.properties.length === 0) return null;
+  const initProps = [];   // [{ name, valueNode }]
+  const getterNames = []; // string[]
+
+  for (const prop of node.properties) {
+    if (prop.type !== 'Property' || prop.computed || prop.key?.type !== 'Identifier') return null;
+    if (prop.kind === 'init') {
+      if (prop.method) return null;
+      if (prop.value?.type !== 'Literal') return null;
+      initProps.push({ name: prop.key.name, valueNode: prop.value });
+    } else if (prop.kind === 'get') {
+      if (!isPositiveProbeGetterBody(prop.value)) return null;
+      getterNames.push(prop.key.name);
+    } else {
+      return null; // setter or other accessor kind
+    }
+  }
+
+  if (getterNames.length === 0) return null;
   return { initProps, getterNames };
 }
 

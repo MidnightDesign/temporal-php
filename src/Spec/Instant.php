@@ -516,6 +516,12 @@ final class Instant implements Stringable
      */
     public function toString(array|object|null $options = null): string
     {
+        // Read "timeZone" via the faithful TC39 Get(O, P) helper on the ORIGINAL
+        // bag (before normalizeOptions snapshots it) so that an accessor getter —
+        // used by test262's positive-probe `{ get timeZone(){ throw } }` — fires on
+        // read. normalizeOptions uses get_object_vars(), which never triggers __get.
+        // The resulting value is validated below exactly as before.
+        $timeZoneRaw = $options === null ? Options::ABSENT : Options::bagGet($options, 'timeZone');
         $options = Options::normalizeOptions($options);
 
         // $digits: -2 = 'auto' (strip trailing zeros), -1 = minute format, 0-9 = fixed.
@@ -554,20 +560,22 @@ final class Instant implements Stringable
         }
 
         // timeZone: must be a string; non-string (including null) → TypeError.
-        if (array_key_exists('timeZone', $options)) {
-            /** @var mixed $tzVal */
-            $tzVal = $options['timeZone'];
-            if (!is_string($tzVal)) {
+        // $timeZoneRaw was read from the original bag above (firing any accessor
+        // getter); ABSENT means the property was not present.
+        $hasTimeZone = $timeZoneRaw !== Options::ABSENT;
+        if ($hasTimeZone) {
+            if (!is_string($timeZoneRaw)) {
                 throw new TypeError('timeZone must be a string.');
             }
-            self::validateTimeZoneString($tzVal);
+            self::validateTimeZoneString($timeZoneRaw);
         }
 
         // Resolve timezone offset in seconds (null = UTC / 'Z' suffix).
         $tzOffsetSec = null;
         $ianaTimeZone = null;
-        if (array_key_exists('timeZone', $options)) {
-            $tzStr = (string) $options['timeZone'];
+        if ($hasTimeZone) {
+            /** @var string $timeZoneRaw */
+            $tzStr = $timeZoneRaw;
             $resolved = self::resolveTimeZoneOffsetSeconds($tzStr);
             if ($resolved !== null) {
                 $tzOffsetSec = $resolved;

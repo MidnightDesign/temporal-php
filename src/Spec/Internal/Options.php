@@ -302,6 +302,55 @@ final class Options
     }
 
     /**
+     * Sentinel returned by {@see self::bagGet()} when a property is ABSENT from the
+     * bag (the JS equivalent of `Get(O, P)` yielding `undefined` for a missing own
+     * property). Distinct from a declared property whose value is `null`, which
+     * {@see self::bagGet()} returns as `null`.
+     */
+    public const string ABSENT = "\0Temporal\\Spec\\Internal\\Options::ABSENT\0";
+
+    /**
+     * Faithful TC39 `Get(O, P)` for a property bag.
+     *
+     * Unlike {@see self::normalizeOptions()} (which snapshots an object's declared
+     * public properties via get_object_vars() and therefore never triggers PHP's
+     * `__get` magic), this reads a single named property in a way that fires an
+     * accessor getter when one is defined — matching JS's `[[Get]]`, where reading
+     * a property invokes its getter. The order of checks mirrors the JS semantics:
+     *
+     *   - array bag: present key → its value; otherwise {@see self::ABSENT}.
+     *   - object with a DECLARED property `$p` (including a declared `null` value):
+     *     direct read, never dispatching through `__get`.
+     *   - object exposing `__get`: read `$o->$p`, firing the accessor getter (whose
+     *     body may legitimately throw — that throw must propagate).
+     *   - otherwise: {@see self::ABSENT}.
+     *
+     * @param array<array-key, mixed>|object $bag
+     *
+     * @return mixed the property value, or {@see self::ABSENT} if not present.
+     */
+    public static function bagGet(array|object $bag, string $prop): mixed
+    {
+        if (is_array($bag)) {
+            return array_key_exists($prop, $bag) ? $bag[$prop] : self::ABSENT;
+        }
+        // Declared public property (including a declared `null`): read it without
+        // dispatching through __get. get_object_vars() from this scope returns only
+        // public properties, matching what a property bag exposes.
+        $vars = get_object_vars($bag);
+        if (array_key_exists($prop, $vars)) {
+            return $vars[$prop];
+        }
+        if (method_exists($bag, '__get')) {
+            // Accessor getter: a runtime property name is intrinsic to Get(O, P);
+            // the getter body may legitimately throw, which must propagate.
+            /** @phpstan-ignore property.dynamicName */
+            return $bag->{$prop};
+        }
+        return self::ABSENT;
+    }
+
+    /**
      * TC39 GetStringOrNumberOption(options, "fractionalSecondDigits", «"auto"», 0, 9, "auto"),
      * applied to an already-read value. A Number (int or float) is range-checked
      * (NaN/±∞ → RangeError) and floored to an integer in 0–9; any non-number value is

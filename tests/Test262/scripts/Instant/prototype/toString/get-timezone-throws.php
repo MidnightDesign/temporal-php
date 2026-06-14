@@ -9,4 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
-Assert::incomplete('untranslatable object property');
+$options = new class { public function __get(string $name): mixed { throw new \Temporal\Tests\Test262\Test262Error(); } };
+Assert::throws(\Temporal\Tests\Test262\Test262Error::class, function () use (&$instance, &$options) { return $instance->toString($options); }, '');

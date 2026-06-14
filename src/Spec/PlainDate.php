@@ -710,15 +710,16 @@ final class PlainDate implements Stringable
             $tzId = TimeZoneHelper::normalizeTimezoneId($item);
             return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0, startOfDay: true);
         }
-        if (is_object($item)) {
-            $item = get_object_vars($item);
-        }
-        // Property bag: must have 'timeZone' key.
-        if (!array_key_exists('timeZone', $item)) {
+        // Property bag (array or object). Read each property via the faithful
+        // TC39 Get(O, P) helper so that an accessor getter — used by test262's
+        // positive-probe fixtures, `{ get timeZone(){ throw } }` — fires on read.
+        // get_object_vars() would snapshot only declared props and never trigger it.
+        // Spec order: Get(item, "timeZone") first, then Get(item, "plainTime").
+        /** @var mixed $tzRaw */
+        $tzRaw = Options::bagGet($item, 'timeZone');
+        if ($tzRaw === Options::ABSENT) {
             throw new TypeError('PlainDate::toZonedDateTime() property bag must have a timeZone property.');
         }
-        /** @var mixed $tzRaw */
-        $tzRaw = $item['timeZone'];
         if (!is_string($tzRaw)) {
             throw new TypeError(sprintf(
                 'PlainDate::toZonedDateTime() timeZone must be a string; got %s.',
@@ -727,17 +728,20 @@ final class PlainDate implements Stringable
         }
         $tzId = TimeZoneHelper::normalizeTimezoneId($tzRaw);
 
-        // Optional plainTime: if the key is present, pass through PlainTime::from()
-        // (null throws TypeError, matching JS behavior where null !== undefined).
+        // Optional plainTime: probed UNCONDITIONALLY (the spec performs Get(item,
+        // "plainTime") whenever timeZone is present). ABSENT → startOfDay; a declared
+        // null → TypeError (null !== undefined in JS); otherwise pass through
+        // PlainTime::from().
         $h = 0;
         $m = 0;
         $s = 0;
         $ms = 0;
         $us = 0;
         $ns = 0;
-        if (array_key_exists('plainTime', $item)) {
-            /** @var mixed $ptRaw */
-            $ptRaw = $item['plainTime'];
+        /** @var mixed $ptRaw */
+        $ptRaw = Options::bagGet($item, 'plainTime');
+        $hasPlainTime = $ptRaw !== Options::ABSENT;
+        if ($hasPlainTime) {
             if ($ptRaw === null) {
                 throw new TypeError('PlainDate::toZonedDateTime() plainTime must not be null.');
             }
@@ -756,8 +760,7 @@ final class PlainDate implements Stringable
             $ns = $t->nanosecond;
         }
         // Use startOfDay when no plainTime is explicitly provided.
-        $useStartOfDay = !array_key_exists('plainTime', $item);
-        return $this->createZdt($tzId, $h, $m, $s, $ms, $us, $ns, startOfDay: $useStartOfDay);
+        return $this->createZdt($tzId, $h, $m, $s, $ms, $us, $ns, startOfDay: !$hasPlainTime);
     }
 
     /**
