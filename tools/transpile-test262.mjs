@@ -555,13 +555,14 @@ class Emitter {
     // Used by BigInt(var) constant folding to look up whether a variable holds a known
     // integer value (e.g. `const epochMs = 1735213600321` → constNumericVars.get('epochMs') = 1735213600321).
     this.constNumericVars = new Map();
-    // Variables bound to an extracted Temporal method reference, used by the
-    // "branding" fixtures: `const M = Temporal.X.prototype.method`. Every fixture
-    // using these only ever does `assert.sameValue(typeof M, 'function')` and
-    // `assert.throws(TypeError, () => M.call/apply(<invalid receiver>))`, which is
-    // language-guaranteed in PHP (a final-class method cannot be invoked off
-    // undefined/null/scalar/{}/class). Maps JS var name → { class, member, isGetter }.
-    // See emitAssertThrows / emitSameValue / transpileVarDecl.
+    // Variables bound to an extracted Temporal method or readonly-property getter
+    // reference, used by the "branding" fixtures: `const M = Temporal.X.prototype.method`
+    // or `const M = Object.getOwnPropertyDescriptor(Temporal.X.prototype, 'p').get`.
+    // Every fixture using these only ever does `assert.sameValue(typeof M, 'function')`
+    // and `assert.throws(TypeError, () => M.call/apply(<invalid receiver>))`, which is
+    // language-guaranteed in PHP (a final-class method cannot be invoked, nor a readonly
+    // property read, off undefined/null/scalar/{}/class). Maps JS var name →
+    // { class, member, isGetter }. See emitAssertThrows / emitSameValue / transpileVarDecl.
     this.brandedRefVars = new Map();
   }
 
@@ -846,6 +847,19 @@ class Emitter {
           // array is NOT is_callable() without a receiver, so emitting one would
           // be both dead and misleading.
           this.emitSkipComment(decl, `extracted instance-method reference (branding); receiver checks handled at use sites`);
+          continue;
+        }
+        // Getter-branding: `const M = Object.getOwnPropertyDescriptor(Temporal.X.prototype, 'prop').get`.
+        // In the PHP spec layer these are readonly PROPERTIES, not getter-functions, so there
+        // is no callable value to bind. Record M (with isGetter:true) and emit nothing; the
+        // `typeof M === 'function'` line and the invalid-receiver throws are special-cased
+        // for these refs in emitSameValue / emitAssertThrows.
+        const getterTarget = parseGetterDescriptorTarget(decl.init);
+        if (getterTarget) {
+          this.brandedRefVars.set(decl.id.name, {
+            class: getterTarget.class, member: getterTarget.prop, isGetter: true,
+          });
+          this.emitSkipComment(decl, `extracted readonly-property getter reference (branding); PHP has no getter-function value`);
           continue;
         }
       }
@@ -3666,6 +3680,27 @@ function parseVerifyPropertyTarget(node) {
   }
 
   return null;
+}
+
+/**
+ * Parses `Object.getOwnPropertyDescriptor(Temporal.X.prototype, "prop").get`
+ * into `{ class: 'X', prop: 'prop' }`, else null. Used by the getter-branding
+ * fixtures, where a readonly-property accessor is extracted as a reference and
+ * then invoked against invalid receivers (which is language-guaranteed to throw
+ * in PHP — a final-class readonly property cannot be read off a non-instance).
+ */
+function parseGetterDescriptorTarget(node) {
+  if (!node || node.type !== 'MemberExpression' || node.computed) return null;
+  if (node.property.type !== 'Identifier' || node.property.name !== 'get') return null;
+  const call = node.object;
+  if (!call || call.type !== 'CallExpression') return null;
+  if (!isMember(call.callee, 'Object', 'getOwnPropertyDescriptor')) return null;
+  if (call.arguments.length < 2) return null;
+  const protoTarget = parseVerifyPropertyTarget(call.arguments[0]);
+  if (!protoTarget || protoTarget.type !== 'prototype') return null;
+  const propArg = call.arguments[1];
+  if (propArg.type !== 'Literal' || typeof propArg.value !== 'string') return null;
+  return { class: protoTarget.class, prop: propArg.value };
 }
 
 /**
