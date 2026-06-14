@@ -104,6 +104,54 @@ const INSTANT_UNIMPLEMENTED_METHODS = new Set([]);
 const INSTANT_ONLY_METHODS = new Set([]);
 
 /**
+ * String / array instance methods whose translation is a pure template over the
+ * (already-transpiled) receiver and arguments: transpile the receiver, transpile
+ * 0-2 args (applying a PHP-literal default for omitted optional args), null-check,
+ * and emit a fixed PHP expression. The generic handler in transpileCall looks the
+ * JS method name up here so adding a new one is a single table entry.
+ *
+ * Each entry:
+ *   minArgs  optional — if the call site supplies fewer args, the handler declines
+ *            (returns undefined) and the call falls through to the generic path,
+ *            matching the historical `node.arguments.length >= N` guards.
+ *   build    (recv, args) => phpString, where `args` is the list of transpiled
+ *            argument expressions (length = number of args actually supplied).
+ *
+ * Methods that need var-tracking context (toString, concat) or dispatch on the
+ * argument shape (match's regex-literal guard) stay as bespoke blocks below.
+ */
+const SIMPLE_METHOD_CALLS = {
+  // str.repeat(n) → str_repeat($str, (int) $n)
+  repeat: (recv, args) => `str_repeat(${recv}, (int) (${args[0] ?? '1'}))`,
+  // str.padStart(len, fill) → str_pad($str, $len, $fill, STR_PAD_LEFT)
+  padStart: { minArgs: 1, build: (recv, args) => `str_pad(${recv}, ${args[0]}, ${args[1] ?? "' '"}, STR_PAD_LEFT)` },
+  // obj.slice(start[, end]) → Js::slice($obj, $start[, $end]) (strings and arrays)
+  slice: (recv, args) => `\\Temporal\\Tests\\Test262\\Js::slice(${recv}, ${args[0] ?? '0'}${args[1] !== undefined ? `, ${args[1]}` : ''})`,
+  // str.substr(start[, len]) → substr(string: $str, offset: $start[, length: $len])
+  substr: (recv, args) => `substr(string: ${recv}, offset: ${args[0] ?? '0'}${args[1] !== undefined ? `, length: ${args[1]}` : ''})`,
+  // str.split(delim) → explode($delim, $str)
+  split: { minArgs: 1, build: (recv, args) => `explode(${args[0]}, ${recv})` },
+  // n.toPrecision(digits) → Js::toPrecision($n, $digits)
+  toPrecision: { minArgs: 1, build: (recv, args) => `\\Temporal\\Tests\\Test262\\Js::toPrecision(${recv}, ${args[0]})` },
+  // obj.includes(needle) → Js::includes($obj, $needle) (strings and arrays)
+  includes: (recv, args) => `\\Temporal\\Tests\\Test262\\Js::includes(${recv}, ${args[0] ?? "''"})`,
+  // str.startsWith(needle) → Js::startsWith($str, $needle)
+  startsWith: (recv, args) => `\\Temporal\\Tests\\Test262\\Js::startsWith(${recv}, ${args[0] ?? "''"})`,
+  // str.endsWith(needle) → Js::endsWith($str, $needle)
+  endsWith: (recv, args) => `\\Temporal\\Tests\\Test262\\Js::endsWith(${recv}, ${args[0] ?? "''"})`,
+};
+
+/**
+ * Instance method names that have no translatable PHP form in the corpus; the
+ * generic handler emits the given incomplete reason and bails. Kept separate from
+ * SIMPLE_METHOD_CALLS so the "give up" cases read as data rather than templates.
+ */
+const UNTRANSLATABLE_METHOD_CALLS = {
+  map: 'untranslatable: Array.prototype.map()',
+  indexOf: 'untranslatable: Array.prototype.indexOf()',
+};
+
+/**
  * TemporalHelpers methods that have been implemented in PHP.
  * Other TemporalHelpers calls → emitIncomplete.
  */
@@ -1895,15 +1943,6 @@ class Emitter {
       return null;
     }
 
-    // str.repeat(n) → str_repeat(str, n)
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'repeat') {
-      const str  = this.transpileExpr(callee.object);
-      const n    = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : '1';
-      if (str === null || n === null) return null;
-      return `str_repeat(${str}, (int) (${n}))`;
-    }
-
     // x.toString() → (string) ($x) — JS primitive .toString() maps to PHP string cast.
     // Works for numbers, booleans, and strings (no-op for strings). Temporal objects
     // that expose a PHP toString() method go through the generic call path below and
@@ -1924,23 +1963,36 @@ class Emitter {
       }
     }
 
-    // .padStart(n, fill) → str_pad($str, n, fill, STR_PAD_LEFT)
+    // Pure-template string/array instance methods (repeat, padStart, slice, substr,
+    // split, toPrecision, includes, startsWith, endsWith) and the untranslatable ones
+    // (map, indexOf) are driven by data tables. Transpile receiver + args once,
+    // null-check once, then apply the matched template.
     if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'padStart'
-        && node.arguments.length >= 1) {
-      const str = this.transpileExpr(callee.object);
-      const len = this.transpileExpr(node.arguments[0]);
-      if (str === null || len === null) return null;
-      const fill = node.arguments[1] ? this.transpileExpr(node.arguments[1]) : "' '";
-      if (fill === null) return null;
-      return `str_pad(${str}, ${len}, ${fill}, STR_PAD_LEFT)`;
-    }
-
-    // arr.map(fn) → not directly translatable
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'map') {
-      this.emitIncomplete('untranslatable: Array.prototype.map()');
-      return null;
+        && callee.property.type === 'Identifier') {
+      const methodName = callee.property.name;
+      // Use Object.hasOwn so method names that collide with Object.prototype
+      // members (toString, valueOf, constructor, …) are not falsely matched.
+      if (Object.hasOwn(SIMPLE_METHOD_CALLS, methodName)) {
+        const simple = SIMPLE_METHOD_CALLS[methodName];
+        const entry = typeof simple === 'function' ? { build: simple } : simple;
+        // Honor the historical `arguments.length >= minArgs` guards: when too few
+        // args are supplied, decline so the call falls through to the generic path.
+        if (entry.minArgs === undefined || node.arguments.length >= entry.minArgs) {
+          const recv = this.transpileExpr(callee.object);
+          if (recv === null) return null;
+          const args = [];
+          for (const argNode of node.arguments) {
+            const a = this.transpileExpr(argNode);
+            if (a === null) return null;
+            args.push(a);
+          }
+          return entry.build(recv, args);
+        }
+      }
+      if (Object.hasOwn(UNTRANSLATABLE_METHOD_CALLS, methodName)) {
+        this.emitIncomplete(UNTRANSLATABLE_METHOD_CALLS[methodName]);
+        return null;
+      }
     }
 
     // arr.concat(other, ...) → array_merge($arr, $other, ...)
@@ -1967,65 +2019,6 @@ class Emitter {
       return `array_merge(${parts.join(', ')})`;
     }
 
-    // .slice(start[, end]) → Js::slice($obj, $start[, $end])
-    // Works for both strings (all temporal fixtures) and arrays.
-    // .indexOf() has no temporal fixtures; keep it incomplete.
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'slice') {
-      const obj   = this.transpileExpr(callee.object);
-      const start = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : '0';
-      if (obj === null || start === null) return null;
-      if (node.arguments[1]) {
-        const end = this.transpileExpr(node.arguments[1]);
-        if (end === null) return null;
-        return `\\Temporal\\Tests\\Test262\\Js::slice(${obj}, ${start}, ${end})`;
-      }
-      return `\\Temporal\\Tests\\Test262\\Js::slice(${obj}, ${start})`;
-    }
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'indexOf') {
-      this.emitIncomplete(`untranslatable: Array.prototype.indexOf()`);
-      return null;
-    }
-
-    // str.substr(start[, len]) → substr(string: $str, offset: $start[, length: $len])
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'substr') {
-      const str   = this.transpileExpr(callee.object);
-      const start = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : '0';
-      if (str === null || start === null) return null;
-      if (node.arguments[1]) {
-        const len = this.transpileExpr(node.arguments[1]);
-        if (len === null) return null;
-        return `substr(string: ${str}, offset: ${start}, length: ${len})`;
-      }
-      return `substr(string: ${str}, offset: ${start})`;
-    }
-
-    // str.split(delim) → explode($delim, $str)
-    // JS String.prototype.split: returns an array of substrings.
-    // Used in temporal fixtures to split ISO date strings by "-" and extract components.
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'split'
-        && node.arguments.length >= 1) {
-      const str   = this.transpileExpr(callee.object);
-      const delim = this.transpileExpr(node.arguments[0]);
-      if (str === null || delim === null) return null;
-      return `explode(${delim}, ${str})`;
-    }
-
-    // n.toPrecision(digits) → \Temporal\Tests\Test262\Js::toPrecision($n, $digits)
-    // JS Number.prototype.toPrecision(p): returns a string representation with p
-    // significant digits. Used in total() result comparison fixtures.
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'toPrecision'
-        && node.arguments.length >= 1) {
-      const num    = this.transpileExpr(callee.object);
-      const digits = this.transpileExpr(node.arguments[0]);
-      if (num === null || digits === null) return null;
-      return `\\Temporal\\Tests\\Test262\\Js::toPrecision(${num}, ${digits})`;
-    }
-
     // str.match(regex) → (preg_match(pattern, $str, $__m) ? $__m : null)
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.property.name === 'match'
@@ -2035,35 +2028,6 @@ class Emitter {
       const pat = this.transpileExpr(node.arguments[0]);
       if (str === null || pat === null) return null;
       return `(preg_match(${pat}, ${str}, $__m) ? $__m : null)`;
-    }
-
-    // .includes(needle) → Js::includes($haystack, $needle)
-    // Handles both strings (str_contains) and arrays (strict in_array).
-    // Position argument is ignored, matching the existing behaviour.
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'includes') {
-      const haystack = this.transpileExpr(callee.object);
-      const needle   = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : "''";
-      if (haystack === null || needle === null) return null;
-      return `\\Temporal\\Tests\\Test262\\Js::includes(${haystack}, ${needle})`;
-    }
-
-    // .startsWith(needle) → Js::startsWith($str, $needle)
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'startsWith') {
-      const str    = this.transpileExpr(callee.object);
-      const needle = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : "''";
-      if (str === null || needle === null) return null;
-      return `\\Temporal\\Tests\\Test262\\Js::startsWith(${str}, ${needle})`;
-    }
-
-    // .endsWith(needle) → Js::endsWith($str, $needle)
-    if (callee.type === 'MemberExpression' && !callee.computed
-        && callee.property.name === 'endsWith') {
-      const str    = this.transpileExpr(callee.object);
-      const needle = node.arguments[0] ? this.transpileExpr(node.arguments[0]) : "''";
-      if (str === null || needle === null) return null;
-      return `\\Temporal\\Tests\\Test262\\Js::endsWith(${str}, ${needle})`;
     }
 
     // Temporal.X.y(arg)
