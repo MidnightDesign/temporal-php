@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $CustomError = function () {
 };
-Assert::incomplete('untranslatable statement: ClassDeclaration');
+// JS-only (getter-only Temporal subclass; getters never fire in PHP, aliased to PlainYearMonth): class AvoidGettersYearMonth extends Temporal.PlainYearMonth { get year() { throw new CustomError(); } get month() { throw new CustomError(); } }
+$one = new \Temporal\Spec\PlainYearMonth(2000, 5);
+$two = new \Temporal\Spec\PlainYearMonth(2006, 3);
+Assert::sameValue(\Temporal\Spec\PlainYearMonth::compare($one, $two), -1, '');

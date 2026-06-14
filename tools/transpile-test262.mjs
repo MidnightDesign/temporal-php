@@ -717,6 +717,20 @@ class Emitter {
       case 'BreakStatement':
         this.emit(node.label ? `break ${node.label.name};` : 'break;');
         break;
+      case 'ClassDeclaration': {
+        // Getter-only Temporal subclass (use-internal-slots fixtures): register the
+        // class as an alias of its Temporal base and drop the declaration. The
+        // throwing getters can never fire in PHP (property reads don't dispatch
+        // through getters), and `new X(args)` rewrites to `new Temporal\Spec\Base`.
+        const baseClass = parseGetterOnlyTemporalSubclass(node);
+        if (baseClass !== null) {
+          this.temporalClassAliases.set(node.id.name, baseClass);
+          this.emitSkipComment(node, `getter-only Temporal subclass; getters never fire in PHP, aliased to ${baseClass}`);
+          break;
+        }
+        this.emitIncomplete(`untranslatable statement: ${node.type}`);
+        break;
+      }
       default:
         this.emitIncomplete(`untranslatable statement: ${node.type}`);
     }
@@ -725,6 +739,12 @@ class Emitter {
   transpileVarDecl(node) {
     for (const decl of node.declarations) {
       if (decl.init === null) continue;
+      // Skip `const X = Array.prototype[Symbol.iterator]` (saving the original to
+      // restore later). The override + restore are JS-only and have no PHP effect.
+      if (isArrayPrototypeSymbolIterator(decl.init)) {
+        this.emitSkipComment(decl, 'saves Array.prototype[Symbol.iterator]; no PHP equivalent');
+        continue;
+      }
       if (decl.id.type === 'ObjectPattern') {
         // const { X } = Temporal; → track alias, emit nothing
         if (decl.init?.type === 'Identifier' && decl.init.name === 'Temporal') {
@@ -1130,6 +1150,14 @@ class Emitter {
         && node.expression.left.object.type === 'Identifier'
         && JS_GLOBALS.has(node.expression.left.object.name)) {
       this.emitSkipComment(node, 'JS global property override has no PHP equivalent');
+      return;
+    }
+    // Skip `Array.prototype[Symbol.iterator] = <iterator>` (override and restore).
+    // PHP has no Symbol.iterator dispatch; the override never fires (see
+    // isArrayPrototypeSymbolIterator). The real op statement is kept.
+    if (node.expression.type === 'AssignmentExpression'
+        && isArrayPrototypeSymbolIterator(node.expression.left)) {
+      this.emitSkipComment(node, 'Array.prototype[Symbol.iterator] override has no PHP equivalent');
       return;
     }
     // Drop statements that touch a JS-only tracker variable (ToPrimitive
@@ -3904,6 +3932,27 @@ function isMember(node, obj, prop) {
 }
 
 /**
+ * Returns true if `node` is the computed member expression `Array.prototype[Symbol.iterator]`.
+ *
+ * The `no-observable-array-iteration` / `builtin-calendar-no-array-iteration`
+ * fixtures save this slot, override it with a throwing iterator, run a Temporal op,
+ * then restore it — asserting that the op performs no observable array iteration.
+ * PHP has no Symbol.iterator dispatch, so the override is a no-op and the asserted
+ * outcome (the op runs without firing the throwing iterator) is structurally
+ * guaranteed. Statements that read or write this slot are skipped; the real op
+ * statement is kept and transpiled normally.
+ */
+function isArrayPrototypeSymbolIterator(node) {
+  return node?.type === 'MemberExpression'
+    && node.computed
+    && node.object?.type === 'MemberExpression'
+    && !node.object.computed
+    && node.object.object?.type === 'Identifier' && node.object.object.name === 'Array'
+    && node.object.property?.type === 'Identifier' && node.object.property.name === 'prototype'
+    && isMember(node.property, 'Symbol', 'iterator');
+}
+
+/**
  * Walk up a chain of MemberExpression nodes to find the root Identifier name.
  * For `a.b.c`, returns `'a'`. For a non-MemberExpression root, returns null.
  */
@@ -4070,6 +4119,42 @@ function parsePropDescAccessorProgram(body) {
   }
   if (!['get', 'set', 'enumerable', 'configurable'].every(k => seen.has(k))) return null;
   return { class: protoTarget.class, prop: propArg.value };
+}
+
+/**
+ * Recognizes `class X extends Temporal.Y { get a(){…} … }` whose body contains
+ * ONLY instance getter methods (kind: 'get') and nothing else — no constructor,
+ * no fields, no regular/static methods, no setters.
+ *
+ * These are the `use-internal-slots` fixtures: the getter-only subclass installs
+ * throwing getters and then asserts that compare()/equals() reads internal slots,
+ * never the observable getters. PHP property reads never dispatch through getters,
+ * so a plain base-class instance produces the identical result. Such a class can be
+ * registered as an alias of Temporal\Spec\Y and its declaration dropped: every
+ * `new X(args)` rewrites to `new Temporal\Spec\Y(args)`, and the getters (which
+ * could never fire in PHP) are discarded.
+ *
+ * Returns the base Temporal class name (e.g. 'PlainDate'), or null. Requiring a
+ * getter-only body distinguishes these from `subclass.js` (a real subclassing floor
+ * that adds constructors / instanceof checks), which must stay incomplete.
+ */
+function parseGetterOnlyTemporalSubclass(node) {
+  if (node.type !== 'ClassDeclaration' || !node.id) return null;
+  const sup = node.superClass;
+  // superClass must be `Temporal.Y`.
+  if (!sup || sup.type !== 'MemberExpression' || sup.computed) return null;
+  if (sup.object?.type !== 'Identifier' || sup.object.name !== 'Temporal') return null;
+  if (sup.property?.type !== 'Identifier') return null;
+  const baseClass = sup.property.name;
+
+  const members = node.body?.body ?? [];
+  if (members.length === 0) return null;
+  for (const m of members) {
+    // Only non-static instance getters are permitted.
+    if (m.type !== 'MethodDefinition') return null;
+    if (m.kind !== 'get' || m.static) return null;
+  }
+  return baseClass;
 }
 
 /**

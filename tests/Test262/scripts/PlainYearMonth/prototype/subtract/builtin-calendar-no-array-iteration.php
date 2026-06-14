@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Array.prototype');
+// JS-only (saves Array.prototype[Symbol.iterator]; no PHP equivalent): arrayPrototypeSymbolIteratorOriginal = Array.prototype[Symbol.iterator]
+// JS-only (Array.prototype[Symbol.iterator] override has no PHP equivalent): Array.prototype[Symbol.iterator] = function arrayIterator() { throw new Test262Error("Array should not be iterated"); }
+$instance = new \Temporal\Spec\PlainYearMonth(2023, 5, 'iso8601');
+$instance->subtract(['years' => 5, 'months' => 2]);
+// JS-only (Array.prototype[Symbol.iterator] override has no PHP equivalent): Array.prototype[Symbol.iterator] = arrayPrototypeSymbolIteratorOriginal;
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');
