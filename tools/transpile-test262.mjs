@@ -768,6 +768,18 @@ class Emitter {
         this.emitSkipComment(decl, 'saves Array.prototype[Symbol.iterator]; no PHP equivalent');
         continue;
       }
+      // Skip `const X = Object.getOwnPropertyDescriptors(Temporal.Y.prototype)` (the
+      // getter-spy snapshot of the *-zoneddatetime-slots fixtures). PHP cannot snapshot
+      // or re-install prototype getters; the value is only read inside the (skipped)
+      // getter-spy install loop. Register X as a JS-only var so any stray reference is
+      // dropped, and emit nothing.
+      if (decl.id.type === 'Identifier'
+          && decl.init.type === 'CallExpression'
+          && isMember(decl.init.callee, 'Object', 'getOwnPropertyDescriptors')) {
+        this.jsOnlyVars.add(decl.id.name);
+        this.emitSkipComment(decl, 'Object.getOwnPropertyDescriptors snapshot has no PHP equivalent');
+        continue;
+      }
       if (decl.id.type === 'ObjectPattern') {
         // const { X } = Temporal; → track alias, emit nothing
         if (decl.init?.type === 'Identifier' && decl.init.name === 'Temporal') {
@@ -1369,6 +1381,14 @@ class Emitter {
     // Object.prototype cleanup loop: `for (const prop of props) delete Object.prototype[prop]`.
     if (isObjectPrototypeDeleteBody(node.body)) {
       this.emitSkipComment(node, 'Object.prototype cleanup has no PHP equivalent');
+      return;
+    }
+    // Getter-spy install loop (*-zoneddatetime-slots): `for (const property of getters)
+    // Object.defineProperty(Temporal.X.prototype, property, {get(){actual.push(…)…}})`.
+    // PHP cannot monkey-patch prototype getters and never reads through them, so the spy
+    // never fires; the trailing compareArray(actual, []) then compares [] vs [] (passes).
+    if (isTemporalPrototypeDefinePropertyBody(node.body)) {
+      this.emitSkipComment(node, 'getter-spy on Temporal prototype has no PHP equivalent');
       return;
     }
     // Detect TemporalHelpers.X used as iterable — not translatable, except for the
@@ -4025,6 +4045,30 @@ function isObjectPrototypeDefinePropertyBody(stmt) {
     && !target.computed
     && target.object?.type === 'Identifier' && target.object.name === 'Object'
     && target.property?.type === 'Identifier' && target.property.name === 'prototype';
+}
+
+/**
+ * Returns true if `stmt` (possibly a BlockStatement) is SOLELY an
+ * `Object.defineProperty(Temporal.X.prototype, <key>, { … })` call — the getter-spy
+ * install body of the `*-zoneddatetime-slots` fixtures. These snapshot a Temporal
+ * prototype's getters, monkey-patch each one to log to an `actual` array, run a
+ * slot-based conversion op, then assert `compareArray(actual, [])`. PHP cannot
+ * monkey-patch prototype getters and never dispatches reads through them, so the
+ * spy never fires and `actual` stays empty. The install loop is skipped.
+ */
+function isTemporalPrototypeDefinePropertyBody(stmt) {
+  let s = stmt;
+  if (s?.type === 'BlockStatement') {
+    const body = s.body.filter(n => n.type !== 'EmptyStatement');
+    if (body.length !== 1) return false;
+    s = body[0];
+  }
+  if (s?.type !== 'ExpressionStatement' || s.expression.type !== 'CallExpression') return false;
+  const call = s.expression;
+  if (!isMember(call.callee, 'Object', 'defineProperty')) return false;
+  if (call.arguments.length < 2) return false;
+  const target = parseVerifyPropertyTarget(call.arguments[0]);
+  return target !== null && target.type === 'prototype';
 }
 
 /**
