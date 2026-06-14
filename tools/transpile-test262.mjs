@@ -2687,6 +2687,26 @@ class Emitter {
     const classExpr = this.transpileAsClassRef(errorNode);
     if (classExpr === null) return null;
 
+    // Constructor called as a plain function: `assert.throws(TypeError, () => Temporal.X(args))`.
+    // In JS this throws TypeError because the constructor's NewTarget is undefined. PHP has no
+    // syntax to call a class as a function — the invariant is guaranteed by the language — so the
+    // only faithful, passing emission is a closure that throws \TypeError explicitly. This must
+    // run BEFORE the BigInt/valueOf guards: the call args (e.g. Instant's `0n`) are irrelevant to
+    // the test (it only checks call-as-function throws), so a BigInt arg must not bail here.
+    if (errorNode?.type === 'Identifier' && errorNode.name === 'TypeError'
+        && fnNode?.type === 'ArrowFunctionExpression'
+        && fnNode.body?.type === 'CallExpression'
+        && fnNode.body.callee?.type === 'MemberExpression'
+        && !fnNode.body.callee.computed
+        && fnNode.body.callee.object?.type === 'Identifier' && fnNode.body.callee.object.name === 'Temporal'
+        && fnNode.body.callee.property?.type === 'Identifier') {
+      const cls = fnNode.body.callee.property.name;
+      const msgPhp = msgNode ? this.transpileExpr(msgNode) : "''";
+      if (msgPhp !== null) {
+        return `Assert::throws(\\TypeError::class, fn() => throw new \\TypeError('Temporal\\\\Spec\\\\${cls} cannot be called as a function; use new'), ${msgPhp})`;
+      }
+    }
+
     // An option-bag value that is a BigInt literal (e.g. `{ fractionalSecondDigits: 2n }`)
     // can't be told apart from the equivalent Number in PHP, so the JS RangeError/TypeError
     // is not reproducible. Skip just this assertion; later ones in the fixture still run.
