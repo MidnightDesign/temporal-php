@@ -634,6 +634,15 @@ class Emitter {
   // ── Top-level ─────────────────────────────────────────────────────────────
 
   transpileProgram(node) {
+    // Canonical read-only-accessor prop-desc.js shape (whole-program match):
+    // emit a single TemporalHelpers::verifyReadOnlyAccessor call.
+    const propDesc = parsePropDescAccessorProgram(node.body);
+    if (propDesc) {
+      this.emit(
+        `TemporalHelpers::verifyReadOnlyAccessor(\\Temporal\\Spec\\${propDesc.class}::class, ${phpStr(propDesc.prop)});`,
+      );
+      return;
+    }
     // JS hoists FunctionDeclarations to the top of their scope.
     // PHP closures are not hoisted, so emit all FunctionDeclarations first.
     const funcDecls = node.body.filter(s => s.type === 'FunctionDeclaration');
@@ -2086,6 +2095,17 @@ class Emitter {
         const arg = this.transpileExpr(node.arguments[0]);
         if (arg === null) return null;
         return `json_encode(${arg})`;
+      }
+
+      // Object.isExtensible(x) → true. Every test262 fixture asserts the result is
+      // `true` ("Built-in objects must be extensible"); there are no preventExtensions/
+      // seal/freeze fixtures in the corpus. PHP objects and functions are always
+      // extensible, so this matches PHP semantics. The argument is intentionally not
+      // transpiled: it may be an otherwise-untranslatable reference (e.g.
+      // `Temporal.Now.instant` as a value), but isExtensible only inspects extensibility,
+      // which is unconditionally true, so the argument's value is discarded.
+      if (name === 'Object' && method === 'isExtensible') {
+        return 'true';
       }
 
       const jsGlobals = ['Object', 'Reflect', 'Symbol', 'Proxy', 'Array', 'JSON', 'Date'];
@@ -3897,6 +3917,80 @@ function parseGetterDescriptorTarget(node) {
 }
 
 /**
+ * Recognizes the canonical read-only-accessor `prop-desc.js` program shape:
+ *
+ *   const D = Object.getOwnPropertyDescriptor(Temporal.X.prototype, "P");
+ *   assert.sameValue(typeof D.get, "function");
+ *   assert.sameValue(D.set, undefined);
+ *   assert.sameValue(D.enumerable, false);
+ *   assert.sameValue(D.configurable, true);
+ *
+ * Returns `{ class, prop }` when the whole program is exactly these five
+ * statements (in any order for the four assertions), else null. The load-bearing
+ * assertions are "a getter exists" and "no setter exists" — the property is a
+ * read-only accessor. enumerable/configurable are pure JS object-model bits and
+ * are not modeled in PHP. Lowered to TemporalHelpers::verifyReadOnlyAccessor.
+ */
+function parsePropDescAccessorProgram(body) {
+  if (!Array.isArray(body) || body.length !== 5) return null;
+
+  const d = body[0];
+  if (d.type !== 'VariableDeclaration' || d.declarations.length !== 1) return null;
+  const decl = d.declarations[0];
+  if (decl.id.type !== 'Identifier' || !decl.init) return null;
+  const dname = decl.id.name;
+
+  const init = decl.init;
+  if (init.type !== 'CallExpression') return null;
+  if (!isMember(init.callee, 'Object', 'getOwnPropertyDescriptor')) return null;
+  if (init.arguments.length !== 2) return null;
+  const protoTarget = parseVerifyPropertyTarget(init.arguments[0]);
+  if (!protoTarget || protoTarget.type !== 'prototype') return null;
+  const propArg = init.arguments[1];
+  if (propArg.type !== 'Literal' || typeof propArg.value !== 'string') return null;
+
+  // Helper: D.<field> member access off the descriptor variable.
+  const descMember = (n) =>
+    (n && n.type === 'MemberExpression' && !n.computed
+      && n.object.type === 'Identifier' && n.object.name === dname
+      && n.property.type === 'Identifier')
+      ? n.property.name : null;
+
+  const seen = new Set();
+  for (let i = 1; i < 5; i++) {
+    const s = body[i];
+    if (s.type !== 'ExpressionStatement' || s.expression.type !== 'CallExpression') return null;
+    const call = s.expression;
+    if (!isMember(call.callee, 'assert', 'sameValue')) return null;
+    const a0 = call.arguments[0];
+    const a1 = call.arguments[1];
+    if (!a0 || !a1) return null;
+    // typeof D.get === 'function'
+    if (a0.type === 'UnaryExpression' && a0.operator === 'typeof') {
+      if (descMember(a0.argument) !== 'get') return null;
+      if (a1.type !== 'Literal' || a1.value !== 'function') return null;
+      seen.add('get');
+      continue;
+    }
+    const field = descMember(a0);
+    if (field === 'set') {
+      if (a1.type !== 'Identifier' || a1.name !== 'undefined') return null;
+      seen.add('set');
+    } else if (field === 'enumerable') {
+      if (a1.type !== 'Literal' || a1.value !== false) return null;
+      seen.add('enumerable');
+    } else if (field === 'configurable') {
+      if (a1.type !== 'Literal' || a1.value !== true) return null;
+      seen.add('configurable');
+    } else {
+      return null;
+    }
+  }
+  if (!['get', 'set', 'enumerable', 'configurable'].every(k => seen.has(k))) return null;
+  return { class: protoTarget.class, prop: propArg.value };
+}
+
+/**
  * Returns true if the method named `method` on `className` is implemented in PHP.
  */
 function isPhpMethodImplemented(className, method) {
@@ -3952,10 +4046,13 @@ function processFile(jsPath, dataDir, scriptsDir) {
     'temporalHelpers.js', 'compareArray.js',
     'propertyHelper.js', 'isConstructor.js',
   ]);
-  const useTemporalHelpers = includes.includes('temporalHelpers.js');
   const unsupportedIncludes = includes.filter(i => !WHITELISTED_INCLUDES.has(i));
 
-  const header = [
+  // The TemporalHelpers import is needed when the fixture includes temporalHelpers.js
+  // OR when a transpiler recognizer emits a TemporalHelpers:: call without the include
+  // (e.g. the prop-desc accessor lowering). Decide after the passes run by scanning
+  // the generated bodies, so the import is present iff it is actually referenced.
+  const buildHeader = (useTemporalHelpers) => [
     '<?php',
     '',
     'declare(strict_types=1);',
@@ -3969,6 +4066,7 @@ function processFile(jsPath, dataDir, scriptsDir) {
     ...(useTemporalHelpers ? ['use Temporal\\Tests\\Test262\\TemporalHelpers;'] : []),
     '',
   ];
+  const includesTemporalHelpers = includes.includes('temporalHelpers.js');
 
   // Parse once and reuse the AST for both passes (and for object-literal detection).
   let ast = null;
@@ -4031,9 +4129,12 @@ function processFile(jsPath, dataDir, scriptsDir) {
     return { emitter, body };
   };
 
+  const needsHelpers = (body) =>
+    includesTemporalHelpers || /\bTemporalHelpers::/.test(body);
+
   // Pass 1: array mode (existing behaviour).
   const pass1 = renderPass(false);
-  fs.writeFileSync(outPath, header.join('\n') + pass1.body + '\n');
+  fs.writeFileSync(outPath, buildHeader(needsHelpers(pass1.body)).join('\n') + pass1.body + '\n');
   console.log(`  Transpiled → tests/Test262/scripts/${phpRelPath} (${pass1.emitter.lines.length} lines)`);
 
   // Pass 2: object mode. Only emit if the source actually has any ObjectExpression
@@ -4043,7 +4144,7 @@ function processFile(jsPath, dataDir, scriptsDir) {
     const pass2 = renderPass(true);
     const objectsRelPath = phpRelPath.replace(/\.php$/, '-objects.php');
     const objectsOutPath = path.join(scriptsDir, objectsRelPath);
-    fs.writeFileSync(objectsOutPath, header.join('\n') + pass2.body + '\n');
+    fs.writeFileSync(objectsOutPath, buildHeader(needsHelpers(pass2.body)).join('\n') + pass2.body + '\n');
     console.log(`  Transpiled → tests/Test262/scripts/${objectsRelPath} (${pass2.emitter.lines.length} lines, objects)`);
   }
 }

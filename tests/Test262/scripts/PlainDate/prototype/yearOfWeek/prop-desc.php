@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Object.getOwnPropertyDescriptor');
+use Temporal\Tests\Test262\TemporalHelpers;
+TemporalHelpers::verifyReadOnlyAccessor(\Temporal\Spec\PlainDate::class, 'yearOfWeek');
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

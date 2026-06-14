@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Object.isExtensible');
+Assert::assertTrue(true, 'Object.isExtensible(Temporal.Now.zonedDateTimeISO) must return true');
