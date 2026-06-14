@@ -2704,16 +2704,13 @@ class Emitter {
     // Lower to an anon class with the literal props declared plus a throwing __get, so
     // get_object_vars() (how the spec layer reads bags) snapshots only the real props and
     // the probe never fires — matching the test's "must not read this property" intent.
-    const probeBag = lazyBagGetterProbe(node);
-    if (probeBag !== null) {
-      const decls = probeBag.initProps.map(({ name, valueNode }) => {
-        const v = this.transpileExpr(valueNode);
-        return v === null ? null : `public mixed $${name} = ${v};`;
-      });
-      if (!decls.includes(null)) {
-        const declStr = decls.length > 0 ? decls.join(' ') + ' ' : '';
-        return `new class { ${declStr}public function __get(string $name): mixed { throw new \\RuntimeException('test262: property '.$name.' must not be read'); } }`;
-      }
+    const negativeBag = probeGetterBag(node, isNegativeProbeGetterBody, negativeProbeGate);
+    if (negativeBag !== null) {
+      const cls = this.emitProbeBagAnonClass(
+        negativeBag.initProps,
+        "throw new \\RuntimeException('test262: property '.$name.' must not be read');",
+      );
+      if (cls !== null) return cls;
     }
 
     // Positive-probe getter bag: `{ key: literal, get probe() { throw new Test262Error() } }`.
@@ -2722,16 +2719,13 @@ class Emitter {
     // (Options::bagGet, used by PlainDate::toZonedDateTime / Instant::toString), so __get
     // fires and the surrounding assert.throws(Test262Error, …) catches it. Declared props
     // are read directly (no throw).
-    const positiveBag = positiveProbeGetterBag(node);
+    const positiveBag = probeGetterBag(node, isPositiveProbeGetterBody);
     if (positiveBag !== null) {
-      const decls = positiveBag.initProps.map(({ name, valueNode }) => {
-        const v = this.transpileExpr(valueNode);
-        return v === null ? null : `public mixed $${name} = ${v};`;
-      });
-      if (!decls.includes(null)) {
-        const declStr = decls.length > 0 ? decls.join(' ') + ' ' : '';
-        return `new class { ${declStr}public function __get(string $name): mixed { throw new \\Temporal\\Tests\\Test262\\Test262Error(); } }`;
-      }
+      const cls = this.emitProbeBagAnonClass(
+        positiveBag.initProps,
+        'throw new \\Temporal\\Tests\\Test262\\Test262Error();',
+      );
+      if (cls !== null) return cls;
     }
 
     if (node.properties.length === 0) {
@@ -2842,6 +2836,26 @@ class Emitter {
     }
     const merged = wrap('array_merge(' + chunks.join(', ') + ')');
     return this.objectMode ? '(object) ' + merged : merged;
+  }
+
+  /**
+   * Emits a probe-bag anonymous class: the literal init props declared as public
+   * properties plus a `__get` whose body is `throwStmt`. Shared by both probe-bag
+   * lowerings (negative: read-is-a-bug; positive: read-is-the-asserted-throw),
+   * which differ only in that throw statement. Returns null if any init prop
+   * value fails to transpile.
+   *
+   * @param {Array<{ name: string, valueNode: object }>} initProps
+   * @param {string} throwStmt a complete PHP throw statement, e.g. `throw new \\Foo();`
+   */
+  emitProbeBagAnonClass(initProps, throwStmt) {
+    const decls = initProps.map(({ name, valueNode }) => {
+      const v = this.transpileExpr(valueNode);
+      return v === null ? null : `public mixed $${name} = ${v};`;
+    });
+    if (decls.includes(null)) return null;
+    const declStr = decls.length > 0 ? decls.join(' ') + ' ' : '';
+    return `new class { ${declStr}public function __get(string $name): mixed { ${throwStmt} } }`;
   }
 
   // ── assert.* helpers ──────────────────────────────────────────────────────
@@ -3371,58 +3385,6 @@ function isNegativeProbeGetterBody(fn) {
 }
 
 /**
- * Detects a "negative-probe getter bag": an ObjectExpression that mixes plain
- * `key: literal` init properties with one or more non-computed getters whose
- * bodies are negative probes (throw / assertUnreachable; see
- * isNegativeProbeGetterBody). Returns `{ initProps, getterNames }` for emission,
- * or null when the node is not such a bag.
- *
- * Faithful in PHP because the spec layer reads option/fields bags via
- * get_object_vars(), which snapshots only DECLARED public properties and never
- * triggers PHP's __get magic. Lowering to an anonymous class with the init props
- * declared plus a throwing __get reproduces the semantics exactly: the getter
- * never fires for the success path (matching the assertion), and any code that
- * DID read a probed property would throw (matching the test's intent).
- *
- * Accepted only when EITHER there is at least one plain init prop (the probe is
- * an EXTRA field that must be ignored — e.g. `{ year, month, get day(){throw} }`)
- * OR every getter uses assertUnreachable (the explicit "must not read" marker —
- * e.g. an options bag `{ get overflow(){ assertUnreachable() } }`). This excludes
- * POSITIVE probes such as `{ get timeZone(){ throw } }` (getter-only, plain throw)
- * where the operation is expected to read the property and the test asserts the
- * resulting throw.
- */
-function lazyBagGetterProbe(node) {
-  if (node?.type !== 'ObjectExpression' || node.properties.length === 0) return null;
-  const initProps = [];   // [{ name, valueNode }]
-  const getterNames = []; // string[]
-  let allGettersAssertUnreachable = true;
-
-  for (const prop of node.properties) {
-    if (prop.type !== 'Property' || prop.computed || prop.key?.type !== 'Identifier') return null;
-    if (prop.kind === 'init') {
-      if (prop.method) return null;
-      // Only plain literal init values can be a constant class-property default.
-      if (prop.value?.type !== 'Literal') return null;
-      initProps.push({ name: prop.key.name, valueNode: prop.value });
-    } else if (prop.kind === 'get') {
-      if (!isNegativeProbeGetterBody(prop.value)) return null;
-      getterNames.push(prop.key.name);
-      const fb = prop.value.body.body[0];
-      const isAssertUnreachable = fb.type === 'ExpressionStatement';
-      if (!isAssertUnreachable) allGettersAssertUnreachable = false;
-    } else {
-      return null; // setter or other accessor kind
-    }
-  }
-
-  if (getterNames.length === 0) return null;
-  // Gate: at least one init prop, OR every getter is an assertUnreachable marker.
-  if (initProps.length === 0 && !allGettersAssertUnreachable) return null;
-  return { initProps, getterNames };
-}
-
-/**
  * Returns true if a getter accessor body is a pure POSITIVE probe — a single
  * BARE `throw new Test262Error()` (NO message). This is the exact complement of
  * isNegativeProbeGetterBody's message requirement: a positive probe's throw is
@@ -3442,41 +3404,64 @@ function isPositiveProbeGetterBody(fn) {
 }
 
 /**
- * Detects a "positive-probe getter bag": an ObjectExpression whose getters are
- * all bare `throw new Test262Error()` probes (see isPositiveProbeGetterBody),
- * optionally mixed with plain `key: literal` init props. Returns
- * `{ initProps, getterNames }` for emission, or null otherwise.
+ * Detects a "probe getter bag": an ObjectExpression mixing plain `key: literal`
+ * init properties with one or more non-computed getters whose bodies all match
+ * `getterPredicate`. Returns `{ initProps }` (the literal init props, for
+ * emission as declared class properties) or null when the node is not such a bag.
  *
- * Lowered (in transpileObject) to an anonymous class with the literal init props
- * declared plus `public function __get(string $name): mixed { throw new Test262Error(); }`.
- * Unlike the negative-probe bag (which relies on the spec layer NOT reading the
- * probe), this is faithful only when the operation genuinely READS the probed
- * property via a true Get(O, P) — the bag-reading sites that do so are
- * PlainDate::toZonedDateTime and Instant::toString, which use Options::bagGet
- * (firing __get). A declared init prop is read directly (no throw); the probed
- * key is read via __get and throws, exactly matching the fixture intent.
+ * Faithful in PHP because the spec layer reads option/fields bags via
+ * get_object_vars(), which snapshots only DECLARED public properties and never
+ * triggers PHP's __get magic. Lowering to an anonymous class with the init props
+ * declared plus a throwing __get (see emitProbeBagAnonClass) reproduces the
+ * semantics exactly. The negative/positive distinction is entirely carried by
+ * the two arguments: `getterPredicate` (which getter bodies count) and `gateFn`
+ * (an extra acceptance check over the collected props/getters), with the emitted
+ * __get throw expression chosen at the call site. This is the single shared path
+ * behind both the negative-probe bag (must NOT be read) and the positive-probe
+ * bag (expected to be read).
+ *
+ * @param {object} node
+ * @param {(fn: object) => boolean} getterPredicate accepts a getter accessor body
+ * @param {(ctx: { initProps: Array, getters: Array }) => boolean} [gateFn]
+ *   optional extra acceptance gate; defaults to always-accept
  */
-function positiveProbeGetterBag(node) {
+function probeGetterBag(node, getterPredicate, gateFn = () => true) {
   if (node?.type !== 'ObjectExpression' || node.properties.length === 0) return null;
-  const initProps = [];   // [{ name, valueNode }]
-  const getterNames = []; // string[]
+  const initProps = []; // [{ name, valueNode }]
+  const getters = [];   // [{ name, valueNode }]
 
   for (const prop of node.properties) {
     if (prop.type !== 'Property' || prop.computed || prop.key?.type !== 'Identifier') return null;
     if (prop.kind === 'init') {
       if (prop.method) return null;
+      // Only plain literal init values can be a constant class-property default.
       if (prop.value?.type !== 'Literal') return null;
       initProps.push({ name: prop.key.name, valueNode: prop.value });
     } else if (prop.kind === 'get') {
-      if (!isPositiveProbeGetterBody(prop.value)) return null;
-      getterNames.push(prop.key.name);
+      if (!getterPredicate(prop.value)) return null;
+      getters.push({ name: prop.key.name, valueNode: prop.value });
     } else {
       return null; // setter or other accessor kind
     }
   }
 
-  if (getterNames.length === 0) return null;
-  return { initProps, getterNames };
+  if (getters.length === 0) return null;
+  if (!gateFn({ initProps, getters })) return null;
+  return { initProps };
+}
+
+/**
+ * Negative-probe gate: accept only when EITHER there is at least one plain init
+ * prop (the probe is an EXTRA field that must be ignored — e.g.
+ * `{ year, month, get day(){throw} }`) OR every getter uses assertUnreachable
+ * (the explicit "must not read" marker — e.g. `{ get overflow(){ assertUnreachable() } }`).
+ * This excludes getter-only plain-throw bags, which are POSITIVE probes.
+ */
+function negativeProbeGate({ initProps, getters }) {
+  if (initProps.length > 0) return true;
+  // Every getter must be an assertUnreachable marker (ExpressionStatement body),
+  // not a throw (ThrowStatement body) — the latter would be a positive probe.
+  return getters.every(g => g.valueNode.body.body[0].type === 'ExpressionStatement');
 }
 
 /**
