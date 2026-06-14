@@ -1157,6 +1157,38 @@ class Emitter {
         }
       }
     }
+    // JS-only observability getter installed on a Temporal-object argument whose
+    // spec fast-path reads the internal slot directly. The fixtures do:
+    //   Object.defineProperty(arg, "calendar"|"timeZone", { get() { … } })
+    // then call a method that reads the slot (never the getter) and assert the
+    // real outcome (a calendar coercion, or a TypeError). PHP property reads do
+    // not dispatch through getters, so the defineProperty is a no-op: the getter
+    // never fires either way. Emit a skip COMMENT (not skip-and-defer) so the
+    // remaining assertions — a complete, faithful test — still run.
+    //
+    // Three gates keep this narrow and exclude every other defineProperty fixture:
+    //  (1) bare ExpressionStatement (we are in transpileExprStmt and the call is the
+    //      whole statement) — excludes `var x = Object.defineProperty(...)`.
+    //  (2) args[0] is a plain Identifier — excludes `Object.prototype` / `Temporal.X.prototype`
+    //      pollution fixtures, whose target is a MemberExpression.
+    //  (3) args[1] is a string Literal AND args[2] is an ObjectExpression with a
+    //      get/set accessor — excludes computed-property observer loops.
+    if (node.expression.type === 'CallExpression'
+        && isMember(node.expression.callee, 'Object', 'defineProperty')
+        && node.expression.arguments.length >= 3
+        && node.expression.arguments[0].type === 'Identifier'
+        && node.expression.arguments[1].type === 'Literal'
+        && typeof node.expression.arguments[1].value === 'string'
+        && node.expression.arguments[2].type === 'ObjectExpression'
+        && node.expression.arguments[2].properties.some(p =>
+          p.type === 'Property' && !p.computed
+          && p.key?.type === 'Identifier' && (p.key.name === 'get' || p.key.name === 'set'))) {
+      // The descriptor object is a data object with a `get`/`set` member holding a
+      // function (acorn parses `{ get() {…} }` as a method-shorthand Property named
+      // "get", kind 'init' — NOT a kind:'get' accessor). Match by key name.
+      this.emitSkipComment(node, 'JS-only observability getter on Temporal arg (PHP reads internal slot directly, getter never fires)');
+      return;
+    }
     const php = this.transpileExpr(node.expression);
     if (php !== null) this.emit(`${php};`);
   }

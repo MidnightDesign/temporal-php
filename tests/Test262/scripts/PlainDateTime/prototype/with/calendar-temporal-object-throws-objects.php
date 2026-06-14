@@ -11,5 +11,7 @@ use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
 $values = [\Temporal\Spec\PlainDate::from('2022-04-12'), \Temporal\Spec\PlainDateTime::from('2022-04-12T15:19:45'), \Temporal\Spec\PlainMonthDay::from('04-12'), \Temporal\Spec\PlainTime::from('15:19:45'), \Temporal\Spec\PlainYearMonth::from('2022-04'), \Temporal\Spec\ZonedDateTime::from('2022-04-12T15:19:45[UTC]'), \Temporal\Spec\Now::plainDateTimeISO(), \Temporal\Spec\Now::plainDateISO(), \Temporal\Spec\Now::plainTimeISO()];
 foreach ($values as $value) {
-Assert::incomplete('untranslatable: Object.defineProperty');
+// JS-only (JS-only observability getter on Temporal arg (PHP reads internal slot directly, getter never fires)): Object.defineProperty(value, "calendar", { get() { throw new Test262Error("should not get calendar property") } });
+// JS-only (JS-only observability getter on Temporal arg (PHP reads internal slot directly, getter never fires)): Object.defineProperty(value, "timeZone", { get() { throw new Test262Error("should not get timeZone property") } });
+Assert::throws(\TypeError::class, function () use (&$datetime, &$value) { return $datetime->with($value); }, 'throws with temporal object');
 }

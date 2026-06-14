@@ -16,5 +16,9 @@ $zonedDateTime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UT
 foreach ([$plainDate, $plainDateTime, $plainMonthDay, $plainYearMonth, $zonedDateTime] as $arg) {
 $actual = [];
 $expected = [];
-Assert::incomplete('untranslatable: Object.defineProperty');
+// JS-only (JS-only observability getter on Temporal arg (PHP reads internal slot directly, getter never fires)): Object.defineProperty(arg, "calendar", { get() { actual.push("get calendar"); return calendar; }, });
+$instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789, 'iso8601');
+$result = $instance->withCalendar($arg);
+Assert::sameValue($result->calendarId, 'iso8601', 'Temporal object coerced to calendar');
+Assert::compareArray($actual, $expected, 'calendar getter not called');
 }
