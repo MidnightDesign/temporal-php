@@ -3134,21 +3134,80 @@ function isAssertThrowsCall(node) {
 }
 
 /**
- * For a for-of body whose data table contains BigInt literals, returns the single
- * error-class name asserted by EVERY `assert.throws` in the body — or `null` if
- * they differ, if there is no `assert.throws`, if any error-class argument is not
- * a bare Identifier (e.g. `typeof x === 'string' ? RangeError : TypeError`), or if
- * a `typeof` operator appears anywhere OUTSIDE an `assert.throws` message (3rd)
- * argument.
+ * The set of JS `typeof` result strings that classify a ternary error-class
+ * FAITHFULLY in PHP — both after BigInt→int lowering AND with respect to how the
+ * PHP spec layer actually coerces the value.
  *
- * A uniform class means the throw expectation does NOT depend on the JS
+ * Only `'string'` and `'undefined'` qualify:
+ *  - `is_string()` / `instanceof JsUndefined` map cleanly, and a lowered BigInt
+ *    (PHP int) takes the same non-string/non-undefined branch as its Number sibling.
+ *  - `'object'`/`'function'` are NOT safe: a plain `{}` lowers to a PHP array (not an
+ *    object), and the spec layer's object→ToString coercion differs from the JS
+ *    `RangeError` expectation for several types (e.g. Instant.compare({}) — that is
+ *    a real implementation-coercion concern, not a transpiler one). `'number'`/
+ *    `'bigint'` are unrepresentable (both lower to PHP int). `'boolean'`/`'symbol'`
+ *    do not appear as the deciding branch in the simple `… ? RangeError : TypeError`
+ *    form this rule targets.
+ */
+const BIGINT_SAFE_TYPEOF_TYPES = new Set(['string', 'undefined']);
+
+/**
+ * Returns true if `node` is a boolean test composed SOLELY of BigInt-safe
+ * `typeof X === '<jsType>'` comparisons (jsType in BIGINT_SAFE_TYPEOF_TYPES),
+ * optionally chained with `||`/`&&` and `X !== null`/`X === null` guards.
+ * Such a test classifies a table value by a dimension that survives BigInt→int
+ * lowering, so a ternary error-class whose test is one of these is safe to lower.
+ *
+ * Rejects any `typeof X === 'number'` / `'bigint'` (lowering-unsafe), any other
+ * operator, and any non-typeof/non-null comparison.
+ */
+function isRepresentableTypeofTest(node) {
+  if (!node) return false;
+  if (node.type === 'LogicalExpression' && (node.operator === '||' || node.operator === '&&')) {
+    return isRepresentableTypeofTest(node.left) && isRepresentableTypeofTest(node.right);
+  }
+  if (node.type === 'BinaryExpression'
+      && (node.operator === '===' || node.operator === '==' || node.operator === '!==' || node.operator === '!=')) {
+    // `typeof X === '<safe jsType>'`
+    if (node.left.type === 'UnaryExpression' && node.left.operator === 'typeof'
+        && node.right.type === 'Literal' && typeof node.right.value === 'string') {
+      return BIGINT_SAFE_TYPEOF_TYPES.has(node.right.value);
+    }
+    // `X !== null` / `X === null` guard
+    const isNull = (n) => n?.type === 'Literal' && n.value === null;
+    if (isNull(node.right) || isNull(node.left)) return true;
+  }
+  return false;
+}
+
+/**
+ * For a for-of body whose data table contains BigInt literals, returns a truthy
+ * marker when EVERY `assert.throws` in the body uses an error-class argument that is
+ * safe to lower — or `null` otherwise.
+ *
+ * "Safe to lower" means the throw expectation does NOT depend on the JS
  * Number-vs-BigInt distinction (a BigInt and the equivalent Number both lower to
- * PHP int and hit the same non-string/non-number path), so the table can be
- * lowered to plain ints and transpiled. A `typeof` used only to build the
- * human-readable description string is harmless and is ignored.
+ * PHP int and hit the same non-string/non-number path). Two accepted shapes:
+ *
+ *   1. A bare Identifier error class (e.g. `TypeError`) shared by every
+ *      `assert.throws` in the body — the classic uniform case.
+ *   2. A `ConditionalExpression` error class whose test is a BigInt-safe
+ *      `typeof` test (see isRepresentableTypeofTest), e.g.
+ *      `typeof arg === 'string' ? RangeError : TypeError`. Both consequent and
+ *      alternate must be bare Identifiers. Here a lowered BigInt takes the SAME
+ *      branch as its Number sibling (both are non-string), so the table lowers
+ *      faithfully. Every assert.throws in the body must use the identical ternary.
+ *
+ * A `typeof` used only to build the human-readable description string (3rd
+ * argument) is harmless and is ignored. Any OTHER `typeof` forces a bail.
+ *
+ * Returns null if the body has no `assert.throws`, if error-class arguments are
+ * inconsistent, or if any disqualifying construct is present.
  */
 function uniformAssertThrowsErrorClass(node) {
   const classes = new Set();
+  let ternarySignature = null;   // string key of the accepted ternary, if any
+  let mixedTernaryAndBare = false;
   let bad = false;
 
   forEachNode(node, function visit(n) {
@@ -3156,17 +3215,47 @@ function uniformAssertThrowsErrorClass(node) {
     if (n.type === 'UnaryExpression' && n.operator === 'typeof') { bad = true; return false; }
     if (isAssertThrowsCall(n)) {
       const errArg = n.arguments?.[0];
-      if (errArg?.type === 'Identifier') classes.add(errArg.name);
-      else { bad = true; return false; }
+      if (errArg?.type === 'Identifier') {
+        classes.add(errArg.name);
+      } else if (errArg?.type === 'ConditionalExpression'
+          && errArg.consequent.type === 'Identifier'
+          && errArg.alternate.type === 'Identifier'
+          && isRepresentableTypeofTest(errArg.test)) {
+        // A BigInt-safe ternary error class. Record both branch classes and a
+        // signature so we can require every assert.throws to use the SAME ternary.
+        classes.add(errArg.consequent.name);
+        classes.add(errArg.alternate.name);
+        const sig = `${errArg.consequent.name}?${errArg.alternate.name}`;
+        if (ternarySignature !== null && ternarySignature !== sig) { bad = true; return false; }
+        ternarySignature = sig;
+      } else {
+        bad = true; return false;
+      }
       // Recurse into every argument EXCEPT the message (index 2), where a `typeof`
-      // is only used to build a description and must not force a bail.
-      (n.arguments ?? []).forEach((a, i) => { if (i !== 2) forEachNode(a, visit); });
+      // is only used to build a description and must not force a bail; and EXCEPT
+      // index 0 when it is an accepted ternary (its `typeof` test is intentional).
+      (n.arguments ?? []).forEach((a, i) => {
+        if (i === 2) return;
+        if (i === 0 && a?.type === 'ConditionalExpression') return;
+        forEachNode(a, visit);
+      });
       return false; // children handled manually above
     }
     return true; // let forEachNode recurse generically
   });
 
-  if (bad || classes.size !== 1) return null;
+  if (bad) return null;
+  if (ternarySignature !== null) {
+    // Ternary case: every error class came from the same ternary (size 2), OR all
+    // assertions share a single class. Reject if a stray bare class crept in beyond
+    // the ternary's two branches.
+    const [c, a] = ternarySignature.split('?');
+    const allowed = new Set([c, a]);
+    for (const cls of classes) if (!allowed.has(cls)) { mixedTernaryAndBare = true; }
+    if (mixedTernaryAndBare || classes.size > 2) return null;
+    return ternarySignature;
+  }
+  if (classes.size !== 1) return null;
   return [...classes][0];
 }
 

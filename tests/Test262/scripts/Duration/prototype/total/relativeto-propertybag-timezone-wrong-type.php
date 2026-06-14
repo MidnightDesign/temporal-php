@@ -10,4 +10,13 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1);
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($primitiveTests as $__entry__) {
+[$timeZone, $description] = array_pad($__entry__, 2, null);
+if ($timeZone === null) { continue; }
+Assert::throws((is_string($timeZone) ? \RangeException::class : \TypeError::class), function () use (&$instance, &$timeZone) { return $instance->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])])); }, "{$description} does not convert to a valid ISO string");
+}
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'object'], [new \Temporal\Spec\Duration(), 'duration instance']];
+foreach ($typeErrorTests as $__entry__) {
+[$timeZone, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$instance, &$timeZone) { return $instance->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])])); }, "{$description} is not a valid object and does not convert to a string");
+}

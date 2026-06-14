@@ -10,4 +10,19 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainTime::from(), 'no argument');
 $primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($primitiveTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+if ($arg === null) { continue; }
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "{$description} does not convert to a valid ISO string");
+foreach ([JsUndefined::singleton(), ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$arg, &$options) { return \Temporal\Spec\PlainTime::from($arg, $options); }, "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
+}
+}
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'plain object'], [new \stdClass(), 'Temporal.PlainTime, object'], [new \stdClass(), 'Temporal.PlainTime.prototype, object']];
+foreach ($typeErrorTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainTime::from($arg); }, "{$description} is not a valid property bag and does not convert to a string");
+foreach ([JsUndefined::singleton(), ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
+Assert::throws(\TypeError::class, function () use (&$arg, &$options) { return \Temporal\Spec\PlainTime::from($arg, $options); }, "{$description} is not a valid property bag and does not convert to a string with options " . json_encode($options) . "");
+}
+}

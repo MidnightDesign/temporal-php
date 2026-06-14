@@ -11,4 +11,13 @@ use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number'], [1, 'bigint']];
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($primitiveTests as $__entry__) {
+[$relativeTo, $description] = array_pad($__entry__, 2, null);
+if ($relativeTo === null) { continue; }
+Assert::throws((is_string($relativeTo) || $relativeTo instanceof JsUndefined ? \RangeException::class : \TypeError::class), function () use (&$instance, &$relativeTo) { return $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, "{$description} does not convert to a valid ISO string (first argument)");
+}
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'plain object'], [new \stdClass(), 'Temporal.PlainDate, object'], [new \stdClass(), 'Temporal.PlainDate.prototype, object'], [new \stdClass(), 'Temporal.ZonedDateTime, object'], [new \stdClass(), 'Temporal.ZonedDateTime.prototype, object']];
+foreach ($typeErrorTests as $__entry__) {
+[$relativeTo, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$instance, &$relativeTo) { return $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, "{$description} is not a valid property bag and does not convert to a string");
+}
