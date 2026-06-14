@@ -147,7 +147,6 @@ const SIMPLE_METHOD_CALLS = {
  * SIMPLE_METHOD_CALLS so the "give up" cases read as data rather than templates.
  */
 const UNTRANSLATABLE_METHOD_CALLS = {
-  map: 'untranslatable: Array.prototype.map()',
   indexOf: 'untranslatable: Array.prototype.indexOf()',
 };
 
@@ -1669,7 +1668,10 @@ class Emitter {
       return this.transpileForEach(node);
     }
 
-    // arr.map(x => expr) → array_map(fn($x) => expr, $arr)
+    // arr.map(x => expr) → array_map(fn($x) => expr, $arr).
+    // This handler owns `map` entirely (arrow callbacks transpile; block-body /
+    // non-arrow callbacks emitIncomplete), so it must NOT be added to the
+    // UNTRANSLATABLE_METHOD_CALLS table below — that path is unreachable for map.
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.property.name === 'map') {
       const cb = node.arguments[0];
@@ -1964,9 +1966,10 @@ class Emitter {
     }
 
     // Pure-template string/array instance methods (repeat, padStart, slice, substr,
-    // split, toPrecision, includes, startsWith, endsWith) and the untranslatable ones
-    // (map, indexOf) are driven by data tables. Transpile receiver + args once,
-    // null-check once, then apply the matched template.
+    // split, toPrecision, includes, startsWith, endsWith) and the untranslatable
+    // indexOf are driven by data tables. (map is handled earlier and never reaches
+    // here.) Transpile receiver + args once, null-check once, then apply the
+    // matched template.
     if (callee.type === 'MemberExpression' && !callee.computed
         && callee.property.type === 'Identifier') {
       const methodName = callee.property.name;
