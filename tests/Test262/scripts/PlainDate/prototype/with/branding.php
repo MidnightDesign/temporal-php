@@ -8,4 +8,15 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\PlainDate::with used as a value');
+// JS-only (extracted instance-method reference (branding); receiver checks handled at use sites): with_ = Temporal.PlainDate.prototype.with
+Assert::sameValue(true, true, '');
+$args = [['year' => 2022]];
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'undefined');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'null');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'true');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'empty string');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'symbol');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), '1');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'plain object');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'Temporal.PlainDate');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::with() requires a valid receiver'), 'Temporal.PlainDate.prototype');

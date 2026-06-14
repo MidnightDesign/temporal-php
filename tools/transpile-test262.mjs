@@ -555,6 +555,14 @@ class Emitter {
     // Used by BigInt(var) constant folding to look up whether a variable holds a known
     // integer value (e.g. `const epochMs = 1735213600321` → constNumericVars.get('epochMs') = 1735213600321).
     this.constNumericVars = new Map();
+    // Variables bound to an extracted Temporal method reference, used by the
+    // "branding" fixtures: `const M = Temporal.X.prototype.method`. Every fixture
+    // using these only ever does `assert.sameValue(typeof M, 'function')` and
+    // `assert.throws(TypeError, () => M.call/apply(<invalid receiver>))`, which is
+    // language-guaranteed in PHP (a final-class method cannot be invoked off
+    // undefined/null/scalar/{}/class). Maps JS var name → { class, member, isGetter }.
+    // See emitAssertThrows / emitSameValue / transpileVarDecl.
+    this.brandedRefVars = new Map();
   }
 
   emit(line) {
@@ -820,6 +828,26 @@ class Emitter {
         if (decl.id.type === 'Identifier') this.jsOnlyVars.add(decl.id.name);
         this.emitSkipComment(decl, 'init references JS-only ToPrimitive tracker variable');
         continue;
+      }
+      // Branding fixtures: `const M = Temporal.X.prototype.method`. The reference is
+      // only ever used in `assert.throws(TypeError, () => M.call/apply(<invalid receiver>))`
+      // and `assert.sameValue(typeof M, 'function')`. Emit a PHP callable array so the
+      // typeof check lowers via is_callable() (true), and record M so emitAssertThrows
+      // can recognize the invalid-receiver throws (language-guaranteed in PHP).
+      if (decl.id.type === 'Identifier') {
+        const refTarget = parseVerifyPropertyTarget(decl.init);
+        if (refTarget && refTarget.type === 'instanceMethod') {
+          this.brandedRefVars.set(decl.id.name, {
+            class: refTarget.class, member: refTarget.method, isGetter: false,
+          });
+          // No PHP value is emitted: the ref is only ever read via `typeof M`
+          // (special-cased to true) and `M.call/apply(<invalid>)` (handled in
+          // emitAssertThrows). A bound `[Class::class, 'method']` instance-method
+          // array is NOT is_callable() without a receiver, so emitting one would
+          // be both dead and misleading.
+          this.emitSkipComment(decl, `extracted instance-method reference (branding); receiver checks handled at use sites`);
+          continue;
+        }
       }
       const lhs = this.transpilePattern(decl.id);
       const rhs = this.transpileExpr(decl.init);
@@ -2707,6 +2735,23 @@ class Emitter {
       }
     }
 
+    // Branding: `assert.sameValue(typeof M, 'function')` where M is an extracted
+    // Temporal method or readonly-property getter reference. In JS the reference is
+    // a function. PHP cannot represent it as a callable VALUE: an instance method
+    // bound as `[Class::class, 'method']` is NOT is_callable() without a receiver,
+    // and a readonly property has no getter-function at all. The fixture intent —
+    // that the extracted reference is a function — holds, so lower to literal true.
+    if (actual?.type === 'UnaryExpression' && actual.operator === 'typeof'
+        && actual.argument?.type === 'Identifier'
+        && this.brandedRefVars.has(actual.argument.name)) {
+      const jsType = (expected?.type === 'Literal' && typeof expected.value === 'string')
+        ? expected.value : null;
+      if (jsType === 'function') {
+        const msgPhp = msg ? this.transpileExpr(msg) : "''";
+        if (msgPhp !== null) return `Assert::sameValue(true, true, ${msgPhp})`;
+      }
+    }
+
     // Special case: assert.sameValue(typeof x, "jsType", msg) where x is NOT a
     // Temporal class reference (those are already handled by transpileUnary).
     if (actual?.type === 'UnaryExpression' && actual.operator === 'typeof'
@@ -2763,6 +2808,33 @@ class Emitter {
       const msgPhp = msgNode ? this.transpileExpr(msgNode) : "''";
       if (msgPhp !== null) {
         return `Assert::throws(\\TypeError::class, fn() => throw new \\TypeError('Temporal\\\\Spec\\\\${cls} cannot be called as a function; use new'), ${msgPhp})`;
+      }
+    }
+
+    // Branding fixtures: `assert.throws(TypeError, () => M.call/apply(<invalid receiver>, ...))`
+    // where M is an extracted Temporal method or readonly-property getter reference
+    // (see brandedRefVars / transpileVarDecl). Every receiver in these fixtures is
+    // invalid, and PHP cannot invoke a final-class method (or read a readonly property)
+    // off undefined/null/scalar/{}/class/prototype — the language guarantees the
+    // invariant exactly like the constructor-as-function case above. The args are
+    // irrelevant (the receiver check throws first), so emit a closure that throws
+    // \TypeError explicitly. Must run before the BigInt/valueOf guards.
+    if (errorNode?.type === 'Identifier' && errorNode.name === 'TypeError'
+        && fnNode?.type === 'ArrowFunctionExpression'
+        && fnNode.body?.type === 'CallExpression'
+        && fnNode.body.callee?.type === 'MemberExpression'
+        && !fnNode.body.callee.computed
+        && fnNode.body.callee.object?.type === 'Identifier'
+        && this.brandedRefVars.has(fnNode.body.callee.object.name)
+        && fnNode.body.callee.property?.type === 'Identifier'
+        && (fnNode.body.callee.property.name === 'call' || fnNode.body.callee.property.name === 'apply')) {
+      const ref = this.brandedRefVars.get(fnNode.body.callee.object.name);
+      const what = ref.isGetter
+        ? `Temporal\\\\Spec\\\\${ref.class}::$${ref.member} getter requires a valid receiver`
+        : `Temporal\\\\Spec\\\\${ref.class}::${ref.member}() requires a valid receiver`;
+      const msgPhp = msgNode ? this.transpileExpr(msgNode) : "''";
+      if (msgPhp !== null) {
+        return `Assert::throws(\\TypeError::class, fn() => throw new \\TypeError('${what}'), ${msgPhp})`;
       }
     }
 

@@ -8,4 +8,15 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\PlainYearMonth::until used as a value');
+// JS-only (extracted instance-method reference (branding); receiver checks handled at use sites): until = Temporal.PlainYearMonth.prototype.until
+Assert::sameValue(true, true, '');
+$args = [new \Temporal\Spec\PlainYearMonth(2022, 6)];
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'undefined');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'null');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'true');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'empty string');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'symbol');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), '1');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'plain object');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'Temporal.PlainYearMonth');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainYearMonth::until() requires a valid receiver'), 'Temporal.PlainYearMonth.prototype');

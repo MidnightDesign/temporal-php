@@ -8,4 +8,15 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\PlainTime::subtract used as a value');
+// JS-only (extracted instance-method reference (branding); receiver checks handled at use sites): subtract = Temporal.PlainTime.prototype.subtract
+Assert::sameValue(true, true, '');
+$args = [new \Temporal\Spec\Duration(0, 0, 0, 0, 5)];
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'undefined');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'null');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'true');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'empty string');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'symbol');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), '1');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'plain object');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'Temporal.PlainTime');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::subtract() requires a valid receiver'), 'Temporal.PlainTime.prototype');
