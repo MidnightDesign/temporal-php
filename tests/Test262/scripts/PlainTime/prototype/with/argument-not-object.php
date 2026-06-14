@@ -14,4 +14,8 @@ Assert::throws(\TypeError::class, function () use (&$instance) { return $instanc
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(true); }, 'true');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(\Temporal\Tests\Test262\JsSymbol::singleton()); }, 'symbol');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(1); }, '1');
-Assert::incomplete('BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(1); }, '1n');
+$strings = ['', '18:05:42.577', '2019-05-17T18:05:42.577', '2019-05-17T18:05:42.577Z', '2019-05-17', '42'];
+foreach ($strings as $s) {
+Assert::throws(\TypeError::class, function () use (&$instance, &$s) { return $instance->with($s); }, $s);
+}

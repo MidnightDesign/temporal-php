@@ -8,4 +8,6 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
+// JS-only (BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP): assert.throws(TypeError, () => Temporal.Instant.fromEpochMilliseconds(42n), "number")
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Instant::fromEpochMilliseconds(\Temporal\Tests\Test262\JsSymbol::singleton()), 'symbol');
 Assert::incomplete('BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');

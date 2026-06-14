@@ -15,4 +15,6 @@ Assert::throws(\TypeError::class, function () use (&$instance) { return $instanc
 Assert::throws(\RangeException::class, function () use (&$instance) { return $instance->add(''); }, 'empty string');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(\Temporal\Tests\Test262\JsSymbol::singleton()); }, 'Symbol');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(7); }, 'number');
-Assert::incomplete('BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(7); }, 'bigint');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add([]); }, 'array');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(function () {  }); }, 'function');

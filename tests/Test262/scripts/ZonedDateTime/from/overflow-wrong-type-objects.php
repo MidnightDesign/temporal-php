@@ -18,7 +18,7 @@ Assert::throws(\RangeException::class, function () use (&$propertyBag) { return 
 Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) ['overflow' => true]); }, 'true');
 Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) ['overflow' => false]); }, 'false');
 Assert::throws(\TypeError::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) JsUndefined::strip(['overflow' => \Temporal\Tests\Test262\JsSymbol::singleton()])); }, 'symbol');
-// JS-only (BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP): assert.throws(RangeError, () => Temporal.ZonedDateTime.from(propertyBag, { overflow: 2n }), "bigint")
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) ['overflow' => 2]); }, 'bigint');
 Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) ['overflow' => 2]); }, 'number');
 Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) JsUndefined::strip(['overflow' => (object) []])); }, 'plain object');
 $expected = ['get overflow.toString', 'call overflow.toString'];
@@ -27,4 +27,3 @@ $observer = TemporalHelpers::toPrimitiveObserver($actual, 'constrain', 'overflow
 $result = \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) JsUndefined::strip(['overflow' => $observer]));
 Assert::sameValue($result->epochNanoseconds, 1_000_000_000_000_000_000, 'object with toString');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");
-Assert::incomplete('BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP');

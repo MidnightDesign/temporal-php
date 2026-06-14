@@ -404,6 +404,38 @@ function arrowHasBigIntArg(fnNode) {
   return body.arguments.some(a => a.type === 'Literal' && a.bigint !== undefined && !overflowsInt64(BigInt(a.bigint)));
 }
 
+/**
+ * Methods whose argument is a Temporal-like object / property-bag (Duration, a
+ * fields bag, etc.). Passing ANY primitive — Number *or* BigInt — throws
+ * TypeError in both JS and our PHP spec layer (the param has a union/object type
+ * declaration, or the property-bag consumer rejects scalars). For these the JS
+ * BigInt-vs-Number distinction is irrelevant to the result, so a `7n` literal can
+ * be lowered to PHP int 7 and the TypeError assertion emitted faithfully.
+ *
+ * Excludes methods where a Number IS a valid input and only the BigInt throws
+ * (e.g. Instant.fromEpochMilliseconds / fromEpochNanoseconds, the Instant /
+ * ZonedDateTime constructors) — those are handled by dedicated guards.
+ */
+const BIGINT_ARG_ALWAYS_TYPEERROR_METHODS = new Set(['add', 'subtract', 'with']);
+
+/**
+ * Returns true if the arrow body is `X.<method>(<bigintLiteral>)` where <method>
+ * is one of BIGINT_ARG_ALWAYS_TYPEERROR_METHODS. In that case a BigInt arg and a
+ * Number arg produce the identical TypeError, so the assertion lowers faithfully
+ * (BigInt → int) and need not be skipped.
+ */
+function arrowBigIntArgIsAlwaysTypeError(fnNode) {
+  if (!fnNode || fnNode.type !== 'ArrowFunctionExpression') return false;
+  const body = fnNode.body;
+  if (body.type !== 'CallExpression') return false;
+  const callee = body.callee;
+  if (!callee || callee.type !== 'MemberExpression' || callee.computed) return false;
+  if (callee.property?.type !== 'Identifier') return false;
+  if (!BIGINT_ARG_ALWAYS_TYPEERROR_METHODS.has(callee.property.name)) return false;
+  // The deciding argument must be a (non-overflowing) BigInt literal.
+  return body.arguments.some(a => a.type === 'Literal' && a.bigint !== undefined && !overflowsInt64(BigInt(a.bigint)));
+}
+
 /** Returns true if the arrow body directly calls methodName with a plain number literal arg. */
 function arrowCallsWithNumber(fnNode, methodName) {
   if (!fnNode || fnNode.type !== 'ArrowFunctionExpression') return false;
@@ -1112,6 +1144,14 @@ class Emitter {
     //      is rejected identically. Without (2), lowering could turn a should-throw
     //      BigInt into a valid value (e.g. `new Duration(0n)` throws via ToNumber,
     //      but `new Duration(0)` does not).
+    //
+    // NOTE: (1) deliberately rejects mixed TypeError/RangeError bodies even when a
+    // Number sibling exists. Those are the `options-wrong-type` fixtures, where the
+    // *second* assertion pins the spec's operation ORDER (e.g. `with({day:-1}, opts)`
+    // must process the invalid field → RangeError BEFORE the options-type TypeError).
+    // Our spec layer validates the options type first, so it throws TypeError there —
+    // a real implementation ordering gap, identical for Number and BigInt, that the
+    // Number sibling does NOT rescue. Keep these incomplete (not red).
     const tableHasNumberLiteral =
       (node.right.type === 'ArrayExpression' && hasNumberLiteral(node.right))
       || (node.right.type === 'Identifier' && this.numberLiteralArrayVars.has(node.right.name));
@@ -2726,27 +2766,39 @@ class Emitter {
       }
     }
 
-    // An option-bag value that is a BigInt literal (e.g. `{ fractionalSecondDigits: 2n }`)
-    // can't be told apart from the equivalent Number in PHP, so the JS RangeError/TypeError
-    // is not reproducible. Skip just this assertion; later ones in the fixture still run.
-    if (fnNode && hasBigIntInObject(fnNode)) {
+    // An option-bag value that is a BigInt literal. For a String-typed option key
+    // (e.g. `{ overflow: 2n }`) the BigInt and the equivalent Number both ToString
+    // to "2", fail the enum, and throw the SAME RangeError — so lower 2n → 2 and
+    // emit faithfully (fall through). For Number-valued keys (e.g.
+    // `{ fractionalSecondDigits: 2n }`) a Number is valid and only the BigInt throws,
+    // so the distinction is not reproducible: skip just this assertion; later ones
+    // in the fixture still run.
+    if (fnNode && hasBigIntInObject(fnNode) && !bigIntsAreAllStringTypedOptions(fnNode)) {
       this.emitSkipAndDefer(node, 'BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP');
       return null;
     }
 
     // TypeError tests relying on JS BigInt-vs-Number type distinction can't be replicated in PHP.
     if (classExpr.includes('TypeError') && fnNode) {
-      if (arrowHasBigIntArg(fnNode)) {
-        this.emitIncomplete('BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');
-        return null;
-      }
-      if (arrowCallsWithNumber(fnNode, 'fromEpochNanoseconds')) {
-        this.emitIncomplete('Number passed to fromEpochNanoseconds; BigInt vs Number distinction not replicable in PHP');
-        return null;
-      }
-      if (arrowInstantCtorWithNumberArg(fnNode)) {
-        this.emitIncomplete('Number literal passed to new Temporal.Instant(); BigInt vs Number distinction not replicable in PHP');
-        return null;
+      // X.add/subtract/with(7n): a BigInt arg throws the SAME TypeError as a Number
+      // arg would (the param rejects all primitives), so lower 7n → 7 and emit the
+      // assertion faithfully — fall through to the generic path below. Must run
+      // before arrowHasBigIntArg, which would otherwise skip it.
+      if (!arrowBigIntArgIsAlwaysTypeError(fnNode)) {
+        if (arrowHasBigIntArg(fnNode)) {
+          // BigInt arg where a Number would NOT throw (e.g. fromEpochMilliseconds(42n)):
+          // drop just this assertion but keep the rest of the fixture running.
+          this.emitSkipAndDefer(node, 'BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');
+          return null;
+        }
+        if (arrowCallsWithNumber(fnNode, 'fromEpochNanoseconds')) {
+          this.emitSkipAndDefer(node, 'Number passed to fromEpochNanoseconds; BigInt vs Number distinction not replicable in PHP');
+          return null;
+        }
+        if (arrowInstantCtorWithNumberArg(fnNode)) {
+          this.emitSkipAndDefer(node, 'Number literal passed to new Temporal.Instant(); BigInt vs Number distinction not replicable in PHP');
+          return null;
+        }
       }
     }
 
@@ -3222,6 +3274,57 @@ function expressionRefsAny(node, names) {
  */
 function hasBigIntLiteral(node) {
   return someDescendant(node, n => n.type === 'Literal' && n.bigint !== undefined);
+}
+
+/**
+ * String-typed Temporal option keys: their spec GetOption type is « String » (or a
+ * String enum), so a numeric value — Number *or* BigInt — is coerced via ToString
+ * and then fails the enum check, throwing the SAME RangeError regardless of which
+ * numeric type it was. A `{ overflow: 2n }` therefore lowers to `{ overflow: 2 }`
+ * (PHP int) and the RangeError assertion stays faithful.
+ *
+ * Deliberately EXCLUDES Number-valued options (fractionalSecondDigits,
+ * roundingIncrement): for those a Number is valid input and only the BigInt throws,
+ * so lowering would wrongly turn a should-throw assertion into a no-throw.
+ */
+const STRING_TYPED_OPTION_KEYS = new Set([
+  'overflow', 'disambiguation', 'offset', 'roundingMode',
+  'largestUnit', 'smallestUnit', 'unit', 'calendarName', 'timeZoneName',
+]);
+
+/**
+ * Returns true if every BigInt literal inside `node`'s object expressions sits at a
+ * String-typed option key (STRING_TYPED_OPTION_KEYS). In that case the BigInt and
+ * its Number sibling throw the identical RangeError, so the assertion can be lowered
+ * (BigInt → int) and emitted faithfully rather than skipped.
+ */
+function bigIntsAreAllStringTypedOptions(node) {
+  let allSafe = true;
+  let sawBigInt = false;
+  const visit = (n) => {
+    if (!n || typeof n.type !== 'string') return;
+    if (n.type === 'ObjectExpression') {
+      for (const prop of n.properties) {
+        if (prop.type !== 'Property' || prop.computed) continue;
+        const keyName = prop.key?.type === 'Identifier' ? prop.key.name
+          : (prop.key?.type === 'Literal' && typeof prop.key.value === 'string' ? prop.key.value : null);
+        const val = prop.value;
+        const valIsBigInt = val?.type === 'Literal' && val.bigint !== undefined;
+        if (valIsBigInt) {
+          sawBigInt = true;
+          if (keyName === null || !STRING_TYPED_OPTION_KEYS.has(keyName)) allSafe = false;
+        }
+      }
+    }
+    for (const key of Object.keys(n)) {
+      if (key === 'type' || key === 'start' || key === 'end') continue;
+      const child = n[key];
+      if (Array.isArray(child)) child.forEach(visit);
+      else if (child && typeof child.type === 'string') visit(child);
+    }
+  };
+  visit(node);
+  return sawBigInt && allSafe;
 }
 
 /**

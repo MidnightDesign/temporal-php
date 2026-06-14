@@ -19,7 +19,7 @@ Assert::throws(\RangeException::class, function () use (&$propertyBag) { return 
 Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, ['overflow' => false]); }, 'false');
 Assert::throws(\TypeError::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, JsUndefined::strip(['overflow' => \Temporal\Tests\Test262\JsSymbol::singleton()])); }, 'symbol');
 Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, ['overflow' => 2]); }, 'number');
-// JS-only (BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP): assert.throws(RangeError, () => Temporal.PlainDateTime.from(propertyBag, { overflow: 2n }), "bigint")
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, ['overflow' => 2]); }, 'bigint');
 Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, JsUndefined::strip(['overflow' => []])); }, 'plain object');
 $expected = ['get overflow.toString', 'call overflow.toString'];
 $actual = [];
@@ -27,4 +27,3 @@ $observer = TemporalHelpers::toPrimitiveObserver($actual, 'constrain', 'overflow
 $result = \Temporal\Spec\PlainDateTime::from($propertyBag, JsUndefined::strip(['overflow' => $observer]));
 TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, 'object with toString');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");
-Assert::incomplete('BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP');

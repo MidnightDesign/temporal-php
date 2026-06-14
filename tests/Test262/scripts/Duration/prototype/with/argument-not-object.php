@@ -17,4 +17,4 @@ Assert::throws(\TypeError::class, function () use (&$instance) { return $instanc
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with('string'); }, 'string');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(\Temporal\Tests\Test262\JsSymbol::singleton()); }, 'Symbol');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(7); }, 'number');
-Assert::incomplete('BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(7); }, 'bigint');

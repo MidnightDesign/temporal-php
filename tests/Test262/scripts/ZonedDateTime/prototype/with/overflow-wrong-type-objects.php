@@ -15,7 +15,7 @@ Assert::throws(\RangeException::class, function () use (&$datetime) { return $da
 Assert::throws(\RangeException::class, function () use (&$datetime) { return $datetime->with((object) ['second' => 41], (object) ['overflow' => false]); }, 'false');
 Assert::throws(\TypeError::class, function () use (&$datetime) { return $datetime->with((object) ['second' => 41], (object) JsUndefined::strip(['overflow' => \Temporal\Tests\Test262\JsSymbol::singleton()])); }, 'symbol');
 Assert::throws(\RangeException::class, function () use (&$datetime) { return $datetime->with((object) ['second' => 41], (object) ['overflow' => 2]); }, 'number');
-// JS-only (BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP): assert.throws(RangeError, () => datetime.with({ second: 41 }, { overflow: 2n }), "bigint")
+Assert::throws(\RangeException::class, function () use (&$datetime) { return $datetime->with((object) ['second' => 41], (object) ['overflow' => 2]); }, 'bigint');
 Assert::throws(\RangeException::class, function () use (&$datetime) { return $datetime->with((object) ['second' => 41], (object) JsUndefined::strip(['overflow' => (object) []])); }, 'plain object');
 $expected = ['get overflow.toString', 'call overflow.toString'];
 $actual = [];
@@ -23,4 +23,3 @@ $observer = TemporalHelpers::toPrimitiveObserver($actual, 'constrain', 'overflow
 $result = $datetime->with((object) ['second' => 41], (object) JsUndefined::strip(['overflow' => $observer]));
 Assert::sameValue($result->epochNanoseconds, 1_000_000_001_987_654_321, 'object with toString');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");
-Assert::incomplete('BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP');

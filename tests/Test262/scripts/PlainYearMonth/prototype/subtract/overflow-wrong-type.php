@@ -16,7 +16,7 @@ Assert::throws(\RangeException::class, function () use (&$yearmonth, &$duration)
 Assert::throws(\RangeException::class, function () use (&$yearmonth, &$duration) { return $yearmonth->subtract($duration, ['overflow' => false]); }, 'false');
 Assert::throws(\TypeError::class, function () use (&$yearmonth, &$duration) { return $yearmonth->subtract($duration, JsUndefined::strip(['overflow' => \Temporal\Tests\Test262\JsSymbol::singleton()])); }, 'symbol');
 Assert::throws(\RangeException::class, function () use (&$yearmonth, &$duration) { return $yearmonth->subtract($duration, ['overflow' => 2]); }, 'number');
-// JS-only (BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP): assert.throws(RangeError, () => yearmonth.subtract(duration, { overflow: 2n }), "bigint")
+Assert::throws(\RangeException::class, function () use (&$yearmonth, &$duration) { return $yearmonth->subtract($duration, ['overflow' => 2]); }, 'bigint');
 Assert::throws(\RangeException::class, function () use (&$yearmonth, &$duration) { return $yearmonth->subtract($duration, JsUndefined::strip(['overflow' => []])); }, 'plain object');
 $expected = ['get overflow.toString', 'call overflow.toString'];
 $actual = [];
@@ -24,4 +24,3 @@ $observer = TemporalHelpers::toPrimitiveObserver($actual, 'constrain', 'overflow
 $result = $yearmonth->subtract($duration, JsUndefined::strip(['overflow' => $observer]));
 TemporalHelpers::assertPlainYearMonth($result, 1999, 4, 'M04', 'object with toString');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");
-Assert::incomplete('BigInt option-bag value; Number-vs-BigInt distinction not representable in PHP');
