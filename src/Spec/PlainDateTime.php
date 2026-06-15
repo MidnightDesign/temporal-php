@@ -492,18 +492,18 @@ final class PlainDateTime implements Stringable
             throw new TypeError('PlainDateTime::with() requires at least one recognized temporal property.');
         }
 
-        // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
-        // Symbol => TypeError; omitted ([]) defaults to 'constrain'.
-        $overflow = Options::overflowFromValue($options);
-
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
-        // --- Non-ISO calendar path ---
+        // --- Non-ISO calendar path --- (withNonIso resolves the overflow option after
+        // reading its own fields, per TC39 PrepareCalendarFields-before-GetOptionsObject.)
         if ($calendar !== null) {
-            return $this->withNonIso($fields, $overflow, $calendar);
+            return $this->withNonIso($fields, $options, $calendar);
         }
 
-        // --- ISO calendar path ---
+        // --- ISO calendar path --- TC39 PrepareCalendarFields/ToTemporalTimeRecord read
+        // and coerce the partial fields BEFORE GetOptionsObject validates the options
+        // argument's type, so a bad field value's RangeError precedes a primitive options
+        // TypeError. The overflow keyword (which only drives regulation) is resolved after.
         $year = $this->isoYear;
         if (array_key_exists('year', $fields)) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainDateTime::with() year');
@@ -541,6 +541,10 @@ final class PlainDateTime implements Stringable
             throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
 
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
+        // Symbol => TypeError; omitted ([]) defaults to 'constrain'.
+        $overflow = Options::overflowFromValue($options);
+
         if ($overflow === 'constrain') {
             /**
              * @psalm-suppress UnnecessaryVarAnnotation — Mago can't narrow min()
@@ -563,12 +567,14 @@ final class PlainDateTime implements Stringable
      * Implements with() for non-ISO calendars following TC39 CalendarDateMergeFields.
      *
      * Handles era/eraYear, monthCode defaults, and month/monthCode conflict
-     * resolution, then carries through unchanged time fields.
+     * resolution, then carries through unchanged time fields. Resolves the overflow
+     * option AFTER reading its own fields, matching TC39's PrepareCalendarFields-
+     * before-GetOptionsObject ordering.
      *
      * @param array<array-key,mixed> $fields
      * @param Internal\Calendar\CalendarProtocol $calendar
      */
-    private function withNonIso(array $fields, string $overflow, Internal\Calendar\CalendarProtocol $calendar): self
+    private function withNonIso(array $fields, mixed $options, Internal\Calendar\CalendarProtocol $calendar): self
     {
         $hasYear = array_key_exists('year', $fields);
         $hasEra = array_key_exists('era', $fields);
@@ -644,6 +650,14 @@ final class PlainDateTime implements Stringable
             throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
 
+        // Merge (read/coerce) time fields before resolving options, so a bad time field's
+        // RangeError precedes a primitive options TypeError (ToTemporalTimeRecord first).
+        [$h, $min, $sec, $ms, $us, $ns] = $this->mergeTimeFields($fields);
+
+        // GetOptionsObject + GetTemporalOverflowOption: resolved after the fields have
+        // been read/coerced (PrepareCalendarFields precedes GetOptionsObject in TC39).
+        $overflow = Options::overflowFromValue($options);
+
         if ($useMonthCode && $monthCode !== null) {
             [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
         } else {
@@ -654,8 +668,7 @@ final class PlainDateTime implements Stringable
             [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
         }
 
-        // Merge time fields and constrain if needed.
-        [$h, $min, $sec, $ms, $us, $ns] = $this->mergeTimeFields($fields);
+        // Constrain time fields if needed.
         if ($overflow === 'constrain') {
             $h = max(0, min(23, $h));
             $min = max(0, min(59, $min));

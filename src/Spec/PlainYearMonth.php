@@ -324,17 +324,16 @@ final class PlainYearMonth implements Stringable
             );
         }
 
-        // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
-        // Symbol => TypeError; omitted ([]) and a bag without 'overflow' default to
-        // 'constrain'; an 'overflow' value is coerced/validated.
-        $overflow = Options::overflowFromValue($options);
-
-        // Non-ISO calendar: delegate to dedicated handler.
+        // Non-ISO calendar: delegate to dedicated handler. (withNonIso resolves the
+        // overflow option after reading its own fields.)
         if ($this->calendarId !== 'iso8601') {
-            return $this->withNonIso($fields, $overflow, CalendarFactory::get($this->calendarId));
+            return $this->withNonIso($fields, $options, CalendarFactory::get($this->calendarId));
         }
 
-        // ISO path.
+        // ISO path. TC39 PrepareCalendarFields reads and coerces the partial fields
+        // BEFORE GetOptionsObject validates the options argument's type, so a bad field
+        // value's RangeError precedes a primitive options argument's TypeError. The
+        // overflow keyword (which only drives regulation) is resolved afterward.
         $year = $this->isoYear;
         if (array_key_exists('year', $fields)) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainYearMonth::with() year');
@@ -361,6 +360,11 @@ final class PlainYearMonth implements Stringable
             throw new RangeError("Invalid month {$month}: must be at least 1.");
         }
 
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
+        // Symbol => TypeError; omitted ([]) and a bag without 'overflow' default to
+        // 'constrain'; an 'overflow' value is coerced/validated.
+        $overflow = Options::overflowFromValue($options);
+
         if ($overflow === 'constrain') {
             $month = min(12, $month);
         }
@@ -372,10 +376,13 @@ final class PlainYearMonth implements Stringable
     /**
      * Non-ISO calendar path for with(), mirroring PlainDate::withNonIso().
      *
+     * Resolves the overflow option AFTER reading its own fields, matching TC39's
+     * PrepareCalendarFields-before-GetOptionsObject ordering.
+     *
      * @param array<array-key,mixed> $fields
      * @param Internal\Calendar\CalendarProtocol $calendar
      */
-    private function withNonIso(array $fields, string $overflow, Internal\Calendar\CalendarProtocol $calendar): self
+    private function withNonIso(array $fields, mixed $options, Internal\Calendar\CalendarProtocol $calendar): self
     {
         $hasYear = array_key_exists('year', $fields);
         $hasEra = array_key_exists('era', $fields);
@@ -441,6 +448,10 @@ final class PlainYearMonth implements Stringable
             $monthCode = $this->monthCode;
             $useMonthCode = true;
         }
+
+        // GetOptionsObject + GetTemporalOverflowOption: resolved after the fields have
+        // been read/coerced (PrepareCalendarFields precedes GetOptionsObject in TC39).
+        $overflow = Options::overflowFromValue($options);
 
         if ($useMonthCode && $monthCode !== null) {
             [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, 1, $overflow);

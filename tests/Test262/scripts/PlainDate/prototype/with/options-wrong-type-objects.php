@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
-Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
+foreach ($badOptions as $value) {
+Assert::throws(\TypeError::class, function () use (&$instance, &$value) { return $instance->with((object) ['day' => 5], $value); }, "TypeError on wrong options type " . (gettype($value)) . "");
+Assert::throws(\RangeException::class, function () use (&$instance, &$value) { return $instance->with((object) JsUndefined::strip(['day' => -1]), $value); }, 'Partial date processed before throwing TypeError');
+}

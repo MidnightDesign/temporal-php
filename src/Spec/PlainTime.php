@@ -265,11 +265,11 @@ final class PlainTime implements Stringable
             );
         }
 
-        // GetOptionsObject + GetTemporalOverflowOption: explicit null / non-object
-        // primitive / Symbol => TypeError; omitted ([]) defaults to 'constrain';
-        // an explicit `overflow => null` value coerces to neither keyword => RangeError.
-        $overflow = Options::overflowFromValue($options);
-
+        // TC39 ToTemporalTimeRecord reads and coerces the partial time fields BEFORE
+        // GetOptionsObject validates the options argument's type. So a bad field value
+        // (e.g. {minute: Infinity}) raises its RangeError before a primitive options
+        // argument's TypeError. The field reading/coercion therefore runs first; the
+        // overflow keyword (which only drives regulation) is resolved afterward.
         $h = $this->hour;
         $min = $this->minute;
         $sec = $this->second;
@@ -295,6 +295,11 @@ final class PlainTime implements Stringable
         if (array_key_exists('nanosecond', $fields)) {
             $ns = CalendarMath::toFiniteInt($fields['nanosecond'], 'PlainTime::with() nanosecond');
         }
+
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / non-object
+        // primitive / Symbol => TypeError; omitted ([]) defaults to 'constrain';
+        // an explicit `overflow => null` value coerces to neither keyword => RangeError.
+        $overflow = Options::overflowFromValue($options);
 
         if ($overflow === 'constrain') {
             $h = max(0, min(23, $h));

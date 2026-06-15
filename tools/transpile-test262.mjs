@@ -562,6 +562,11 @@ class Emitter {
     // Array-literal variables whose elements include a plain Number literal — used
     // to decide when a BigInt-containing wrong-type table can be safely lowered.
     this.numberLiteralArrayVars = new Set();
+    // Variables initialized from `new Temporal.X(...)` → maps the var name to the
+    // Temporal class name ('PlainDate', 'ZonedDateTime', …). Used by the
+    // with/options-wrong-type recognizer to scope lowering to the five Plain* classes
+    // (whose with() reads fields before resolving options) and exclude ZonedDateTime.
+    this.instanceVarClasses = new Map();
     // Variables that hold a JS-only ToPrimitive observer construct (an object
     // literal with `valueOf`/`toString` method shorthands) — directly, or as an
     // element of an array. Also includes variables MUTATED inside such method
@@ -868,6 +873,14 @@ class Emitter {
       // Track variables assigned from Temporal.Instant constructors
       if (decl.id.type === 'Identifier' && this.isInstantCall(decl.init)) {
         this.instantVars.add(decl.id.name);
+      }
+      // Track variables assigned from `new Temporal.X(...)` → record the class name,
+      // so the with/options-wrong-type recognizer can scope its lowering by receiver class.
+      if (decl.id.type === 'Identifier' && decl.init?.type === 'NewExpression') {
+        const ctorTarget = parseVerifyPropertyTarget(decl.init.callee);
+        if (ctorTarget?.type === 'class') {
+          this.instanceVarClasses.set(decl.id.name, ctorTarget.class);
+        }
       }
       // Track variables initialized from array literals — used in observer mode
       // to detect `new TemporalCtor(...arr)` "missing args" assertions where `arr`
@@ -1360,6 +1373,15 @@ class Emitter {
       if (tableHasNumberLiteral && isStringParseFromOptionsWrongTypeBody(node.body)) {
         return 'skip-null';
       }
+      // The `with/options-wrong-type` property-bag family: RangeError comes from the
+      // partial-field coercion, which the PHP spec layer now performs BEFORE the
+      // options-type check — so the RangeError-before-TypeError ordering matches TC39.
+      // Lower the whole table WITHOUT skipping null (an explicit null-options is a real
+      // GetOptionsObject TypeError / RangeError here, not an omitted-positional sentinel).
+      if (tableHasNumberLiteral
+          && isFieldBagWithOptionsWrongTypeBody(node.body, name => this.instanceVarClasses.get(name))) {
+        return 'lower';
+      }
       return 'incomplete';
     }
     // A `null` table element may be an OMITTED positional argument (e.g. a
@@ -1412,7 +1434,10 @@ class Emitter {
       this.emitIncomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');
       return;
     }
-    // `null` data-table elements must be skipped when the BigInt table is lowered.
+    // `null` data-table elements must be skipped when the BigInt table is lowered as
+    // 'skip-null' (a null may be an omitted-positional sentinel). The 'lower' signal
+    // (with/options-wrong-type property-bag family) keeps null — there it is a genuine
+    // wrong-type options value — so it falls through to the normal null-keeping foreach.
     const nullSkipForOf = bigIntTable === 'skip-null';
 
     // Special case: for (const [k, v] of Object.entries(obj)) → foreach ($obj as $k => $v)
@@ -3955,6 +3980,100 @@ function isStringParseFromOptionsWrongTypeBody(node) {
   });
 
   return ok && sawRangeStringParse;
+}
+
+/**
+ * Recognizes the `<PlainX>.prototype.with/options-wrong-type` for-of body — the
+ * property-bag sibling of {@link isStringParseFromOptionsWrongTypeBody}.
+ *
+ * These fixtures iterate a wrong-type-options data table and assert a mix of
+ * TypeError (valid field bag + bad-options primitive) and RangeError (out-of-range
+ * field bag + bad-options primitive). The RangeError pins the spec operation ORDER:
+ * `instance.with({day:-1}, value)` must read/coerce the invalid field (→ RangeError)
+ * BEFORE GetOptionsObject rejects the primitive `value` (→ TypeError). The PHP spec
+ * layer now reproduces this exactly — the Plain* with() bodies read/coerce the
+ * partial fields before resolving the overflow option (verified live across all five
+ * classes), so the RangeError-before-TypeError ordering matches TC39.
+ *
+ * Returns true only for that precise shape: every `assert.throws` uses a bare
+ * TypeError/RangeError class, every RangeError assertion's throwing call is
+ * `<Identifier>.with(<ObjectExpression>, …)`, and at least one TypeError sibling is
+ * `<sameReceiver>.with(<ObjectExpression>, …)`. The shared Identifier receiver plus
+ * the `.with(<ObjectExpression>, …)` shape uniquely identifies this family; no other
+ * lowered fixture mixes TypeError+RangeError over a `.with(<object-literal>, value)`
+ * call on a single loop-external instance.
+ *
+ * Unlike the `from` family this returns a "lower without null-skip" signal: for
+ * with(), `value === null` is a genuine GetOptionsObject TypeError (valid bag) /
+ * RangeError (bad bag), so every table element — including null — must be iterated.
+ *
+ * ZonedDateTime is EXCLUDED: its with() resolves the overflow/disambiguation/offset
+ * options BEFORE reading the partial fields, so PHP throws TypeError (not the expected
+ * RangeError) on `zdt.with({day:-1}, primitive)` — a genuine ordering gap the five
+ * Plain* classes do not have. `receiverClassOf(name)` resolves the loop-external
+ * `const instance = new Temporal.X(...)` receiver to its class; only the five Plain*
+ * classes qualify.
+ *
+ * @param {(name: string) => (string|undefined)} receiverClassOf
+ */
+const WITH_FIELD_FIRST_CLASSES = new Set([
+  'PlainDate', 'PlainDateTime', 'PlainTime', 'PlainMonthDay', 'PlainYearMonth',
+]);
+
+function isFieldBagWithOptionsWrongTypeBody(node, receiverClassOf) {
+  let ok = true;
+  let sawRangeFieldBag = false;
+  let sawTypeFieldBag = false;
+  let receiver = null;
+
+  // The throwing operation lives inside the arrow passed as assert.throws' 2nd arg.
+  // Unwrap `() => <expr>` (or `() => { return <expr>; }`) to the CallExpression.
+  const throwingCall = (fnArg) => {
+    if (!fnArg || fnArg.type !== 'ArrowFunctionExpression') return null;
+    let body = fnArg.body;
+    if (body.type === 'BlockStatement') {
+      const stmts = body.body.filter(s => s.type !== 'EmptyStatement');
+      if (stmts.length !== 1) return null;
+      if (stmts[0].type === 'ReturnStatement') body = stmts[0].argument;
+      else if (stmts[0].type === 'ExpressionStatement') body = stmts[0].expression;
+      else return null;
+    }
+    return body && body.type === 'CallExpression' ? body : null;
+  };
+
+  // Matches `<Identifier>.with(<ObjectExpression>, …)`; returns the receiver name or null.
+  const withCallReceiver = (call) => {
+    if (!call || call.type !== 'CallExpression') return null;
+    const callee = call.callee;
+    if (callee?.type !== 'MemberExpression' || callee.computed) return null;
+    if (callee.object?.type !== 'Identifier') return null;
+    if (callee.property?.type !== 'Identifier' || callee.property.name !== 'with') return null;
+    if (call.arguments?.[0]?.type !== 'ObjectExpression') return null;
+    return callee.object.name;
+  };
+
+  forEachNode(node, function visit(n) {
+    if (!ok) return false;
+    if (!isAssertThrowsCall(n)) return true;
+    const errArg = n.arguments?.[0];
+    if (errArg?.type !== 'Identifier' || (errArg.name !== 'TypeError' && errArg.name !== 'RangeError')) {
+      ok = false; return false;
+    }
+    const call = throwingCall(n.arguments?.[1]);
+    const recv = withCallReceiver(call);
+    if (recv === null) { ok = false; return false; }
+    if (receiver === null) receiver = recv;
+    else if (receiver !== recv) { ok = false; return false; }
+    if (errArg.name === 'RangeError') sawRangeFieldBag = true;
+    else sawTypeFieldBag = true;
+    return false; // assert.throws handled; don't descend further into it
+  });
+
+  // Only lower when the shared receiver is a five-Plain* instance (field-before-options
+  // ordering). An unresolved receiver or a ZonedDateTime instance disqualifies the table.
+  if (!ok || receiver === null) return false;
+  if (!WITH_FIELD_FIRST_CLASSES.has(receiverClassOf(receiver))) return false;
+  return sawRangeFieldBag && sawTypeFieldBag;
 }
 
 /**

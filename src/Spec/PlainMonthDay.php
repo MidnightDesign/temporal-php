@@ -253,13 +253,6 @@ final class PlainMonthDay implements Stringable
 
         // Normalize inputs to array up front so the body has a single path.
         $bag = is_object($fields) ? get_object_vars($fields) : $fields;
-        // GetOptionsObject: explicit null / non-object primitive / Symbol => TypeError;
-        // omitted ([]) passes through. The overflow KEYWORD is coerced later, after the
-        // recognized-field checks, per the GetTemporalOverflowOption ordering.
-        if ($options !== null && !is_array($options) && !is_object($options)) {
-            throw new TypeError('options must be an object.');
-        }
-        $opts = Options::requireObject($options);
 
         // IsPartialTemporalObject step 3: calendar key present → TypeError.
         if (array_key_exists('calendar', $bag)) {
@@ -281,11 +274,10 @@ final class PlainMonthDay implements Stringable
             throw new TypeError('PlainMonthDay::with() requires at least one of: year, month, monthCode, day.');
         }
 
-        // GetTemporalOverflowOption: coerce/validate the overflow keyword.
-        $overflow = 'constrain';
-        if (array_key_exists('overflow', $opts)) {
-            $overflow = Options::overflowOption($opts['overflow']);
-        }
+        // GetOptionsObject + GetTemporalOverflowOption are deferred to AFTER the field
+        // reading/coercion below: TC39 PrepareCalendarFields precedes GetOptionsObject,
+        // so a bad field value's RangeError must precede a primitive options TypeError.
+        $resolveOverflow = static fn(): string => Options::overflowFromValue($options);
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
@@ -334,6 +326,9 @@ final class PlainMonthDay implements Stringable
             }
 
             if ($calYear !== null) {
+                // All fields have been read/coerced; resolve the options object now.
+                $overflow = $resolveOverflow();
+
                 // Validate month/monthCode conflict with year context.
                 if ($useMonthCode && $hasMonth) {
                     assert($monthCode !== null, description: '$useMonthCode implies monthCode was provided');
@@ -365,7 +360,9 @@ final class PlainMonthDay implements Stringable
                 return self::resolveNonIsoReferenceYear($calendar, $this->calendarId, $resolvedMonthCode, $resolvedDay);
             }
 
-            // No year: use monthCode path with reference year resolution.
+            // No year: use monthCode path with reference year resolution. Resolve the
+            // options object (GetOptionsObject) now that all fields have been read.
+            $resolveOverflow();
             if ($useMonthCode && $monthCode !== null) {
                 return self::resolveNonIsoReferenceYear($calendar, $this->calendarId, $monthCode, $day);
             }
@@ -411,6 +408,9 @@ final class PlainMonthDay implements Stringable
         if ($day < 1) {
             throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
+
+        // All fields have been read/coerced; resolve the options object now.
+        $overflow = $resolveOverflow();
 
         if ($overflow === 'constrain') {
             /**
