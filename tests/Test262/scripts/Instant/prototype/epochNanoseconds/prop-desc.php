@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::verifyReadOnlyAccessor(\Temporal\Spec\Instant::class, 'epochNanoseconds');
+Assert::readOnlyAccessor(\Temporal\Spec\Instant::class, 'epochNanoseconds');
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

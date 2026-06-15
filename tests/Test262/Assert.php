@@ -183,6 +183,59 @@ final class Assert
     }
 
     /**
+     * Asserts that `$prop` on `$fqcn` is a read-only accessor property.
+     *
+     * PHP port of the canonical test262 `prop-desc.js` accessor shape:
+     *
+     *     const descriptor = Object.getOwnPropertyDescriptor(Temporal.X.prototype, "P");
+     *     assert.sameValue(typeof descriptor.get, "function");
+     *     assert.sameValue(descriptor.set, undefined);
+     *     assert.sameValue(descriptor.enumerable, false);
+     *     assert.sameValue(descriptor.configurable, true);
+     *
+     * The load-bearing assertions are "a getter exists" and "no setter exists" —
+     * i.e. the property is a read-only accessor. The enumerable/configurable bits
+     * are pure JS object-model details with no PHP equivalent and are not modeled.
+     *
+     * In the PHP spec layer each such property is represented EITHER as a PHP 8.4
+     * virtual property with a `get` hook and no `set` hook, OR as a stored
+     * `readonly` property. Both are read-ok / write-throws, faithfully modeling
+     * the JS "getter present / no setter" contract without needing an instance.
+     *
+     * Lives here beside {@see methodExists}/{@see methodLength}: all three answer
+     * "does this class member have the shape test262's prop-desc / verifyProperty
+     * expects?" via reflection.
+     *
+     * @param class-string $fqcn Fully-qualified spec class name (e.g. \Temporal\Spec\PlainDate).
+     * @param string       $prop Property name.
+     */
+    public static function readOnlyAccessor(string $fqcn, string $prop): void
+    {
+        $rc = new \ReflectionClass($fqcn);
+        PHPUnitAssert::assertTrue($rc->hasProperty($prop), sprintf('%s::$%s exists', $fqcn, $prop));
+        $rp = $rc->getProperty($prop);
+        PHPUnitAssert::assertTrue($rp->isPublic(), sprintf('%s::$%s is public', $fqcn, $prop));
+        if (!$rp->hasHooks()) {
+            // Stored property: the read-only contract is encoded by `readonly`.
+            PHPUnitAssert::assertTrue($rp->isReadOnly(), sprintf(
+                '%s::$%s is a stored readonly property (read-only)',
+                $fqcn,
+                $prop,
+            ));
+            return;
+        }
+        // Virtual property: a `get` hook (getter present) and no `set` hook (read-only).
+        PHPUnitAssert::assertTrue(
+            $rp->hasHook(\PropertyHookType::Get),
+            sprintf('%s::$%s has a get hook (getter present)', $fqcn, $prop),
+        );
+        PHPUnitAssert::assertFalse(
+            $rp->hasHook(\PropertyHookType::Set),
+            sprintf('%s::$%s has no set hook (read-only)', $fqcn, $prop),
+        );
+    }
+
+    /**
      * Marks the current test as incomplete.
      *
      * @throws IncompleteTestError always

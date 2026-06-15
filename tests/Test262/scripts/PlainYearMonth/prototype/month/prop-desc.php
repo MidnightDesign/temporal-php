@@ -8,6 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-use Temporal\Tests\Test262\TemporalHelpers;
-TemporalHelpers::verifyReadOnlyAccessor(\Temporal\Spec\PlainYearMonth::class, 'month');
+Assert::readOnlyAccessor(\Temporal\Spec\PlainYearMonth::class, 'month');
 \PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

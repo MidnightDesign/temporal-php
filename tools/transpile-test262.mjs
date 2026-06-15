@@ -635,11 +635,12 @@ class Emitter {
 
   transpileProgram(node) {
     // Canonical read-only-accessor prop-desc.js shape (whole-program match):
-    // emit a single TemporalHelpers::verifyReadOnlyAccessor call.
+    // emit a single Assert::readOnlyAccessor call (member-shape reflection lives
+    // in Assert beside methodExists/methodLength).
     const propDesc = parsePropDescAccessorProgram(node.body);
     if (propDesc) {
       this.emit(
-        `TemporalHelpers::verifyReadOnlyAccessor(\\Temporal\\Spec\\${propDesc.class}::class, ${phpStr(propDesc.prop)});`,
+        `Assert::readOnlyAccessor(\\Temporal\\Spec\\${propDesc.class}::class, ${phpStr(propDesc.prop)});`,
       );
       return;
     }
@@ -4200,7 +4201,7 @@ function parseGetterDescriptorTarget(node) {
  * statements (in any order for the four assertions), else null. The load-bearing
  * assertions are "a getter exists" and "no setter exists" — the property is a
  * read-only accessor. enumerable/configurable are pure JS object-model bits and
- * are not modeled in PHP. Lowered to TemporalHelpers::verifyReadOnlyAccessor.
+ * are not modeled in PHP. Lowered to Assert::readOnlyAccessor.
  */
 function parsePropDescAccessorProgram(body) {
   if (!Array.isArray(body) || body.length !== 5) return null;
