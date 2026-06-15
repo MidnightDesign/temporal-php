@@ -363,7 +363,8 @@ final class PlainMonthDay implements Stringable
             // No year: use monthCode path with reference year resolution. Resolve the
             // options object (GetOptionsObject) now that all fields have been read.
             $resolveOverflow();
-            if ($useMonthCode && $monthCode !== null) {
+            if ($useMonthCode) {
+                assert($monthCode !== null, description: '$useMonthCode implies monthCode was provided');
                 return self::resolveNonIsoReferenceYear($calendar, $this->calendarId, $monthCode, $day);
             }
 

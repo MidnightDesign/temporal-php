@@ -112,9 +112,13 @@ final class IntlFormatter
         }
 
         // Convert fixed-offset timezone to ICU-compatible format (GMT±HH:MM).
+        // A zero offset (+00:00 / -00:00) maps to plain GMT. We compare against the
+        // original subject string rather than the captured digit groups: PHPStan's
+        // regex inference narrows \d{2} groups to a type that excludes leading-zero
+        // values like '00', which would make `$m[2] === '00'` look always-false.
         $m = null;
         if (preg_match('/^([+\-])(\d{2}):(\d{2})$/', $timeZone, $m) === 1) {
-            if ($m[2] === '00' && $m[3] === '00') {
+            if ($timeZone === '+00:00' || $timeZone === '-00:00') {
                 $timeZone = 'GMT';
             } else {
                 $timeZone = sprintf('GMT%s%s:%s', $m[1], $m[2], $m[3]);
