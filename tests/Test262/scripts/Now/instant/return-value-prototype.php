@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Object.getPrototypeOf');
+Assert::assertTrue(\Temporal\Spec\Now::instant() instanceof \Temporal\Spec\Instant, 'Object.getPrototypeOf(Temporal.Now.instant()) returns Temporal.Instant.prototype');

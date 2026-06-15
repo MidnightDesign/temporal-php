@@ -3082,6 +3082,27 @@ class Emitter {
       }
     }
 
+    // `Object.getPrototypeOf(<instance-expr>) === Temporal.Y.prototype`: asserts the
+    // result is a Temporal Y instance. The prototype-identity check is not load-bearing
+    // beyond class identity, so lower to `<instance-expr> instanceof \Temporal\Spec\Y`.
+    // Gated strictly: `expected` must be a Temporal Y.prototype (excludes the builtin.js
+    // `getPrototypeOf(X) === Function.prototype` Function-object floor case), and the
+    // getPrototypeOf argument must NOT itself be a Temporal namespace/class/method
+    // reference (i.e. it must be a runtime instance expression, not `X.prototype.method`).
+    if (actual?.type === 'CallExpression'
+        && isMember(actual.callee, 'Object', 'getPrototypeOf')
+        && actual.arguments.length === 1) {
+      const protoTarget = parseVerifyPropertyTarget(expected);
+      const argTarget = parseVerifyPropertyTarget(actual.arguments[0]);
+      if (protoTarget?.type === 'prototype' && argTarget === null) {
+        const argPhp = this.transpileExpr(actual.arguments[0]);
+        const msgPhp = msg ? this.transpileExpr(msg) : "''";
+        if (argPhp !== null && msgPhp !== null) {
+          return `Assert::assertTrue(${argPhp} instanceof \\Temporal\\Spec\\${protoTarget.class}, ${msgPhp})`;
+        }
+      }
+    }
+
     const actualPhp   = this.transpileExpr(actual);
     const expectedPhp = this.transpileExpr(expected);
     const msgPhp      = msg ? this.transpileExpr(msg) : "''";
