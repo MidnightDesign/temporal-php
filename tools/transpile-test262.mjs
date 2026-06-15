@@ -139,6 +139,11 @@ const SIMPLE_METHOD_CALLS = {
   startsWith: (recv, args) => `\\Temporal\\Tests\\Test262\\Js::startsWith(${recv}, ${args[0] ?? "''"})`,
   // str.endsWith(needle) → Js::endsWith($str, $needle)
   endsWith: (recv, args) => `\\Temporal\\Tests\\Test262\\Js::endsWith(${recv}, ${args[0] ?? "''"})`,
+  // str.toLowerCase() / str.toUpperCase() → strtolower / strtoupper. The only corpus
+  // users are the timezone-case-insensitive fixtures, whose receivers are pure-ASCII
+  // IANA identifiers, so PHP's byte-wise case fold matches JS's Unicode mapping exactly.
+  toLowerCase: (recv) => `strtolower(${recv})`,
+  toUpperCase: (recv) => `strtoupper(${recv})`,
 };
 
 /**
@@ -1817,6 +1822,14 @@ class Emitter {
   }
 
   transpileArray(node) {
+    // Spread + Set dedup: `[...new Set([...a, ...b, ...])]` → a deduplicated, order-
+    // preserving union. PHP: array_values(array_unique(array_merge($a, $b, ...))).
+    // Used by the timezone-case-insensitive fixtures to union a hard-coded TZDB list
+    // with Intl.supportedValuesOf('timeZone'). Both unique() and JS Set keep first
+    // occurrence and insertion order, so the lowering is faithful.
+    const dedup = this.trySpreadSetDedup(node);
+    if (dedup !== null) return dedup;
+
     const parts = [];
     for (const el of node.elements) {
       if (el === null) { parts.push('null'); continue; }
@@ -1834,6 +1847,34 @@ class Emitter {
       parts.push(php ?? 'Assert::int64Overflow()');
     }
     return '[' + parts.join(', ') + ']';
+  }
+
+  /**
+   * Recognizes `[...new Set([...a, ...b, ...])]` and lowers it to an order-preserving
+   * deduplicated union: `array_values(array_unique(array_merge($a, $b, ...)))`.
+   *
+   * Returns the PHP expression string, or null if `node` is not exactly that shape
+   * (a single SpreadElement wrapping `new Set(<array-of-spreads>)`, every inner element
+   * being a SpreadElement). Returns null too if any spread source is untranslatable.
+   */
+  trySpreadSetDedup(node) {
+    if (node.elements.length !== 1) return null;
+    const only = node.elements[0];
+    if (!only || only.type !== 'SpreadElement') return null;
+    const setNew = only.argument;
+    if (setNew?.type !== 'NewExpression'
+        || setNew.callee?.type !== 'Identifier' || setNew.callee.name !== 'Set'
+        || setNew.arguments.length !== 1) return null;
+    const inner = setNew.arguments[0];
+    if (inner?.type !== 'ArrayExpression' || inner.elements.length === 0) return null;
+    const sources = [];
+    for (const el of inner.elements) {
+      if (!el || el.type !== 'SpreadElement') return null;
+      const src = this.transpileExpr(el.argument);
+      if (src === null) return null;
+      sources.push(src);
+    }
+    return `array_values(array_unique(array_merge(${sources.join(', ')})))`;
   }
 
   transpileMember(node) {
