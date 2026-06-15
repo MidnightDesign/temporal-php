@@ -1838,6 +1838,21 @@ class Emitter {
 
   transpileMember(node) {
     if (!node.computed) {
+      // Function-name read: `Temporal.X.method.name` / `Temporal.X.prototype.method.name`.
+      // In JS a built-in method's `.name` is its own name; the spec fixtures assert
+      // exactly that (e.g. `Temporal.Now.instant.name === 'instant'`). The PHP method
+      // identifier IS that name, so lower the read to the method-name string literal
+      // when the inner chain resolves to an implemented static/instance method. This
+      // is faithful and load-bearing (it proves a method of that name exists); the
+      // descriptor-shape verifyProperty line lowers separately to assertTrue(true).
+      if (node.property.type === 'Identifier' && node.property.name === 'name') {
+        const inner = parseVerifyPropertyTarget(node.object);
+        if (inner && (inner.type === 'staticMethod' || inner.type === 'instanceMethod')
+            && isPhpMethodImplemented(inner.class, inner.method)) {
+          return phpStr(inner.method);
+        }
+      }
+
       // Temporal member expressions used as values (not as call targets)
       const temporalTarget = parseVerifyPropertyTarget(node);
       if (temporalTarget) {

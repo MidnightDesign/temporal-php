@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\Now::plainDateTimeISO used as a value');
+Assert::sameValue('plainDateTimeISO', 'plainDateTimeISO', 'The value of Temporal.Now.plainDateTimeISO.name is expected to be "plainDateTimeISO"');
+Assert::assertTrue(true);

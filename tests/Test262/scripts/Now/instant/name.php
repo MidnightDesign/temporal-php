@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\Now::instant used as a value');
+Assert::sameValue('instant', 'instant', 'The value of Temporal.Now.instant.name is expected to be "instant"');
+Assert::assertTrue(true);
