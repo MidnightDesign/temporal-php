@@ -1853,6 +1853,15 @@ class Emitter {
         }
       }
 
+      // `new Intl.DateTimeFormat(...).resolvedOptions().calendar`: the toLocaleString
+      // fixtures use this ONLY to pick the runtime's default calendar for constructing
+      // the instance under test. Lower the whole chain to a PHP helper that derives the
+      // canonical default calendar from ICU, mirroring resolvedOptions().calendar in JS.
+      if (node.property.name === 'calendar'
+          && isIntlDateTimeFormatResolvedOptions(node.object)) {
+        return 'TemporalHelpers::defaultLocaleCalendar()';
+      }
+
       // Temporal member expressions used as values (not as call targets)
       const temporalTarget = parseVerifyPropertyTarget(node);
       if (temporalTarget) {
@@ -4247,6 +4256,25 @@ function resolveTemporalCall(callee) {
   if (mid.type !== 'MemberExpression' || mid.computed) return null;
   if (mid.object.type !== 'Identifier' || mid.object.name !== 'Temporal') return null;
   return { className: mid.property.name, method: callee.property.name };
+}
+
+/**
+ * Matches the `new Intl.DateTimeFormat(...).resolvedOptions()` call node — i.e. the
+ * receiver of a `.calendar` read in the toLocaleString fixtures. Returns true when
+ * `node` is a CallExpression to `.resolvedOptions()` whose own callee object is a
+ * `new Intl.DateTimeFormat(...)` NewExpression.
+ */
+function isIntlDateTimeFormatResolvedOptions(node) {
+  if (!node || node.type !== 'CallExpression') return false;
+  const callee = node.callee;
+  if (callee?.type !== 'MemberExpression' || callee.computed) return false;
+  if (callee.property?.type !== 'Identifier' || callee.property.name !== 'resolvedOptions') return false;
+  const recv = callee.object;
+  if (recv?.type !== 'NewExpression') return false;
+  const ctor = recv.callee;
+  return ctor?.type === 'MemberExpression' && !ctor.computed
+    && ctor.object?.type === 'Identifier' && ctor.object.name === 'Intl'
+    && ctor.property?.type === 'Identifier' && ctor.property.name === 'DateTimeFormat';
 }
 
 /**

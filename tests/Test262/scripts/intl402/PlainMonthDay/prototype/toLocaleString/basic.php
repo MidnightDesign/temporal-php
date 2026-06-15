@@ -8,7 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
+use Temporal\Tests\Test262\TemporalHelpers;
 $findPart = function ($parts, $expectedType) {
 return $parts->find(function ($__unknown__ = null) use (&$type, &$expectedType) { return $type === $expectedType; })->value;
 };
+$calendar = TemporalHelpers::defaultLocaleCalendar();
+$monthday = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['monthCode' => 'M11', 'day' => 18, 'calendar' => $calendar]));
 Assert::incomplete('untranslatable new expression');

@@ -99,4 +99,33 @@ trait ObserversAndCalendar
         }
         return $normalized;
     }
+
+    /**
+     * Returns the runtime's default calendar identifier in TC39/BCP-47 canonical
+     * form — the value `new Intl.DateTimeFormat(...).resolvedOptions().calendar`
+     * yields in JS.
+     *
+     * The options-conflict toLocaleString fixtures use that Intl chain ONLY to pick
+     * a default calendar for constructing the instance under test; the calendar value
+     * itself is not load-bearing. We derive it from ICU's default calendar type
+     * (e.g. ICU "gregorian") and map it to the BCP-47 unicode calendar key ("gregory")
+     * that ECMA-402 / Temporal use, mirroring the JS implementation rather than
+     * hardcoding a constant.
+     *
+     * @psalm-api used by dynamically-required test scripts in tests/Test262/scripts/
+     */
+    public static function defaultLocaleCalendar(): string
+    {
+        // IntlCalendar::createInstance() is declared nullable (it returns null only on a
+        // failed locale lookup, which cannot happen for the implicit default locale); fall
+        // back to the Gregorian default if the runtime ever hands back null.
+        $calendar = \IntlCalendar::createInstance();
+        $icuType = $calendar === null ? 'gregorian' : $calendar->getType();
+        // ICU calendar type → BCP-47 unicode `ca` key (the few that differ).
+        return match ($icuType) {
+            'gregorian' => 'gregory',
+            'ethiopic-amete-alem' => 'ethioaa',
+            default => $icuType,
+        };
+    }
 }
