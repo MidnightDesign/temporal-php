@@ -1507,7 +1507,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
      */
     public function testFromDateTimeMaxRepresentableSecondAccepted(): void
     {
-        $dt = (new \DateTimeImmutable('@0'))
+        $dt = new \DateTimeImmutable('@0')
             ->setTimestamp(9_223_372_035)
             ->setTimezone(new \DateTimeZone('UTC'));
 
@@ -1522,7 +1522,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
      */
     public function testFromDateTimeOneSecondPastMaxThrows(): void
     {
-        $dt = (new \DateTimeImmutable('@0'))
+        $dt = new \DateTimeImmutable('@0')
             ->setTimestamp(9_223_372_036)
             ->setTimezone(new \DateTimeZone('UTC'));
 
@@ -1538,7 +1538,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
      */
     public function testFromDateTimeMinRepresentableSecondAccepted(): void
     {
-        $dt = (new \DateTimeImmutable('@0'))
+        $dt = new \DateTimeImmutable('@0')
             ->setTimestamp(-9_223_372_035)
             ->setTimezone(new \DateTimeZone('UTC'));
 
@@ -1553,7 +1553,7 @@ final class ZonedDateTimeTest extends TemporalTestCase
      */
     public function testFromDateTimeOneSecondBelowMinThrows(): void
     {
-        $dt = (new \DateTimeImmutable('@0'))
+        $dt = new \DateTimeImmutable('@0')
             ->setTimestamp(-9_223_372_036)
             ->setTimezone(new \DateTimeZone('UTC'));
 

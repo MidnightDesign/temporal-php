@@ -144,7 +144,7 @@ final class Js
         // supply valid dates — the conditional is unreachable in practice, and the cast
         // to int allows PHPStan to accept the multiplication on the next line.
         $ts = gmmktime($hours, $minutes, $seconds, $month + 1, $day, $year);
-        return ((int) $ts) * 1000 + $ms;
+        return ((int) $ts * 1000) + $ms;
     }
 
     // -------------------------------------------------------------------------
