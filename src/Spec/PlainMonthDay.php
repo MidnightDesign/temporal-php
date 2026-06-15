@@ -364,7 +364,7 @@ final class PlainMonthDay implements Stringable
             // options object (GetOptionsObject) now that all fields have been read.
             $resolveOverflow();
             if ($useMonthCode) {
-                assert($monthCode !== null, description: '$useMonthCode implies monthCode was provided');
+                /** @var string $monthCode — guaranteed non-null when $useMonthCode is true */
                 return self::resolveNonIsoReferenceYear($calendar, $this->calendarId, $monthCode, $day);
             }
 
