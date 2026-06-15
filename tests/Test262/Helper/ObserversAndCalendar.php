@@ -116,10 +116,11 @@ trait ObserversAndCalendar
      */
     public static function defaultLocaleCalendar(): string
     {
-        // IntlCalendar::createInstance() is declared nullable (it returns null only on a
-        // failed locale lookup, which cannot happen for the implicit default locale); fall
-        // back to the Gregorian default if the runtime ever hands back null.
-        $calendar = \IntlCalendar::createInstance();
+        // IntlCalendar::createInstance() is signature-nullable (it returns null on an
+        // invalid timezone — none passed here — or ICU OOM). The factory result is read
+        // through a ?\IntlCalendar-typed wrapper so the null guard is honored by every
+        // analyzer (PHPStan's bundled stub otherwise wrongly types the call non-null).
+        $calendar = self::defaultIntlCalendar();
         $icuType = $calendar === null ? 'gregorian' : $calendar->getType();
         // ICU calendar type → BCP-47 unicode `ca` key (the few that differ).
         return match ($icuType) {
@@ -127,5 +128,18 @@ trait ObserversAndCalendar
             'ethiopic-amete-alem' => 'ethioaa',
             default => $icuType,
         };
+    }
+
+    /**
+     * Returns the default ICU calendar instance, or null if ICU cannot create one.
+     *
+     * Wraps {@see \IntlCalendar::createInstance()} behind an explicit ?\IntlCalendar
+     * return type so callers' null handling type-checks consistently across analyzers
+     * (PHPStan's bundled stub types the factory as non-null; the runtime and the PHP
+     * manual declare it ?\IntlCalendar).
+     */
+    private static function defaultIntlCalendar(): ?\IntlCalendar
+    {
+        return \IntlCalendar::createInstance();
     }
 }
