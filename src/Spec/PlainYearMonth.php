@@ -918,7 +918,6 @@ final class PlainYearMonth implements Stringable
         ];
 
         $largestUnit = 'year'; // default for PlainYearMonth per spec (auto = year)
-        $largestUnitExplicit = false;
         $smallestUnit = null;
         $roundingMode = 'trunc';
         $roundingIncrement = 1;
@@ -939,7 +938,6 @@ final class PlainYearMonth implements Stringable
                         throw new RangeError("Invalid largestUnit value: \"{$lu}\".");
                     }
                     $largestUnit = $lu;
-                    $largestUnitExplicit = true;
                 }
             }
 
@@ -1003,13 +1001,15 @@ final class PlainYearMonth implements Stringable
         $suRank = $unitRank[$smallestUnit];
         $luRank = $unitRank[$largestUnit];
 
+        // smallestUnit larger than largestUnit is only reachable with an explicit
+        // largestUnit: the default largestUnit is 'year' (the maximum rank), and the
+        // only way largestUnit drops to 'month' rank is an explicit option value. So
+        // $suRank > $luRank always implies the throw; there is no auto-widening case to
+        // handle here.
         if ($suRank > $luRank) {
-            if ($largestUnitExplicit) {
-                throw new RangeError(
-                    "smallestUnit \"{$smallestUnit}\" cannot be larger than largestUnit \"{$largestUnit}\".",
-                );
-            }
-            $normLargest = $normSmallest;
+            throw new RangeError(
+                "smallestUnit \"{$smallestUnit}\" cannot be larger than largestUnit \"{$largestUnit}\".",
+            );
         }
 
         // Short-circuit when both year-months represent the same calendar month.
@@ -1171,11 +1171,9 @@ final class PlainYearMonth implements Stringable
 
         $roundedAbs = $roundUp ? $floorCount + $increment : $floorCount;
 
-        // Validate range.
-        [$ry, $rm] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir * $roundedAbs);
-        if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
-        }
+        // $roundedAbs is either $floorCount or $floorCount + $increment; the latter is
+        // exactly the next boundary already validated above, the former is strictly
+        // inside it. A re-check of the rounded result can therefore never fail.
 
         return $sign * $roundedAbs;
     }
@@ -1249,11 +1247,9 @@ final class PlainYearMonth implements Stringable
 
         $roundedAbs = $roundUp ? $floorCount + $increment : $floorCount;
 
-        // Validate range.
-        [$ry, $rm] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir * $roundedAbs * 12);
-        if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
-        }
+        // $roundedAbs * 12 months is bounded by the next boundary already validated
+        // above ($floorCount + $increment years), so the rounded result is always
+        // within range; a re-check can never fail.
 
         return $sign * $roundedAbs;
     }
@@ -1327,12 +1323,9 @@ final class PlainYearMonth implements Stringable
         $roundedYears = $rawYears + ($sign * $carryYears);
         $roundedMonths = $sign * $remainMonths;
 
-        // Validate range.
-        $totalAbsMonths = (abs($rawYears) * 12) + $roundedAbsMonths;
-        [$ry, $rm] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir * $totalAbsMonths);
-        if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
-        }
+        // The total offset (|rawYears| * 12 + $roundedAbsMonths, with
+        // $roundedAbsMonths <= $nextCount) never exceeds the next boundary already
+        // validated above, so the rounded result is always within range.
 
         return [$roundedYears, $roundedMonths];
     }
