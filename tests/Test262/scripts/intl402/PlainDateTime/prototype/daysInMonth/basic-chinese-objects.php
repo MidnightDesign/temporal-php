@@ -12,7 +12,7 @@ $calendar = 'chinese';
 $options = (object) ['overflow' => 'reject'];
 $sampleYears = (object) JsUndefined::strip([1971 => [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29], 1972 => [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 29, 30]]);
 foreach ($sampleYears as $year => $daysInMonth) {
-for ($month = 1; $month < count($daysInMonth); $month++) {
+for ($month = 1; $month < (is_string($daysInMonth) ? strlen($daysInMonth) : count($daysInMonth)); $month++) {
 $date = \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]));
 Assert::sameValue($date->daysInMonth, $daysInMonth[$month - 1], "{$date}");
 }

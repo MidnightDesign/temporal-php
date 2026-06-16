@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\ZonedDateTime(0, '1997-12-04T12:34[+01:00]', 'iso8601'), 'An ISO string is not a valid calendar ID for constructor parameter');
+Assert::throws(\RangeException::class, fn() => new \Temporal\Spec\ZonedDateTime(0, '1997-12-04T12:34[+01:00]', 'iso8601'), 'An ISO string is not a valid calendar ID for constructor parameter');

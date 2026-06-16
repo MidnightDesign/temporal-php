@@ -12,5 +12,9 @@ $instance = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 15, 30, 45, 987, 654, 3
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(); }, 'undefined');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(null); }, 'null');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(true); }, 'boolean');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->add(''); }, 'empty string');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\RangeException::class, function () use (&$instance) { return $instance->add(''); }, 'empty string');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(\Temporal\Tests\Test262\JsSymbol::singleton()); }, 'Symbol');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(7); }, 'number');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(7); }, 'bigint');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add([]); }, 'array');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->add(function () {  }); }, 'function');

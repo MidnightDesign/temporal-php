@@ -14,4 +14,4 @@ TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(null, 1, 2, 3, 4, 
 TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(false, true), 0, 1, 0, 0, 0, 0, 'boolean defaults');
 TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime(11, 24), 11, 24, 0, 0, 0, 0, 'undefined defaults to 0');
 TemporalHelpers::assertPlainTime(new \Temporal\Spec\PlainTime('11.9', '12.8', '13.7', '14.6', '15.5', '1.999999'), 11, 12, 13, 14, 15, 1, 'fractional strings');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

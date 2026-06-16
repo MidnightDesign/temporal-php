@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
 $later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_988_655_322, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$later, &$earlier) { return $later->since($earlier, JsUndefined::strip(['roundingIncrement' => NAN])); }, '');
+Assert::throws(\RangeException::class, function () use (&$later, &$earlier) { return $later->since($earlier, JsUndefined::strip(['roundingIncrement' => NAN])); }, '');

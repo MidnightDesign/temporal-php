@@ -10,4 +10,12 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainYearMonth(1976, 11);
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+foreach (TemporalHelpers::isoPlainYearMonthStringsValid() as $arg) {
+$result = $instance->since($arg);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\"{$arg}\" is a valid PlainYearMonth string");
+}
+$instanceNegativeYear = new \Temporal\Spec\PlainYearMonth(-9999, 11);
+foreach (TemporalHelpers::isoPlainYearMonthStringsValidNegativeYear() as $arg) {
+$result = $instanceNegativeYear->since($arg);
+TemporalHelpers::assertDuration($result, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "\"{$arg}\" is a valid PlainYearMonth string");
+}

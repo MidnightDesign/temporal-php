@@ -9,4 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDate(1970, 1, 1);
-Assert::incomplete('untranslatable: Symbol()');
+foreach ([null, false, 0, 0, \Temporal\Tests\Test262\JsSymbol::singleton(), [], [], function () {  }] as $timeZone) {
+if ($timeZone === null) { continue; }
+$item = JsUndefined::strip(['timeZone' => $timeZone]);
+Assert::throws(\TypeError::class, function () use (&$instance, &$item) { return $instance->toZonedDateTime($item); }, '');
+}

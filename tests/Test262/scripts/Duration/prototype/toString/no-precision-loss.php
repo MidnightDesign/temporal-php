@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 9_007_199_254_740_991, 0);
-Assert::sameValue($d->toString(), 'PT9016206453995.731991S', '');
+Assert::sameValue((string) ($d), 'PT9016206453995.731991S', '');

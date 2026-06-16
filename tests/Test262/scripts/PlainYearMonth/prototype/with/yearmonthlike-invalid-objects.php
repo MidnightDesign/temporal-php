@@ -9,4 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $plainYearMonth = new \Temporal\Spec\PlainYearMonth(1, 1);
-Assert::incomplete('untranslatable: Symbol()');
+$tests = [[JsUndefined::singleton()], [null], [true], ['2019-05-17'], ['2019-05-17T12:34'], ['2019-05-17T12:34Z'], ['18:05:42.577'], ['42'], [\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [42, 'number'], [42, 'bigint'], [\Temporal\Spec\PlainDate::from('2019-05-17'), 'PlainDate'], [\Temporal\Spec\PlainDateTime::from('2019-05-17T12:34'), 'PlainDateTime'], [\Temporal\Spec\PlainMonthDay::from('2019-05-17'), 'PlainMonthDay'], [\Temporal\Spec\PlainTime::from('12:34'), 'PlainTime'], [\Temporal\Spec\PlainYearMonth::from('2019-05-17'), 'PlainYearMonth'], [\Temporal\Spec\ZonedDateTime::from('2019-05-17T12:34Z[UTC]'), 'ZonedDateTime'], [(object) ['year' => 2021, 'calendar' => 'iso8601'], 'calendar'], [(object) ['year' => 2021, 'timeZone' => 'UTC'], 'timeZone'], [(object) [], 'empty object'], [(object) ['months' => 12], 'only plural property']];
+foreach ($tests as $__entry__) {
+[$value, $message] = array_pad($__entry__, 2, null);
+if ($value === null) { continue; }
+$message = $message ?? \Temporal\Tests\Test262\Js::toString($value);
+Assert::throws(\TypeError::class, function () use (&$plainYearMonth, &$value) { return $plainYearMonth->with($value); }, $message);
+}

@@ -14,5 +14,5 @@ $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, [], 'options');
 $d1 = new \Temporal\Spec\Duration(0, 0, 0, 1);
 $d2 = new \Temporal\Spec\Duration(1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$d1, &$d2, &$options) { \Temporal\Spec\Duration::compare($d1, $d2, $options); }, 'exception thrown when calendar units provided without relativeTo');
+Assert::throws(\RangeException::class, function () use (&$d1, &$d2, &$options) { \Temporal\Spec\Duration::compare($d1, $d2, $options); }, 'exception thrown when calendar units provided without relativeTo');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

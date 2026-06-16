@@ -12,5 +12,5 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $expected = ['get options.overflow', 'get options.overflow.toString', 'call options.overflow.toString'];
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, (object) ['overflow' => 'constrain'], 'options');
-Assert::throws(\InvalidArgumentException::class, function () use (&$options) { \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2025, 'monthCode' => 'M08L'], $options); }, 'exception thrown when month code is invalid for calendar');
+Assert::throws(\RangeException::class, function () use (&$options) { \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2025, 'monthCode' => 'M08L'], $options); }, 'exception thrown when month code is invalid for calendar');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

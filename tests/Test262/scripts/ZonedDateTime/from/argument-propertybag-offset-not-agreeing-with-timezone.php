@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $timeZone = '+01:00';
 $properties = JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => '-07:00', 'timeZone' => $timeZone]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$properties) { return \Temporal\Spec\ZonedDateTime::from($properties); }, 'offset property not matching time zone is rejected');
-Assert::throws(\InvalidArgumentException::class, function () use (&$properties) { return \Temporal\Spec\ZonedDateTime::from($properties, ['offset' => 'reject']); }, 'offset property not matching time zone is rejected');
+Assert::throws(\RangeException::class, function () use (&$properties) { return \Temporal\Spec\ZonedDateTime::from($properties); }, 'offset property not matching time zone is rejected');
+Assert::throws(\RangeException::class, function () use (&$properties) { return \Temporal\Spec\ZonedDateTime::from($properties, ['offset' => 'reject']); }, 'offset property not matching time zone is rejected');

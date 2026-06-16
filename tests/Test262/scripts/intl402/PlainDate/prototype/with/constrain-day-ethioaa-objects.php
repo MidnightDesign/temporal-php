@@ -14,6 +14,6 @@ $options = (object) ['overflow' => 'reject'];
 $common1230 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 7514, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar]), $options);
 $leap1230 = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => 7515, 'monthCode' => 'M12', 'day' => 30, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($common1230->with((object) ['monthCode' => 'M13']), 7514, 13, 'M13', 5, 'Changing month constrains to day 5 of common-year epagomenal month', 'aa', 7514);
-Assert::throws(\InvalidArgumentException::class, function () use (&$common1230, &$options) { $common1230->with((object) ['monthCode' => 'M13'], $options); }, 'Changing month to common-year epagomenal month rejects');
+Assert::throws(\RangeException::class, function () use (&$common1230, &$options) { $common1230->with((object) ['monthCode' => 'M13'], $options); }, 'Changing month to common-year epagomenal month rejects');
 TemporalHelpers::assertPlainDate($leap1230->with((object) ['monthCode' => 'M13']), 7515, 13, 'M13', 6, 'Changing month constrains to day 6 of leap-year epagomenal month', 'aa', 7515);
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap1230, &$options) { $leap1230->with((object) ['monthCode' => 'M13'], $options); }, 'Changing month to leap-year epagomenal month rejects');
+Assert::throws(\RangeException::class, function () use (&$leap1230, &$options) { $leap1230->with((object) ['monthCode' => 'M13'], $options); }, 'Changing month to leap-year epagomenal month rejects');

@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('BigInt literal in TypeError assertion; BigInt vs Number distinction not replicable in PHP');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime cannot be called as a function; use new'), '');

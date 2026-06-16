@@ -25,7 +25,7 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
 
     /**
      * @param int $epochNanoseconds Nanoseconds since the Unix epoch.
-     * @throws \InvalidArgumentException if the value is out of range.
+     * @throws \Temporal\Exception\RangeError if the value is out of range.
      */
     public function __construct(int $epochNanoseconds)
     {
@@ -36,7 +36,7 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
      * Parses an ISO 8601 / RFC 3339 date-time string with a UTC offset into an Instant.
      *
      * @param string $text ISO 8601 string (e.g. "2020-01-01T00:00:00Z").
-     * @throws \InvalidArgumentException if the string cannot be parsed.
+     * @throws \Temporal\Exception\RangeError if the string cannot be parsed.
      */
     public static function parse(string $text): self
     {
@@ -47,7 +47,7 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
      * Creates an Instant from a Unix timestamp in milliseconds.
      *
      * @param int $epochMilliseconds Milliseconds since the Unix epoch.
-     * @throws \InvalidArgumentException if the value is out of range.
+     * @throws \Temporal\Exception\RangeError if the value is out of range.
      */
     public static function fromEpochMilliseconds(int $epochMilliseconds): self
     {
@@ -114,7 +114,7 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
      * Calendar fields (years, months, weeks, days) in the duration are forbidden.
      *
      * @param Duration $duration The duration to add.
-     * @throws \InvalidArgumentException if the duration contains calendar fields.
+     * @throws \Temporal\Exception\RangeError if the duration contains calendar fields.
      */
     public function add(Duration $duration): self
     {
@@ -127,7 +127,7 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
      * Calendar fields (years, months, weeks, days) in the duration are forbidden.
      *
      * @param Duration $duration The duration to subtract.
-     * @throws \InvalidArgumentException if the duration contains calendar fields.
+     * @throws \Temporal\Exception\RangeError if the duration contains calendar fields.
      */
     public function subtract(Duration $duration): self
     {
@@ -140,7 +140,7 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
      * @param Unit         $smallestUnit       The unit to round to.
      * @param RoundingMode $roundingMode       Rounding mode (default: HalfExpand).
      * @param int          $roundingIncrement  Must evenly divide the next-larger unit.
-     * @throws \InvalidArgumentException for invalid unit or increment values.
+     * @throws \Temporal\Exception\RangeError for invalid unit or increment values.
      */
     public function round(
         Unit $smallestUnit,
@@ -206,7 +206,7 @@ final class Instant implements \Stringable, \JsonSerializable, HasEpochSpec
      * Converts this Instant to a ZonedDateTime in the given time zone.
      *
      * @param string $timeZone IANA timezone identifier, UTC offset string, or 'UTC'.
-     * @throws \InvalidArgumentException if the time zone is invalid.
+     * @throws \Temporal\Exception\RangeError if the time zone is invalid.
      */
     public function toZonedDateTime(string $timeZone): ZonedDateTime
     {

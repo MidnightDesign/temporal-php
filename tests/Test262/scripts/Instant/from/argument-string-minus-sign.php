@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['1976-11-18T15:23:30.12−02:00', '−009999-11-18T15:23:30.12'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, "variant minus sign: {$arg}");
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, "variant minus sign: {$arg}");
 }

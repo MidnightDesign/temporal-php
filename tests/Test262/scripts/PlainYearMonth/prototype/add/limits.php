@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $max = \Temporal\Spec\PlainYearMonth::from('+275760-09');
 foreach (['reject', 'constrain'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$max, &$overflow) { return $max->add(['months' => 1], JsUndefined::strip(['overflow' => $overflow])); }, $overflow);
+Assert::throws(\RangeException::class, function () use (&$max, &$overflow) { return $max->add(['months' => 1], JsUndefined::strip(['overflow' => $overflow])); }, $overflow);
 }

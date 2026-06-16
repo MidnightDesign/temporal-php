@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $inst = new \Temporal\Spec\Instant(0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$inst) { return $inst->round((object) []); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$inst) { return $inst->round((object) ['roundingIncrement' => 1, 'roundingMode' => 'ceil']); }, '');
+Assert::throws(\RangeException::class, function () use (&$inst) { return $inst->round((object) []); }, '');
+Assert::throws(\RangeException::class, function () use (&$inst) { return $inst->round((object) ['roundingIncrement' => 1, 'roundingMode' => 'ceil']); }, '');

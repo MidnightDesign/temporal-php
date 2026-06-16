@@ -9,6 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $props = ['roundingIncrement', 'roundingMode'];
-foreach ($props as $prop) {
-Assert::incomplete('untranslatable: Object.defineProperty');
-}
+// JS-only (Object.prototype pollution has no PHP equivalent): for (const prop of props) { Object.defineProperty(Object.prototype, prop, { get() { throw new Test262Error(`Object.prototype.${prop} was looked up`); }, config…
+$instance = new \Temporal\Spec\PlainDateTime(2019, 11, 18, 12, 34, 56, 123, 456, 789);
+$instance->round('hour');
+// JS-only (Object.prototype cleanup has no PHP equivalent): for (const prop of props) { delete Object.prototype[prop]; }
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

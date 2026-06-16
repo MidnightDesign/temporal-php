@@ -13,5 +13,5 @@ $expected = ['get options.disambiguation', 'get options.disambiguation.toString'
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, ['overflow' => 'constrain', 'offset' => 'prefer', 'disambiguation' => 'compatible'], 'options');
 $instance = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->with(['monthCode' => 'M08L'], $options); }, 'exception thrown when month code incorrect for calendar');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->with(['monthCode' => 'M08L'], $options); }, 'exception thrown when month code incorrect for calendar');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 4, 5, 6, 7, 987, 654, 321);
 $invalidUnits = ['era', 'eras'];
 foreach ($invalidUnits as $unit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$unit) { return $instance->total(JsUndefined::strip(['unit' => $unit])); }, "{ unit: \"{$unit}\" } should not be allowed as an argument to total");
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$unit) { return $instance->total($unit); }, "\"{$unit}\" should not be allowed as an argument to total");
+Assert::throws(\RangeException::class, function () use (&$instance, &$unit) { return $instance->total(JsUndefined::strip(['unit' => $unit])); }, "{ unit: \"{$unit}\" } should not be allowed as an argument to total");
+Assert::throws(\RangeException::class, function () use (&$instance, &$unit) { return $instance->total($unit); }, "\"{$unit}\" should not be allowed as an argument to total");
 }

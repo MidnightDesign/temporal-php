@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 1, 2, 3, 4, 987, 654, 321);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance) { return $instance->subtract((object) JsUndefined::strip(['hours' => 1, 'minutes' => -30])); }, "mixed positive and negative values always throw");
+Assert::throws(\RangeException::class, function () use (&$instance) { return $instance->subtract((object) JsUndefined::strip(['hours' => 1, 'minutes' => -30])); }, "mixed positive and negative values always throw");

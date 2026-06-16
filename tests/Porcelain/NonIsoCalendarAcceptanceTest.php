@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Temporal\Exception\RangeError;
 use Temporal\Spec\Duration;
 use Temporal\Spec\PlainDate;
 use Temporal\Spec\PlainDateTime;
@@ -36,7 +36,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainDateConstructorRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $this->expectExceptionMessage('Unknown calendar');
         new PlainDate(2024, 1, 15, 'bogus');
     }
@@ -51,7 +51,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainDateFromStringRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $this->expectExceptionMessage('Unknown calendar');
         PlainDate::from('2024-01-15[u-ca=bogus]');
     }
@@ -72,7 +72,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainDateFromPropertyBagRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainDate::from(['year' => 2024, 'month' => 1, 'day' => 15, 'calendar' => 'bogus']);
     }
 
@@ -144,7 +144,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainDateTimeConstructorRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         new PlainDateTime(2024, 1, 15, 10, 30, 0, 0, 0, 0, 'bogus');
     }
 
@@ -197,7 +197,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainMonthDayConstructorRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         new PlainMonthDay(3, 15, 'bogus');
     }
 
@@ -239,7 +239,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testPlainYearMonthConstructorRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         new PlainYearMonth(2024, 6, 'bogus');
     }
 
@@ -278,7 +278,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testZonedDateTimeConstructorRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         new ZonedDateTime(0, 'UTC', 'bogus');
     }
 
@@ -291,7 +291,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testZonedDateTimeFromStringRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         ZonedDateTime::from('2024-01-15T10:30:00+00:00[UTC][u-ca=bogus]');
     }
 
@@ -334,7 +334,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $d = Duration::from('P1Y');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $d->total(['unit' => 'days', 'relativeTo' => '2024-01-15[u-ca=bogus]']);
     }
 
@@ -355,7 +355,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
     {
         $d = Duration::from('P1Y');
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $d->total([
             'unit' => 'days',
             'relativeTo' => ['year' => 2024, 'month' => 1, 'day' => 15, 'calendar' => 'bogus'],
@@ -389,7 +389,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testValidateAnnotationsRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $this->expectExceptionMessage('Unknown calendar');
         \Temporal\Spec\Internal\CalendarMath::validateAnnotations('[u-ca=bogus]', 'test');
     }
@@ -424,7 +424,7 @@ final class NonIsoCalendarAcceptanceTest extends TestCase
 
     public function testExtractCalendarFromStringRejectsUnknownCalendar(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         \Temporal\Spec\Internal\Calendar\CalendarFactory::extractCalendarFromString('nonsense');
     }
 

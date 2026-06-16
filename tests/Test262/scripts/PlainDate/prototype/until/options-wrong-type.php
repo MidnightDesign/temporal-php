@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Symbol()');
+$badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
+$instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
+foreach ($badOptions as $value) {
+if ($value === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$instance, &$value) { return $instance->until(new \Temporal\Spec\PlainDate(1976, 11, 18), $value); }, "TypeError on wrong options type " . (gettype($value)) . "");
+}

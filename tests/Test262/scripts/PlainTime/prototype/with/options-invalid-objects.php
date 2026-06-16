@@ -9,4 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $plainTime = new \Temporal\Spec\PlainTime(12);
-Assert::incomplete('untranslatable: Symbol()');
+foreach ([null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1] as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$plainTime, &$badOptions) { return $plainTime->with((object) ['hour' => 3], $badOptions); }, '');
+}

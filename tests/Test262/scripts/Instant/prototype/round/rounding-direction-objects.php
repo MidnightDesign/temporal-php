@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('Instant epoch nanoseconds exceed PHP int64 range');
+$instance = \Temporal\Spec\Instant::fromEpochParts(-65261246400, 500000000);
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

@@ -9,10 +9,12 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'hebrew';
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 5779, 'monthCode' => 'M13', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M13', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 5779, 'monthCode' => 'M13', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
+Assert::throws(\RangeException::class, function () use (&$calendar) { \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 5781, 'monthCode' => 'M13', 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, 'M13 should not be a valid month code');
 for ($i = 1; $i <= 12; $i++) {
 if ($i === 5) {
-Assert::incomplete('untranslatable statement: ContinueStatement');
+continue;
 }
+$monthCode = "M" . (str_pad((string) ($i), 2, '0', STR_PAD_LEFT)) . "L";
+Assert::throws(\RangeException::class, function () use (&$monthCode, &$calendar) { \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => 5779, 'monthCode' => $monthCode, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'calendar' => $calendar])); }, '');
 }

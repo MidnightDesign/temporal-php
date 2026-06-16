@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['1970-01-01T00:00[UTC][u-ca=iso8601][!u-ca=iso8601]', '1970-01-01T00:00[UTC][!u-ca=iso8601][u-ca=iso8601]', '1970-01-01T00:00[UTC][u-ca=iso8601][foo=bar][!u-ca=iso8601]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "reject more than one calendar annotation if any critical: {$arg}");
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "reject more than one calendar annotation if any critical: {$arg}");
 }

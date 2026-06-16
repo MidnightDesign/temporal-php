@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $fields = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$field) { return \Temporal\Spec\Duration::from((object) JsUndefined::strip([$field => INF])); }, '');
+Assert::throws(\RangeException::class, function () use (&$field) { return \Temporal\Spec\Duration::from((object) JsUndefined::strip([$field => INF])); }, '');
 }
 $calls = 0;
 // JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): obj = { valueOf() { calls++; return Infinity; } }

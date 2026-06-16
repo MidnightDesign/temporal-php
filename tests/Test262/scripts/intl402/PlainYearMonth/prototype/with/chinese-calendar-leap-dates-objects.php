@@ -11,11 +11,33 @@ use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'chinese';
 $daysInMonthCases = [(object) JsUndefined::strip(['year' => 2001, 'leap' => 'M04L', 'days' => [30, 30, 29, 30, 29, 30, 29, 29, 30, 29, 30, 29, 30]])];
 foreach ($daysInMonthCases as $__obj__) {
-$year = $__obj__['year'] ?? null;
-$leap = $__obj__['leap'] ?? null;
-$days = $__obj__['days'] ?? null;
+$year = $__obj__->year ?? null;
+$leap = $__obj__->leap ?? null;
+$days = $__obj__->days ?? null;
 $date = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar]));
 $leapMonth = $date->with((object) JsUndefined::strip(['monthCode' => $leap]));
 Assert::sameValue($leapMonth->monthCode, $leap, '');
-Assert::incomplete('untranslatable: destructuring assignment');
+$monthsInYear = $date->monthsInYear;
+for ($i = $monthsInYear, $leapMonthIndex = null, $monthStart = null; $i >= 1; $i--) {
+$monthStart = ($monthStart ? $monthStart->add((object) JsUndefined::strip(['months' => -1])) : $date->add((object) JsUndefined::strip(['months' => $monthsInYear - 1])));
+$month = $monthStart->month;
+$monthCode = $monthStart->monthCode;
+$daysInMonth = $monthStart->daysInMonth;
+Assert::sameValue($month, $i, '');
+Assert::sameValue($daysInMonth, $days[$i - 1], '');
+if (\Temporal\Tests\Test262\Js::endsWith($monthCode, 'L')) {
+Assert::sameValue($date->with((object) JsUndefined::strip(['monthCode' => $monthCode]))->monthCode, $leap, '');
+$leapMonthIndex = $i;
+} else {
+if (!JsUndefined::isUndefined($leapMonthIndex) && $i === ($leapMonthIndex - 1)) {
+$inLeapMonth = $monthStart->with((object) JsUndefined::strip(['monthCode' => "M" . (str_pad((string) ($month), 2, '0', STR_PAD_LEFT)) . "L"]));
+Assert::sameValue($inLeapMonth->monthCode, "{$monthCode}L", '');
+} else {
+Assert::throws(\RangeException::class, function () use (&$monthStart, &$month) { return $monthStart->with((object) JsUndefined::strip(['monthCode' => "M" . (str_pad((string) ($month), 2, '0', STR_PAD_LEFT)) . "L"]), (object) ['overflow' => 'reject']); }, '');
+if ($i === 13) {
+Assert::throws(\RangeException::class, function () use (&$monthStart, &$month) { return $monthStart->with((object) JsUndefined::strip(['monthCode' => "M" . (str_pad((string) ($month), 2, '0', STR_PAD_LEFT)) . "L"])); }, '');
+}
+}
+}
+}
 }

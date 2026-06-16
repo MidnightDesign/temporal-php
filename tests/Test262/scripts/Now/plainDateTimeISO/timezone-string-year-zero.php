@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['-000000-10-31T17:45Z', '-000000-10-31T17:45+00:00[UTC]'];
 foreach ($invalidStrings as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone) { return \Temporal\Spec\Now::plainDateTimeISO($timeZone); }, 'reject minus zero as extended year');
+Assert::throws(\RangeException::class, function () use (&$timeZone) { return \Temporal\Spec\Now::plainDateTimeISO($timeZone); }, 'reject minus zero as extended year');
 }

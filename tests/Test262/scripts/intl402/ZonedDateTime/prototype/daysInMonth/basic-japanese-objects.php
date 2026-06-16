@@ -12,7 +12,7 @@ $calendar = 'japanese';
 $options = (object) ['overflow' => 'reject'];
 $sampleYears = (object) JsUndefined::strip([1972 => [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31], 1973 => [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]]);
 foreach ($sampleYears as $year => $daysInMonth) {
-for ($month = 1; $month < count($daysInMonth); $month++) {
+for ($month = 1; $month < (is_string($daysInMonth) ? strlen($daysInMonth) : count($daysInMonth)); $month++) {
 $date = \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']));
 Assert::sameValue($date->daysInMonth, $daysInMonth[$month - 1], "{$date}");
 }

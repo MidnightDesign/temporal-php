@@ -13,5 +13,5 @@ $expected = ['get options.fractionalSecondDigits', 'get options.fractionalSecond
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, ['smallestUnit' => 'seconds', 'fractionalSecondDigits' => 'auto', 'roundingMode' => 'expand'], 'options');
 $instance = new \Temporal\Spec\Duration(0, 0, 0, 0, 0, 0, 9_007_199_254_740_991, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->toString($options); }, 'exception thrown when result is out of range');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->toString($options); }, 'exception thrown when result is out of range');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

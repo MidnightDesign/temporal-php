@@ -9,6 +9,6 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return \Temporal\Spec\ZonedDateTime::from($datetime, (object) ['offset' => 'other string']); }, '');
+Assert::throws(\RangeException::class, function () use (&$datetime) { return \Temporal\Spec\ZonedDateTime::from($datetime, (object) ['offset' => 'other string']); }, '');
 $propertyBag = (object) ['timeZone' => 'UTC', 'year' => 2001, 'month' => 9, 'day' => 9, 'hour' => 1, 'minute' => 46, 'second' => 40, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) ['offset' => 'other string']); }, '');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) ['offset' => 'other string']); }, '');

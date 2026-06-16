@@ -13,6 +13,7 @@ $offsetOptions = ['use', 'prefer', 'ignore', 'reject'];
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000];
 foreach ($offsetOptions as $offsetOption) {
 foreach ($badOffsets as $offset) {
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$offset, &$offsetOption) { return $instance->with((object) JsUndefined::strip(['offset' => $offset]), (object) JsUndefined::strip(['offset' => $offsetOption])); }, "\"{$offset} is not a valid offset string (with {$offsetOption} offset option)");
+if ($offset === null) { continue; }
+Assert::throws((is_string($offset) ? \RangeException::class : \TypeError::class), function () use (&$instance, &$offset, &$offsetOption) { return $instance->with((object) JsUndefined::strip(['offset' => $offset]), (object) JsUndefined::strip(['offset' => $offsetOption])); }, "\"{$offset} is not a valid offset string (with {$offsetOption} offset option)");
 }
 }

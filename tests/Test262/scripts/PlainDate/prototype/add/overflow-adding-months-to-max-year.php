@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $maxYear = new \Temporal\Spec\PlainDate(275_760, 1, 1);
 $duration = new \Temporal\Spec\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$maxYear, &$duration) { return $maxYear->add($duration); }, '');
+Assert::throws(\RangeException::class, function () use (&$maxYear, &$duration) { return $maxYear->add($duration); }, '');
 $minYear = new \Temporal\Spec\PlainDate(-271_821, 4, 19);
-Assert::throws(\InvalidArgumentException::class, function () use (&$minYear, &$duration) { return $minYear->add($duration->negated()); }, '');
+Assert::throws(\RangeException::class, function () use (&$minYear, &$duration) { return $minYear->add($duration->negated()); }, '');

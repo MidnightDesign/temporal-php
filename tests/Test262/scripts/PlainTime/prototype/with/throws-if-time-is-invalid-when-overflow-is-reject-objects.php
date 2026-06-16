@@ -12,5 +12,5 @@ $instance = new \Temporal\Spec\PlainTime();
 $temporalTimeLikes = [(object) JsUndefined::strip(['hour' => -1]), (object) ['hour' => 24], (object) JsUndefined::strip(['minute' => -1]), (object) ['minute' => 60], (object) JsUndefined::strip(['second' => -1]), (object) ['second' => 60], (object) JsUndefined::strip(['millisecond' => -1]), (object) ['millisecond' => 1000], (object) JsUndefined::strip(['microsecond' => -1]), (object) ['microsecond' => 1000], (object) JsUndefined::strip(['nanosecond' => -1]), (object) ['nanosecond' => 1000]];
 $options = (object) ['overflow' => 'reject'];
 foreach ($temporalTimeLikes as $temporalTimeLike) {
-Assert::incomplete('untranslatable: JSON.stringify');
+Assert::throws(\RangeException::class, function () use (&$instance, &$temporalTimeLike, &$options) { return $instance->with($temporalTimeLike, $options); }, "temporalTimeLike = " . (json_encode($temporalTimeLike)) . "");
 }

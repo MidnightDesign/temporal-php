@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkToTemporalCalendarFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalCalendarFastPath(function ($temporalObject) use (&$monthday) { $monthday = new \Temporal\Spec\PlainMonthDay(5, 2); $monthday->equals(JsUndefined::strip(['monthCode' => 'M06', 'day' => 2, 'calendar' => $temporalObject])); });

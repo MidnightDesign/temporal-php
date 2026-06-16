@@ -13,5 +13,7 @@ $calendar = 'hebrew';
 $options = (object) ['overflow' => 'reject'];
 $commonYear = 5783;
 for ($month = 1; $month < 13; $month++) {
-Assert::incomplete('untranslatable: String()');
+$monthCode = "M" . (str_pad(\Temporal\Tests\Test262\Js::toString($month), 2, '0', STR_PAD_LEFT)) . "";
+$startOfMonth = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $commonYear, 'month' => $month, 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainYearMonth($startOfMonth, $commonYear, $month, $monthCode, "{$monthCode} in common year", 'am', $commonYear, null);
 }

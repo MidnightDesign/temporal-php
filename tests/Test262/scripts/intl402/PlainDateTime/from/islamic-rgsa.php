@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $calendar = 'islamic-rgsa';
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => 1500, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar])); }, 'fallback for calendar ID \'islamic-rgsa\' only supported in Intl.DateTimeFormat constructor, not Temporal');
+Assert::throws(\RangeException::class, function () use (&$calendar) { return \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => 1500, 'month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'calendar' => $calendar])); }, 'fallback for calendar ID \'islamic-rgsa\' only supported in Intl.DateTimeFormat constructor, not Temporal');

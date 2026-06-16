@@ -9,4 +9,9 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789, 'iso8601');
-Assert::incomplete('untranslatable: Symbol()');
+$wrongTypeTests = [[null, 'null'], [true, 'boolean'], [1, 'number'], [1, 'bigint'], [19_970_327, 'large number'], [-19_970_327, 'negative number'], [1_234_567_890, 'very large integer'], [\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [(object) [], 'object'], [new \Temporal\Spec\Duration(), 'duration instance']];
+foreach ($wrongTypeTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+if ($arg === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$instance, &$arg) { return $instance->withCalendar($arg); }, "{$description} is not a valid calendar");
+}

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $jan31 = new \Temporal\Spec\ZonedDateTime(1_580_511_600_000_000_000, '-08:00');
-Assert::throws(\InvalidArgumentException::class, function () use (&$jan31) { return $jan31->add((object) ['months' => 1], (object) ['overflow' => 'reject']); }, '');
+Assert::throws(\RangeException::class, function () use (&$jan31) { return $jan31->add((object) ['months' => 1], (object) ['overflow' => 'reject']); }, '');

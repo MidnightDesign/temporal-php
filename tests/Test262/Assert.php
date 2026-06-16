@@ -34,7 +34,7 @@ final class Assert
     /**
      * Asserts that a value is truthy (mirrors the bare assert() function in TC39 test262).
      */
-    public static function assertTrue(mixed $value, string $message = ''): void
+    public static function assertTrue(mixed $value, ?string $message = null): void
     {
         // Match JS's truthiness check: treat falsy PHP values (false, 0, '', null, [], '0') as false.
         $bool =
@@ -45,7 +45,7 @@ final class Assert
             && $value !== null
             && $value !== []
             && $value !== '0';
-        PHPUnitAssert::assertTrue($bool, $message);
+        PHPUnitAssert::assertTrue($bool, $message ?? '');
     }
 
     /**
@@ -54,7 +54,7 @@ final class Assert
      * Note: argument order matches JS's assert.sameValue(actual, expected),
      * which is the reverse of PHPUnit's assertSame(expected, actual).
      */
-    public static function sameValue(mixed $actual, mixed $expected, string $message = ''): void
+    public static function sameValue(mixed $actual, mixed $expected, ?string $message = null): void
     {
         if ($actual === self::int64Overflow() || $expected === self::int64Overflow()) {
             return;
@@ -76,15 +76,15 @@ final class Assert
             $fe = (float) $expected;
             // SameValue(NaN, NaN) is true in TC39.
             if (is_nan($fa) && is_nan($fe)) {
-                PHPUnitAssert::assertNan($fa, $message !== '' ? $message : 'SameValue(NaN, NaN)');
+                PHPUnitAssert::assertNan($fa, $message !== null && $message !== '' ? $message : 'SameValue(NaN, NaN)');
                 return;
             }
             if ($fa === $fe) {
-                PHPUnitAssert::assertSame($fa, $fe, $message);
+                PHPUnitAssert::assertSame($fa, $fe, $message ?? '');
                 return;
             }
         }
-        PHPUnitAssert::assertSame($expected, $actual, $message);
+        PHPUnitAssert::assertSame($expected, $actual, $message ?? '');
     }
 
     /**
@@ -92,7 +92,7 @@ final class Assert
      *
      * Note: argument order matches JS's assert.notSameValue(actual, unexpected).
      */
-    public static function notSameValue(mixed $actual, mixed $unexpected, string $message = ''): void
+    public static function notSameValue(mixed $actual, mixed $unexpected, ?string $message = null): void
     {
         if ($actual === self::int64Overflow() || $unexpected === self::int64Overflow()) {
             return;
@@ -104,7 +104,7 @@ final class Assert
         if ($unexpected instanceof JsUndefined) {
             $unexpected = null;
         }
-        PHPUnitAssert::assertNotSame($unexpected, $actual, $message);
+        PHPUnitAssert::assertNotSame($unexpected, $actual, $message ?? '');
     }
 
     /**
@@ -112,17 +112,17 @@ final class Assert
      *
      * @param class-string<\Throwable> $exceptionClass
      */
-    public static function throws(string $exceptionClass, callable $fn, string $message = ''): void
+    public static function throws(string $exceptionClass, callable $fn, ?string $message = null): void
     {
         try {
             $fn();
         } catch (AssertionFailedError $e) {
             throw $e;
         } catch (\Throwable $e) {
-            PHPUnitAssert::assertInstanceOf($exceptionClass, $e, $message);
+            PHPUnitAssert::assertInstanceOf($exceptionClass, $e, $message ?? '');
             return;
         }
-        PHPUnitAssert::fail("Expected {$exceptionClass} to be thrown, but nothing was thrown. {$message}");
+        PHPUnitAssert::fail("Expected {$exceptionClass} to be thrown, but nothing was thrown. " . ($message ?? ''));
     }
 
     /**
@@ -133,9 +133,9 @@ final class Assert
      * @param array<mixed> $actual
      * @param array<mixed> $expected
      */
-    public static function compareArray(array $actual, array $expected, string $message = ''): void
+    public static function compareArray(array $actual, array $expected, ?string $message = null): void
     {
-        PHPUnitAssert::assertSame($expected, $actual, $message);
+        PHPUnitAssert::assertSame($expected, $actual, $message ?? '');
     }
 
     /**
@@ -179,6 +179,59 @@ final class Assert
         PHPUnitAssert::assertTrue(
             $required === $expected || $total === $expected,
             "Expected {$class}::{$method} JS length {$expected}, " . "got required={$required}, total={$total}",
+        );
+    }
+
+    /**
+     * Asserts that `$prop` on `$fqcn` is a read-only accessor property.
+     *
+     * PHP port of the canonical test262 `prop-desc.js` accessor shape:
+     *
+     *     const descriptor = Object.getOwnPropertyDescriptor(Temporal.X.prototype, "P");
+     *     assert.sameValue(typeof descriptor.get, "function");
+     *     assert.sameValue(descriptor.set, undefined);
+     *     assert.sameValue(descriptor.enumerable, false);
+     *     assert.sameValue(descriptor.configurable, true);
+     *
+     * The load-bearing assertions are "a getter exists" and "no setter exists" —
+     * i.e. the property is a read-only accessor. The enumerable/configurable bits
+     * are pure JS object-model details with no PHP equivalent and are not modeled.
+     *
+     * In the PHP spec layer each such property is represented EITHER as a PHP 8.4
+     * virtual property with a `get` hook and no `set` hook, OR as a stored
+     * `readonly` property. Both are read-ok / write-throws, faithfully modeling
+     * the JS "getter present / no setter" contract without needing an instance.
+     *
+     * Lives here beside {@see methodExists}/{@see methodLength}: all three answer
+     * "does this class member have the shape test262's prop-desc / verifyProperty
+     * expects?" via reflection.
+     *
+     * @param class-string $fqcn Fully-qualified spec class name (e.g. \Temporal\Spec\PlainDate).
+     * @param string       $prop Property name.
+     */
+    public static function readOnlyAccessor(string $fqcn, string $prop): void
+    {
+        $rc = new \ReflectionClass($fqcn);
+        PHPUnitAssert::assertTrue($rc->hasProperty($prop), sprintf('%s::$%s exists', $fqcn, $prop));
+        $rp = $rc->getProperty($prop);
+        PHPUnitAssert::assertTrue($rp->isPublic(), sprintf('%s::$%s is public', $fqcn, $prop));
+        if (!$rp->hasHooks()) {
+            // Stored property: the read-only contract is encoded by `readonly`.
+            PHPUnitAssert::assertTrue($rp->isReadOnly(), sprintf(
+                '%s::$%s is a stored readonly property (read-only)',
+                $fqcn,
+                $prop,
+            ));
+            return;
+        }
+        // Virtual property: a `get` hook (getter present) and no `set` hook (read-only).
+        PHPUnitAssert::assertTrue(
+            $rp->hasHook(\PropertyHookType::Get),
+            sprintf('%s::$%s has a get hook (getter present)', $fqcn, $prop),
+        );
+        PHPUnitAssert::assertFalse(
+            $rp->hasHook(\PropertyHookType::Set),
+            sprintf('%s::$%s has no set hook (read-only)', $fqcn, $prop),
         );
     }
 

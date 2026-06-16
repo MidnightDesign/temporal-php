@@ -12,14 +12,18 @@ $plainDateCandidates = [(object) ['year' => 1651, 'monthCode' => 'M01L', 'day' =
 $calendars = ['chinese', 'dangi'];
 foreach ($calendars as $calendar) {
 foreach ($plainDateCandidates as $__obj__) {
-$year = $__obj__['year'] ?? null;
-$monthCode = $__obj__['monthCode'] ?? null;
-$day = $__obj__['day'] ?? null;
-$referenceYear = $__obj__['referenceYear'] ?? null;
+$year = $__obj__->year ?? null;
+$monthCode = $__obj__->monthCode ?? null;
+$day = $__obj__->day ?? null;
+$referenceYear = $__obj__->referenceYear ?? null;
 $pd = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day]));
 if ($pd->monthCode === $monthCode && $pd->day === $day) {
 $pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'year' => $year, 'monthCode' => $monthCode, 'day' => $day]));
-Assert::incomplete('untranslatable: Number()');
+$pmdYear = (float) (explode('-', (string) ($pmd))[0]);
+Assert::sameValue($pmdYear, $referenceYear, "reference year for {$year} {$monthCode} {$day} is {$pmdYear}, should be {$referenceYear}");
+$pmdFromPd = $pd->toPlainMonthDay();
+$pmdFromPdYear = (float) (explode('-', (string) ($pmdFromPd))[0]);
+Assert::sameValue($pmdFromPdYear, $referenceYear, "reference year for {$year} {$monthCode} {$day} is {$pmdYear}, should be {$referenceYear}");
 }
 }
 }

@@ -11,10 +11,10 @@ use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\PlainYearMonth(2000, 5);
 $later = new \Temporal\Spec\PlainYearMonth(2001, 6);
 $units = ['years', 'months'];
-for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
+for ($largestIdx = 1; $largestIdx < (is_string($units) ? strlen($units) : count($units)); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
 $largestUnit = $units[$largestIdx];
 $smallestUnit = $units[$smallestIdx];
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later, &$largestUnit, &$smallestUnit) { return $earlier->until($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, '');
+Assert::throws(\RangeException::class, function () use (&$earlier, &$later, &$largestUnit, &$smallestUnit) { return $earlier->until($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, '');
 }
 }

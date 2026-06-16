@@ -4,10 +4,17 @@ declare(strict_types=1);
 
 namespace Temporal\Spec;
 
-use InvalidArgumentException;
 use Stringable;
+use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
+use Temporal\Spec\Internal\EpochRounding;
+use Temporal\Spec\Internal\EpochValue;
+use Temporal\Spec\Internal\HasEpochParts;
+use Temporal\Spec\Internal\IntlFormatter;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -24,18 +31,14 @@ use Temporal\Spec\Internal\TimeZoneHelper;
  */
 final class ZonedDateTime implements Stringable
 {
+    use HasEpochParts;
     use TemporalSerde;
 
-    private const int NS_PER_SECOND = 1_000_000_000;
-    private const int NS_PER_MILLISECOND = 1_000_000;
-    private const int NS_PER_MICROSECOND = 1_000;
+    private const int MS_PER_SECOND = 1_000;
 
     // -------------------------------------------------------------------------
     // Actual stored property
     // -------------------------------------------------------------------------
-
-    /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
-    public readonly int $epochNanoseconds;
 
     /** @psalm-suppress PropertyNotSetInConstructor — set unconditionally in constructor */
     public readonly string $timeZoneId;
@@ -48,15 +51,6 @@ final class ZonedDateTime implements Stringable
 
     /** @var array{year:int, month:int<1,12>, day:int<1,31>, hour:int<0,23>, minute:int<0,59>, second:int<0,59>, millisecond:int<0,999>, microsecond:int<0,999>, nanosecond:int<0,999>, offsetSec:int, offset:string}|null $localCache */
     private ?array $localCache = null;
-
-    /**
-     * True epoch seconds (UTC) — set when epochNanoseconds is a sentinel
-     * (PHP_INT_MIN/MAX) because the actual value overflows int64 nanoseconds.
-     */
-    private ?int $trueEpochSec = null;
-
-    /** Sub-second nanoseconds (0–999_999_999) paired with $trueEpochSec. */
-    private int $trueSubNs = 0;
 
     /** Canonical timezone ID for DateTimeZone operations (offset/transition lookups). */
     private readonly string $resolvedTimeZoneId;
@@ -177,7 +171,10 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $epochMilliseconds {
-        get => CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_MILLISECOND);
+        get {
+            [$epochSec, $subNs] = $this->epochParts();
+            return ($epochSec * self::MS_PER_SECOND) + intdiv($subNs, EpochLimits::NS_PER_MILLISECOND);
+        }
     }
 
     /**
@@ -199,7 +196,7 @@ final class ZonedDateTime implements Stringable
      * @psalm-api
      */
     public int $offsetNanoseconds {
-        get => $this->localComponents()['offsetSec'] * self::NS_PER_SECOND;
+        get => $this->localComponents()['offsetSec'] * EpochLimits::NS_PER_SECOND;
     }
 
     // -------------------------------------------------------------------------
@@ -404,6 +401,15 @@ final class ZonedDateTime implements Stringable
                 $this->resolvedTimeZoneId,
             );
 
+            // Spec (get hoursInDay steps 7-8): GetStartOfDay(today)/GetStartOfDay(tomorrow)
+            // must throw when either boundary falls outside the representable range.
+            if (
+                abs($todayEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+                || abs($tomorrowEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+            ) {
+                throw new RangeError('ZonedDateTime hoursInDay boundary is outside the representable range.');
+            }
+
             $diffSec = $tomorrowEpochSec - $todayEpochSec;
             $hours = (float) $diffSec / 3600.0;
 
@@ -417,46 +423,28 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * @param int|float $epochNanoseconds Nanoseconds since the Unix epoch. Must be a
-     *        finite integer value within the Temporal spec range (±8.64e21 ns).
+     * @param int|float|bool $epochNanoseconds Nanoseconds since the Unix epoch, as an
+     *        integer (the PHP stand-in for a BigInt). TC39 coerces this argument with
+     *        ToBigInt; ToBigInt(bool) = 0n/1n, so booleans are accepted and coerced.
+     *        ToBigInt(Number) is a TypeError, so a PHP float is rejected.
+     *        Over-int64 instants are built via {@see fromEpochParts()}.
      * @param string    $timeZoneId       Timezone identifier: 'UTC', '±HH:MM', or an IANA name.
      * @param string    $calendarId       Calendar identifier (only 'iso8601' is supported).
-     * @throws InvalidArgumentException if epochNanoseconds is not a finite integer value,
-     *                                  or if the timezone is invalid.
+     * @throws TypeError if epochNanoseconds is a float.
+     * @throws RangeError if the timezone is invalid.
      */
-    public function __construct(int|float $epochNanoseconds, string $timeZoneId, string $calendarId = 'iso8601')
+    public function __construct(int|float|bool $epochNanoseconds, string $timeZoneId, string $calendarId = 'iso8601')
     {
-        if (is_float($epochNanoseconds)) {
-            if (!is_finite($epochNanoseconds) || floor($epochNanoseconds) !== $epochNanoseconds) {
-                throw new InvalidArgumentException('ZonedDateTime epochNanoseconds must be a finite integer value.');
-            }
-            // Float beyond int64 range: validate using epoch-second range and use sentinel.
-            if ($epochNanoseconds > (float) PHP_INT_MAX || $epochNanoseconds < (float) PHP_INT_MIN) {
-                // Validate epoch seconds first (avoids garbage from int cast of huge floats).
-                $epochSecF = floor($epochNanoseconds / 1e9);
-                $maxSec = 8_640_000_000_000.0;
-                if ($epochSecF > $maxSec || $epochSecF < -$maxSec) {
-                    throw new InvalidArgumentException(
-                        'ZonedDateTime epochNanoseconds value exceeds the representable range.',
-                    );
-                }
-                // Check for boundary: reject if at the exact limit with any sub-ns remainder.
-                // Since PHP floats can't distinguish nsMax from nsMax+1, accept only the exact boundary.
-                $epochSec = (int) $epochSecF;
-                $subNs = (int) fmod(num1: $epochNanoseconds, num2: 1e9);
-                if ($subNs < 0) {
-                    $epochSec--;
-                    $subNs += self::NS_PER_SECOND;
-                }
-                $this->epochNanoseconds = $epochNanoseconds < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-                $this->trueEpochSec = $epochSec;
-                $this->trueSubNs = $subNs;
-                $this->timeZoneId = TimeZoneHelper::normalizeTimezoneId($timeZoneId, true);
-                $this->calendarId = CalendarFactory::canonicalize($calendarId);
-                $this->resolvedTimeZoneId = self::resolveCanonicalTimezoneId($this->timeZoneId);
-                return;
-            }
+        // TC39 step 2: ToBigInt(epochNanoseconds). ToBigInt(bool) = 0n/1n, so PHP booleans
+        // must be accepted and coerced. ToBigInt(Number) throws a TypeError, so a PHP float
+        // (our Number stand-in) is rejected rather than truncated. An over-int64 instant is
+        // constructed through fromEpochParts(), which carries the true epoch parts behind an
+        // int sentinel without float-precision loss.
+        if (is_bool($epochNanoseconds)) {
             $epochNanoseconds = (int) $epochNanoseconds;
+        }
+        if (is_float($epochNanoseconds)) {
+            throw new TypeError('ZonedDateTime epochNanoseconds must be an integer, not a float.');
         }
         $this->epochNanoseconds = $epochNanoseconds;
         $this->timeZoneId = TimeZoneHelper::normalizeTimezoneId($timeZoneId, true);
@@ -477,23 +465,19 @@ final class ZonedDateTime implements Stringable
      *
      * @param self|string|array<array-key, mixed>|object $item    ZonedDateTime, ISO string, or property-bag array/object.
      * @param array<array-key, mixed>|object|null $options Options array; supports 'disambiguation' (string).
-     * @throws \TypeError              for unsupported types.
-     * @throws InvalidArgumentException for invalid strings or property bags.
+     * @throws TypeError              for unsupported types.
+     * @throws RangeError for invalid strings or property bags.
      * @psalm-api
      */
     public static function from(string|array|object $item, array|object|null $options = null): self
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         // Validate 'disambiguation' option if present.
-        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
-            /** @var mixed $dv */
-            $dv = $opts['disambiguation'];
-            if (!is_string($dv)) {
-                throw new InvalidArgumentException('ZonedDateTime::from() disambiguation option must be a string.');
-            }
+        if (array_key_exists('disambiguation', $opts)) {
+            $dv = Options::coerceEnumOption($opts['disambiguation'], 'disambiguation');
             if (!in_array(needle: $dv, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "Invalid disambiguation value \"{$dv}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",
                 );
             }
@@ -501,33 +485,18 @@ final class ZonedDateTime implements Stringable
 
         // Validate 'overflow' option.
         $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if ($ov === null || is_bool($ov)) {
-                throw new InvalidArgumentException("Invalid overflow value: must be 'constrain' or 'reject'.");
-            }
-            if (!is_string($ov)) {
-                throw new \TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new InvalidArgumentException(
-                    "Invalid overflow value \"{$ov}\": must be 'constrain' or 'reject'.",
-                );
-            }
-            $overflow = $ov;
+        if (array_key_exists('overflow', $opts)) {
+            $overflow = Options::overflowOption($opts['overflow']);
         }
 
         // Validate 'offset' option if present.
-        if ($opts !== null && array_key_exists('offset', $opts)) {
+        if (array_key_exists('offset', $opts)) {
             /** @var mixed $offOpt */
             $offOpt = $opts['offset'];
             if ($offOpt !== null) {
-                if (!is_string($offOpt)) {
-                    throw new \TypeError('offset option must be a string.');
-                }
+                $offOpt = Options::coerceEnumOption($offOpt, 'offset');
                 if (!in_array(needle: $offOpt, haystack: ['use', 'ignore', 'prefer', 'reject'], strict: true)) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Invalid offset option \"{$offOpt}\"; must be 'use', 'ignore', 'prefer', or 'reject'.",
                     );
                 }
@@ -541,11 +510,11 @@ final class ZonedDateTime implements Stringable
             return self::parseZdtString($item, $options);
         }
         $disambiguation = 'compatible';
-        if ($opts !== null && array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
+        if (array_key_exists('disambiguation', $opts) && is_string($opts['disambiguation'])) {
             $disambiguation = $opts['disambiguation'];
         }
         $offsetOption = 'reject';
-        if ($opts !== null && array_key_exists('offset', $opts) && is_string($opts['offset'])) {
+        if (array_key_exists('offset', $opts) && is_string($opts['offset'])) {
             $offsetOption = $opts['offset'];
         }
         $bag = is_object($item) ? get_object_vars($item) : $item;
@@ -578,7 +547,8 @@ final class ZonedDateTime implements Stringable
      */
     public function toInstant(): Instant
     {
-        return new Instant($this->epochNanoseconds);
+        [$epochSec, $subNs] = $this->epochParts();
+        return Instant::fromEpochParts($epochSec, $subNs);
     }
 
     /**
@@ -636,8 +606,8 @@ final class ZonedDateTime implements Stringable
      *
      * The epoch nanoseconds remain the same; only the local time display changes.
      *
-     * @throws \TypeError              if $timeZone is not a string.
-     * @throws InvalidArgumentException if the timezone is invalid.
+     * @throws TypeError              if $timeZone is not a string.
+     * @throws RangeError if the timezone is invalid.
      * @psalm-api
      */
     public function withTimeZone(string $timeZone): self
@@ -645,7 +615,7 @@ final class ZonedDateTime implements Stringable
         // Normalize before constructing so datetime strings are accepted here
         // (the constructor rejects them with $rejectDatetimeStrings = true).
         $normalizedTz = TimeZoneHelper::normalizeTimezoneId($timeZone);
-        [$epochSec, $subNs] = $this->getEpochParts();
+        [$epochSec, $subNs] = $this->epochParts();
         return self::fromEpochParts($epochSec, $subNs, $normalizedTz, $this->calendarId);
     }
 
@@ -654,13 +624,13 @@ final class ZonedDateTime implements Stringable
      *
      * Only 'iso8601' is supported (case-insensitive).
      *
-     * @throws InvalidArgumentException if an unsupported calendar is given.
+     * @throws RangeError if an unsupported calendar is given.
      * @psalm-api
      */
     public function withCalendar(string $calendar): self
     {
         $calId = CalendarFactory::extractCalendarFromString($calendar);
-        [$epochSec, $subNs] = $this->getEpochParts();
+        [$epochSec, $subNs] = $this->epochParts();
         return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $calId);
     }
 
@@ -681,7 +651,7 @@ final class ZonedDateTime implements Stringable
             return $this->startOfDay();
         }
         if ($time === null) {
-            throw new \TypeError(
+            throw new TypeError(
                 'ZonedDateTime::withPlainTime() argument must be a PlainTime, string, or property bag; null given.',
             );
         } elseif ($time instanceof PlainTime) {
@@ -701,29 +671,21 @@ final class ZonedDateTime implements Stringable
             $ns = $pt->nanosecond;
         }
 
-        // Compute the local wall-clock seconds for the new datetime using the existing ISO date.
+        // Compute the local wall-clock seconds for the new datetime using the existing
+        // ISO date. Build the wall seconds from the integer Julian-day count rather than
+        // a sprintf'd ISO string: a 5-digit (extended) year would be silently mis-parsed
+        // by DateTimeImmutable (e.g. 33658 → 2008), corrupting the date. This mirrors
+        // startOfDay()/with(), which already use the toJulianDay path.
         $lc = $this->localComponents();
-        try {
-            $wallDt = new \DateTimeImmutable(sprintf(
-                '%04d-%02d-%02dT%02d:%02d:%02d+00:00',
-                $lc['year'],
-                $lc['month'],
-                $lc['day'],
-                $h,
-                $m,
-                $s,
-            ));
-        } catch (\Exception) {
-            throw new InvalidArgumentException('ZonedDateTime::withPlainTime() could not construct datetime.');
-        }
-        $wallSec = $wallDt->getTimestamp();
+        $epochDays = CalendarMath::toJulianDay($lc['year'], $lc['month'], $lc['day']) - 2_440_588;
+        $wallSec = ($epochDays * 86_400) + ($h * 3_600) + ($m * 60) + $s;
 
         // Determine the timezone offset at this new wall-clock second.
         // For a fixed offset timezone we can use it directly; for IANA we need
         // to do a wall-clock → UTC conversion.
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $this->resolvedTimeZoneId);
 
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
     }
@@ -735,7 +697,7 @@ final class ZonedDateTime implements Stringable
      * For most timezones this is midnight (00:00:00), but DST transitions that
      * skip midnight may produce a different start-of-day time.
      *
-     * @throws InvalidArgumentException if the resulting epoch nanoseconds are out of range.
+     * @throws RangeError if the resulting epoch nanoseconds are out of range.
      * @psalm-api
      */
     public function startOfDay(): self
@@ -757,7 +719,7 @@ final class ZonedDateTime implements Stringable
      * Returns true if this ZonedDateTime represents the same instant, timezone, and calendar.
      *
      * @param self|string|array<array-key, mixed>|object $other ZonedDateTime, string, or array.
-     * @throws \TypeError for unsupported types.
+     * @throws TypeError for unsupported types.
      * @psalm-api
      */
     public function equals(string|array|object $other): bool
@@ -870,14 +832,14 @@ final class ZonedDateTime implements Stringable
      *   - calendarName: 'auto' (default, omit for iso8601) | 'always' | 'never' | 'critical'
      *
      * @param array<array-key, mixed>|object|null $options null, array, or object (treated as empty bag).
-     * @throws \TypeError              if option values have wrong types.
-     * @throws InvalidArgumentException if option values are invalid strings.
+     * @throws TypeError              if option values have wrong types.
+     * @throws RangeError if option values are invalid strings.
      * @psalm-api
      */
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        $options = is_object($options) ? get_object_vars($options) : $options;
+        $options = Options::normalizeOptions($options);
 
         $digits = -2; // -2 = 'auto'
         $offsetMode = 'auto';
@@ -886,95 +848,54 @@ final class ZonedDateTime implements Stringable
         $isMinute = false;
         $roundMode = 'trunc';
 
-        if ($options !== null) {
-            if (array_key_exists('fractionalSecondDigits', $options)) {
-                /** @var mixed $fsd */
-                $fsd = $options['fractionalSecondDigits'];
-                if ($fsd !== 'auto') {
-                    if ($fsd === null || is_bool($fsd)) {
-                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if (is_float($fsd)) {
-                        if (is_nan($fsd) || is_infinite($fsd)) {
-                            throw new InvalidArgumentException(
-                                "fractionalSecondDigits must be 'auto' or a finite integer 0–9.",
-                            );
-                        }
-                        $fsd = (int) floor($fsd);
-                    } elseif (!is_int($fsd)) {
-                        throw new InvalidArgumentException("fractionalSecondDigits must be 'auto' or an integer 0–9.");
-                    }
-                    if ($fsd < 0 || $fsd > 9) {
-                        throw new InvalidArgumentException(
-                            "fractionalSecondDigits {$fsd} is out of range (must be 0–9).",
-                        );
-                    }
-                    $digits = $fsd;
-                }
+        if (array_key_exists('fractionalSecondDigits', $options)) {
+            $fsd = Options::fractionalSecondDigits($options['fractionalSecondDigits']);
+            if ($fsd !== null) {
+                $digits = $fsd;
             }
+        }
 
-            // smallestUnit overrides fractionalSecondDigits.
-            if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
-                /** @var mixed $su */
-                $su = $options['smallestUnit'];
-                if (!is_string($su)) {
-                    throw new \TypeError('smallestUnit must be a string.');
-                }
-                [$digits, $isMinute] = match ($su) {
-                    'minute', 'minutes' => [-1, true],
-                    'second', 'seconds' => [0, false],
-                    'millisecond', 'milliseconds' => [3, false],
-                    'microsecond', 'microseconds' => [6, false],
-                    'nanosecond', 'nanoseconds' => [9, false],
-                    default => throw new InvalidArgumentException("Invalid smallestUnit \"{$su}\"."),
-                };
-            }
+        // smallestUnit overrides fractionalSecondDigits.
+        if (array_key_exists('smallestUnit', $options) && $options['smallestUnit'] !== null) {
+            $su = Options::coerceEnumOption($options['smallestUnit'], 'smallestUnit');
+            [$digits, $isMinute] = match ($su) {
+                'minute', 'minutes' => [-1, true],
+                'second', 'seconds' => [0, false],
+                'millisecond', 'milliseconds' => [3, false],
+                'microsecond', 'microseconds' => [6, false],
+                'nanosecond', 'nanoseconds' => [9, false],
+                default => throw new RangeError("Invalid smallestUnit \"{$su}\"."),
+            };
+        }
 
-            // roundingMode (default 'trunc').
-            if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-                /** @var mixed $rm */
-                $rm = $options['roundingMode'];
-                if (!is_string($rm)) {
-                    throw new \TypeError('roundingMode must be a string.');
-                }
-                $roundMode = $rm;
-            }
+        // roundingMode (default 'trunc').
+        if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
+            $rm = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
+            $roundMode = $rm;
+        }
 
-            if (array_key_exists('offset', $options)) {
-                /** @var mixed $ov */
-                $ov = $options['offset'];
-                if (!is_string($ov)) {
-                    throw new \TypeError('offset option must be a string.');
-                }
-                if ($ov !== 'auto' && $ov !== 'never') {
-                    throw new InvalidArgumentException("Invalid offset option \"{$ov}\"; must be 'auto' or 'never'.");
-                }
-                $offsetMode = $ov;
+        if (array_key_exists('offset', $options)) {
+            $ov = Options::coerceEnumOption($options['offset'], 'offset');
+            if ($ov !== 'auto' && $ov !== 'never') {
+                throw new RangeError("Invalid offset option \"{$ov}\"; must be 'auto' or 'never'.");
             }
+            $offsetMode = $ov;
+        }
 
-            if (array_key_exists('timeZoneName', $options)) {
-                /** @var mixed $tzn */
-                $tzn = $options['timeZoneName'];
-                if (!is_string($tzn)) {
-                    throw new \TypeError('timeZoneName option must be a string.');
-                }
-                if ($tzn !== 'auto' && $tzn !== 'never' && $tzn !== 'critical') {
-                    throw new InvalidArgumentException("Invalid timeZoneName option \"{$tzn}\".");
-                }
-                $tzNameMode = $tzn;
+        if (array_key_exists('timeZoneName', $options)) {
+            $tzn = Options::coerceEnumOption($options['timeZoneName'], 'timeZoneName');
+            if ($tzn !== 'auto' && $tzn !== 'never' && $tzn !== 'critical') {
+                throw new RangeError("Invalid timeZoneName option \"{$tzn}\".");
             }
+            $tzNameMode = $tzn;
+        }
 
-            if (array_key_exists('calendarName', $options)) {
-                /** @var mixed $cn */
-                $cn = $options['calendarName'];
-                if (!is_string($cn)) {
-                    throw new \TypeError('calendarName option must be a string.');
-                }
-                if ($cn !== 'auto' && $cn !== 'always' && $cn !== 'never' && $cn !== 'critical') {
-                    throw new InvalidArgumentException("Invalid calendarName value: \"{$cn}\".");
-                }
-                $calendarName = $cn;
+        if (array_key_exists('calendarName', $options)) {
+            $cn = Options::coerceEnumOption($options['calendarName'], 'calendarName');
+            if ($cn !== 'auto' && $cn !== 'always' && $cn !== 'never' && $cn !== 'critical') {
+                throw new RangeError("Invalid calendarName value: \"{$cn}\".");
             }
+            $calendarName = $cn;
         }
 
         // Compute rounding increment in nanoseconds.
@@ -995,19 +916,12 @@ final class ZonedDateTime implements Stringable
             };
         }
 
-        // Round epoch nanoseconds using RoundNumberToIncrementAsIfPositive.
-        $roundedNs = $increment === 1
-            ? $this->epochNanoseconds
-            : self::roundAsIfPositive($this->epochNanoseconds, $increment, $roundMode);
-
-        // Recompute local date/time components from the rounded epoch.
-        $epochSec = CalendarMath::floorDiv($roundedNs, self::NS_PER_SECOND);
-        $maxSecForNsCheck = 9_223_372_035;
-        if ($epochSec > $maxSecForNsCheck || $epochSec < -$maxSecForNsCheck) {
-            $roundedSubNs = 0;
-        } else {
-            $roundedSubNs = $roundedNs - ($epochSec * self::NS_PER_SECOND); // 0–999_999_999
-        }
+        // Round using RoundNumberToIncrementAsIfPositive, operating on the TRUE
+        // epoch parts (sentinel-aware) so out-of-int64 instants render their real
+        // calendar year, matching toLocaleString(). Rounding is decomposed into
+        // (epochSec, subNs) to avoid int64 overflow on the combined nanosecond value.
+        [$trueSec, $trueSubNs] = $this->epochParts();
+        [$epochSec, $roundedSubNs] = EpochRounding::round($trueSec, $trueSubNs, $increment, $roundMode);
 
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
@@ -1020,14 +934,14 @@ final class ZonedDateTime implements Stringable
         $min = (int) $dt->format('i');
         $sec = (int) $dt->format('s');
 
-        $ms = intdiv(num1: $roundedSubNs, num2: self::NS_PER_MILLISECOND);
-        $us = intdiv(num1: $roundedSubNs % self::NS_PER_MILLISECOND, num2: self::NS_PER_MICROSECOND);
-        $ns = $roundedSubNs % self::NS_PER_MICROSECOND;
+        $ms = intdiv(num1: $roundedSubNs, num2: EpochLimits::NS_PER_MILLISECOND);
+        $us = intdiv(num1: $roundedSubNs % EpochLimits::NS_PER_MILLISECOND, num2: EpochLimits::NS_PER_MICROSECOND);
+        $ns = $roundedSubNs % EpochLimits::NS_PER_MICROSECOND;
 
         // Build offset string: ±HH:MM (rounded to minutes per FormatUTCOffsetRounded).
         // TC39 toString() uses FormatUTCOffsetRounded, which applies halfExpand
         // rounding of offset nanoseconds to the nearest minute, then formats ±HH:MM.
-        $absOffsetNs = abs($offsetSec) * self::NS_PER_SECOND;
+        $absOffsetNs = abs($offsetSec) * EpochLimits::NS_PER_SECOND;
         $totalMinutes = intdiv($absOffsetNs + 30_000_000_000, num2: 60_000_000_000);
         $offH = intdiv($totalMinutes, num2: 60);
         $offM = $totalMinutes % 60;
@@ -1046,7 +960,7 @@ final class ZonedDateTime implements Stringable
         $datePart = sprintf('%s-%02d-%02d', $yearStr, $month, $day);
 
         // Sub-second nanoseconds: ms * 1e6 + us * 1e3 + ns
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         if ($isMinute) {
             $timePart = sprintf('%02d:%02d', $hour, $min);
@@ -1115,10 +1029,10 @@ final class ZonedDateTime implements Stringable
 
         // TC39: timeZone option is disallowed for ZonedDateTime.toLocaleString.
         if (array_key_exists('timeZone', $opts) && $opts['timeZone'] !== null) {
-            throw new \TypeError('toLocaleString(): timeZone option is not allowed for ZonedDateTime.');
+            throw new TypeError('toLocaleString(): timeZone option is not allowed for ZonedDateTime.');
         }
 
-        $locale = CalendarMath::resolveLocale($locales);
+        $locale = IntlFormatter::resolveLocale($locales);
         $timeZone = $this->timeZoneId;
         $opts['_locale'] = $locale;
 
@@ -1132,10 +1046,10 @@ final class ZonedDateTime implements Stringable
         }
 
         // Validate style + component conflicts
-        CalendarMath::validateStyleConflicts($opts);
+        IntlFormatter::validateStyleConflicts($opts);
 
-        $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts, 'datetime');
-        [$epochSec] = $this->getEpochParts();
+        $formatter = IntlFormatter::buildIntlFormatter($locale, $timeZone, $opts, 'datetime');
+        [$epochSec] = $this->epochParts();
         $result = $formatter->format($epochSec);
 
         return $result !== false ? $result : $this->toString();
@@ -1187,7 +1101,7 @@ final class ZonedDateTime implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
             );
         }
@@ -1207,7 +1121,7 @@ final class ZonedDateTime implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
             );
         }
@@ -1231,17 +1145,22 @@ final class ZonedDateTime implements Stringable
         if (is_string($options)) {
             $options = ['smallestUnit' => $options];
         } elseif (is_object($options)) {
-            $options = get_object_vars($options);
+            // TC39: if options is undefined, throw TypeError (required arg).
+            if ($options instanceof \Stringable) {
+                $str = (string) $options; // JsSymbol: throws; JsUndefined: returns 'undefined'
+                if ($str === 'undefined') {
+                    throw new TypeError('ZonedDateTime::round() requires a non-undefined options argument.');
+                }
+            }
+            $options = Options::requireObject($options);
         }
 
         /** @var mixed $suRaw */
         $suRaw = $options['smallestUnit'] ?? null;
         if ($suRaw === null) {
-            throw new InvalidArgumentException('Temporal\\ZonedDateTime::round() requires smallestUnit.');
+            throw new RangeError('Temporal\\ZonedDateTime::round() requires smallestUnit.');
         }
-        if (!is_string($suRaw)) {
-            throw new \TypeError('smallestUnit must be a string.');
-        }
+        $suRaw = Options::coerceEnumOption($suRaw, 'smallestUnit');
 
         // [nsPerUnit, maxIncrement (next-unit size, or 1 for day)]
         $unitMap = [
@@ -1251,29 +1170,23 @@ final class ZonedDateTime implements Stringable
             'hours' => [3_600_000_000_000, 24],
             'minute' => [60_000_000_000, 60],
             'minutes' => [60_000_000_000, 60],
-            'second' => [self::NS_PER_SECOND, 60],
-            'seconds' => [self::NS_PER_SECOND, 60],
-            'millisecond' => [self::NS_PER_MILLISECOND, 1_000],
-            'milliseconds' => [self::NS_PER_MILLISECOND, 1_000],
-            'microsecond' => [self::NS_PER_MICROSECOND, 1_000],
-            'microseconds' => [self::NS_PER_MICROSECOND, 1_000],
+            'second' => [EpochLimits::NS_PER_SECOND, 60],
+            'seconds' => [EpochLimits::NS_PER_SECOND, 60],
+            'millisecond' => [EpochLimits::NS_PER_MILLISECOND, 1_000],
+            'milliseconds' => [EpochLimits::NS_PER_MILLISECOND, 1_000],
+            'microsecond' => [EpochLimits::NS_PER_MICROSECOND, 1_000],
+            'microseconds' => [EpochLimits::NS_PER_MICROSECOND, 1_000],
             'nanosecond' => [1, 1_000],
             'nanoseconds' => [1, 1_000],
         ];
         if (!array_key_exists($suRaw, $unitMap)) {
-            throw new InvalidArgumentException(
-                "Invalid smallestUnit \"{$suRaw}\" for Temporal\\ZonedDateTime::round().",
-            );
+            throw new RangeError("Invalid smallestUnit \"{$suRaw}\" for Temporal\\ZonedDateTime::round().");
         }
         [$nsPerUnit, $maxDivisor] = $unitMap[$suRaw];
 
         $roundingMode = 'halfExpand';
         if (array_key_exists('roundingMode', $options) && $options['roundingMode'] !== null) {
-            /** @var mixed $rmRaw */
-            $rmRaw = $options['roundingMode'];
-            if (!is_string($rmRaw)) {
-                throw new \TypeError('roundingMode must be a string.');
-            }
+            $rmRaw = Options::coerceEnumOption($options['roundingMode'], 'roundingMode');
             $roundingMode = $rmRaw;
         }
 
@@ -1283,16 +1196,16 @@ final class ZonedDateTime implements Stringable
             // which coerces booleans/numeric strings. CalendarMath::toFiniteInt mirrors that.
             $rawIncrement = CalendarMath::toFiniteInt($options['roundingIncrement'], 'roundingIncrement');
             if ($rawIncrement < 1) {
-                throw new InvalidArgumentException('roundingIncrement must be a positive integer.');
+                throw new RangeError('roundingIncrement must be a positive integer.');
             }
             $increment = $rawIncrement;
         }
         if ($maxDivisor === 1) {
             if ($increment !== 1) {
-                throw new InvalidArgumentException("roundingIncrement {$increment} is invalid for unit \"{$suRaw}\".");
+                throw new RangeError("roundingIncrement {$increment} is invalid for unit \"{$suRaw}\".");
             }
         } elseif ($increment >= $maxDivisor || ($maxDivisor % $increment) !== 0) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "roundingIncrement {$increment} does not evenly divide {$maxDivisor} for unit \"{$suRaw}\".",
             );
         }
@@ -1308,25 +1221,27 @@ final class ZonedDateTime implements Stringable
         $midnightEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($midnightWallSec, $this->resolvedTimeZoneId);
 
         // Compute offset from midnight using true epoch parts to handle sentinels.
-        if ($this->trueEpochSec !== null) {
-            $thisEpochSec = $this->trueEpochSec;
-            $thisSubNs = $this->trueSubNs;
-        } else {
-            $thisEpochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-            $thisSubNs = $this->epochNanoseconds - ($thisEpochSec * self::NS_PER_SECOND);
-        }
-        $offsetFromMidnight = (($thisEpochSec - $midnightEpochSec) * self::NS_PER_SECOND) + $thisSubNs;
+        [$thisEpochSec, $thisSubNs] = $this->epochParts();
+        $offsetFromMidnight = (($thisEpochSec - $midnightEpochSec) * EpochLimits::NS_PER_SECOND) + $thisSubNs;
 
         if ($isDay) {
             // Compute actual day length for DST-aware day rounding.
             $nextDayWallSec = $midnightWallSec + 86_400;
             $nextDayEpochSec = TimeZoneHelper::wallSecToEpochSecStartOfDay($nextDayWallSec, $this->resolvedTimeZoneId);
-            $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * self::NS_PER_SECOND;
+
+            // Spec (round step 18): GetStartOfDay(dateStart)/GetStartOfDay(dateEnd) must
+            // throw when either day boundary falls outside the representable range.
+            if (
+                abs($midnightEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+                || abs($nextDayEpochSec) > EpochLimits::MAX_EPOCH_SECONDS
+            ) {
+                throw new RangeError('ZonedDateTime day-rounding boundary is outside the representable range.');
+            }
+
+            $dayLengthNs = ($nextDayEpochSec - $midnightEpochSec) * EpochLimits::NS_PER_SECOND;
 
             if ($dayLengthNs <= 0) {
-                throw new InvalidArgumentException(
-                    'Cannot round to day: day length is zero or negative (DST transition).',
-                );
+                throw new RangeError('Cannot round to day: day length is zero or negative (DST transition).');
             }
 
             $roundedOffsetNs = self::roundDayNs($offsetFromMidnight, $dayLengthNs, $roundingMode);
@@ -1334,15 +1249,15 @@ final class ZonedDateTime implements Stringable
             $roundedOffsetNs = $offsetFromMidnight;
         } else {
             // Round the offset from midnight, then add back midnight.
-            $roundedOffsetNs = self::roundPositiveNs($offsetFromMidnight, $nsIncrement, $roundingMode);
+            $roundedOffsetNs = EpochRounding::roundAsIfPositive($offsetFromMidnight, $nsIncrement, $roundingMode);
         }
 
         // Compute the rounded result as epoch seconds + sub-ns.
-        $roundedEpochSec = $midnightEpochSec + intdiv(num1: $roundedOffsetNs, num2: self::NS_PER_SECOND);
-        $roundedSubNs = $roundedOffsetNs % self::NS_PER_SECOND;
+        $roundedEpochSec = $midnightEpochSec + intdiv(num1: $roundedOffsetNs, num2: EpochLimits::NS_PER_SECOND);
+        $roundedSubNs = $roundedOffsetNs % EpochLimits::NS_PER_SECOND;
         if ($roundedSubNs < 0) {
             $roundedEpochSec--;
-            $roundedSubNs += self::NS_PER_SECOND;
+            $roundedSubNs += EpochLimits::NS_PER_SECOND;
         }
 
         return self::fromEpochParts($roundedEpochSec, $roundedSubNs, $this->timeZoneId, $this->calendarId);
@@ -1368,13 +1283,13 @@ final class ZonedDateTime implements Stringable
             || $fields instanceof Instant
             || $fields instanceof Duration
         ) {
-            throw new \TypeError('ZonedDateTime::with() argument must not be a Temporal object.');
+            throw new TypeError('ZonedDateTime::with() argument must not be a Temporal object.');
         }
 
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
 
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
-            throw new \TypeError('ZonedDateTime::with() fields must not contain a calendar or timeZone property.');
+            throw new TypeError('ZonedDateTime::with() fields must not contain a calendar or timeZone property.');
         }
 
         $recognized = [
@@ -1402,10 +1317,10 @@ final class ZonedDateTime implements Stringable
             break;
         }
         if (!$hasField) {
-            throw new \TypeError('ZonedDateTime::with() requires at least one recognized property.');
+            throw new TypeError('ZonedDateTime::with() requires at least one recognized property.');
         }
 
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
         $disambiguation = self::extractDisambiguation($options);
 
         // Extract the 'offset' option (default is 'prefer' for with()).
@@ -1416,11 +1331,9 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $offOpt */
                 $offOpt = $optArr['offset'];
                 if ($offOpt !== null) {
-                    if (!is_string($offOpt)) {
-                        throw new \TypeError('ZonedDateTime::with() offset option must be a string.');
-                    }
+                    $offOpt = Options::coerceEnumOption($offOpt, 'offset');
                     if (!in_array($offOpt, ['prefer', 'use', 'ignore', 'reject'], strict: true)) {
-                        throw new InvalidArgumentException(
+                        throw new RangeError(
                             "Invalid offset option \"{$offOpt}\": must be 'prefer', 'use', 'ignore', or 'reject'.",
                         );
                     }
@@ -1435,10 +1348,10 @@ final class ZonedDateTime implements Stringable
             /** @var mixed $offVal */
             $offVal = $fields['offset'];
             if (!is_string($offVal)) {
-                throw new \TypeError('ZonedDateTime::with() offset field must be a string.');
+                throw new TypeError('ZonedDateTime::with() offset field must be a string.');
             }
             if (preg_match('/^[+-]\d{2}:\d{2}(:\d{2})?$/', $offVal) !== 1) {
-                throw new InvalidArgumentException("Invalid offset string \"{$offVal}\": must be ±HH:MM or ±HH:MM:SS.");
+                throw new RangeError("Invalid offset string \"{$offVal}\": must be ±HH:MM or ±HH:MM:SS.");
             }
         }
 
@@ -1480,22 +1393,22 @@ final class ZonedDateTime implements Stringable
             $ns = max(0, min(999, $ns));
         } else {
             if ($h < 0 || $h > 23) {
-                throw new InvalidArgumentException("Invalid hour {$h}: must be 0–23.");
+                throw new RangeError("Invalid hour {$h}: must be 0–23.");
             }
             if ($min < 0 || $min > 59) {
-                throw new InvalidArgumentException("Invalid minute {$min}: must be 0–59.");
+                throw new RangeError("Invalid minute {$min}: must be 0–59.");
             }
             if ($sec < 0 || $sec > 59) {
-                throw new InvalidArgumentException("Invalid second {$sec}: must be 0–59.");
+                throw new RangeError("Invalid second {$sec}: must be 0–59.");
             }
             if ($ms < 0 || $ms > 999) {
-                throw new InvalidArgumentException("Invalid millisecond {$ms}: must be 0–999.");
+                throw new RangeError("Invalid millisecond {$ms}: must be 0–999.");
             }
             if ($us < 0 || $us > 999) {
-                throw new InvalidArgumentException("Invalid microsecond {$us}: must be 0–999.");
+                throw new RangeError("Invalid microsecond {$us}: must be 0–999.");
             }
             if ($ns < 0 || $ns > 999) {
-                throw new InvalidArgumentException("Invalid nanosecond {$ns}: must be 0–999.");
+                throw new RangeError("Invalid nanosecond {$ns}: must be 0–999.");
             }
         }
 
@@ -1510,16 +1423,16 @@ final class ZonedDateTime implements Stringable
             $hasMonthCode = array_key_exists('monthCode', $fields);
 
             // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
-            if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
-                throw new \TypeError('eraYear and era are invalid for this calendar.');
+            if (($hasEra || $hasEraYear) && in_array($this->calendarId, ['chinese', 'dangi'], strict: true)) {
+                throw new TypeError('eraYear and era are invalid for this calendar.');
             }
 
             // TC39: era without eraYear (or vice versa) is TypeError when year is not also provided.
             if ($hasEra && !$hasEraYear && !$hasYear) {
-                throw new \TypeError('era provided without eraYear in with() fields.');
+                throw new TypeError('era provided without eraYear in with() fields.');
             }
             if ($hasEraYear && !$hasEra && !$hasYear) {
-                throw new \TypeError('eraYear provided without era in with() fields.');
+                throw new TypeError('eraYear provided without era in with() fields.');
             }
 
             // Resolve year: era+eraYear takes precedence over the current year if both provided.
@@ -1549,7 +1462,7 @@ final class ZonedDateTime implements Stringable
                 /** @var mixed $mc */
                 $mc = $fields['monthCode'];
                 if (!is_string($mc)) {
-                    throw new InvalidArgumentException('ZonedDateTime::with() monthCode must be a string.');
+                    throw new RangeError('ZonedDateTime::with() monthCode must be a string.');
                 }
                 $monthCode = $mc;
                 $useMonthCode = true;
@@ -1560,7 +1473,7 @@ final class ZonedDateTime implements Stringable
                 if ($monthCode !== null) {
                     $monthFromCode = $calendar->monthCodeToMonth($monthCode, $year);
                     if ($month !== $monthFromCode) {
-                        throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                        throw new RangeError('Conflicting month and monthCode fields.');
                     }
                 }
                 $useMonthCode = false; // explicit month takes precedence
@@ -1577,7 +1490,7 @@ final class ZonedDateTime implements Stringable
             }
 
             if ($day < 1) {
-                throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+                throw new RangeError("Invalid day {$day}: must be at least 1.");
             }
 
             if ($useMonthCode && $monthCode !== null) {
@@ -1585,7 +1498,7 @@ final class ZonedDateTime implements Stringable
             } else {
                 /** @var int $month */
                 if ($month < 1) {
-                    throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+                    throw new RangeError("Invalid month {$month}: must be at least 1.");
                 }
                 [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
             }
@@ -1621,14 +1534,14 @@ final class ZonedDateTime implements Stringable
             /** @var mixed $mc */
             $mc = $fields['monthCode'];
             if (!is_string($mc)) {
-                throw new InvalidArgumentException('ZonedDateTime::with() monthCode must be a string.');
+                throw new RangeError('ZonedDateTime::with() monthCode must be a string.');
             }
             $month = CalendarMath::monthCodeToMonth($mc);
         }
         if ($hasMonth) {
             $newMonth = CalendarMath::toFiniteInt($fields['month'], 'ZonedDateTime::with() month');
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                throw new RangeError('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -1638,10 +1551,10 @@ final class ZonedDateTime implements Stringable
         }
 
         if ($month < 1) {
-            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+            throw new RangeError("Invalid month {$month}: must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
 
         if ($overflow === 'constrain') {
@@ -1654,11 +1567,11 @@ final class ZonedDateTime implements Stringable
         } else {
             // overflow === 'reject'
             if ($month > 12) {
-                throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
+                throw new RangeError("Invalid month {$month}: must be 1–12.");
             }
             $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             if ($day > $maxDay) {
-                throw new InvalidArgumentException("Day {$day} is out of range for {$year}-{$month} (max {$maxDay}).");
+                throw new RangeError("Day {$day} is out of range for {$year}-{$month} (max {$maxDay}).");
             }
         }
 
@@ -1666,7 +1579,7 @@ final class ZonedDateTime implements Stringable
         // use the ZDT's current offset for wall-to-epoch conversion. Per TC39,
         // 'use'/'prefer'/'reject' all preserve the existing offset when possible.
         if (!$hasOffsetField && $offsetOption !== 'ignore') {
-            [$curEpochSec] = $this->getEpochParts();
+            [$curEpochSec] = $this->epochParts();
             $currentOffsetSec = self::staticResolveOffset($curEpochSec, $this->resolvedTimeZoneId);
 
             $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
@@ -1674,14 +1587,14 @@ final class ZonedDateTime implements Stringable
 
             if ($offsetOption === 'use') {
                 $epochSec = $wallSec - $currentOffsetSec;
-                $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                 return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
             }
             // 'prefer'/'reject': check if current offset is valid at new wall time
             $epochFromOffset = $wallSec - $currentOffsetSec;
             $actualOffset = self::staticResolveOffset($epochFromOffset, $this->resolvedTimeZoneId);
             if ($actualOffset === $currentOffsetSec) {
-                $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                 return self::fromEpochParts($epochFromOffset, $subNs, $this->timeZoneId, $this->calendarId);
             }
 
@@ -1711,7 +1624,7 @@ final class ZonedDateTime implements Stringable
                 if ($offsetOption === 'use') {
                     // Use the offset directly, regardless of timezone rules.
                     $epochSec = $wallSec - $givenOffsetSec;
-                    $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                    $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                     return self::fromEpochParts($epochSec, $subNs, $this->timeZoneId, $this->calendarId);
                 }
 
@@ -1719,11 +1632,11 @@ final class ZonedDateTime implements Stringable
                 $epochFromOffset = $wallSec - $givenOffsetSec;
                 $actualOffset = self::staticResolveOffset($epochFromOffset, $this->resolvedTimeZoneId);
                 if ($actualOffset === $givenOffsetSec) {
-                    $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+                    $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
                     return self::fromEpochParts($epochFromOffset, $subNs, $this->timeZoneId, $this->calendarId);
                 }
                 if ($offsetOption === 'reject') {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "The offset {$offVal} does not match the timezone offset at the given instant.",
                     );
                 }
@@ -1753,39 +1666,53 @@ final class ZonedDateTime implements Stringable
      *
      * Returns null for fixed-offset timezones (UTC, ±HH:MM).
      *
-     * @param string|array<array-key, mixed>|object $direction 'next' or 'previous', or an array with 'direction' key.
+     * @param mixed $direction 'next' or 'previous', or an array/object with a 'direction' key.
      * @psalm-api
      */
-    public function getTimeZoneTransition(string|array|object $direction): ?self
+    public function getTimeZoneTransition(mixed $direction): ?self
     {
         if (func_num_args() === 0) {
-            throw new \TypeError('ZonedDateTime::getTimeZoneTransition() requires a direction argument.');
+            throw new TypeError('ZonedDateTime::getTimeZoneTransition() requires a direction argument.');
         }
 
-        if (is_object($direction)) {
-            $direction = get_object_vars($direction);
-        }
-
-        $dir = null;
+        // Spec: directionParam must be a String, or be passed to GetOptionsObject (a
+        // real options Object). Accept only those valid shapes — a string, an options
+        // array, or a non-Stringable object — and reject everything else with a single
+        // TypeError. This covers two cases that both fail GetOptionsObject:
+        //   - a Symbol (JsSymbol sentinel, which is \Stringable): caught here BEFORE
+        //     get_object_vars() (which would silently yield an empty bag and mis-route
+        //     to a RangeError), so it surfaces as TypeError, not RangeError;
+        //   - any other non-Object, non-undefined primitive (number/bigint/boolean/null):
+        //     routed through a spec-layer TypeError rather than letting PHP's parameter-
+        //     type guard fire (which the test262 runner treats as a representational
+        //     artifact, not a faithful TC39 TypeError).
         if (is_string($direction)) {
             $dir = $direction;
         } else {
-            if (array_key_exists('direction', $direction)) {
-                /** @var mixed $dv */
-                $dv = $direction['direction'];
-                if (is_string($dv)) {
-                    $dir = $dv;
-                }
+            if (is_array($direction)) {
+                $bag = $direction;
+            } elseif (is_object($direction) && !$direction instanceof \Stringable) {
+                $bag = get_object_vars($direction);
+            } else {
+                // Anything else fails GetOptionsObject and surfaces as a single
+                // TypeError.
+                throw new TypeError(
+                    'ZonedDateTime::getTimeZoneTransition() direction argument must be a string or options object.',
+                );
+            }
+            $dir = null;
+            if (array_key_exists('direction', $bag)) {
+                $dir = Options::coerceEnumOption($bag['direction'], 'direction');
             }
             if ($dir === null) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "ZonedDateTime::getTimeZoneTransition() requires a valid 'direction' option ('next' or 'previous').",
                 );
             }
         }
 
         if ($dir !== 'next' && $dir !== 'previous') {
-            throw new InvalidArgumentException("Invalid direction \"{$dir}\": must be 'next' or 'previous'.");
+            throw new RangeError("Invalid direction \"{$dir}\": must be 'next' or 'previous'.");
         }
 
         if ($this->resolvedTimeZoneId === 'UTC') {
@@ -1795,7 +1722,9 @@ final class ZonedDateTime implements Stringable
             return null;
         }
 
-        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
+        // Sentinel-aware: derive the transition search anchor from the true epoch
+        // parts, not the clamped epochNanoseconds field.
+        [$epochSec, $subNs] = $this->epochParts();
         /** @psalm-suppress ArgumentTypeCoercion — timeZoneId is validated non-empty in constructor */
         $tz = new \DateTimeZone($this->resolvedTimeZoneId);
 
@@ -1811,8 +1740,10 @@ final class ZonedDateTime implements Stringable
             for ($i = 1; $i < $nTransitions; $i++) {
                 $curOffset = $transitions[$i]['offset'];
                 if ($curOffset !== $prevOffset) {
-                    $ts = $transitions[$i]['ts'];
-                    return new self($ts * self::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
+                    // A transition whose whole-second nanoseconds would overflow the int64
+                    // epochNanoseconds field is not representable: transitionAt() returns
+                    // null per spec (and avoids the int64 overflow $ts * NS_PER_SECOND hits).
+                    return $this->transitionAt($transitions[$i]['ts']);
                 }
                 $prevOffset = $curOffset;
             }
@@ -1830,7 +1761,7 @@ final class ZonedDateTime implements Stringable
         // the following entry (= an actual UTC offset transition).
         // Skip index 0 (initial state).
         // A transition at exactly the current epoch nanosecond is NOT "previous".
-        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
+        // ($subNs comes from epochParts() above — sentinel-aware.)
         $candidateTs = null;
         for ($i = count($transitions) - 1; $i >= 1; $i--) {
             $ts = $transitions[$i]['ts'];
@@ -1844,8 +1775,28 @@ final class ZonedDateTime implements Stringable
         if ($candidateTs === null) {
             return null;
         }
-        $transNs = $candidateTs * self::NS_PER_SECOND;
-        return new self($transNs, $this->timeZoneId, $this->calendarId);
+        // Symmetric with the 'next' branch: a transition that would overflow the int64
+        // epochNanoseconds field is not representable (the field would clamp to
+        // PHP_INT_MAX/MIN and become indistinguishable from the anchor), so there is no
+        // in-range previous transition and transitionAt() returns null.
+        return $this->transitionAt($candidateTs);
+    }
+
+    /**
+     * Builds the ZonedDateTime for a whole-second timezone-transition timestamp, or null
+     * when that timestamp's nanoseconds would overflow the int64 epochNanoseconds field.
+     *
+     * Shared by the 'next' and 'previous' branches of {@see getTimeZoneTransition()}. The
+     * bound is the bare int64 field limit (a whole-second transition carries no sub-second
+     * remainder), not the spec-max instant in seconds: a transition below the spec max can
+     * still clamp the field and become indistinguishable from the anchor, so it is rejected.
+     */
+    private function transitionAt(int $ts): ?self
+    {
+        if (abs($ts) > EpochLimits::MAX_EPOCH_SECONDS_FOR_INT64_NS_FIELD) {
+            return null;
+        }
+        return new self($ts * EpochLimits::NS_PER_SECOND, $this->timeZoneId, $this->calendarId);
     }
 
     // -------------------------------------------------------------------------
@@ -1853,19 +1804,24 @@ final class ZonedDateTime implements Stringable
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the true UTC epoch seconds and sub-second nanoseconds,
-     * handling sentinel epochNanoseconds values transparently.
+     * Creates a ZonedDateTime from true UTC epoch seconds and sub-second
+     * nanoseconds, preserving over-int64 values behind a sentinel.
      *
-     * @return array{int, int} [epochSec, subNs] where subNs is 0–999_999_999
+     * Internal seam for sibling Spec classes (e.g. Instant::toZonedDateTimeISO)
+     * that hold true epoch parts and must hand them across the class boundary
+     * without clamping. Not part of the TC39 public surface.
+     *
+     * @internal
+     * @psalm-internal Temporal\Spec
+     * @throws RangeError if the result is outside the representable range.
      */
-    private function getEpochParts(): array
-    {
-        if ($this->trueEpochSec !== null) {
-            return [$this->trueEpochSec, $this->trueSubNs];
-        }
-        $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-        $subNs = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
-        return [$epochSec, $subNs];
+    public static function fromInstantParts(
+        int $epochSec,
+        int $subNs,
+        string $tzId,
+        string $calendarId = 'iso8601',
+    ): self {
+        return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId);
     }
 
     /**
@@ -1875,8 +1831,8 @@ final class ZonedDateTime implements Stringable
      */
     private static function compareInstants(self $a, self $b): int
     {
-        [$aSec, $aSubNs] = $a->getEpochParts();
-        [$bSec, $bSubNs] = $b->getEpochParts();
+        [$aSec, $aSubNs] = $a->epochParts();
+        [$bSec, $bSubNs] = $b->epochParts();
         $cmp = $aSec <=> $bSec;
         return $cmp !== 0 ? $cmp : $aSubNs <=> $bSubNs;
     }
@@ -1892,8 +1848,8 @@ final class ZonedDateTime implements Stringable
      */
     private static function diffEpochNs(self $a, self $b): int
     {
-        [$aSec, $aSubNs] = $a->getEpochParts();
-        [$bSec, $bSubNs] = $b->getEpochParts();
+        [$aSec, $aSubNs] = $a->epochParts();
+        [$bSec, $bSubNs] = $b->epochParts();
         $diffSec = $bSec - $aSec;
         $diffSubNs = $bSubNs - $aSubNs;
         // Safe multiplication check: |diffSec| * 1e9 fits int64 when |diffSec| < ~9.2e9
@@ -1903,7 +1859,7 @@ final class ZonedDateTime implements Stringable
             // the calendar path only use this for sign, not magnitude.
             return $diffSec > 0 ? PHP_INT_MAX : PHP_INT_MIN;
         }
-        return ($diffSec * self::NS_PER_SECOND) + $diffSubNs;
+        return ($diffSec * EpochLimits::NS_PER_SECOND) + $diffSubNs;
     }
 
     /**
@@ -1919,14 +1875,7 @@ final class ZonedDateTime implements Stringable
         }
 
         // Use stored true epoch parts when available (sentinel values).
-        if ($this->trueEpochSec !== null) {
-            $epochSec = $this->trueEpochSec;
-            $subNs = $this->trueSubNs;
-        } else {
-            $epochNs = $this->epochNanoseconds;
-            $epochSec = CalendarMath::floorDiv($epochNs, self::NS_PER_SECOND);
-            $subNs = $epochNs - ($epochSec * self::NS_PER_SECOND); // always 0–999_999_999
-        }
+        [$epochSec, $subNs] = $this->epochParts();
 
         $offsetSec = $this->resolveOffsetSecondsAt($epochSec);
         $localSec = $epochSec + $offsetSec;
@@ -1947,11 +1896,11 @@ final class ZonedDateTime implements Stringable
         $second = $rem - ($minute * 60);
 
         /** @var int<0, 999> $ms — $subNs < 10^9, dividing by 10^6 gives 0–999 */
-        $ms = intdiv(num1: $subNs, num2: self::NS_PER_MILLISECOND);
+        $ms = intdiv(num1: $subNs, num2: EpochLimits::NS_PER_MILLISECOND);
         /** @var int<0, 999> $us — remainder mod 10^6 / 10^3 gives 0–999 */
-        $us = intdiv(num1: $subNs % self::NS_PER_MILLISECOND, num2: self::NS_PER_MICROSECOND);
+        $us = intdiv(num1: $subNs % EpochLimits::NS_PER_MILLISECOND, num2: EpochLimits::NS_PER_MICROSECOND);
         /** @var int<0, 999> $ns — remainder mod 10^3 gives 0–999 */
-        $ns = $subNs % self::NS_PER_MICROSECOND;
+        $ns = $subNs % EpochLimits::NS_PER_MICROSECOND;
 
         // Build offset string: ±HH:MM or ±HH:MM:SS when seconds are non-zero.
         $absOffsetSec = abs($offsetSec);
@@ -2076,15 +2025,15 @@ final class ZonedDateTime implements Stringable
      * Parses a ZonedDateTime ISO string (with required bracket timezone annotation).
      *
      * @param array<array-key, mixed>|object|null $options Options from from() (may contain 'offset' key).
-     * @throws InvalidArgumentException if the string is invalid.
+     * @throws RangeError if the string is invalid.
      */
     private static function parseZdtString(string $text, array|object|null $options = null): self
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         // Resolve the 'offset' option (default: 'reject').
         $offsetOption = 'reject';
-        if ($opts !== null && array_key_exists('offset', $opts)) {
+        if (array_key_exists('offset', $opts)) {
             /** @var mixed $ov */
             $ov = $opts['offset'];
             if (
@@ -2096,7 +2045,7 @@ final class ZonedDateTime implements Stringable
 
         // Resolve the 'disambiguation' option (default: 'compatible').
         $disambiguation = 'compatible';
-        if ($opts !== null && array_key_exists('disambiguation', $opts)) {
+        if (array_key_exists('disambiguation', $opts)) {
             /** @var mixed $dv */
             $dv = $opts['disambiguation'];
             if (is_string($dv) && in_array($dv, ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
@@ -2106,7 +2055,7 @@ final class ZonedDateTime implements Stringable
 
         // Reject more than 9 fractional-second digits.
         if (preg_match('/[.,]\d{10,}/', $text) === 1) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Invalid ZonedDateTime string \"{$text}\": fractional seconds may have at most 9 digits.",
             );
         }
@@ -2164,7 +2113,7 @@ final class ZonedDateTime implements Stringable
             /** @var list<string> $dm */
             $dm = [];
             if (preg_match($dateOnlyPattern, $text, $dm) !== 1) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "Invalid ZonedDateTime string \"{$text}\": expected ISO 8601 with bracket timezone annotation.",
                 );
             }
@@ -2187,7 +2136,7 @@ final class ZonedDateTime implements Stringable
         $yearNum = (int) $yearRaw;
         // Reject minus-zero year.
         if ($yearNum === 0 && str_starts_with($yearRaw, '-')) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Invalid ZonedDateTime string \"{$text}\": year -000000 (negative zero) is not valid.",
             );
         }
@@ -2199,24 +2148,24 @@ final class ZonedDateTime implements Stringable
         $secNum = $secStr !== '' ? (int) $secStr : 0;
 
         if ($monthNum < 1 || $monthNum > 12) {
-            throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": month out of range.");
+            throw new RangeError("Invalid ZonedDateTime string \"{$text}\": month out of range.");
         }
         $maxDay = CalendarMath::calcDaysInMonth($yearNum, $monthNum);
         if ($dayNum < 1 || $dayNum > $maxDay) {
-            throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": day out of range.");
+            throw new RangeError("Invalid ZonedDateTime string \"{$text}\": day out of range.");
         }
         if ($hourNum > 23) {
-            throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": hour out of range.");
+            throw new RangeError("Invalid ZonedDateTime string \"{$text}\": hour out of range.");
         }
         if ($minNum > 59) {
-            throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": minute out of range.");
+            throw new RangeError("Invalid ZonedDateTime string \"{$text}\": minute out of range.");
         }
 
         // Leap second: map :60 → last nanosecond of :59.
         $sec60 = $secNum === 60;
         $normalSec = $sec60 ? 59 : $secNum;
         if (!$sec60 && $secNum > 59) {
-            throw new InvalidArgumentException("Invalid ZonedDateTime string \"{$text}\": second out of range.");
+            throw new RangeError("Invalid ZonedDateTime string \"{$text}\": second out of range.");
         }
 
         // Extract the timezone and calendar from bracket annotations.
@@ -2247,7 +2196,7 @@ final class ZonedDateTime implements Stringable
                 $normalSec,
             ));
         } catch (\Exception) {
-            throw new InvalidArgumentException("Could not parse \"{$text}\".");
+            throw new RangeError("Could not parse \"{$text}\".");
         }
 
         $wallSec = $wallDt->getTimestamp();
@@ -2260,8 +2209,8 @@ final class ZonedDateTime implements Stringable
             // - Min: any wallSec < -8640000000000 is on a date before April 20, -271821.
             // - Max: wallSec >= 8640000086400 is on a date after September 13, +275760.
             //   (8640000086400 = max boundary epoch + 86400 s = midnight of +275760-09-14.)
-            if ($wallSec < -8_640_000_000_000 || $wallSec >= 8_640_000_086_400) {
-                throw new InvalidArgumentException(
+            if ($wallSec < -EpochLimits::MAX_EPOCH_SECONDS || $wallSec >= (EpochLimits::MAX_EPOCH_SECONDS + 86_400)) {
+                throw new RangeError(
                     "ZonedDateTime string \"{$text}\": local date-time is outside the representable range.",
                 );
             }
@@ -2328,7 +2277,7 @@ final class ZonedDateTime implements Stringable
                         $tzEpoch = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
                         $tzOffset = self::staticResolveOffset($tzEpoch, $resolvedTzId);
                         if ($tzOffset !== $inlineOffsetSec) {
-                            throw new InvalidArgumentException(
+                            throw new RangeError(
                                 "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
                             );
                         }
@@ -2343,7 +2292,7 @@ final class ZonedDateTime implements Stringable
                     } elseif (($tzOffset % 60) !== 0) {
                         // Sub-minute resolved offset: HH:MM can't disambiguate.
                         if (((int) round((float) $tzOffset / 60.0) * 60) !== $inlineOffsetSec) {
-                            throw new InvalidArgumentException(
+                            throw new RangeError(
                                 "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
                             );
                         }
@@ -2353,7 +2302,7 @@ final class ZonedDateTime implements Stringable
                         $epochSec = $wallSec - $inlineOffsetSec;
                         $actualOffsetSec = self::staticResolveOffset($epochSec, $resolvedTzId);
                         if ($actualOffsetSec !== $inlineOffsetSec) {
-                            throw new InvalidArgumentException(
+                            throw new RangeError(
                                 "Invalid ZonedDateTime string \"{$text}\": inline offset does not match timezone offset.",
                             );
                         }
@@ -2375,11 +2324,9 @@ final class ZonedDateTime implements Stringable
         }
 
         // Validate spec range.
-        $maxSec = 8_640_000_000_000;
+        $maxSec = EpochLimits::MAX_EPOCH_SECONDS;
         if ($epochSec < -$maxSec || $epochSec > $maxSec || $epochSec === $maxSec && $subNs > 0) {
-            throw new InvalidArgumentException(
-                "ZonedDateTime string \"{$text}\" is outside the representable nanosecond range.",
-            );
+            throw new RangeError("ZonedDateTime string \"{$text}\" is outside the representable nanosecond range.");
         }
 
         return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId ?? 'iso8601');
@@ -2391,8 +2338,8 @@ final class ZonedDateTime implements Stringable
      * Required fields: epochNanoseconds (or a datetime bag), timeZone.
      *
      * @param array<array-key, mixed> $bag
-     * @throws \TypeError              if required fields are missing or wrong type.
-     * @throws InvalidArgumentException if values are invalid.
+     * @throws TypeError              if required fields are missing or wrong type.
+     * @throws RangeError if values are invalid.
      */
     private static function fromPropertyBag(
         array $bag,
@@ -2408,7 +2355,7 @@ final class ZonedDateTime implements Stringable
 
         // Must have a timeZone key.
         if (!array_key_exists('timeZone', $bag)) {
-            throw new \TypeError('ZonedDateTime property bag must have a timeZone field.');
+            throw new TypeError('ZonedDateTime property bag must have a timeZone field.');
         }
         /** @var mixed $tzRaw */
         $tzRaw = $bag['timeZone'];
@@ -2417,7 +2364,7 @@ final class ZonedDateTime implements Stringable
         if ($tzRaw instanceof self) {
             $tzRaw = $tzRaw->timeZoneId;
         } elseif (!is_string($tzRaw)) {
-            throw new \TypeError('ZonedDateTime timeZone must be a string.');
+            throw new TypeError('ZonedDateTime timeZone must be a string.');
         }
 
         // If epochNanoseconds is provided, use it directly.
@@ -2425,7 +2372,7 @@ final class ZonedDateTime implements Stringable
             /** @var mixed $ensRaw */
             $ensRaw = $bag['epochNanoseconds'];
             if (!is_int($ensRaw) && !is_float($ensRaw)) {
-                throw new \TypeError('ZonedDateTime epochNanoseconds must be an integer or float.');
+                throw new TypeError('ZonedDateTime epochNanoseconds must be an integer or float.');
             }
             return new self(is_int($ensRaw) ? $ensRaw : (int) $ensRaw, $tzRaw, $calendarId);
         }
@@ -2435,15 +2382,15 @@ final class ZonedDateTime implements Stringable
         $calendarSupportsEras = CalendarMath::supportsEras($calendarId);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
-            throw new \TypeError('ZonedDateTime property bag must have a year field.');
+            throw new TypeError('ZonedDateTime property bag must have a year field.');
         }
         if (!array_key_exists('day', $bag)) {
-            throw new \TypeError('ZonedDateTime property bag must have a day field.');
+            throw new TypeError('ZonedDateTime property bag must have a day field.');
         }
 
         // month can come from 'month' or 'monthCode'.
         if (!array_key_exists('month', $bag) && !array_key_exists('monthCode', $bag)) {
-            throw new \TypeError('ZonedDateTime property bag must have a month or monthCode field.');
+            throw new TypeError('ZonedDateTime property bag must have a month or monthCode field.');
         }
 
         /** @var int|float|string|null $yr */
@@ -2463,6 +2410,40 @@ final class ZonedDateTime implements Stringable
         /** @var int|float|string $ns */
         $ns = $bag['nanosecond'] ?? 0;
 
+        // monthCode and offset SYNTAX (well-formedness) are validated before the
+        // year field's TYPE is coerced (per TC39 PrepareCalendarFields ordering:
+        // monthCode/offset string syntax is checked while reading the field, before
+        // the year value is converted). A non-string monthCode is itself a TypeError;
+        // a malformed monthCode FORMAT string is a RangeError. monthCode SUITABILITY
+        // (whether the well-formed code names a real month) is validated later, after
+        // the year type has been checked.
+        if (array_key_exists('monthCode', $bag)) {
+            /** @var mixed $mcRaw */
+            $mcRaw = $bag['monthCode'];
+            if (!is_string($mcRaw)) {
+                throw new TypeError('ZonedDateTime monthCode must be a string.');
+            }
+            // Well-formed monthCode syntax: 'M' + two digits + optional leap 'L'.
+            if (preg_match('/^M(\d{2})(L?)$/', $mcRaw) !== 1) {
+                throw new RangeError("Invalid monthCode for ISO calendar: \"{$mcRaw}\".");
+            }
+        }
+
+        // offset field SYNTAX is validated before the year field's TYPE is coerced;
+        // offset MATCHING against the timezone happens later, after year coercion.
+        // TC39: syntax validation runs even for offsetOption='ignore' — the offset
+        // must be a syntactically valid string regardless of whether it is used.
+        if (array_key_exists('offset', $bag)) {
+            /** @var mixed $offSyntaxRaw */
+            $offSyntaxRaw = $bag['offset'];
+            if (!is_string($offSyntaxRaw)) {
+                throw new TypeError('ZonedDateTime offset must be a string.');
+            }
+            if (preg_match('/^[+-]\d{2}:\d{2}(:\d{2})?$/', $offSyntaxRaw) !== 1) {
+                throw new RangeError("Invalid offset string \"{$offSyntaxRaw}\": must be ±HH:MM or ±HH:MM:SS.");
+            }
+        }
+
         // Validate and cast numeric fields; reject INF/-INF.
         $numericFields = [
             'day' => $dy,
@@ -2479,7 +2460,7 @@ final class ZonedDateTime implements Stringable
         /** @psalm-suppress MixedAssignment — array values are all typed as mixed via @var annotations above */
         foreach ($numericFields as $fname => $fval) {
             if (is_float($fval) && is_infinite($fval)) {
-                throw new InvalidArgumentException(sprintf(
+                throw new RangeError(sprintf(
                     'ZonedDateTime %s must be finite; got %s.',
                     $fname,
                     $fval > 0 ? 'INF' : '-INF',
@@ -2487,7 +2468,11 @@ final class ZonedDateTime implements Stringable
             }
         }
 
-        $year = $yr !== null ? intval($yr) : 0;
+        // Coerce year via toFiniteInt so a non-coercible type (e.g. a JS Symbol)
+        // throws TypeError here — this is the year TYPE check the fixtures pin
+        // between monthCode/offset syntax (RangeError) and monthCode suitability /
+        // offset matching (RangeError).
+        $year = $yr !== null ? CalendarMath::toFiniteInt($yr, 'ZonedDateTime year') : 0;
         $day = intval($dy);
         $hour = intval($hr);
         $minute = intval($mn);
@@ -2512,11 +2497,11 @@ final class ZonedDateTime implements Stringable
         $hasMonth = array_key_exists('month', $bag);
         $hasMC = array_key_exists('monthCode', $bag);
 
-        if ($hasMC) {
+        if (array_key_exists('monthCode', $bag)) {
             /** @var mixed $mc */
             $mc = $bag['monthCode'];
             if (!is_string($mc)) {
-                throw new \TypeError('ZonedDateTime monthCode must be a string.');
+                throw new TypeError('ZonedDateTime monthCode must be a string.');
             }
             $monthCode = $mc;
             $month = $calendar !== null ? $calendar->monthCodeToMonth($mc, $year) : CalendarMath::monthCodeToMonth($mc);
@@ -2525,7 +2510,7 @@ final class ZonedDateTime implements Stringable
         if ($hasMonth) {
             $newMonth = CalendarMath::toFiniteInt($bag['month'] ?? null, 'ZonedDateTime month');
             if ($hasMC && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                throw new RangeError('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -2533,10 +2518,10 @@ final class ZonedDateTime implements Stringable
 
         // Apply overflow (constrain or reject).
         if ($month < 1) {
-            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+            throw new RangeError("Invalid month {$month}: must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
 
         // Non-ISO calendar: resolve calendar fields to ISO via the calendar protocol.
@@ -2560,11 +2545,11 @@ final class ZonedDateTime implements Stringable
             } else {
                 // overflow === 'reject'
                 if ($month > 12) {
-                    throw new InvalidArgumentException("Invalid month {$month}: must be 1–12.");
+                    throw new RangeError("Invalid month {$month}: must be 1–12.");
                 }
                 $maxDay = CalendarMath::calcDaysInMonth($year, $month);
                 if ($day > $maxDay) {
-                    throw new InvalidArgumentException("Invalid day {$day}: exceeds {$maxDay} for {$year}-{$month}.");
+                    throw new RangeError("Invalid day {$day}: exceeds {$maxDay} for {$year}-{$month}.");
                 }
             }
         }
@@ -2584,27 +2569,25 @@ final class ZonedDateTime implements Stringable
         $epochDays = CalendarMath::toJulianDay($year, $month, $day) - 2_440_588;
         $wallSec = ($epochDays * 86_400) + ($hour * 3600) + ($minute * 60) + $second;
         // ISODateTimeWithinLimits check.
-        if ($wallSec > 8_640_000_000_000 || $wallSec < -8_640_000_000_000) {
-            throw new InvalidArgumentException(
-                'ZonedDateTime property bag: local date-time is outside the representable range.',
-            );
+        if ($wallSec > EpochLimits::MAX_EPOCH_SECONDS || $wallSec < -EpochLimits::MAX_EPOCH_SECONDS) {
+            throw new RangeError('ZonedDateTime property bag: local date-time is outside the representable range.');
         }
 
         $normalTzId = TimeZoneHelper::normalizeTimezoneId($tzRaw);
         $resolvedTzId = self::resolveCanonicalTimezoneId($normalTzId);
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
-        $subNs = ($milli * self::NS_PER_MILLISECOND) + ($micro * self::NS_PER_MICROSECOND) + $nano;
+        $subNs = ($milli * EpochLimits::NS_PER_MILLISECOND) + ($micro * EpochLimits::NS_PER_MICROSECOND) + $nano;
 
         // Handle 'offset' field if provided: depends on offset option.
         if (array_key_exists('offset', $bag) && $offsetOption !== 'ignore') {
             /** @var mixed $offRaw */
             $offRaw = $bag['offset'];
             if (!is_string($offRaw)) {
-                throw new \TypeError('ZonedDateTime offset must be a string.');
+                throw new TypeError('ZonedDateTime offset must be a string.');
             }
             // Valid format: ±HH:MM or ±HH:MM:SS.
             if (preg_match('/^[+-]\d{2}:\d{2}(:\d{2})?$/', $offRaw) !== 1) {
-                throw new InvalidArgumentException("Invalid offset string \"{$offRaw}\": must be ±HH:MM or ±HH:MM:SS.");
+                throw new RangeError("Invalid offset string \"{$offRaw}\": must be ±HH:MM or ±HH:MM:SS.");
             }
             $offSign = $offRaw[0] === '+' ? 1 : -1;
             $offParts = explode(separator: ':', string: substr(string: $offRaw, offset: 1));
@@ -2628,7 +2611,7 @@ final class ZonedDateTime implements Stringable
                     $epochSec = $epochFromOffset;
                 } elseif ($offsetOption === 'reject') {
                     // Offset doesn't match timezone at this wall time → reject.
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "The offset {$offRaw} does not match the timezone {$normalTzId} offset at the given instant.",
                     );
                 }
@@ -2647,7 +2630,7 @@ final class ZonedDateTime implements Stringable
      * (with '=') are metadata (e.g. [u-ca=hebrew]).
      *
      * @return array{0: string, 1: ?string} [timezoneId, calendarId]
-     * @throws InvalidArgumentException if no timezone annotation is found, or calendar is unknown.
+     * @throws RangeError if no timezone annotation is found, or calendar is unknown.
      */
     private static function extractTzFromAnnotations(string $section, string $original): array
     {
@@ -2667,7 +2650,7 @@ final class ZonedDateTime implements Stringable
             if (str_contains($content, '=')) {
                 [$key] = explode(separator: '=', string: $content, limit: 2);
                 if ($key !== strtolower($key)) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "Invalid annotation key \"{$key}\" in \"{$original}\": annotation keys must be lowercase.",
                     );
                 }
@@ -2676,7 +2659,7 @@ final class ZonedDateTime implements Stringable
                     if ($isFirst) {
                         $calValue = substr(string: $content, offset: strlen($key) + 1);
                         if (!CalendarFactory::isKnownCalendar($calValue)) {
-                            throw new InvalidArgumentException("Unknown calendar \"{$calValue}\" in \"{$original}\".");
+                            throw new RangeError("Unknown calendar \"{$calValue}\" in \"{$original}\".");
                         }
                         $calendarId = CalendarFactory::canonicalize($calValue);
                     }
@@ -2685,21 +2668,17 @@ final class ZonedDateTime implements Stringable
                         $calHasCritical = true;
                     }
                     if (!$isFirst && $calHasCritical) {
-                        throw new InvalidArgumentException(
-                            "Multiple calendar annotations with critical flag in \"{$original}\".",
-                        );
+                        throw new RangeError("Multiple calendar annotations with critical flag in \"{$original}\".");
                     }
                 } else {
                     if ($critical) {
-                        throw new InvalidArgumentException(
-                            "Critical unknown annotation \"[!{$content}]\" in \"{$original}\".",
-                        );
+                        throw new RangeError("Critical unknown annotation \"[!{$content}]\" in \"{$original}\".");
                     }
                 }
             } else {
                 ++$tzCount;
                 if ($tzCount > 1) {
-                    throw new InvalidArgumentException("Multiple time-zone annotations in \"{$original}\".");
+                    throw new RangeError("Multiple time-zone annotations in \"{$original}\".");
                 }
                 $tzId = $content;
 
@@ -2709,23 +2688,17 @@ final class ZonedDateTime implements Stringable
                         preg_match('/^[+-]\d{2}:\d{2}:\d{2}/', $content) === 1
                         || preg_match('/^[+-]\d{2}:\d{2}[.,]/', $content) === 1
                     ) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
+                        throw new RangeError("Sub-minute UTC offset in time-zone annotation in \"{$original}\".");
                     }
                     if (preg_match('/^[+-]\d{2}(?!\d*:)\d{4,}/', $content) === 1) {
-                        throw new InvalidArgumentException(
-                            "Sub-minute UTC offset in time-zone annotation in \"{$original}\".",
-                        );
+                        throw new RangeError("Sub-minute UTC offset in time-zone annotation in \"{$original}\".");
                     }
                 }
             }
         }
 
         if ($tzId === null) {
-            throw new InvalidArgumentException(
-                "Invalid ZonedDateTime string \"{$original}\": no timezone annotation found.",
-            );
+            throw new RangeError("Invalid ZonedDateTime string \"{$original}\": no timezone annotation found.");
         }
 
         return [$tzId, $calendarId];
@@ -2765,47 +2738,6 @@ final class ZonedDateTime implements Stringable
         return $tz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
     }
 
-    /**
-     * Rounds $ns to the nearest multiple of $increment, treating the number "as if positive"
-     * (i.e., using floor-division for the base and always rounding toward positive infinity
-     * for ties in 'halfCeil'/'halfExpand').
-     *
-     * @throws InvalidArgumentException for unknown rounding modes.
-     */
-    private static function roundAsIfPositive(int $ns, int $increment, string $mode): int
-    {
-        // Integer floor-division: r1 = floor(ns / increment).
-        $q = intdiv($ns, $increment);
-        $rem = $ns - ($q * $increment);
-        $r1 = $rem < 0 ? $q - 1 : $q;
-
-        // d1 = distance of $ns from r1 (always in [0, $increment)).
-        $d1 = $ns - ($r1 * $increment);
-
-        // Directed rounding (AsIfPositive: trunc/floor → r1; ceil/expand → r2):
-        $r2 = $r1 + 1;
-        if ($mode === 'halfEven') {
-            $cmp = $d1 * 2;
-            if ($cmp < $increment) {
-                $rounded = $r1;
-            } elseif ($cmp > $increment) {
-                $rounded = $r2;
-            } else {
-                $rounded = ($r1 % 2) === 0 ? $r1 : $r2;
-            }
-        } else {
-            $rounded = match ($mode) {
-                'trunc', 'floor' => $r1,
-                'ceil', 'expand' => $d1 === 0 ? $r1 : $r2,
-                'halfExpand', 'halfCeil' => ($d1 * 2) >= $increment ? $r2 : $r1,
-                'halfTrunc', 'halfFloor' => ($d1 * 2) > $increment ? $r2 : $r1,
-                default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-            };
-        }
-
-        return $rounded * $increment;
-    }
-
     // -------------------------------------------------------------------------
     // Helpers copied from Instant.php
     // -------------------------------------------------------------------------
@@ -2822,7 +2754,7 @@ final class ZonedDateTime implements Stringable
      * Parses an offset string into [sign, absSec, fracNs].
      *
      * @return array{-1|1, int<0, 86399>, int<0, 999999999>}  [sign (+1|-1), absSec, fracNs]
-     * @throws InvalidArgumentException if the offset is out of range.
+     * @throws RangeError if the offset is out of range.
      */
     private static function parseOffset(string $offset, string $original): array
     {
@@ -2864,10 +2796,8 @@ final class ZonedDateTime implements Stringable
         }
 
         $absSec = ($hours * 3600) + ($minutes * 60) + $seconds;
-        if ((($absSec * self::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
-            throw new InvalidArgumentException(
-                "Invalid ZonedDateTime string \"{$original}\": UTC offset out of range.",
-            );
+        if ((($absSec * EpochLimits::NS_PER_SECOND) + $fracNs) > 86_399_999_999_999) {
+            throw new RangeError("Invalid ZonedDateTime string \"{$original}\": UTC offset out of range.");
         }
         /** @var int<0, 86399> $absSec — range validated above */
 
@@ -2905,13 +2835,11 @@ final class ZonedDateTime implements Stringable
                 && $dur->nanoseconds === 0;
             $hasCalendar = $dur->years !== 0 || $dur->months !== 0 || $dur->weeks !== 0 || $dur->days !== 0;
             if (!$isBlank && !$hasCalendar && $this->trueEpochSec === null) {
-                throw new InvalidArgumentException(
-                    'ZonedDateTime arithmetic result is outside the representable range.',
-                );
+                throw new RangeError('ZonedDateTime arithmetic result is outside the representable range.');
             }
         }
 
-        $overflow = self::extractOverflow($options);
+        $overflow = self::resolveOverflowOption($options);
 
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
@@ -2963,7 +2891,7 @@ final class ZonedDateTime implements Stringable
                     if ($overflow === 'constrain') {
                         $newDay = $maxDay;
                     } else {
-                        throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
+                        throw new RangeError("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
                     }
                 }
 
@@ -2981,9 +2909,9 @@ final class ZonedDateTime implements Stringable
             $timeNs =
                 ($hours * 3_600_000_000_000)
                 + ($minutes * 60_000_000_000)
-                + ($seconds * self::NS_PER_SECOND)
-                + ($ms * self::NS_PER_MILLISECOND)
-                + ($us * self::NS_PER_MICROSECOND)
+                + ($seconds * EpochLimits::NS_PER_SECOND)
+                + ($ms * EpochLimits::NS_PER_MILLISECOND)
+                + ($us * EpochLimits::NS_PER_MICROSECOND)
                 + $ns;
 
             if ($timeNs === 0) {
@@ -3013,14 +2941,14 @@ final class ZonedDateTime implements Stringable
                 'compatible',
             );
             $intermediateSubNs =
-                ($lc['millisecond'] * self::NS_PER_MILLISECOND)
-                + ($lc['microsecond'] * self::NS_PER_MICROSECOND)
+                ($lc['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                + ($lc['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                 + $lc['nanosecond'];
 
             // Step 2: Add time nanoseconds to the epoch.
             $totalSubNs = $intermediateSubNs + $timeNs;
-            $overflowSec = CalendarMath::floorDiv($totalSubNs, self::NS_PER_SECOND);
-            $resultSubNs = $totalSubNs - ($overflowSec * self::NS_PER_SECOND);
+            $overflowSec = CalendarMath::floorDiv($totalSubNs, EpochLimits::NS_PER_SECOND);
+            $resultSubNs = $totalSubNs - ($overflowSec * EpochLimits::NS_PER_SECOND);
             $resultEpochSec = $intermediateEpochSec + $overflowSec;
 
             return self::fromEpochParts($resultEpochSec, $resultSubNs, $this->timeZoneId, $this->calendarId);
@@ -3054,26 +2982,20 @@ final class ZonedDateTime implements Stringable
         $totalDays = $hDays + $mDays + $sDays + $msDays + $usDays + $nsDays;
 
         // Convert days to epoch seconds and add the sub-day ns.
-        if ($this->trueEpochSec !== null) {
-            $epochSec = $this->trueEpochSec;
-            $subNsOrig = $this->trueSubNs;
-        } else {
-            $epochSec = CalendarMath::floorDiv($this->epochNanoseconds, self::NS_PER_SECOND);
-            $subNsOrig = $this->epochNanoseconds - ($epochSec * self::NS_PER_SECOND);
-        }
+        [$epochSec, $subNsOrig] = $this->epochParts();
 
         $newEpochSec = $epochSec + ($totalDays * 86_400);
         $newSubNs = $subNsOrig + $nsRem;
 
         // Carry from sub-ns.
-        if ($newSubNs >= self::NS_PER_SECOND) {
-            $carry = intdiv(num1: $newSubNs, num2: self::NS_PER_SECOND);
+        if ($newSubNs >= EpochLimits::NS_PER_SECOND) {
+            $carry = intdiv(num1: $newSubNs, num2: EpochLimits::NS_PER_SECOND);
             $newEpochSec += $carry;
-            $newSubNs -= $carry * self::NS_PER_SECOND;
+            $newSubNs -= $carry * EpochLimits::NS_PER_SECOND;
         } elseif ($newSubNs < 0) {
-            $carry = (int) ceil(-$newSubNs / self::NS_PER_SECOND);
+            $carry = (int) ceil(-$newSubNs / EpochLimits::NS_PER_SECOND);
             $newEpochSec -= $carry;
-            $newSubNs += $carry * self::NS_PER_SECOND;
+            $newSubNs += $carry * EpochLimits::NS_PER_SECOND;
         }
 
         return self::fromEpochParts($newEpochSec, $newSubNs, $this->timeZoneId, $this->calendarId);
@@ -3108,7 +3030,7 @@ final class ZonedDateTime implements Stringable
         $resolvedTzId = self::resolveCanonicalTimezoneId($tzId);
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $resolvedTzId, $disambiguation);
 
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         return self::fromEpochParts($epochSec, $subNs, $tzId, $calendarId);
     }
@@ -3144,22 +3066,23 @@ final class ZonedDateTime implements Stringable
         string $tzId,
         string $calendarId = 'iso8601',
     ): self {
-        // Range check.
+        // Range check (message is ZonedDateTime-specific, so it stays here; the
+        // int64-fit / sentinel packing is shared via EpochValue::fromParts()).
         $absEpochSec = abs($epochSec);
-        if ($absEpochSec > 8_640_000_000_000 || $absEpochSec === 8_640_000_000_000 && $subNs > 0) {
-            throw new InvalidArgumentException('ZonedDateTime arithmetic result is outside the representable range.');
+        if (
+            $absEpochSec > EpochLimits::MAX_EPOCH_SECONDS
+            || $absEpochSec === EpochLimits::MAX_EPOCH_SECONDS && $subNs > 0
+        ) {
+            throw new RangeError('ZonedDateTime arithmetic result is outside the representable range.');
         }
 
-        $maxSecForNs = 9_223_372_035;
-        if ($epochSec > $maxSecForNs || $epochSec < -$maxSecForNs) {
-            $epochNs = $epochSec < 0 ? PHP_INT_MIN : PHP_INT_MAX;
-            $zdt = new self($epochNs, $tzId, $calendarId);
-            $zdt->trueEpochSec = $epochSec;
-            $zdt->trueSubNs = $subNs;
-            return $zdt;
-        }
-
-        return new self(($epochSec * self::NS_PER_SECOND) + $subNs, $tzId, $calendarId);
+        // When the full nanosecond value fits int64, pack it exactly; otherwise the
+        // public field clamps to a sentinel and the true parts are carried (the
+        // fits-int64 case returns the null/0 defaults already on the object).
+        $epoch = EpochValue::fromParts($epochSec, $subNs);
+        $zdt = new self($epoch->epochNanoseconds, $tzId, $calendarId);
+        $zdt->applyEpoch($epoch);
+        return $zdt;
     }
 
     /**
@@ -3234,17 +3157,17 @@ final class ZonedDateTime implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : get_object_vars($options);
+            $opts = Options::normalizeOptions($options);
 
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
-                if ($lu !== null && !is_string($lu)) {
-                    throw new \TypeError('largestUnit option must be a string.');
+                if ($lu !== null) {
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
+                        throw new RangeError("Invalid largestUnit value: \"{$lu}\".");
                     }
                     $largestUnit = $lu;
                     $largestUnitExplicit = true;
@@ -3262,26 +3185,23 @@ final class ZonedDateTime implements Stringable
             if (array_key_exists('roundingMode', $opts)) {
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
-                if ($rm !== null && !is_string($rm)) {
-                    throw new \TypeError('roundingMode option must be a string.');
+                if ($rm !== null) {
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                        throw new InvalidArgumentException("Invalid roundingMode value: \"{$rm}\".");
-                    }
-                    $roundingMode = $rm;
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
             if (array_key_exists('smallestUnit', $opts)) {
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
-                if ($su !== null && !is_string($su)) {
-                    throw new \TypeError('smallestUnit option must be a string.');
+                if ($su !== null) {
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
+                        throw new RangeError("Invalid smallestUnit value: \"{$su}\".");
                     }
                     $smallestUnit = $su;
                 }
@@ -3339,7 +3259,7 @@ final class ZonedDateTime implements Stringable
 
         if ($suRank > $luRank) {
             if ($largestUnitExplicit) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "smallestUnit \"{$normSmallest}\" cannot be larger than largestUnit \"{$normLargest}\".",
                 );
             }
@@ -3362,9 +3282,7 @@ final class ZonedDateTime implements Stringable
                 $maxIncrement > 0
                 && ($roundingIncrement >= $maxIncrement || ($maxIncrement % $roundingIncrement) !== 0)
             ) {
-                throw new InvalidArgumentException(
-                    "roundingIncrement {$roundingIncrement} is invalid for unit \"{$normSmallest}\".",
-                );
+                throw new RangeError("roundingIncrement {$roundingIncrement} is invalid for unit \"{$normSmallest}\".");
             }
         }
 
@@ -3377,7 +3295,7 @@ final class ZonedDateTime implements Stringable
             $recEpochDays =
                 CalendarMath::toJulianDay($recLocal['year'], $recLocal['month'], $recLocal['day']) - 2_440_588;
             if ((abs($recEpochDays) + $incDays) > $maxEpochDays) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "roundingIncrement {$roundingIncrement} for unit \"{$normSmallest}\" would exceed the representable date range.",
                 );
             }
@@ -3390,7 +3308,7 @@ final class ZonedDateTime implements Stringable
             $isCalendarLargest
             && self::canonicalizeTimezoneForComparison($temporalDate->timeZoneId) !== self::canonicalizeTimezoneForComparison($other->timeZoneId)
         ) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Cannot compute {$operation}() with largestUnit '{$normLargest}' between different timezones.",
             );
         }
@@ -3433,16 +3351,16 @@ final class ZonedDateTime implements Stringable
             $laterTimeNs =
                 ($laterLocal['hour'] * 3_600_000_000_000)
                 + ($laterLocal['minute'] * 60_000_000_000)
-                + ($laterLocal['second'] * self::NS_PER_SECOND)
-                + ($laterLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                + ($laterLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                + ($laterLocal['second'] * EpochLimits::NS_PER_SECOND)
+                + ($laterLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                + ($laterLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                 + $laterLocal['nanosecond'];
             $earlierTimeNs =
                 ($earlierLocal['hour'] * 3_600_000_000_000)
                 + ($earlierLocal['minute'] * 60_000_000_000)
-                + ($earlierLocal['second'] * self::NS_PER_SECOND)
-                + ($earlierLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                + ($earlierLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                + ($earlierLocal['second'] * EpochLimits::NS_PER_SECOND)
+                + ($earlierLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                + ($earlierLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                 + $earlierLocal['nanosecond'];
 
             $dateDiff = $laterJdn - $earlierJdn;
@@ -3476,16 +3394,16 @@ final class ZonedDateTime implements Stringable
                 $rawTdTimeNs =
                     ($tdLocal['hour'] * 3_600_000_000_000)
                     + ($tdLocal['minute'] * 60_000_000_000)
-                    + ($tdLocal['second'] * self::NS_PER_SECOND)
-                    + ($tdLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                    + ($tdLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                    + ($tdLocal['second'] * EpochLimits::NS_PER_SECOND)
+                    + ($tdLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                    + ($tdLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                     + $tdLocal['nanosecond'];
                 $rawOtherTimeNs =
                     ($otherLocal['hour'] * 3_600_000_000_000)
                     + ($otherLocal['minute'] * 60_000_000_000)
-                    + ($otherLocal['second'] * self::NS_PER_SECOND)
-                    + ($otherLocal['millisecond'] * self::NS_PER_MILLISECOND)
-                    + ($otherLocal['microsecond'] * self::NS_PER_MICROSECOND)
+                    + ($otherLocal['second'] * EpochLimits::NS_PER_SECOND)
+                    + ($otherLocal['millisecond'] * EpochLimits::NS_PER_MILLISECOND)
+                    + ($otherLocal['microsecond'] * EpochLimits::NS_PER_MICROSECOND)
                     + $otherLocal['nanosecond'];
                 $rawTD = $rawOtherTimeNs - $rawTdTimeNs;
                 $tS = $rawTD <=> 0;
@@ -3547,8 +3465,8 @@ final class ZonedDateTime implements Stringable
                         weeks: $weeks,
                         days: $days,
                     ));
-                    [$intSec, $intSub] = $intermediate->getEpochParts();
-                    [$latSec, $latSub] = $laterZ->getEpochParts();
+                    [$intSec, $intSub] = $intermediate->epochParts();
+                    [$latSec, $latSub] = $laterZ->epochParts();
                     $recomputedNs = (($latSec - $intSec) * 1_000_000_000) + ($latSub - $intSub);
                     if ($recomputedNs >= 0) {
                         $timeDiffNs = $recomputedNs;
@@ -3562,7 +3480,7 @@ final class ZonedDateTime implements Stringable
                             weeks: $weeks,
                             days: $days,
                         ));
-                        [$intSec2, $intSub2] = $intermediate2->getEpochParts();
+                        [$intSec2, $intSub2] = $intermediate2->epochParts();
                         $recomputedNs2 = (($latSec - $intSec2) * 1_000_000_000) + ($latSub - $intSub2);
                         if ($recomputedNs2 >= 0) {
                             $timeDiffNs = $recomputedNs2;
@@ -3636,7 +3554,12 @@ final class ZonedDateTime implements Stringable
                         $timeDiffNs,
                         $receiverIsLater,
                     );
-                    $roundUp = self::applyRoundingProgress($years, $progress, $roundingIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                        $years,
+                        $progress,
+                        $roundingIncrement,
+                        $effectiveMode,
+                    );
                     $roundedYears = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
                     return new Duration(years: $outputSign * $roundedYears);
                 }
@@ -3654,7 +3577,12 @@ final class ZonedDateTime implements Stringable
                         $timeDiffNs,
                         $receiverIsLater,
                     );
-                    $roundUp = self::applyRoundingProgress($totalMonths, $progress, $roundingIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                        $totalMonths,
+                        $progress,
+                        $roundingIncrement,
+                        $effectiveMode,
+                    );
                     $roundedMonths = $roundUp ? $floorCount + $roundingIncrement : $floorCount;
                     if ($normLargest === 'year') {
                         $ry = intdiv(num1: $roundedMonths, num2: 12);
@@ -3668,14 +3596,34 @@ final class ZonedDateTime implements Stringable
                     $progress = $timeDiffNs > 0 ? (float) $timeDiffNs / $nsPerDayF : 0.0;
                     $weekDays = $totalDays;
                     $weekIncrement = $roundingIncrement * 7;
-                    $roundUp = self::applyRoundingProgress($weekDays, $progress, $weekIncrement, $effectiveMode);
+                    $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                        $weekDays,
+                        $progress,
+                        $weekIncrement,
+                        $effectiveMode,
+                    );
                     $q = intdiv(num1: $weekDays, num2: $weekIncrement);
                     $roundedDays = $roundUp ? ($q + 1) * $weekIncrement : $q * $weekIncrement;
-                    return new Duration(weeks: $outputSign * intdiv(num1: $roundedDays, num2: 7));
+                    // Preserve the years/months from the date difference. Per TC39
+                    // NudgeToCalendarUnit (unit=week), the years+months portion is held fixed
+                    // (AdjustDateDurationRecord(duration.[[Date]], 0, 0)) and only the
+                    // weeks+days remainder is rounded. With largestUnit=month/year these can be
+                    // nonzero; dropping them lost a whole month (e.g. P1M weeks..months → 0).
+                    // For largestUnit=week they are already 0, so this is a no-op there.
+                    return new Duration(
+                        years: $outputSign * $years,
+                        months: $outputSign * $months,
+                        weeks: $outputSign * intdiv(num1: $roundedDays, num2: 7),
+                    );
                 }
                 // normSmallest === 'day'
                 $progress = $timeDiffNs > 0 ? (float) $timeDiffNs / $nsPerDayF : 0.0;
-                $roundUp = self::applyRoundingProgress($days, $progress, $roundingIncrement, $effectiveMode);
+                $roundUp = CalendarMath::applyCalendarRoundingProgress(
+                    $days,
+                    $progress,
+                    $roundingIncrement,
+                    $effectiveMode,
+                );
                 $q = intdiv(num1: $days, num2: $roundingIncrement);
                 $roundedDays = $roundUp ? ($q + 1) * $roundingIncrement : $q * $roundingIncrement;
                 if ($normLargest === 'day') {
@@ -3699,14 +3647,14 @@ final class ZonedDateTime implements Stringable
             $nsPerSmallest = match ($normSmallest) {
                 'hour' => 3_600_000_000_000,
                 'minute' => 60_000_000_000,
-                'second' => self::NS_PER_SECOND,
-                'millisecond' => self::NS_PER_MILLISECOND,
-                'microsecond' => self::NS_PER_MICROSECOND,
+                'second' => EpochLimits::NS_PER_SECOND,
+                'millisecond' => EpochLimits::NS_PER_MILLISECOND,
+                'microsecond' => EpochLimits::NS_PER_MICROSECOND,
                 default => 1,
             };
             /** @psalm-var int<1, 1000> $roundingIncrement */
             $nsIncrement = $nsPerSmallest * $roundingIncrement;
-            $absTimeNs = self::roundPositiveNs($absTimeNs, $nsIncrement, $effectiveMode);
+            $absTimeNs = EpochRounding::roundAsIfPositive($absTimeNs, $nsIncrement, $effectiveMode);
 
             // Handle day overflow from rounding time.
             // Use DST-aware day length for IANA timezones.
@@ -3761,12 +3709,12 @@ final class ZonedDateTime implements Stringable
             $rem = $absTimeNs % 3_600_000_000_000;
             $min = intdiv(num1: $rem, num2: 60_000_000_000);
             $rem %= 60_000_000_000;
-            $sec = intdiv(num1: $rem, num2: self::NS_PER_SECOND);
-            $rem %= self::NS_PER_SECOND;
-            $msR = intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND);
-            $rem %= self::NS_PER_MILLISECOND;
-            $usR = intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND);
-            $nsR = $rem % self::NS_PER_MICROSECOND;
+            $sec = intdiv(num1: $rem, num2: EpochLimits::NS_PER_SECOND);
+            $rem %= EpochLimits::NS_PER_SECOND;
+            $msR = intdiv(num1: $rem, num2: EpochLimits::NS_PER_MILLISECOND);
+            $rem %= EpochLimits::NS_PER_MILLISECOND;
+            $usR = intdiv(num1: $rem, num2: EpochLimits::NS_PER_MICROSECOND);
+            $nsR = $rem % EpochLimits::NS_PER_MICROSECOND;
 
             return new Duration(
                 years: $outputSign * $years,
@@ -3787,14 +3735,14 @@ final class ZonedDateTime implements Stringable
         // representable range (~±275,760 years from epoch). diffEpochNs returns
         // a PHP_INT_MIN/MAX sentinel for those spans, and `-PHP_INT_MIN` overflows
         // to float; sourcing the diff directly from (sec, subNs) sidesteps both.
-        [$tdSec, $tdSubNs] = $temporalDate->getEpochParts();
-        [$otherSec, $otherSubNs] = $other->getEpochParts();
+        [$tdSec, $tdSubNs] = $temporalDate->epochParts();
+        [$otherSec, $otherSubNs] = $other->epochParts();
         $absDiffSec = $sign < 0 ? $tdSec - $otherSec : $otherSec - $tdSec;
         $absDiffSubNs = $sign < 0 ? $tdSubNs - $otherSubNs : $otherSubNs - $tdSubNs;
         // Borrow if subNs is negative.
         if ($absDiffSubNs < 0) {
             $absDiffSec--;
-            $absDiffSubNs += self::NS_PER_SECOND;
+            $absDiffSubNs += EpochLimits::NS_PER_SECOND;
         }
         // Now: $absDiffSec >= 0 and 0 <= $absDiffSubNs < NS_PER_SECOND. Both fit
         // int64 since |epochSec| < 8.64×10¹² (the spec range).
@@ -3802,29 +3750,21 @@ final class ZonedDateTime implements Stringable
         $nsPerSmallest = match ($normSmallest) {
             'hour' => 3_600_000_000_000,
             'minute' => 60_000_000_000,
-            'second' => self::NS_PER_SECOND,
-            'millisecond' => self::NS_PER_MILLISECOND,
-            'microsecond' => self::NS_PER_MICROSECOND,
+            'second' => EpochLimits::NS_PER_SECOND,
+            'millisecond' => EpochLimits::NS_PER_MILLISECOND,
+            'microsecond' => EpochLimits::NS_PER_MICROSECOND,
             default => 1,
         };
         /** @psalm-var int<1, 1000> $roundingIncrement */
         $nsIncrement = $nsPerSmallest * $roundingIncrement;
 
-        // Round (absDiffSec, absDiffSubNs) by nsIncrement. Two regimes:
-        //   - increment < NS_PER_SECOND → only absDiffSubNs is affected (always int).
-        //   - increment ≥ NS_PER_SECOND → round in seconds; absDiffSubNs supplies
-        //     the half-window tiebreaker for halfExpand/halfTrunc/halfEven.
-        if ($nsIncrement < self::NS_PER_SECOND) {
-            $absDiffSubNs = self::roundPositiveNs($absDiffSubNs, $nsIncrement, $effectiveMode);
-            if ($absDiffSubNs >= self::NS_PER_SECOND) {
-                $absDiffSec += intdiv($absDiffSubNs, self::NS_PER_SECOND);
-                $absDiffSubNs %= self::NS_PER_SECOND;
-            }
-        } else {
-            $incSec = intdiv($nsIncrement, self::NS_PER_SECOND);
-            $absDiffSec = self::roundPositiveSecondsWithSubNs($absDiffSec, $absDiffSubNs, $incSec, $effectiveMode);
-            $absDiffSubNs = 0;
-        }
+        // Round the non-negative (absDiffSec, absDiffSubNs) pair by nsIncrement. The
+        // shared helper dispatches both regimes internally: a strictly sub-second
+        // increment rounds only the sub-second remainder (carrying into seconds), while
+        // a second-or-coarser increment rounds in the seconds domain so the combined
+        // nanosecond value never has to fit int64. Inputs are pre-absoluted above
+        // (absDiffSec ≥ 0, absDiffSubNs in [0, 1e9)), matching the helper's contract.
+        [$absDiffSec, $absDiffSubNs] = EpochRounding::round($absDiffSec, $absDiffSubNs, $nsIncrement, $effectiveMode);
 
         /** @var array<string,int> $timeUnitRank */
         static $timeUnitRank = [
@@ -3845,11 +3785,11 @@ final class ZonedDateTime implements Stringable
         $min = $luTimeRank >= 5 ? intdiv(num1: $remSec, num2: 60) : 0;
         $remSec = $luTimeRank >= 5 ? $remSec % 60 : $remSec;
         $sec = $luTimeRank >= 4 ? $remSec : 0;
-        $rem = $luTimeRank >= 4 ? $absDiffSubNs : ($remSec * self::NS_PER_SECOND) + $absDiffSubNs;
-        $msR = $luTimeRank >= 3 ? intdiv(num1: $rem, num2: self::NS_PER_MILLISECOND) : 0;
-        $rem = $luTimeRank >= 3 ? $rem % self::NS_PER_MILLISECOND : $rem;
-        $usR = $luTimeRank >= 2 ? intdiv(num1: $rem, num2: self::NS_PER_MICROSECOND) : 0;
-        $nsR = $luTimeRank >= 2 ? $rem % self::NS_PER_MICROSECOND : $rem;
+        $rem = $luTimeRank >= 4 ? $absDiffSubNs : ($remSec * EpochLimits::NS_PER_SECOND) + $absDiffSubNs;
+        $msR = $luTimeRank >= 3 ? intdiv(num1: $rem, num2: EpochLimits::NS_PER_MILLISECOND) : 0;
+        $rem = $luTimeRank >= 3 ? $rem % EpochLimits::NS_PER_MILLISECOND : $rem;
+        $usR = $luTimeRank >= 2 ? intdiv(num1: $rem, num2: EpochLimits::NS_PER_MICROSECOND) : 0;
+        $nsR = $luTimeRank >= 2 ? $rem % EpochLimits::NS_PER_MICROSECOND : $rem;
 
         return new Duration(
             hours: $outputSign * $h,
@@ -3933,71 +3873,6 @@ final class ZonedDateTime implements Stringable
     }
 
     /**
-     * Rounds (absSec, absSubNs) — a non-negative seconds + sub-second-ns pair —
-     * to the nearest multiple of $incSec seconds, returning the result in seconds.
-     *
-     * Used by the time-unit diff path to handle spans up to the spec's
-     * representable range (~±275,760 years from epoch) without forming an
-     * int64-overflowing total nanosecond value. The half-window comparison
-     * works on doubled seconds with absSubNs as the tiebreaker; both sides of
-     * the comparison fit int64 because incSec is bounded by the rounding
-     * increment (≤ 1000 × 3600 hour-seconds) and remSec stays below incSec.
-     */
-    private static function roundPositiveSecondsWithSubNs(int $absSec, int $absSubNs, int $incSec, string $mode): int
-    {
-        $secFloor = intdiv($absSec, $incSec) * $incSec;
-        $remSec = $absSec - $secFloor;
-        $r1 = $secFloor;
-        $r2 = $secFloor + $incSec;
-
-        // Express the fractional remainder (within the rounding window) in ns.
-        // Bounded by incSec × NS_PER_SECOND, which stays in int64 for any valid
-        // increment (incSec ≤ 3.6×10⁶ for hour-with-1000-increment).
-        $fractionalNs = ($remSec * self::NS_PER_SECOND) + $absSubNs;
-        $hasRemainder = $fractionalNs > 0;
-        $doubled = $fractionalNs * 2;
-        $halfWindowNs = $incSec * self::NS_PER_SECOND;
-        $cmp = $doubled <=> $halfWindowNs;
-
-        return match ($mode) {
-            'trunc', 'floor' => $r1,
-            'ceil', 'expand' => $hasRemainder ? $r2 : $r1,
-            'halfExpand', 'halfCeil' => $cmp >= 0 ? $r2 : $r1,
-            'halfTrunc', 'halfFloor' => $cmp > 0 ? $r2 : $r1,
-            'halfEven' => $cmp > 0 || $cmp === 0 && (intdiv($r1, $incSec) % 2) !== 0 ? $r2 : $r1,
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-        };
-    }
-
-    /**
-     * Rounds a non-negative nanosecond value to the nearest multiple of $increment.
-     */
-    private static function roundPositiveNs(int $ns, int $increment, string $mode): int
-    {
-        $q = intdiv(num1: $ns, num2: $increment);
-        $rem = $ns - ($q * $increment);
-        $r1 = $q * $increment;
-        $r2 = $r1 + $increment;
-        if ($mode === 'halfEven') {
-            $cmp = $rem * 2;
-            if ($cmp < $increment) {
-                return $r1;
-            }
-            if ($cmp > $increment) {
-                return $r2;
-            }
-            return ($q % 2) === 0 ? $r1 : $r2;
-        }
-        return match ($mode) {
-            'trunc', 'floor' => $r1,
-            'ceil', 'expand' => $rem === 0 ? $r1 : $r2,
-            'halfExpand', 'halfCeil' => ($rem * 2) >= $increment ? $r2 : $r1,
-            'halfTrunc', 'halfFloor' => ($rem * 2) > $increment ? $r2 : $r1,
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
-        };
-    }
-
-    /**
      * Rounds a nanosecond offset within a day for day-level rounding.
      *
      * Uses the actual day length (which may differ from 86400s due to DST).
@@ -4016,46 +3891,26 @@ final class ZonedDateTime implements Stringable
             'ceil', 'expand' => $offsetNs === 0 ? 0 : $dayLengthNs,
             'halfExpand', 'halfCeil' => ($offsetNs * 2) >= $dayLengthNs ? $dayLengthNs : 0,
             'halfTrunc', 'halfFloor' => ($offsetNs * 2) > $dayLengthNs ? $dayLengthNs : 0,
-            default => throw new InvalidArgumentException("Invalid roundingMode \"{$mode}\"."),
+            default => throw new RangeError("Invalid roundingMode \"{$mode}\"."),
         };
     }
 
     /**
      * Extracts and validates the 'overflow' option.
      *
-     * When the key is present, the value must be a string ('constrain'|'reject').
-     * null/bool/other types throw.
+     * Returns 'constrain' or 'reject', defaulting to 'constrain' when $options is null
+     * or has no overflow key. When the key is present the value is coerced/validated by
+     * {@see Options::overflowFromBag()} → {@see Options::overflowOption()}: a string
+     * keyword passes; a JsSymbol sentinel's throwing __toString surfaces as TypeError;
+     * every other type (including null) is a RangeError. This is the canonical
+     * contract; PlainTime/PlainDateTime diverge (null value, Symbol-sentinel object)
+     * and so encode their own scaffolding around the same helper.
      *
      * @param array<array-key, mixed>|object|null $options
      */
-    // NOTE: extractOverflow diverges across PlainDateTime, PlainTime, and ZonedDateTime.
-    // ZonedDateTime: any non-string (including null/bool) → InvalidArgumentException with get_debug_type.
-    // PlainDateTime: null/bool → InvalidArgumentException; other non-string → TypeError.
-    // PlainTime:     null → 'constrain' (default); non-string → TypeError.
-    // Unification is unsafe until the spec-correct behavior for each case is confirmed.
-    private static function extractOverflow(array|object|null $options): string
+    private static function resolveOverflowOption(array|object|null $options): string
     {
-        if ($options === null) {
-            return 'constrain';
-        }
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
-        if (!array_key_exists('overflow', $options)) {
-            return 'constrain';
-        }
-        /** @var mixed $val */
-        $val = $options['overflow'];
-        if (!is_string($val)) {
-            throw new InvalidArgumentException(sprintf(
-                'overflow option must be a string; got %s.',
-                get_debug_type($val),
-            ));
-        }
-        if ($val !== 'constrain' && $val !== 'reject') {
-            throw new InvalidArgumentException("Invalid overflow value \"{$val}\": must be 'constrain' or 'reject'.");
-        }
-        return $val;
+        return Options::overflowFromBag($options);
     }
 
     /**
@@ -4068,9 +3923,7 @@ final class ZonedDateTime implements Stringable
         if ($options === null) {
             return 'compatible';
         }
-        if (is_object($options)) {
-            $options = get_object_vars($options);
-        }
+        $options = Options::normalizeOptions($options);
         if (!array_key_exists('disambiguation', $options)) {
             return 'compatible';
         }
@@ -4079,11 +3932,9 @@ final class ZonedDateTime implements Stringable
         if ($val === null) {
             return 'compatible';
         }
-        if (!is_string($val)) {
-            throw new InvalidArgumentException('ZonedDateTime disambiguation option must be a string.');
-        }
+        $val = Options::coerceEnumOption($val, 'disambiguation');
         if (!in_array(needle: $val, haystack: ['compatible', 'earlier', 'later', 'reject'], strict: true)) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Invalid disambiguation value \"{$val}\"; must be 'compatible', 'earlier', 'later', or 'reject'.",
             );
         }
@@ -4250,27 +4101,6 @@ final class ZonedDateTime implements Stringable
     }
 
     /**
-     * Determines whether to round up based on fractional progress within an interval.
-     */
-    private static function applyRoundingProgress(int $wholeUnits, float $progress, int $increment, string $mode): bool
-    {
-        $q = intdiv(num1: $wholeUnits, num2: $increment);
-        $unitRem = $wholeUnits - ($q * $increment);
-        $hasFraction = $unitRem > 0 || $progress > 0.0;
-        $halfPoint = (float) $increment / 2.0;
-        $totalFrac = (float) $unitRem + $progress;
-
-        return match ($mode) {
-            'trunc', 'floor' => false,
-            'ceil', 'expand' => $hasFraction,
-            'halfExpand', 'halfCeil' => $totalFrac >= $halfPoint,
-            'halfTrunc', 'halfFloor' => $totalFrac > $halfPoint,
-            'halfEven' => $totalFrac > $halfPoint || $totalFrac === $halfPoint && ($q % 2) !== 0,
-            default => false,
-        };
-    }
-
-    /**
      * Negates directional rounding modes for use on absolute values of negative durations.
      *
      * Symmetric modes (trunc, expand, halfTrunc, halfExpand, halfEven) are unchanged.
@@ -4310,7 +4140,7 @@ final class ZonedDateTime implements Stringable
         // ZonedDateTime has its own toLocaleString implementation and does not
         // rely on the trait's default formatter path; this value is not consumed
         // by that override, but the trait contract requires it.
-        [$epochSec] = $this->getEpochParts();
+        [$epochSec] = $this->epochParts();
         return $epochSec;
     }
 }

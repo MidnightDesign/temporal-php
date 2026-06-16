@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(1_585_641_600_000_000_000, '-08:00');
 $d = new \Temporal\Spec\Duration(0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
 $options = (object) ['overflow' => 'reject'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$d, &$options) { return $zdt->subtract($d, $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$zdt, &$d, &$options) { return $zdt->subtract($d, $options); }, '');

@@ -17,5 +17,30 @@ $days = $__obj__['days'] ?? null;
 $date = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['year' => $year, 'month' => 1, 'day' => 1, 'calendar' => $calendar]));
 $leapMonth = $date->with(JsUndefined::strip(['monthCode' => $leap]));
 Assert::sameValue($leapMonth->monthCode, $leap, '');
-Assert::incomplete('untranslatable: destructuring assignment');
+$monthsInYear = $date->monthsInYear;
+for ($i = $monthsInYear, $leapMonthIndex = null, $monthStart = null; $i >= 1; $i--) {
+$monthStart = ($monthStart ? $monthStart->add(JsUndefined::strip(['months' => -1])) : $date->add(JsUndefined::strip(['months' => $monthsInYear - 1])));
+$month = $monthStart->month;
+$monthCode = $monthStart->monthCode;
+$daysInMonth = $monthStart->daysInMonth;
+Assert::sameValue($month, $i, '');
+Assert::sameValue($daysInMonth, $days[$i - 1], '');
+if (\Temporal\Tests\Test262\Js::endsWith($monthCode, 'L')) {
+Assert::sameValue($date->with(JsUndefined::strip(['monthCode' => $monthCode]))->monthCode, $leap, '');
+$leapMonthIndex = $i;
+} else {
+if (!JsUndefined::isUndefined($leapMonthIndex) && $i === ($leapMonthIndex - 1)) {
+$inLeapMonth = $monthStart->with(JsUndefined::strip(['monthCode' => "M" . (str_pad((string) ($month), 2, '0', STR_PAD_LEFT)) . "L"]));
+Assert::sameValue($inLeapMonth->monthCode, "{$monthCode}L", '');
+} else {
+Assert::throws(\RangeException::class, function () use (&$monthStart, &$month) { return $monthStart->with(JsUndefined::strip(['monthCode' => "M" . (str_pad((string) ($month), 2, '0', STR_PAD_LEFT)) . "L"]), ['overflow' => 'reject']); }, '');
+if ($i === 13) {
+Assert::throws(\RangeException::class, function () use (&$monthStart, &$month) { return $monthStart->with(JsUndefined::strip(['monthCode' => "M" . (str_pad((string) ($month), 2, '0', STR_PAD_LEFT)) . "L"])); }, '');
+}
+}
+}
+$oneDayPastMonthEnd = $monthStart->with(JsUndefined::strip(['day' => $daysInMonth + 1]));
+Assert::sameValue($oneDayPastMonthEnd->day, $daysInMonth, '');
+Assert::throws(\RangeException::class, function () use (&$monthStart, &$daysInMonth) { return $monthStart->with(JsUndefined::strip(['day' => $daysInMonth + 1]), ['overflow' => 'reject']); }, '');
+}
 }

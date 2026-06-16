@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\PlainYearMonth(2019, 1);
 $later = new \Temporal\Spec\PlainYearMonth(2021, 9);
 foreach (['weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'] as $largestUnit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later, &$largestUnit) { return $earlier->until($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit])); }, "throws on disallowed or invalid largestUnit: {$largestUnit}");
+Assert::throws(\RangeException::class, function () use (&$earlier, &$later, &$largestUnit) { return $earlier->until($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit])); }, "throws on disallowed or invalid largestUnit: {$largestUnit}");
 }

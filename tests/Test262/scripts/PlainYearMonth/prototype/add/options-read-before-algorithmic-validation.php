@@ -13,9 +13,9 @@ $expected = ['get options.overflow', 'get options.overflow.toString', 'call opti
 $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, ['overflow' => 'constrain'], 'options');
 $instance = new \Temporal\Spec\PlainYearMonth(-271_821, 4);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$options) { $instance->add(new \Temporal\Spec\Duration(0, 1), $options); }, 'exception thrown when converting -271821-04 to date');
+Assert::throws(\RangeException::class, function () use (&$instance, &$options) { $instance->add(new \Temporal\Spec\Duration(0, 1), $options); }, 'exception thrown when converting -271821-04 to date');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");
 // JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
 $instance2 = new \Temporal\Spec\PlainYearMonth(1999, 12);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance2, &$options) { $instance2->add(new \Temporal\Spec\Duration(0, 0, 1), $options); }, 'exception thrown when attempting to add too-low unit');
+Assert::throws(\RangeException::class, function () use (&$instance2, &$options) { $instance2->add(new \Temporal\Spec\Duration(0, 0, 1), $options); }, 'exception thrown when attempting to add too-low unit');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

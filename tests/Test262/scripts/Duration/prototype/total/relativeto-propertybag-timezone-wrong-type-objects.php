@@ -12,6 +12,11 @@ $instance = new \Temporal\Spec\Duration(1);
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$timeZone, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($timeZone) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$timeZone) { return $instance->total((object) JsUndefined::strip(['unit' => 'months', 'relativeTo' => (object) JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])])); }, "{$description} does not convert to a valid ISO string");
+if ($timeZone === null) { continue; }
+Assert::throws((is_string($timeZone) ? \RangeException::class : \TypeError::class), function () use (&$instance, &$timeZone) { return $instance->total((object) JsUndefined::strip(['unit' => 'months', 'relativeTo' => (object) JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])])); }, "{$description} does not convert to a valid ISO string");
 }
-Assert::incomplete('untranslatable: Symbol()');
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [(object) [], 'object'], [new \Temporal\Spec\Duration(), 'duration instance']];
+foreach ($typeErrorTests as $__entry__) {
+[$timeZone, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$instance, &$timeZone) { return $instance->total((object) JsUndefined::strip(['unit' => 'months', 'relativeTo' => (object) JsUndefined::strip(['year' => 2000, 'month' => 5, 'day' => 2, 'timeZone' => $timeZone])])); }, "{$description} is not a valid object and does not convert to a string");
+}

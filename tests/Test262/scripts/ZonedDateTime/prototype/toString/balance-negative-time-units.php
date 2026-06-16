@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(1001, '-00:02');
-$isoString = $datetime->toString();
+$isoString = (string) ($datetime);
 Assert::sameValue($isoString, '1969-12-31T23:58:00.000001001-00:02[-00:02]', '');

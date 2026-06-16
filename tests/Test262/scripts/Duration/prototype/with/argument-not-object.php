@@ -15,4 +15,6 @@ Assert::throws(\TypeError::class, function () use (&$instance) { return $instanc
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(''); }, 'empty string');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with('P1D'); }, 'duration string');
 Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with('string'); }, 'string');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(\Temporal\Tests\Test262\JsSymbol::singleton()); }, 'Symbol');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(7); }, 'number');
+Assert::throws(\TypeError::class, function () use (&$instance) { return $instance->with(7); }, 'bigint');

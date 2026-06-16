@@ -13,10 +13,10 @@ $instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
 foreach ([INF, -INF] as $inf) {
 foreach (['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$prop, &$inf, &$overflow) { return $instance->with(JsUndefined::strip([$prop => $inf]), JsUndefined::strip(['overflow' => $overflow])); }, "{$prop} property cannot be {$inf} (overflow {$overflow}");
+Assert::throws(\RangeException::class, function () use (&$instance, &$prop, &$inf, &$overflow) { return $instance->with(JsUndefined::strip([$prop => $inf]), JsUndefined::strip(['overflow' => $overflow])); }, "{$prop} property cannot be {$inf} (overflow {$overflow}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, $prop);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$prop, &$obj, &$overflow) { return $instance->with(JsUndefined::strip([$prop => $obj]), JsUndefined::strip(['overflow' => $overflow])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$prop, &$obj, &$overflow) { return $instance->with(JsUndefined::strip([$prop => $obj]), JsUndefined::strip(['overflow' => $overflow])); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, [`get ${prop}.valueOf`, `call ${prop}.valueOf`], "it fails after fetching the primitive value");
 }
 }

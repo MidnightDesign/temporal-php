@@ -16,6 +16,6 @@ $explicit = $datetime->toString();
 Assert::sameValue($explicit, $expected, 'default calendarName option is auto, precision is auto, and no rounding');
 $propertyImplicit = $datetime->toString([]);
 Assert::sameValue($propertyImplicit, $expected, 'default calendarName option is auto, precision is auto, and no rounding');
-$implicit = $datetime->toString();
+$implicit = (string) ($datetime);
 Assert::sameValue($implicit, $expected, 'default calendarName option is auto, precision is auto, and no rounding');
 }

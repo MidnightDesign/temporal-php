@@ -11,7 +11,13 @@ use Temporal\Tests\Test262\JsUndefined;
 $primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)); }, "{$description} does not convert to a valid ISO string (first argument)");
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg); }, "{$description} does not convert to a valid ISO string (second argument)");
+if ($arg === null) { continue; }
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)); }, "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg); }, "{$description} does not convert to a valid ISO string (second argument)");
 }
-Assert::incomplete('untranslatable: Symbol()');
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'plain object'], [new \stdClass(), 'Temporal.PlainYearMonth, object'], [new \stdClass(), 'Temporal.PlainYearMonth.prototype, object']];
+foreach ($typeErrorTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare($arg, new \Temporal\Spec\PlainYearMonth(2019, 6)); }, "{$description} is not a valid property bag and does not convert to a string (first argument)");
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainYearMonth::compare(new \Temporal\Spec\PlainYearMonth(2019, 6), $arg); }, "{$description} is not a valid property bag and does not convert to a string (second argument)");
+}

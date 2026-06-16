@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\JsUndefined;
 $fields = ['hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
 $instance = \Temporal\Spec\Instant::fromEpochMilliseconds(10_000);
 foreach ($fields as $field) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$field) { return $instance->add(JsUndefined::strip([$field => INF])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$field) { return $instance->add(JsUndefined::strip([$field => INF])); }, '');
 }
 $calls = 0;
 // JS-only (inline JS ToPrimitive observer (valueOf/toString shorthand has no PHP equivalent)): obj = { valueOf() { calls++; return Infinity; } }

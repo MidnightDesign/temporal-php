@@ -13,5 +13,5 @@ $options = ['overflow' => 'reject'];
 $leapYears = [1687, 1691, 1695, 1699, 1703, 1707, 1711, 1715, 1719, 1723, 1727, 1731, 1735, 1739, 1743, 1747, 1751, 1755, 1759, 1763];
 for ($year = 1686; $year < 1766; $year++) {
 $date = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34]));
-Assert::sameValue($date->daysInYear, (str_contains($leapYears, $year) ? 366 : 365), '');
+Assert::sameValue($date->daysInYear, (\Temporal\Tests\Test262\Js::includes($leapYears, $year) ? 366 : 365), '');
 }

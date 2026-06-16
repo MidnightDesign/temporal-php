@@ -12,6 +12,11 @@ $instance = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $primitiveTests = [[null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "{$description} does not convert to a valid ISO string");
+if ($arg === null) { continue; }
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "{$description} does not convert to a valid ISO string");
 }
-Assert::incomplete('untranslatable: Symbol()');
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'plain object'], [new \stdClass(), 'Temporal.PlainTime, object'], [new \stdClass(), 'Temporal.PlainTime.prototype, object']];
+foreach ($typeErrorTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "{$description} is not a valid property bag and does not convert to a string");
+}

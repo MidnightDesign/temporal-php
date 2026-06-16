@@ -12,7 +12,7 @@ $calendar = 'hebrew';
 $options = (object) ['overflow' => 'reject'];
 $sampleYears = (object) JsUndefined::strip([5730 => [30, 29, 29, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29], 5732 => [30, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29], 5778 => [30, 29, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29], 5779 => [30, 30, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29], 5781 => [30, 29, 29, 29, 30, 29, 30, 29, 30, 29, 30, 29], 5782 => [30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29]]);
 foreach ($sampleYears as $year => $daysInMonth) {
-for ($month = 1; $month < count($daysInMonth); $month++) {
+for ($month = 1; $month < (is_string($daysInMonth) ? strlen($daysInMonth) : count($daysInMonth)); $month++) {
 $date = \Temporal\Spec\PlainDateTime::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'day' => 1, 'calendar' => $calendar, 'hour' => 12, 'minute' => 34]));
 Assert::sameValue($date->daysInMonth, $daysInMonth[$month - 1], "{$date}");
 }

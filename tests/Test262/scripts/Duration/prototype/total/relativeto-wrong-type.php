@@ -13,6 +13,11 @@ $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$relativeTo, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($relativeTo) || $relativeTo instanceof JsUndefined ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$relativeTo) { return $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo])); }, "{$description} does not convert to a valid ISO string (first argument)");
+if ($relativeTo === null) { continue; }
+Assert::throws((is_string($relativeTo) || $relativeTo instanceof JsUndefined ? \RangeException::class : \TypeError::class), function () use (&$instance, &$relativeTo) { return $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo])); }, "{$description} does not convert to a valid ISO string (first argument)");
 }
-Assert::incomplete('untranslatable: Symbol()');
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'plain object'], [new \stdClass(), 'Temporal.PlainDate, object'], [new \stdClass(), 'Temporal.PlainDate.prototype, object'], [new \stdClass(), 'Temporal.ZonedDateTime, object'], [new \stdClass(), 'Temporal.ZonedDateTime.prototype, object']];
+foreach ($typeErrorTests as $__entry__) {
+[$relativeTo, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$instance, &$relativeTo) { return $instance->total(JsUndefined::strip(['unit' => 'days', 'relativeTo' => $relativeTo])); }, "{$description} is not a valid property bag and does not convert to a string");
+}

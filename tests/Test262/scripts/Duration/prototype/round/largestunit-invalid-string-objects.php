@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 0, 12, 34, 56, 123, 987, 500);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->round((object) ['largestUnit' => 'other string']); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration) { return $duration->round((object) ['largestUnit' => 'other string']); }, '');

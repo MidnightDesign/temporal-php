@@ -20,6 +20,6 @@ $daysInMonth->{$commonYear} = $commonYearDaysInMonth;
 foreach ([$leapYear, $commonYear] as $year) {
 for ($month = 1; $month < 13; $month++) {
 $date = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => $year, 'month' => $month, 'calendar' => $calendar]));
-Assert::sameValue($date->daysInMonth, $daysInMonth[$year][$month - 1], "{$date}");
+Assert::sameValue($date->daysInMonth, $daysInMonth->{$year}[$month - 1], "{$date}");
 }
 }

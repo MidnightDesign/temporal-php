@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 0), 'negative year out of bounds');
-Assert::throws(\InvalidArgumentException::class, fn() => new \Temporal\Spec\PlainDateTime(275_760, 9, 14, 0, 0, 0, 0, 0, 0), 'positive year out of bounds');
+Assert::throws(\RangeException::class, fn() => new \Temporal\Spec\PlainDateTime(-271_821, 4, 19, 0, 0, 0, 0, 0, 0), 'negative year out of bounds');
+Assert::throws(\RangeException::class, fn() => new \Temporal\Spec\PlainDateTime(275_760, 9, 14, 0, 0, 0, 0, 0, 0), 'positive year out of bounds');

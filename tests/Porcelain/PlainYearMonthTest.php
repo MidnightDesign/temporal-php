@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
+use Temporal\Exception\RangeError;
 use Temporal\PlainYearMonth;
 use Temporal\RoundingMode;
 use Temporal\Unit;
@@ -98,7 +98,7 @@ final class PlainYearMonthTest extends TemporalTestCase
 
     public function testParseInvalidStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainYearMonth::parse('not-a-date');
     }
 

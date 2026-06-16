@@ -11,5 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 $calcutta = \Temporal\Spec\ZonedDateTime::from('2020-01-01T00:00:00+05:30[Asia/Calcutta]');
 $kolkata = \Temporal\Spec\ZonedDateTime::from('2021-09-01T00:00:00+05:30[Asia/Kolkata]');
 $colombo = \Temporal\Spec\ZonedDateTime::from('2022-08-01T00:00:00+05:30[Asia/Colombo]');
-Assert::sameValue($calcutta->until($kolkata, (object) ['largestUnit' => 'day'])->toString(), 'P609D', '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$calcutta, &$colombo) { return $calcutta->until($colombo, (object) ['largestUnit' => 'day']); }, '');
+Assert::sameValue((string) ($calcutta->until($kolkata, (object) ['largestUnit' => 'day'])), 'P609D', '');
+Assert::throws(\RangeException::class, function () use (&$calcutta, &$colombo) { return $calcutta->until($colombo, (object) ['largestUnit' => 'day']); }, '');

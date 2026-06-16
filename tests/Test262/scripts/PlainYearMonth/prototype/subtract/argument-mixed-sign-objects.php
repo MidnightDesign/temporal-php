@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\PlainYearMonth(2000, 5);
 foreach (['constrain', 'reject'] as $overflow) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$overflow) { return $instance->subtract((object) JsUndefined::strip(['years' => 1, 'months' => -3]), (object) JsUndefined::strip(['overflow' => $overflow])); }, "mixed positive and negative values always throw (overflow = \"{$overflow}\")");
+Assert::throws(\RangeException::class, function () use (&$instance, &$overflow) { return $instance->subtract((object) JsUndefined::strip(['years' => 1, 'months' => -3]), (object) JsUndefined::strip(['overflow' => $overflow])); }, "mixed positive and negative values always throw (overflow = \"{$overflow}\")");
 }

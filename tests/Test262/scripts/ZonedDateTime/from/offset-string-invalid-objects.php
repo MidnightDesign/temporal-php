@@ -9,6 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 foreach (['garbage', '00:00', '+000:00', '-00:000', '-00:00:000', '+00:00.0', '+00:00:00.0000000000', '+00:0000'] as $offset) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$offset) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['offset' => $offset, 'year' => 2024, 'monthCode' => 'M10', 'day' => 3, 'timeZone' => 'UTC'])); }, "UTC offset '{$offset}' is not well-formed");
+Assert::throws(\RangeException::class, function () use (&$offset) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['offset' => $offset, 'year' => 2024, 'monthCode' => 'M10', 'day' => 3, 'timeZone' => 'UTC'])); }, "UTC offset '{$offset}' is not well-formed");
 }
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['offset' => '--00:00', 'year' => \Temporal\Tests\Test262\JsSymbol::singleton(), 'monthCode' => 'M10', 'day' => 3, 'timeZone' => 'UTC'])), 'UTC offset syntax is validated before year type is validated');
+Assert::throws(\TypeError::class, fn() => \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['offset' => '+04:30', 'year' => \Temporal\Tests\Test262\JsSymbol::singleton(), 'monthCode' => 'M10', 'day' => 3, 'timeZone' => 'UTC'])), 'UTC offset matching is validated after year type is validated');

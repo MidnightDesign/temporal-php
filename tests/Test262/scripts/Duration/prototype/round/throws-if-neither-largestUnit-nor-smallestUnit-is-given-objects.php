@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $hoursOnly = new \Temporal\Spec\Duration(0, 0, 0, 0, 1);
 foreach ([(object) [], function () {  }, (object) ['roundingMode' => 'ceil']] as $roundTo) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$d, &$roundTo) { return $d->round($roundTo); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$hoursOnly, &$roundTo) { return $hoursOnly->round($roundTo); }, '');
+Assert::throws(\RangeException::class, function () use (&$d, &$roundTo) { return $d->round($roundTo); }, '');
+Assert::throws(\RangeException::class, function () use (&$hoursOnly, &$roundTo) { return $hoursOnly->round($roundTo); }, '');
 }

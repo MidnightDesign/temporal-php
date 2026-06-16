@@ -13,7 +13,13 @@ $other = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [19_761_118, 'number that would convert to a valid ISO string in other contexts'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg, &$other) { return \Temporal\Spec\ZonedDateTime::compare($arg, $other); }, "{$description} does not convert to a valid ISO string (first argument)");
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$other, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($other, $arg); }, "{$description} does not convert to a valid ISO string (second argument)");
+if ($arg === null) { continue; }
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$arg, &$other) { return \Temporal\Spec\ZonedDateTime::compare($arg, $other); }, "{$description} does not convert to a valid ISO string (first argument)");
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$other, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($other, $arg); }, "{$description} does not convert to a valid ISO string (second argument)");
 }
-Assert::incomplete('untranslatable: Symbol()');
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [(object) [], 'plain object'], [new \stdClass(), 'Temporal.ZonedDateTime, object'], [new \stdClass(), 'Temporal.ZonedDateTime.prototype, object']];
+foreach ($typeErrorTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$arg, &$other) { return \Temporal\Spec\ZonedDateTime::compare($arg, $other); }, "{$description} is not a valid property bag and does not convert to a string (first argument)");
+Assert::throws(\TypeError::class, function () use (&$other, &$arg) { return \Temporal\Spec\ZonedDateTime::compare($other, $arg); }, "{$description} is not a valid property bag and does not convert to a string (second argument)");
+}

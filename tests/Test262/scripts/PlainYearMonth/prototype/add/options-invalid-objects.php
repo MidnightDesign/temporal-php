@@ -9,4 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $ym = \Temporal\Spec\PlainYearMonth::from('2019-11');
-Assert::incomplete('untranslatable: Symbol()');
+$values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$ym, &$badOptions) { return $ym->add((object) ['years' => 1], $badOptions); }, '');
+}

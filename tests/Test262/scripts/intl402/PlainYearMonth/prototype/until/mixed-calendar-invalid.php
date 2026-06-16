@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $ym1 = new \Temporal\Spec\PlainYearMonth(2000, 1);
 $ym2 = new \Temporal\Spec\PlainYearMonth(2000, 1, 'gregory');
-Assert::throws(\InvalidArgumentException::class, function () use (&$ym1, &$ym2) { return $ym1->until($ym2); }, 'until throws with different calendars');
+Assert::throws(\RangeException::class, function () use (&$ym1, &$ym2) { return $ym1->until($ym2); }, 'until throws with different calendars');

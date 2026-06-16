@@ -10,4 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $CustomError = function () {
 };
-Assert::incomplete('untranslatable statement: ClassDeclaration');
+// JS-only (getter-only Temporal subclass; getters never fire in PHP, aliased to PlainTime): class AvoidGettersTime extends Temporal.PlainTime { get hour() { throw new CustomError(); } get minute() { throw new CustomError(); } get second() { throw new …
+$one = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
+$two = new \Temporal\Spec\PlainTime(6, 54, 32, 123, 456, 789);
+Assert::sameValue(\Temporal\Spec\PlainTime::compare($one, $two), 1, '');

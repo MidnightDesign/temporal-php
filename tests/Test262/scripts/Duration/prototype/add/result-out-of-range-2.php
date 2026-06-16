@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration = \Temporal\Spec\Duration::from(['days' => 104_249_991_374]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->add($duration); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration) { return $duration->add($duration); }, '');

@@ -9,6 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $props = ['relativeTo'];
-foreach ($props as $prop) {
-Assert::incomplete('untranslatable: Object.defineProperty');
-}
+// JS-only (Object.prototype pollution has no PHP equivalent): for (const prop of props) { Object.defineProperty(Object.prototype, prop, { get() { throw new Test262Error(`Object.prototype.${prop} was looked up`); }, config…
+$instance = new \Temporal\Spec\Duration(0, 0, 0, 0, 1, 30);
+$instance->total('hour');
+// JS-only (Object.prototype cleanup has no PHP equivalent): for (const prop of props) { delete Object.prototype[prop]; }
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

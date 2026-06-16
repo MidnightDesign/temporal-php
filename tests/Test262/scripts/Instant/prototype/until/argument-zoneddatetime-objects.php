@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkToTemporalInstantFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalInstantFastPath(function ($datetime) use (&$instant, &$result) { $instant = new \Temporal\Spec\Instant(1_000_000_000_000_000_000); $result = $instant->until($datetime); Assert::sameValue($result->total((object) ['unit' => 'nanoseconds']), 987_654_321, 'nanoseconds result'); });

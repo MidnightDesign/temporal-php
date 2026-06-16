@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
+use Temporal\Exception\RangeError;
 use Temporal\Overflow;
 use Temporal\PlainMonthDay;
 
@@ -26,7 +26,7 @@ final class PlainMonthDayTest extends TemporalTestCase
 
     public function testConstructorRejectsInvalidDay(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         new PlainMonthDay(2, 30);
     }
 
@@ -77,7 +77,7 @@ final class PlainMonthDayTest extends TemporalTestCase
 
     public function testParseInvalidStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainMonthDay::parse('not-a-date');
     }
 
@@ -124,7 +124,7 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         $md = new PlainMonthDay(1, 31);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $md->with(month: 2, overflow: Overflow::Reject);
     }
 
@@ -365,7 +365,7 @@ final class PlainMonthDayTest extends TemporalTestCase
 
     public function testFromFieldsForwardsOverflowReject(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         PlainMonthDay::fromFields(month: 2, day: 30, overflow: Overflow::Reject);
     }
@@ -375,7 +375,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         // Hebrew monthCode "M05L" is valid only in leap years. Year 5783 is not
         // a leap year, so passing it forces rejection; without `year`, the spec
         // falls back to a reference leap year and would accept.
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         PlainMonthDay::fromFields(monthCode: 'M05L', day: 1, calendar: Calendar::Hebrew, year: 5783);
     }
@@ -388,7 +388,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         // The 0 literal violates the int<1, 12> PHPDoc on the porcelain
         // signature; we suppress the analyzer warnings to verify the runtime
         // safety net still fires.
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         /** @psalm-suppress InvalidArgument */
         // @mago-ignore analysis:invalid-argument
@@ -399,7 +399,7 @@ final class PlainMonthDayTest extends TemporalTestCase
     {
         // Spec: same positivity rule for `day`. Non-ISO companion to the ISO
         // negative-month-or-day fixture, which upstream test262 lacks.
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         /** @psalm-suppress InvalidArgument */
         // @mago-ignore analysis:invalid-argument
@@ -411,7 +411,7 @@ final class PlainMonthDayTest extends TemporalTestCase
         // Spec: ToPositiveIntegerWithTruncation rejects day ≤ 0 in
         // PrepareCalendarFields, regardless of which other fields are present.
         // Distinct code path from the year-provided variant above.
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         /** @psalm-suppress InvalidArgument */
         // @mago-ignore analysis:invalid-argument

@@ -10,4 +10,14 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainTime(12, 34, 56, 987, 654, 321);
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+foreach (TemporalHelpers::isoPlainTimeStringsAmbiguous() as $string) {
+$arg = $string;
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, "'{$arg}' is ambiguous and requires T prefix");
+$arg = "T{$string}";
+$instance->since($arg);
+$arg = " {$string}";
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->since($arg); }, "space is not accepted as a substitute for T prefix: '{$arg}'");
+}
+foreach (TemporalHelpers::isoPlainTimeStringsUnambiguous() as $arg) {
+$instance->since($arg);
+}

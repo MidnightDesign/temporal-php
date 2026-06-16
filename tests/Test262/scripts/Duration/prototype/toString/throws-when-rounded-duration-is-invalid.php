@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration = \Temporal\Spec\Duration::from(JsUndefined::strip(['seconds' => 9_007_199_254_740_991, 'milliseconds' => 999]));
 $options = ['smallestUnit' => 'seconds', 'roundingMode' => 'ceil'];
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration, &$options) { return $duration->toString($options); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration, &$options) { return $duration->toString($options); }, '');

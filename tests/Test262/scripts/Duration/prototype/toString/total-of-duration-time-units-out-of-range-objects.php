@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1, 0, 0, 2 ** 53 - 1 - (24 * 60 * 60), 0, 0, 999_999_999);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return $duration->toString((object) ['roundingMode' => 'ceil', 'fractionalSecondDigits' => 7]); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration) { return $duration->toString((object) ['roundingMode' => 'ceil', 'fractionalSecondDigits' => 7]); }, '');

@@ -11,7 +11,7 @@ use Temporal\Tests\Test262\JsUndefined;
 $utcDateTime = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 Assert::sameValue($utcDateTime->timeZoneId, 'UTC', 'Time zone name \'UTC\' is preserved');
 $utcIdentifiers = ['Etc/GMT', 'Etc/UTC', 'GMT'];
-for ($ix = 0; $ix < count($utcIdentifiers); $ix++) {
+for ($ix = 0; $ix < (is_string($utcIdentifiers) ? strlen($utcIdentifiers) : count($utcIdentifiers)); $ix++) {
 $timeZone = $utcIdentifiers[$ix];
 $dateTime = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 Assert::sameValue($dateTime->timeZoneId, $timeZone, $timeZone . ' should be preserved and not canonicalized to UTC');

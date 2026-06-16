@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['-000000-03-30T00:45Z', '-000000-03-30T01:45+01:00', '-000000-03-30T01:45:00+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, 'reject minus zero as extended year');
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\Instant::from($arg); }, 'reject minus zero as extended year');
 }

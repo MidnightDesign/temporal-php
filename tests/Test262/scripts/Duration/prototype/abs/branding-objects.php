@@ -8,4 +8,14 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\Duration::abs used as a value');
+// JS-only (extracted instance-method reference (branding); receiver checks handled at use sites): abs = Temporal.Duration.prototype.abs
+Assert::sameValue(true, true, '');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'undefined');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'null');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'true');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'empty string');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'symbol');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), '1');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'plain object');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'Temporal.Duration');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\Duration::abs() requires a valid receiver'), 'Temporal.Duration.prototype');

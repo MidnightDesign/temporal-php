@@ -11,10 +11,10 @@ use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\ZonedDateTime(1_000_000_000_000_000_000, 'UTC');
 $later = new \Temporal\Spec\ZonedDateTime(1_000_090_061_987_654_321, 'UTC');
 $units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
-for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
+for ($largestIdx = 1; $largestIdx < (is_string($units) ? strlen($units) : count($units)); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
 $largestUnit = $units[$largestIdx];
 $smallestUnit = $units[$smallestIdx];
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later, &$largestUnit, &$smallestUnit) { return $earlier->until($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, '');
+Assert::throws(\RangeException::class, function () use (&$earlier, &$later, &$largestUnit, &$smallestUnit) { return $earlier->until($later, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, '');
 }
 }

@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Instant(0);
 $invalidStrings = ['-000000-03-30T00:45Z', '-000000-03-30T01:45+01:00', '-000000-03-30T01:45:00+00:00[UTC]'];
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$instance) { return \Temporal\Spec\Instant::compare($arg, $instance); }, 'minus zero is invalid extended year (first argument)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return \Temporal\Spec\Instant::compare($instance, $arg); }, 'minus zero is invalid extended year (second argument)');
+Assert::throws(\RangeException::class, function () use (&$arg, &$instance) { return \Temporal\Spec\Instant::compare($arg, $instance); }, 'minus zero is invalid extended year (first argument)');
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return \Temporal\Spec\Instant::compare($instance, $arg); }, 'minus zero is invalid extended year (second argument)');
 }

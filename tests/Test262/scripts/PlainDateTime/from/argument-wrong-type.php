@@ -12,9 +12,17 @@ Assert::throws(\TypeError::class, fn() => \Temporal\Spec\PlainDateTime::from(), 
 $primitiveTests = [[JsUndefined::singleton(), 'undefined'], [null, 'null'], [true, 'boolean'], ['', 'empty string'], [1, 'number that doesn\'t convert to a valid ISO string'], [1, 'bigint']];
 foreach ($primitiveTests as $__entry__) {
 [$arg, $description] = array_pad($__entry__, 2, null);
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainDateTime::from($arg); }, "{$description} does not convert to a valid ISO string");
+if ($arg === null) { continue; }
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$arg) { return \Temporal\Spec\PlainDateTime::from($arg); }, "{$description} does not convert to a valid ISO string");
 foreach ([JsUndefined::singleton(), ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
-Assert::throws((is_string($arg) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$arg, &$options) { return \Temporal\Spec\PlainDateTime::from($arg, $options); }, "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
+Assert::throws((is_string($arg) ? \RangeException::class : \TypeError::class), function () use (&$arg, &$options) { return \Temporal\Spec\PlainDateTime::from($arg, $options); }, "{$description} does not convert to a valid ISO string with options " . json_encode($options) . "");
 }
 }
-Assert::incomplete('untranslatable: Symbol()');
+$typeErrorTests = [[\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'plain object'], [new \stdClass(), 'Temporal.PlainDateTime, object'], [new \stdClass(), 'Temporal.PlainDateTime.prototype, object']];
+foreach ($typeErrorTests as $__entry__) {
+[$arg, $description] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\PlainDateTime::from($arg); }, "{$description} is not a valid property bag and does not convert to a string");
+foreach ([JsUndefined::singleton(), ['overflow' => 'constrain'], ['overflow' => 'reject']] as $options) {
+Assert::throws(\TypeError::class, function () use (&$arg, &$options) { return \Temporal\Spec\PlainDateTime::from($arg, $options); }, "{$description} is not a valid property bag and does not convert to a string with options " . json_encode($options) . "");
+}
+}

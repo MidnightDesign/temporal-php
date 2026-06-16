@@ -9,5 +9,5 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 foreach (['-12:12:59.9', '2021-08-19T17:30:45.123456789-12:12:59.9[-12:12:59.9]'] as $timeZone) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$timeZone) { return \Temporal\Spec\Now::plainDateTimeISO($timeZone); }, "{$timeZone} is not a valid time zone string");
+Assert::throws(\RangeException::class, function () use (&$timeZone) { return \Temporal\Spec\Now::plainDateTimeISO($timeZone); }, "{$timeZone} is not a valid time zone string");
 }

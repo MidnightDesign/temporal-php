@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $date = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 14, 46, 0, 0, 0, 0, 'gregory');
-Assert::assertTrue($date->toLocaleString('en', ['era' => 'narrow'])->startsWith('5'), 'toLocaleString on a PlainDateTime with era option should work');
+Assert::assertTrue(\Temporal\Tests\Test262\Js::startsWith($date->toLocaleString('en', ['era' => 'narrow']), '5'), 'toLocaleString on a PlainDateTime with era option should work');

@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $date = new \Temporal\Spec\PlainTime(14, 46);
 $result = $date->toLocaleString('en', (object) ['era' => 'narrow']);
-Assert::assertTrue($result->startsWith('2'), 'toLocaleString on a PlainTime with era option should work');
-Assert::assertTrue(!str_contains($result, 'A'), 'era should be ignored when formatting a PlainTime');
+Assert::assertTrue(\Temporal\Tests\Test262\Js::startsWith($result, '2'), 'toLocaleString on a PlainTime with era option should work');
+Assert::assertTrue(!\Temporal\Tests\Test262\Js::includes($result, 'A'), 'era should be ignored when formatting a PlainTime');

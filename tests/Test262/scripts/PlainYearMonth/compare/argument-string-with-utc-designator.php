@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]'];
 $yearMonth = new \Temporal\Spec\PlainYearMonth(2000, 5);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$yearMonth) { return \Temporal\Spec\PlainYearMonth::compare($arg, $yearMonth); }, 'String with UTC designator should not be valid as a PlainYearMonth (first argument)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$yearMonth, &$arg) { return \Temporal\Spec\PlainYearMonth::compare($yearMonth, $arg); }, 'String with UTC designator should not be valid as a PlainYearMonth (second argument)');
+Assert::throws(\RangeException::class, function () use (&$arg, &$yearMonth) { return \Temporal\Spec\PlainYearMonth::compare($arg, $yearMonth); }, 'String with UTC designator should not be valid as a PlainYearMonth (first argument)');
+Assert::throws(\RangeException::class, function () use (&$yearMonth, &$arg) { return \Temporal\Spec\PlainYearMonth::compare($yearMonth, $arg); }, 'String with UTC designator should not be valid as a PlainYearMonth (second argument)');
 }

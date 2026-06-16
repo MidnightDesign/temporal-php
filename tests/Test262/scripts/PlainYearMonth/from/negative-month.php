@@ -8,4 +8,4 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 1, 'month' => -1])), '');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainYearMonth::from(JsUndefined::strip(['year' => 1, 'month' => -1])), '');

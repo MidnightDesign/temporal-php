@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Temporal\Tests\Porcelain;
 
-use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Temporal\Duration;
+use Temporal\Exception\RangeError;
 use Temporal\PlainDate;
 use Temporal\RoundingMode;
 use Temporal\Unit;
@@ -50,7 +50,7 @@ final class DurationTest extends TemporalTestCase
 
     public function testMixedSignsThrow(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         new Duration(years: 1, days: -1);
     }
@@ -113,7 +113,7 @@ final class DurationTest extends TemporalTestCase
 
     public function testParseInvalidThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         Duration::parse('not-a-duration');
     }
@@ -171,7 +171,7 @@ final class DurationTest extends TemporalTestCase
         $a = new Duration(months: 1);
         $b = new Duration(days: 30);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         Duration::compare($a, $b);
     }
@@ -338,7 +338,7 @@ final class DurationTest extends TemporalTestCase
         $a = new Duration(months: 1);
         $b = new Duration(days: 5);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         $a->add($b);
     }
@@ -403,7 +403,7 @@ final class DurationTest extends TemporalTestCase
     {
         $d = new Duration(hours: 1);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         $d->round();
     }
@@ -437,7 +437,7 @@ final class DurationTest extends TemporalTestCase
     {
         $d = new Duration(months: 1);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         $d->total(Unit::Day);
     }

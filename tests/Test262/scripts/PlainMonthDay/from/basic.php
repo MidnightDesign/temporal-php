@@ -11,5 +11,22 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $options = [['overflow' => 'constrain'], ['overflow' => 'reject'], [], JsUndefined::singleton()];
 foreach ($options as $opt) {
-Assert::incomplete('untranslatable: JSON.stringify');
+$optionsDesc = $opt && json_encode($opt);
+$result = \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => 7, 'day' => 3], $opt);
+TemporalHelpers::assertPlainMonthDay($result, 'M07', 3, "month 7, day 3, with year, options = {$optionsDesc}");
+$result = \Temporal\Spec\PlainMonthDay::from(['year' => 2021, 'month' => 12, 'day' => 31], $opt);
+TemporalHelpers::assertPlainMonthDay($result, 'M12', 31, "month 12, day 31, with year, options = {$optionsDesc}");
+$result = \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M07', 'day' => 3], $opt);
+TemporalHelpers::assertPlainMonthDay($result, 'M07', 3, "monthCode M07, day 3, options = {$optionsDesc}");
+$result = \Temporal\Spec\PlainMonthDay::from(['monthCode' => 'M12', 'day' => 31], $opt);
+TemporalHelpers::assertPlainMonthDay($result, 'M12', 31, "monthCode M12, day 31, options = {$optionsDesc}");
+}
+foreach (TemporalHelpers::isoMonths() as $__obj__) {
+$month = $__obj__['month'] ?? null;
+$monthCode = $__obj__['monthCode'] ?? null;
+$daysInMonth = $__obj__['daysInMonth'] ?? null;
+$result = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['month' => $month, 'day' => $daysInMonth]));
+TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "month {$month}, day {$daysInMonth}");
+$result = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['monthCode' => $monthCode, 'day' => $daysInMonth]));
+TemporalHelpers::assertPlainMonthDay($result, $monthCode, $daysInMonth, "monthCode {$monthCode}, day {$daysInMonth}");
 }

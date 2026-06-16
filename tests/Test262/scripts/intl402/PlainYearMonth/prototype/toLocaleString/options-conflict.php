@@ -8,5 +8,15 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
+use Temporal\Tests\Test262\TemporalHelpers;
 $conflictingOptions = [['era', 'short'], ['year', 'numeric'], ['month', 'numeric']];
-Assert::incomplete('untranslatable new expression');
+$calendar = TemporalHelpers::defaultLocaleCalendar();
+$ym = new \Temporal\Spec\PlainYearMonth(2024, 4, $calendar);
+$ym->toLocaleString('en', ['dateStyle' => 'short']);
+Assert::throws(\TypeError::class, function () use (&$ym) { $ym->toLocaleString('en', ['timeStyle' => 'short']); }, 'timeStyle conflicts with PlainYearMonth');
+foreach ($conflictingOptions as $__entry__) {
+[$option, $value] = array_pad($__entry__, 2, null);
+Assert::throws(\TypeError::class, function () use (&$ym, &$option, &$value) { $ym->toLocaleString('en', JsUndefined::strip([$option => $value, 'dateStyle' => 'short'])); }, "{$option} conflicts with dateStyle");
+$ym->toLocaleString('en', JsUndefined::strip([$option => $value]));
+$ym->toLocaleString('en', JsUndefined::strip([$option => $value]));
+}

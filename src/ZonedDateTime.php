@@ -86,7 +86,7 @@ final class ZonedDateTime implements
      * @param int      $epochNanoseconds Nanoseconds since the Unix epoch.
      * @param string   $timeZoneId       Timezone identifier: 'UTC', '+-HH:MM', or an IANA name.
      * @param Calendar $calendar         Calendar system (default ISO 8601).
-     * @throws \InvalidArgumentException if the epoch nanoseconds or time zone are invalid.
+     * @throws \Temporal\Exception\RangeError if the epoch nanoseconds or time zone are invalid.
      */
     public function __construct(int $epochNanoseconds, string $timeZoneId, Calendar $calendar = Calendar::Iso8601)
     {
@@ -106,7 +106,7 @@ final class ZonedDateTime implements
      * @param string         $text           ISO 8601 ZonedDateTime string.
      * @param Disambiguation $disambiguation How to resolve ambiguous wall-clock times.
      * @param OffsetOption   $offsetOption   How to handle a provided UTC offset.
-     * @throws \InvalidArgumentException if the string cannot be parsed.
+     * @throws \Temporal\Exception\RangeError if the string cannot be parsed.
      */
     public static function parse(
         string $text,
@@ -267,7 +267,7 @@ final class ZonedDateTime implements
      * @param Overflow       $overflow       How to handle out-of-range values.
      * @param Disambiguation $disambiguation How to resolve ambiguous wall-clock times.
      * @param OffsetOption   $offsetOption   How to use the provided offset.
-     * @throws \InvalidArgumentException if fields are invalid.
+     * @throws \Temporal\Exception\RangeError if fields are invalid.
      */
     public function with(
         ?int $year = null,
@@ -398,7 +398,7 @@ final class ZonedDateTime implements
      * @param Unit         $smallestUnit       The unit to round to.
      * @param RoundingMode $roundingMode       Rounding mode (default: HalfExpand).
      * @param int          $roundingIncrement  Must evenly divide the next-larger unit.
-     * @throws \InvalidArgumentException for invalid unit or increment values.
+     * @throws \Temporal\Exception\RangeError for invalid unit or increment values.
      */
     public function round(
         Unit $smallestUnit,
@@ -547,7 +547,7 @@ final class ZonedDateTime implements
      * The epoch nanoseconds remain the same; only the local time display changes.
      *
      * @param string $timeZone IANA timezone identifier, UTC offset string, or 'UTC'.
-     * @throws \InvalidArgumentException if the time zone is invalid.
+     * @throws \Temporal\Exception\RangeError if the time zone is invalid.
      */
     public function withTimeZone(string $timeZone): self
     {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal\Calendar;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
 use Temporal\Spec\Internal\CalendarMath;
 
 /**
@@ -18,12 +18,6 @@ use Temporal\Spec\Internal\CalendarMath;
  */
 final class IsoCalendar implements CalendarProtocol
 {
-    #[\Override]
-    public function id(): string
-    {
-        return 'iso8601';
-    }
-
     // -------------------------------------------------------------------------
     // ISO -> Calendar field projection (identity for ISO)
     // -------------------------------------------------------------------------
@@ -146,7 +140,7 @@ final class IsoCalendar implements CalendarProtocol
             if ($overflow === 'constrain') {
                 $newDay = $maxDay;
             } else {
-                throw new InvalidArgumentException("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
+                throw new RangeError("Day {$newDay} is out of range for {$newYear}-{$newMonth}.");
             }
         }
 
@@ -227,8 +221,12 @@ final class IsoCalendar implements CalendarProtocol
     // -------------------------------------------------------------------------
 
     #[\Override]
-    public function monthCodeToMonth(string $monthCode, int $calYear): int
+    public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
+        // ISO has no leap months, so every valid month code exists in every year;
+        // overflow is irrelevant here.
+        unset($overflow);
+
         return CalendarMath::monthCodeToMonth($monthCode);
     }
 
@@ -255,13 +253,11 @@ final class IsoCalendar implements CalendarProtocol
             $day = max(1, min(CalendarMath::calcDaysInMonth($year, $month), $day));
         } else {
             if ($month < 1 || $month > 12) {
-                throw new InvalidArgumentException("Invalid PlainDate: month {$month} is out of range 1-12.");
+                throw new RangeError("Invalid PlainDate: month {$month} is out of range 1-12.");
             }
             $maxDay = CalendarMath::calcDaysInMonth($year, $month);
             if ($day < 1 || $day > $maxDay) {
-                throw new InvalidArgumentException(
-                    "Invalid PlainDate: day {$day} is out of range for {$year}-{$month}.",
-                );
+                throw new RangeError("Invalid PlainDate: day {$day} is out of range for {$year}-{$month}.");
             }
         }
 

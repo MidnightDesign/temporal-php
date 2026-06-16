@@ -11,4 +11,4 @@ use Temporal\Tests\Test262\JsUndefined;
 $instant = \Temporal\Spec\Instant::from('1976-11-18T14:23:30Z');
 $str = $instant->toLocaleString('en-US', ['timeZone' => 'America/New_York']);
 $strWithName = $instant->toLocaleString('en-US', ['timeZone' => 'America/New_York', 'timeZoneName' => 'short']);
-Assert::assertTrue(count($str) < count($strWithName), 'expected "' . $str . '" to be shorter than "' . $strWithName . '".');
+Assert::assertTrue((is_string($str) ? strlen($str) : count($str)) < (is_string($strWithName) ? strlen($strWithName) : count($strWithName)), 'expected "' . $str . '" to be shorter than "' . $strWithName . '".');

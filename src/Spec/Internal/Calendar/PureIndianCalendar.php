@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Temporal\Spec\Internal\Calendar;
 
-use InvalidArgumentException;
+use Temporal\Exception\RangeError;
 use Temporal\Spec\Internal\CalendarMath;
 
 /**
@@ -24,12 +24,6 @@ final class PureIndianCalendar implements CalendarProtocol
 {
     /** Saka year = ISO year - YEAR_OFFSET */
     private const int YEAR_OFFSET = 78;
-
-    #[\Override]
-    public function id(): string
-    {
-        return 'indian';
-    }
 
     /**
      * Returns month lengths for the Indian calendar.
@@ -219,7 +213,7 @@ final class PureIndianCalendar implements CalendarProtocol
     {
         if ($calMonth > 12) {
             if ($overflow === 'reject') {
-                throw new InvalidArgumentException("Month {$calMonth} exceeds maximum 12 for this calendar year.");
+                throw new RangeError("Month {$calMonth} exceeds maximum 12 for this calendar year.");
             }
             $calMonth = 12;
         }
@@ -228,7 +222,7 @@ final class PureIndianCalendar implements CalendarProtocol
         $maxDay = $lengths[$calMonth];
 
         if ($overflow === 'reject' && $calDay > $maxDay) {
-            throw new InvalidArgumentException("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
+            throw new RangeError("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
         }
         $calDay = min($calDay, $maxDay);
 
@@ -238,20 +232,13 @@ final class PureIndianCalendar implements CalendarProtocol
     #[\Override]
     public function calendarToIsoFromMonthCode(int $calYear, string $monthCode, int $calDay, string $overflow): array
     {
-        $m = null;
-        if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
-            throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"indian\".");
-        }
-        $month = (int) $m[1];
-        if ($month < 1 || $month > 12) {
-            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for calendar \"indian\".");
-        }
+        $month = CalendarMath::monthCodeToMonth($monthCode);
 
         $lengths = self::monthLengths(self::isIndianLeapYear($calYear));
         $maxDay = $lengths[$month];
 
         if ($overflow === 'reject' && $calDay > $maxDay) {
-            throw new InvalidArgumentException("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
+            throw new RangeError("Day {$calDay} exceeds maximum {$maxDay} for this calendar month.");
         }
         $calDay = min($calDay, $maxDay);
 
@@ -286,7 +273,7 @@ final class PureIndianCalendar implements CalendarProtocol
             $maxDay = $lengths[$calMonth];
 
             if ($overflow === 'reject' && $originalCalDay > $maxDay) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "Day {$originalCalDay} exceeds maximum {$maxDay} for the resulting calendar month.",
                 );
             }
@@ -397,24 +384,21 @@ final class PureIndianCalendar implements CalendarProtocol
     }
 
     #[\Override]
-    public function monthCodeToMonth(string $monthCode, int $calYear): int
+    public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int
     {
-        $m = null;
-        if (preg_match('/^M(\d{2})$/', $monthCode, $m) !== 1) {
-            throw new InvalidArgumentException("Invalid monthCode \"{$monthCode}\" for calendar \"indian\".");
-        }
-        $month = (int) $m[1];
-        if ($month < 1 || $month > 12) {
-            throw new InvalidArgumentException("monthCode \"{$monthCode}\" is out of range for calendar \"indian\".");
-        }
-        return $month;
+        // Indian has no leap months, so every valid month code (M01–M12) exists
+        // in every year; overflow is irrelevant here and the shared ISO parse
+        // (which raises RangeError on anything else) is exactly correct.
+        unset($overflow);
+
+        return CalendarMath::monthCodeToMonth($monthCode);
     }
 
     #[\Override]
     public function resolveEra(string $era, int $eraYear): int
     {
         if ($era !== 'shaka') {
-            throw new InvalidArgumentException("Invalid era \"{$era}\" for calendar \"indian\".");
+            throw new RangeError("Invalid era \"{$era}\" for calendar \"indian\".");
         }
         return $eraYear;
     }

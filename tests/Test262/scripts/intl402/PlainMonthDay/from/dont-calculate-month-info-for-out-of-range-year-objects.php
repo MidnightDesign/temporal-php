@@ -13,14 +13,14 @@ foreach ($testData as $__entry__) {
 [$calendar, $monthCode, $day, $posEra, $negEra] = array_pad($__entry__, 5, null);
 $posEra = $posEra ?? null;
 $negEra = $negEra ?? null;
-Assert::throws(\InvalidArgumentException::class, function () use (&$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => -999_999, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when year is -999999");
-Assert::throws(\InvalidArgumentException::class, function () use (&$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => 999_999, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when year is +999999");
+Assert::throws(\RangeException::class, function () use (&$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => -999_999, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when year is -999999");
+Assert::throws(\RangeException::class, function () use (&$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['year' => 999_999, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when year is +999999");
 if ($posEra) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$posEra, &$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['eraYear' => 999_999, 'era' => $posEra, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when era year is +999999 {$posEra}");
+Assert::throws(\RangeException::class, function () use (&$posEra, &$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['eraYear' => 999_999, 'era' => $posEra, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when era year is +999999 {$posEra}");
 if ($negEra) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$negEra, &$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['eraYear' => 999_999, 'era' => $negEra, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when era year is +999999 {$negEra}");
+Assert::throws(\RangeException::class, function () use (&$negEra, &$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['eraYear' => 999_999, 'era' => $negEra, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when era year is +999999 {$negEra}");
 } else {
-Assert::throws(\InvalidArgumentException::class, function () use (&$posEra, &$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['eraYear' => -999_999, 'era' => $posEra, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when era year is -999999 {$posEra}");
+Assert::throws(\RangeException::class, function () use (&$posEra, &$monthCode, &$day, &$calendar) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['eraYear' => -999_999, 'era' => $posEra, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar])); }, "{$calendar} bails out when era year is -999999 {$posEra}");
 }
 }
 }

@@ -9,4 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $tests = [[[], '05-02'], [['gregory'], '1972-05-02[u-ca=gregory]']];
-Assert::incomplete('untranslatable object property');
+$options = new class { public function __get(string $name): mixed { throw new \RuntimeException('test262: property '.$name.' must not be read'); } };
+foreach ($tests as $__entry__) {
+[$args, $expected] = array_pad($__entry__, 2, null);
+$monthday = new \Temporal\Spec\PlainMonthDay(5, 2, ...$args);
+$result = $monthday->toJSON($options);
+Assert::sameValue($result, $expected, '');
+}

@@ -8,4 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Symbol()');
+$badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
+foreach ($badOptions as $value) {
+if ($value === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$value) { return \Temporal\Spec\PlainYearMonth::from((object) ['year' => 2021, 'monthCode' => 'M01'], $value); }, "TypeError on wrong options type " . (gettype($value)) . "");
+Assert::throws(\TypeError::class, function () use (&$value) { return \Temporal\Spec\PlainYearMonth::from(new \Temporal\Spec\PlainYearMonth(2021, 1), $value); }, 'TypeError thrown before cloning PlainYearMonth instance');
+Assert::throws(\RangeException::class, function () use (&$value) { return \Temporal\Spec\PlainYearMonth::from('1976-11-18Z', $value); }, 'Invalid string string processed before throwing TypeError');
+}

@@ -20,7 +20,7 @@ TemporalHelpers::assertPlainDateTime($common0231->with((object) JsUndefined::str
 foreach ([[1, 'M01'], [7, 'M07'], [8, 'M08'], [9, 'M09'], [10, 'M10'], [11, 'M11'], [12, 'M12']] as $__entry__) {
 [$month, $monthCode] = array_pad($__entry__, 2, null);
 TemporalHelpers::assertPlainDateTime($common0231->with((object) JsUndefined::strip(['monthCode' => $monthCode]))->toPlainDateTime(), 1944, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "common-year {$monthCode} constrains to 30 when adding", 'shaka', 1944);
-Assert::throws(\InvalidArgumentException::class, function () use (&$common0231, &$monthCode, &$options) { $common0231->with((object) JsUndefined::strip(['monthCode' => $monthCode]), $options); }, "common-year {$monthCode} rejects 31 when adding");
+Assert::throws(\RangeException::class, function () use (&$common0231, &$monthCode, &$options) { $common0231->with((object) JsUndefined::strip(['monthCode' => $monthCode]), $options); }, "common-year {$monthCode} rejects 31 when adding");
 }
 foreach ([[2, 'M02'], [3, 'M03'], [4, 'M04'], [5, 'M05'], [6, 'M06']] as $__entry__) {
 [$month, $monthCode] = array_pad($__entry__, 2, null);
@@ -29,5 +29,5 @@ TemporalHelpers::assertPlainDateTime($leap0131->with((object) JsUndefined::strip
 foreach ([[7, 'M07'], [8, 'M08'], [9, 'M09'], [10, 'M10'], [11, 'M11'], [12, 'M12']] as $__entry__) {
 [$month, $monthCode] = array_pad($__entry__, 2, null);
 TemporalHelpers::assertPlainDateTime($leap0131->with((object) JsUndefined::strip(['monthCode' => $monthCode]))->toPlainDateTime(), 1946, $month, $monthCode, 30, 12, 34, 0, 0, 0, 0, "leap-year {$monthCode} constrains to 30 when adding", 'shaka', 1946);
-Assert::throws(\InvalidArgumentException::class, function () use (&$leap0131, &$monthCode, &$options) { $leap0131->with((object) JsUndefined::strip(['monthCode' => $monthCode]), $options); }, "leap-year {$monthCode} rejects 31 when adding");
+Assert::throws(\RangeException::class, function () use (&$leap0131, &$monthCode, &$options) { $leap0131->with((object) JsUndefined::strip(['monthCode' => $monthCode]), $options); }, "leap-year {$monthCode} rejects 31 when adding");
 }

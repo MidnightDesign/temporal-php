@@ -8,4 +8,14 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Object.getOwnPropertyDescriptor');
+// JS-only (extracted readonly-property getter reference (branding); PHP has no getter-function value): second = Object.getOwnPropertyDescriptor(Temporal.PlainTime.prototype, "second").get
+Assert::sameValue(true, true, '');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'undefined');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'null');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'true');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'empty string');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'symbol');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), '1');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'plain object');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'Temporal.PlainTime');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainTime::$second getter requires a valid receiver'), 'Temporal.PlainTime.prototype');

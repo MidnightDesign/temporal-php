@@ -24,6 +24,6 @@ foreach ($tests as $__entry_units__) {
 $units = array_slice($__entry_units__, 3);
 foreach ($units as $__entry__) {
 [$largestUnit, $years, $months] = array_pad($__entry__, 3, null);
-TemporalHelpers::assertDuration($one->until($two, JsUndefined::strip(['largestUnit' => $largestUnit])), $years, $months, 0, 0, 0, 0, 0, 0, 0, 0, $descr + " (largest unit {$largestUnit})");
+TemporalHelpers::assertDuration($one->until($two, JsUndefined::strip(['largestUnit' => $largestUnit])), $years, $months, 0, 0, 0, 0, 0, 0, 0, 0, $descr . " (largest unit {$largestUnit})");
 }
 }

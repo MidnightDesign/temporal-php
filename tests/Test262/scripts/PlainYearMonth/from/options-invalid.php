@@ -9,4 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $items = [['year' => 2000, 'month' => 11], '2000-11', new \Temporal\Spec\PlainYearMonth(2000, 11)];
-Assert::incomplete('untranslatable: Symbol()');
+$values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
+foreach ($items as $item) {
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$item, &$badOptions) { return \Temporal\Spec\PlainYearMonth::from($item, $badOptions); }, '');
+}
+}

@@ -14,7 +14,16 @@ foreach ($validValues as $value) {
 TemporalHelpers::checkStringOptionWrongType('overflow', 'constrain', function ($overflow) use (&$value) { return \Temporal\Spec\PlainDateTime::from($value, (object) JsUndefined::strip(['overflow' => $overflow])); }, fn($result, $descr) => TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, $descr));
 }
 $propertyBag = (object) ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 12];
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => null]); }, 'null');
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => true]); }, 'true');
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => false]); }, 'false');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => null]); }, 'null');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => true]); }, 'true');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => false]); }, 'false');
+Assert::throws(\TypeError::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) JsUndefined::strip(['overflow' => \Temporal\Tests\Test262\JsSymbol::singleton()])); }, 'symbol');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => 2]); }, 'number');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) ['overflow' => 2]); }, 'bigint');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\PlainDateTime::from($propertyBag, (object) JsUndefined::strip(['overflow' => (object) []])); }, 'plain object');
+$expected = ['get overflow.toString', 'call overflow.toString'];
+$actual = [];
+$observer = TemporalHelpers::toPrimitiveObserver($actual, 'constrain', 'overflow');
+$result = \Temporal\Spec\PlainDateTime::from($propertyBag, (object) JsUndefined::strip(['overflow' => $observer]));
+TemporalHelpers::assertPlainDateTime($result, 2000, 5, 'M05', 2, 12, 0, 0, 0, 0, 0, 'object with toString');
+// JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "order of operations");

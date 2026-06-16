@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration1 = \Temporal\Spec\Duration::from(['days' => 104_249_991_374]);
 $duration2 = \Temporal\Spec\Duration::from(JsUndefined::strip(['days' => -104_249_991_374]));
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2) { return $duration1->subtract($duration2); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration1, &$duration2) { return $duration1->subtract($duration2); }, '');

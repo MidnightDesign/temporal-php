@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $pdt = new \Temporal\Spec\PlainDateTime(1938, 4, 24, 22, 13, 19, 999, 999);
-Assert::sameValue($pdt->toString(), '1938-04-24T22:13:19.999999', 'epoch milliseconds should be rounded down to compute seconds');
+Assert::sameValue((string) ($pdt), '1938-04-24T22:13:19.999999', 'epoch milliseconds should be rounded down to compute seconds');

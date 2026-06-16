@@ -9,4 +9,12 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+foreach (TemporalHelpers::isoPlainMonthDayStringsValid() as $argument) {
+$plainMonthDay = \Temporal\Spec\PlainMonthDay::from($argument);
+Assert::notSameValue($plainMonthDay, $argument, "from {$argument} converts");
+TemporalHelpers::assertPlainMonthDay($plainMonthDay, 'M10', 1, "from {$argument}");
+Assert::sameValue($plainMonthDay->calendarId, 'iso8601', "from {$argument} calendar");
+}
+foreach (TemporalHelpers::isoPlainMonthDayStringsInvalid() as $arg) {
+Assert::throws(\RangeException::class, function () use (&$arg) { return \Temporal\Spec\PlainMonthDay::from($arg); }, "\"{$arg}\" not a valid PlainMonthDay string");
+}

@@ -19,9 +19,9 @@ TemporalHelpers::assertPlainMonthDay($implicit, 'M02', 29, "from {$overflow} wit
 $explicit = \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 1996], (object) JsUndefined::strip(['overflow' => $overflow]));
 TemporalHelpers::assertPlainMonthDay($explicit, 'M02', 29, "from {$overflow} with leap year");
 }
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 2001], (object) ['overflow' => 'reject']), 'from reject with non-leap year');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 2001], (object) ['overflow' => 'reject']), 'from reject with non-leap year');
 $nonLeap = \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 2001], (object) ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($nonLeap, 'M02', 28, 'from constrain with non-leap year');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 2001, 'calendar' => 'iso8601'], (object) ['overflow' => 'reject']), 'from reject with non-leap year and explicit calendar');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 2001, 'calendar' => 'iso8601'], (object) ['overflow' => 'reject']), 'from reject with non-leap year and explicit calendar');
 $nonLeapCalendar = \Temporal\Spec\PlainMonthDay::from((object) ['month' => 2, 'day' => 29, 'year' => 2001, 'calendar' => 'iso8601'], (object) ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($nonLeapCalendar, 'M02', 28, 'from constrain with non-leap year and explicit calendar');

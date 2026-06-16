@@ -57,4 +57,9 @@ final class JsUndefined
     {
         return array_filter($bag, static fn(mixed $v): bool => !$v instanceof self);
     }
+
+    public function __toString(): string
+    {
+        return 'undefined';
+    }
 }

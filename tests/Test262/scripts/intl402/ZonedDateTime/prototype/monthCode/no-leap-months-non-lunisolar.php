@@ -12,6 +12,6 @@ $calendars = ['buddhist' => 2513, 'coptic' => 1686, 'ethioaa' => 7462, 'ethiopic
 foreach ($calendars as $calendar => $year) {
 for ($month = 1; $month < 13; $month++) {
 $date = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => $year, 'month' => $month, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC']));
-Assert::sameValue($date->monthCode->endsWith('L'), false, '');
+Assert::sameValue(\Temporal\Tests\Test262\Js::endsWith($date->monthCode, 'L'), false, '');
 }
 }

@@ -18,7 +18,7 @@ Assert::sameValue($zdt1->epochNanoseconds, 954_669_600_000_000_000, 'Fall DST (n
 Assert::sameValue($zdt1_compatible->epochNanoseconds, 954_669_600_000_000_000, 'Fall DST (disambiguation = compatible)');
 Assert::sameValue($zdt1_earlier->epochNanoseconds, 954_666_000_000_000_000, 'Fall DST (disambiguation = earlier)');
 Assert::sameValue($zdt1_later->epochNanoseconds, 954_669_600_000_000_000, 'Fall DST (disambiguation = later)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$dt1, &$tz) { return $dt1->toZonedDateTime($tz, (object) ['disambiguation' => 'reject']); }, 'Fall DST (disambiguation = reject)');
+Assert::throws(\RangeException::class, function () use (&$dt1, &$tz) { return $dt1->toZonedDateTime($tz, (object) ['disambiguation' => 'reject']); }, 'Fall DST (disambiguation = reject)');
 $dt2 = new \Temporal\Spec\PlainDateTime(2000, 10, 29, 1);
 $zdt2 = $dt2->toZonedDateTime($tz);
 $zdt2_compatible = $dt2->toZonedDateTime($tz, (object) ['disambiguation' => 'compatible']);
@@ -28,4 +28,4 @@ Assert::sameValue($zdt2->epochNanoseconds, 972_806_400_000_000_000, 'Spring DST 
 Assert::sameValue($zdt2_compatible->epochNanoseconds, 972_806_400_000_000_000, 'Spring DST (disambiguation = compatible)');
 Assert::sameValue($zdt2_earlier->epochNanoseconds, 972_806_400_000_000_000, 'Spring DST (disambiguation = earlier)');
 Assert::sameValue($zdt2_later->epochNanoseconds, 972_810_000_000_000_000, 'Spring DST (disambiguation = later)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$dt2, &$tz) { return $dt2->toZonedDateTime($tz, (object) ['disambiguation' => 'reject']); }, 'Spring DST (disambiguation = reject)');
+Assert::throws(\RangeException::class, function () use (&$dt2, &$tz) { return $dt2->toZonedDateTime($tz, (object) ['disambiguation' => 'reject']); }, 'Spring DST (disambiguation = reject)');

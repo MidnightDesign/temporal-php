@@ -10,4 +10,14 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2);
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+foreach (TemporalHelpers::isoPlainTimeStringsAmbiguous() as $string) {
+$arg = $string;
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime(JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC'])); }, "'{$arg}' is ambiguous and requires T prefix");
+$arg = "T{$string}";
+$instance->toZonedDateTime(JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC']));
+$arg = " {$string}";
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->toZonedDateTime(JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC'])); }, "space is not accepted as a substitute for T prefix: '{$arg}'");
+}
+foreach (TemporalHelpers::isoPlainTimeStringsUnambiguous() as $arg) {
+$instance->toZonedDateTime(JsUndefined::strip(['plainTime' => $arg, 'timeZone' => 'UTC']));
+}

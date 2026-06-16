@@ -24,6 +24,6 @@ $negativeStringInstant = new \Temporal\Spec\Instant('-217175010123456789');
 Assert::assertTrue($negativeStringInstant instanceof \Temporal\Spec\Instant, 'negative String instanceof');
 Assert::sameValue($negativeStringInstant->epochMilliseconds, -217_175_010_124, 'negative string epochMilliseconds');
 Assert::sameValue($negativeStringInstant->epochNanoseconds, -217_175_010_123_456_789, 'negative string epochNanoseconds');
-Assert::throws($SyntaxError, fn() => new \Temporal\Spec\Instant('abc123'), 'invalid BigInt syntax');
+Assert::throws(\RangeException::class, fn() => new \Temporal\Spec\Instant('abc123'), 'invalid BigInt syntax');
 Assert::sameValue(new \Temporal\Spec\Instant(true)->epochNanoseconds, 1, 'true as argument is 1n');
 Assert::sameValue(new \Temporal\Spec\Instant(false)->epochNanoseconds, 0, 'false as argument is 0n');

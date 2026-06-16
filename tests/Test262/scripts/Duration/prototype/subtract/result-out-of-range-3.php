@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $one = \Temporal\Spec\Duration::from(JsUndefined::strip(['nanoseconds' => -9.007_199_254_740_991e+24]));
 $two = \Temporal\Spec\Duration::from(['microseconds' => 1_000_000]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$one, &$two) { return $one->subtract($two); }, '');
+Assert::throws(\RangeException::class, function () use (&$one, &$two) { return $one->subtract($two); }, '');

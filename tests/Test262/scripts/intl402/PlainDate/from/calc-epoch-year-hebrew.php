@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $daysPerMonth = JsUndefined::strip(['Cheshvan' => [29, 30, 30, 29, 29, 30, 30, 29, 29, 30, 29], 'Kislev' => [30, 30, 30, 29, 30, 30, 30, 30, 29, 30, 30]]);
-for ($year = 0; $year < count($daysPerMonth['Cheshvan']); ++$year) {
+for ($year = 0; $year < (is_string($daysPerMonth['Cheshvan']) ? strlen($daysPerMonth['Cheshvan']) : count($daysPerMonth['Cheshvan'])); ++$year) {
 $endOfCheshvan = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M02', 'day' => 30]));
 Assert::sameValue($endOfCheshvan->day, $daysPerMonth['Cheshvan'][$year], '');
 $endOfKislev = \Temporal\Spec\PlainDate::from(JsUndefined::strip(['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M03', 'day' => 30]));

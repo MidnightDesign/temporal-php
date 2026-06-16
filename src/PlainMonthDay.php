@@ -68,7 +68,7 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      * @param int<1, 31> $isoDay          ISO day of the month (1–31, depending on month).
      * @param Calendar   $calendar        Calendar system (default ISO 8601).
      * @param int        $referenceISOYear Reference ISO year for round-trip fidelity (default 1972).
-     * @throws \InvalidArgumentException if the month-day is invalid or out of range.
+     * @throws \Temporal\Exception\RangeError if the month-day is invalid or out of range.
      */
     public function __construct(
         int $isoMonth,
@@ -136,7 +136,7 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      *
      * @param string $text ISO 8601 month-day string (e.g. "--12-25" or "12-25").
      * @return self
-     * @throws \InvalidArgumentException if the string cannot be parsed.
+     * @throws \Temporal\Exception\RangeError if the string cannot be parsed.
      */
     public static function parse(string $text): self
     {
@@ -156,7 +156,7 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      * @param int<1, 31>|null $day       Day override, or null to keep current.
      * @param Overflow        $overflow  How to handle out-of-range values.
      * @return self A new PlainMonthDay with the overridden fields.
-     * @throws \InvalidArgumentException if the resulting month-day is invalid (overflow: reject) or fields conflict.
+     * @throws \Temporal\Exception\RangeError if the resulting month-day is invalid (overflow: reject) or fields conflict.
      */
     public function with(
         ?int $month = null,
@@ -209,7 +209,7 @@ final class PlainMonthDay implements \Stringable, \JsonSerializable
      *
      * @param int $year The year to combine with this month-day.
      * @return PlainDate
-     * @throws \InvalidArgumentException if the resulting date is invalid.
+     * @throws \Temporal\Exception\RangeError if the resulting date is invalid.
      */
     public function toPlainDate(int $year): PlainDate
     {

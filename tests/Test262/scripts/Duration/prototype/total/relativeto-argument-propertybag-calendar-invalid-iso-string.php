@@ -13,5 +13,5 @@ $invalidStrings = [['', 'empty string'], ['notacal', 'Unknown calendar']];
 foreach ($invalidStrings as $__entry__) {
 [$cal, $description] = array_pad($__entry__, 2, null);
 $arg = JsUndefined::strip(['year' => 2019, 'monthCode' => 'M11', 'day' => 1, 'calendar' => $cal]);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => $arg])); }, "{$description} is not a valid calendar ID");
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->total(JsUndefined::strip(['unit' => 'months', 'relativeTo' => $arg])); }, "{$description} is not a valid calendar ID");
 }

@@ -31,7 +31,7 @@ Assert::sameValue($zdt->hour, 1, 'Hour result when option offset: ignore and dis
 $zdt = $dstEndDay->with($oneThirty, (object) JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'later']));
 Assert::sameValue($zdt->offset, '-08:00', 'Offset result when option offset: ignore and disambiguation: later, repeated time');
 Assert::sameValue($zdt->hour, 1, 'Hour result when option offset: ignore and disambiguation: later, repeated time');
-Assert::throws(\InvalidArgumentException::class, function () use (&$dstStartDay, &$twoThirty, &$offset) { return $dstStartDay->with($twoThirty, (object) JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'reject'])); }, 'Throws when option offset: ignore and disambiguation: reject');
+Assert::throws(\RangeException::class, function () use (&$dstStartDay, &$twoThirty, &$offset) { return $dstStartDay->with($twoThirty, (object) JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'reject'])); }, 'Throws when option offset: ignore and disambiguation: reject');
 $bogus = (object) JsUndefined::strip(array_merge((array) $twoThirty, ['offset' => '+23:59']));
 $offset = 'ignore';
 $zdt = $dstStartDay->with($bogus, (object) JsUndefined::strip(['offset' => $offset, 'disambiguation' => 'earlier']));

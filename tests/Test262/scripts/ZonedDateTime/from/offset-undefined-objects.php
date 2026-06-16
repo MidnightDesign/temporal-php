@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $propertyBag = (object) ['timeZone' => '-04:00', 'offset' => '+01:00', 'year' => 2020, 'month' => 2, 'day' => 16, 'hour' => 23, 'minute' => 45];
-Assert::throws(\InvalidArgumentException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) []); }, 'default offset is reject');
+Assert::throws(\RangeException::class, function () use (&$propertyBag) { return \Temporal\Spec\ZonedDateTime::from($propertyBag, (object) []); }, 'default offset is reject');

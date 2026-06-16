@@ -15,23 +15,23 @@ Assert::sameValue($i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::s
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
 Assert::sameValue($i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => -9_007_199_254_740_991])))->epochNanoseconds, -7_424_232_606_993_378_422, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => 9_007_199_254_740_991]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => -9_007_199_254_740_991]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => 9_007_199_254_740_991]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => -9_007_199_254_740_991]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => 9_007_199_254_740_991]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => -9_007_199_254_740_991]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => 9_007_199_254_740_991]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['seconds' => -9_007_199_254_740_991]))); }, '');
 $bigNumber = 9_007_199_254_740_990_976;
 // SKIP (int64 overflow): Assert::sameValue($i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => $bigNumber])))->epochNanoseconds, 10590165902488603554, ...);
 \PHPUnit\Framework\Assert::assertTrue(true); // skip counted as assertion
 /* skipped */;
 Assert::sameValue($i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => -$bigNumber])))->epochNanoseconds, -7_424_232_606_993_378_398, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => $bigNumber]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => -$bigNumber]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => $bigNumber]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => -$bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => $bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => -$bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => $bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i1, &$bigNumber) { return $i1->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => -$bigNumber]))); }, '');
 $i2 = new \Temporal\Spec\Instant(0);
 Assert::sameValue($i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => $bigNumber])))->epochNanoseconds, 9_007_199_254_740_990_976, '');
 Assert::sameValue($i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['nanoseconds' => -$bigNumber])))->epochNanoseconds, -9_007_199_254_740_990_976, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => $bigNumber]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => -$bigNumber]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => $bigNumber]))); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => -$bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => $bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['milliseconds' => -$bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => $bigNumber]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$i2, &$bigNumber) { return $i2->add(\Temporal\Spec\Duration::from((object) JsUndefined::strip(['microseconds' => -$bigNumber]))); }, '');

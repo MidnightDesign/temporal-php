@@ -19,5 +19,5 @@ $test($datetime, [['minute', '2001-09-09T01:46+00:00[UTC]'], ['second', '2001-09
 $test(new \Temporal\Spec\ZonedDateTime(999_999_960_000_000_000, 'UTC'), [['minute', '2001-09-09T01:46+00:00[UTC]'], ['second', '2001-09-09T01:46:00+00:00[UTC]'], ['millisecond', '2001-09-09T01:46:00.000+00:00[UTC]'], ['microsecond', '2001-09-09T01:46:00.000000+00:00[UTC]'], ['nanosecond', '2001-09-09T01:46:00.000000000+00:00[UTC]']], 'whole minutes toString');
 $notValid = ['era', 'year', 'month', 'week', 'day', 'hour'];
 foreach ($notValid as $smallestUnit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime, &$smallestUnit) { return $datetime->toString((object) JsUndefined::strip(['smallestUnit' => $smallestUnit])); }, "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
+Assert::throws(\RangeException::class, function () use (&$datetime, &$smallestUnit) { return $datetime->toString((object) JsUndefined::strip(['smallestUnit' => $smallestUnit])); }, "\"{$smallestUnit}\" is not a valid unit for the smallestUnit option");
 }

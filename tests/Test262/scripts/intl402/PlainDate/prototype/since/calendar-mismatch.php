@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $plainDate1 = new \Temporal\Spec\PlainDate(2000, 1, 1, 'gregory');
 $plainDate2 = new \Temporal\Spec\PlainDate(2000, 1, 1, 'japanese');
-Assert::throws(\InvalidArgumentException::class, function () use (&$plainDate1, &$plainDate2) { return $plainDate1->since($plainDate2); }, '');
+Assert::throws(\RangeException::class, function () use (&$plainDate1, &$plainDate2) { return $plainDate1->since($plainDate2); }, '');

@@ -10,5 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $maxYear = new \Temporal\Spec\PlainDate(275_760, 1, 1)->toZonedDateTime('UTC');
 $duration = new \Temporal\Spec\Duration(0, 5432, 5432, 0, 0, 0, 0, 0, 0, 0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$maxYear, &$duration) { return $maxYear->add($duration); }, '');
-Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+Assert::throws(\RangeException::class, function () use (&$maxYear, &$duration) { return $maxYear->add($duration); }, '');
+$minYear = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, 'UTC');
+Assert::throws(\RangeException::class, function () use (&$minYear, &$duration) { return $minYear->add($duration->negated()); }, '');

@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\ZonedDateTime(1_000_000_000_987_654_321, 'UTC');
-Assert::throws(\InvalidArgumentException::class, function () use (&$datetime) { return $datetime->with(['hour' => 2], ['offset' => 'other string']); }, '');
+Assert::throws(\RangeException::class, function () use (&$datetime) { return $datetime->with(['hour' => 2], ['offset' => 'other string']); }, '');

@@ -11,4 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\Instant(), 'undefined');
 Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\Instant(), 'undefined');
 Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\Instant(null), 'null');
+// JS-only (Number literal passed to new Temporal.Instant(); BigInt vs Number distinction not replicable in PHP): assert.throws(TypeError, () => new Temporal.Instant(42), "number")
+Assert::throws(\TypeError::class, fn() => new \Temporal\Spec\Instant(\Temporal\Tests\Test262\JsSymbol::singleton()), 'symbol');
 Assert::incomplete('Number literal passed to new Temporal.Instant(); BigInt vs Number distinction not replicable in PHP');

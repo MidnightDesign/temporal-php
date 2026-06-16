@@ -13,5 +13,5 @@ $options = ['overflow' => 'reject'];
 $leapYears = [1390, 1393, 1396, 1398, 1401, 1404, 1406, 1409, 1412, 1415, 1417, 1420, 1423, 1426, 1428, 1431, 1434, 1436, 1439, 1442, 1445, 1447, 1450, 1453, 1456, 1458, 1461, 1464, 1466, 1469];
 for ($year = 1390; $year < 1470; $year++) {
 $date = \Temporal\Spec\PlainDateTime::from(JsUndefined::strip(['year' => $year, 'month' => 1, 'calendar' => $calendar, 'day' => 1, 'hour' => 12, 'minute' => 34]));
-Assert::sameValue($date->daysInYear, (str_contains($leapYears, $year) ? 355 : 354), '');
+Assert::sameValue($date->daysInYear, (\Temporal\Tests\Test262\Js::includes($leapYears, $year) ? 355 : 354), '');
 }

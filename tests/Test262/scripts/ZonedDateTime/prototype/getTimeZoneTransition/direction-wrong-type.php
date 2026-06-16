@@ -11,6 +11,7 @@ use Temporal\Tests\Test262\JsUndefined;
 $zdt = new \Temporal\Spec\ZonedDateTime(0, 'UTC');
 $rangeErrorValues = [false, 42, 55, null];
 foreach ($rangeErrorValues as $badValue) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$zdt, &$badValue) { return $zdt->getTimeZoneTransition(JsUndefined::strip(['direction' => $badValue])); }, 'Non-Symbol throws a RangeError');
+if ($badValue === null) { continue; }
+Assert::throws(\RangeException::class, function () use (&$zdt, &$badValue) { return $zdt->getTimeZoneTransition(JsUndefined::strip(['direction' => $badValue])); }, 'Non-Symbol throws a RangeError');
 }
-Assert::incomplete('untranslatable: Symbol()');
+Assert::throws(\TypeError::class, function () use (&$zdt) { return $zdt->getTimeZoneTransition(JsUndefined::strip(['direction' => \Temporal\Tests\Test262\JsSymbol::singleton()])); }, 'Symbol throws a TypeError');

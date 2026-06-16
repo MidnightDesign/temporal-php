@@ -19,5 +19,5 @@ Assert::sameValue($result->epochNanoseconds, 1_000_000_000_000_000_000, '');
 Assert::throws(\TypeError::class, function () use (&$options) { return \Temporal\Spec\ZonedDateTime::from(7, $options); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, [], "Failing call before options is processed");
 // JS-only (observer tracker reset (no-op in PHP)): actual.splice(0);
-Assert::throws(\InvalidArgumentException::class, function () use (&$options) { return \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2021, 'month' => 2, 'day' => 29, 'timeZone' => 'UTC'], $options); }, '');
+Assert::throws(\RangeException::class, function () use (&$options) { return \Temporal\Spec\ZonedDateTime::from((object) ['year' => 2021, 'month' => 2, 'day' => 29, 'timeZone' => 'UTC'], $options); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "Failing call after options is processed");

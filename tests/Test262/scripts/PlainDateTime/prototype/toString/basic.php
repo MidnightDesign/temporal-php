@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789, 'iso8601');
-Assert::sameValue($datetime->toString(), '1976-11-18T15:23:30.123456789', 'check string value');
+Assert::sameValue((string) ($datetime), '1976-11-18T15:23:30.123456789', 'check string value');

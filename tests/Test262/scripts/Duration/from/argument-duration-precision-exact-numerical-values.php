@@ -12,5 +12,5 @@ $cases = [[['milliseconds' => 4_503_599_627_370_497_024, 'microseconds' => 4.503
 foreach ($cases as $__entry__) {
 [$arg, $string, $descr] = array_pad($__entry__, 3, null);
 $instance = \Temporal\Spec\Duration::from($arg);
-Assert::sameValue($instance->toString(), $string, $descr);
+Assert::sameValue((string) ($instance), $string, $descr);
 }

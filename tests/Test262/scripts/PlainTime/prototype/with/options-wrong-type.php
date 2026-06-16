@@ -8,4 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Symbol()');
+$badOptions = [null, true, 'some string', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 2];
+$instance = new \Temporal\Spec\PlainTime();
+foreach ($badOptions as $value) {
+Assert::throws(\TypeError::class, function () use (&$instance, &$value) { return $instance->with(['minute' => 45], $value); }, "TypeError on wrong options type " . (gettype($value)) . "");
+Assert::throws(\RangeException::class, function () use (&$instance, &$value) { return $instance->with(JsUndefined::strip(['minute' => INF]), $value); }, 'Partial time processed before throwing TypeError');
+}

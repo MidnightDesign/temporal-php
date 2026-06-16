@@ -9,7 +9,7 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $relativeTo = new \Temporal\Spec\ZonedDateTime(941_184_000_000_000_000, 'America/Vancouver');
-Assert::sameValue('1999-10-29T01:00:00-07:00[America/Vancouver]', $relativeTo->toString(), '');
+Assert::sameValue('1999-10-29T01:00:00-07:00[America/Vancouver]', (string) ($relativeTo), '');
 $d1 = new \Temporal\Spec\Duration(1, 0, 0, 1);
 $d2 = new \Temporal\Spec\Duration(1, 0, 0, 0, 25);
 Assert::sameValue(0, \Temporal\Spec\Duration::compare($d1, $d2, (object) JsUndefined::strip(['relativeTo' => $relativeTo])), '2000-10-29 is a 25-hour day');

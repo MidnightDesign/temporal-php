@@ -18,4 +18,4 @@ TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from('1976-11
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from('1976-11-18T15:23:30.1234567'), 1976, 11, 'M11', 18, 15, 23, 30, 123, 456, 700, 'various precisions are possible (seven decimal digits)');
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from('1976-11-18T15:23:30.12345678'), 1976, 11, 'M11', 18, 15, 23, 30, 123, 456, 780, 'various precisions are possible (eight decimal digits)');
 TemporalHelpers::assertPlainDateTime(\Temporal\Spec\PlainDateTime::from('1976-11-18T15:23:30.123456789'), 1976, 11, 'M11', 18, 15, 23, 30, 123, 456, 789, 'various precisions are possible (nine decimal digits)');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainDateTime::from('1976-11-18T15:23:30.1234567891'), 'ten decimal digits is too much');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainDateTime::from('1976-11-18T15:23:30.1234567891'), 'ten decimal digits is too much');

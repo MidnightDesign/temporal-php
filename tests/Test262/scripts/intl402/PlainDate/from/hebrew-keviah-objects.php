@@ -8,4 +8,13 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: destructuring assignment');
+$KeviahSymbol = function ($year) use (&$date) {
+$startOfYear = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M01', 'day' => 1]));
+$firstDayOfPesach = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['calendar' => 'hebrew', 'year' => $year, 'monthCode' => 'M07', 'day' => 15]));
+$yearSymbol = (object) [353 => 'D', 354 => 'R', 355 => 'C', 383 => 'D', 384 => 'R', 385 => 'C'];
+$daySymbol = fn($date) => $date->dayOfWeek % 7 + 1;
+$daysInYear = $startOfYear->daysInYear;
+Assert::sameValue(property_exists($yearSymbol, $daysInYear), true, '');
+return "" . ($daySymbol($startOfYear)) . "" . ($yearSymbol->{$daysInYear}) . "" . ($daySymbol($firstDayOfPesach)) . "";
+};
+Assert::incomplete('untranslatable new expression');

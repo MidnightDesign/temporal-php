@@ -8,4 +8,15 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\ZonedDateTime::withTimeZone used as a value');
+// JS-only (extracted instance-method reference (branding); receiver checks handled at use sites): withTimeZone = Temporal.ZonedDateTime.prototype.withTimeZone
+Assert::sameValue(true, true, '');
+$args = ['UTC'];
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'undefined');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'null');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'true');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'empty string');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'symbol');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), '1');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'plain object');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'Temporal.ZonedDateTime');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\ZonedDateTime::withTimeZone() requires a valid receiver'), 'Temporal.ZonedDateTime.prototype');

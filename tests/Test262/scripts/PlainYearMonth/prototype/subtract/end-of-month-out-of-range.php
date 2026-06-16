@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration = new \Temporal\Spec\Duration(0, 0, 0, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration) { return new \Temporal\Spec\PlainYearMonth(275_760, 9)->subtract($duration); }, 'Addition of 1 month to receiver out of range');
+Assert::throws(\RangeException::class, function () use (&$duration) { return new \Temporal\Spec\PlainYearMonth(275_760, 9)->subtract($duration); }, 'Addition of 1 month to receiver out of range');

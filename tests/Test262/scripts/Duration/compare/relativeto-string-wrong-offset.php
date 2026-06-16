@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration1 = new \Temporal\Spec\Duration(0, 0, 0, 31);
 $duration2 = new \Temporal\Spec\Duration(0, 1);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => '2000-01-01T00:00+05:30[UTC]']); }, '');
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => '1971-01-01T00:00+02:00[-00:44]']); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => '2000-01-01T00:00+05:30[UTC]']); }, '');
+Assert::throws(\RangeException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2, ['relativeTo' => '1971-01-01T00:00+02:00[-00:44]']); }, '');

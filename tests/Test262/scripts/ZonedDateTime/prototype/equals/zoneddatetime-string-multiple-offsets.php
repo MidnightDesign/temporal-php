@@ -14,4 +14,4 @@ $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35]';
 $result = $instance->equals($str);
 Assert::sameValue($result, false, 'ISO offset, sub-minute offset trailing-zeroes');
 $str = '1970-01-01T01:35:30+01:35:00.000000000[+01:35:00.000000000]';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$str) { return $instance->equals($str); }, 'Trailing zeroes not allowed for sub-minute time zone identifiers');
+Assert::throws(\RangeException::class, function () use (&$instance, &$str) { return $instance->equals($str); }, 'Trailing zeroes not allowed for sub-minute time zone identifiers');

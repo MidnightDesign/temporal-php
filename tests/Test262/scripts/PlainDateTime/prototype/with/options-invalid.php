@@ -9,4 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $datetime = new \Temporal\Spec\PlainDateTime(1976, 11, 18, 15, 23, 30, 123, 456, 789);
-Assert::incomplete('untranslatable: Symbol()');
+$badOptions = [null, 1, 'hello', true, \Temporal\Tests\Test262\JsSymbol::singleton(), 1];
+foreach ($badOptions as $bad) {
+if ($bad === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$datetime, &$bad) { return $datetime->with(['day' => 5], $bad); }, "bad options (" . (gettype($bad)) . ")");
+}

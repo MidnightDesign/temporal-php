@@ -13,6 +13,6 @@ $to = new \Temporal\Spec\PlainDate(2021, 7, 17);
 $units = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 foreach ($units as $largestUnit) {
 foreach ($units as $smallestUnit) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$from, &$to, &$largestUnit, &$smallestUnit) { return $from->until($to, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, "Can't use {$largestUnit} and {$smallestUnit} as largestUnit and smallestUnit for PlainDate");
+Assert::throws(\RangeException::class, function () use (&$from, &$to, &$largestUnit, &$smallestUnit) { return $from->until($to, (object) JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit])); }, "Can't use {$largestUnit} and {$smallestUnit} as largestUnit and smallestUnit for PlainDate");
 }
 }

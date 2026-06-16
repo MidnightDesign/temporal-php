@@ -12,9 +12,9 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainDate(2000, 5, 2, 'gregory');
 $base = ['era' => 'ad', 'month' => 5, 'day' => 2, 'calendar' => 'gregory'];
 foreach ([INF, -INF] as $inf) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$inf) { return $instance->since(JsUndefined::strip(array_merge($base, ['eraYear' => $inf]))); }, "eraYear property cannot be {$inf}");
+Assert::throws(\RangeException::class, function () use (&$instance, &$base, &$inf) { return $instance->since(JsUndefined::strip(array_merge($base, ['eraYear' => $inf]))); }, "eraYear property cannot be {$inf}");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, 'eraYear');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$obj) { return $instance->since(JsUndefined::strip(array_merge($base, ['eraYear' => $obj]))); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$base, &$obj) { return $instance->since(JsUndefined::strip(array_merge($base, ['eraYear' => $obj]))); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, ["get eraYear.valueOf", "call eraYear.valueOf"], "it fails after fetching the primitive value");
 }

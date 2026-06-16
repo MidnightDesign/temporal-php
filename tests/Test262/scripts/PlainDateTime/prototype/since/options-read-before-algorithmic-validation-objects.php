@@ -14,5 +14,5 @@ $actual = [];
 $options = TemporalHelpers::propertyBagObserver($actual, (object) ['smallestUnit' => 'year', 'largestUnit' => 'nanosecond', 'roundingIncrement' => 1, 'roundingMode' => 'halfFloor'], 'options');
 $instance = new \Temporal\Spec\PlainDateTime(2025, 8, 14, 12);
 $other = new \Temporal\Spec\PlainDateTime(2025, 3, 14, 17);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$other, &$options) { $instance->since($other, $options); }, 'exception thrown when smallestUnit > largestUnit');
+Assert::throws(\RangeException::class, function () use (&$instance, &$other, &$options) { $instance->since($other, $options); }, 'exception thrown when smallestUnit > largestUnit');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(actual, expected, "all options should be read first");

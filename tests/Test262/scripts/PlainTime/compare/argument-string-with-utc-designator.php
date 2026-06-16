@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $invalidStrings = ['2019-10-01T09:00:00Z', '2019-10-01T09:00:00Z[UTC]', '09:00:00Z[UTC]', '09:00:00Z'];
 $plainTime = new \Temporal\Spec\PlainTime();
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$arg, &$plainTime) { return \Temporal\Spec\PlainTime::compare($arg, $plainTime); }, 'String with UTC designator should not be valid as a PlainTime (first argument)');
-Assert::throws(\InvalidArgumentException::class, function () use (&$plainTime, &$arg) { return \Temporal\Spec\PlainTime::compare($plainTime, $arg); }, 'String with UTC designator should not be valid as a PlainTime (second argument)');
+Assert::throws(\RangeException::class, function () use (&$arg, &$plainTime) { return \Temporal\Spec\PlainTime::compare($arg, $plainTime); }, 'String with UTC designator should not be valid as a PlainTime (first argument)');
+Assert::throws(\RangeException::class, function () use (&$plainTime, &$arg) { return \Temporal\Spec\PlainTime::compare($plainTime, $arg); }, 'String with UTC designator should not be valid as a PlainTime (second argument)');
 }

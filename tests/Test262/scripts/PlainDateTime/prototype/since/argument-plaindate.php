@@ -9,4 +9,4 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
-Assert::incomplete('TemporalHelpers.checkToTemporalPlainDateTimeFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalPlainDateTimeFastPath(function ($date, $calendar) use (&$datetime, &$result) { $datetime = new \Temporal\Spec\PlainDateTime(2000, 5, 2, 0, 0, 0, 987, 654, 321, $calendar); $result = $datetime->since($date); Assert::sameValue($result->total(['unit' => 'nanoseconds']), 987_654_321, 'PlainDate is converted to midnight'); });

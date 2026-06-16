@@ -32,7 +32,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable, HasYearMon
      * @param int<1, 12> $isoMonth       ISO month of the year (1–12).
      * @param Calendar   $calendar       Calendar system (default ISO 8601).
      * @param int        $referenceISODay Reference ISO day for round-trip fidelity (default 1).
-     * @throws \InvalidArgumentException if the year-month is invalid or out of range.
+     * @throws \Temporal\Exception\RangeError if the year-month is invalid or out of range.
      */
     public function __construct(
         int $isoYear,
@@ -97,7 +97,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable, HasYearMon
      *
      * @param string $text ISO 8601 year-month string (e.g. "2020-01").
      * @return self
-     * @throws \InvalidArgumentException if the string cannot be parsed.
+     * @throws \Temporal\Exception\RangeError if the string cannot be parsed.
      */
     public static function parse(string $text): self
     {
@@ -126,7 +126,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable, HasYearMon
      * @param int|null        $year  Year override, or null to keep current.
      * @param int<1, 12>|null $month Month override (1–12), or null to keep current.
      * @return self A new PlainYearMonth with the overridden fields.
-     * @throws \InvalidArgumentException if the resulting year-month is invalid or fields conflict.
+     * @throws \Temporal\Exception\RangeError if the resulting year-month is invalid or fields conflict.
      */
     public function with(
         ?int $year = null,
@@ -151,6 +151,10 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable, HasYearMon
         if ($eraYear !== null) {
             $fields['eraYear'] = $eraYear;
         }
+        if ($fields === []) {
+            return $this;
+        }
+
         $spec = $this->spec->with($fields);
 
         return self::fromSpec($spec);
@@ -265,7 +269,7 @@ final class PlainYearMonth implements \Stringable, \JsonSerializable, HasYearMon
      *
      * @param int<1, 31> $day Day of the month.
      * @return PlainDate
-     * @throws \InvalidArgumentException if the resulting date is invalid.
+     * @throws \Temporal\Exception\RangeError if the resulting date is invalid.
      */
     public function toPlainDate(int $day): PlainDate
     {

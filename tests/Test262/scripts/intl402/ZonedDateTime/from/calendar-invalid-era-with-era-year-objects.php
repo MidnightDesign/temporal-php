@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $calendarsWithEras = ['buddhist', 'coptic', 'ethioaa', 'ethiopic', 'gregory', 'hebrew', 'indian', 'islamic-civil', 'islamic-tbla', 'islamic-umalqura', 'japanese', 'persian', 'roc'];
 foreach ($calendarsWithEras as $calendar) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'era' => 'xyz', 'eraYear' => 2025, 'calendar' => $calendar])); }, "xyz is not a valid era in calendar {$calendar}");
+Assert::throws(\RangeException::class, function () use (&$calendar) { return \Temporal\Spec\ZonedDateTime::from((object) JsUndefined::strip(['month' => 1, 'day' => 1, 'hour' => 12, 'minute' => 34, 'timeZone' => 'UTC', 'era' => 'xyz', 'eraYear' => 2025, 'calendar' => $calendar])); }, "xyz is not a valid era in calendar {$calendar}");
 }

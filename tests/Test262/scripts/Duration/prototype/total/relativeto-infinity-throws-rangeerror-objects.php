@@ -13,10 +13,10 @@ $instance = new \Temporal\Spec\Duration(1, 2, 3, 4, 5, 6, 7, 987, 654, 321);
 $base = (object) ['year' => 2000, 'month' => 5, 'day' => 2, 'hour' => 15, 'minute' => 30, 'second' => 45, 'millisecond' => 987, 'microsecond' => 654, 'nanosecond' => 321];
 foreach ([INF, -INF] as $inf) {
 foreach (['year', 'month', 'day', 'hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'] as $prop) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$prop, &$inf) { return $instance->total((object) JsUndefined::strip(['unit' => 'seconds', 'relativeTo' => (object) JsUndefined::strip(array_merge((array) $base, [$prop => $inf]))])); }, "{$prop} property cannot be {$inf} in relativeTo");
+Assert::throws(\RangeException::class, function () use (&$instance, &$base, &$prop, &$inf) { return $instance->total((object) JsUndefined::strip(['unit' => 'seconds', 'relativeTo' => (object) JsUndefined::strip(array_merge((array) $base, [$prop => $inf]))])); }, "{$prop} property cannot be {$inf} in relativeTo");
 $calls = [];
 $obj = TemporalHelpers::toPrimitiveObserver($calls, $inf, $prop);
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$base, &$prop, &$obj) { return $instance->total((object) JsUndefined::strip(['unit' => 'seconds', 'relativeTo' => (object) JsUndefined::strip(array_merge((array) $base, [$prop => $obj]))])); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance, &$base, &$prop, &$obj) { return $instance->total((object) JsUndefined::strip(['unit' => 'seconds', 'relativeTo' => (object) JsUndefined::strip(array_merge((array) $base, [$prop => $obj]))])); }, '');
 // JS-only (observer call-order check, tracker is empty in PHP): assert.compareArray(calls, [`get ${prop}.valueOf`, `call ${prop}.valueOf`], "it fails after fetching the primitive value");
 }
 }

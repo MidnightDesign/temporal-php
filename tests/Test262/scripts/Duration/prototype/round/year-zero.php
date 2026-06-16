@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = new \Temporal\Spec\Duration(1, 0, 0, 0, 24);
 $relativeTo = '-000000-11-04T00:00';
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$relativeTo) { $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, 'reject minus zero as extended year');
+Assert::throws(\RangeException::class, function () use (&$instance, &$relativeTo) { $instance->round(JsUndefined::strip(['largestUnit' => 'years', 'relativeTo' => $relativeTo])); }, 'reject minus zero as extended year');

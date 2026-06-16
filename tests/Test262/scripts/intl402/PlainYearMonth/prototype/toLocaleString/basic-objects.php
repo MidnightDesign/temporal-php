@@ -8,7 +8,10 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-$findPart = function ($parts, $expectedType) use (&$__unknown__) {
-return $parts->find(function ($__unknown__) use (&$type, &$expectedType) { return $type === $expectedType; })->value;
+use Temporal\Tests\Test262\TemporalHelpers;
+$findPart = function ($parts, $expectedType) {
+return $parts->find(function ($__unknown__ = null) use (&$type, &$expectedType) { return $type === $expectedType; })->value;
 };
+$calendar = TemporalHelpers::defaultLocaleCalendar();
+$yearmonth = \Temporal\Spec\PlainYearMonth::from((object) JsUndefined::strip(['year' => 1976, 'month' => 11, 'calendar' => $calendar]));
 Assert::incomplete('untranslatable new expression');

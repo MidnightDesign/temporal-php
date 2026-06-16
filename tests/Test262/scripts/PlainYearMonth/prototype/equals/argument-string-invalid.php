@@ -10,4 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instance = new \Temporal\Spec\PlainYearMonth(1976, 11);
-Assert::incomplete('untranslatable: TemporalHelpers chain call');
+foreach (TemporalHelpers::isoPlainYearMonthStringsInvalid() as $arg) {
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->equals($arg); }, "\"{$arg}\" is not a valid PlainYearMonth string");
+}

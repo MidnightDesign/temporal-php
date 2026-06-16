@@ -12,8 +12,8 @@ use Temporal\Tests\Test262\TemporalHelpers;
 $calendar = 'dangi';
 $monthCodesWithYears = [(object) ['monthCode' => 'M01', 'referenceYear30' => 1970], (object) ['monthCode' => 'M02', 'referenceYear30' => 1972], (object) ['monthCode' => 'M03', 'referenceYear30' => 1968], (object) ['monthCode' => 'M04', 'referenceYear30' => 1970], (object) ['monthCode' => 'M05', 'referenceYear30' => 1972], (object) ['monthCode' => 'M06', 'referenceYear30' => 1971], (object) ['monthCode' => 'M07', 'referenceYear30' => 1972], (object) ['monthCode' => 'M08', 'referenceYear30' => 1971], (object) ['monthCode' => 'M09', 'referenceYear30' => 1972], (object) ['monthCode' => 'M10', 'referenceYear30' => 1972], (object) ['monthCode' => 'M11', 'referenceYear30' => 1970], (object) ['monthCode' => 'M12', 'referenceYear30' => 1972]];
 foreach ($monthCodesWithYears as $__obj__) {
-$monthCode = $__obj__['monthCode'] ?? null;
-$referenceYear30 = $__obj__['referenceYear30'] ?? null;
+$monthCode = $__obj__->monthCode ?? null;
+$referenceYear30 = $__obj__->referenceYear30 ?? null;
 $pmd = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 1]));
 TemporalHelpers::assertPlainMonthDay($pmd, $monthCode, 1, "{$monthCode}-01", 1972);
 $pmd29 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 29]));
@@ -22,5 +22,5 @@ $pmd30 = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calend
 TemporalHelpers::assertPlainMonthDay($pmd30, $monthCode, 30, "{$monthCode}-30", $referenceYear30);
 $constrained = \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]));
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 30, "{$monthCode}-31 constrained", $referenceYear30);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from((object) JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), (object) ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }

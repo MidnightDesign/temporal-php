@@ -20,7 +20,7 @@ $pmd30 = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $c
 TemporalHelpers::assertPlainMonthDay($pmd30, $monthCode, 30, "{$monthCode}-30", $referenceYear30);
 $constrained = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 30, "day 31 should be constrained to 30 for {$monthCode}", $referenceYear30);
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 31]), ['overflow' => 'reject']); }, "{$monthCode} with day 31 should throw with reject overflow");
 }
 $monthsWith29Days = ['M02', 'M04', 'M06', 'M08', 'M10'];
 foreach ($monthsWith29Days as $monthCode) {
@@ -30,5 +30,5 @@ $pmd29 = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $c
 TemporalHelpers::assertPlainMonthDay($pmd29, $monthCode, 29, "{$monthCode}-29");
 $constrained = \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), ['overflow' => 'constrain']);
 TemporalHelpers::assertPlainMonthDay($constrained, $monthCode, 29, "day 30 should be constrained to 29 for {$monthCode}");
-Assert::throws(\InvalidArgumentException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), ['overflow' => 'reject']); }, "{$monthCode} with day 30 should throw with reject overflow");
+Assert::throws(\RangeException::class, function () use (&$calendar, &$monthCode) { \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['calendar' => $calendar, 'monthCode' => $monthCode, 'day' => 30]), ['overflow' => 'reject']); }, "{$monthCode} with day 30 should throw with reject overflow");
 }

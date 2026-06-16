@@ -20,7 +20,7 @@ $resultConstrain = $yearmonth->subtract($duration, ['overflow' => 'constrain']);
 $resultReject = $yearmonth->subtract($duration, ['overflow' => 'reject']);
 Assert::sameValue($resultReject->year, $resultConstrain->year, 'year should be identical');
 Assert::sameValue($resultReject->month, $resultConstrain->month, 'month should be identical');
-Assert::sameValue($resultReject->toString(), $resultConstrain->toString(), 'toString should be identical');
+Assert::sameValue((string) ($resultReject), (string) ($resultConstrain), 'toString should be identical');
 }
 }
 }

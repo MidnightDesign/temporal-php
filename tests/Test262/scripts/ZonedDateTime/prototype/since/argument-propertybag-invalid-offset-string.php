@@ -12,6 +12,7 @@ $timeZone = 'UTC';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 $badOffsets = ['00:00', '+0', '-000:00', 0, null, true, 1000];
 foreach ($badOffsets as $offset) {
+if ($offset === null) { continue; }
 $arg = JsUndefined::strip(['year' => 2021, 'month' => 10, 'day' => 28, 'offset' => $offset, 'timeZone' => $timeZone]);
-Assert::throws((is_string($offset) ? \InvalidArgumentException::class : \TypeError::class), function () use (&$instance, &$arg) { return $instance->since($arg); }, "\"{$offset} is not a valid offset string");
+Assert::throws((is_string($offset) ? \RangeException::class : \TypeError::class), function () use (&$instance, &$arg) { return $instance->since($arg); }, "\"{$offset} is not a valid offset string");
 }

@@ -8,5 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['day' => 1, 'month' => -1])), '');
-Assert::throws(\InvalidArgumentException::class, fn() => \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['month' => 1, 'day' => -1])), '');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['day' => 1, 'month' => -1])), '');
+Assert::throws(\RangeException::class, fn() => \Temporal\Spec\PlainMonthDay::from(JsUndefined::strip(['month' => 1, 'day' => -1])), '');

@@ -12,5 +12,5 @@ $invalidStrings = ['00:00[u-ca=iso8601][!u-ca=iso8601]', '00:00[!u-ca=iso8601][u
 $timeZone = 'UTC';
 $instance = new \Temporal\Spec\ZonedDateTime(0, $timeZone);
 foreach ($invalidStrings as $arg) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "reject more than one calendar annotation if any critical: {$arg}");
+Assert::throws(\RangeException::class, function () use (&$instance, &$arg) { return $instance->withPlainTime($arg); }, "reject more than one calendar annotation if any critical: {$arg}");
 }

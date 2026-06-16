@@ -79,7 +79,7 @@ trait TemporalSerde
             throw new \TypeError('toLocaleString(): dateStyle option is not allowed for this type.');
         }
 
-        $locale = CalendarMath::resolveLocale($locales);
+        $locale = IntlFormatter::resolveLocale($locales);
 
         // Plain types always format in UTC to prevent date/time shifting.
         // The timeZone option is accepted but ignored for display purposes.
@@ -90,7 +90,7 @@ trait TemporalSerde
         // Pass locale into opts for pattern generator
         $opts['_locale'] = $locale;
 
-        $formatter = CalendarMath::buildIntlFormatter($locale, $timeZone, $opts, $defaultComponents);
+        $formatter = IntlFormatter::buildIntlFormatter($locale, $timeZone, $opts, $defaultComponents);
 
         // Build a timestamp from the type's fields
         $timestamp = $this->toLocaleTimestamp();

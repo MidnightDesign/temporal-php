@@ -13,5 +13,6 @@ foreach ($valids as $__entry__) {
 [$valid, $canonical] = array_pad($__entry__, 2, null);
 $canonical = $canonical ?? $valid;
 $result = \Temporal\Spec\ZonedDateTime::from(JsUndefined::strip(['year' => 1970, 'month' => 1, 'day' => 1, 'timeZone' => $valid]));
-Assert::incomplete('untranslatable: Object.getPrototypeOf');
+Assert::assertTrue($result instanceof \Temporal\Spec\ZonedDateTime, '');
+Assert::sameValue($result->timeZoneId, $canonical, '');
 }

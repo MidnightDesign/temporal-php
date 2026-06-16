@@ -18,6 +18,10 @@ TemporalHelpers::assertPlainDate($dateFromYearMonth, $year, $month, $monthCode, 
 $dateFromYearMonthCode = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['year' => $year, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]), $options);
 TemporalHelpers::assertPlainDate($dateFromYearMonthCode, $year, $month, $monthCode, $day, "{$descr} ({$calendar}) - created from year and month code", $era, $eraYear);
 if (JsUndefined::isUndefined($era)) {
-Assert::incomplete('untranslatable statement: ContinueStatement');
+continue;
 }
+$dateFromEraMonth = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['era' => $era, 'eraYear' => $eraYear, 'month' => $month, 'day' => $day, 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDate($dateFromEraMonth, $year, $month, $monthCode, $day, "{$descr} ({$calendar}) - created from era, era year, and month", $era, $eraYear);
+$dateFromEraMonthCode = \Temporal\Spec\PlainDate::from((object) JsUndefined::strip(['era' => $era, 'eraYear' => $eraYear, 'monthCode' => $monthCode, 'day' => $day, 'calendar' => $calendar]), $options);
+TemporalHelpers::assertPlainDate($dateFromEraMonthCode, $year, $month, $monthCode, $day, "{$descr} ({$calendar}) - created from era, era year, and month code", $era, $eraYear);
 }

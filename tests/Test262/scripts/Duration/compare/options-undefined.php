@@ -10,5 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $duration1 = new \Temporal\Spec\Duration(1);
 $duration2 = new \Temporal\Spec\Duration(0, 12);
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2); }, 'default relativeTo is undefined');
-Assert::throws(\InvalidArgumentException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2); }, 'default relativeTo is undefined');
+Assert::throws(\RangeException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2); }, 'default relativeTo is undefined');
+Assert::throws(\RangeException::class, function () use (&$duration1, &$duration2) { return \Temporal\Spec\Duration::compare($duration1, $duration2); }, 'default relativeTo is undefined');

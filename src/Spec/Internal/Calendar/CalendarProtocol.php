@@ -17,13 +17,6 @@ namespace Temporal\Spec\Internal\Calendar;
 interface CalendarProtocol
 {
     // -------------------------------------------------------------------------
-    // Identity
-    // -------------------------------------------------------------------------
-
-    /** Returns the canonical calendar identifier (e.g. "iso8601", "hebrew", "japanese"). */
-    public function id(): string;
-
-    // -------------------------------------------------------------------------
     // ISO -> Calendar field projection
     // -------------------------------------------------------------------------
 
@@ -120,8 +113,14 @@ interface CalendarProtocol
 
     /**
      * Converts a month code (e.g. "M01", "M05L") to an ordinal month number for the given year.
+     *
+     * Applies ConstrainMonthCode semantics: when the month code does not exist in the given
+     * year, 'reject' throws while 'constrain' maps it to the best common month (e.g. Hebrew
+     * "M05L" → "M06" in a non-leap year) before taking the ordinal.
+     *
+     * @param string $overflow 'constrain' or 'reject'
      */
-    public function monthCodeToMonth(string $monthCode, int $calYear): int;
+    public function monthCodeToMonth(string $monthCode, int $calYear, string $overflow = 'reject'): int;
 
     // -------------------------------------------------------------------------
     // Era resolution
@@ -134,7 +133,7 @@ interface CalendarProtocol
      * era should be ignored. Throws if the era is invalid for this calendar.
      *
      * @return int|null The resolved year, or null if era is not applicable.
-     * @throws \InvalidArgumentException if the era is not valid for this calendar.
+     * @throws \Temporal\Exception\RangeError if the era is not valid for this calendar.
      */
     public function resolveEra(string $era, int $eraYear): ?int;
 }

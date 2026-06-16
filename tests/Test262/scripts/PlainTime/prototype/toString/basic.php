@@ -8,9 +8,9 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23)->toString(), '15:23:00', '');
-Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30)->toString(), '15:23:30', '');
-Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123)->toString(), '15:23:30.123', '');
-Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123, 400)->toString(), '15:23:30.1234', '');
-Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456)->toString(), '15:23:30.123456', '');
-Assert::sameValue(new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789)->toString(), '15:23:30.123456789', '');
+Assert::sameValue((string) (new \Temporal\Spec\PlainTime(15, 23)), '15:23:00', '');
+Assert::sameValue((string) (new \Temporal\Spec\PlainTime(15, 23, 30)), '15:23:30', '');
+Assert::sameValue((string) (new \Temporal\Spec\PlainTime(15, 23, 30, 123)), '15:23:30.123', '');
+Assert::sameValue((string) (new \Temporal\Spec\PlainTime(15, 23, 30, 123, 400)), '15:23:30.1234', '');
+Assert::sameValue((string) (new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456)), '15:23:30.123456', '');
+Assert::sameValue((string) (new \Temporal\Spec\PlainTime(15, 23, 30, 123, 456, 789)), '15:23:30.123456789', '');

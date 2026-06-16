@@ -10,4 +10,5 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $instant = new \Temporal\Spec\Instant(1_000_000_000_000_000_000);
-Assert::incomplete('TemporalHelpers.checkToTemporalInstantFastPath() is not yet implemented');
+TemporalHelpers::checkToTemporalInstantFastPath(function ($datetime) use (&$result, &$instant) { $result = \Temporal\Spec\Instant::compare($datetime, $instant); Assert::sameValue($result, 1, 'comparison result'); });
+TemporalHelpers::checkToTemporalInstantFastPath(function ($datetime) use (&$result, &$instant) { $result = \Temporal\Spec\Instant::compare($instant, $datetime); Assert::sameValue($result, -1, 'comparison result'); });

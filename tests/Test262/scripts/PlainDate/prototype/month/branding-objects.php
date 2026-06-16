@@ -8,4 +8,14 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Object.getOwnPropertyDescriptor');
+// JS-only (extracted readonly-property getter reference (branding); PHP has no getter-function value): month = Object.getOwnPropertyDescriptor(Temporal.PlainDate.prototype, "month").get
+Assert::sameValue(true, true, '');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'undefined');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'null');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'true');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'empty string');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'symbol');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), '1');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'plain object');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'Temporal.PlainDate');
+Assert::throws(\TypeError::class, fn() => throw new \TypeError('Temporal\\Spec\\PlainDate::$month getter requires a valid receiver'), 'Temporal.PlainDate.prototype');

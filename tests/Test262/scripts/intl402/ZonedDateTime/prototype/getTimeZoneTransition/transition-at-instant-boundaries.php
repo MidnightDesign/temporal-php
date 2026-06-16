@@ -9,5 +9,16 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 foreach (\DateTimeZone::listIdentifiers() as $id) {
-Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+$min = \Temporal\Spec\ZonedDateTime::fromInstantParts(-8640000000000, 0, $id);
+$max = \Temporal\Spec\ZonedDateTime::fromInstantParts(8640000000000, 0, $id);
+$next = $min->getTimeZoneTransition('next');
+if ($next) {
+Assert::assertTrue($next->epochNanoseconds > $min->epochNanoseconds, 'If there\'s any next transition, it should be after |min|');
+}
+$prev = $max->getTimeZoneTransition('previous');
+if ($prev) {
+Assert::assertTrue($prev->epochNanoseconds < $max->epochNanoseconds, 'If there\'s any previous transition, it should be before |max|');
+}
+Assert::sameValue($max->getTimeZoneTransition('next'), null, 'There shouldn\'t be any next transition after |max|');
+Assert::sameValue($min->getTimeZoneTransition('previous'), null, 'There shouldn\'t be any previous transition before |min|');
 }

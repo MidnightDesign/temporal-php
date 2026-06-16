@@ -9,4 +9,8 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainTime::from('12:56:32');
-Assert::incomplete('untranslatable: Symbol()');
+$values = [null, true, 'hello', \Temporal\Tests\Test262\JsSymbol::singleton(), 1, 1];
+foreach ($values as $badOptions) {
+if ($badOptions === null) { continue; }
+Assert::throws(\TypeError::class, function () use (&$instance, &$badOptions) { return $instance->toString($badOptions); }, '');
+}

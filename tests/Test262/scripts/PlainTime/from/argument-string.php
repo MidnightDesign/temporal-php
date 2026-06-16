@@ -14,6 +14,6 @@ foreach ($tests as $__entry_expected__) {
 [$input] = array_pad($__entry_expected__, 1, null);
 $expected = array_slice($__entry_expected__, 1);
 $result = \Temporal\Spec\PlainTime::from($input);
-Assert::sameValue(count($expected), 6, $input);
+Assert::sameValue((is_string($expected) ? strlen($expected) : count($expected)), 6, $input);
 TemporalHelpers::assertPlainTime($result, ...[...$expected, $input]);
 }

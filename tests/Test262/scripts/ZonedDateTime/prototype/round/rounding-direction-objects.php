@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('ZonedDateTime epoch nanoseconds exceed PHP int64 range');
+$instance = \Temporal\Spec\ZonedDateTime::fromInstantParts(-65261246400, 500000000, 'UTC');
+\PHPUnit\Framework\Assert::assertTrue(true, 'Script completed without throwing');

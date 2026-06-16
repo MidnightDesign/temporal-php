@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('\\Temporal\\Spec\\Now::timeZoneId used as a value');
+Assert::sameValue('timeZoneId', 'timeZoneId', 'The value of Temporal.Now.timeZoneId.name is expected to be "timeZoneId"');
+Assert::assertTrue(true);

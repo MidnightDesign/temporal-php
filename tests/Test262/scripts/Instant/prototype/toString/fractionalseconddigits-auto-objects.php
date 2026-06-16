@@ -11,6 +11,6 @@ use Temporal\Tests\Test262\JsUndefined;
 $tests = [[new \Temporal\Spec\Instant(192_258_181_000_000_000), '1976-02-04T05:03:01Z'], [new \Temporal\Spec\Instant(0), '1970-01-01T00:00:00Z'], [new \Temporal\Spec\Instant(30_000_000_000), '1970-01-01T00:00:30Z'], [new \Temporal\Spec\Instant(30_123_400_000), '1970-01-01T00:00:30.1234Z']];
 foreach ($tests as $__entry__) {
 [$instant, $expected] = array_pad($__entry__, 2, null);
-Assert::sameValue($instant->toString(), $expected, 'default is to emit seconds and drop trailing zeroes');
+Assert::sameValue((string) ($instant), $expected, 'default is to emit seconds and drop trailing zeroes');
 Assert::sameValue($instant->toString((object) ['fractionalSecondDigits' => 'auto']), $expected, 'auto is the default');
 }

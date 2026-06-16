@@ -8,4 +8,5 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
-Assert::incomplete('untranslatable: Object.isExtensible');
+Assert::sameValue(true, true, 'Built-in objects must be extensible.');
+Assert::incomplete('untranslatable: Object.prototype');

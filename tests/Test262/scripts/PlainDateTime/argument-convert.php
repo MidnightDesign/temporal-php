@@ -15,4 +15,4 @@ TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(null, 11, 
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(false, 11, 24, true), 0, 11, 'M11', 24, 1, 0, 0, 0, 0, 0, 'boolean defaults');
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime(2020, 11, 24), 2020, 11, 'M11', 24, 0, 0, 0, 0, 0, 0, 'undefined hour defaults to 0');
 TemporalHelpers::assertPlainDateTime(new \Temporal\Spec\PlainDateTime('2020.6', '11.7', '24.1', '11.9', '12.8', '13.7', '14.6', '15.5', '1.999999'), 2020, 11, 'M11', 24, 11, 12, 13, 14, 15, 1, 'fractional strings');
-Assert::incomplete('untranslatable: Symbol()');
+Assert::incomplete('BigInt literal in wrong-type for-of data table; Number-vs-BigInt distinction not representable in PHP');

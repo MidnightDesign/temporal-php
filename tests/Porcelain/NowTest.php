@@ -6,6 +6,7 @@ namespace Temporal\Tests\Porcelain;
 
 use PHPUnit\Framework\TestCase;
 use Temporal\Calendar;
+use Temporal\Exception\RangeError;
 use Temporal\Instant;
 use Temporal\Now;
 use Temporal\PlainDate;
@@ -110,7 +111,7 @@ final class NowTest extends TestCase
 
     public function testPlainDateEmptyStringThrowsInvalidArgument(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         Now::plainDate('');
     }
 
@@ -160,7 +161,7 @@ final class NowTest extends TestCase
 
     public function testPlainTimeEmptyStringThrowsInvalidArgument(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         Now::plainTime('');
     }
 
@@ -213,7 +214,7 @@ final class NowTest extends TestCase
 
     public function testPlainDateTimeEmptyStringThrowsInvalidArgument(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         Now::plainDateTime('');
     }
 
@@ -257,7 +258,7 @@ final class NowTest extends TestCase
 
     public function testZonedDateTimeEmptyStringThrowsInvalidArgument(): void
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         Now::zonedDateTime('');
     }
 

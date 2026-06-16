@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Temporal\Spec;
 
-use InvalidArgumentException;
 use Stringable;
+use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\EpochLimits;
+use Temporal\Spec\Internal\MonthCode;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 use Temporal\Spec\Internal\TimeZoneHelper;
 
@@ -213,31 +217,35 @@ final class PlainDate implements Stringable
     public readonly int $isoDay;
 
     /**
-     * @throws InvalidArgumentException if year/month/day form an invalid ISO date or are infinite.
-     * @throws InvalidArgumentException if calendar is provided and is not "iso8601" (case-insensitive, ASCII-only).
+     * @param mixed $year     TC39 ToIntegerWithTruncation: int/float/bool/null/string accepted.
+     * @param mixed $month    1–12 after coercion.
+     * @param mixed $day      1–daysInMonth after coercion.
+     * @param string|int|float|bool|object|null $calendar Calendar id string (defaults to "iso8601").
+     * @throws TypeError if calendar is provided but is not a string.
+     * @throws RangeError if year/month/day form an invalid ISO date or are infinite.
+     * @throws RangeError if calendar is provided and is not "iso8601" (case-insensitive, ASCII-only).
      */
-    public function __construct(int|float $year, int|float $month, int|float $day, ?string $calendar = null)
-    {
-        if ($calendar !== null) {
-            $calendar = CalendarFactory::canonicalize($calendar);
-        }
-        $this->calendarId = $calendar ?? 'iso8601';
-        if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $day)) {
-            throw new InvalidArgumentException('Invalid PlainDate: year, month, and day must be finite numbers.');
-        }
-        $this->isoYear = (int) $year;
-        $monthInt = (int) $month;
+    public function __construct(
+        mixed $year,
+        mixed $month,
+        mixed $day,
+        string|int|float|bool|object|null $calendar = 'iso8601',
+    ) {
+        $this->calendarId = CalendarFactory::resolveConstructorCalendar($calendar, 'PlainDate');
+        // TC39 ToIntegerWithTruncation: null → 0, bool → 0/1, string/float → truncated int.
+        $this->isoYear = CalendarMath::toConstructorInt($year, 'PlainDate year');
+        $monthInt = CalendarMath::toConstructorInt($month, 'PlainDate month');
         if ($monthInt < 1 || $monthInt > 12) {
-            throw new InvalidArgumentException("Invalid PlainDate: month {$monthInt} is out of range 1–12.");
+            throw new RangeError("Invalid PlainDate: month {$monthInt} is out of range 1–12.");
         }
         $this->isoMonth = $monthInt;
-        $dayInt = (int) $day;
+        $dayInt = CalendarMath::toConstructorInt($day, 'PlainDate day');
         if ($dayInt < 1) {
-            throw new InvalidArgumentException("Invalid PlainDate: day {$dayInt} must be at least 1.");
+            throw new RangeError("Invalid PlainDate: day {$dayInt} must be at least 1.");
         }
         $daysInMonth = CalendarMath::calcDaysInMonth($this->isoYear, $this->isoMonth);
         if ($dayInt > $daysInMonth) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Invalid PlainDate: day {$dayInt} exceeds {$daysInMonth} for {$this->isoYear}-{$this->isoMonth}.",
             );
         }
@@ -246,7 +254,7 @@ final class PlainDate implements Stringable
         // TC39 range: Apr 19 −271821 … Sep 13 +275760.
         $epochDays = CalendarMath::toJulianDay($this->isoYear, $this->isoMonth, $this->isoDay) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Invalid PlainDate: {$this->isoYear}-{$this->isoMonth}-{$this->isoDay} is outside the representable range.",
             );
         }
@@ -261,37 +269,30 @@ final class PlainDate implements Stringable
      * property-bag array with 'year', 'month'/'monthCode', and 'day' fields.
      *
      * @param self|string|array<array-key, mixed>|object $item     PlainDate, ISO 8601 date string, or property-bag array.
-     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
-     * @throws InvalidArgumentException if the string is invalid or overflow option is invalid.
-     * @throws \TypeError if the type cannot be interpreted as a PlainDate.
+     * @param mixed $options Options bag (['overflow' => 'constrain'|'reject']), null/primitive (TypeError), or omitted.
+     * @throws RangeError if the string is invalid or overflow option is invalid.
+     * @throws TypeError if the type cannot be interpreted as a PlainDate.
      * @psalm-api
      */
-    public static function from(string|array|object $item, array|object|null $options = null): self
+    public static function from(string|array|object $item, mixed $options = []): self
     {
-        // Normalize options to array|null up front so option-handling has one path.
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-
-        // Validate and extract overflow option (must be done before processing item).
-        $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new \TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new InvalidArgumentException(
-                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                );
-            }
-            $overflow = $ov;
+        if (is_string($item)) {
+            // ToTemporalDate (string branch): ParseISODateTime (step 14) runs BEFORE
+            // GetOptionsObject (step 18) and GetTemporalOverflowOption (step 19), so a
+            // malformed string raises RangeError even when the options argument is a bad
+            // value. Overflow is irrelevant to a string but is still validated.
+            $result = self::fromString($item);
+            Options::overflowFromValue($options);
+            return $result;
         }
+
+        // Object / instance / property-bag branch: GetOptionsObject and
+        // GetTemporalOverflowOption are read before the algorithmic field validation
+        // (CalendarDateFromFields, steps 17-20).
+        $overflow = Options::overflowFromValue($options);
 
         if ($item instanceof self) {
             return new self($item->isoYear, $item->isoMonth, $item->isoDay, $item->calendarId);
-        }
-        if (is_string($item)) {
-            return self::fromString($item);
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
@@ -334,12 +335,12 @@ final class PlainDate implements Stringable
      * must not be present.
      *
      * @param array<array-key,mixed>|object $fields   Property bag with fields to override.
-     * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => 'constrain'|'reject']
-     * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
-     * @throws InvalidArgumentException if the resulting date is invalid (overflow: reject).
+     * @param mixed       $options Options bag (['overflow' => ...]), null/primitive (TypeError), or omitted.
+     * @throws TypeError             if $fields contains 'calendar' or 'timeZone'.
+     * @throws RangeError if the resulting date is invalid (overflow: reject).
      * @psalm-api
      */
-    public function with(array|object $fields, array|object|null $options = null): self
+    public function with(array|object $fields, mixed $options = []): self
     {
         // Reject Temporal objects (IsPartialTemporalObject step 2).
         if (
@@ -352,41 +353,43 @@ final class PlainDate implements Stringable
             || $fields instanceof Instant
             || $fields instanceof Duration
         ) {
-            throw new \TypeError('PlainDate::with() argument must not be a Temporal object.');
+            throw new TypeError('PlainDate::with() argument must not be a Temporal object.');
         }
 
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
 
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
-            throw new \TypeError('PlainDate::with() fields must not contain a calendar or timeZone property.');
+            throw new TypeError('PlainDate::with() fields must not contain a calendar or timeZone property.');
         }
 
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-
-        // Validate and extract overflow option.
-        $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new \TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new InvalidArgumentException(
-                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                );
-            }
-            $overflow = $ov;
+        // PrepareCalendarFields step 10 (partial): at least one recognized date field must
+        // be present. An empty-property object (e.g. JS undefined / sentinel) has no fields.
+        // For non-ISO calendars, era and eraYear are also valid date fields.
+        $hasAnyField =
+            array_key_exists('year', $fields)
+            || array_key_exists('month', $fields)
+            || array_key_exists('monthCode', $fields)
+            || array_key_exists('day', $fields)
+            || array_key_exists('era', $fields)
+            || array_key_exists('eraYear', $fields);
+        if (!$hasAnyField) {
+            throw new TypeError(
+                'PlainDate::with() requires at least one of: year, month, monthCode, day, era, eraYear.',
+            );
         }
 
         $calendar = $this->calendarId !== 'iso8601' ? CalendarFactory::get($this->calendarId) : null;
 
-        // --- Non-ISO calendar path ---
+        // --- Non-ISO calendar path --- (withNonIso resolves the overflow option after
+        // reading its own fields, per TC39 PrepareCalendarFields-before-GetOptionsObject.)
         if ($calendar !== null) {
-            return $this->withNonIso($fields, $overflow, $calendar);
+            return $this->withNonIso($fields, $options, $calendar);
         }
 
-        // --- ISO calendar path ---
+        // --- ISO calendar path --- TC39 PrepareCalendarFields reads and coerces the
+        // partial fields BEFORE GetOptionsObject validates the options argument's type,
+        // so a bad field value's RangeError precedes a primitive options TypeError. The
+        // overflow keyword (which only drives regulation) is resolved afterward.
         $year = $this->isoYear;
         if (array_key_exists('year', $fields)) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainDate::with() year');
@@ -396,17 +399,14 @@ final class PlainDate implements Stringable
         $hasMonth = array_key_exists('month', $fields);
         $hasMonthCode = array_key_exists('monthCode', $fields);
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $fields['monthCode'];
-            if (!is_string($mc)) {
-                throw new \TypeError('monthCode must be a string.');
-            }
-            $month = CalendarMath::monthCodeToMonth($mc);
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING =>
+            // RangeError (type-then-syntax, before month suitability is resolved).
+            $month = CalendarMath::monthCodeToMonth(MonthCode::validate($fields['monthCode']));
         }
         if ($hasMonth) {
             $newMonth = CalendarMath::toFiniteInt($fields['month'], 'PlainDate::with() month');
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                throw new RangeError('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -417,11 +417,15 @@ final class PlainDate implements Stringable
         }
 
         if ($month < 1) {
-            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+            throw new RangeError("Invalid month {$month}: must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
+
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
+        // Symbol => TypeError; omitted ([]) defaults to 'constrain'.
+        $overflow = Options::overflowFromValue($options);
 
         if ($overflow === 'constrain') {
             /**
@@ -440,11 +444,13 @@ final class PlainDate implements Stringable
      *
      * Handles mutually exclusive fields (year vs era+eraYear, month vs monthCode)
      * and preserves monthCode as default when neither month nor monthCode is provided.
+     * Resolves the overflow option AFTER reading its own fields, matching TC39's
+     * PrepareCalendarFields-before-GetOptionsObject ordering.
      *
      * @param array<array-key,mixed> $fields
      * @param Internal\Calendar\CalendarProtocol $calendar
      */
-    private function withNonIso(array $fields, string $overflow, Internal\Calendar\CalendarProtocol $calendar): self
+    private function withNonIso(array $fields, mixed $options, Internal\Calendar\CalendarProtocol $calendar): self
     {
         $hasYear = array_key_exists('year', $fields);
         $hasEra = array_key_exists('era', $fields);
@@ -453,16 +459,16 @@ final class PlainDate implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $fields);
 
         // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
-        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
-            throw new \TypeError('eraYear and era are invalid for this calendar.');
+        if (($hasEra || $hasEraYear) && in_array($this->calendarId, ['chinese', 'dangi'], strict: true)) {
+            throw new TypeError('eraYear and era are invalid for this calendar.');
         }
 
         // TC39: era without eraYear (or vice versa) is TypeError when year is not also provided.
         if ($hasEra && !$hasEraYear && !$hasYear) {
-            throw new \TypeError('era provided without eraYear in with() fields.');
+            throw new TypeError('era provided without eraYear in with() fields.');
         }
         if ($hasEraYear && !$hasEra && !$hasYear) {
-            throw new \TypeError('eraYear provided without era in with() fields.');
+            throw new TypeError('eraYear provided without era in with() fields.');
         }
 
         // Resolve year: era+eraYear takes precedence over the current year if both provided.
@@ -489,12 +495,8 @@ final class PlainDate implements Stringable
         $useMonthCode = false;
 
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $fields['monthCode'];
-            if (!is_string($mc)) {
-                throw new \TypeError('monthCode must be a string.');
-            }
-            $monthCode = $mc;
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING => RangeError.
+            $monthCode = MonthCode::validate($fields['monthCode']);
             $useMonthCode = true;
         }
         if ($hasMonth) {
@@ -504,7 +506,7 @@ final class PlainDate implements Stringable
                 /** @var string $monthCode */
                 $monthFromCode = $calendar->monthCodeToMonth($monthCode, $year);
                 if ($month !== $monthFromCode) {
-                    throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                    throw new RangeError('Conflicting month and monthCode fields.');
                 }
             }
             $useMonthCode = false; // explicit month takes precedence
@@ -521,15 +523,19 @@ final class PlainDate implements Stringable
         }
 
         if ($day < 1) {
-            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
+
+        // GetOptionsObject + GetTemporalOverflowOption: resolved after the fields have
+        // been read/coerced (PrepareCalendarFields precedes GetOptionsObject in TC39).
+        $overflow = Options::overflowFromValue($options);
 
         if ($useMonthCode && $monthCode !== null) {
             [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, $day, $overflow);
         } else {
             /** @var int $month */
             if ($month < 1) {
-                throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+                throw new RangeError("Invalid month {$month}: must be at least 1.");
             }
             [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, $day, $overflow);
         }
@@ -546,10 +552,10 @@ final class PlainDate implements Stringable
      * year boundaries. Time units are balanced into days before applying.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function add(string|array|object $duration, array|object|null $options = null): self
+    public function add(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(1, $dur, $options);
@@ -559,10 +565,10 @@ final class PlainDate implements Stringable
      * Returns a new PlainDate with the given duration subtracted.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function subtract(string|array|object $duration, array|object|null $options = null): self
+    public function subtract(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(-1, $dur, $options);
@@ -581,7 +587,7 @@ final class PlainDate implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
             );
         }
@@ -599,7 +605,7 @@ final class PlainDate implements Stringable
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
             );
         }
@@ -625,13 +631,17 @@ final class PlainDate implements Stringable
 
     /**
      * @param array<array-key, mixed>|object|null $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
-     * @throws InvalidArgumentException for invalid calendarName values.
+     * @throws RangeError for invalid calendarName values.
      * @psalm-api
      */
     #[\Override]
-    public function toString(array|object|null $options = null): string
+    public function toString(array|object|null $options = []): string
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        // GetOptionsObject: an omitted options argument arrives as the empty-array
+        // default; PHP null (the spec layer's representation of JS undefined, since the
+        // transpiler maps `undefined` → null in argument position) is the same omitted
+        // case. A Symbol sentinel is rejected; a bag is normalized to an array.
+        $opts = Options::requireObject($options ?? []);
 
         // TC39: years 0–9999 → 4 digits; years outside → ±YYYYYY (6 digits with sign prefix).
         if ($this->isoYear < 0) {
@@ -644,12 +654,8 @@ final class PlainDate implements Stringable
         $base = sprintf('%s-%02d-%02d', $yearStr, $this->isoMonth, $this->isoDay);
 
         $calendarName = 'auto';
-        if ($opts !== null && array_key_exists('calendarName', $opts)) {
-            /** @var mixed $cn */
-            $cn = $opts['calendarName'];
-            if (!is_string($cn)) {
-                throw new \TypeError('calendarName option must be a string.');
-            }
+        if (array_key_exists('calendarName', $opts)) {
+            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName');
             $calendarName = $cn;
         }
 
@@ -658,7 +664,7 @@ final class PlainDate implements Stringable
             'never' => $base,
             'always' => sprintf('%s[u-ca=%s]', $base, $this->calendarId),
             'critical' => sprintf('%s[!u-ca=%s]', $base, $this->calendarId),
-            default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
+            default => throw new RangeError("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
 
@@ -669,8 +675,8 @@ final class PlainDate implements Stringable
      * Accepts a PlainTime, a time string, or a property-bag array.
      *
      * @param PlainTime|string|array<array-key, mixed>|object|null $time PlainTime, string, array, or null for midnight.
-     * @throws \TypeError if $time is an invalid type (number, boolean, etc.).
-     * @throws InvalidArgumentException if the string is invalid or the result is out of range.
+     * @throws TypeError if $time is an invalid type (number, boolean, etc.).
+     * @throws RangeError if the string is invalid or the result is out of range.
      * @psalm-api
      */
     public function toPlainDateTime(string|array|object|null $time = null): PlainDateTime
@@ -679,7 +685,7 @@ final class PlainDate implements Stringable
             return new PlainDateTime($this->isoYear, $this->isoMonth, $this->isoDay, calendar: $this->calendarId);
         }
         if ($time === null) {
-            throw new \TypeError(
+            throw new TypeError(
                 'PlainDate::toPlainDateTime() argument must be a PlainTime, string, or property bag; null given.',
             );
         }
@@ -704,7 +710,7 @@ final class PlainDate implements Stringable
      * Accepts a timezone string or an array with 'timeZone' and optional 'plainTime' keys.
      *
      * @param string|array<array-key, mixed>|object $item Timezone string or property bag with 'timeZone' (and optional 'plainTime').
-     * @throws InvalidArgumentException if the timezone is invalid or the result is out of range.
+     * @throws RangeError if the timezone is invalid or the result is out of range.
      * @psalm-api
      */
     public function toZonedDateTime(string|array|object $item): ZonedDateTime
@@ -714,39 +720,43 @@ final class PlainDate implements Stringable
             $tzId = TimeZoneHelper::normalizeTimezoneId($item);
             return $this->createZdt($tzId, 0, 0, 0, 0, 0, 0, startOfDay: true);
         }
-        if (is_object($item)) {
-            $item = get_object_vars($item);
-        }
-        // Property bag: must have 'timeZone' key.
-        if (!array_key_exists('timeZone', $item)) {
-            throw new \TypeError('PlainDate::toZonedDateTime() property bag must have a timeZone property.');
-        }
+        // Property bag (array or object). Read each property via the faithful
+        // TC39 Get(O, P) helper so that an accessor getter — used by test262's
+        // positive-probe fixtures, `{ get timeZone(){ throw } }` — fires on read.
+        // get_object_vars() would snapshot only declared props and never trigger it.
+        // Spec order: Get(item, "timeZone") first, then Get(item, "plainTime").
         /** @var mixed $tzRaw */
-        $tzRaw = $item['timeZone'];
+        $tzRaw = Options::bagGet($item, 'timeZone');
+        if ($tzRaw === Options::ABSENT) {
+            throw new TypeError('PlainDate::toZonedDateTime() property bag must have a timeZone property.');
+        }
         if (!is_string($tzRaw)) {
-            throw new \TypeError(sprintf(
+            throw new TypeError(sprintf(
                 'PlainDate::toZonedDateTime() timeZone must be a string; got %s.',
                 get_debug_type($tzRaw),
             ));
         }
         $tzId = TimeZoneHelper::normalizeTimezoneId($tzRaw);
 
-        // Optional plainTime: if the key is present, pass through PlainTime::from()
-        // (null throws TypeError, matching JS behavior where null !== undefined).
+        // Optional plainTime: probed UNCONDITIONALLY (the spec performs Get(item,
+        // "plainTime") whenever timeZone is present). ABSENT → startOfDay; a declared
+        // null → TypeError (null !== undefined in JS); otherwise pass through
+        // PlainTime::from().
         $h = 0;
         $m = 0;
         $s = 0;
         $ms = 0;
         $us = 0;
         $ns = 0;
-        if (array_key_exists('plainTime', $item)) {
-            /** @var mixed $ptRaw */
-            $ptRaw = $item['plainTime'];
+        /** @var mixed $ptRaw */
+        $ptRaw = Options::bagGet($item, 'plainTime');
+        $hasPlainTime = $ptRaw !== Options::ABSENT;
+        if ($hasPlainTime) {
             if ($ptRaw === null) {
-                throw new \TypeError('PlainDate::toZonedDateTime() plainTime must not be null.');
+                throw new TypeError('PlainDate::toZonedDateTime() plainTime must not be null.');
             }
             if (!is_string($ptRaw) && !is_array($ptRaw) && !is_object($ptRaw)) {
-                throw new \TypeError(sprintf(
+                throw new TypeError(sprintf(
                     'PlainDate::toZonedDateTime() plainTime must be a PlainTime, string, or property bag; got %s.',
                     get_debug_type($ptRaw),
                 ));
@@ -760,8 +770,7 @@ final class PlainDate implements Stringable
             $ns = $t->nanosecond;
         }
         // Use startOfDay when no plainTime is explicitly provided.
-        $useStartOfDay = !array_key_exists('plainTime', $item);
-        return $this->createZdt($tzId, $h, $m, $s, $ms, $us, $ns, startOfDay: $useStartOfDay);
+        return $this->createZdt($tzId, $h, $m, $s, $ms, $us, $ns, startOfDay: !$hasPlainTime);
     }
 
     /**
@@ -781,7 +790,19 @@ final class PlainDate implements Stringable
      */
     public function toPlainMonthDay(): PlainMonthDay
     {
-        return new PlainMonthDay($this->isoMonth, $this->isoDay, $this->calendarId);
+        // ISO fast-path: construct directly without reference-year resolution.
+        if ($this->calendarId === 'iso8601') {
+            return new PlainMonthDay($this->isoMonth, $this->isoDay, $this->calendarId);
+        }
+        // Non-ISO calendars: go through CalendarMonthDayFromFields semantics by providing
+        // the calendar year and monthCode so that resolveNonIsoReferenceYear can pick the
+        // correct representative ISO year (matching TC39 §Temporal.PlainDate.prototype.toPlainMonthDay).
+        return PlainMonthDay::from([
+            'calendar' => $this->calendarId,
+            'year' => $this->year,
+            'monthCode' => $this->monthCode,
+            'day' => $this->day,
+        ]);
     }
 
     /**
@@ -789,7 +810,7 @@ final class PlainDate implements Stringable
      *
      * Accepts a bare calendar ID or an ISO date string from which the calendar is extracted.
      *
-     * @throws InvalidArgumentException if the calendar is unsupported.
+     * @throws RangeError if the calendar is unsupported.
      * @psalm-api
      */
     public function withCalendar(string $calendar): self
@@ -802,15 +823,12 @@ final class PlainDate implements Stringable
     // Private helpers
     // -------------------------------------------------------------------------
 
-    private const int NS_PER_MILLISECOND = 1_000_000;
-    private const int NS_PER_MICROSECOND = 1_000;
-
     /**
      * Creates a ZonedDateTime from this date combined with the given time fields and timezone.
      *
      * Computes epoch seconds from Julian Day Numbers to handle extreme years correctly.
      *
-     * @throws InvalidArgumentException if the resulting epoch nanoseconds are out of range.
+     * @throws RangeError if the resulting epoch nanoseconds are out of range.
      */
     private function createZdt(
         string $tzId,
@@ -837,7 +855,7 @@ final class PlainDate implements Stringable
 
         $epochSec = TimeZoneHelper::wallSecToEpochSec($wallSec, $tzId);
 
-        $subNs = ($ms * self::NS_PER_MILLISECOND) + ($us * self::NS_PER_MICROSECOND) + $ns;
+        $subNs = ($ms * EpochLimits::NS_PER_MILLISECOND) + ($us * EpochLimits::NS_PER_MICROSECOND) + $ns;
 
         return ZonedDateTime::createFromEpochParts($epochSec, $subNs, $tzId, $this->calendarId);
     }
@@ -850,22 +868,20 @@ final class PlainDate implements Stringable
      * Optional trailing time, offset, and bracket annotations are accepted;
      * only the date portion is used. Z (UTC designator) is not valid for PlainDate.
      *
-     * @throws InvalidArgumentException for invalid or out-of-range dates.
+     * @throws RangeError for invalid or out-of-range dates.
      */
     private static function fromString(string $s): self
     {
         if ($s === '') {
-            throw new InvalidArgumentException('PlainDate::from() received an empty string.');
+            throw new RangeError('PlainDate::from() received an empty string.');
         }
         // Reject non-ASCII minus sign (U+2212 = \xe2\x88\x92).
         if (str_contains($s, "\u{2212}")) {
-            throw new InvalidArgumentException(
-                "PlainDate::from() cannot parse \"{$s}\": non-ASCII minus sign is not allowed.",
-            );
+            throw new RangeError("PlainDate::from() cannot parse \"{$s}\": non-ASCII minus sign is not allowed.");
         }
         // Reject more than 9 fractional-second digits anywhere (time part or offset fraction).
         if (preg_match('/[.,]\d{10,}/', $s) === 1) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "PlainDate::from() cannot parse \"{$s}\": fractional seconds may have at most 9 digits.",
             );
         }
@@ -882,16 +898,14 @@ final class PlainDate implements Stringable
         /** @var list<string> $m */
         $m = [];
         if (preg_match($pattern, $s, $m) !== 1) {
-            throw new InvalidArgumentException(
-                "PlainDate::from() cannot parse \"{$s}\": invalid ISO 8601 date string.",
-            );
+            throw new RangeError("PlainDate::from() cannot parse \"{$s}\": invalid ISO 8601 date string.");
         }
 
         [, $yearRaw, $dateRest] = $m;
 
         // Reject minus-zero extended year (-000000).
         if (preg_match('/^-0{6}$/', $yearRaw) === 1) {
-            throw new InvalidArgumentException('Cannot use negative zero as extended year.');
+            throw new RangeError('Cannot use negative zero as extended year.');
         }
 
         // Compact date rest (MMDD) → extract components.
@@ -910,23 +924,17 @@ final class PlainDate implements Stringable
         if ($m[3] !== '') {
             $hour = (int) $m[3];
             if ($hour > 23) {
-                throw new InvalidArgumentException(
-                    "PlainDate::from() cannot parse \"{$s}\": hour {$hour} out of range.",
-                );
+                throw new RangeError("PlainDate::from() cannot parse \"{$s}\": hour {$hour} out of range.");
             }
             if ($m[4] !== '') {
                 $minute = (int) $m[4];
                 if ($minute > 59) {
-                    throw new InvalidArgumentException(
-                        "PlainDate::from() cannot parse \"{$s}\": minute {$minute} out of range.",
-                    );
+                    throw new RangeError("PlainDate::from() cannot parse \"{$s}\": minute {$minute} out of range.");
                 }
                 if ($m[5] !== '') {
                     $second = (int) $m[5];
                     if ($second > 60) {
-                        throw new InvalidArgumentException(
-                            "PlainDate::from() cannot parse \"{$s}\": second {$second} out of range.",
-                        );
+                        throw new RangeError("PlainDate::from() cannot parse \"{$s}\": second {$second} out of range.");
                     }
                 }
             }
@@ -936,7 +944,7 @@ final class PlainDate implements Stringable
         $annotationSection = $m[7];
         $calendarId = CalendarMath::validateAnnotations($annotationSection, $s);
 
-        return new self($year, $month, $day, $calendarId);
+        return new self($year, $month, $day, $calendarId ?? 'iso8601');
     }
 
     /**
@@ -944,8 +952,8 @@ final class PlainDate implements Stringable
      *
      * @param array<array-key,mixed> $bag
      * @param string $overflow 'constrain' (clamp) or 'reject' (throw on out-of-range).
-     * @throws \TypeError if required fields are missing or have wrong type.
-     * @throws InvalidArgumentException if the date is invalid.
+     * @throws TypeError if required fields are missing or have wrong type.
+     * @throws RangeError if the date is invalid.
      */
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
@@ -958,16 +966,26 @@ final class PlainDate implements Stringable
 
         // For calendars without eras (ISO, Chinese, Dangi), era+eraYear can't replace year.
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
-            throw new \TypeError('PlainDate property bag must have a year field.');
+            throw new TypeError('PlainDate property bag must have a year field.');
         }
         if (!array_key_exists('month', $bag) && !array_key_exists('monthCode', $bag)) {
-            throw new \TypeError('PlainDate property bag must have a month or monthCode field.');
+            throw new TypeError('PlainDate property bag must have a month or monthCode field.');
         }
         if (!array_key_exists('day', $bag)) {
-            throw new \TypeError('PlainDate property bag must have a day field.');
+            throw new TypeError('PlainDate property bag must have a day field.');
         }
 
         $calendar = $calendarId !== null && $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
+
+        // TC39 PrepareCalendarFields: a monthCode value's TYPE (must be a string) and its
+        // SYNTAX (well-formedness) are validated before the year value's type is coerced.
+        // Its SUITABILITY (e.g. "M13" out of range) is validated later, after the year.
+        // Hence: { monthCode: "L99M", year: Symbol() } => RangeError (bad syntax first),
+        //   while { monthCode: "M99L", year: Symbol() } => TypeError (year type first).
+        $validatedMonthCode = null;
+        if (array_key_exists('monthCode', $bag)) {
+            $validatedMonthCode = MonthCode::validate($bag['monthCode']);
+        }
 
         // Extract year from the bag, or resolve from era + eraYear.
         $year = 0;
@@ -975,7 +993,7 @@ final class PlainDate implements Stringable
             /** @var mixed $yearRaw */
             $yearRaw = $bag['year'];
             if ($yearRaw === null) {
-                throw new \TypeError('PlainDate property bag year field must not be undefined.');
+                throw new RangeError('PlainDate property bag year field must not be undefined.');
             }
             $year = CalendarMath::toFiniteInt($yearRaw, 'PlainDate year');
         }
@@ -992,15 +1010,12 @@ final class PlainDate implements Stringable
         $month = null;
         $monthCode = null;
         $hasMonth = array_key_exists('month', $bag);
-        $hasMonthCode = array_key_exists('monthCode', $bag);
+        $hasMonthCode = $validatedMonthCode !== null;
 
-        if ($hasMonthCode) {
-            /** @var mixed $monthCodeRaw */
-            $monthCodeRaw = $bag['monthCode'];
-            if (!is_string($monthCodeRaw)) {
-                throw new \TypeError('PlainDate monthCode must be a string.');
-            }
-            $monthCode = $monthCodeRaw;
+        if ($validatedMonthCode !== null) {
+            // Type and well-formedness were validated above (before year coercion).
+            // Suitability (valid month value) is resolved here, after the year.
+            $monthCode = $validatedMonthCode;
             $month = $calendar !== null
                 ? $calendar->monthCodeToMonth($monthCode, $year)
                 : CalendarMath::monthCodeToMonth($monthCode);
@@ -1010,11 +1025,11 @@ final class PlainDate implements Stringable
             /** @var mixed $monthRaw */
             $monthRaw = $bag['month'] ?? null;
             if ($monthRaw === null) {
-                throw new \TypeError('PlainDate property bag month field must not be undefined.');
+                throw new RangeError('PlainDate property bag month field must not be undefined.');
             }
             $newMonth = CalendarMath::toFiniteInt($monthRaw, 'PlainDate month');
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                throw new RangeError('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -1024,16 +1039,16 @@ final class PlainDate implements Stringable
         /** @var mixed $dayRaw */
         $dayRaw = $bag['day'];
         if ($dayRaw === null) {
-            throw new \TypeError('PlainDate property bag day field must not be undefined.');
+            throw new RangeError('PlainDate property bag day field must not be undefined.');
         }
         $day = CalendarMath::toFiniteInt($dayRaw, 'PlainDate day');
 
         // month < 1 and day < 1 are always invalid (cannot constrain below minimum of 1).
         if ($month < 1) {
-            throw new InvalidArgumentException("Invalid PlainDate: month {$month} must be at least 1.");
+            throw new RangeError("Invalid PlainDate: month {$month} must be at least 1.");
         }
         if ($day < 1) {
-            throw new InvalidArgumentException("Invalid PlainDate: day {$day} must be at least 1.");
+            throw new RangeError("Invalid PlainDate: day {$day} must be at least 1.");
         }
 
         // Non-ISO calendar: resolve calendar fields to ISO via the calendar protocol.
@@ -1055,7 +1070,7 @@ final class PlainDate implements Stringable
             $day = min($maxDay, $day);
         }
 
-        return new self($year, $month, $day, $calendarId);
+        return new self($year, $month, $day, $calendarId ?? 'iso8601');
     }
 
     /**
@@ -1094,18 +1109,18 @@ final class PlainDate implements Stringable
         $roundingIncrement = 1;
 
         if ($options !== null) {
-            $opts = is_array($options) ? $options : get_object_vars($options);
+            $opts = Options::normalizeOptions($options);
 
             // largestUnit
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
-                if ($lu !== null && !is_string($lu)) {
-                    throw new \TypeError('largestUnit option must be a string.');
+                if ($lu !== null) {
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (!in_array($lu, $validUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
+                        throw new RangeError("Invalid largestUnit value: \"{$lu}\".");
                     }
                     $largestUnit = $lu;
                     $largestUnitExplicit = true;
@@ -1125,14 +1140,11 @@ final class PlainDate implements Stringable
             if (array_key_exists('roundingMode', $opts)) {
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
-                if ($rm !== null && !is_string($rm)) {
-                    throw new \TypeError('roundingMode option must be a string.');
+                if ($rm !== null) {
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                        throw new InvalidArgumentException("Invalid roundingMode value: \"{$rm}\".");
-                    }
-                    $roundingMode = $rm;
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
@@ -1140,12 +1152,12 @@ final class PlainDate implements Stringable
             if (array_key_exists('smallestUnit', $opts)) {
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
-                if ($su !== null && !is_string($su)) {
-                    throw new \TypeError('smallestUnit option must be a string.');
+                if ($su !== null) {
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     if (!in_array($su, $validUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
+                        throw new RangeError("Invalid smallestUnit value: \"{$su}\".");
                     }
                     $smallestUnit = $su;
                 }
@@ -1163,7 +1175,7 @@ final class PlainDate implements Stringable
         if ($suRank > $luRank) {
             if ($largestUnitExplicit) {
                 // Both explicitly set and smallestUnit > largestUnit: throw per spec.
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "smallestUnit \"{$smallestUnit}\" cannot be larger than largestUnit \"{$largestUnit}\".",
                 );
             }
@@ -1400,7 +1412,7 @@ final class PlainDate implements Stringable
      * semantics), false when it is the EARLIER (until() semantics).  This controls the
      * direction in which the anchor is computed from the receiver.
      *
-     * @throws InvalidArgumentException if the rounded date is out of the valid ISO range.
+     * @throws RangeError if the rounded date is out of the valid ISO range.
      */
     private static function roundCalendarMonths(
         int $totalMonths,
@@ -1454,7 +1466,7 @@ final class PlainDate implements Stringable
      * $receiverIsLater: true when the receiver is the LATER of the two dates (since()
      * semantics), false when it is the EARLIER (until() semantics).
      *
-     * @throws InvalidArgumentException if the rounded date is out of the valid ISO range.
+     * @throws RangeError if the rounded date is out of the valid ISO range.
      */
     private static function roundCalendarYears(
         int $years,
@@ -1511,7 +1523,7 @@ final class PlainDate implements Stringable
      *
      * Returns the Julian Day Number of the resulting date.
      *
-     * @throws InvalidArgumentException if the resulting date is outside the valid ISO range.
+     * @throws RangeError if the resulting date is outside the valid ISO range.
      */
     private static function addSignedMonths(self $date, int $signedMonths): int
     {
@@ -1531,7 +1543,7 @@ final class PlainDate implements Stringable
         $maxJdn = CalendarMath::toJulianDay(275_760, 9, 13);
         $jdn = CalendarMath::toJulianDay($y, $m, $d);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException('PlainDate rounding result is outside the representable range.');
+            throw new RangeError('PlainDate rounding result is outside the representable range.');
         }
         return $jdn;
     }
@@ -1541,7 +1553,7 @@ final class PlainDate implements Stringable
      *
      * Returns the Julian Day Number of the resulting date.
      *
-     * @throws InvalidArgumentException if the resulting date is outside the valid ISO range.
+     * @throws RangeError if the resulting date is outside the valid ISO range.
      */
     private static function addSignedYears(self $date, int $signedYears): int
     {
@@ -1561,7 +1573,7 @@ final class PlainDate implements Stringable
         $maxJdn = CalendarMath::toJulianDay(275_760, 9, 13);
         $jdn = CalendarMath::toJulianDay($y, $m, $d);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException('PlainDate rounding result is outside the representable range.');
+            throw new RangeError('PlainDate rounding result is outside the representable range.');
         }
         return $jdn;
     }
@@ -1655,26 +1667,15 @@ final class PlainDate implements Stringable
      * Sub-day time units (hours, minutes, seconds, milliseconds, microseconds,
      * nanoseconds) are balanced into whole days before applying day arithmetic.
      *
-     * @param array<array-key, mixed>|object|null $options
+     * @param array<array-key, mixed>|object $options
      */
-    private function addDuration(int $sign, Duration $dur, array|object|null $options): self
+    private function addDuration(int $sign, Duration $dur, array|object $options): self
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-
-        $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new \TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new InvalidArgumentException(
-                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                );
-            }
-            $overflow = $ov;
-        }
+        // GetOptionsObject + GetTemporalOverflowOption: omitted ([]) and a bag without
+        // 'overflow' default to 'constrain'; an explicit null / non-object primitive /
+        // Symbol sentinel => TypeError; an 'overflow' value is coerced/validated (an
+        // explicit `overflow => null` value => RangeError).
+        $overflow = Options::overflowFromValue($options);
 
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
@@ -1737,7 +1738,7 @@ final class PlainDate implements Stringable
         $maxJdn = CalendarMath::toJulianDay(275_760, 9, 13);
         $jdn = CalendarMath::toJulianDay($newYear, $newMonth, $newDay);
         if ($jdn < $minJdn || $jdn > $maxJdn) {
-            throw new InvalidArgumentException('PlainDate arithmetic result is outside the representable range.');
+            throw new RangeError('PlainDate arithmetic result is outside the representable range.');
         }
 
         return new self($newYear, $newMonth, $newDay, $this->calendarId);

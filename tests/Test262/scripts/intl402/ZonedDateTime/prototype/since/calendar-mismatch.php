@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance1 = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
 $instance2 = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'japanese');
-Assert::throws(\InvalidArgumentException::class, function () use (&$instance1, &$instance2) { return $instance1->since($instance2); }, '');
+Assert::throws(\RangeException::class, function () use (&$instance1, &$instance2) { return $instance1->since($instance2); }, '');

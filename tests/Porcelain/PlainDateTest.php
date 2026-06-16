@@ -9,6 +9,7 @@ use PHPUnit\Framework\TestCase;
 use Temporal\Calendar;
 use Temporal\CalendarDisplay;
 use Temporal\Duration;
+use Temporal\Exception\RangeError;
 use Temporal\Overflow;
 use Temporal\PlainDate;
 use Temporal\RoundingMode;
@@ -31,7 +32,7 @@ final class PlainDateTest extends TestCase
 
     public function testConstructorRejectsInvalidDay(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         new PlainDate(2020, 2, 30);
     }
 
@@ -136,7 +137,7 @@ final class PlainDateTest extends TestCase
 
     public function testParseInvalidStringThrows(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         PlainDate::parse('not-a-date');
     }
 
@@ -234,7 +235,7 @@ final class PlainDateTest extends TestCase
     {
         $pd = new PlainDate(2020, 1, 31);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $pd->with(month: 2, overflow: Overflow::Reject);
     }
 
@@ -519,14 +520,14 @@ final class PlainDateTest extends TestCase
     public function testAddForwardsOverflowReject(): void
     {
         $pd = new PlainDate(2020, 1, 31);
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $pd->add(new Duration(months: 1), Overflow::Reject);
     }
 
     public function testSubtractForwardsOverflowReject(): void
     {
         $pd = new PlainDate(2020, 3, 31);
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $pd->subtract(new Duration(months: 1), Overflow::Reject);
     }
 
@@ -590,7 +591,7 @@ final class PlainDateTest extends TestCase
 
     public function testFromFieldsForwardsOverflowReject(): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
 
         PlainDate::fromFields(year: 2020, month: 2, day: 30, overflow: Overflow::Reject);
     }
@@ -720,7 +721,7 @@ final class PlainDateTest extends TestCase
         $from = new PlainDate(1970, 1, 1);
         $to = new PlainDate(1971, 1, 1);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $from->since(
             $to,
             largestUnit: Unit::Year,
@@ -735,7 +736,7 @@ final class PlainDateTest extends TestCase
         $from = new PlainDate(1970, 1, 1);
         $to = new PlainDate(1971, 1, 1);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(RangeError::class);
         $from->until(
             $to,
             largestUnit: Unit::Year,

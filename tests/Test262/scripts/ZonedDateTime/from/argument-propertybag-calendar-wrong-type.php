@@ -9,4 +9,10 @@ declare(strict_types=1);
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $timeZone = 'UTC';
-Assert::incomplete('untranslatable: Symbol()');
+$wrongTypeTests = [[null, 'null'], [true, 'boolean'], [1, 'number'], [1, 'bigint'], [19_970_327, 'large number'], [-19_970_327, 'negative number'], [1_234_567_890, 'very large integer'], [\Temporal\Tests\Test262\JsSymbol::singleton(), 'symbol'], [[], 'object'], [new \Temporal\Spec\Duration(), 'duration instance']];
+foreach ($wrongTypeTests as $__entry__) {
+[$calendar, $description] = array_pad($__entry__, 2, null);
+if ($calendar === null) { continue; }
+$arg = JsUndefined::strip(['year' => 1970, 'monthCode' => 'M01', 'day' => 1, 'timeZone' => $timeZone, 'calendar' => $calendar]);
+Assert::throws(\TypeError::class, function () use (&$arg) { return \Temporal\Spec\ZonedDateTime::from($arg); }, "{$description} is not a valid calendar");
+}

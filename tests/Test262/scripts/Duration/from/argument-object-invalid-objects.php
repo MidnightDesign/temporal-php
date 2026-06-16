@@ -10,7 +10,7 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $tests = [(object) ['years' => 0.5], (object) ['months' => 0.5], (object) ['weeks' => 0.5], (object) ['days' => 0.5], (object) ['hours' => 0.5, 'minutes' => 20], (object) ['hours' => 0.5, 'seconds' => 15], (object) ['minutes' => 10.7, 'nanoseconds' => 400], (object) JsUndefined::strip(['hours' => 1, 'minutes' => -30])];
 foreach ($tests as $input) {
-Assert::throws(\InvalidArgumentException::class, function () use (&$input) { return \Temporal\Spec\Duration::from($input); }, '');
+Assert::throws(\RangeException::class, function () use (&$input) { return \Temporal\Spec\Duration::from($input); }, '');
 }
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Duration::from((object) []), '');
 Assert::throws(\TypeError::class, fn() => \Temporal\Spec\Duration::from((object) ['month' => 12]), '');

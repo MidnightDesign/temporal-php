@@ -11,4 +11,5 @@ use Temporal\Tests\Test262\JsUndefined;
 use Temporal\Tests\Test262\TemporalHelpers;
 $duration1 = \Temporal\Spec\Duration::from(JsUndefined::strip(['nanoseconds' => 9_007_199_254_740_991]));
 $duration2 = \Temporal\Spec\Duration::from(['nanoseconds' => 2, 'days' => 1]);
-Assert::incomplete('untranslatable: BigInt()');
+$nanos = 9_007_199_254_740_993;
+TemporalHelpers::assertDuration($duration1->add($duration2), 0, 0, 0, 1 + 104, 5, 59, 59, 254, 740, 993, 'duration1.add(duration2)');

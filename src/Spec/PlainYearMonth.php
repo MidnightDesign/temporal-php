@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Temporal\Spec;
 
-use InvalidArgumentException;
 use Stringable;
+use Temporal\Exception\RangeError;
+use Temporal\Exception\TypeError;
 use Temporal\Spec\Internal\Calendar\CalendarFactory;
 use Temporal\Spec\Internal\CalendarMath;
+use Temporal\Spec\Internal\MonthCode;
+use Temporal\Spec\Internal\Options;
 use Temporal\Spec\Internal\TemporalSerde;
 
 /**
@@ -164,50 +167,45 @@ final class PlainYearMonth implements Stringable
     /**
      * Constructs a PlainYearMonth.
      *
-     * @param int|float $year            Calendar year (required).
-     * @param int|float $month           Calendar month 1–12 (required).
-     * @param string|null $calendar        Calendar ID string; only "iso8601" supported.
-     * @param int|float   $referenceISODay Reference ISO day, defaults to 1; must be a valid day for the month.
+     * @param mixed $year            TC39 ToIntegerWithTruncation: int/float/bool/null/string accepted.
+     * @param mixed $month           Calendar month 1–12 after coercion.
+     * @param string|int|float|bool|object|null $calendar        Calendar ID string; only "iso8601" supported.
+     * @param mixed $referenceISODay Reference ISO day, defaults to 1 when null/omitted; must be a valid day for the month.
      *
-     * @throws InvalidArgumentException if year/month/referenceISODay are out of range, infinite, or the calendar is unsupported.
+     * @throws RangeError if year/month/referenceISODay are out of range, infinite, or the calendar is unsupported.
+     * @throws TypeError if the calendar argument is not a string.
      */
     public function __construct(
-        int|float $year,
-        int|float $month,
-        ?string $calendar = null,
-        int|float $referenceISODay = 1,
+        mixed $year,
+        mixed $month,
+        string|int|float|bool|object|null $calendar = 'iso8601',
+        mixed $referenceISODay = null,
     ) {
-        if ($calendar !== null) {
-            $calendar = CalendarFactory::canonicalize($calendar);
-        }
-        $this->calendarId = $calendar ?? 'iso8601';
-        if (!is_finite((float) $year) || !is_finite((float) $month) || !is_finite((float) $referenceISODay)) {
-            throw new InvalidArgumentException(
-                'Invalid PlainYearMonth: year, month, and referenceISODay must be finite numbers.',
-            );
-        }
-
-        $this->isoYear = (int) $year;
-        $monthInt = (int) $month;
+        $this->calendarId = CalendarFactory::resolveConstructorCalendar($calendar, 'PlainYearMonth');
+        // TC39 ToIntegerWithTruncation: null/omitted → 0, bool → 0/1, string/float → truncated int.
+        // referenceISODay defaults to 1 when omitted (null).
+        $this->isoYear = CalendarMath::toConstructorInt($year, 'PlainYearMonth year');
+        $monthInt = CalendarMath::toConstructorInt($month, 'PlainYearMonth month');
         if ($monthInt < 1 || $monthInt > 12) {
-            throw new InvalidArgumentException("Invalid PlainYearMonth: month {$monthInt} is out of range 1–12.");
+            throw new RangeError("Invalid PlainYearMonth: month {$monthInt} is out of range 1–12.");
         }
         $this->isoMonth = $monthInt;
-        $refDay = (int) $referenceISODay;
+        // referenceISODay defaults to 1 when omitted/null (not 0 like other constructor fields).
+        $refDay = $referenceISODay === null
+            ? 1
+            : CalendarMath::toConstructorInt($referenceISODay, 'PlainYearMonth referenceISODay');
 
         // Validate referenceISODay is within the valid range for this year-month.
         $daysInMonth = CalendarMath::calcDaysInMonth($this->isoYear, $this->isoMonth);
         if ($refDay < 1 || $refDay > $daysInMonth) {
-            throw new InvalidArgumentException(
-                "Invalid PlainYearMonth: referenceISODay {$refDay} is out of range 1–{$daysInMonth}.",
-            );
+            throw new RangeError("Invalid PlainYearMonth: referenceISODay {$refDay} is out of range 1–{$daysInMonth}.");
         }
         $this->referenceISODay = $refDay;
 
         // TC39 range check: §9.5.9 ISOYearMonthWithinLimits
         // Range: April −271821 … September +275760 (month-granular, not day-granular).
         if (!self::isoYearMonthWithinLimits($this->isoYear, $this->isoMonth)) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Invalid PlainYearMonth: {$this->isoYear}-{$this->isoMonth} is outside the representable range.",
             );
         }
@@ -222,37 +220,29 @@ final class PlainYearMonth implements Stringable
      * property-bag array with 'year' and 'month'/'monthCode' fields.
      *
      * @param self|string|array<array-key, mixed>|object $item     PlainYearMonth, ISO 8601 year-month string, or property-bag array.
-     * @param array<array-key, mixed>|object|null $options Options bag: ['overflow' => 'constrain'|'reject']
-     * @throws InvalidArgumentException if the string is invalid or overflow option is invalid.
-     * @throws \TypeError if the type cannot be interpreted as a PlainYearMonth.
+     * @param mixed $options Options bag (['overflow' => 'constrain'|'reject']), null/primitive (TypeError), or omitted.
+     * @throws RangeError if the string is invalid or overflow option is invalid.
+     * @throws TypeError if the type cannot be interpreted as a PlainYearMonth.
      * @psalm-api
      */
-    public static function from(string|array|object $item, array|object|null $options = null): self
+    public static function from(string|array|object $item, mixed $options = []): self
     {
-        // Normalize options to array|null up front so option-handling has one path.
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-
-        // Validate overflow option before processing item (per spec ordering).
-        $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new \TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new InvalidArgumentException(
-                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                );
-            }
-            $overflow = $ov;
+        if (is_string($item)) {
+            // ToTemporalYearMonth: ParseISODateTime (step 4, RangeError) precedes
+            // GetOptionsObject / GetTemporalOverflowOption (steps 8-9), so a bad
+            // string raises RangeError even when the options argument is a bad
+            // primitive. Overflow is irrelevant to a string but is still validated.
+            $result = self::fromString($item);
+            Options::overflowFromValue($options);
+            return $result;
         }
+
+        // Object/instance/property-bag: GetOptionsObject + GetTemporalOverflowOption
+        // are read before the algorithmic field validation (CalendarYearMonthFromFields).
+        $overflow = Options::overflowFromValue($options);
 
         if ($item instanceof self) {
             return new self($item->isoYear, $item->isoMonth, $item->calendarId, $item->referenceISODay);
-        }
-        if (is_string($item)) {
-            return self::fromString($item);
         }
         if (is_object($item)) {
             $item = get_object_vars($item);
@@ -295,11 +285,11 @@ final class PlainYearMonth implements Stringable
      *
      * @param array<array-key,mixed>|object $fields   Property bag with fields to override.
      * @param array<array-key, mixed>|object|null       $options Options bag: ['overflow' => 'constrain'|'reject']
-     * @throws \TypeError             if $fields contains 'calendar' or 'timeZone'.
-     * @throws InvalidArgumentException if the resulting year-month is invalid.
+     * @throws TypeError             if $fields contains 'calendar' or 'timeZone'.
+     * @throws RangeError if the resulting year-month is invalid.
      * @psalm-api
      */
-    public function with(array|object $fields, array|object|null $options = null): self
+    public function with(array|object $fields, mixed $options = []): self
     {
         // Reject Temporal objects (IsPartialTemporalObject step 2).
         if (
@@ -312,13 +302,13 @@ final class PlainYearMonth implements Stringable
             || $fields instanceof Instant
             || $fields instanceof Duration
         ) {
-            throw new \TypeError('PlainYearMonth::with() argument must not be a Temporal object.');
+            throw new TypeError('PlainYearMonth::with() argument must not be a Temporal object.');
         }
 
         $fields = is_object($fields) ? get_object_vars($fields) : $fields;
 
         if (array_key_exists('calendar', $fields) || array_key_exists('timeZone', $fields)) {
-            throw new \TypeError('PlainYearMonth::with() fields must not contain a calendar or timeZone property.');
+            throw new TypeError('PlainYearMonth::with() fields must not contain a calendar or timeZone property.');
         }
 
         // At least one recognized field must be present.
@@ -329,35 +319,21 @@ final class PlainYearMonth implements Stringable
             && !array_key_exists('era', $fields)
             && !array_key_exists('eraYear', $fields)
         ) {
-            throw new \TypeError(
+            throw new TypeError(
                 'PlainYearMonth::with() requires at least one of: year, month, monthCode, era, eraYear.',
             );
         }
 
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-
-        // Validate overflow option.
-        $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if (!is_string($ov)) {
-                throw new \TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new InvalidArgumentException(
-                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                );
-            }
-            $overflow = $ov;
-        }
-
-        // Non-ISO calendar: delegate to dedicated handler.
+        // Non-ISO calendar: delegate to dedicated handler. (withNonIso resolves the
+        // overflow option after reading its own fields.)
         if ($this->calendarId !== 'iso8601') {
-            return $this->withNonIso($fields, $overflow, CalendarFactory::get($this->calendarId));
+            return $this->withNonIso($fields, $options, CalendarFactory::get($this->calendarId));
         }
 
-        // ISO path.
+        // ISO path. TC39 PrepareCalendarFields reads and coerces the partial fields
+        // BEFORE GetOptionsObject validates the options argument's type, so a bad field
+        // value's RangeError precedes a primitive options argument's TypeError. The
+        // overflow keyword (which only drives regulation) is resolved afterward.
         $year = $this->isoYear;
         if (array_key_exists('year', $fields)) {
             $year = CalendarMath::toFiniteInt($fields['year'], 'PlainYearMonth::with() year');
@@ -368,24 +344,26 @@ final class PlainYearMonth implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $fields);
 
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $fields['monthCode'];
-            if (!is_string($mc)) {
-                throw new \TypeError('monthCode must be a string.');
-            }
-            $month = CalendarMath::monthCodeToMonth($mc);
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING =>
+            // RangeError (type-then-syntax, before month suitability is resolved).
+            $month = CalendarMath::monthCodeToMonth(MonthCode::validate($fields['monthCode']));
         }
         if ($hasMonth) {
             $newMonth = CalendarMath::toFiniteInt($fields['month'], 'PlainYearMonth::with() month');
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                throw new RangeError('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
 
         if ($month < 1) {
-            throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+            throw new RangeError("Invalid month {$month}: must be at least 1.");
         }
+
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / primitive /
+        // Symbol => TypeError; omitted ([]) and a bag without 'overflow' default to
+        // 'constrain'; an 'overflow' value is coerced/validated.
+        $overflow = Options::overflowFromValue($options);
 
         if ($overflow === 'constrain') {
             $month = min(12, $month);
@@ -398,10 +376,13 @@ final class PlainYearMonth implements Stringable
     /**
      * Non-ISO calendar path for with(), mirroring PlainDate::withNonIso().
      *
+     * Resolves the overflow option AFTER reading its own fields, matching TC39's
+     * PrepareCalendarFields-before-GetOptionsObject ordering.
+     *
      * @param array<array-key,mixed> $fields
      * @param Internal\Calendar\CalendarProtocol $calendar
      */
-    private function withNonIso(array $fields, string $overflow, Internal\Calendar\CalendarProtocol $calendar): self
+    private function withNonIso(array $fields, mixed $options, Internal\Calendar\CalendarProtocol $calendar): self
     {
         $hasYear = array_key_exists('year', $fields);
         $hasEra = array_key_exists('era', $fields);
@@ -410,16 +391,16 @@ final class PlainYearMonth implements Stringable
         $hasMonthCode = array_key_exists('monthCode', $fields);
 
         // Chinese/Dangi have no eras — providing era or eraYear is always a TypeError.
-        if (($hasEra || $hasEraYear) && in_array($calendar->id(), ['chinese', 'dangi'], strict: true)) {
-            throw new \TypeError('eraYear and era are invalid for this calendar.');
+        if (($hasEra || $hasEraYear) && in_array($this->calendarId, ['chinese', 'dangi'], strict: true)) {
+            throw new TypeError('eraYear and era are invalid for this calendar.');
         }
 
         // TC39: era without eraYear (or vice versa) is TypeError when year is not also provided.
         if ($hasEra && !$hasEraYear && !$hasYear) {
-            throw new \TypeError('era provided without eraYear in with() fields.');
+            throw new TypeError('era provided without eraYear in with() fields.');
         }
         if ($hasEraYear && !$hasEra && !$hasYear) {
-            throw new \TypeError('eraYear provided without era in with() fields.');
+            throw new TypeError('eraYear provided without era in with() fields.');
         }
 
         // Resolve year: era+eraYear takes precedence over the current year if both provided.
@@ -446,12 +427,8 @@ final class PlainYearMonth implements Stringable
         $useMonthCode = false;
 
         if ($hasMonthCode) {
-            /** @var mixed $mc */
-            $mc = $fields['monthCode'];
-            if (!is_string($mc)) {
-                throw new \TypeError('monthCode must be a string.');
-            }
-            $monthCode = $mc;
+            // MonthCode::validate: non-string TYPE => TypeError, ill-formed STRING => RangeError.
+            $monthCode = MonthCode::validate($fields['monthCode']);
             $useMonthCode = true;
         }
         if ($hasMonth) {
@@ -461,7 +438,7 @@ final class PlainYearMonth implements Stringable
                 /** @var string $monthCode */
                 $monthFromCode = $calendar->monthCodeToMonth($monthCode, $year);
                 if ($month !== $monthFromCode) {
-                    throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                    throw new RangeError('Conflicting month and monthCode fields.');
                 }
             }
             $useMonthCode = false; // explicit month takes precedence
@@ -472,12 +449,16 @@ final class PlainYearMonth implements Stringable
             $useMonthCode = true;
         }
 
+        // GetOptionsObject + GetTemporalOverflowOption: resolved after the fields have
+        // been read/coerced (PrepareCalendarFields precedes GetOptionsObject in TC39).
+        $overflow = Options::overflowFromValue($options);
+
         if ($useMonthCode && $monthCode !== null) {
             [$isoY, $isoM, $isoD] = $calendar->calendarToIsoFromMonthCode($year, $monthCode, 1, $overflow);
         } else {
             /** @var int $month */
             if ($month < 1) {
-                throw new InvalidArgumentException("Invalid month {$month}: must be at least 1.");
+                throw new RangeError("Invalid month {$month}: must be at least 1.");
             }
             [$isoY, $isoM, $isoD] = $calendar->calendarToIso($year, $month, 1, $overflow);
         }
@@ -491,10 +472,10 @@ final class PlainYearMonth implements Stringable
      * Only years and months are relevant; weeks and days are rejected.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function add(string|array|object $duration, array|object|null $options = null): self
+    public function add(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(1, $dur, $options);
@@ -504,10 +485,10 @@ final class PlainYearMonth implements Stringable
      * Returns a new PlainYearMonth with the given duration subtracted.
      *
      * @param Duration|string|array<array-key, mixed>|object $duration
-     * @param array<array-key, mixed>|object|null                        $options ['overflow' => 'constrain'|'reject']
+     * @param array<array-key, mixed>|object                 $options ['overflow' => 'constrain'|'reject']
      * @psalm-api
      */
-    public function subtract(string|array|object $duration, array|object|null $options = null): self
+    public function subtract(string|array|object $duration, array|object $options = []): self
     {
         $dur = $duration instanceof Duration ? $duration : Duration::from($duration);
         return $this->addDuration(-1, $dur, $options);
@@ -517,14 +498,14 @@ final class PlainYearMonth implements Stringable
      * Returns the Duration from $other to this year-month (this − other).
      *
      * @param self|string|array<array-key, mixed>|object $other   PlainYearMonth or ISO 8601 year-month string.
-     * @param array<array-key, mixed>|object|null $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function since(string|array|object $other, array|object|null $options = null): Duration
+    public function since(string|array|object $other, array|object $options = []): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Cannot compute since() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
             );
         }
@@ -535,14 +516,14 @@ final class PlainYearMonth implements Stringable
      * Returns the Duration from this year-month to $other (other − this).
      *
      * @param self|string|array<array-key, mixed>|object $other   PlainYearMonth or ISO 8601 year-month string.
-     * @param array<array-key, mixed>|object|null $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object $options ['largestUnit' => 'year'|'month', 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      * @psalm-api
      */
-    public function until(string|array|object $other, array|object|null $options = null): Duration
+    public function until(string|array|object $other, array|object $options = []): Duration
     {
         $o = $other instanceof self ? $other : self::from($other);
         if ($this->calendarId !== $o->calendarId) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "Cannot compute until() between different calendars: \"{$this->calendarId}\" and \"{$o->calendarId}\".",
             );
         }
@@ -573,24 +554,20 @@ final class PlainYearMonth implements Stringable
      * With calendarName="always" or "critical": YYYY-MM-DD[...] using referenceISODay.
      *
      * @param array<array-key, mixed>|object|null $options Options bag: ['calendarName' => 'auto'|'always'|'never'|'critical']
-     * @throws InvalidArgumentException for invalid calendarName values.
+     * @throws RangeError for invalid calendarName values.
      * @psalm-api
      */
     #[\Override]
     public function toString(array|object|null $options = null): string
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
+        $opts = Options::normalizeOptions($options);
 
         $yearStr = self::formatYear($this->isoYear);
         $base = sprintf('%s-%02d', $yearStr, $this->isoMonth);
 
         $calendarName = 'auto';
-        if ($opts !== null && array_key_exists('calendarName', $opts)) {
-            /** @var mixed $cn */
-            $cn = $opts['calendarName'];
-            if (!is_string($cn)) {
-                throw new \TypeError('calendarName option must be a string.');
-            }
+        if (array_key_exists('calendarName', $opts)) {
+            $cn = Options::coerceEnumOption($opts['calendarName'], 'calendarName');
             $calendarName = $cn;
         }
 
@@ -603,7 +580,7 @@ final class PlainYearMonth implements Stringable
             'never' => $isNonIso ? $baseWithDay : $base,
             'always' => sprintf('%s[u-ca=%s]', $baseWithDay, $this->calendarId),
             'critical' => sprintf('%s[!u-ca=%s]', $baseWithDay, $this->calendarId),
-            default => throw new InvalidArgumentException("Invalid calendarName value: \"{$calendarName}\"."),
+            default => throw new RangeError("Invalid calendarName value: \"{$calendarName}\"."),
         };
     }
 
@@ -611,8 +588,8 @@ final class PlainYearMonth implements Stringable
      * Converts this PlainYearMonth to a PlainDate by supplying the day.
      *
      * @param array<array-key, mixed>|object $fields Must contain 'day' key.
-     * @throws \TypeError             if $fields is not an object/array or 'day' is missing.
-     * @throws InvalidArgumentException if the resulting date is invalid.
+     * @throws TypeError             if $fields is not an object/array or 'day' is missing.
+     * @throws RangeError if the resulting date is invalid.
      * @psalm-api
      */
     public function toPlainDate(array|object $fields): PlainDate
@@ -620,7 +597,7 @@ final class PlainYearMonth implements Stringable
         $bag = is_object($fields) ? get_object_vars($fields) : $fields;
 
         if (!array_key_exists('day', $bag)) {
-            throw new \TypeError('PlainYearMonth::toPlainDate() argument must have a day property.');
+            throw new TypeError('PlainYearMonth::toPlainDate() argument must have a day property.');
         }
 
         $day = CalendarMath::toFiniteInt($bag['day'], 'toPlainDate() day');
@@ -628,7 +605,7 @@ final class PlainYearMonth implements Stringable
         // Constrain day to valid range for this year-month.
         $maxDay = CalendarMath::calcDaysInMonth($this->isoYear, $this->isoMonth);
         if ($day < 1) {
-            throw new InvalidArgumentException("Invalid day {$day}: must be at least 1.");
+            throw new RangeError("Invalid day {$day}: must be at least 1.");
         }
         if ($day > $maxDay) {
             $day = $maxDay; // constrain (default overflow behaviour per spec)
@@ -651,22 +628,20 @@ final class PlainYearMonth implements Stringable
      * Optional trailing time, offset, and bracket annotations are accepted;
      * only the date portion is used. Z (UTC designator) and fractional minutes are not valid.
      *
-     * @throws InvalidArgumentException for invalid or out-of-range dates.
+     * @throws RangeError for invalid or out-of-range dates.
      */
     private static function fromString(string $s): self
     {
         if ($s === '') {
-            throw new InvalidArgumentException('PlainYearMonth::from() received an empty string.');
+            throw new RangeError('PlainYearMonth::from() received an empty string.');
         }
         // Reject non-ASCII minus sign (U+2212 = \xe2\x88\x92).
         if (str_contains($s, "\u{2212}")) {
-            throw new InvalidArgumentException(
-                "PlainYearMonth::from() cannot parse \"{$s}\": non-ASCII minus sign is not allowed.",
-            );
+            throw new RangeError("PlainYearMonth::from() cannot parse \"{$s}\": non-ASCII minus sign is not allowed.");
         }
         // Reject more than 9 fractional-second digits.
         if (preg_match('/[.,]\d{10,}/', $s) === 1) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "PlainYearMonth::from() cannot parse \"{$s}\": fractional seconds may have at most 9 digits.",
             );
         }
@@ -685,9 +660,7 @@ final class PlainYearMonth implements Stringable
         /** @var list<string> $m */
         $m = [];
         if (preg_match($pattern, $s, $m) !== 1) {
-            throw new InvalidArgumentException(
-                "PlainYearMonth::from() cannot parse \"{$s}\": invalid ISO 8601 year-month string.",
-            );
+            throw new RangeError("PlainYearMonth::from() cannot parse \"{$s}\": invalid ISO 8601 year-month string.");
         }
 
         $yearRaw = $m[1];
@@ -695,7 +668,7 @@ final class PlainYearMonth implements Stringable
 
         // Reject minus-zero extended year (-000000).
         if (preg_match('/^-0{6}$/', $yearRaw) === 1) {
-            throw new InvalidArgumentException('Cannot use negative zero as extended year.');
+            throw new RangeError('Cannot use negative zero as extended year.');
         }
 
         $year = (int) $yearRaw;
@@ -720,21 +693,19 @@ final class PlainYearMonth implements Stringable
         if ($m[3] !== '') {
             $hour = (int) $m[3];
             if ($hour > 23) {
-                throw new InvalidArgumentException(
-                    "PlainYearMonth::from() cannot parse \"{$s}\": hour {$hour} out of range.",
-                );
+                throw new RangeError("PlainYearMonth::from() cannot parse \"{$s}\": hour {$hour} out of range.");
             }
             if ($m[4] !== '') {
                 $minute = (int) $m[4];
                 if ($minute > 59) {
-                    throw new InvalidArgumentException(
+                    throw new RangeError(
                         "PlainYearMonth::from() cannot parse \"{$s}\": minute {$minute} out of range.",
                     );
                 }
                 if ($m[5] !== '') {
                     $second = (int) $m[5];
                     if ($second > 60) {
-                        throw new InvalidArgumentException(
+                        throw new RangeError(
                             "PlainYearMonth::from() cannot parse \"{$s}\": second {$second} out of range.",
                         );
                     }
@@ -750,7 +721,7 @@ final class PlainYearMonth implements Stringable
         // because a day is required to resolve the reference ISO day.
         $hasDay = str_starts_with($dateRest, '-') ? strlen($dateRest) >= 6 : strlen($dateRest) === 4;
         if (!$hasDay && $calendarId !== null && $calendarId !== 'iso8601') {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "PlainYearMonth::from() cannot parse \"{$s}\": year-month form requires a full date (YYYY-MM-DD) with non-ISO calendar \"{$calendarId}\".",
             );
         }
@@ -764,7 +735,7 @@ final class PlainYearMonth implements Stringable
 
         // Validate month range before day validation.
         if ($month < 1 || $month > 12) {
-            throw new InvalidArgumentException(sprintf(
+            throw new RangeError(sprintf(
                 'PlainYearMonth::from() cannot parse "%s": month %d out of range.',
                 $s,
                 $month,
@@ -774,7 +745,7 @@ final class PlainYearMonth implements Stringable
         // Validate that $refDay is a valid day for this month (day from string).
         $daysInMonth = CalendarMath::calcDaysInMonth($year, $month);
         if ($refDay < 1 || $refDay > $daysInMonth) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "PlainYearMonth::from() cannot parse \"{$s}\": day {$refDay} is out of range for month {$month}.",
             );
         }
@@ -782,7 +753,7 @@ final class PlainYearMonth implements Stringable
         // For ISO calendar: referenceISODay = 1 (per spec §9.5.2 step 5.d).
         // For non-ISO calendars: preserve the referenceISODay from the string.
         $effectiveRefDay = $calendarId !== null && $calendarId !== 'iso8601' ? $refDay : 1;
-        return new self($year, $month, $calendarId, $effectiveRefDay);
+        return new self($year, $month, $calendarId ?? 'iso8601', $effectiveRefDay);
     }
 
     /**
@@ -790,8 +761,8 @@ final class PlainYearMonth implements Stringable
      *
      * @param array<array-key,mixed> $bag
      * @param string $overflow 'constrain' or 'reject'
-     * @throws \TypeError if required fields are missing or have wrong type.
-     * @throws InvalidArgumentException if the year-month is invalid.
+     * @throws TypeError if required fields are missing or have wrong type.
+     * @throws RangeError if the year-month is invalid.
      */
     private static function fromPropertyBag(array $bag, string $overflow = 'constrain'): self
     {
@@ -803,13 +774,23 @@ final class PlainYearMonth implements Stringable
         $calendarSupportsEras = CalendarMath::supportsEras($calendarId);
 
         if (!array_key_exists('year', $bag) && (!$hasEraAndEraYear || !$calendarSupportsEras)) {
-            throw new \TypeError('PlainYearMonth property bag must have a year field.');
+            throw new TypeError('PlainYearMonth property bag must have a year field.');
         }
         if (!array_key_exists('month', $bag) && !array_key_exists('monthCode', $bag)) {
-            throw new \TypeError('PlainYearMonth property bag must have a month or monthCode field.');
+            throw new TypeError('PlainYearMonth property bag must have a month or monthCode field.');
         }
 
         $calendar = $calendarId !== null && $calendarId !== 'iso8601' ? CalendarFactory::get($calendarId) : null;
+
+        // Read/validate monthCode FORMAT before reading year. Per TC39, fields are read in
+        // alphabetical order ("monthCode" before "year"), and ToMonthCode validates the
+        // syntax at read time. So a non-string monthCode => TypeError and an ill-formed
+        // monthCode STRING => RangeError, both before the year field's type is consulted.
+        // (Month-code *suitability* for the year is validated later, after the year is read.)
+        $monthCodeStr = null;
+        if (array_key_exists('monthCode', $bag)) {
+            $monthCodeStr = MonthCode::validate($bag['monthCode']);
+        }
 
         // Extract year from the bag, or resolve from era + eraYear.
         $year = 0;
@@ -817,7 +798,7 @@ final class PlainYearMonth implements Stringable
             /** @var mixed $yearRaw */
             $yearRaw = $bag['year'];
             if ($yearRaw === null) {
-                throw new \TypeError('PlainYearMonth property bag year field must not be undefined.');
+                throw new TypeError('PlainYearMonth property bag year field must not be undefined.');
             }
             $year = CalendarMath::toFiniteInt($yearRaw, 'PlainYearMonth year');
         }
@@ -836,15 +817,10 @@ final class PlainYearMonth implements Stringable
         $hasMonth = array_key_exists('month', $bag);
         $hasMonthCode = array_key_exists('monthCode', $bag);
 
-        if ($hasMonthCode) {
-            /** @var mixed $monthCodeRaw */
-            $monthCodeRaw = $bag['monthCode'];
-            if (!is_string($monthCodeRaw)) {
-                throw new \TypeError('PlainYearMonth monthCode must be a string.');
-            }
-            $monthCode = $monthCodeRaw;
+        if ($monthCodeStr !== null) {
+            $monthCode = $monthCodeStr;
             $month = $calendar !== null
-                ? $calendar->monthCodeToMonth($monthCode, $year)
+                ? $calendar->monthCodeToMonth($monthCode, $year, $overflow)
                 : CalendarMath::monthCodeToMonth($monthCode);
         }
 
@@ -852,11 +828,11 @@ final class PlainYearMonth implements Stringable
             /** @var mixed $monthRaw */
             $monthRaw = $bag['month'] ?? null;
             if ($monthRaw === null) {
-                throw new \TypeError('PlainYearMonth property bag month field must not be undefined.');
+                throw new TypeError('PlainYearMonth property bag month field must not be undefined.');
             }
             $newMonth = CalendarMath::toFiniteInt($monthRaw, 'PlainYearMonth month');
             if ($hasMonthCode && $newMonth !== $month) {
-                throw new InvalidArgumentException('Conflicting month and monthCode fields.');
+                throw new RangeError('Conflicting month and monthCode fields.');
             }
             $month = $newMonth;
         }
@@ -865,7 +841,7 @@ final class PlainYearMonth implements Stringable
 
         // month < 1 is always invalid (cannot constrain below minimum of 1).
         if ($month < 1) {
-            throw new InvalidArgumentException("Invalid PlainYearMonth: month {$month} must be at least 1.");
+            throw new RangeError("Invalid PlainYearMonth: month {$month} must be at least 1.");
         }
 
         // Non-ISO calendar: resolve calendar fields to ISO via the calendar protocol.
@@ -883,7 +859,7 @@ final class PlainYearMonth implements Stringable
             $month = min(12, $month);
         }
 
-        return new self($year, $month, $calendarId, 1);
+        return new self($year, $month, $calendarId ?? 'iso8601', 1);
     }
 
     /**
@@ -892,13 +868,13 @@ final class PlainYearMonth implements Stringable
      * The since()/until() operations use day=1 of each year-month as the anchor date,
      * so both must be valid PlainDates (not just valid PlainYearMonths).
      *
-     * @throws InvalidArgumentException if the first day of the month is outside the PlainDate range.
+     * @throws RangeError if the first day of the month is outside the PlainDate range.
      */
     private static function validateYearMonthForDiff(self $ym): void
     {
         $epochDays = CalendarMath::toJulianDay($ym->isoYear, $ym->isoMonth, 1) - 2_440_588;
         if ($epochDays < -100_000_001 || $epochDays > 100_000_000) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 "PlainYearMonth {$ym->isoYear}-{$ym->isoMonth}: first day is outside the representable PlainDate range.",
             );
         }
@@ -911,13 +887,13 @@ final class PlainYearMonth implements Stringable
      * "since", the final result is negated.
      *
      * @param string $operation 'since' or 'until'
-     * @param array<array-key, mixed>|object|null $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
+     * @param array<array-key, mixed>|object $options ['largestUnit' => ..., 'smallestUnit' => ..., 'roundingMode' => ..., 'roundingIncrement' => ...]
      */
     private static function diffYearMonth(
         self $temporalDate,
         self $other,
         string $operation,
-        array|object|null $options,
+        array|object $options,
     ): Duration {
         /** @var list<string> $validUnits */
         static $validUnits = ['auto', 'month', 'months', 'year', 'years'];
@@ -947,19 +923,20 @@ final class PlainYearMonth implements Stringable
         $roundingMode = 'trunc';
         $roundingIncrement = 1;
 
-        if ($options !== null) {
-            $opts = is_array($options) ? $options : get_object_vars($options);
-
+        // GetOptionsObject: validate and normalise the options bag.
+        // Stringable sentinels (JsSymbol) trigger TypeError via __toString().
+        $opts = Options::requireObject($options);
+        if ($opts !== []) {
             // largestUnit
             if (array_key_exists('largestUnit', $opts)) {
                 /** @var mixed $lu */
                 $lu = $opts['largestUnit'];
-                if ($lu !== null && !is_string($lu)) {
-                    throw new \TypeError('largestUnit option must be a string.');
+                if ($lu !== null) {
+                    $lu = Options::coerceEnumOption($lu, 'largestUnit');
                 }
                 if (is_string($lu)) {
                     if (in_array($lu, $disallowedUnits, strict: true) || !in_array($lu, $validUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid largestUnit value: \"{$lu}\".");
+                        throw new RangeError("Invalid largestUnit value: \"{$lu}\".");
                     }
                     $largestUnit = $lu;
                     $largestUnitExplicit = true;
@@ -979,14 +956,11 @@ final class PlainYearMonth implements Stringable
             if (array_key_exists('roundingMode', $opts)) {
                 /** @var mixed $rm */
                 $rm = $opts['roundingMode'];
-                if ($rm !== null && !is_string($rm)) {
-                    throw new \TypeError('roundingMode option must be a string.');
+                if ($rm !== null) {
+                    $rm = Options::coerceEnumOption($rm, 'roundingMode');
                 }
                 if (is_string($rm)) {
-                    if (!in_array($rm, CalendarMath::ROUNDING_MODES, strict: true)) {
-                        throw new InvalidArgumentException("Invalid roundingMode value: \"{$rm}\".");
-                    }
-                    $roundingMode = $rm;
+                    $roundingMode = Options::roundingMode($rm);
                 }
             }
 
@@ -994,12 +968,12 @@ final class PlainYearMonth implements Stringable
             if (array_key_exists('smallestUnit', $opts)) {
                 /** @var mixed $su */
                 $su = $opts['smallestUnit'];
-                if ($su !== null && !is_string($su)) {
-                    throw new \TypeError('smallestUnit option must be a string.');
+                if ($su !== null) {
+                    $su = Options::coerceEnumOption($su, 'smallestUnit');
                 }
                 if (is_string($su)) {
                     if (in_array($su, $disallowedUnits, strict: true) || !in_array($su, $validUnits, strict: true)) {
-                        throw new InvalidArgumentException("Invalid smallestUnit value: \"{$su}\".");
+                        throw new RangeError("Invalid smallestUnit value: \"{$su}\".");
                     }
                     $smallestUnit = $su;
                 }
@@ -1031,7 +1005,7 @@ final class PlainYearMonth implements Stringable
 
         if ($suRank > $luRank) {
             if ($largestUnitExplicit) {
-                throw new InvalidArgumentException(
+                throw new RangeError(
                     "smallestUnit \"{$smallestUnit}\" cannot be larger than largestUnit \"{$largestUnit}\".",
                 );
             }
@@ -1138,7 +1112,7 @@ final class PlainYearMonth implements Stringable
      * Progress is computed as the fraction of remaining months within the increment bucket,
      * measured in days (since months have varying lengths).
      *
-     * @throws InvalidArgumentException if the rounded result is outside the valid range.
+     * @throws RangeError if the rounded result is outside the valid range.
      */
     private static function roundCalendarYearMonths(
         int $totalMonths,
@@ -1160,9 +1134,7 @@ final class PlainYearMonth implements Stringable
             $dir2 = $receiverIsLater ? -$sign2 : $sign2;
             [$ry, $rm] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir2 * $absMonths);
             if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-                throw new InvalidArgumentException(
-                    'PlainYearMonth arithmetic result is outside the representable range.',
-                );
+                throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
             }
             return $totalMonths;
         }
@@ -1180,7 +1152,7 @@ final class PlainYearMonth implements Stringable
 
         // Validate the next boundary is within the representable range (§NudgeToCalendarUnit step 8).
         if (!self::isoYearMonthWithinLimits($nextY, $nextM)) {
-            throw new InvalidArgumentException('PlainYearMonth rounding result is outside the representable range.');
+            throw new RangeError('PlainYearMonth rounding result is outside the representable range.');
         }
 
         // Interval size in days (anchor → next boundary).
@@ -1202,7 +1174,7 @@ final class PlainYearMonth implements Stringable
         // Validate range.
         [$ry, $rm] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir * $roundedAbs);
         if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
+            throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return $sign * $roundedAbs;
@@ -1255,7 +1227,7 @@ final class PlainYearMonth implements Stringable
 
         // Validate the next boundary is within the representable range.
         if (!self::isoYearMonthWithinLimits($nextY, $nextM)) {
-            throw new InvalidArgumentException('PlainYearMonth rounding result is outside the representable range.');
+            throw new RangeError('PlainYearMonth rounding result is outside the representable range.');
         }
 
         $anchorJdn = CalendarMath::toJulianDay($anchorY, $anchorM, 1);
@@ -1280,7 +1252,7 @@ final class PlainYearMonth implements Stringable
         // Validate range.
         [$ry, $rm] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir * $roundedAbs * 12);
         if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
+            throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return $sign * $roundedAbs;
@@ -1295,7 +1267,7 @@ final class PlainYearMonth implements Stringable
      * If rounding up would push months to >= 12, the carry propagates into years.
      *
      * @return array{0: int, 1: int} [roundedYears, roundedMonths]
-     * @throws InvalidArgumentException if the rounded result is outside the valid range.
+     * @throws RangeError if the rounded result is outside the valid range.
      */
     private static function roundCalendarMonthsWithinYear(
         int $rawYears,
@@ -1331,7 +1303,7 @@ final class PlainYearMonth implements Stringable
 
         // Validate that the next boundary is representable.
         if (!self::isoYearMonthWithinLimits($nextY, $nextM)) {
-            throw new InvalidArgumentException('PlainYearMonth rounding result is outside the representable range.');
+            throw new RangeError('PlainYearMonth rounding result is outside the representable range.');
         }
 
         // Calendar-aware progress: measure remaining months in days from the month anchor.
@@ -1359,7 +1331,7 @@ final class PlainYearMonth implements Stringable
         $totalAbsMonths = (abs($rawYears) * 12) + $roundedAbsMonths;
         [$ry, $rm] = self::addSignedMonthsYM($receiver->isoYear, $receiver->isoMonth, $dir * $totalAbsMonths);
         if (!self::isoYearMonthWithinLimits($ry, $rm)) {
-            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
+            throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return [$roundedYears, $roundedMonths];
@@ -1367,37 +1339,14 @@ final class PlainYearMonth implements Stringable
 
     /**
      * Shared implementation for add() and subtract().
-     *
-     * @param array<array-key, mixed>|object|null $options
      */
-    private function addDuration(int $sign, Duration $dur, array|object|null $options): self
+    private function addDuration(int $sign, Duration $dur, mixed $options): self
     {
-        $opts = is_object($options) ? get_object_vars($options) : $options;
-
-        // Validate overflow option. Per TC39 spec §9.5.7:
-        // GetOption calls ToString(value) first, then validates the string.
-        // So non-string values get coerced to string, and the resulting string is validated.
-        // This means null → "null" → RangeError, true → "true" → RangeError, etc.
-        // The overflow value itself is not consulted for arithmetic (PlainYearMonth has no day field to constrain).
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ov */
-            $ov = $opts['overflow'];
-            if ($ov === null || is_bool($ov) || is_int($ov) || is_float($ov)) {
-                // Coerce to string per spec, then fail validation.
-                $ovStr = (string) $ov;
-                throw new InvalidArgumentException(
-                    "Invalid overflow value: \"{$ovStr}\"; must be 'constrain' or 'reject'.",
-                );
-            }
-            if (!is_string($ov)) {
-                throw new \TypeError('overflow option must be a string.');
-            }
-            if ($ov !== 'constrain' && $ov !== 'reject') {
-                throw new InvalidArgumentException(
-                    "Invalid overflow value: \"{$ov}\"; must be 'constrain' or 'reject'.",
-                );
-            }
-        }
+        // GetOptionsObject + GetTemporalOverflowOption: explicit null / non-object
+        // primitive / Symbol => TypeError; omitted ([]) and a bag without 'overflow'
+        // default to 'constrain'; an 'overflow' value is coerced/validated (a non-string,
+        // non-Symbol value => RangeError, a Symbol sentinel => TypeError).
+        $overflow = Options::overflowFromValue($options);
 
         // TC39 spec §9.5.7 step 8: The intermediate PlainDate created from {year, month, day=1}
         // must be within the valid PlainDate range (ISODateWithinLimits check via CreateTemporalDate).
@@ -1416,23 +1365,13 @@ final class PlainYearMonth implements Stringable
             || (int) $dur->microseconds !== 0
             || (int) $dur->nanoseconds !== 0
         ) {
-            throw new InvalidArgumentException(
+            throw new RangeError(
                 'PlainYearMonth::add()/subtract() does not support sub-month units (weeks, days, hours, etc.).',
             );
         }
 
         $years = $sign * (int) $dur->years;
         $months = $sign * (int) $dur->months;
-
-        // Extract the actual overflow value for the calendar protocol.
-        $overflow = 'constrain';
-        if ($opts !== null && array_key_exists('overflow', $opts)) {
-            /** @var mixed $ovVal */
-            $ovVal = $opts['overflow'];
-            if (is_string($ovVal) && ($ovVal === 'constrain' || $ovVal === 'reject')) {
-                $overflow = $ovVal;
-            }
-        }
 
         // Delegate to the calendar protocol for date arithmetic.
         $cal = CalendarFactory::get($this->calendarId);
@@ -1449,7 +1388,7 @@ final class PlainYearMonth implements Stringable
 
         // Range check using month-granular limit.
         if (!self::isoYearMonthWithinLimits($newIsoY, $newIsoM)) {
-            throw new InvalidArgumentException('PlainYearMonth arithmetic result is outside the representable range.');
+            throw new RangeError('PlainYearMonth arithmetic result is outside the representable range.');
         }
 
         return new self($newIsoY, $newIsoM, $this->calendarId, $newIsoD);
@@ -1490,11 +1429,6 @@ final class PlainYearMonth implements Stringable
         return sprintf('%04d', $year);
     }
 
-    /**
-     * TC39 §9.5.9 ISOYearMonthWithinLimits.
-     *
-     * Valid range: April −271821 … September +275760.
-     */
     private static function isoYearMonthWithinLimits(int $year, int $month): bool
     {
         if ($year < -271_821 || $year > 275_760) {

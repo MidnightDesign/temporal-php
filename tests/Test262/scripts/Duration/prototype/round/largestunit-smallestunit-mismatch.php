@@ -11,10 +11,10 @@ use Temporal\Tests\Test262\JsUndefined;
 $d = new \Temporal\Spec\Duration(5, 5, 5, 5, 5, 5, 5, 5, 5, 5);
 $relativeTo = \Temporal\Spec\PlainDate::from('2020-01-01');
 $units = ['years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds', 'milliseconds', 'microseconds', 'nanoseconds'];
-for ($largestIdx = 1; $largestIdx < count($units); $largestIdx++) {
+for ($largestIdx = 1; $largestIdx < (is_string($units) ? strlen($units) : count($units)); $largestIdx++) {
 for ($smallestIdx = 0; $smallestIdx < $largestIdx; $smallestIdx++) {
 $largestUnit = $units[$largestIdx];
 $smallestUnit = $units[$smallestIdx];
-Assert::throws(\InvalidArgumentException::class, function () use (&$d, &$largestUnit, &$smallestUnit, &$relativeTo) { return $d->round(JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'relativeTo' => $relativeTo])); }, "{$smallestUnit} > {$largestUnit}");
+Assert::throws(\RangeException::class, function () use (&$d, &$largestUnit, &$smallestUnit, &$relativeTo) { return $d->round(JsUndefined::strip(['largestUnit' => $largestUnit, 'smallestUnit' => $smallestUnit, 'relativeTo' => $relativeTo])); }, "{$smallestUnit} > {$largestUnit}");
 }
 }

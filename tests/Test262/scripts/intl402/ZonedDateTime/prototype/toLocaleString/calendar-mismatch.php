@@ -8,4 +8,12 @@ declare(strict_types=1);
 
 use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
+use Temporal\Tests\Test262\TemporalHelpers;
+$localeCalendar = TemporalHelpers::defaultLocaleCalendar();
+Assert::notSameValue($localeCalendar, 'iso8601', 'no locale has the ISO calendar');
+$sameCalendarInstance = new \Temporal\Spec\ZonedDateTime(0, 'UTC', $localeCalendar);
+$result = $sameCalendarInstance->toLocaleString();
+Assert::sameValue(is_string($result), true, 'toLocaleString() succeeds when instance has the same calendar as locale');
+$isoInstance = new \Temporal\Spec\ZonedDateTime(0, 'UTC', 'iso8601');
+Assert::sameValue($isoInstance->toLocaleString(), $result, 'toLocaleString() succeeds when instance has the ISO calendar');
 Assert::incomplete('untranslatable new expression');

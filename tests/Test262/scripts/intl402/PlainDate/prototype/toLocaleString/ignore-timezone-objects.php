@@ -10,6 +10,6 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $instance = \Temporal\Spec\PlainDate::from((object) ['year' => 2011, 'month' => 12, 'day' => 30]);
 $result = $instance->toLocaleString('en-US', (object) ['timeZone' => 'Pacific/Apia']);
-Assert::assertTrue(str_contains($result, '30') && !str_contains($result, '31'), '');
+Assert::assertTrue(\Temporal\Tests\Test262\Js::includes($result, '30') && !\Temporal\Tests\Test262\Js::includes($result, '31'), '');
 Assert::sameValue($instance->toLocaleString('en-US', (object) ['timeZone' => 'Pacific/Apia']), $instance->toLocaleString('en-US'), '');
 Assert::sameValue($instance->toLocaleString('en-US', (object) ['timeZone' => 'Pacific/Apia']), $instance->toLocaleString('en-US', (object) ['timeZone' => 'UTC']), '');

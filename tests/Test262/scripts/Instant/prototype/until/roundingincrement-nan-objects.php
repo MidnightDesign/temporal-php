@@ -10,4 +10,4 @@ use Temporal\Tests\Test262\Assert;
 use Temporal\Tests\Test262\JsUndefined;
 $earlier = new \Temporal\Spec\Instant(1_000_000_000_987_654_321);
 $later = new \Temporal\Spec\Instant(1_000_090_061_988_655_322);
-Assert::throws(\InvalidArgumentException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) JsUndefined::strip(['roundingIncrement' => NAN])); }, '');
+Assert::throws(\RangeException::class, function () use (&$earlier, &$later) { return $earlier->until($later, (object) JsUndefined::strip(['roundingIncrement' => NAN])); }, '');
