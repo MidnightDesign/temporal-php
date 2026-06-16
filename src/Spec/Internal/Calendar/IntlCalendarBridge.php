@@ -942,23 +942,18 @@ final class IntlCalendarBridge implements CalendarProtocol
 
     /**
      * Returns the calendar year from the currently-set IntlCalendar state.
-     * For Gregorian-based calendars, convert via epoch to get the proleptic ISO year first.
+     * For Gregorian-based calendars, convert via the cached ISO year.
      */
     private function calendarYear(): int
     {
-        // For Gregorian-based calendars, derive directly from the cached ISO year
-        // if available (setIsoDate path); otherwise fall back to epoch-to-ISO.
+        // For Gregorian-based calendars, derive directly from the cached ISO
+        // year. Every caller runs setIsoDate() immediately before this, so
+        // $lastSetIsoYear is always valid on the Gregorian path.
         if (match ($this->calendarId) {
             'gregory', 'japanese', 'buddhist', 'roc' => true,
             default => false,
         }) {
-            if ($this->lastSetJdn !== null) {
-                $isoY = $this->lastSetIsoYear;
-            } else {
-                $epochMs = $this->intlCal->getTime();
-                $jdn = (int) floor($epochMs / (float) self::MS_PER_DAY) + 2_440_588;
-                [$isoY] = CalendarMath::fromJulianDay($jdn);
-            }
+            $isoY = $this->lastSetIsoYear;
             return match ($this->calendarId) {
                 'gregory', 'japanese' => $isoY,
                 'buddhist' => $isoY + 543,
@@ -975,31 +970,16 @@ final class IntlCalendarBridge implements CalendarProtocol
     }
 
     /**
-     * Returns the calendar ordinal month using the same logic as month().
-     * Must call setIsoDate() first.
-     */
-    /**
      * Returns the calendar ordinal month from the currently-set IntlCalendar state.
+     *
+     * The only caller (dateAdd's pre-1583 Gregorian fallback) is gated on
+     * {@see $isGregorianBased} and always runs setIsoDate() first, so the
+     * calendar is Gregorian-based (ordinal month == ISO month) and the ISO
+     * fields are cached.
      */
     private function calendarMonth(): int
     {
-        // Gregorian-based calendars: use cached ISO month if available.
-        if (match ($this->calendarId) {
-            'gregory', 'japanese', 'buddhist', 'roc' => true,
-            default => false,
-        }) {
-            if ($this->lastSetJdn !== null) {
-                return $this->lastSetIsoMonth;
-            }
-            $epochMs = $this->intlCal->getTime();
-            $jdn = (int) floor($epochMs / (float) self::MS_PER_DAY) + 2_440_588;
-            [, $isoM] = CalendarMath::fromJulianDay($jdn);
-            return $isoM;
-        }
-        return match ($this->calendarId) {
-            'chinese', 'dangi' => $this->chineseMonthOrdinal(),
-            default => $this->intlCal->get(\IntlCalendar::FIELD_MONTH) + 1,
-        };
+        return $this->lastSetIsoMonth;
     }
 
     /**
