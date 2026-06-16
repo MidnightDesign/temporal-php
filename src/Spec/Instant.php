@@ -336,18 +336,18 @@ final class Instant implements Stringable
         // malformed strings (e.g. empty $min when only the hour was given).
         // Extended year strings like '+001976-11-18T15:23:30+00:00' are handled
         // natively by PHP's flexible DateTime parser.
-        try {
-            $dt = new DateTimeImmutable(sprintf(
-                '%s%sT%02d:%02d:%02d+00:00',
-                $yearRaw,
-                $dateRest,
-                $hourNum,
-                $minNum,
-                $normalSec,
-            ));
-        } catch (\Exception) {
-            throw new RangeError("Could not parse \"{$text}\".");
-        }
+        // Every component was range-validated above (year regex incl. the
+        // minus-zero check, month 1–12, day 1..daysInMonth, hour ≤23, minute ≤59,
+        // second 0–59), so the formatted UTC string is always well-formed — even at
+        // the spec-extreme extended years ±YYYYYY — and DateTimeImmutable cannot throw.
+        $dt = new DateTimeImmutable(sprintf(
+            '%s%sT%02d:%02d:%02d+00:00',
+            $yearRaw,
+            $dateRest,
+            $hourNum,
+            $minNum,
+            $normalSec,
+        ));
 
         // $localSec: Unix seconds for the local date/time as if it were UTC.
         $localSec = $dt->getTimestamp();
@@ -595,18 +595,12 @@ final class Instant implements Stringable
         if ($isMinute) {
             $increment = 60_000_000_000;
         } elseif ($digits >= 0) {
-            $increment = match ($digits) {
-                0 => 1_000_000_000,
-                1 => 100_000_000,
-                2 => 10_000_000,
-                3 => 1_000_000,
-                4 => 100_000,
-                5 => 10_000,
-                6 => 1_000,
-                7 => 100,
-                8 => 10,
-                default => 1,
-            };
+            // $digits ∈ [0, 9]; the rounding increment is 10^(9 − digits) ns.
+            // Collapsed from an over-enumerated per-digit match() whose every arm
+            // equals this closed form. ** widens to float|int in Psalm's model, but
+            // the exponent is always ≥ 0 so the result is an int — pinned here.
+            /** @var int<1, 1000000000> $increment */
+            $increment = 10 ** (9 - $digits);
         }
         // For 'auto' ($digits === -2), increment stays 1 (no rounding).
 
