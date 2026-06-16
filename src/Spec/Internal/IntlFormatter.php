@@ -264,9 +264,6 @@ final class IntlFormatter
             $pattern = $generator->getBestPattern('yMd');
         } elseif ($defaultComponents === 'time') {
             $pattern = $generator->getBestPattern('jms');
-        } elseif ($defaultComponents === 'datetime-tz') {
-            // ZonedDateTime default includes timezone name
-            $pattern = $generator->getBestPattern('yMdjmsz');
         } else {
             $pattern = $generator->getBestPattern('yMdjms');
         }
@@ -296,17 +293,17 @@ final class IntlFormatter
      * For 'day': removes d, D pattern chars and surrounding separators.
      *
      * Quoted literals (inside single quotes) are preserved.
+     *
+     * @param 'year'|'day' $which
      */
     public static function stripPatternComponents(string $pattern, string $which): string
     {
         if ($which === 'year') {
             // Remove year-related fields: y, Y, u, U, r and era G
             $result = (string) preg_replace('/[yYuUrG]+/', replacement: '', subject: $pattern);
-        } elseif ($which === 'day') {
+        } else {
             // Remove day-related fields: d, D
             $result = (string) preg_replace('/[dD]+/', replacement: '', subject: $pattern);
-        } else {
-            return $pattern;
         }
 
         // Clean up leftover separators: double separators, leading/trailing punctuation
