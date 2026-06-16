@@ -363,13 +363,10 @@ final class PlainMonthDay implements Stringable
             // No year: use monthCode path with reference year resolution. Resolve the
             // options object (GetOptionsObject) now that all fields have been read.
             $resolveOverflow();
-            if ($useMonthCode) {
-                /** @var string $monthCode — guaranteed non-null when $useMonthCode is true */
-                return self::resolveNonIsoReferenceYear($calendar, $this->calendarId, $monthCode, $day);
-            }
-
-            // Should not reach here — month without year was rejected above.
-            throw new TypeError('PlainMonthDay::with() non-ISO calendar requires year or monthCode.');
+            // $useMonthCode is always true here: month-without-year-or-monthCode was
+            // rejected above, and every other no-year shape sets useMonthCode = true.
+            /** @var string $monthCode — guaranteed non-null when $useMonthCode is true */
+            return self::resolveNonIsoReferenceYear($calendar, $this->calendarId, $monthCode, $day);
         }
 
         // ISO path: start from current fields.
@@ -433,17 +430,10 @@ final class PlainMonthDay implements Stringable
             }
         }
 
-        // Always use 1972 as the new referenceISOYear unless the day exceeds 1972's days for that month.
-        $newRefYear = 1972;
-        /**
-         * @psalm-suppress UnnecessaryVarAnnotation — Mago loses narrowing across if/else branches
-         */
-        $maxDayIn1972 = CalendarMath::calcDaysInMonth(1972, $month);
-        if ($day > $maxDayIn1972) {
-            $newRefYear = $refYear;
-        }
-
-        return new self($month, $day, $this->calendarId, $newRefYear);
+        // Always use 1972 as the new referenceISOYear: 1972 is a leap year, so its
+        // days-in-month is the maximum any year provides, and the constrain/reject
+        // validation above guarantees $day never exceeds it.
+        return new self($month, $day, $this->calendarId, 1972);
     }
 
     /**
