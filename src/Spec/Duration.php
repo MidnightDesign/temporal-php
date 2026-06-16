@@ -936,7 +936,6 @@ final class Duration implements Stringable
                 'milliseconds' => $totalSec * 1_000.0,
                 'microseconds' => $totalSec * 1_000_000.0,
                 'nanoseconds' => $totalSec * 1_000_000_000.0,
-                default => throw new RangeError("Unhandled unit: \"{$unit}\"."),
             };
             return self::toIntIfWhole($result);
         }
@@ -963,7 +962,6 @@ final class Duration implements Stringable
             'milliseconds' => $totalSec * 1_000.0,
             'microseconds' => $totalSec * 1_000_000.0,
             'nanoseconds' => $totalSec * 1_000_000_000.0,
-            default => throw new RangeError("Unhandled unit: \"{$unit}\"."),
         };
 
         // Return int when the result is a whole number (matches JS behavior where
@@ -1330,6 +1328,7 @@ final class Duration implements Stringable
      * Implements total() for calendar units (years/months/weeks) given an ISO PlainDate
      * relativeTo bag. Unknown keys in the bag are silently ignored per TC39.
      *
+     * @param 'years'|'months'|'weeks'|'days'|'hours'|'minutes'|'seconds'|'milliseconds'|'microseconds'|'nanoseconds' $unit
      * @param array<array-key,mixed> $relativeTo Validated plain-date property bag.
      * @param null|array{epochSec: int, subNs: int, tzId: string, year: int, month: int, day: int, hour: int, minute: int, second: int} $zdtInfo Optional ZDT info for DST-aware day lengths.
      */
@@ -1435,7 +1434,6 @@ final class Duration implements Stringable
                 'milliseconds' => $totalActualSec * 1_000.0,
                 'microseconds' => $totalActualSec * 1_000_000.0,
                 'nanoseconds' => $totalActualSec * 1_000_000_000.0,
-                default => throw new RangeError("Unhandled unit: \"{$unit}\"."),
             };
             return self::toIntIfWhole($result);
         }
@@ -1457,7 +1455,6 @@ final class Duration implements Stringable
             'microseconds' => self::toIntIfWhole(((float) $totalWholeDays * 86_400_000_000.0)
             + ((float) $fracNs / 1_000.0)),
             'nanoseconds' => self::toIntIfWhole(((float) $totalWholeDays * 86_400_000_000_000.0) + (float) $fracNs),
-            default => throw new RangeError("Unhandled unit: \"{$unit}\"."),
         };
     }
 
@@ -1806,6 +1803,7 @@ final class Duration implements Stringable
     /**
      * Normalises a singular or plural Temporal unit name to its canonical plural form.
      *
+     * @return 'years'|'months'|'weeks'|'days'|'hours'|'minutes'|'seconds'|'milliseconds'|'microseconds'|'nanoseconds'
      * @throws RangeError for unknown unit names.
      */
     private static function normalizeUnit(string $unit): string
