@@ -2061,7 +2061,7 @@ final class PlainDateTime implements Stringable
             'microsecond' => 1_000,
             'nanosecond' => 1,
         ];
-        /** @var list<string> $timeUnitOrder */
+        /** @var list<'hour'|'minute'|'second'|'millisecond'|'microsecond'|'nanosecond'> $timeUnitOrder */
         static $timeUnitOrder = ['hour', 'minute', 'second', 'millisecond', 'microsecond', 'nanosecond'];
 
         $rem = $roundedAbsNs;
@@ -2089,7 +2089,6 @@ final class PlainDateTime implements Stringable
                 'millisecond' => $ms = $val,
                 'microsecond' => $us = $val,
                 'nanosecond' => $ns = $val,
-                default => null,
             };
         }
 
@@ -2269,15 +2268,10 @@ final class PlainDateTime implements Stringable
         int $d2,
         bool $receiverIsY2 = true,
     ): array {
-        $sign = $y2 > $y1 || $y2 === $y1 && ($m2 > $m1 || $m2 === $m1 && $d2 >= $d1) ? 1 : -1;
-
-        $receiverIsY2AfterSwap = $receiverIsY2;
-
-        if ($sign < 0) {
-            [$y1, $m1, $d1, $y2, $m2, $d2] = [$y2, $m2, $d2, $y1, $m1, $d1];
-            $receiverIsY2AfterSwap = !$receiverIsY2;
-        }
-
+        // Both call sites pass (y1,m1,d1) = the earlier endpoint and (y2,m2,d2)
+        // derived from earlierJdn + a non-negative day count, so (y2,m2,d2) is always
+        // >= (y1,m1,d1) lexicographically. The diff is therefore always non-negative and
+        // the swap path a smaller second operand would need is unreachable here.
         $years = $y2 - $y1;
         $months = $m2 - $m1;
 
@@ -2295,7 +2289,7 @@ final class PlainDateTime implements Stringable
             }
         }
 
-        if ($receiverIsY2AfterSwap) {
+        if ($receiverIsY2) {
             $anchorMonth = $m2 - $months;
             $anchorYear = $y2 - $years;
             if ($anchorMonth <= 0) {
@@ -2321,7 +2315,7 @@ final class PlainDateTime implements Stringable
                 - CalendarMath::toJulianDay($anchorYear, $anchorMonth, $anchorDay);
         }
 
-        return [$sign * $years, $sign * $months, $sign * $days];
+        return [$years, $months, $days];
     }
 
     /**
