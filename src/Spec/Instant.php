@@ -574,7 +574,7 @@ final class Instant implements Stringable
         $tzOffsetSec = null;
         $ianaTimeZone = null;
         if ($hasTimeZone) {
-            /** @var string $timeZoneRaw */
+            /** @var non-empty-string $timeZoneRaw */
             $tzStr = $timeZoneRaw;
             $resolved = self::resolveTimeZoneOffsetSeconds($tzStr);
             if ($resolved !== null) {
@@ -584,7 +584,11 @@ final class Instant implements Stringable
                 // For bracket annotations, extract the bracket content.
                 $bm2 = null;
                 if (preg_match('/\[([^\]]+)\]/', $tzStr, $bm2) === 1) {
-                    $ianaTimeZone = $bm2[1];
+                    // Group 1 is `[^\]]+`, so the capture is always non-empty (Psalm
+                    // does not infer non-emptiness from the pattern on its own).
+                    /** @var non-empty-string $bracketTz */
+                    $bracketTz = $bm2[1];
+                    $ianaTimeZone = $bracketTz;
                 } else {
                     $ianaTimeZone = $tzStr;
                 }
@@ -681,6 +685,9 @@ final class Instant implements Stringable
      *     an inline offset must not include a seconds component.
      *
      * @throws RangeError for invalid timezone strings.
+     *
+     * @phpstan-assert non-empty-string $tz
+     * @psalm-assert non-empty-string $tz
      */
     private static function validateTimeZoneString(string $tz): void
     {
@@ -783,12 +790,13 @@ final class Instant implements Stringable
 
     /**
      * Resolves an IANA timezone to an offset in seconds at a given epoch second.
+     *
+     * @param non-empty-string $tz the IANA timezone name; the empty string is excluded
+     *   by the type because every call site derives it from a non-empty source (a
+     *   `[^\]]+` bracket capture, or a string already accepted by validateTimeZoneString)
      */
     private static function ianaOffsetSeconds(string $tz, int $epochSec): int
     {
-        if ($tz === '') {
-            return 0;
-        }
         try {
             $phpTz = new \DateTimeZone($tz);
             return $phpTz->getOffset(new \DateTimeImmutable(sprintf('@%d', $epochSec)));
