@@ -6,9 +6,11 @@ Temporal is the modern replacement for JavaScript's `Date`, providing a precise,
 
 ## Requirements
 
-- PHP 8.4+
+- PHP 8.4+ (64-bit recommended)
 - Composer
 - `ext-intl` (required for `toLocaleString()` on spec-layer `Instant`, `ZonedDateTime`, and `Duration`)
+
+> **32-bit platforms.** The library targets 64-bit PHP. It is not a hard requirement, but on 32-bit builds the native date primitives (`gmmktime()` and friends) only cover years ~1901–2038, so calculations near Temporal's extreme year range may misbehave. Running on 32-bit is not recommended.
 
 ## Installation
 
